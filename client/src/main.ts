@@ -1,27 +1,7 @@
-import { app, BrowserWindow } from 'electron'
+import { createApplication } from "./application"
+import { argvContains, argvGet } from "./utils/parameters"
 
-function createWindow() {
-    const win = new BrowserWindow({
-        width: 800,
-        height: 600,
-        webPreferences: {
-            nodeIntegration: true
-        }
-    })
-}
-
-app.on('window-all-closed', () => {
-    if (process.platform !== 'darwin') {
-        app.quit()
-    }
-})
-
-app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-        createWindow()
-    }
-})
-
-app.whenReady().then(() => {
-    createWindow()
+createApplication({
+    developmentMode: argvContains(process.argv, "--development-mode"),
+    developmentFrontendURL: argvGet(process.argv, "--development-frontend-url", "http://localhost:3000")
 })

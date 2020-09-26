@@ -3,6 +3,9 @@ import HelloWorld from '../components/HelloWorld'
 
 export default defineComponent({
     setup() {
-        return () => <HelloWorld msg="Hello Vue 3.0 + Vite"/>
+        return () => <>
+            <div class="title-bar"></div>
+            <HelloWorld msg="Hello Vue 3.0 + Vite"/>
+        </>
     }
 })

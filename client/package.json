@@ -4,7 +4,9 @@
   "license": "MIT",
   "main": "target/main.js",
   "scripts": {
-    "start": "electron ."
+    "compile": "tsc",
+    "start": "electron .",
+    "debug": "electron . --development-mode --development-frontend-url http://localhost:3000"
   },
   "dependencies": {},
   "devDependencies": {
