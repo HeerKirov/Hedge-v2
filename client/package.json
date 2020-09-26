@@ -1,0 +1,14 @@
+{
+  "name": "hedge-v2-client",
+  "version": "0.1.0",
+  "license": "MIT",
+  "main": "target/main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "electron": "^10.1.2",
+    "typescript": "^4.0.3"
+  }
+}

@@ -1,0 +1,10 @@
+.vscode
+.idea
+.DS_Store
+
+node_modules
+target
+dist
+
+.env.local
+.env.*.local

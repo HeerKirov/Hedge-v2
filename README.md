@@ -1,2 +1,1 @@
-# Hedge-v2
-Hedge album.
+# Hedge v2
