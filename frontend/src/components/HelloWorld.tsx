@@ -7,7 +7,7 @@ export default defineComponent({
 
         return () => <>
             <h1>{props.msg}</h1>
-            <button onClick={() => { count.value++ }}><i class="fa fa-church"/>count is: {count.value}</button>
+            <button onClick={() => { count.value++ }}><i class="fa fa-plus"/>count is: {count.value}</button>
             <p>Edit <code>components/HelloWorld.tsx</code> to test hot module replacement.</p>
         </>
     }

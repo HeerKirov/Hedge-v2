@@ -2,6 +2,7 @@ import { createApplication } from "./application"
 import { argvContains, argvGet } from "./utils/parameters"
 
 createApplication({
-    developmentMode: argvContains(process.argv, "--development-mode"),
-    developmentFrontendURL: argvGet(process.argv, "--development-frontend-url", "http://localhost:3000")
+    debugMode: argvContains(process.argv, "--debug-mode"),
+    debugFrontendURL: argvGet(process.argv, "--debug-frontend-url", "http://localhost:3000"),
+    debugFrontendFile: argvGet(process.argv, "--debug-frontend-file", "../frontend/dist/index.html")
 })
