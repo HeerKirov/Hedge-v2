@@ -7,3 +7,11 @@ export function getElectronPlatform(): Platform {
     }
     throw new Error(`Unsupported platform ${platform}.`)
 }
+
+export const APP_DATA_DIM = {
+    FOLDER: "app",
+    MAIN_STORAGE: "main.storage",
+    PID: "server.PID"
+}
+
+export const FRONTEND_INDEX_DIM = "frontend/index.html"

@@ -1,25 +1,49 @@
 import { app } from "electron"
 import { getElectronPlatform, Platform } from "../definitions"
 import { createWindowManager, WindowManager } from "./window-manager"
-import { createAppDataDriver } from "../appdata"
+import { createAppDataDriver } from "../external/appdata"
+import { createDatabaseDriver } from "../external/database"
 
 export interface AppOptions {
+    /**
+     * 以调试模式启动。调试模式下，软件使用的配置尽量贴近开发环境。
+     * - 使用的前端将优先考虑{debugFrontendURL}或{debugFrontendIndex}提供的内容。
+     * - 使用的后端将优先考虑{debugServerTarget}提供的内容。
+     */
     debugMode?: boolean
+    /**
+     * 提供一个URL，直接从此URL中获得前端内容。方便与开发环境连接。
+     */
     debugFrontendURL?: string
-    debugFrontendFile?: string
+    /**
+     * 提供一个index.html文件的路径。这方便直接连接一项现存的前端资源。
+     */
+    debugFrontendIndex?: string
+    /**
+     * 提供一个文件夹路径，在调试模式下所有数据都放在这里，与生产环境隔离。
+     */
+    debugAppDataFolder?: string
+    /**
+     * 提供一个可执行文件路径，使用此路径指定的server，方便直接连接现存的debug binary。
+     */
+    debugServerTarget?: string
 }
 
 export function createApplication(options?: AppOptions) {
     const platform = getElectronPlatform()
+    const debugMode = options?.debugMode ?? false
+    const appDataPath = options?.debugMode && options?.debugAppDataFolder ? options.debugAppDataFolder : app.getPath("userData")
 
     const windowManager = createWindowManager({
-        debugMode: options?.debugMode ?? false,
-        debugFrontendFile: options?.debugFrontendFile,
+        debugFrontendIndexPath: options?.debugFrontendIndex,
         debugFrontendURL: options?.debugFrontendURL,
+        debugMode,
         platform
     })
 
-    const appDataDriver = createAppDataDriver()
+    const appDataDriver = createAppDataDriver({debugMode, appDataPath})
+
+    const dbDriver = createDatabaseDriver({debugMode, appDataPath})
 
     registerAppEvents(windowManager, platform, options)
 

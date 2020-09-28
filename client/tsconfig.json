@@ -2,19 +2,22 @@
     "compilerOptions": {
         "target": "ES2020",
         "module": "commonjs",
+        "moduleResolution": "node",
         "strict": true,
         "importHelpers": true,
-        "moduleResolution": "node",
         "removeComments": true,
         "noImplicitReturns": true,
         "experimentalDecorators": true,
         "esModuleInterop": true,
         "allowSyntheticDefaultImports": true,
-        "outDir": "target"
+        "rootDir": "src",
+        "outDir": "target",
+        "typeRoots": [
+            "node_modules/@types"
+        ]
     },
     "include": [
-        "src/**/*.ts",
-        "src/**/*.js"
+        "src/**/*.ts"
     ],
     "exclude": [
         "node_modules"

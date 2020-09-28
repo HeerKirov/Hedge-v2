@@ -1,19 +1,29 @@
 import { BrowserWindow } from "electron"
-import { Platform } from "../definitions"
-
-const FRONTEND_INDEX_PATH = "../frontend/index.html"
+import { FRONTEND_INDEX_DIM, Platform } from "../definitions"
 
 export interface WindowManagerOptions {
     debugMode: boolean
     debugFrontendURL?: string
-    debugFrontendFile?: string
+    debugFrontendIndexPath?: string
     platform: Platform
 }
 
 export interface WindowManager {
+    /**
+     * 创建一个承载一般业务的普通窗口。
+     */
     createWindow(): BrowserWindow
-    createDisplayWindow(): BrowserWindow
+    /**
+     * 创建一个轮播图片专用的窗口。
+     */
+    createDisplayWindow(/*content*/): BrowserWindow
+    /**
+     * 打开guide窗口。
+     */
     openGuideWindow(): BrowserWindow
+    /**
+     * 获得全部窗口列表。
+     */
     getAllWindows(): BrowserWindow[]
 }
 
@@ -41,11 +51,11 @@ export function createWindowManager(options: WindowManagerOptions): WindowManage
             }
         })
         if(!options.debugMode) {
-            win.loadFile(FRONTEND_INDEX_PATH, {hash: hashURL}).finally(() => {})
+            win.loadFile(FRONTEND_INDEX_DIM, {hash: hashURL}).finally(() => {})
         }else if(options.debugFrontendURL) {
             win.loadURL(options.debugFrontendURL + (hashURL ? `#/${hashURL}` : '')).finally(() => {})
-        }else if(options.debugFrontendFile) {
-            win.loadFile(options.debugFrontendFile, {hash: hashURL}).finally(() => {})
+        }else if(options.debugFrontendIndexPath) {
+            win.loadFile(options.debugFrontendIndexPath, {hash: hashURL}).finally(() => {})
         }else{
             throw new Error("No debug file or URL for window.")
         }

@@ -5,6 +5,8 @@
 node_modules
 target
 dist
+debug-appdata
+*.db
 
 .env.local
 .env.*.local
