@@ -61,3 +61,18 @@ export interface Database {
     path: string
 }
 
+export function defaultValue(): AppData {
+    return {
+        userOption: {
+            password: null,
+            touchID: false
+        },
+        webOption: {
+            port: null,
+            autoWebAccess: false,
+            needPassword: true,
+            independentPassword: null
+        },
+        databases: []
+    }
+}

@@ -3,7 +3,8 @@ import { Database as sqlite3Driver } from "sqlite3"
 import * as sqlite from "sqlite"
 import { DATABASE_DIM } from "../../definitions/file-dim"
 import { exists, mkdir, readFile, writeFile } from "../../utils/fs"
-import { Metadata } from "./model"
+import { Metadata, defaultValue } from "./model"
+import { migrate } from "./migrations"
 
 export interface Connection {
     getSchema(): Schema
@@ -35,30 +36,45 @@ export async function createConnection(schema: Schema): Promise<Connection> {
     if(exists(schema.path)) {
         throw new Error(`Folder '${schema.path}' is already exists.`)
     }
-    const db = await sqlite.open({filename: path.join(schema.path, DATABASE_DIM.MAIN_DB), driver: sqlite3Driver})
-    //TODO 初始化数据结构
-    return await build({schema, db})
+
+    const { metadata, db } = await migrate({
+        metadata: defaultValue({name: schema.name, description: schema.description}),
+        db: await sqlite.open({filename: path.join(schema.path, DATABASE_DIM.MAIN_DB), driver: sqlite3Driver}),
+        async openOtherDB(dbName) {
+            return await sqlite.open({filename: path.join(schema.path, dbName), driver: sqlite3Driver})
+        }
+    })
+
+    return await build({schema, metadata, db})
 }
 
 export async function connectToConnection(filepath: string): Promise<Connection> {
-    const metadata = await readFile<Metadata>(path.join(filepath, DATABASE_DIM.METADATA))
-    if(metadata == null) {
+    const metadata0 = await readFile<Metadata>(path.join(filepath, DATABASE_DIM.METADATA))
+    if(metadata0 == null) {
         throw new Error(`File '${DATABASE_DIM.METADATA}' is not exists.`)
     }
+
     const schema = {
         path: filepath,
-        name: metadata.name,
-        description: metadata.description
+        name: metadata0.name,
+        description: metadata0.description
     }
 
-    const db = await sqlite.open({filename: path.join(filepath, DATABASE_DIM.MAIN_DB), driver: sqlite3Driver})
-    //TODO 版本检查和同步
-    return await build({schema, db})
+    const { metadata, db } = await migrate({
+        metadata: metadata0,
+        db: await sqlite.open({filename: path.join(filepath, DATABASE_DIM.MAIN_DB), driver: sqlite3Driver}),
+        async openOtherDB(dbName) {
+            return await sqlite.open({filename: path.join(schema.path, dbName), driver: sqlite3Driver})
+        }
+    })
+
+    return await build({schema, metadata, db})
 }
 
 
 async function build(context: {
-    schema: Schema
+    schema: Schema,
+    metadata: Metadata,
     db: sqlite.Database
 }): Promise<Connection> {
     const { schema, db } = context

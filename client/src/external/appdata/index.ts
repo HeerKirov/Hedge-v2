@@ -1,7 +1,7 @@
 import path from "path"
 import { APP_DATA_DIM } from "../../definitions/file-dim"
 import { mkdir, readFile, writeFile } from "../../utils/fs"
-import { AppData } from "./model"
+import { AppData, defaultValue } from "./model"
 
 /**
  * 连接到外部系统中，appData相关数据的模块。提供基本的对数据的存取功能，并定义了数据格式。
@@ -81,21 +81,5 @@ export function createAppDataDriver(options: AppDataDriverOptions): AppDataDrive
         initialize,
         getAppData,
         saveAppData
-    }
-}
-
-function defaultValue(): AppData {
-    return {
-        userOption: {
-            password: null,
-            touchID: false
-        },
-        webOption: {
-            port: null,
-            autoWebAccess: false,
-            needPassword: true,
-            independentPassword: null
-        },
-        databases: []
     }
 }
