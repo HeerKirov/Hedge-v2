@@ -1,4 +1,4 @@
-export type Platform = "win32"|"darwin"|"linux"
+export type Platform = "win32" | "darwin" | "linux"
 
 export function getElectronPlatform(): Platform {
     const platform = process.platform
@@ -7,11 +7,3 @@ export function getElectronPlatform(): Platform {
     }
     throw new Error(`Unsupported platform ${platform}.`)
 }
-
-export const APP_DATA_DIM = {
-    FOLDER: "app",
-    MAIN_STORAGE: "main.storage",
-    PID: "server.PID"
-}
-
-export const FRONTEND_INDEX_DIM = "frontend/index.html"

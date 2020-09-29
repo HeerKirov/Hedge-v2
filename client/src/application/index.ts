@@ -1,5 +1,5 @@
 import { app } from "electron"
-import { getElectronPlatform, Platform } from "../definitions"
+import { getElectronPlatform, Platform } from "../utils/process"
 import { createWindowManager, WindowManager } from "./window-manager"
 import { createAppDataDriver } from "../external/appdata"
 import { createDatabaseDriver } from "../external/database"
@@ -16,17 +16,9 @@ export interface AppOptions {
      */
     debugFrontendURL?: string
     /**
-     * 提供一个index.html文件的路径。这方便直接连接一项现存的前端资源。
-     */
-    debugFrontendIndex?: string
-    /**
      * 提供一个文件夹路径，在调试模式下所有数据都放在这里，与生产环境隔离。
      */
     debugAppDataFolder?: string
-    /**
-     * 提供一个可执行文件路径，使用此路径指定的server，方便直接连接现存的debug binary。
-     */
-    debugServerTarget?: string
 }
 
 export function createApplication(options?: AppOptions) {
@@ -34,16 +26,15 @@ export function createApplication(options?: AppOptions) {
     const debugMode = options?.debugMode ?? false
     const appDataPath = options?.debugMode && options?.debugAppDataFolder ? options.debugAppDataFolder : app.getPath("userData")
 
+    const appDataDriver = createAppDataDriver({debugMode, appDataPath})
+
+    const dbDriver = createDatabaseDriver(appDataDriver, {debugMode, appDataPath})
+
     const windowManager = createWindowManager({
-        debugFrontendIndexPath: options?.debugFrontendIndex,
         debugFrontendURL: options?.debugFrontendURL,
         debugMode,
         platform
     })
-
-    const appDataDriver = createAppDataDriver({debugMode, appDataPath})
-
-    const dbDriver = createDatabaseDriver({debugMode, appDataPath})
 
     registerAppEvents(windowManager, platform, options)
 

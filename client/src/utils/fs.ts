@@ -12,7 +12,7 @@ export async function writeFile<T>(file: string, data: T): Promise<T> {
     }))
 }
 
-export async function readFile<T>(file: string): Promise<T|null> {
+export async function readFile<T>(file: string): Promise<T | null> {
     return new Promise(((resolve, reject) => {
         if(!nodeFs.existsSync(file)) {
             resolve(null)
@@ -27,12 +27,31 @@ export async function readFile<T>(file: string): Promise<T|null> {
     }))
 }
 
+export function exists(path: string): boolean {
+    return nodeFs.existsSync(path)
+}
+
 export async function mkdir(path: string): Promise<void> {
     if(nodeFs.existsSync(path)) {
-        return Promise.resolve()
+        return
     }
     return new Promise(((resolve, reject) => {
         nodeFs.mkdir(path, {recursive: true}, e => {
+            if(e) {
+                reject(e)
+            }else{
+                resolve()
+            }
+        })
+    }))
+}
+
+export async function rmdir(path: string): Promise<void> {
+    if(!nodeFs.existsSync(path)) {
+        return
+    }
+    return new Promise(((resolve, reject) => {
+        nodeFs.rmdir(path, {}, e => {
             if(e) {
                 reject(e)
             }else{

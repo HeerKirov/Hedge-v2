@@ -1,10 +1,10 @@
 import { createApplication } from "./application"
-import { argvContains, argvGet } from "./utils/parameters"
+import { createParameters } from "./utils/parameters"
+
+const parameters = createParameters(process.argv)
 
 createApplication({
-    debugMode: argvContains(process.argv, "--debug-mode"),
-    debugFrontendURL: argvGet(process.argv, "--debug-frontend-url", "http://localhost:3000"),
-    debugFrontendIndex: argvGet(process.argv, "--debug-frontend-index", "../frontend/dist/index.html"),
-    debugAppDataFolder: argvGet(process.argv, "--debug-appdata-folder", "./debug-appdata"),
-    debugServerTarget: argvGet(process.argv, "--debug-server-target", "../server/target/debug/hedge-v2-server")
+    debugMode: parameters.contains("--debug-mode"),
+    debugFrontendURL: parameters.opt("--debug-frontend-url"),
+    debugAppDataFolder: parameters.opt("--debug-appdata-folder")
 })

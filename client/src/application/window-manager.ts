@@ -1,10 +1,10 @@
 import { BrowserWindow } from "electron"
-import { FRONTEND_INDEX_DIM, Platform } from "../definitions"
+import { FRONTEND_INDEX_DIM } from "../definitions/file-dim"
+import { Platform } from "../utils/process"
 
 export interface WindowManagerOptions {
     debugMode: boolean
     debugFrontendURL?: string
-    debugFrontendIndexPath?: string
     platform: Platform
 }
 
@@ -34,12 +34,12 @@ export interface WindowManager {
  */
 export function createWindowManager(options: WindowManagerOptions): WindowManager {
 
-    let guideWindow: BrowserWindow|null = null
+    let guideWindow: BrowserWindow | null = null
 
-    function newBrowserWindow(hashURL?: string): BrowserWindow {
+    function newBrowserWindow(hashURL?: string, title?: string): BrowserWindow {
         const win = new BrowserWindow({
-            title: 'Hedge',
-            height: 800,
+            title: title ?? 'Hedge',
+            height: 720,
             width: 1200,
             minHeight: 480,
             minWidth: 640,
@@ -50,14 +50,10 @@ export function createWindowManager(options: WindowManagerOptions): WindowManage
                 //preload: '' 注入启动脚本
             }
         })
-        if(!options.debugMode) {
-            win.loadFile(FRONTEND_INDEX_DIM, {hash: hashURL}).finally(() => {})
-        }else if(options.debugFrontendURL) {
+        if(options.debugMode && options.debugFrontendURL) {
             win.loadURL(options.debugFrontendURL + (hashURL ? `#/${hashURL}` : '')).finally(() => {})
-        }else if(options.debugFrontendIndexPath) {
-            win.loadFile(options.debugFrontendIndexPath, {hash: hashURL}).finally(() => {})
         }else{
-            throw new Error("No debug file or URL for window.")
+            win.loadFile(FRONTEND_INDEX_DIM, {hash: hashURL}).finally(() => {})
         }
         return win
     }
