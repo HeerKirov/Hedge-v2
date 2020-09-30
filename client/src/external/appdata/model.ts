@@ -1,5 +1,9 @@
 export interface AppData {
     /**
+     * 版本号
+     */
+    version: string
+    /**
      * 用户相关，主要是认证选项
      */
     userOption: UserOption
@@ -63,6 +67,7 @@ export interface Database {
 
 export function defaultValue(): AppData {
     return {
+        version: "0.0.0",
         userOption: {
             password: null,
             touchID: false

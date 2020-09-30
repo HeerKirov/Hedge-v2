@@ -3,6 +3,8 @@ import { getElectronPlatform, Platform } from "../utils/process"
 import { createWindowManager, WindowManager } from "./window-manager"
 import { createAppDataDriver } from "../external/appdata"
 import { createDatabaseDriver } from "../external/database"
+import { createService } from "../service"
+import { createIpcTransformer } from "./ipc-transformer"
 
 export interface AppOptions {
     /**
@@ -30,11 +32,11 @@ export function createApplication(options?: AppOptions) {
 
     const dbDriver = createDatabaseDriver(appDataDriver, {debugMode, appDataPath})
 
-    const windowManager = createWindowManager({
-        debugFrontendURL: options?.debugFrontendURL,
-        debugMode,
-        platform
-    })
+    const windowManager = createWindowManager({debugFrontendURL: options?.debugFrontendURL, debugMode, platform})
+
+    const service = createService(appDataDriver, dbDriver, windowManager, {debugMode, platform})
+
+    const ipcTransformer = createIpcTransformer(service)
 
     registerAppEvents(windowManager, platform, options)
 

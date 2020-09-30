@@ -76,8 +76,8 @@ export function createDatabaseDriver(appDataDriver: AppDataDriver, options: Data
     }
 
     async function create(options: Schema): Promise<boolean> {
-        const appData = await appDataDriver.getAppData()
-        if(appData == null) { return false }
+        if(!appDataDriver.isLoaded()) { return false }
+        const appData = appDataDriver.getAppData()
         if(appData.databases.find(d => d.path === options.path) != null) { return false }
         try {
             current = await createConnection(options)
@@ -91,8 +91,8 @@ export function createDatabaseDriver(appDataDriver: AppDataDriver, options: Data
     }
 
     async function include(path: string): Promise<boolean> {
-        const appData = await appDataDriver.getAppData()
-        if(appData == null) { return false }
+        if(!appDataDriver.isLoaded()) { return false }
+        const appData = appDataDriver.getAppData()
         if(appData.databases.find(d => d.path === path) != null) { return false }
         try {
             const schema = await includeConnection(path)
@@ -107,10 +107,10 @@ export function createDatabaseDriver(appDataDriver: AppDataDriver, options: Data
     }
 
     async function trash(path: string, deleteFile: boolean): Promise<boolean> {
-        const appData = await appDataDriver.getAppData()
-        if(appData == null) { return false }
+        if(!appDataDriver.isLoaded()) { return false }
+        const appData = appDataDriver.getAppData()
 
-        if(current != null && current.getSchema().path === path) {
+        if(current != null && current.getPath() === path) {
             await disconnect()
         }
 
@@ -127,11 +127,9 @@ export function createDatabaseDriver(appDataDriver: AppDataDriver, options: Data
     }
 
     async function listDatabases(): Promise<Schema[] | null> {
-        const appData = await appDataDriver.getAppData()
-        if(appData == null) {
-            return null
-        }
-        return appData.databases
+        if(!appDataDriver.isLoaded()) { return null }
+        const { databases } = await appDataDriver.getAppData()
+        return databases
     }
 
     return {

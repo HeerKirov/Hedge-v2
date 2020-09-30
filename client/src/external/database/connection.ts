@@ -1,13 +1,16 @@
 import path from "path"
-import { Database as sqlite3Driver } from "sqlite3"
 import * as sqlite from "sqlite"
+import { Database as sqlite3Driver } from "sqlite3"
 import { DATABASE_DIM } from "../../definitions/file-dim"
 import { exists, mkdir, readFile, writeFile } from "../../utils/fs"
 import { Metadata, defaultValue } from "./model"
 import { migrate } from "./migrations"
 
 export interface Connection {
-    getSchema(): Schema
+    getPath(): string
+    getMeta(): Metadata
+    saveMeta(processData?: (m: Metadata) => void): Promise<Metadata>
+    dsl(): sqlite.Database
     close(): Promise<void>
 }
 
@@ -16,7 +19,6 @@ export interface Schema {
     name: string
     description: string | null
 }
-
 
 export async function includeConnection(filepath: string): Promise<Schema> {
     //读取metadata文件，确保文件可用，随后返回从文件中读取的schema
@@ -36,59 +38,77 @@ export async function createConnection(schema: Schema): Promise<Connection> {
     if(exists(schema.path)) {
         throw new Error(`Folder '${schema.path}' is already exists.`)
     }
+    await mkdir(schema.path)
 
-    const { metadata, db } = await migrate({
-        metadata: defaultValue({name: schema.name, description: schema.description}),
-        db: await sqlite.open({filename: path.join(schema.path, DATABASE_DIM.MAIN_DB), driver: sqlite3Driver}),
-        async openOtherDB(dbName) {
-            return await sqlite.open({filename: path.join(schema.path, dbName), driver: sqlite3Driver})
-        }
-    })
+    const metadata = defaultValue({name: schema.name, description: schema.description})
 
-    return await build({schema, metadata, db})
+    return await build({filepath: schema.path, metadata})
 }
 
 export async function connectToConnection(filepath: string): Promise<Connection> {
-    const metadata0 = await readFile<Metadata>(path.join(filepath, DATABASE_DIM.METADATA))
-    if(metadata0 == null) {
+    const metadata = await readFile<Metadata>(path.join(filepath, DATABASE_DIM.METADATA))
+    if(metadata == null) {
         throw new Error(`File '${DATABASE_DIM.METADATA}' is not exists.`)
     }
 
-    const schema = {
-        path: filepath,
-        name: metadata0.name,
-        description: metadata0.description
-    }
-
-    const { metadata, db } = await migrate({
-        metadata: metadata0,
-        db: await sqlite.open({filename: path.join(filepath, DATABASE_DIM.MAIN_DB), driver: sqlite3Driver}),
-        async openOtherDB(dbName) {
-            return await sqlite.open({filename: path.join(schema.path, dbName), driver: sqlite3Driver})
-        }
-    })
-
-    return await build({schema, metadata, db})
+    return await build({filepath, metadata})
 }
 
-
 async function build(context: {
-    schema: Schema,
+    filepath: string,
+    metadata: Metadata
+}): Promise<Connection> {
+    const { metadata, db, changed } = await migrate({
+        metadata: context.metadata,
+        db: await sqlite.open({filename: path.join(context.filepath, DATABASE_DIM.MAIN_DB), driver: sqlite3Driver}),
+        async openOtherDB(dbName) {
+            return await sqlite.open({filename: path.join(context.filepath, dbName), driver: sqlite3Driver})
+        }
+    })
+    if(changed) {
+        await writeFile(path.join(context.filepath, DATABASE_DIM.METADATA), metadata)
+    }
+
+    await db.run("ATTACH DATABASE ? AS ?", [path.join(context.filepath, DATABASE_DIM.ORIGIN_DB), "ori"])
+
+    return await use({filepath: context.filepath, metadata, db})
+}
+
+async function use(context: {
+    filepath: string,
     metadata: Metadata,
     db: sqlite.Database
 }): Promise<Connection> {
-    const { schema, db } = context
+    const { filepath, metadata, db } = context
 
-    function getSchema() {
-        return schema
+    function getPath() {
+        return filepath
     }
 
-    async function close(): Promise<void> {
+    function getMeta() {
+        return metadata
+    }
+
+    async function saveMeta(processData?: (m: Metadata) => void) {
+        if(typeof processData === 'function') {
+            processData(metadata)
+        }
+        return await writeFile(path.join(context.filepath, DATABASE_DIM.METADATA), metadata)
+    }
+
+    function dsl() {
+        return db
+    }
+
+    async function close() {
         await db.close()
     }
 
     return {
-        getSchema,
+        getPath,
+        getMeta,
+        saveMeta,
+        dsl,
         close
     }
 }
