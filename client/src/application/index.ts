@@ -1,11 +1,11 @@
 import { app } from "electron"
 import { getElectronPlatform, Platform } from "../utils/process"
 import { createWindowManager, WindowManager } from "./window-manager"
-import { createAppDataDriver, AppDataDriver } from "../external/appdata"
-import { createDatabaseDriver, DatabaseDriver } from "../external/database"
-import { createService } from "../service"
+import { createAppDataDriver, AppDataDriver } from "../components/appdata"
+import { createDatabaseDriver, DatabaseDriver } from "../components/database"
+import { createWebServer, createWebServerProxy } from "../components/web-server"
 import { createIpcTransformer } from "./ipc-transformer"
-import { createWebServer, createWebServerProxy } from "./web-server"
+import { createService } from "../service"
 
 export interface AppOptions {
     /**
@@ -18,6 +18,10 @@ export interface AppOptions {
      * 提供一个URL，直接从此URL中获得前端内容。方便与开发环境连接。
      */
     debugFrontendURL?: string
+    /**
+     * 提供一个dist目录，从此目录中获得前端资源文件。主要是为了web server的前端调试。
+     */
+    debugFrontendDist?: string
     /**
      * 提供一个文件夹路径，在调试模式下所有数据都放在这里，与生产环境隔离。
      */
@@ -39,7 +43,7 @@ export function createApplication(options?: AppOptions) {
 
     const service = createService(appDataDriver, dbDriver, webServerProxy, windowManager, {debugMode, platform})
 
-    webServerProxy.proxy(createWebServer(service, appDataDriver, {debugMode, platform, appDataPath}))
+    webServerProxy.proxy(createWebServer(service, appDataDriver, {debugMode, platform, appDataPath, debugFrontendDist: options?.debugFrontendDist}))
 
     createIpcTransformer(service, {debugMode, platform, appDataPath})
 

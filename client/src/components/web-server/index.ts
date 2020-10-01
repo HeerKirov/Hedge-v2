@@ -1,9 +1,9 @@
 import Koa from "koa"
 import { Server } from "http"
-import { Service } from "../service"
-import { AppDataDriver } from "../external/appdata"
-import { Platform } from "../utils/process"
-import {analyzePort, generatePort, getLocalNetworkHost, getNextAvailablePort} from "../utils/net";
+import { Service } from "../../service"
+import { AppDataDriver } from "../appdata"
+import { Platform } from "../../utils/process"
+import { analyzePort, generatePort, getLocalNetworkHost, getNextAvailablePort } from "../../utils/net"
 
 /**
  * 通过HTTP协议与前端进行服务通信的controller。
@@ -41,6 +41,7 @@ export interface WebServerOptions {
     debugMode: boolean
     platform: Platform
     appDataPath: string
+    debugFrontendDist?: string
 }
 
 export function createWebServer(service: Service, appDataDriver: AppDataDriver, options: WebServerOptions): WebServer {
@@ -65,8 +66,6 @@ export function createWebServer(service: Service, appDataDriver: AppDataDriver, 
                         reject(null)
                     }else{
                         const info = {localNetworkHost: getLocalNetworkHost(), port}
-
-                        console.log(info)
 
                         server = createKoaApplication().listen(info.port, () => resolve(webServerInfo!!))
                         webServerInfo = info

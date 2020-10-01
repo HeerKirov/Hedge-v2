@@ -7,7 +7,7 @@
   "scripts": {
     "compile": "tsc",
     "start": "electron .",
-    "debug": "electron . --debug-mode --debug-frontend-url http://localhost:3000 --debug-appdata-folder ./debug"
+    "debug": "electron . --debug-mode --debug-frontend-url http://localhost:3000 --debug-appdata-folder ./debug --debug-frontend-dist ../frontend/dist"
   },
   "dependencies": {
     "koa": "^2.13.0",
