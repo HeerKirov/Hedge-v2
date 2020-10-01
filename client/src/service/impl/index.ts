@@ -1,5 +1,5 @@
 import { ServiceContext, ServiceOptions } from "../index"
-import {StatusCode} from "../code";
+import { StatusCode } from "../code"
 
 export type ChannelConstructor<META, IN, OUT> = (context: ServiceContext, options: ServiceOptions) => Channel<META, IN, OUT>
 

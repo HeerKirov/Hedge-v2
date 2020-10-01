@@ -1,5 +1,6 @@
 import { AppDataDriver } from "../external/appdata"
 import { DatabaseDriver } from "../external/database"
+import { WebServer } from "../application/web-server"
 import { WindowManager } from "../application/window-manager"
 import { Platform } from "../utils/process"
 import { State, createState } from "./state"
@@ -37,13 +38,14 @@ export interface ServiceContext {
     state: State
     appDataDriver: AppDataDriver
     dbDriver: DatabaseDriver
+    webServer: WebServer
     windowManager: WindowManager
 }
 
-export function createService(appDataDriver: AppDataDriver, dbDriver: DatabaseDriver, windowManager: WindowManager, options: ServiceOptions): Service {
+export function createService(appDataDriver: AppDataDriver, dbDriver: DatabaseDriver, webServer: WebServer, windowManager: WindowManager, options: ServiceOptions): Service {
     const state = createState()
 
-    const context: ServiceContext = {state, appDataDriver, dbDriver, windowManager}
+    const context: ServiceContext = {state, appDataDriver, dbDriver, webServer, windowManager}
 
     const router = createChannelRouter(scopes, context, options)
 
@@ -59,9 +61,20 @@ export function createService(appDataDriver: AppDataDriver, dbDriver: DatabaseDr
             }
         }
         try {
-            const res = channel.call(context.meta, context.req)
-        }catch (e: {}) {
-
+            const data = await channel.call(context.meta, context.req)
+            return {code: "OK", data}
+        }catch (e: any) {
+            if(typeof e === 'object' && e.code) {
+                return {code: e.code, msg: e.msg}
+            }else if(typeof e === 'string') {
+                return {code: e as StatusCode}
+            }else if(e instanceof Error) {
+                console.error(e)
+                return {code: "INTERNAL_ERROR", msg: e.message}
+            }else{
+                console.error(`Unknown error is thrown in channel ${context.scope ?? '_'}/${context.channel}/${context.method ?? 'default'}.`, e)
+                return {code: "INTERNAL_ERROR"}
+            }
         }
     }
 

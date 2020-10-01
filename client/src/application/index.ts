@@ -1,10 +1,11 @@
 import { app } from "electron"
 import { getElectronPlatform, Platform } from "../utils/process"
 import { createWindowManager, WindowManager } from "./window-manager"
-import { createAppDataDriver } from "../external/appdata"
-import { createDatabaseDriver } from "../external/database"
+import { createAppDataDriver, AppDataDriver } from "../external/appdata"
+import { createDatabaseDriver, DatabaseDriver } from "../external/database"
 import { createService } from "../service"
 import { createIpcTransformer } from "./ipc-transformer"
+import { createWebServer, createWebServerProxy } from "./web-server"
 
 export interface AppOptions {
     /**
@@ -34,9 +35,13 @@ export function createApplication(options?: AppOptions) {
 
     const windowManager = createWindowManager({debugFrontendURL: options?.debugFrontendURL, debugMode, platform})
 
-    const service = createService(appDataDriver, dbDriver, windowManager, {debugMode, platform})
+    const webServerProxy = createWebServerProxy()
 
-    const ipcTransformer = createIpcTransformer(service)
+    const service = createService(appDataDriver, dbDriver, webServerProxy, windowManager, {debugMode, platform})
+
+    webServerProxy.proxy(createWebServer(service, appDataDriver, {debugMode, platform, appDataPath}))
+
+    createIpcTransformer(service, {debugMode, platform, appDataPath})
 
     registerAppEvents(windowManager, platform, options)
 
@@ -59,3 +64,12 @@ function registerAppEvents(windowManager: WindowManager, platform: Platform, opt
     })
 }
 
+async function test(appDataDriver: AppDataDriver, dbDriver: DatabaseDriver, appDataPath: string) {
+    console.log("[Test]")
+    console.log(`appData.isInitialized=${appDataDriver.isInitialized()}`)
+    console.log(`appData.isLoaded=${appDataDriver.isLoaded()}`)
+    console.log(`appData: ${await appDataDriver.load()}`)
+    console.log(`db.list=${await dbDriver.listDatabases()}`)
+    console.log(`db.newDatabase=${await dbDriver.create({name: "test", description: "...", path: `${appDataPath}/default`})}`)
+    console.log(`db.connect=${await dbDriver.connect(`${appDataPath}/default`)}`)
+}

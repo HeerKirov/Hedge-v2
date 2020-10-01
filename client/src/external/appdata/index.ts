@@ -2,7 +2,7 @@ import path from "path"
 import { APP_DATA_DIM } from "../../definitions/file-dim"
 import { mkdir, readFile, writeFile, exists } from "../../utils/fs"
 import { AppData, defaultValue } from "./model"
-import {migrate} from "./migrations";
+import { migrate } from "./migrations"
 
 /**
  * 连接到外部系统中，appData相关数据的模块。提供基本的对数据的存取功能，并定义了数据格式。
