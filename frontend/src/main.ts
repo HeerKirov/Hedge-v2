@@ -1,9 +1,7 @@
 import { createApp } from 'vue'
-import App from './App'
-import router from './routers'
-import './styles/index.scss'
-import 'bulma/css/bulma.min.css'
-import '@fortawesome/fontawesome-free/css/all.min.css'
+import App from './views/App'
+import router from './plugins/router'
+import './styles'
 
 createApp(App)
     .use(router)

@@ -1,0 +1,21 @@
+.fixed {
+    position: fixed;
+
+    &.center {
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+    }
+    &.top {
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+}
+
+.absolute {
+    position: absolute;
+    &.right-bottom { right: 0; bottom: 0; }
+    &.left-bottom { left: 0; bottom: 0; }
+    &.center { left: 50%; top: 50%; transform: translate(-50%, -50%); }
+}

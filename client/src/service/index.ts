@@ -1,6 +1,6 @@
-import { AppDataDriver } from "../external/appdata"
-import { DatabaseDriver } from "../external/database"
-import { WebServer } from "../application/web-server"
+import { AppDataDriver } from "../components/appdata"
+import { DatabaseDriver } from "../components/database"
+import { WebServer } from "../components/web-server"
 import { WindowManager } from "../application/window-manager"
 import { Platform } from "../utils/process"
 import { State, createState } from "./state"
@@ -63,7 +63,7 @@ export function createService(appDataDriver: AppDataDriver, dbDriver: DatabaseDr
         try {
             const data = await channel.call(context.meta, context.req)
             return {code: "OK", data}
-        }catch (e: any) {
+        }catch (e) {
             if(typeof e === 'object' && e.code) {
                 return {code: e.code, msg: e.msg}
             }else if(typeof e === 'string') {

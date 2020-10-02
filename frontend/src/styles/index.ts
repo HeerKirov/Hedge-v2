@@ -1,0 +1,6 @@
+import 'bulma/css/bulma.min.css'
+import '@fortawesome/fontawesome-free/css/all.min.css'
+import './index.scss'
+import './format.scss'
+import './layout.scss'
+import './layouts/Index.scss'

@@ -1,4 +1,4 @@
-import { app } from "electron"
+import { app, systemPreferences } from "electron"
 import { getElectronPlatform, Platform } from "../utils/process"
 import { createWindowManager, WindowManager } from "./window-manager"
 import { createAppDataDriver, AppDataDriver } from "../components/appdata"

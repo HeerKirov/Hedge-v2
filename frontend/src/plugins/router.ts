@@ -9,6 +9,14 @@ export default createRouter({
             component: () => import('../views/Index')
         },
         {
+            name: 'Board',
+            path: '/board',
+            component: () => import('../views/Board'),
+            children: [
+
+            ]
+        },
+        {
             name: 'NotFound',
             path: '/:catchAll(.*)',
             component: () => import('../views/NotFound')
