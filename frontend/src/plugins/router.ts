@@ -9,9 +9,31 @@ export default createRouter({
             component: () => import('../views/Index')
         },
         {
-            name: 'Board',
-            path: '/board',
-            component: () => import('../views/Board'),
+            name: 'Init',
+            path: '/init',
+            component: () => import('../views/Init')
+        },
+        {
+            name: 'Login',
+            path: '/login',
+            component: () => import('../views/Login')
+        },
+        {
+            name: 'Start',
+            path: '/start',
+            component: () => import('../views/Start'),
+            children: [
+                {
+                    name: 'StartIndex',
+                    path: '',
+                    component: () => import('../views/StartIndex')
+                }
+            ]
+        },
+        {
+            name: 'Hedge',
+            path: '/hedge',
+            component: () => import('../views/Hedge'),
             children: [
 
             ]

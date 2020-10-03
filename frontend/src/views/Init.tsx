@@ -1,5 +1,5 @@
 import { defineComponent, Ref, ref } from "vue"
-import Input from "../../components/Input"
+import Input from "./components/Input"
 
 export default defineComponent({
     setup() {
@@ -15,6 +15,7 @@ export default defineComponent({
         }
 
         return () => <div class="v-init">
+            <div class="title-bar"></div>
             <div class="v-dialog fixed center box">
                 {[
                     <WelcomePage onNext={next} />,

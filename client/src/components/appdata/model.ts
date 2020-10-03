@@ -15,6 +15,10 @@ export interface AppData {
      * 已注册的数据库存储
      */
     databases: Database[]
+    /**
+     * 上一次使用的数据库的path
+     */
+    lastDatabasePath: string | null
 }
 
 export interface UserOption {
@@ -78,6 +82,7 @@ export function defaultValue(): AppData {
             needPassword: true,
             independentPassword: null
         },
-        databases: []
+        databases: [],
+        lastDatabasePath: null
     }
 }

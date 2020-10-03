@@ -1,0 +1,20 @@
+@import '../App.scss';
+
+#app .v-start {
+    $bottom-bar-height: 100px;
+
+    .v-content {
+        position: absolute;
+        width: 100%;
+        bottom: $bottom-bar-height;
+        top: $title-bar-height;
+    }
+    .v-bottom-bar {
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+        height: $bottom-bar-height;
+        border-top: solid 1px #e1e1e1;
+        background-color: #f9f9f9;
+    }
+}

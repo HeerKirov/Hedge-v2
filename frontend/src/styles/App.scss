@@ -1,8 +1,12 @@
+$std-text-color: #2c3e50;
+
+$title-bar-height: 40px;
+
 body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   -webkit-user-select: none;
-  color: #2c3e50;
+  color: $std-text-color;
 }
 
 html::-webkit-scrollbar {
@@ -11,6 +15,7 @@ html::-webkit-scrollbar {
 
 .title-bar {
   -webkit-app-region: drag;
-  height: 40px;
-  background-color: antiquewhite;
+  height: $title-bar-height;
+  line-height: $title-bar-height;
+  border-bottom: dashed 1px $std-text-color;
 }
