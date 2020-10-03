@@ -30,6 +30,10 @@ export interface UserOption {
      * 在macOS平台下，允许通过touchID认证。
      */
     touchID: boolean
+    /**
+     * 登录进入后，自动打开上一次使用的数据库并进入，略过start屏幕
+     */
+    autoOpen: boolean
 }
 
 export interface WebOption {
@@ -74,7 +78,8 @@ export function defaultValue(): AppData {
         version: "0.0.0",
         userOption: {
             password: null,
-            touchID: false
+            touchID: false,
+            autoOpen: false
         },
         webOption: {
             port: null,

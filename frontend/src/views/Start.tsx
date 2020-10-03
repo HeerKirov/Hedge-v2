@@ -7,12 +7,7 @@ export default defineComponent({
             <div class="title-bar has-text-centered">
                 <span>HEDGE</span>
             </div>
-            <div class="v-content">
-                <RouterView/>
-            </div>
-            <div class="v-bottom-bar">
-
-            </div>
+            <RouterView/>
         </div>
     }
 })

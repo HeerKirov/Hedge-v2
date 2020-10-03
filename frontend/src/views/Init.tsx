@@ -64,7 +64,7 @@ const PasswordPage = defineComponent({
                     </div>
                     <a class="is-size-7" onClick={() => hasPassword.value = false}>不设置口令</a>
                 </>
-                :
+            :
                 <>
                     <p>您选择了不设置口令。App打开时不会进行验证，允许任何访问。</p>
                     <div class="mt-4">
@@ -92,7 +92,7 @@ const TouchIDPage = defineComponent({
                         <div class="is-size-6">已开启touch ID认证</div>
                         <div class="mt-2 is-size-7"><a onClick={() => on.value = false}>取消开启</a></div>
                     </>
-                    :
+                :
                     <>
                         <i class="fa fa-3x fa-fingerprint mb-4"/>
                         <div class="is-size-6"><a>开启touch ID认证</a></div>
@@ -123,7 +123,7 @@ const DBPage = defineComponent({
                         <Input class="is-small" value={folderInAppData.value} onUpdateValue={v => folderInAppData.value = v}/>
                     </div>
                 </>
-                : mode.value === "custom" ?
+            : mode.value === "custom" ?
                 <>
                     <p>请为第一个数据库选择自定义的存放位置。</p>
                     <div class="field is-grouped mt-5">
@@ -135,7 +135,7 @@ const DBPage = defineComponent({
                         </p>
                     </div>
                 </>
-                :
+            :
                 <div class="mb-4"><p>已选择不创建第一个数据库。稍后请自行创建。</p></div>
             }
             {mode.value !== "appData" && <p><a class="is-size-7" onClick={() => mode.value = "appData"}>在默认位置创建数据库</a></p>}
@@ -162,7 +162,7 @@ const FinishPage = defineComponent({
                     </div>
                     <button class="button is-link absolute right-bottom mr-5 mb-5" onClick={() => emit('finish')}>继续<i class="fa fa-hand-peace ml-1" /></button>
                 </>
-                :
+            :
                 <div class="has-text-centered absolute center">
                     <i class="fa fa-3x fa-spinner fa-pulse mb-4"/>
                     <div class="is-size-6">正在应用初始化设置…</div>

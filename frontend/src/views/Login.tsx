@@ -13,7 +13,7 @@ export default defineComponent({
                         <i class="fa fa-3x fa-fingerprint mb-4"/>
                         <div class="is-size-6">正在通过touch ID认证</div>
                     </div>
-                    :
+                :
                     <div class="field is-grouped">
                         <p class="control is-expanded">
                             <Input class="is-small has-text-centered" type="password"/>{/*用is-danger表示密码错误*/}
