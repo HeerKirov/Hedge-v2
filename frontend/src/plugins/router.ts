@@ -27,6 +27,16 @@ export default createRouter({
                     name: 'StartIndex',
                     path: '',
                     component: () => import('../views/StartIndex')
+                },
+                {
+                    name: 'StartNew',
+                    path: 'new',
+                    component: () => import('../views/StartNew')
+                },
+                {
+                    name: 'StartImport',
+                    path: 'import',
+                    component: () => import('../views/StartImport')
                 }
             ]
         },
