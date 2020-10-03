@@ -1,0 +1,38 @@
+@import '../App.scss';
+
+#app .v-hedge {
+    .v-side-bar-collapse-enter-active,
+    .v-side-bar-collapse-leave-active {
+        transition: transform 0.5s ease;
+    }
+    .v-side-bar-collapse-enter-from,
+    .v-side-bar-collapse-leave-to {
+        transform: translateX(-100%);
+    }
+
+    .v-resize-bar {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 5px;
+        transform: translateX(-3px);
+        cursor: ew-resize;
+    }
+
+    .v-content {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        right: 0;
+        transition: left 0.5s ease;
+    }
+}
+
+#app .v-hedge .v-side-bar {
+    background-color: $side-background-color;
+    border-right: solid 1px $side-border-color;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+}

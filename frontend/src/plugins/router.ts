@@ -45,7 +45,11 @@ export default createRouter({
             path: '/hedge',
             component: () => import('../views/Hedge'),
             children: [
-
+                {
+                    name: 'HedgeIndex',
+                    path: '',
+                    component: () => import('../views/HedgeIndex')
+                }
             ]
         },
         {

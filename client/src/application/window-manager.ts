@@ -59,7 +59,7 @@ export function createWindowManager(options: WindowManagerOptions): WindowManage
     }
 
     function createWindow(): BrowserWindow {
-        return newBrowserWindow("start")
+        return newBrowserWindow("hedge")
     }
 
     function createDisplayWindow(/*content*/): BrowserWindow {
