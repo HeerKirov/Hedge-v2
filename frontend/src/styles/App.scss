@@ -1,8 +1,9 @@
-$std-text-color: #2c3e50;
-$side-background-color: #f5f5f5;
-$side-border-color: #e1e1e1;
+/*标准文本颜色*/ $std-text-color: #2c3e50;
+/*灰色区域底色颜色*/ $side-background-color: #f5f5f5;
+/*灰色底色与白色的分界线颜色*/ $side-border-color: #e1e1e1;
 
-$title-bar-height: 40px;
+/*标题栏高度*/ $title-bar-height: 40px;
+/*macOS上的红绿灯区域宽度*/ $macos-buttons-width: 70px;
 
 body {
   -webkit-font-smoothing: antialiased;
@@ -19,5 +20,8 @@ html::-webkit-scrollbar {
   -webkit-app-region: drag;
   height: $title-bar-height;
   line-height: $title-bar-height;
-  border-bottom: dashed 1px $std-text-color;
+  border-bottom: dashed 1px $std-text-color;  //TODO 辅助线
+}
+.no-drag {
+  -webkit-app-region: none;
 }

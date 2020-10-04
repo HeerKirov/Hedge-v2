@@ -1,25 +1,28 @@
 @import '../App.scss';
 
-#app .v-start {
-    $bottom-bar-height: 100px;
+/*底栏高度*/ $bottom-bar-height: 100px;
 
+#app .v-start {
+    //主内容区域定位
     .v-content {
         position: absolute;
         width: 100%;
         bottom: $bottom-bar-height;
         top: $title-bar-height;
     }
-    .v-bottom-bar {
-        position: absolute;
-        bottom: 0;
-        width: 100%;
-        height: $bottom-bar-height;
-        border-top: solid 1px $side-border-color;
-        background-color: $side-background-color;
-    }
 }
 
-#app .v-start .v-buttons {
-    margin-top: calc(50px - 1.5rem - 2px);
-    padding: 0 0.75rem;
+#app .v-bottom-bar {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: $bottom-bar-height;
+    border-top: solid 1px $side-border-color;
+    background-color: $side-background-color;
+
+    //底栏上的按钮组定位
+    .v-buttons {
+        margin-top: calc(50px - 1.5rem - 2px);
+        padding: 0 0.75rem;
+    }
 }

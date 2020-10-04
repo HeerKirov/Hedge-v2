@@ -1,0 +1,8 @@
+.no-wrap {
+    white-space: nowrap;
+
+    &.overflow-ellipsis {
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}

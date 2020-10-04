@@ -1,33 +1,63 @@
-import { defineComponent } from "vue"
+import { defineComponent, inject } from "vue"
+import { sideBarSwitchInjection } from "../../Hedge"
 
 export default defineComponent({
     setup() {
-        /**
-         * 侧边栏需要包括的东西：
-         * - 开启时的关闭侧边栏的按钮
-         * - 主页tab
-         * - 最近导入tab
-         * - 时间分区tab & 可折叠的部分最近的时间项
-         * - 文件夹tab & 可折叠的部分最近的文件夹项
-         * - 画集tab
-         * - 标签管理tab
-         * - 主题管理tab & 可折叠的部分最近/收藏的主题项
-         * - 设置按钮
-         * - 向导页面按钮
-         * - 开始屏幕按钮
-         * 
-         * 题外话，顶栏需要包括的东西：
-         * - 关闭侧边栏时，开启侧边栏的按钮
-         * - super搜索框(可激活结构化可配置的查询条件面板)
-         * - 填充显示切换开关
-         * - 尺寸切换器
-         * - 查询模式切换器(image模式/collection模式)
-         * - 
-         * 
-         * 再一个题外话，要把数据模型确立为严格的collection - image 1:N 模式么？这样就可以基于collection做搜索了。
-         */
+        const sideBarSwitch = inject(sideBarSwitchInjection)
+        const collapseSideBar = () => {
+            sideBarSwitch.value = false
+        }
+
         return () => <div class="v-side-bar">
-            <div class="title-bar absolute top w-100"></div>
+            <div class="title-bar absolute left-top w-100"></div>
+            <button class="no-drag button is-light is-small v-collapse-button" onClick={collapseSideBar}><span class="icon"><i class="fa fa-lg fa-bars"/></span></button>
+            <div class="v-menu">
+                <aside class="menu">
+                    <a class="menu-label">图库</a>
+                    <ul class="menu-list">
+                        <li><a class="no-wrap overflow-ellipsis is-active"><span class="icon"><i class="fa fa-th mr-2"/></span>图库</a></li>
+                        <li><a class="no-wrap overflow-ellipsis"><span class="icon"><i class="fa fa-plus-square mr-2"/></span>最近导入</a></li>
+                        <li>
+                            <a class="no-wrap overflow-ellipsis"><span class="icon"><i class="fa fa-calendar-alt mr-2"/></span>日历</a>
+                            {/* <ul>
+                                <li><a class="no-wrap overflow-ellipsis">2020年10月3日</a></li>
+                                <li><a class="no-wrap overflow-ellipsis">2020年10月2日</a></li>
+                                <li><a class="no-wrap overflow-ellipsis">2020年10月1日</a></li>
+                            </ul> */}
+                        </li>
+                        <li><a class="no-wrap overflow-ellipsis"><span class="icon"><i class="fa fa-clone mr-2"/></span>画集</a></li>
+                    </ul>
+                    <a class="menu-label">元数据</a>
+                    <ul class="menu-list">
+                        <li><a class="no-wrap overflow-ellipsis"><span class="icon"><i class="fa fa-tag mr-2"/></span>标签</a></li>
+                        <li>
+                            <a class="no-wrap overflow-ellipsis"><span class="icon"><i class="fa fa-hashtag mr-2"/></span>主题</a>
+                            {/* <ul>
+                                <li><a class="no-wrap overflow-ellipsis">主题1</a></li>
+                            </ul> */}
+                        </li>
+                    </ul>
+                    <a class="menu-label">文件夹</a>
+                    <ul class="menu-list">
+                        <li>
+                            <a class="no-wrap overflow-ellipsis"><span class="icon"><i class="fa fa-archive mr-2"/></span>所有文件夹</a>
+                            {/* <ul>
+                                <li><a class="no-wrap overflow-ellipsis">文件夹1</a></li>
+                                <li><a class="no-wrap overflow-ellipsis">文件夹2</a></li>
+                                <li><a class="no-wrap overflow-ellipsis">文件夹3</a></li>
+                                <li><a class="no-wrap overflow-ellipsis">文件夹4</a></li>
+                            </ul> */}
+                        </li>
+                        <li><a class="no-wrap overflow-ellipsis"><span class="icon"><i class="fa fa-folder-minus mr-2"/></span>临时文件夹</a></li>
+                        <li><a class="no-wrap overflow-ellipsis"><span class="icon"><i class="fa fa-folder mr-2"/></span>pin的文件夹</a></li>
+                    </ul>
+                </aside>
+            </div>
+            <div class="buttons v-buttons">
+                <button class="button is-light mb-0"><span class="icon mr-2"><i class="fa fa-angle-double-left"/></span>HEDGE</button>
+                <button class="button is-light mb-0"><span class="icon"><i class="fa fa-cog"/></span></button>
+                <button class="button is-light mb-0"><span class="icon"><i class="fa fa-question-circle"/></span></button>
+            </div>
         </div>
     }
 })

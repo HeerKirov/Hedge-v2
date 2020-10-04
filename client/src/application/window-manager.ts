@@ -42,7 +42,7 @@ export function createWindowManager(options: WindowManagerOptions): WindowManage
             height: 720,
             width: 1200,
             minHeight: 480,
-            minWidth: 640,
+            minWidth: 672,
             titleBarStyle: "hiddenInset",
             webPreferences: {
                 devTools: options.debugMode,

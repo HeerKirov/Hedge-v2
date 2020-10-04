@@ -19,6 +19,8 @@
     &.bottom { bottom: 0; }
     &.right-bottom { right: 0; bottom: 0; }
     &.left-bottom { left: 0; bottom: 0; }
+    &.right-top { right: 0; top: 0; }
+    &.left-top { left: 0; top: 0; }
     &.center { left: 50%; top: 50%; transform: translate(-50%, -50%); }
     &.vertical-center { top: 50%; transform: translateY(-50%); }
     &.horizontal-center { left: 50%; transform: translateX(-50%); }

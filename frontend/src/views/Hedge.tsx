@@ -1,53 +1,43 @@
-import { defineComponent, onUnmounted, Ref, ref, Transition, InjectionKey, provide } from "vue"
+import { defineComponent, ref, provide, InjectionKey, Ref } from "vue"
 import { RouterView } from "vue-router"
+import SideLayout from "./layouts/Hedge/SideLayout"
 import SideBar from "./layouts/Hedge/SideBar"
 
 export const sideBarSwitchInjection: InjectionKey<Ref<boolean>> = Symbol()
 
+export const sideBarWidthInjection: InjectionKey<Ref<number>> = Symbol()
+
 export default defineComponent({
     setup() {
         const sideBarSwitch = ref(true)
-        const { sizeBarWidth, resizeAreaMouseDown } = useResizeBar()
+        const sideBarWidth = ref(225)
 
         provide(sideBarSwitchInjection, sideBarSwitch)
+        provide(sideBarWidthInjection, sideBarWidth)
 
+        /**
+         * 题外话，顶栏需要包括的东西:
+         * 1. 图库需要的顶栏
+         * - super搜索框(可激活结构化可配置的查询条件面板)
+         * - 填充显示切换开关
+         * - 尺寸切换器
+         * - 查询模式切换器(image模式/collection模式)
+         * - (最近导入)导入按钮
+         * 2. 画集需要的顶栏
+         * - super搜索框
+         * - 尺寸切换器
+         * 3. 元数据需要的顶栏
+         * - (列表)搜索框
+         * 4. 文件夹需要的顶栏
+         * - (文件夹列表)搜索框
+         */
         return () => <div class="v-hedge">
-            <div class="v-content" style={{"left": `${sideBarSwitch.value ? sizeBarWidth.value : 0}px`}}>
-                <RouterView/>
-            </div>
-            <Transition name="v-side-bar-collapse">
-                {() => sideBarSwitch.value && <SideBar style={{"width": `${sizeBarWidth.value}px`}}/>}
-            </Transition>
-            {sideBarSwitch.value && <div class="v-resize-bar" style={{"left": `${sizeBarWidth.value}px`}} onMousedown={resizeAreaMouseDown}/>}
+            <SideLayout>
+                {{
+                    default: () => <RouterView/>,
+                    side: () => <SideBar/>
+                }}
+            </SideLayout>
         </div>
     }
 })
-
-function useResizeBar(defaultValue: number = 225) {
-    const maxWidth = 300, minWidth = 150
-
-    const sizeBarWidth: Ref<number> = ref(defaultValue)
-
-    const resizeAreaMouseDown = () => {
-        document.addEventListener('mousemove', mouseMove)
-        document.addEventListener('mouseup', mouseUp)
-        return false
-    }
-
-    const mouseMove = (e: MouseEvent) => {
-        const newWidth = e.pageX
-        sizeBarWidth.value = newWidth > maxWidth ? maxWidth : newWidth < minWidth ? minWidth : newWidth
-    }
-
-    const mouseUp = () => {
-        document.removeEventListener('mousemove', mouseMove)
-        document.addEventListener('mouseup', mouseUp)
-    }
-
-    onUnmounted(() => {
-        document.removeEventListener('mousemove', mouseMove)
-        document.addEventListener('mouseup', mouseUp)
-    })
-
-    return {sizeBarWidth, resizeAreaMouseDown}
-}

@@ -1,5 +1,5 @@
 import { defineComponent } from "vue"
-import { RouterLink, useRouter } from "vue-router"
+import { useRouter } from "vue-router"
 
 export default defineComponent({
     setup(_, { slots }) {
