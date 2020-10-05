@@ -2,6 +2,8 @@ import { defineComponent, ref, provide, InjectionKey, Ref } from "vue"
 import { RouterView } from "vue-router"
 import SideLayout from "./layouts/Hedge/SideLayout"
 import SideBar from "./layouts/Hedge/SideBar"
+import TopBar from "./layouts/Hedge/TopBar"
+import ImageTopBar from "./layouts/Hedge/TopBarOfImage"
 
 export const sideBarSwitchInjection: InjectionKey<Ref<boolean>> = Symbol()
 
@@ -34,8 +36,13 @@ export default defineComponent({
         return () => <div class="v-hedge">
             <SideLayout>
                 {{
-                    default: () => <RouterView/>,
-                    side: () => <SideBar/>
+                    side: () => <SideBar/>,
+                    default: () => <>
+                        <RouterView/>
+                        <TopBar>
+                            {() => <ImageTopBar/>}
+                        </TopBar>
+                    </>
                 }}
             </SideLayout>
         </div>

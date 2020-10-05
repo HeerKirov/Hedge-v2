@@ -20,7 +20,7 @@ html::-webkit-scrollbar {
   -webkit-app-region: drag;
   height: $title-bar-height;
   line-height: $title-bar-height;
-  border-bottom: dashed 1px $std-text-color;  //TODO 辅助线
+  // border-bottom: dashed 1px $std-text-color;
 }
 .no-drag {
   -webkit-app-region: none;

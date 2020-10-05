@@ -1,6 +1,11 @@
 import { defineComponent } from "vue"
 import { useRouter } from "vue-router"
 
+/**
+ * start页面下方的底栏。
+ * 已经定义了左右两侧的功能按钮，包括选项、向导、新建、导入。
+ * 中间的功能通过slot留出给页面。
+ */
 export default defineComponent({
     setup(_, { slots }) {
         const router = useRouter()
