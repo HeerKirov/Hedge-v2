@@ -1,5 +1,6 @@
 import { defineComponent, Ref, ref } from "vue"
-import Input from "./components/Input"
+import Input from "../../components/Input"
+import "./style.scss"
 
 export default defineComponent({
     setup() {

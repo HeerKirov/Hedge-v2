@@ -7,6 +7,7 @@ export default defineComponent({
             type: String,
             default: 'text'
         },
+        placeholder: String,
         refreshOnInput: {
             type: Boolean,
             default: false
@@ -24,8 +25,9 @@ export default defineComponent({
             emit('updateValue', value.value)
         }
 
-        return () => props.refreshOnInput
-            ? <input class="input" type={type.value} value={value.value} onInput={onUpdate}/>
-            : <input class="input" type={type.value} value={value.value} onChange={onUpdate}/>
+        return () => {
+            const events = {[props.refreshOnInput ? "onInput" : "onChange"]: onUpdate}
+            return <input class="input" type={type.value} value={value.value} {...events} placeholder={props.placeholder}/>
+        }
     }
 })

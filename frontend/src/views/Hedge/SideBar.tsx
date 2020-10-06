@@ -1,5 +1,5 @@
 import { defineComponent, inject } from "vue"
-import { sideBarSwitchInjection } from "../../Hedge"
+import { sideBarSwitchInjection } from "."
 
 /**
  * 主页面的侧栏内容。
@@ -24,9 +24,9 @@ export default defineComponent({
                         <li>
                             <a class="v-item"><span class="icon"><i class="fa fa-calendar-alt mr-2"/></span>日历</a>
                             <ul class="mt-1 ml-4 pl-1">
-                                <li><a class="v-item">2020年10月3日</a></li>
-                                <li><a class="v-item is-active">2020年10月2日</a></li>
-                                <li><a class="v-item">2020年10月1日</a></li>
+                                <li><a class="v-subitem">2020年10月3日</a></li>
+                                <li><a class="v-subitem is-active">2020年10月2日</a></li>
+                                <li><a class="v-subitem">2020年10月1日</a></li>
                             </ul>
                         </li>
                         <li><a class="v-item"><span class="icon"><i class="fa fa-clone mr-2"/></span>画集</a></li>
@@ -37,7 +37,7 @@ export default defineComponent({
                         <li>
                             <a class="v-item is-active"><span class="icon"><i class="fa fa-hashtag mr-2"/></span>主题</a>
                             <ul class="mt-1 ml-4 pl-1">
-                                <li><a class="v-item">主题1</a></li>
+                                <li><a class="v-subitem">主题1</a></li>
                             </ul>
                         </li>
                     </ul>
@@ -46,10 +46,8 @@ export default defineComponent({
                         <li>
                             <a class="v-item"><span class="icon"><i class="fa fa-archive mr-2"/></span>所有文件夹</a>
                             <ul class="mt-1 ml-4 pl-1">
-                                <li><a class="v-item">文件夹1</a></li>
-                                <li><a class="v-item">文件夹2</a></li>
-                                <li><a class="v-item">文件夹3</a></li>
-                                <li><a class="v-item">文件夹4</a></li>
+                                <li><a class="v-subitem">文件夹1</a></li>
+                                <li><a class="v-subitem">文件夹2</a></li>
                             </ul>
                         </li>
                         <li><a class="v-item"><span class="icon"><i class="fa fa-folder-minus mr-2"/></span>临时文件夹</a></li>

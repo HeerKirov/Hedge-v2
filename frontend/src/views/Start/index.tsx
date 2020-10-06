@@ -1,5 +1,6 @@
 import { defineComponent } from "vue"
 import { RouterView } from "vue-router"
+import "./style.scss"
 
 export default defineComponent({
     setup() {

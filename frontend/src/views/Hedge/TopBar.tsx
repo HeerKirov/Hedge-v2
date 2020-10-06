@@ -1,5 +1,5 @@
 import { computed, defineComponent, inject, ref, Transition } from "vue"
-import { sideBarSwitchInjection } from "../../Hedge"
+import { sideBarSwitchInjection } from "."
 
 /**
  * 内容区域的顶栏模块。

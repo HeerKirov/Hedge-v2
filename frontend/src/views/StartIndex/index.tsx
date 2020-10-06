@@ -1,5 +1,6 @@
 import { defineComponent, Ref, ref, TransitionGroup } from "vue"
-import BottomBar from "./layouts/Start/BottomBar"
+import BottomBar from "../Start/BottomBar"
+import "./style.scss"
 
 export default defineComponent({
     setup() {

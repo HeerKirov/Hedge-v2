@@ -1,6 +1,7 @@
 import { defineComponent } from "vue"
-import Input from "./components/Input"
-import BottomBar from "./layouts/Start/BottomBar"
+import Input from "../../components/Input"
+import BottomBar from "../Start/BottomBar"
+import "./style.scss"
 
 export default defineComponent({
     setup() {

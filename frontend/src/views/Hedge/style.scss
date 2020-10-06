@@ -1,4 +1,4 @@
-@import '../App.scss';
+@import '../../styles/App.scss';
 
 #app .v-hedge .v-side-layout {
     //主要内容区域的布局定位
@@ -62,7 +62,14 @@
         height: calc(100% - #{$title-bar-height + $bottom-buttons-height});
         .v-item {
             font-size: 0.8rem !important;
-            padding: 0.3rem 0.75rem;
+            padding: 0.25rem 0.75rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .v-subitem {
+            font-size: 0.8rem !important;
+            padding: 0.35rem 0.75rem;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;

@@ -1,5 +1,5 @@
 import { defineComponent, inject, onUnmounted, Ref, Transition } from "vue"
-import { sideBarSwitchInjection, sideBarWidthInjection } from "../../Hedge"
+import { sideBarSwitchInjection, sideBarWidthInjection } from "."
 
 /**
  * 主要页面的侧栏分栏结构。

@@ -1,16 +1,7 @@
 .fixed {
     position: fixed;
-
-    &.center {
-        left: 50%;
-        top: 50%;
-        transform: translate(-50%, -50%);
-    }
-    &.top {
-        top: 0;
-        left: 50%;
-        transform: translateX(-50%);
-    }
+    &.center { left: 50%; top: 50%; transform: translate(-50%, -50%); }
+    &.top { top: 0; left: 50%; transform: translateX(-50%); }
 }
 
 .absolute {
