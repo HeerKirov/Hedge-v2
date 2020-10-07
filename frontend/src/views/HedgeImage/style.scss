@@ -1,7 +1,35 @@
+@import '../../styles/App.scss';
+
 #app .v-hedge-image {
-    //实际内容区域，定义flex排布和滚动
-    .v-grid-content {
-        padding: 40px 1px 0 1px;
+    //主要的列表区域，有一个上部的padding区域
+    > .v-image-grid.v-main-grid {
+        height: 100%;
+        > .grid-content {
+            padding-top: $title-bar-height;
+        }
+    }
+}
+
+#app .v-collection-panel {
+    position: absolute;
+    top: 0; bottom: 0; left: 0; right: 0;
+    background-color: white;
+
+    > nav.level {
+        margin: 45px 15px 5px 15px;
+    }
+    > .v-image-grid.v-collection-grid {
+        position: absolute;
+        top: #{$title-bar-height + 40px};
+        bottom: 0;
+        width: 100%;
+    }
+}
+
+#app .v-image-grid {
+    > div.grid-content {
+        padding-left: 1px;
+        padding-right: 1px;
         position: absolute;
         width: 100%;
         max-height: 100%;
@@ -43,31 +71,5 @@
             font-size: 0.65rem;
             opacity: 80%;
         }
-    }
-}
-
-#app .v-bottom-tool {
-    position: absolute;
-    bottom: 20px;
-    right: 20px;
-
-    //剪贴板悬浮按钮的样式
-    .v-clipboard-button {
-        width: 2.5em;
-        height: 2.5em;
-        font-size: 1.35rem;
-        border-radius: 50%;
-    }
-
-    //工具栏进入和离开的样式
-    .v-buttom-tool-enter-from,
-    .v-buttom-tool-leave-to {
-        transform: translateY(80px);
-    }
-    .v-buttom-tool-enter-active {
-        transition: transform 0.5s ease-in;
-    }
-    .v-buttom-tool-leave-active {
-        transition: transform 0.5s ease-out;
     }
 }

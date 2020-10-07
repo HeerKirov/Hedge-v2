@@ -1,6 +1,7 @@
 import { defineComponent } from "vue"
-import ImageCover from "./ImageCover"
-import BottomTool from "./BottomTool"
+import ImageGrid from "./ImageGrid"
+import SelectToolBar from "./SelectToolBar"
+import CollectionPanel from "./CollectionPanel"
 import "./style.scss"
 import img1 from "../../assets/img1.jpg"
 import img2 from "../../assets/img2.jpg"
@@ -16,19 +17,18 @@ import img11 from "../../assets/img11.png"
 import img12 from "../../assets/img12.jpg"
 import img13 from "../../assets/img13.png"
 
+
 export default defineComponent({
     setup() {
         const images = [
             img1, img2, img3, img4, img5,
-            // img6, img7, img8, img9, img10,
-            // img11, img12, img13
+            img6, img7, img8, img9, img10,
+            img11, img12, img13
         ]
 
         return () => <div class="v-hedge-image">
-            <div class="v-grid-content">
-                {images.map(image => <ImageCover src={image} numTag={2} selected={image.endsWith(".png")}/>)}
-            </div>
-            <BottomTool/>
+            <ImageGrid class="v-main-grid" images={images}/>
+            <CollectionPanel/>
         </div>
     }
 })
