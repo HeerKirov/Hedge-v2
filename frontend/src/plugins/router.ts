@@ -49,6 +49,11 @@ export default createRouter({
                     name: 'HedgeIndex',
                     path: '',
                     component: () => import('../views/HedgeIndex')
+                },
+                {
+                    name: 'HedgeImage',
+                    path: 'images',
+                    component: () => import('../views/HedgeImage')
                 }
             ]
         },
