@@ -1,0 +1,21 @@
+#app .v-main-panel {
+    position: fixed;
+    top: 0; bottom: 0; left: 0; right: 0;
+}
+
+#app .v-main-panel .v-side-bar-menu {
+    .v-item {
+        font-size: 0.8rem !important;
+        padding: 0.25rem 0.75rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .v-subitem {
+        font-size: 0.8rem !important;
+        padding: 0.35rem 0.75rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}

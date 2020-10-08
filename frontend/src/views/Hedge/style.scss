@@ -1,8 +1,33 @@
 @import '../../styles/App.scss';
 
+#app .v-hedge {
+    //主面板的进入和离开变换
+    > .v-main-panel-transition-enter-from,
+    > .v-main-panel-transition-leave-to {
+        transform: translateY(25%);
+    }
+    > .v-main-panel-transition-enter-active {
+        transition: transform 0.3s ease-out;
+    }
+    > .v-main-panel-transition-leave-active {
+        transition: transform 0.3s ease-in;
+    }
+    //其他面板的进入和离开变换
+    > .v-other-panel-transition-enter-from,
+    > .v-other-panel-transition-leave-to {
+        transform: translateY(100%);
+    }
+    > .v-other-panel-transition-enter-active {
+        transition: transform 0.3s ease-out;
+    }
+    > .v-other-panel-transition-leave-active {
+        transition: transform 0.3s ease-in;
+    }
+}
+
 #app .v-hedge .v-side-layout {
     //主要内容区域的布局定位
-    .v-content {
+    > .v-content {
         position: absolute;
         top: 0;
         bottom: 0;
@@ -10,14 +35,14 @@
         transition: left 0.4s ease;
     }
     //侧边栏内容区域的布局定位
-    .v-side-content {
+    > .v-side-content {
         position: absolute;
         top: 0;
         bottom: 0;
         left: 0;
     }
     //拖拽区域的布局定位
-    .v-resize-content {
+    > .v-resize-content {
         position: absolute;
         top: 0;
         bottom: 0;
@@ -27,12 +52,12 @@
     }
 
     //侧边栏折叠的vue变换
-    .v-side-bar-collapse-enter-active,
-    .v-side-bar-collapse-leave-active {
+    > .v-side-bar-collapse-enter-active,
+    > .v-side-bar-collapse-leave-active {
         transition: transform 0.4s ease;
     }
-    .v-side-bar-collapse-enter-from,
-    .v-side-bar-collapse-leave-to {
+    > .v-side-bar-collapse-enter-from,
+    > .v-side-bar-collapse-leave-to {
         transform: translateX(-100%);
     }
 }
@@ -49,34 +74,20 @@
     width: 100%;
 
     //侧边栏顶的折叠按钮
-    .v-collapse-button {
+    > .v-collapse-button {
         position: absolute;
         right: 0.5rem;
         top: 0.35rem;
     }
     //侧边栏主要内容区域的menu
-    .v-menu {
+    > .v-content {
         margin-top: $title-bar-height;
         padding: 0.75rem;
         overflow-y: auto;
         height: calc(100% - #{$title-bar-height + $bottom-buttons-height});
-        .v-item {
-            font-size: 0.8rem !important;
-            padding: 0.25rem 0.75rem;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .v-subitem {
-            font-size: 0.8rem !important;
-            padding: 0.35rem 0.75rem;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
     }
     //侧边栏底部的按钮组
-    .v-buttons {
+    > .v-buttons {
         padding: 5px 0 5px 5px;
         width: 100%;
         overflow: hidden;
@@ -101,22 +112,22 @@
         left: $macos-buttons-width;
     }
     //左侧的折叠按钮
-    .v-collapse-button {
+    > .v-collapse-button {
         margin-left: 0.5rem;
         margin-top: 0.35rem;
     }
     //折叠按钮进出的vue变换
-    .v-collapse-button-enter-active,
-    .v-collapse-button-leave-active {
+    > .v-collapse-button-enter-active,
+    > .v-collapse-button-leave-active {
         transition: transform 0.4s ease;
     }
-    .v-collapse-button-enter-from,
-    .v-collapse-button-leave-to {
+    > .v-collapse-button-enter-from,
+    > .v-collapse-button-leave-to {
         transform: translateX(-200%);
     }
 
     //顶栏内容区域的布局定位
-    .v-top-bar-content {
+    > .v-content {
         position: absolute;
         top: 0;
         right: 0;

@@ -1,14 +1,16 @@
-import { defineComponent, ref, provide, InjectionKey, Ref } from "vue"
-import { RouterView } from "vue-router"
-import SideLayout from "./SideLayout"
-import SideBar from "./SideBar"
-import TopBar from "./TopBar"
-import ImageTopBar from "./TopBarOfImage"
+import { defineComponent, ref, provide, InjectionKey, Ref, KeepAlive, Transition } from "vue"
+import MainPanel from "./MainPanel"
+import GridPanel from "./GridPanel"
+import DetailPanel from "./DetailPanel"
 import "./style.scss"
 
 export const sideBarSwitchInjection: InjectionKey<Ref<boolean>> = Symbol()
 
 export const sideBarWidthInjection: InjectionKey<Ref<number>> = Symbol()
+
+export const panelInjection: InjectionKey<Ref<PanelType>> = Symbol() //UI测试用。正式UX不会这么控制。
+
+type PanelType = "main" | "grid" | "detail"
 
 export default defineComponent({
     setup() {
@@ -18,14 +20,12 @@ export default defineComponent({
         provide(sideBarSwitchInjection, sideBarSwitch)
         provide(sideBarWidthInjection, sideBarWidth)
 
+        const panel: Ref<PanelType> = ref("detail")
+
+        provide(panelInjection, panel)
+
         /**
          * 题外话，顶栏需要包括的东西:
-         * 1. 图库需要的顶栏
-         * - super搜索框(可激活结构化可配置的查询条件面板)
-         * - 填充显示切换开关
-         * - 尺寸切换器
-         * - 查询模式切换器(image模式/collection模式)
-         * - (最近导入)导入按钮
          * 2. 画集需要的顶栏
          * - super搜索框
          * - 尺寸切换器
@@ -35,17 +35,17 @@ export default defineComponent({
          * - (文件夹列表)搜索框
          */
         return () => <div class="v-hedge">
-            <SideLayout>
-                {{
-                    side: () => <SideBar/>,
-                    default: () => <>
-                        <RouterView/>
-                        <TopBar>
-                            {() => <ImageTopBar/>}
-                        </TopBar>
-                    </>
-                }}
-            </SideLayout>
+            <KeepAlive>
+                <Transition name="v-main-panel-transition">
+                    {() => panel.value === "main" && <MainPanel/>}
+                </Transition>
+            </KeepAlive>
+            <Transition name="v-other-panel-transition">
+                {() => panel.value === "grid" ? <GridPanel/>
+                : panel.value === "detail" ? <DetailPanel/>
+                : null
+                }
+            </Transition>
         </div>
     }
 })

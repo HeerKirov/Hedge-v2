@@ -1,0 +1,19 @@
+@import '../../../styles/App.scss';
+
+#app .v-detail-panel {
+    position: fixed;
+    top: 0; bottom: 0; left: 0; right: 0;
+    background-color: white;
+
+    //主要的列表区域
+    .v-image-grid {
+        height: 100%;
+        > .grid-content {
+            padding-top: $title-bar-height;
+        }
+    }
+}
+
+// #app .v-side-bar-detail {
+
+// }

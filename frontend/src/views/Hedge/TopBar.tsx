@@ -28,7 +28,7 @@ export default defineComponent({
             <Transition name="v-collapse-button">
                 {() => !sideBarSwitch.value && <button class="no-drag button is-white is-small v-collapse-button" onClick={openSideBar}><span class="icon"><i class="fa fa-lg fa-bars"/></span></button>}
             </Transition>
-            <div class={`v-top-bar-content ${sideBarSwitch.value ? "hide" : "show"}-cl-btn`}>
+            <div class={`v-content ${sideBarSwitch.value ? "hide" : "show"}-cl-btn`}>
                 {slots.default()}
             </div>
         </div>

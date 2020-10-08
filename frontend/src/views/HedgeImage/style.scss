@@ -2,74 +2,10 @@
 
 #app .v-hedge-image {
     //主要的列表区域，有一个上部的padding区域
-    > .v-image-grid.v-main-grid {
+    > .v-image-grid {
         height: 100%;
         > .grid-content {
             padding-top: $title-bar-height;
-        }
-    }
-}
-
-#app .v-collection-panel {
-    position: absolute;
-    top: 0; bottom: 0; left: 0; right: 0;
-    background-color: white;
-
-    > nav.level {
-        margin: 45px 15px 5px 15px;
-    }
-    > .v-image-grid.v-collection-grid {
-        position: absolute;
-        top: #{$title-bar-height + 40px};
-        bottom: 0;
-        width: 100%;
-    }
-}
-
-#app .v-image-grid {
-    > div.grid-content {
-        padding-left: 1px;
-        padding-right: 1px;
-        position: absolute;
-        width: 100%;
-        max-height: 100%;
-        overflow: auto;
-        display: flex;
-        justify-content: start;
-        align-items: flex-start;
-        flex-wrap: wrap;
-    }
-}
-
-#app .v-image-cover {
-    position: relative;
-    height: 0;
-
-    //内层div。由于外层用了padding-buttom来锁定长宽比，需要内层用来限制img
-    > div {
-        position: absolute;
-        top: 0; bottom: 0; left: 0; right: 0;
-        margin: 1px;
-
-        &.selected {
-            border: solid 3px blue;
-            border-radius: 2px;
-        }
-
-        //实际的img
-        > img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            object-position: 50% 50%;
-        }
-        //用来标记集合并显示图片张数的悬浮标签
-        > span {
-            position: absolute;
-            right: 0.25rem;
-            top: 0.25rem;
-            font-size: 0.65rem;
-            opacity: 80%;
         }
     }
 }

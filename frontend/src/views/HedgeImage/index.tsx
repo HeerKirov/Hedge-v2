@@ -1,7 +1,5 @@
 import { defineComponent } from "vue"
-import ImageGrid from "./ImageGrid"
-import SelectToolBar from "./SelectToolBar"
-import CollectionPanel from "./CollectionPanel"
+import ImageGrid from "../Hedge/Grid"
 import "./style.scss"
 import img1 from "../../assets/img1.jpg"
 import img2 from "../../assets/img2.jpg"
@@ -28,7 +26,6 @@ export default defineComponent({
 
         return () => <div class="v-hedge-image">
             <ImageGrid class="v-main-grid" images={images}/>
-            <CollectionPanel/>
         </div>
     }
 })
