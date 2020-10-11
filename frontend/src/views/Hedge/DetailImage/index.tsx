@@ -1,13 +1,13 @@
 import { defineComponent } from "vue"
 import "./style.scss"
 
-import img2 from "../../../assets/img2.jpg"
+import img1 from "../../../assets/img1.jpg"
 
 export default defineComponent({
     setup() {
-        return () => <div class="v-display">
+        return () => <div class="v-detail-image">
             <div>
-                <img src={img2}></img>
+                <img src={img1}></img>
             </div>
         </div>
     }

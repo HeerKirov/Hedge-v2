@@ -3,9 +3,9 @@ import SideLayout from "../SideLayout"
 import SideBar from "../SideBar"
 import TopBar from "../TopBar"
 import SideBarOfDetailPanel from "./SideBarOfDetailPanel"
-import Display from "../Display"
-import "./style.scss"
 import TopBarOfDetailPanel from "./TopBarOfDetailPanel"
+import DetailImage from "../DetailImage"
+import "./style.scss"
 
 /**
  * 展示大图的详情面板。
@@ -19,7 +19,7 @@ export default defineComponent({
                     {() => <SideBarOfDetailPanel/>}
                 </SideBar>,
                 default: () => <>
-                    <Display/>
+                    <DetailImage/>
                     <TopBar>
                         {() => <TopBarOfDetailPanel/>}
                     </TopBar>

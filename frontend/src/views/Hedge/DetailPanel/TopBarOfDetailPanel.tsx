@@ -1,6 +1,5 @@
 import { defineComponent, inject } from "vue"
 import { panelInjection } from ".."
-import TopBarViewController from "../TopBarViewController"
 
 /**
  * 在详情面板下的顶栏。
