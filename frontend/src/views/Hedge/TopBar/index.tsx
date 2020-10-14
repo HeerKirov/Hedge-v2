@@ -30,7 +30,7 @@ export default defineComponent({
                 {() => !sideBarSwitch.value && <button class="no-drag button is-white is-small v-collapse-button" onClick={openSideBar}><span class="icon"><i class="fa fa-lg fa-bars"/></span></button>}
             </Transition>
             <div class={`v-content ${sideBarSwitch.value ? "hide" : "show"}-cl-btn`}>
-                {slots.default()}
+                {slots.default?.()}
             </div>
         </div>
     }

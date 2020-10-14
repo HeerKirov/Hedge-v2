@@ -1,6 +1,6 @@
 import { defineComponent } from "vue"
 import TopBar from "../../TopBar"
-import TopBarOfImage from "./TopBarContent"
+import TopBarContent from "./TopBarContent"
 import ImageGrid from "../../../../layouts/ImageGrid"
 import "./style.scss"
 
@@ -18,7 +18,7 @@ export default defineComponent({
                 {{header: () => <div class="h-title-bar"/>}}
             </ImageGrid>
             <TopBar>
-                {() => <TopBarOfImage/>}
+                {() => <TopBarContent/>}
             </TopBar>
         </div>
     }

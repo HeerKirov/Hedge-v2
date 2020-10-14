@@ -6,8 +6,8 @@ import Panel from "./Panel"
 import SideBarDetailInfo from "./SideBarDetailInfo"
 import SideBarDetailOrigin from "./SideBarDetailOrigin"
 import SideBarDetailOthers from "./SideBarDetailOthers"
-import SideBottomOfDetail from "./SideBottomContent"
-import TopBarOfDetailPanel from "./TopBarContent"
+import SideBottomContent from "./SideBottomContent"
+import TopBarContent from "./TopBarContent"
 import "./style.scss"
 
 /**
@@ -27,13 +27,13 @@ export default defineComponent({
                                 sideBarTab.value === "info" ? <SideBarDetailInfo/> :
                                 sideBarTab.value === "origin" ? <SideBarDetailOrigin/> :
                                 <SideBarDetailOthers/>,
-                            bottom: () => <SideBottomOfDetail tab={sideBarTab.value} onUpdateTab={setSideBarTab}/>
+                            bottom: () => <SideBottomContent tab={sideBarTab.value} onUpdateTab={setSideBarTab}/>
                         }}
                     </SideBar>,
                     default: () => <>
                         <Panel/>
                         <TopBar>
-                            {() => <TopBarOfDetailPanel/>}
+                            {() => <TopBarContent/>}
                         </TopBar>
                     </>
                 }}

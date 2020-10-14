@@ -12,7 +12,6 @@ export default defineComponent({
         images: null as PropType<string[]>
     },
     setup(props, { slots }) {
-        //TODO 增加header, middle component的插入，代替侵入式的CSS修改
         return () => <div class="v-image-grid">
             {slots.fixedHeader?.()}
             <div class="overflow-content">

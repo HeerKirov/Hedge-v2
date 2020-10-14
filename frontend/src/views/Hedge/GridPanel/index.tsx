@@ -4,8 +4,8 @@ import SideBar from "../SideBar"
 import TopBar from "../TopBar"
 import Panel from "./Panel"
 
-import TopBarOfGridPanel from "./TopBarContent"
-import SideBarOfGridPanel from "./SideBarContent"
+import TopBarContent from "./TopBarContent"
+import SideBarContent from "./SideBarContent"
 import "./style.scss"
 
 /**
@@ -17,12 +17,12 @@ export default defineComponent({
             <SideLayout>
                 {{
                     side: () => <SideBar>
-                        {() => <SideBarOfGridPanel/>}
+                        {() => <SideBarContent/>}
                     </SideBar>,
                     default: () => <>
                         <Panel/>
                         <TopBar>
-                            {() => <TopBarOfGridPanel/>}
+                            {() => <TopBarContent/>}
                         </TopBar>
                     </>
                 }}
