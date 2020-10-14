@@ -1,0 +1,51 @@
+@import '../../../styles/App.scss';
+
+#app .v-top-bar {
+    position: absolute;
+    height: $title-bar-height;
+    top: 0;
+    right: 0;
+    transition: left 0.4s ease;
+
+    //其他任意平台的内容区域布局
+    &.platform-web {
+        left: 0;
+    }
+    //macOS平台的内容区域布局。主要是左侧留出红绿灯的宽度
+    &.platform-macos {
+        left: $macos-buttons-width;
+    }
+    //左侧的折叠按钮
+    > .v-collapse-button {
+        margin-left: 0.5rem;
+        margin-top: 0.35rem;
+    }
+    //折叠按钮进出的vue变换
+    > .v-collapse-button-enter-active,
+    > .v-collapse-button-leave-active {
+        transition: transform 0.4s ease;
+    }
+    > .v-collapse-button-enter-from,
+    > .v-collapse-button-leave-to {
+        transform: translateX(-200%);
+    }
+
+    //顶栏内容区域的布局定位
+    > .v-content {
+        position: absolute;
+        top: 0;
+        right: 0;
+        height: 100%;
+        padding: 0.3rem;
+        transition: left 0.4s ease;
+
+        //在侧边栏折叠时，显示折叠按钮，需要留出左侧的空隙
+        &.show-cl-btn {
+            left: 40px;
+        }
+        //在侧边栏展开时，不限时折叠按钮，不用留出空隙
+        &.hide-cl-btn {
+            left: 0;
+        }
+    }
+}

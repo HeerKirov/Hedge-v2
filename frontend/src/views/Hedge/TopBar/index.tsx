@@ -1,5 +1,6 @@
 import { computed, defineComponent, inject, ref, Transition } from "vue"
-import { sideBarSwitchInjection } from "."
+import { sideBarSwitchInjection } from ".."
+import "./style.scss"
 
 /**
  * 内容区域的顶栏模块。

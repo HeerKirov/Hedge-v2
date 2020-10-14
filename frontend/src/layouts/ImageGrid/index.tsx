@@ -11,10 +11,16 @@ export default defineComponent({
     props: {
         images: null as PropType<string[]>
     },
-    setup(props) {
+    setup(props, { slots }) {
+        //TODO 增加header, middle component的插入，代替侵入式的CSS修改
         return () => <div class="v-image-grid">
-            <div class="grid-content">
-                {props.images.map(image => <ImageItem src={image} numTag={2} selected={image.endsWith(".png")}/>)}
+            {slots.fixedHeader?.()}
+            <div class="overflow-content">
+                {slots.header?.()}
+                <div class="grid-content">
+                    {props.images.map(image => <ImageItem src={image} numTag={2} selected={image.endsWith(".png")}/>)}
+                </div>
+                {slots.footer?.()}
             </div>
             <SelectToolBar class="absolute right-bottom mr-5 mb-4"/>
         </div>

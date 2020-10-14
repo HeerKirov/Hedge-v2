@@ -2,12 +2,12 @@ import { defineComponent, Ref, ref } from "vue"
 import SideLayout from "../SideLayout"
 import SideBar from "../SideBar"
 import TopBar from "../TopBar"
+import Panel from "./Panel"
 import SideBarDetailInfo from "./SideBarDetailInfo"
 import SideBarDetailOrigin from "./SideBarDetailOrigin"
 import SideBarDetailOthers from "./SideBarDetailOthers"
-import SideBottomOfDetail from "./SideBottomOfDetail"
-import TopBarOfDetailPanel from "./TopBarOfDetailPanel"
-import DetailImage from "../../../layouts/ImageDetail"
+import SideBottomOfDetail from "./SideBottomContent"
+import TopBarOfDetailPanel from "./TopBarContent"
 import "./style.scss"
 
 /**
@@ -31,7 +31,7 @@ export default defineComponent({
                         }}
                     </SideBar>,
                     default: () => <>
-                        <DetailImage/>
+                        <Panel/>
                         <TopBar>
                             {() => <TopBarOfDetailPanel/>}
                         </TopBar>

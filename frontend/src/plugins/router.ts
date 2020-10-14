@@ -26,17 +26,17 @@ export default createRouter({
                 {
                     name: 'StartIndex',
                     path: '',
-                    component: () => import('../views/StartIndex')
+                    component: () => import('../views/Start/ViewIndex')
                 },
                 {
                     name: 'StartNew',
                     path: 'new',
-                    component: () => import('../views/StartNew')
+                    component: () => import('../views/Start/ViewNew')
                 },
                 {
                     name: 'StartImport',
                     path: 'import',
-                    component: () => import('../views/StartImport')
+                    component: () => import('../views/Start/ViewImport')
                 }
             ]
         },
@@ -48,12 +48,17 @@ export default createRouter({
                 {
                     name: 'HedgeIndex',
                     path: '',
-                    component: () => import('../views/HedgeIndex')
+                    component: () => import('../views/Hedge/MainPanel/ViewIndex')
                 },
                 {
                     name: 'HedgeImage',
                     path: 'images',
-                    component: () => import('../views/HedgeImage')
+                    component: () => import('../views/Hedge/MainPanel/ViewImage')
+                },
+                {
+                    name: 'HedgeRecent',
+                    path: 'recent',
+                    component: () => import('../views/Hedge/MainPanel/ViewRecent')
                 }
             ]
         },

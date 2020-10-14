@@ -2,21 +2,17 @@ import { defineComponent } from "vue"
 import SideLayout from "../SideLayout"
 import SideBar from "../SideBar"
 import TopBar from "../TopBar"
-import ImageGrid from "../../../layouts/ImageGrid"
-import TopBarOfGridPanel from "./TopBarOfGridPanel"
-import SideBarOfGridPanel from "./SideBarOfGridPanel"
-import "./style.scss"
+import Panel from "./Panel"
 
-import img1 from "../../../assets/img1.jpg"
-import img2 from "../../../assets/img2.jpg"
+import TopBarOfGridPanel from "./TopBarContent"
+import SideBarOfGridPanel from "./SideBarContent"
+import "./style.scss"
 
 /**
  * 用来展示成组的内容(集合/画集)的覆盖式弹出面板。
  */
 export default defineComponent({
     setup() {
-        const images = [img1, img2, img1, img2]
-
         return () => <div class="v-grid-panel">
             <SideLayout>
                 {{
@@ -24,7 +20,7 @@ export default defineComponent({
                         {() => <SideBarOfGridPanel/>}
                     </SideBar>,
                     default: () => <>
-                        <ImageGrid images={images}/>
+                        <Panel/>
                         <TopBar>
                             {() => <TopBarOfGridPanel/>}
                         </TopBar>

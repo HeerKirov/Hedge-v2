@@ -18,6 +18,7 @@ export default defineComponent({
             <div class="mt-4 mb-3">
                 {arrays.newArray(15, i => <span class="tag is-info is-primary mr-1">标签 {i}</span>)}
             </div>
+            <p class="mt-1 is-size-7">时间分区 2020-09-30</p>
             <p class="mt-1 is-size-7">排序时间 2020-10-01 01:06:00</p>
             <p class="mt-1 is-size-7">创建时间 2020-10-01 02:00:00</p>
             <p class="mt-1 is-size-7">上次更新 2020-10-01 18:00:00</p>

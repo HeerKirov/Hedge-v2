@@ -1,16 +1,17 @@
 import { defineComponent } from "vue"
 import "./style.scss"
 
-import img1 from "../../assets/img1.jpg"
-
 /**
  * 详情页的图片区域。
  */
 export default defineComponent({
-    setup() {
+    props: {
+        src: String
+    },
+    setup(props) {
         return () => <div class="v-image-detail">
             <div>
-                <img src={img1}></img>
+                <img src={props.src}></img>
             </div>
         </div>
     }

@@ -2,9 +2,7 @@ import { defineComponent } from "vue"
 import { RouterView } from "vue-router"
 import SideLayout from "../SideLayout"
 import SideBar from "../SideBar"
-import SideBarOfMenu from "./SideBarOfMenu"
-import TopBar from "../TopBar"
-import TopBarOfImage from "./TopBarOfImage"
+import SideBarOfMenu from "./SideBarContent"
 import "./style.scss"
 
 export default defineComponent({
@@ -15,12 +13,7 @@ export default defineComponent({
                     side: () => <SideBar>
                         {() => <SideBarOfMenu/>}
                     </SideBar>,
-                    default: () => <>
-                        <RouterView/>
-                        <TopBar>
-                            {() => <TopBarOfImage/>}
-                        </TopBar>
-                    </>
+                    default: () => <RouterView/>
                 }}
             </SideLayout>
         </div>

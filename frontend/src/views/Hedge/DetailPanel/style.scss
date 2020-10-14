@@ -4,16 +4,36 @@
     position: fixed;
     top: 0; bottom: 0; left: 0; right: 0;
     background-color: white;
+}
 
-    //主要的列表区域
-    .v-image-grid {
-        height: 100%;
-        > .grid-content {
-            padding-top: $title-bar-height;
+// #app .v-detail-panel-content {
+
+// }
+
+#app .v-side-bar-detail.others {
+    > .collection-grid {
+        display: flex;
+        justify-content: start;
+        align-items: flex-start;
+        flex-wrap: wrap;
+        > div {
+            padding: 1px;
+            &.collection-grid-wide-1 {
+                width: 100%;
+            }
+            &.collection-grid-wide-2 {
+                width: 50%;
+            }
+            &.collection-grid-wide-3 {
+                width: 33.3%;
+            }
+
+            > img {
+                width: 100%;
+                max-height: 150px;
+                object-fit: contain;
+                object-position: 50% 50%;
+            }
         }
     }
 }
-
-// #app .v-side-bar-detail {
-
-// }

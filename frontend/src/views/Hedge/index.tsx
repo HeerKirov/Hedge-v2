@@ -20,7 +20,7 @@ export default defineComponent({
         provide(sideBarSwitchInjection, sideBarSwitch)
         provide(sideBarWidthInjection, sideBarWidth)
 
-        const panel: Ref<PanelType> = ref("main")
+        const panel: Ref<PanelType> = ref("detail")
 
         provide(panelInjection, panel)
 

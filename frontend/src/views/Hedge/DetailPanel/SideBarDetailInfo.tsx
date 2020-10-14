@@ -19,11 +19,11 @@ export default defineComponent({
             <div class="mt-4 mb-3">
                 {arrays.newArray(35, i => <span class="tag is-light is-primary mr-1">标签 {i}</span>)}
             </div>
-            <p class="mt-1 is-size-7">时间分区 2020-09-30</p>
+            <p class="mt-1 is-size-7"><a class="has-text-dark"><b>时间分区 2020-09-30</b></a></p>
             <p class="mt-1 is-size-7">排序时间 2020-10-01 01:06:00</p>
             <p class="mt-1 is-size-7">添加时间 2020-10-01 02:00:00</p>
             <p class="mt-1 is-size-7">上次修改 2020-10-01 18:00:00</p>
-            {/*智能化显示时间。默认显示的是添加时间，当排序时间/上次修改与其不同，或时间分区与排序时间不同时，才列出额外的项显示 */}
+            {/*智能化显示时间。默认显示的是添加时间，当排序时间/上次修改与其不同时，才列出额外的项显示 */}
         </div>
     }
 })

@@ -1,7 +1,7 @@
 import { defineComponent, inject, Ref, ref } from "vue"
-import { panelInjection } from ".."
-import TopBarQueryBox from "./TopBarQueryBox"
-import TopBarViewController from "./TopBarViewController"
+import { panelInjection } from "../.."
+import TopBarQueryBox from "../../TopBar/QueryBox"
+import TopBarViewController from "../../TopBar/ViewController"
 
 type ImageBarMode = "image" | "import" | "album"
 
