@@ -11,6 +11,9 @@ body {
   -webkit-user-select: none;
   color: $std-text-color;
 }
+.can-select {
+  -webkit-user-select: text;
+}
 
 html::-webkit-scrollbar {
   display: none;

@@ -29,7 +29,7 @@ export default defineComponent({
 })
 
 function useResizeBar(sizeBarWidth: Ref<number>) {
-    const maxWidth = 300, minWidth = 150
+    const maxWidth = 400, minWidth = 150
     const defaultWidth = 225, defaultWidthRange = 10
 
     const resizeAreaMouseDown = () => {
