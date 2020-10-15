@@ -19,15 +19,7 @@ export default defineComponent({
                     </button>
                 </p>
             </div>
-            <div class="level-item">
-                <div class="field is-grouped w-100 mx-6 pl-6">
-                    <TopBarQueryBox/>
-                </div>
-            </div>
             <div class="level-right">
-                <p class="control mr-2">
-                    <b class="is-size-7 line-height-24">80/1024项</b>
-                </p>
                 <TopBarViewController expandMode={fitType.value === "cover"} onUpdateExpandMode={(v: boolean) => fitType.value = v ? "cover" : "contain"}/>
             </div>
         </nav>

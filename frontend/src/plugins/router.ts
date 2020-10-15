@@ -59,6 +59,11 @@ export default createRouter({
                     name: 'HedgeRecent',
                     path: 'recent',
                     component: () => import('../views/Hedge/MainPanel/ViewRecent')
+                },
+                {
+                    name: 'HedgePartitions',
+                    path: 'partitions',
+                    component: () => import('../views/Hedge/MainPanel/ViewPartitions')
                 }
             ]
         },

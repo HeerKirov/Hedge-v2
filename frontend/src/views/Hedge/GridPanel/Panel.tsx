@@ -12,7 +12,7 @@ export default defineComponent({
         const images = [img1, img2, img1, img2]
 
         return () => <div class="v-grid-panel-content">
-            <ImageGrid images={images}>
+            <ImageGrid items={images}>
                 {{header: () => <div class="h-title-bar"/>}}
             </ImageGrid>
         </div>

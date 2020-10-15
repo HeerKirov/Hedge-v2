@@ -13,6 +13,10 @@
             justify-content: start;
             align-items: flex-start;
             flex-wrap: wrap;
+            > div.line {
+                width: 100%;
+                padding-left: 5px;
+            }
         }
     }
 }

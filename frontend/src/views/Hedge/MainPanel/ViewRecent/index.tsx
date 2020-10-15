@@ -1,6 +1,6 @@
 import { defineComponent, provide, ref } from "vue"
-import ImageGrid from "../../../../layouts/ImageGrid"
 import { columnNumberInjection, fitTypeInjection, FitType } from "../../../../layouts/ImageGrid/Item"
+import ImageGrid, { Item } from "../../../../layouts/ImageGrid"
 import TopBar from "../../TopBar"
 import TopBarContent from "./TopBarContent"
 import "./style.scss"
@@ -10,8 +10,9 @@ import img2 from "../../../../assets/img2.local.jpg"
 
 export default defineComponent({
     setup() {
-        const images = [
-            img1, img2, img1, img2, img1, img2, img1, img2, img1, img2, img1, img2
+        const images: Item[] = [
+            {type: "title", title: "2020-10-01 16:10"}, img1, img2, img1, img2, 
+            {type: "title", title: "2020-09-30 22:30"}, img1, img2, img1, img2, img1, img2
         ]
 
         const columnNumber = ref(6)
@@ -21,7 +22,7 @@ export default defineComponent({
         provide(fitTypeInjection, fitType)
 
         return () => <div class="v-hedge-recent">
-            <ImageGrid class="v-main-grid" images={images}>
+            <ImageGrid items={images}>
                 {{header: () => <div class="h-title-bar"/>}}
             </ImageGrid>
             <TopBar>
