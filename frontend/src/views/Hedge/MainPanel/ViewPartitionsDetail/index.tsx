@@ -13,7 +13,7 @@ export default defineComponent({
             img1, img2
         ]
 
-        return () => <div id="hedge-image">
+        return () => <div id="hedge-partitions-detail">
             <ImageGrid items={images}>
                 {{header: () => <div class="h-title-bar"/>}}
             </ImageGrid>

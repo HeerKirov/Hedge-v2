@@ -23,8 +23,8 @@ export default defineComponent({
         }
 
         return () => <nav class="level">
-            <div class="level-item">
-                日历 / 时间线
+            <div class="level-left pl-3">
+                {panel.value === "calendar" ? "日历" : "时间线"}
             </div>
             <div class="level-right">
                 <div class="buttons has-addons">

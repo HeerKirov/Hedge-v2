@@ -1,1 +1,89 @@
+@import '../../../../styles/App.scss';
+
 // #app #hedge #hedge-partitions {}
+
+#app #hedge #hedge-partitions #panel-calendar {
+    overflow-y: hidden;
+    //导航栏
+    > .v-nav-bar {
+        //年份输入框
+        > div > .v-year-editor {
+            width: 80px;
+        }
+        //月份输入框
+        > div > .v-month-editor {
+            width: 60px;
+        }
+    }
+    //日历区域
+    > .v-grid {
+        padding: 1rem;
+        //显示weekday的标题行
+        > .v-header {
+            display: flex;
+            padding: 0;
+            margin: 0.5rem;
+            //标题行里的项
+            > div {
+                padding: 1.6rem;
+                width: 14.285714286%;
+            }
+        }
+        //网格区域
+        > .v-content {
+            display: flex;
+            flex-wrap: wrap;
+            //项
+            > div {
+                padding: 0.5rem;
+                width: 14.285714286%;
+                height: 75px;
+                //项内的box区域
+                > div {
+                    padding: 1.25rem;
+                    //可点击的box
+                    &.hoverable {
+                        cursor: pointer;
+                    }
+                    &.hoverable:hover {
+                        transform: translateY(-2px);
+                    }
+                }
+            }
+        }
+    }
+}
+
+#app #hedge #hedge-partitions #panel-timeline {
+    $top: #{$title-bar-height + 40px};
+    > .v-left-column {
+        position: absolute;
+        left: 0; top: $top; bottom: 0; width: 70%;
+    }
+    > .v-right-column {
+        position: absolute;
+        right: 0; top: $top; bottom: 0; width: 30%;
+    }
+    //时间线列表
+    .v-timeline {
+        padding: 1rem;
+        overflow-y: auto;
+        max-height: 100%;
+        //项
+        > div.notification {
+            position: relative;
+            padding: 0.5rem 0.75rem;
+            margin-bottom: 0.3rem;
+            &.small {
+                padding: 0.5rem 0.75rem;
+            }
+
+            > div.count {
+                position: absolute;
+                right: 0.75rem; top: 0;
+                height: 100%;
+                padding: 0.5rem 0;
+            }
+        }
+    }
+}

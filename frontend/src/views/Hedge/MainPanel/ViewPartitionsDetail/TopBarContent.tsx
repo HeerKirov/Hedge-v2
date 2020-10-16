@@ -17,8 +17,12 @@ export default defineComponent({
         }
 
         return () => <nav class="level">
+            <div class="level-left">
+                <button class="button is-small is-white mr-2"><span class="icon"><i class="fa fa-lg fa-angle-left"/></span></button>
+                <span>2020年10月</span>
+            </div>
             <div class="level-item">
-                <div class="field is-grouped w-100 mx-6 pl-6 pr-3">
+                <div class="field is-grouped w-100 mx-6 px-3">
                     <p class="control mr-2">
                         <button class="button no-drag is-small rounded-50" onClick={changeQueryInCollection}>
                             <span class="icon"><i class={`fa fa-lg fa-${queryInCollection.value ? "images" : "file-image"}`}/></span>
