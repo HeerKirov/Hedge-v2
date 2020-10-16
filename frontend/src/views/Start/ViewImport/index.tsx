@@ -5,7 +5,7 @@ import "./style.scss"
 
 export default defineComponent({
     setup() {
-        return () => <div class="v-start-import">
+        return () => <div id="start-import">
             <div class="v-dialog absolute center">
                 <h1 class="subtitle">导入外部数据库</h1>
                 <p>将外部已存在的数据库文件夹添加到数据库列表中。</p>

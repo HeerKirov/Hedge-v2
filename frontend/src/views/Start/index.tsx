@@ -4,7 +4,7 @@ import "./style.scss"
 
 export default defineComponent({
     setup() {
-        return () => <div class="v-start">
+        return () => <div id="start">
             <div class="title-bar has-text-centered">
                 <span>HEDGE</span>
             </div>

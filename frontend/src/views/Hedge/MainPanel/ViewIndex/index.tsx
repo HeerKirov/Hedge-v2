@@ -3,7 +3,7 @@ import "./style.scss"
 
 export default defineComponent({
     setup() {
-        return () => <div class="v-hedge-index">
+        return () => <div id="hedge-index">
 
         </div>
     }

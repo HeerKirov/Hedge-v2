@@ -12,7 +12,7 @@ export default defineComponent({
          * 视图1:日历视图，满铺的月级日历，横条选择年月，可左右跳。
          * 视图2:时间线视图，按时间降序列出一个列表。右侧还有一栏，给出年-月的时间线列表，点击会使左侧列表跳转。
          */
-        return () => <div class="v-hedge-partitions">
+        return () => <div id="hedge-partitions">
             <TopBar>
                 {() => <TopBarContent panel={panelType.value} onUpdatePanel={(v: PanelType) => panelType.value = v}/>}
             </TopBar>

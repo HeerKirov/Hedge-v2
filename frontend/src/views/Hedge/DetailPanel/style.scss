@@ -1,16 +1,14 @@
 @import '../../../styles/App.scss';
 
-#app .v-detail-panel {
+#app #hedge #detail-panel {
     position: fixed;
     top: 0; bottom: 0; left: 0; right: 0;
     background-color: white;
 }
 
-// #app .v-detail-panel-content {
+// #app #hedge #detail-panel #panel {}
 
-// }
-
-#app .v-side-bar-detail.others {
+#app #hedge #detail-panel #side-bar-detail-others {
     > .collection-grid {
         display: flex;
         justify-content: start;

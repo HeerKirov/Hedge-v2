@@ -1,48 +1,57 @@
-#app .v-start-index {
-    
-    //数据库卡片列表的移动变换
-    .v-transition-list-move {
-        transition: transform 0.5s ease;
-    }
-    //数据库卡片列表
-    .v-list {
-        $box-width: 200px;
-        $box-height: 300px;
+@import '../style.scss';
 
+#app #start #start-index {
+    //主内容区域定位
+    > div {
         position: absolute;
         width: 100%;
-        top: calc(50% - 175px);
+        bottom: $bottom-bar-height;
+        top: $title-bar-height;
 
-        //数据库卡片
-        .v-box {
+        //数据库卡片列表
+        > div {
+            /*卡片的标准宽度*/ $box-width: 200px;
+            /*卡片的标准高度*/ $box-height: 300px;
+
             position: absolute;
-    
-            //作为主卡片时
-            &.main {
-                width: $box-width * 1.25;
-                height: $box-height * 1.25;
-            }
-            //作为非主要卡片时
-            &.secondary {
-                width: $box-width;
-                height: $box-height;
-                margin-top: $box-height * 0.125;
-                margin-left: $box-width * 0.125;
-            }
-            &.secondary:hover {
-                cursor: pointer;
-                transform: translateY(-0.4rem);;
-            }
-    
-            //卡片上的路径信息样式
-            .v-path-text {
-                font-size: 0.6rem;
+            width: 100%;
+            top: calc(50% - 175px);
+
+            //数据库卡片
+            > div.v-box {
                 position: absolute;
-                width: 100%;
-                left: 0;
-                bottom: 1rem;
-                padding: 0 1rem;
+        
+                //作为主卡片时
+                &.main {
+                    width: $box-width * 1.25;
+                    height: $box-height * 1.25;
+                }
+                //作为非主要卡片时
+                &.secondary {
+                    width: $box-width;
+                    height: $box-height;
+                    margin-top: $box-height * 0.125;
+                    margin-left: $box-width * 0.125;
+                }
+                &.secondary:hover {
+                    cursor: pointer;
+                    transform: translateY(-0.4rem);;
+                }
+        
+                //卡片上的路径信息样式
+                .v-path-text {
+                    font-size: 0.6rem;
+                    position: absolute;
+                    width: 100%;
+                    left: 0;
+                    bottom: 1rem;
+                    padding: 0 1rem;
+                }
+            }   
+            //数据库卡片列表的移动变换
+            .v-transition-list-move {
+                transition: transform 0.5s ease;
             }
-        }   
+        }
     }
 }

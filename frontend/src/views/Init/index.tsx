@@ -15,7 +15,7 @@ export default defineComponent({
 
         }
 
-        return () => <div class="v-init">
+        return () => <div id="init">
             <div class="title-bar"></div>
             <div class="v-dialog fixed center box">
                 {[

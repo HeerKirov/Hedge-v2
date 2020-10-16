@@ -11,7 +11,7 @@ export default defineComponent({
             sideBarSwitch.value = false
         }
 
-        return () => <div class="v-side-bar">
+        return () => <div id="side-bar">
             <div class="title-bar absolute left-top w-100"></div>
             <button class="no-drag button is-light is-small v-collapse-button" onClick={collapseSideBar}><span class="icon"><i class="fa fa-lg fa-bars"/></span></button>
             <div class="v-content">

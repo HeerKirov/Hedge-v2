@@ -8,7 +8,7 @@ import img1 from "../../../assets/img1.local.jpg"
  */
 export default defineComponent({
     setup() {
-        return () => <div class="v-detail-panel-content">
+        return () => <div id="panel">
             <DetailImage src={img1}/>
         </div>
     }

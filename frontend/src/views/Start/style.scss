@@ -2,17 +2,7 @@
 
 /*底栏高度*/ $bottom-bar-height: 100px;
 
-#app .v-start {
-    //主内容区域定位
-    .v-content {
-        position: absolute;
-        width: 100%;
-        bottom: $bottom-bar-height;
-        top: $title-bar-height;
-    }
-}
-
-#app .v-bottom-bar {
+#app #start #bottom-bar {
     position: absolute;
     bottom: 0;
     width: 100%;
@@ -21,7 +11,7 @@
     background-color: $side-background-color;
 
     //底栏上的按钮组定位
-    .v-buttons {
+    > nav {
         margin-top: calc(50px - 1.5rem - 2px);
         padding: 0 0.75rem;
     }

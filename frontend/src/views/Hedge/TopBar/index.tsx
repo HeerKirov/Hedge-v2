@@ -13,9 +13,9 @@ export default defineComponent({
         const isFullScreen = ref(false) //inject it
         const layoutCSS = computed(() => {
             if(isFullScreen.value || sideBarSwitch.value || platform.value !== "macOS") {
-                return "web"
+                return "platform-web"
             }else{
-                return "macos"
+                return "platform-macos"
             }
         })
 
@@ -24,7 +24,7 @@ export default defineComponent({
             sideBarSwitch.value = true
         }
 
-        return () => <div class={`v-top-bar platform-${layoutCSS.value}`}>
+        return () => <div id="top-bar" class={layoutCSS.value}>
             <div class="title-bar absolute top w-100"></div>
             <Transition name="v-collapse-button">
                 {() => !sideBarSwitch.value && <button class="no-drag button is-white is-small v-collapse-button" onClick={openSideBar}><span class="icon"><i class="fa fa-lg fa-bars"/></span></button>}

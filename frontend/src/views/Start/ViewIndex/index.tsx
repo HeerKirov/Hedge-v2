@@ -16,9 +16,9 @@ export default defineComponent({
             databases.push({name: 'custom2', description: '...', path: '~/Library/Application Support/Hedge-v2/databases/custom2'})
         }
 
-        return () => <div class="v-start-index">
-            <div class="v-content">
-                <TransitionGroup name="v-transition-list" tag="div" class="v-list">
+        return () => <div id="start-index">
+            <div>
+                <TransitionGroup name="v-transition-list" tag="div">
                     {() => databases.map((v, i) => {
                         const isMain = i === selectedIndex.value
                         const offset = (i - selectedIndex.value) * 225 - (i > selectedIndex.value ? 100 : i < selectedIndex.value ? 150 : 125)

@@ -14,8 +14,8 @@ export default defineComponent({
             return () => router.push({name: routeName})
         }
         
-        return () => <div class="v-bottom-bar">
-            <nav class="level v-buttons">
+        return () => <div id="bottom-bar">
+            <nav class="level">
                 <div class="level-left">
                     <div class="buttons">
                         <button class="button is-medium is-light"><span class="icon"><i class="fa fa-question-circle"></i></span></button>

@@ -7,7 +7,7 @@ import "./style.scss"
 
 export default defineComponent({
     setup() {
-        return () => <div class="v-main-panel">
+        return () => <div id="main-panel">
             <SideLayout>
                 {{
                     side: () => <SideBar>

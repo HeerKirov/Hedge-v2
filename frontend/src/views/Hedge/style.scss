@@ -1,6 +1,6 @@
 @import '../../styles/App.scss';
 
-#app .v-hedge {
+#app #hedge {
     //主面板的进入和离开变换
     > .v-main-panel-transition-enter-from,
     > .v-main-panel-transition-leave-to {
@@ -25,7 +25,7 @@
     }
 }
 
-#app .v-hedge .v-side-layout {
+#app #hedge #side-layout {
     //主要内容区域的布局定位
     > .v-content {
         position: absolute;
@@ -40,6 +40,16 @@
         top: 0;
         bottom: 0;
         left: 0;
+
+        //侧边栏折叠的vue变换
+        &.v-side-bar-collapse-enter-active,
+        &.v-side-bar-collapse-leave-active {
+            transition: transform 0.4s ease;
+        }
+        &.v-side-bar-collapse-enter-from,
+        &.v-side-bar-collapse-leave-to {
+            transform: translateX(-100%);
+        }
     }
     //拖拽区域的布局定位
     > .v-resize-content {
@@ -49,29 +59,16 @@
         width: 5px;
         transform: translateX(-3px);
         cursor: ew-resize;
-    }
-
-    //侧边栏折叠的vue变换
-    > .v-side-bar-collapse-enter-active,
-    > .v-side-bar-collapse-leave-active {
-        transition: transform 0.4s ease;
-    }
-    > .v-side-bar-collapse-enter-from,
-    > .v-side-bar-collapse-leave-to {
-        transform: translateX(-100%);
-    }
+    }    
 }
 
-#app .v-hedge .v-side-bar {
-    $bottom-buttons-height: 40px;
+#app #hedge #side-bar {
+    /*侧边栏的底栏按钮高度*/ $bottom-buttons-height: 40px;
 
     background-color: $side-background-color;
     border-right: solid 1px $side-border-color;
     position: absolute;
-    left: 0;
-    top: 0;
-    height: 100%;
-    width: 100%;
+    left: 0; top: 0; height: 100%; width: 100%;
 
     //侧边栏顶的折叠按钮
     > .v-collapse-button {

@@ -1,6 +1,6 @@
 @import '../../../styles/App.scss';
 
-#app .v-top-bar {
+#app #hedge #top-bar {
     position: absolute;
     height: $title-bar-height;
     top: 0;
@@ -19,15 +19,15 @@
     > .v-collapse-button {
         margin-left: 0.5rem;
         margin-top: 0.35rem;
-    }
-    //折叠按钮进出的vue变换
-    > .v-collapse-button-enter-active,
-    > .v-collapse-button-leave-active {
-        transition: transform 0.4s ease;
-    }
-    > .v-collapse-button-enter-from,
-    > .v-collapse-button-leave-to {
-        transform: translateX(-200%);
+        //折叠按钮进出的vue变换
+        &.v-collapse-button-enter-active,
+        &.v-collapse-button-leave-active {
+            transition: transform 0.4s ease;
+        }
+        &.v-collapse-button-enter-from,
+        &.v-collapse-button-leave-to {
+            transform: translateX(-200%);
+        }
     }
 
     //顶栏内容区域的布局定位

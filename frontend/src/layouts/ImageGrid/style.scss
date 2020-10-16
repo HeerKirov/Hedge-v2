@@ -1,9 +1,11 @@
 #app .v-image-grid {
+    //滚动面板
     > div.overflow-content {
         position: absolute;
         width: 100%;
         height: 100%;
         overflow: auto;
+        //滚动面板内的Grid区域
         > div.grid-content {
             padding-left: 1px;
             padding-right: 1px;
@@ -21,7 +23,7 @@
     }
 }
 
-#app .v-image-item {
+#app .v-image-grid .v-image-item {
     position: relative;
     height: 0;
 

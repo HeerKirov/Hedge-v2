@@ -5,7 +5,7 @@ import "./style.scss"
 
 export default defineComponent({
     setup() {
-        return () => <div class="v-start-new">
+        return () => <div id="start-new">
             <div class="v-dialog absolute center">
                 <h1 class="subtitle">新建数据库</h1>
                 <p>创建一个新数据库。</p>

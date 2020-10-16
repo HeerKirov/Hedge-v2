@@ -21,7 +21,7 @@ export default defineComponent({
         provide(columnNumberInjection, columnNumber)
         provide(fitTypeInjection, fitType)
 
-        return () => <div class="v-hedge-recent">
+        return () => <div id="hedge-recent">
             <ImageGrid items={images}>
                 {{header: () => <div class="h-title-bar"/>}}
             </ImageGrid>

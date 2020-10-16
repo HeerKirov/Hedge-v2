@@ -1,6 +1,6 @@
-#app .v-init {
+#app #init {
     //对话框区域
-    .v-dialog {
+    > .v-dialog {
         height: 400px;
         width: 400px;
     }

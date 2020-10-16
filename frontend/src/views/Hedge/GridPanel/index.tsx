@@ -13,7 +13,7 @@ import "./style.scss"
  */
 export default defineComponent({
     setup() {
-        return () => <div class="v-grid-panel">
+        return () => <div id="grid-panel">
             <SideLayout>
                 {{
                     side: () => <SideBar>

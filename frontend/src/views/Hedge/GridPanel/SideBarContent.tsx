@@ -1,5 +1,5 @@
 import { defineComponent, ref } from "vue"
-import { arrays } from "../../../functions/collections"
+import { arrays } from "../../../utils/collections"
 
 /**
  * Grid面板的侧边栏。主要展示collection/album的info。此外还有编辑入口。
@@ -8,7 +8,7 @@ export default defineComponent({
     setup() {
         const score = ref(4)
         
-        return () => <div class="v-side-bar-grid">
+        return () => <div id="side-bar-grid">
             <div><i class="fa fa-images mr-2"/><b>12项</b></div>
             <h1 class="is-size-5">这一行是标题</h1>
             <p>这一行是描述</p>

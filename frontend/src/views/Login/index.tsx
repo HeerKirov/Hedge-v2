@@ -5,7 +5,7 @@ export default defineComponent({
     setup() {
         const useTouchId = ref(false)
 
-        return () => <div class="v-login">
+        return () => <div id="login">
             <div class="title-bar"></div>
             <div class="fixed center has-text-centered">
                 {useTouchId.value ?     

@@ -34,7 +34,7 @@ export default defineComponent({
          * 4. 文件夹需要的顶栏
          * - (文件夹列表)搜索框
          */
-        return () => <div class="v-hedge">
+        return () => <div id="hedge">
             <KeepAlive>
                 <Transition name="v-main-panel-transition">
                     {() => panel.value === "main" && <MainPanel/>}

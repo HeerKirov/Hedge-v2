@@ -10,7 +10,7 @@ export default defineComponent({
             每个种类的subitem数量有上限，多了之后挤走旧的。
             日历默认就显示最近的几个时间项。
         */
-        return () => <aside class="v-side-bar-menu menu">
+        return () => <aside id="side-bar-menu">
             <a class="menu-label">图库</a>
             <ul class="menu-list">
                 <li><a class="v-item is-active"><span class="icon"><i class="fa fa-th mr-2"/></span>图库</a></li>

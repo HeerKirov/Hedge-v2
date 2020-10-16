@@ -18,7 +18,7 @@ export default defineComponent({
         const sideBarTab: Ref<"info" | "origin" | "others"> = ref("info")
         const setSideBarTab = (value: "info" | "origin" | "others") => { sideBarTab.value = value }
 
-        return () => <div class="v-detail-panel">
+        return () => <div id="detail-panel">
             <SideLayout>
                 {{
                     side: () => <SideBar>

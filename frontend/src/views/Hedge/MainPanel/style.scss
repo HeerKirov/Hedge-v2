@@ -1,9 +1,10 @@
-#app .v-main-panel {
+#app #hedge #main-panel {
     position: fixed;
     top: 0; bottom: 0; left: 0; right: 0;
 }
 
-#app .v-main-panel .v-side-bar-menu {
+#app #hedge #main-panel #side-bar-menu {
+    //侧边栏的主要项目
     .v-item {
         font-size: 0.8rem !important;
         padding: 0.25rem 0.75rem;
@@ -11,6 +12,7 @@
         overflow: hidden;
         text-overflow: ellipsis;
     }
+    //侧边栏的二级项目
     .v-subitem {
         font-size: 0.8rem !important;
         padding: 0.35rem 0.75rem;

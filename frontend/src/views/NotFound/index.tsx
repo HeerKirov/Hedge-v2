@@ -2,6 +2,6 @@ import { defineComponent } from "vue"
 
 export default defineComponent({
     setup() {
-        return () => <div>Unknown routes</div>
+        return () => <div id="not-found">Unknown routes</div>
     }
 })
