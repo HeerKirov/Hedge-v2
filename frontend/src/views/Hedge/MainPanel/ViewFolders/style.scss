@@ -1,0 +1,29 @@
+@import '../../../../styles/App.scss';
+
+#app #hedge #hedge-folders {
+    position: relative;
+    height: calc(100% - #{$title-bar-height});
+    padding-top: $title-bar-height;
+}
+
+#app #hedge #hedge-folders #panel-item-view {
+    position: absolute;
+    padding: 0 0.5rem;
+    overflow: auto;
+    max-height: 100%; width: 100%;
+    display: flex; 
+    flex-wrap: wrap; 
+    justify-content: start; 
+
+    //文件夹列表项
+    > div {
+        width: 250px; 
+        padding: 0.5rem;
+    }
+}
+
+#app #hedge #hedge-folders #panel-list-view {
+    padding: 0.5rem;
+    overflow: auto;
+    max-height: 100%; width: 100%;
+}

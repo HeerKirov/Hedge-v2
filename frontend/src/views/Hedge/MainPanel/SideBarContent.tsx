@@ -44,7 +44,7 @@ export default defineComponent({
                         <li><a class="v-subitem">文件夹2</a></li>
                     </ul>
                 </li>
-                <li><a class="v-item"><span class="icon"><i class="fa fa-folder-minus mr-2"/></span>临时文件夹</a></li>
+                <li><a class="v-item"><span class="icon"><i class="fa fa-shopping-basket mr-2"/></span>临时文件夹</a></li>
                 <li><a class="v-item"><span class="icon"><i class="fa fa-folder mr-2"/></span>pin的文件夹</a></li>
             </ul>
         </aside>

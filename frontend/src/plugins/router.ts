@@ -69,7 +69,27 @@ export default createRouter({
                     name: 'HedgePartitionsDetail',
                     path: 'partitions/:partition',
                     component: () => import('../views/Hedge/MainPanel/ViewPartitionsDetail')
-                }
+                },
+                {
+                    name: 'HedgeAlbums',
+                    path: 'albums',
+                    component: () => import('../views/Hedge/MainPanel/ViewAlbums')
+                },
+                {
+                    name: 'HedgeAlbumsDetail',
+                    path: 'albums/:id',
+                    component: () => import('../views/Hedge/MainPanel/ViewAlbumsDetail')
+                },
+                {
+                    name: 'HedgeFolders',
+                    path: 'folders',
+                    component: () => import('../views/Hedge/MainPanel/ViewFolders')
+                },
+                {
+                    name: 'HedgeFoldersDetail',
+                    path: 'folders/:id',
+                    component: () => import('../views/Hedge/MainPanel/ViewFoldersDetail')
+                },
             ]
         },
         {

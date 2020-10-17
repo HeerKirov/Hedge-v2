@@ -2,6 +2,7 @@ import { defineComponent } from "vue"
 import TopBar from "../../TopBar"
 import TopBarContent from "./TopBarContent"
 import ImageGrid from "../../../../layouts/ImageGrid"
+import { arrays } from "../../../../utils/collections"
 import "./style.scss"
 
 import img1 from "../../../../assets/img1.local.jpg"
@@ -10,12 +11,14 @@ import img2 from "../../../../assets/img2.local.jpg"
 export default defineComponent({
     setup() {
         const images = [
-            img1, img2, img1, img2, img1, img1, img2, img1, img2, img1
+            img2, img2, img1, img2, img1, img2, img1, img2, img1, img2
         ]
 
-        return () => <div id="hedge-partitions-detail">
+        return () => <div id="hedge-folders-detail">
             <ImageGrid items={images}>
-                {{header: () => <div class="h-title-bar"/>}}
+                {{
+                    fixedHeader: () => <div class="h-title-bar"/>
+                }}
             </ImageGrid>
             <TopBar>
                 {() => <TopBarContent/>}
