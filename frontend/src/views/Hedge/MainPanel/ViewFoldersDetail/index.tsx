@@ -15,11 +15,7 @@ export default defineComponent({
         ]
 
         return () => <div id="hedge-folders-detail">
-            <ImageGrid items={images}>
-                {{
-                    fixedHeader: () => <div class="h-title-bar"/>
-                }}
-            </ImageGrid>
+            <ImageGrid items={images} marginTopBar={true}/>
             <TopBar>
                 {() => <TopBarContent/>}
             </TopBar>

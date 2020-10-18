@@ -22,12 +22,12 @@ export type Item = ImageModel | TitleModel | string
  */
 export default defineComponent({
     props: {
+        marginTopBar: {type: Boolean, default: false},
         items: null as PropType<Item[]>
     },
     setup(props, { slots }) {
         return () => <div class="v-image-grid">
-            {slots.fixedHeader?.()}
-            <div class="overflow-content">
+            <div class={`overflow-content ${props.marginTopBar ? "mt-title-bar" : ""}`}>
                 {slots.header?.()}
                 <div class="grid-content">
                     {props.items.map(item => {

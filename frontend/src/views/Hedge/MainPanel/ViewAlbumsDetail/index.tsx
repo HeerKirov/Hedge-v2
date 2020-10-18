@@ -15,9 +15,8 @@ export default defineComponent({
         ]
 
         return () => <div id="hedge-albums-detail">
-            <ImageGrid items={images}>
+            <ImageGrid items={images} marginTopBar={true}>
                 {{
-                    fixedHeader: () => <div class="h-title-bar"/>,
                     header: () => <div class="m-1">
                         <p class="is-size-7">这是一段描述。</p>
                         <div class="mt-1">

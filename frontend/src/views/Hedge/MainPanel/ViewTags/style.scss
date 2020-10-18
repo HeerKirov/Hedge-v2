@@ -1,0 +1,28 @@
+@import '../../../../styles/App.scss';
+
+
+
+#app #hedge #hedge-tags #tag-tree {
+    position: absolute;
+    width: 100%;
+    height: calc(100% - #{$title-bar-height});
+    margin-top: $title-bar-height;
+    padding: 2rem;
+    overflow-y: auto;
+
+    //根节点的box
+    // > .v-root-node {}
+    //子节点列表
+    // .v-child-node-list {}
+    //子节点列表项
+    // .v-child-node {}
+    //功能按钮型标签项
+    a.tag.v-function-button {
+        cursor: pointer;
+        text-decoration: none;
+        //鼠标经过样式
+        &:hover {
+            color: black;
+        }
+    }
+}
