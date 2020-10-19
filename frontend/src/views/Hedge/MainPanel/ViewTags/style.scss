@@ -1,17 +1,43 @@
 @import '../../../../styles/App.scss';
 
-
+#app #hedge #hedge-tags {
+    //主栏与边栏的分列
+    > .v-columns {
+        position: absolute;
+        width: 100%;
+        display: flex;
+        height: calc(100% - #{$title-bar-height});
+        margin-top: $title-bar-height;
+    }
+}
 
 #app #hedge #hedge-tags #tag-tree {
-    position: absolute;
     width: 100%;
-    height: calc(100% - #{$title-bar-height});
-    margin-top: $title-bar-height;
     padding: 2rem;
     overflow-y: auto;
 
     //根节点的box
-    // > .v-root-node {}
+    > .v-root-node {
+        //展开的列表区域
+        > .v-expanded-box {
+            //列表区域的展开收起动画
+            @mixin v-expand-transition-state($e) {
+                transition: max-height 0.25s $e;
+                overflow: hidden;
+                max-height: 250px;
+            }
+            &.v-expand-transition-enter-active {
+                @include v-expand-transition-state(ease-in);
+            }
+            &.v-expand-transition-leave-active {
+                @include v-expand-transition-state(ease-out);
+            }
+            &.v-expand-transition-enter-from,
+            &.v-expand-transition-leave-to {
+                max-height: 0;
+            }
+        }
+    }
     //子节点列表
     // .v-child-node-list {}
     //子节点列表项
@@ -25,4 +51,10 @@
             color: black;
         }
     }
+}
+
+#app #hedge #hedge-tags #tag-detail {
+    width: 300px;
+    padding: 1rem;
+    overflow-y: auto;
 }

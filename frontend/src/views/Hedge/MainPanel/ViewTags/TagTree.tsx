@@ -1,93 +1,100 @@
-import { defineComponent, PropType, ref } from "vue"
+import { defineComponent, PropType, ref, Transition } from "vue"
 
 export default defineComponent({
-    setup() {
+    props: {
+
+    },
+    setup(props) {
         const tags: (TagItem & RootTagDescription)[] = [
             {
                 name: "元信息", color: "link", description: "元信息的描述",
-                type: "addr",
+                isAddr: true,
                 children: [
                     {
                         name: "图像类型",
-                        type: "group",
+                        isAddr: true, isGroup: {forced: true},
                         children: [
-                            {name: "插画", type: "tag"},
-                            {name: "漫画", type: "tag"},
-                            {name: "CG", type: "tag"},
-                            {name: "游戏CG", type: "tag"},
-                            {name: "动画片段", type: "tag"}
+                            {name: "插画"},
+                            {name: "漫画"},
+                            {name: "CG"},
+                            {name: "游戏CG"},
+                            {name: "动画片段"}
                         ]
                     },
                     {
                         name: "分级",
-                        type: "group", sequencedGroup: true,
+                        isAddr: true, isGroup: {sequenced: true},
                         children: [
-                            {name: "ALL", type: "tag"},
-                            {name: "R15", type: "tag"},
-                            {name: "R18", type: "tag"},
-                            {name: "R18+", type: "tag"},
-                            {name: "R18G", type: "tag"},
+                            {name: "ALL"},
+                            {name: "R15"},
+                            {name: "R18"},
+                            {name: "R18+"},
+                            {name: "R18G"},
                         ]
                     },
-                    {
-                        name: "杂项", type: "tag"
-                    },
-                    {
-                        name: "杂项2", type: "tag"
-                    }
+                    {name: "杂项"},
+                    {name: "杂项2"}
                 ]
             },
             {
                 name: "组A", color: "info", description: "这是group A",
-                type: "addr",
+                isAddr: true,
                 children: [
-                    {name: "标签A", type: "tag"},
-                    {name: "标签B", type: "tag"},
-                    {name: "标签C", type: "tag"},
+                    {name: "标签A"},
+                    {name: "标签B"},
+                    {name: "标签C"},
                 ]
             },
             {
                 name: "组B", color: "success", description: "这是group B",
-                type: "addr",
+                isAddr: true,
                 children: [
                     {
-                        name: "标签A", type: "tag"
+                        name: "标签A"
                     },
                     {
-                        name: "标签B", type: "addr",
+                        name: "标签B", isAddr: true,
                         children: [
                             {
-                                name: "子标签B.1", type: "addr",
+                                name: "子标签B.1", isAddr: true,
                                 children: [
-                                    {name: "子标签B.1.1", type: "tag"},
-                                    {name: "子标签B.1.2", type: "tag"}
+                                    {name: "子标签B.1.1"},
+                                    {name: "子标签B.1.2"}
                                 ]
                             },
-                            {name: "子标签B.2", type: "tag"},
-                            {name: "子标签B.3", type: "tag"},
-                            {name: "子标签B.4", type: "tag"}
+                            {name: "子标签B.2"},
+                            {name: "子标签B.3"},
+                            {name: "子标签B.4"}
                         ]
                     },
                     {
-                        name: "标签C", type: "tag", 
+                        name: "标签C",
                         children: [
-                            {name: "子标签C.1", type: "tag"},
-                            {name: "子标签C.2", type: "tag"}
+                            {name: "子标签C.1"},
+                            {name: "子标签C.2"}
                         ]
                     },
                 ]
             },
             {
                 name: "组C", color: "primary", description: "这是group C",
-                type: "addr",
+                isAddr: true,
                 children: [
-                    {name: "标签A", type: "tag"},
-                    {name: "标签B", type: "tag"},
-                    {name: "标签C", type: "tag"},
-                    {name: "标签D", type: "tag"},
-                    {name: "标签E", type: "tag"}
+                    {name: "标签A"},
+                    {name: "标签B"},
+                    {name: "标签C"},
+                    {name: "标签D"},
+                    {name: "标签E"}
                 ]
-            }
+            },
+            {
+                name: "组D", color: "warning", description: "这是group D",
+                isAddr: true
+            },
+            {
+                name: "组E", color: "danger", description: "这是group E",
+                isAddr: true
+            },
         ]
 
         return () => <div id="tag-tree">
@@ -96,12 +103,10 @@ export default defineComponent({
     }
 })
 
-type TagType = "addr" | "tag" | "group"
-
 interface TagItem {
     name: string
-    type: TagType
-    sequencedGroup?: boolean
+    isAddr?: boolean
+    isGroup?: boolean | {sequenced?: boolean, forced?: boolean}
     children?: TagItem[]
 }
 
@@ -110,7 +115,6 @@ interface RootTagDescription {
     description?: string
 }
 
-//TODO 添加开关动画效果
 //TODO 如何在项中简洁清晰地标示出组、序列化组、强制组
 const RootNode = defineComponent({
     props: {
@@ -128,12 +132,14 @@ const RootNode = defineComponent({
                 <a onClick={switchExpanded} class={`tag ml-1 is-${props.color} is-light has-background-white v-function-button`}>
                     <i class={`fa fa-angle-${isExpanded.value ? "down" : "right"}`}/>
                 </a>
-                <span class={`is-size-7 ml-2 has-text-${props.color}`}>{props.description}</span>
+                {isExpanded.value && <span class={`is-size-7 ml-2 has-text-${props.color}`}>{props.description}</span>}
             </p>
             
-            {isExpanded.value && <div>
-                <ChildNodeList class="ml-2 mt-4" inline={false} value={props.value.children ?? []} color={props.color}/>
-            </div>}
+            <Transition name="v-expand-transition">
+                {() => isExpanded.value && <div class="v-expanded-box">
+                    <ChildNodeList class="ml-2 mt-4" inline={false} value={props.value.children ?? []} color={props.color}/>
+                </div>}
+            </Transition>
         </div>
     }
 })
@@ -168,18 +174,37 @@ const ChildNode = defineComponent({
         return () => {
             const hasChildren = props.value.children?.length ?? null
             const css = ["tag", "mb-0", props.color ? `is-${props.color}` : null]
-            const tagElement = <div class="tags has-addons mb-0 mr-1">
-                <a class={[...css, props.value.type !== "tag" ? "is-light" : null]}>{props.value.name}</a>
-            </div>
             
-            return props.inline ? tagElement : <div class="v-child-node">
+            return props.inline ? <TagElement value={props.value} color={props.color}/> : <div class="v-child-node">
                 <div class="field is-grouped mb-1">
-                    {tagElement}
+                    <TagElement value={props.value} color={props.color}/>
                     {hasChildren && <a onClick={switchExpanded} class={[...css, "v-function-button", "is-light", "ml-1"]}>
                         <i class={`fa fa-angle-${isExpanded.value ? "down" : "right"}`}/>
                     </a>}
                 </div>
                 {hasChildren && isExpanded.value && <ChildNodeList class="ml-6 mb-1" value={props.value.children} color={props.color}/>}
+            </div>
+        }
+    }
+})
+
+const TagElement = defineComponent({
+    props: {
+        value: {type: null as PropType<TagItem>, required: true},
+        color: {type: String, required: true}
+    },
+    setup(props) {
+        return () => {
+            const css = ["tag", "mb-0", props.color ? `is-${props.color}` : null]
+
+            return <div class="tags has-addons mb-0 mr-1">
+                <a class={[...css, props.value.isAddr ? "is-light" : null]}>
+                    {typeof props.value.isGroup === "object" && props.value.isGroup.sequenced && <i class="fa fa-sort-alpha-down mr-1"/>}
+                    {typeof props.value.isGroup === "object" && props.value.isGroup.forced && <b class="mr-1">!</b>}
+                    {props.value.isGroup && <b class="mr-1">{'{'}</b>}
+                    {props.value.name}
+                    {props.value.isGroup && <b class="ml-1">{'}'}</b>}
+                </a>
             </div>
         }
     }

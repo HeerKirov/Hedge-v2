@@ -6,7 +6,7 @@
 * `typescript`
 * `scss`
 * `bulma`
-* `font awesome 5.x`
+* `font-awesome 5.x`
 
 ## Deploy
 ```sh
