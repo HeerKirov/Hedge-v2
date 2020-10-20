@@ -1,4 +1,4 @@
-import { defineComponent, PropType, ref, watch } from "vue"
+import { defineComponent, ref, Transition, watch } from "vue"
 import TopBarQueryBox from "../../TopBar/QueryBox"
 
 export default defineComponent({
@@ -22,9 +22,15 @@ export default defineComponent({
             </div>
             <div class="level-right">
                 <p class="control mr-1">
-                    <button class={`button no-drag is-small ${editorMode.value ? "is-link" : ""}`} onClick={changeEditorMode}>
-                        <i class="fa fa-lg fa-edit mr-1"/>编辑模式
-                    </button>
+                    {editorMode.value ? 
+                        <button class="button no-drag is-small is-link" onClick={changeEditorMode}>
+                            <span class="icon mr-1"><i class="fa fa-check"/></span>退出编辑并应用所有更改
+                        </button> 
+                    :
+                        <button class="button no-drag is-small" onClick={changeEditorMode}>
+                            <span class="icon mr-1"><i class="fa fa-edit"/></span>标签编辑视图
+                        </button>
+                    }
                 </p>
             </div>
         </nav>

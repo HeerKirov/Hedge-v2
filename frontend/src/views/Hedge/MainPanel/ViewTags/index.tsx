@@ -1,4 +1,4 @@
-import { defineComponent, ref } from "vue"
+import { defineComponent, ref, Transition } from "vue"
 import TopBar from "../../TopBar"
 import TopBarContent from "./TopBarContent"
 import TagTree from "./TagTree"
@@ -12,7 +12,9 @@ export default defineComponent({
         return () => <div id="hedge-tags">
             <div class="v-columns">
                 <TagTree/>
-                {showDetail.value && <TagDetail/>}
+                <Transition name="v-detail-transition">
+                    {() => showDetail.value && <TagDetail/>}
+                </Transition>
             </div>
             <TopBar>
                 {() => <TopBarContent editorMode={showDetail.value} onUpdateEditorMode={(v: boolean) => showDetail.value = v}/>/*测试用。实际编辑模式与边栏无关 */}

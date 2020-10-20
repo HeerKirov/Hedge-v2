@@ -54,7 +54,83 @@
 }
 
 #app #hedge #hedge-tags #tag-detail {
-    width: 300px;
-    padding: 1rem;
-    overflow-y: auto;
+    $width: 275px;
+    width: $width;
+    
+    //边栏进出的变换
+    &.v-detail-transition-enter-from,
+    &.v-detail-transition-leave-to {
+        width: 0;
+    }
+    &.v-detail-transition-enter-active {
+        transition: width 0.25s ease-out;
+    }
+    &.v-detail-transition-leave-active {
+        transition: width 0.25s ease-in;
+    }
+
+    //内容区，双层是为了在width动画变换中保持内容宽度
+    > div {
+        width: $width;
+        max-height: 100%;
+        padding: 2rem 1rem 1rem 0.5rem;
+        overflow-y: auto;
+        font-size: 0.75rem;
+
+        //关闭按钮
+        > a.delete {
+            position: absolute;
+            right: 0.5rem; top: 0.5rem;
+        }
+        //类型flag区
+        > div.v-meta {
+            margin-left: 0.25rem;
+            margin-top: 0.75rem;
+            > p {
+                margin-top: 0.5rem;
+            }
+        }
+        //注解区
+        > div.v-annotations {
+            margin-top: 1.5rem;
+        }
+        //描述区
+        > div.v-description {
+            margin-top: 0.25rem;
+            margin-bottom: 0;
+            padding: 0.75rem;
+        }
+        //连接条件区
+        > div.v-conditions {
+            margin-top: 1rem;
+            > div.box {
+                padding: 0.75rem 0 0.75rem 0.75rem;
+                > p.v-title {
+                    margin-bottom: 0.5rem;
+                }
+                > p.v-meta {
+                    margin-bottom: 0.25rem;
+                }
+                // > p.v-default {}
+            }
+        }
+        //评分
+        > div.v-score {
+            margin-top: 1.5rem;
+            font-size: 1rem;
+        }
+        //样例images区
+        > div.v-examples {
+            margin-top: 1.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            > img {
+                border-radius: 6px;
+                max-width: 100%;
+                max-height: 300px;
+                margin-bottom: 0.5rem;
+                margin-right: 0.5rem;
+            }
+        }
+    }
 }
