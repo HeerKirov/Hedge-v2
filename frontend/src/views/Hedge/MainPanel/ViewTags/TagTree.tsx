@@ -7,7 +7,7 @@ export default defineComponent({
     setup(props) {
         const tags: (TagItem & RootTagDescription)[] = [
             {
-                name: "元信息", color: "link", description: "元信息的描述",
+                name: "元信息", color: "purple", description: "元信息的描述",
                 isAddr: true,
                 children: [
                     {
@@ -46,7 +46,7 @@ export default defineComponent({
                 ]
             },
             {
-                name: "组B", color: "success", description: "这是group B",
+                name: "组B", color: "brown", description: "这是group B",
                 isAddr: true,
                 children: [
                     {
@@ -111,7 +111,7 @@ interface TagItem {
 }
 
 interface RootTagDescription {
-    color: "primary" | "info" | "link" | "success" | "warning" | "danger"
+    color: "primary" | "info" | "link" | "success" | "warning" | "danger" | "purple" | "pink" | "brown"
     description?: string
 }
 

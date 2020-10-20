@@ -95,6 +95,11 @@ export default createRouter({
                     path: 'tags',
                     component: () => import('../views/Hedge/MainPanel/ViewTags')
                 },
+                {
+                    name: 'HedgeTopics',
+                    path: 'topics',
+                    component: () => import('../views/Hedge/MainPanel/ViewTopics')
+                },
             ]
         },
         {
