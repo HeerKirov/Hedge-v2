@@ -1,7 +1,7 @@
 @charset "utf-8";
 
-@import './colors.scss';
-
+@import './bulma-colors.scss';
+//TODO 日后按需引入bulma的样式文件
 @import 'bulma/sass/utilities/_all.sass';
 @import 'bulma/sass/base/_all.sass';
 @import 'bulma/sass/components/_all.sass';
