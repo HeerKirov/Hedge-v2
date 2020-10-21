@@ -1,6 +1,7 @@
 import { defineComponent, inject, Ref, ref } from "vue"
 import { panelInjection } from "../.."
-import TopBarQueryBox from "../../TopBar/QueryBox"
+import MiddleLayout from "../../TopBar/MiddleLayout"
+import QueryBox from "../../TopBar/QueryBox"
 import TopBarViewController from "../../TopBar/ViewController"
 
 /**
@@ -16,23 +17,23 @@ export default defineComponent({
             panelMode.value = "grid"    //UI测试用
         }
 
-        return () => <nav class="level">
-            <div class="level-item">
-                <div class="field is-grouped w-100 mx-6 pl-6 pr-3">
+        return () => <MiddleLayout>
+            {{
+                default: () => <div class="field is-grouped">
                     <p class="control mr-2">
                         <button class="button no-drag is-small rounded-50" onClick={changeQueryInCollection}>
                             <span class="icon"><i class={`fa fa-lg fa-${queryInCollection.value ? "images" : "file-image"}`}/></span>
                         </button>
                     </p>
-                    <TopBarQueryBox/>
-                </div>
-            </div>
-            <div class="level-right">
-                <p class="control mr-2">
-                    <b class="is-size-7 line-height-24">80/1024项</b>
-                </p>
-                <TopBarViewController/>
-            </div>
-        </nav>
+                    <QueryBox placeholder="使用hedge QL查询"/>
+                </div>,
+                right: () => <>
+                    <p class="control mr-2">
+                        <b class="is-size-7 line-height-24">80/1024项</b>
+                    </p>
+                    <TopBarViewController/>
+                </>
+            }}
+        </MiddleLayout>
     }
 })

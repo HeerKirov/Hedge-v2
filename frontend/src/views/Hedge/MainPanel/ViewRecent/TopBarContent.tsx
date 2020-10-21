@@ -1,6 +1,6 @@
 import { defineComponent, inject, Ref, ref } from "vue"
 import { columnNumberInjection, fitTypeInjection, FitType } from "../../../../layouts/ImageGrid/Item"
-import TopBarQueryBox from "../../TopBar/QueryBox"
+import MiddleLayout from "../../TopBar/MiddleLayout"
 import TopBarViewController from "../../TopBar/ViewController"
 
 /**
@@ -8,20 +8,17 @@ import TopBarViewController from "../../TopBar/ViewController"
  */
 export default defineComponent({
     setup() {
-        const columnNumber = inject(columnNumberInjection)
         const fitType = inject(fitTypeInjection)
 
-        return () => <nav class="level">
-            <div class="level-left">
-                <p class="control ml-1 mr-6">
+        return () => <MiddleLayout>
+            {{
+                left: () => <p class="control ml-1 mr-6">
                     <button class="button no-drag is-success is-small is-rounded">
                         <i class="fa fa-lg fa-file-import mr-2"/>导入文件
                     </button>
-                </p>
-            </div>
-            <div class="level-right">
-                <TopBarViewController expandMode={fitType.value === "cover"} onUpdateExpandMode={(v: boolean) => fitType.value = v ? "cover" : "contain"}/>
-            </div>
-        </nav>
+                </p>,
+                right: () => <TopBarViewController expandMode={fitType.value === "cover"} onUpdateExpandMode={(v: boolean) => fitType.value = v ? "cover" : "contain"}/>
+            }}
+        </MiddleLayout>
     }
 })

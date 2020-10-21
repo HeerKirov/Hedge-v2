@@ -9,6 +9,19 @@
         height: calc(100% - #{$title-bar-height});
         margin-top: $title-bar-height;
     }
+    //顶栏上的编辑按钮
+    .v-edit-button {
+        position: absolute;
+        right: 0.5rem;
+        &.v-edit-button-transition-enter-from,
+        &.v-edit-button-transition-leave-to {
+            transform: translateX(125%);
+        }
+        &.v-edit-button-transition-enter-active,
+        &.v-edit-button-transition-leave-active {
+            transition: transform 0.4s ease;
+        }
+    }
 }
 
 #app #hedge #hedge-tags #tag-tree {

@@ -1,19 +1,16 @@
 import { defineComponent, ref, watch } from "vue"
-import TopBarQueryBox from "../../TopBar/QueryBox"
+import MiddleLayout from "../../TopBar/MiddleLayout"
+import QueryBox from "../../TopBar/QueryBox"
 
 export default defineComponent({
     setup() {
-        return () => <nav class="level">
-            <div class="level-item">
-                <div class="field w-100 mx-6 pl-6 pr-6">
-                    <TopBarQueryBox/>
-                </div>
-            </div>
-            <div class="level-right">
-                <p class="control mr-1">
+        return () => <MiddleLayout>
+            {{
+                default: () => <QueryBox placeholder="查询主题…" icon="hashtag"/>,
+                right: () => <p class="control mr-1">
                     
                 </p>
-            </div>
-        </nav>
+            }}
+        </MiddleLayout>
     }
 })

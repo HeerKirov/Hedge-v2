@@ -6,7 +6,7 @@ export default defineComponent({
         return () => <nav class="level">
         <div class="level-item">
             <div class="field is-grouped w-100 mx-6 pl-6 pr-3">
-                <TopBarQueryBox/>
+                <TopBarQueryBox placeholder="使用hedge QL查询画集"/>
             </div>
         </div>
         <div class="level-right">

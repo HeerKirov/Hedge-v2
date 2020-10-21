@@ -29,7 +29,13 @@ export default defineComponent({
             <ul class="menu-list">
                 <li><a class="v-item"><span class="icon"><i class="fa fa-tag mr-2"/></span>标签</a></li>
                 <li>
-                    <a class="v-item is-active"><span class="icon"><i class="fa fa-hashtag mr-2"/></span>主题</a>
+                    <a class="v-item is-active"><span class="icon"><i class="fa fa-user-tag mr-2"/></span>作者</a>
+                    <ul class="mt-1 ml-4 pl-1">
+                        <li><a class="v-subitem">作者1</a></li>
+                    </ul>
+                </li>
+                <li>
+                    <a class="v-item"><span class="icon"><i class="fa fa-hashtag mr-2"/></span>主题</a>
                     <ul class="mt-1 ml-4 pl-1">
                         <li><a class="v-subitem">主题1</a></li>
                     </ul>

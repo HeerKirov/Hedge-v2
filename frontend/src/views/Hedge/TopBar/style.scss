@@ -49,3 +49,27 @@
         }
     }
 }
+
+#app #hedge #top-bar #middle-layout {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    margin: 0.3rem;
+    > div.v-left {
+        position: absolute;
+        left: 0; top: 0; height: 100%;
+        display: flex; 
+        align-items: center;
+        justify-content: flex-start;
+    }
+    > div.v-middle {
+        position: absolute;
+        left: 25%; right: 30%; height: 100%;
+    }
+    > div.v-right {
+        position: absolute;
+        right: 0; top: 0; height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+    }
+}
