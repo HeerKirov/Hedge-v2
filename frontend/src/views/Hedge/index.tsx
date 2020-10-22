@@ -24,16 +24,6 @@ export default defineComponent({
 
         provide(panelInjection, panel)
 
-        /**
-         * 题外话，顶栏需要包括的东西:
-         * 2. 画集需要的顶栏
-         * - super搜索框
-         * - 尺寸切换器
-         * 3. 元数据需要的顶栏
-         * - (列表)搜索框
-         * 4. 文件夹需要的顶栏
-         * - (文件夹列表)搜索框
-         */
         return () => <div id="hedge">
             <KeepAlive>
                 <Transition name="v-main-panel-transition">

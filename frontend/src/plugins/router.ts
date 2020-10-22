@@ -100,6 +100,11 @@ export default createRouter({
                     path: 'topics',
                     component: () => import('../views/Hedge/MainPanel/ViewTopics')
                 },
+                {
+                    name: 'HedgeTopicsDetail',
+                    path: 'topics/:id',
+                    component: () => import('../views/Hedge/MainPanel/ViewTopicsDetail')
+                },
             ]
         },
         {

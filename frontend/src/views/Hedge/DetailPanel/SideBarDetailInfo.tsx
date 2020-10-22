@@ -9,6 +9,7 @@ export default defineComponent({
         const score = ref(4)
 
         //侧边栏信息采用即时编辑模式，点击某项直接编辑，失去焦点或点击确认即保存
+        //侧边栏的标签、时间分区等会导致页面跳转的信息都不会点击跳转，而是需要在信息框二次确认后跳转
         return () => <div class="v-side-bar-detail info">
             <p class="is-size-7"><i class="fa fa-id-card mr-2"/><b class="can-select">43967</b></p>
             <h1 class="is-size-5">这一行是标题</h1>

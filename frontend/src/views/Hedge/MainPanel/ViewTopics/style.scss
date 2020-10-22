@@ -1,0 +1,13 @@
+@import '../../../../styles/App.scss';
+
+#app #hedge #hedge-topics {
+    position: relative;
+    height: calc(100% - #{$title-bar-height});
+    padding-top: $title-bar-height;
+}
+
+#app #hedge #hedge-topics #panel-list-view {
+    padding: 0.5rem;
+    overflow: auto;
+    max-height: 100%; width: 100%;
+}

@@ -3,7 +3,6 @@ import TopBar from "../../TopBar"
 import TopBarContent, { ViewType } from "./TopBarContent"
 import PanelItemView from "./PanelItemView"
 import PanelListView from "./PanelListView"
-import FolderItem from "./Item"
 import "./style.scss"
 
 export interface FolderItem {
