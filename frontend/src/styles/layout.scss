@@ -1,13 +1,13 @@
 @import './App.scss';
 
 .fixed {
-    position: fixed;
+    position: fixed !important;
     &.center { left: 50%; top: 50%; transform: translate(-50%, -50%); }
     &.top { top: 0; left: 50%; transform: translateX(-50%); }
 }
 
 .absolute {
-    position: absolute;
+    position: absolute !important;
     &.top { top: 0; }
     &.bottom { bottom: 0; }
     &.right-bottom { right: 0; bottom: 0; }
@@ -17,6 +17,7 @@
     &.center { left: 50%; top: 50%; transform: translate(-50%, -50%); }
     &.vertical-center { top: 50%; transform: translateY(-50%); }
     &.horizontal-center { left: 50%; transform: translateX(-50%); }
+    &.stretch { top: 0; bottom: 0; left: 0; right: 0; }
 }
 
 .w-100 { width: 100% }

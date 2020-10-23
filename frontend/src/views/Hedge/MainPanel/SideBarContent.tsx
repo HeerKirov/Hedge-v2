@@ -10,48 +10,48 @@ export default defineComponent({
             每个种类的subitem数量有上限，多了之后挤走旧的。
             日历默认就显示最近的几个时间项。
         */
-        return () => <aside id="side-bar-menu">
+        return () => <aside id="side-bar-menu" class="h-menu">
             <a class="menu-label">图库</a>
             <ul class="menu-list">
-                <li><a class="v-item is-active"><span class="icon"><i class="fa fa-th mr-2"/></span>图库</a></li>
-                <li><a class="v-item"><span class="icon"><i class="fa fa-plus-square mr-2"/></span>最近导入</a></li>
+                <li><a class="is-active"><span class="icon"><i class="fa fa-th"/></span>图库</a></li>
+                <li><a><span class="icon"><i class="fa fa-plus-square"/></span>最近导入</a></li>
                 <li>
-                    <a class="v-item"><span class="icon"><i class="fa fa-calendar-alt mr-2"/></span>时间分区</a>
-                    <ul class="mt-1 ml-4 pl-1">
-                        <li><a class="v-subitem">2020年10月3日</a></li>
-                        <li><a class="v-subitem is-active">2020年10月2日</a></li>
-                        <li><a class="v-subitem">2020年10月1日</a></li>
+                    <a><span class="icon"><i class="fa fa-calendar-alt"/></span>时间分区</a>
+                    <ul>
+                        <li><a>2020年10月3日</a></li>
+                        <li><a class="is-active">2020年10月2日</a></li>
+                        <li><a>2020年10月1日</a></li>
                     </ul>
                 </li>
-                <li><a class="v-item"><span class="icon"><i class="fa fa-clone mr-2"/></span>画集</a></li>
+                <li><a><span class="icon"><i class="fa fa-clone"/></span>画集</a></li>
             </ul>
             <a class="menu-label">元数据</a>
             <ul class="menu-list">
-                <li><a class="v-item"><span class="icon"><i class="fa fa-tag mr-2"/></span>标签</a></li>
+                <li><a><span class="icon"><i class="fa fa-tag"/></span>标签</a></li>
                 <li>
-                    <a class="v-item is-active"><span class="icon"><i class="fa fa-user-tag mr-2"/></span>作者</a>
-                    <ul class="mt-1 ml-4 pl-1">
-                        <li><a class="v-subitem">作者1</a></li>
+                    <a class="is-active"><span class="icon"><i class="fa fa-user-tag"/></span>作者</a>
+                    <ul>
+                        <li><a>作者1</a></li>
                     </ul>
                 </li>
                 <li>
-                    <a class="v-item"><span class="icon"><i class="fa fa-hashtag mr-2"/></span>主题</a>
-                    <ul class="mt-1 ml-4 pl-1">
-                        <li><a class="v-subitem">主题1</a></li>
+                    <a><span class="icon"><i class="fa fa-hashtag"/></span>主题</a>
+                    <ul>
+                        <li><a>主题1</a></li>
                     </ul>
                 </li>
             </ul>
             <a class="menu-label">文件夹</a>
             <ul class="menu-list">
                 <li>
-                    <a class="v-item"><span class="icon"><i class="fa fa-archive mr-2"/></span>所有文件夹</a>
-                    <ul class="mt-1 ml-4 pl-1">
-                        <li><a class="v-subitem">文件夹1</a></li>
-                        <li><a class="v-subitem">文件夹2</a></li>
+                    <a><span class="icon"><i class="fa fa-archive"/></span>所有文件夹</a>
+                    <ul>
+                        <li><a>文件夹1</a></li>
+                        <li><a>文件夹2</a></li>
                     </ul>
                 </li>
-                <li><a class="v-item"><span class="icon"><i class="fa fa-shopping-basket mr-2"/></span>临时文件夹</a></li>
-                <li><a class="v-item"><span class="icon"><i class="fa fa-folder mr-2"/></span>pin的文件夹</a></li>
+                <li><a><span class="icon"><i class="fa fa-shopping-basket"/></span>临时文件夹</a></li>
+                <li><a><span class="icon"><i class="fa fa-folder"/></span>pin的文件夹</a></li>
             </ul>
         </aside>
     }

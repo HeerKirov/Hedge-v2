@@ -11,7 +11,7 @@ export default defineComponent({
     },
     setup(props) {
         return () => <div class="control is-expanded has-icons-right">
-            <Input class="is-rounded is-small no-drag" placeholder={props.placeholder ?? ""}/>
+            <Input class="is-rounded is-small no-drag is-family-monospace" placeholder={props.placeholder ?? ""}/>
             <span class="icon is-right"><i class={`fa fa-${props.icon ?? "superscript"}`}/></span>
         </div>
     }

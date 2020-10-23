@@ -1,0 +1,36 @@
+.v-side-layout {
+    //主要内容区域的布局定位
+    > .v-content {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        right: 0;
+        transition: left 0.4s ease;
+    }
+    //侧边栏内容区域的布局定位
+    > .v-side-content {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+
+        //侧边栏折叠的vue变换
+        &.v-side-bar-collapse-enter-active,
+        &.v-side-bar-collapse-leave-active {
+            transition: transform 0.4s ease;
+        }
+        &.v-side-bar-collapse-enter-from,
+        &.v-side-bar-collapse-leave-to {
+            transform: translateX(-100%);
+        }
+    }
+    //拖拽区域的布局定位
+    > .v-resize-content {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 5px;
+        transform: translateX(-3px);
+        cursor: ew-resize;
+    }    
+}

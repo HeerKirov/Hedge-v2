@@ -1,0 +1,22 @@
+@import '../../styles/App.scss';
+
+#app #setting {
+    .v-setting-content {
+        max-height: 100%;
+        overflow-y: auto;
+    }
+}
+
+#app #setting #side-bar {
+    background-color: $side-background-color;
+    border-right: solid 1px $side-border-color;
+    position: absolute;
+    left: 0; top: 0; height: 100%; width: 100%;
+
+    //侧边栏主要内容区域的menu
+    > .v-content {
+        padding: $small-title-bar-height 0.75rem 0.75rem 0.75rem;
+        overflow-y: auto;
+        height: 100%;
+    }
+}

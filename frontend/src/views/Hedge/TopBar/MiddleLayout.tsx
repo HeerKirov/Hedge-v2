@@ -5,14 +5,14 @@ import { defineComponent } from "vue"
  */
 export default defineComponent({
     setup(_, { slots }) {
-        return () => <div id="middle-layout">
-            <div class="v-left">
+        return () => <div class="h-middle-layout absolute stretch">
+            <div class="left">
                 {slots.left?.()}
             </div>
-            <div class="v-middle">
+            <div class="middle">
                 {slots.default?.()}
             </div>
-            <div class="v-right">
+            <div class="right">
                 {slots.right?.()}
             </div>
         </div>

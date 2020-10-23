@@ -1,5 +1,9 @@
-import { defineComponent, inject, onUnmounted, Ref, Transition } from "vue"
-import { sideBarSwitchInjection, sideBarWidthInjection } from "."
+import { defineComponent, inject, InjectionKey, onUnmounted, ref, Ref, Transition } from "vue"
+import "./style.scss"
+
+export const sideBarSwitchInjection: InjectionKey<Ref<boolean>> = Symbol()
+
+export const sideBarWidthInjection: InjectionKey<Ref<number>> = Symbol()
 
 /**
  * 主要页面的侧栏分栏结构。
@@ -8,19 +12,30 @@ import { sideBarSwitchInjection, sideBarWidthInjection } from "."
  * 这个组件可以在主要页面以及详情页面中复用，由于通过inject注入属性，因此可以实现全局共享侧栏状态。
  */
 export default defineComponent({
-    setup(_, { slots }) {
-        const sideBarWidth = inject(sideBarWidthInjection)
-        const sideBarSwitch = inject(sideBarSwitchInjection)
+    props: {
+        defaultWidth: {type: Number, default: 225},
+        attachRange: {type: Number, default: 10},
+        maxWidth: {type: Number, default: 400},
+        minWidth: {type: Number, default: 150}
+    },
+    setup(props, { slots }) {
+        const sideBarWidth = inject(sideBarWidthInjection, () => ref(props.defaultWidth), true)
+        const sideBarSwitch = inject(sideBarSwitchInjection, () => ref(true), true)
 
-        const { resizeAreaMouseDown } = useResizeBar(sideBarWidth)
+        const { resizeAreaMouseDown } = useResizeBar(sideBarWidth, {
+            defaultWidth: props.defaultWidth,
+            maxWidth: props.maxWidth,
+            minWidth: props.minWidth,
+            attachRange: props.attachRange
+        })
 
-        return () => <div id="side-layout">
+        return () => <div class="v-side-layout">
             <div class="v-content" style={{"left": `${sideBarSwitch.value ? sideBarWidth.value : 0}px`}}>
-                {slots.default()}
+                {slots.default?.()}
             </div>
             <Transition name="v-side-bar-collapse">
                 {() => sideBarSwitch.value && <div class="v-side-content" style={{"width": `${sideBarWidth.value}px`}}>
-                    {slots.side()}
+                    {slots.side?.()}
                 </div>}
             </Transition>
             {sideBarSwitch.value && <div class="v-resize-content" style={{"left": `${sideBarWidth.value}px`}} onMousedown={resizeAreaMouseDown}/>}
@@ -28,9 +43,8 @@ export default defineComponent({
     }
 })
 
-function useResizeBar(sizeBarWidth: Ref<number>) {
-    const maxWidth = 400, minWidth = 150
-    const defaultWidth = 225, attachRange = 10
+function useResizeBar(sizeBarWidth: Ref<number>, configure: {defaultWidth: number, maxWidth: number, minWidth: number, attachRange: number}) {
+    const { defaultWidth, maxWidth, minWidth, attachRange } = configure
 
     const resizeAreaMouseDown = () => {
         document.addEventListener('mousemove', mouseMove)

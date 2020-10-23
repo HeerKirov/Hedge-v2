@@ -2,7 +2,7 @@
 
 #app #start #start-index {
     //主内容区域定位
-    > div {
+    > .v-content {
         position: absolute;
         width: 100%;
         bottom: $bottom-bar-height;
@@ -32,10 +32,11 @@
                     height: $box-height;
                     margin-top: $box-height * 0.125;
                     margin-left: $box-width * 0.125;
+                    
                 }
                 &.secondary:hover {
                     cursor: pointer;
-                    transform: translateY(-0.4rem);;
+                    transform: translateY(-0.25rem);
                 }
         
                 //卡片上的路径信息样式

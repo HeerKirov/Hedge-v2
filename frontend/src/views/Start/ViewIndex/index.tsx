@@ -17,7 +17,7 @@ export default defineComponent({
         }
 
         return () => <div id="start-index">
-            <div>
+            <div class="v-content">
                 <TransitionGroup name="v-transition-list" tag="div">
                     {() => databases.map((v, i) => {
                         const isMain = i === selectedIndex.value

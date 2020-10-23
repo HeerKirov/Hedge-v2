@@ -3,6 +3,7 @@
 /*灰色底色与白色的分界线颜色*/ $side-border-color: #e1e1e1;
 
 /*标题栏高度*/ $title-bar-height: 40px;
+/*较窄的标题栏高度，出现于设置和向导页面的窗口*/ $small-title-bar-height: 24px;
 /*macOS上的红绿灯区域宽度*/ $macos-buttons-width: 70px;
 
 body {
@@ -23,7 +24,11 @@ html::-webkit-scrollbar {
   -webkit-app-region: drag;
   height: $title-bar-height;
   line-height: $title-bar-height;
-  // border-bottom: dashed 1px $std-text-color;
+}
+.small-title-bar {
+  -webkit-app-region: drag;
+  height: $small-title-bar-height;
+  line-height: $small-title-bar-height;
 }
 .no-drag {
   -webkit-app-region: none;

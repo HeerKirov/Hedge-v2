@@ -4,20 +4,12 @@
 }
 
 #app #hedge #main-panel #side-bar-menu {
-    //侧边栏的主要项目
-    .v-item {
-        font-size: 0.8rem !important;
-        padding: 0.25rem 0.75rem;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-    //侧边栏的二级项目
-    .v-subitem {
-        font-size: 0.8rem !important;
-        padding: 0.35rem 0.75rem;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+    > ul.menu-list {
+        //边栏中的menu按钮文本不可换行，并省略过长的文本
+        a {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
     }
 }

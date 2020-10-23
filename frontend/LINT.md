@@ -52,9 +52,11 @@ views/
 首先，styles文件夹下有一个`index.ts`文件。所有在这里的CSS文件都在这个文件里导入，统一处理。然后在`main.ts`中导入`./styles`。  
 这里的样式除了App全局样式之外，还有业务关联不大的公共样式。
 * `App.scss`存储App的全局样式，以及全局变量。
+* `bulma.scss`存储从bulma导入的样式，并应用自定义的样式更改。
 * `display.scss`存储元素外观相关的样式。
 * `format.scss`存储文本和显示格式相关的样式。
 * `layout.scss`存储元素布局相关的样式。
+* `component.scss`存储自定义或覆盖的组件式样式。
 ### plugins
 这里并不是定义插件的地方，而是注册插件的地方。自定义插件在`functions`中定义。  
 一个文件表示一个注册的插件，`export default`导出其实例，并在`main.ts`中注册。  
