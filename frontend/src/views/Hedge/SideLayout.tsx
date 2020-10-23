@@ -30,7 +30,7 @@ export default defineComponent({
 
 function useResizeBar(sizeBarWidth: Ref<number>) {
     const maxWidth = 400, minWidth = 150
-    const defaultWidth = 225, defaultWidthRange = 10
+    const defaultWidth = 225, attachRange = 10
 
     const resizeAreaMouseDown = () => {
         document.addEventListener('mousemove', mouseMove)
@@ -40,9 +40,10 @@ function useResizeBar(sizeBarWidth: Ref<number>) {
 
     const mouseMove = (e: MouseEvent) => {
         const newWidth = e.pageX
-        sizeBarWidth.value = newWidth > maxWidth ? maxWidth 
+        sizeBarWidth.value 
+            = newWidth > maxWidth ? maxWidth 
             : newWidth < minWidth ? minWidth 
-            : Math.abs(newWidth - defaultWidth) <= defaultWidthRange ? defaultWidth 
+            : Math.abs(newWidth - defaultWidth) <= attachRange ? defaultWidth 
             : newWidth
     }
 

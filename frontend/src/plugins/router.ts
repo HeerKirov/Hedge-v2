@@ -67,7 +67,7 @@ export default createRouter({
                 },
                 {
                     name: 'HedgePartitionsDetail',
-                    path: 'partitions/:partition',
+                    path: 'partitions/:partition([\\d-]+)',
                     component: () => import('../views/Hedge/MainPanel/ViewPartitionsDetail')
                 },
                 {
@@ -77,7 +77,7 @@ export default createRouter({
                 },
                 {
                     name: 'HedgeAlbumsDetail',
-                    path: 'albums/:id',
+                    path: 'albums/:id(\\d+)',
                     component: () => import('../views/Hedge/MainPanel/ViewAlbumsDetail')
                 },
                 {
@@ -87,7 +87,7 @@ export default createRouter({
                 },
                 {
                     name: 'HedgeFoldersDetail',
-                    path: 'folders/:id',
+                    path: 'folders/:id(\\d+)',
                     component: () => import('../views/Hedge/MainPanel/ViewFoldersDetail')
                 },
                 {
@@ -102,10 +102,30 @@ export default createRouter({
                 },
                 {
                     name: 'HedgeTopicsDetail',
-                    path: 'topics/:id',
+                    path: 'topics/:id(\\d+)',
                     component: () => import('../views/Hedge/MainPanel/ViewTopicsDetail')
                 },
+                {
+                    name: 'HedgeAuthors',
+                    path: 'authors',
+                    component: () => import('../views/Hedge/MainPanel/ViewAuthors')
+                },
+                {
+                    name: 'HedgeAuthorsDetail',
+                    path: 'authors/:id(\\d+)',
+                    component: () => import('../views/Hedge/MainPanel/ViewAuthorsDetail')
+                },
             ]
+        },
+        {
+            name: 'Setting',
+            path: '/setting',
+            component: () => import('../views/Setting'),
+        },
+        {
+            name: 'Guide',
+            path: '/guide',
+            component: () => import('../views/Guide'),
         },
         {
             name: 'NotFound',

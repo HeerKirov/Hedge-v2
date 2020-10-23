@@ -17,7 +17,7 @@ export default defineComponent({
 
         return () => <MiddleLayout>
             {{
-                default: () => <QueryBox placeholder="查找标签…" icon="tags"/>,
+                default: () => <QueryBox placeholder="在标签树中搜索…" icon="tags"/>,
                 right: () => <Transition name="v-edit-button-transition">
                     {() => editorMode.value ? 
                         <button key="submit" class="v-edit-button button no-drag is-rounded is-small is-link" onClick={changeEditorMode}>

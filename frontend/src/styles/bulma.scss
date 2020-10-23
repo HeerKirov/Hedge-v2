@@ -1,12 +1,32 @@
 @charset "utf-8";
 
 @import './bulma-colors.scss';
-//TODO 日后按需引入bulma的样式文件
+
 @import 'bulma/sass/utilities/_all.sass';
+
 @import 'bulma/sass/base/_all.sass';
-@import 'bulma/sass/components/_all.sass';
-@import 'bulma/sass/elements/_all.sass';
-@import 'bulma/sass/form/_all.sass';
-@import 'bulma/sass/grid/_all.sass';
+
+@import 'bulma/sass/components/dropdown.sass';
+@import 'bulma/sass/components/level.sass';
+@import 'bulma/sass/components/media.sass';
+@import 'bulma/sass/components/menu.sass';
+@import 'bulma/sass/components/message.sass';
+@import 'bulma/sass/components/modal.sass';
+
+@import 'bulma/sass/elements/box.sass';
+@import 'bulma/sass/elements/button.sass';
+@import 'bulma/sass/elements/container.sass';
+@import 'bulma/sass/elements/icon.sass';
+@import 'bulma/sass/elements/notification.sass';
+@import 'bulma/sass/elements/table.sass';
+@import 'bulma/sass/elements/tag.sass';
+@import 'bulma/sass/elements/other.sass';
+
+@import 'bulma/sass/form/shared.sass';
+@import 'bulma/sass/form/input-textarea.sass';
+@import 'bulma/sass/form/select.sass';
+@import 'bulma/sass/form/checkbox-radio.sass';
+@import 'bulma/sass/form/file.sass';
+@import 'bulma/sass/form/tools.sass';
+
 @import 'bulma/sass/helpers/_all.sass';
-@import 'bulma/sass/layout/_all.sass';

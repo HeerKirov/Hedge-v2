@@ -7,7 +7,7 @@ export default defineComponent({
         return () => <MiddleLayout>
             {{
                 default: () => <div class="field is-grouped">
-                    <QueryBox class="mr-1" placeholder="使用hedge QL查询主题…" icon="hashtag"/>
+                    <QueryBox class="mr-1" placeholder="使用hedge QL查询作者…" icon="user-tag"/>
                 </div>,
                 right: () => <>
                     <p class="control mr-1">

@@ -1,12 +1,12 @@
 import { defineComponent, PropType } from "vue"
-import { TopicType, TopicItem } from "."
+import { AuthorType, AuthorItem } from "."
 
 /**
- * 列表项视图。
+ * 内容列表项视图。
  */
 export default defineComponent({
     props: {
-        items: {type: null as PropType<TopicItem[]>, required: true}
+        items: {type: null as PropType<AuthorItem[]>, required: true}
     },
     setup(props) {
         return () => <div id="panel-list-view">
@@ -24,25 +24,26 @@ export default defineComponent({
  */
 const Item = defineComponent({
     props: {
-        title: String,
-        type: null as PropType<TopicType>,
+        name: String,
+        type: null as PropType<AuthorType>,
         annotations: null as PropType<string[]>,
         favorite: Boolean,
         count: Number
     },
     setup(props) {
-        const TOPIC_TYPE_TAG = {
-            "copyright": <><i class="fa fa-copyright mr-2"/><span class="mr-2">版权方</span></>,
-            "work": <><i class="fa fa-bookmark mr-2"/><span class="mr-2">作品</span></>,
-            "character": <><i class="fa fa-user-ninja mr-2"/><span class="mr-2">角色</span></>
+        const AUTHOR_TYPE_TAG = {
+            "artist": <><i class="fa fa-paint-brush mr-2"/><span class="mr-2">画师</span></>,
+            "studio": <><i class="fa fa-swatchbook mr-2"/><span class="mr-2">工作室</span></>,
+            "publication": <><i class="fa fa-stamp mr-2"/><span class="mr-2">出版物</span></>
         }
+
         return () => <tr>
-            <td>{props.title}</td>{/*现在还没决定颜色。之后要染成对应类型的颜色*/}
+            <td>{props.name}</td>{/*现在还没决定颜色。之后要染成对应类型的颜色*/}
             <td class="is-narrow">{(props.favorite || null) && <i class="fa fa-heart is-danger"/>}</td>
             <td>
                 {props.annotations?.map(a => <span class="tag mr-1">{a}</span>)}
             </td>
-            <td class="is-narrow is-size-7 pt-3">{TOPIC_TYPE_TAG[props.type]}</td>
+            <td class="is-narrow is-size-7 pt-3">{AUTHOR_TYPE_TAG[props.type]}</td>
             <td class="has-text-right is-size-7 pt-3">{props.count == null ? "" : `${props.count}项`}</td>
         </tr>
     }

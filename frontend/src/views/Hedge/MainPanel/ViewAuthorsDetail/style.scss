@@ -1,12 +1,12 @@
 @import '../../../../styles/App.scss';
 
-#app #hedge #hedge-topics-detail {
+#app #hedge #hedge-authors-detail {
     position: relative;
     height: calc(100% - #{$title-bar-height});
     padding-top: $title-bar-height;
 }
 
-#app #hedge #hedge-topics-detail #panel {
+#app #hedge #hedge-authors-detail #panel {
     overflow-y: auto;
     max-height: 100%;
     padding: 1.5rem 10%;
@@ -17,14 +17,6 @@
             font-size: 0.75rem;
             margin-top: 0.75rem;
             margin-bottom: 0.5rem;
-        }
-        //父子关系标签区域
-        > div.v-relations {
-            font-size: 0.75rem;
-            margin-left: 0.25rem;
-            margin-top: 0.5rem;
-            display: flex;
-            align-items: baseline;
         }
     }
     //相关链接
@@ -40,8 +32,8 @@
         > div:not(.v-more) {
             position: relative;
             height: 0;
-            width: 25%;
-            padding-bottom: 25%;
+            width: 20%;
+            padding-bottom: 20%;
             //内层img绝对定位以应用长宽比
             > img {
                 position: absolute;

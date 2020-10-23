@@ -8,7 +8,7 @@ export default defineComponent({
     setup() {
         return () => <MiddleLayout>
             {{
-                left: () => <button class="button no-drag is-small is-white mr-2"><span class="icon mr-2"><i class="fa fa-lg fa-angle-left"/></span>主题列表</button>,
+                left: () => <button class="button no-drag is-small is-white mr-2"><span class="icon mr-2"><i class="fa fa-lg fa-angle-left"/></span>作者列表</button>,
                 right: () => <>
                     <p class="control mr-1">
                         <button class="button no-drag is-small">

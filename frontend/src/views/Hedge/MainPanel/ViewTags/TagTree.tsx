@@ -115,7 +115,6 @@ interface RootTagDescription {
     description?: string
 }
 
-//TODO 如何在项中简洁清晰地标示出组、序列化组、强制组
 const RootNode = defineComponent({
     props: {
         value: {type: null as PropType<TagItem>, required: true},

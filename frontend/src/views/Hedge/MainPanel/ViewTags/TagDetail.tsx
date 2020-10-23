@@ -13,7 +13,7 @@ export default defineComponent({
             <div>
                 <a class="delete"/>
                 <p class="can-select">地址A.地址B.地址C</p>
-                <p class="can-select"><b class="is-size-5">标签名称</b><i class="has-text-grey">别名1 / 别名2</i></p>
+                <p class="can-select"><b class="is-size-5">标签名称</b><i class="ml-1 has-text-grey">别名1 / 别名2</i></p>
                 <div class="v-meta">
                     <p>
                         <i class="fa fa-tag mr-1"/><span class="mr-3">标签</span>
