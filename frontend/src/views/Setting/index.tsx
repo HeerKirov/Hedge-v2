@@ -11,7 +11,9 @@ export default defineComponent({
                 {{
                     side: () => <SideBar/>,
                     default: () => <div class="v-setting-content">
-                        <RouterView/>
+                        <div class="v-scroll-content">
+                            <RouterView/>
+                        </div>
                         <div class="small-title-bar absolute top w-100"/>
                     </div>
                 }}

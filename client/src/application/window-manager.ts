@@ -22,6 +22,10 @@ export interface WindowManager {
      */
     openGuideWindow(): BrowserWindow
     /**
+     * 打开设置窗口。
+     */
+    openSettingWindow(): BrowserWindow
+    /**
      * 获得全部窗口列表。
      */
     getAllWindows(): BrowserWindow[]
@@ -35,15 +39,19 @@ export interface WindowManager {
 export function createWindowManager(options: WindowManagerOptions): WindowManager {
 
     let guideWindow: BrowserWindow | null = null
+    let settingWindow: BrowserWindow | null = null
 
-    function newBrowserWindow(hashURL?: string, title?: string): BrowserWindow {
+    function newBrowserWindow(hashURL: string, configure?: {
+        title?: string,
+        titleBarStyle?: ('default' | 'hidden' | 'hiddenInset')
+    }): BrowserWindow {
         const win = new BrowserWindow({
-            title: title ?? 'Hedge',
+            title: configure?.title ?? 'Hedge',
             height: 720,
             width: 1200,
             minHeight: 480,
             minWidth: 672,
-            titleBarStyle: "hiddenInset",
+            titleBarStyle: configure?.titleBarStyle ?? "hiddenInset",
             webPreferences: {
                 devTools: options.debugMode,
                 nodeIntegration: true,
@@ -63,12 +71,24 @@ export function createWindowManager(options: WindowManagerOptions): WindowManage
     }
 
     function createDisplayWindow(/*content*/): BrowserWindow {
-        return newBrowserWindow()
+        return newBrowserWindow("display")
+    }
+
+    function openSettingWindow(): BrowserWindow {
+        if(settingWindow == null) {
+            settingWindow = newBrowserWindow('setting', {title: "设置", titleBarStyle: "hidden"})
+            settingWindow.on("closed", () => {
+                settingWindow = null
+            })
+        }else{
+            settingWindow.show()
+        }
+        return settingWindow
     }
 
     function openGuideWindow(): BrowserWindow {
         if(guideWindow == null) {
-            guideWindow = newBrowserWindow('guide')
+            guideWindow = newBrowserWindow('guide', {title: "向导", titleBarStyle: "hidden"})
             guideWindow.on("closed", () => {
                 guideWindow = null
             })
@@ -86,6 +106,7 @@ export function createWindowManager(options: WindowManagerOptions): WindowManage
         createWindow,
         createDisplayWindow,
         openGuideWindow,
+        openSettingWindow,
         getAllWindows
     }
 }

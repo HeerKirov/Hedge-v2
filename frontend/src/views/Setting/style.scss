@@ -2,14 +2,18 @@
 
 #app #setting {
     .v-setting-content {
-        max-height: 100%;
-        overflow-y: auto;
+        height: 100%;
+        > .v-scroll-content {
+            max-height: 100%;
+            overflow-y: auto;
+            padding: 4rem 2rem 2rem 2rem;
+        }
     }
 }
 
 #app #setting #side-bar {
-    background-color: $side-background-color;
-    border-right: solid 1px $side-border-color;
+    background-color: $dark-side-background-color;
+    border-right: solid 1px $dark-side-border-color;
     position: absolute;
     left: 0; top: 0; height: 100%; width: 100%;
 

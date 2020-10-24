@@ -50,7 +50,7 @@ export function createApplication(options?: AppOptions) {
     registerAppEvents(windowManager, platform, options)
 
     app.whenReady().then(() => {
-        windowManager.createWindow()
+        windowManager.openSettingWindow()
     })
 }
 
