@@ -27,7 +27,7 @@ export type ChannelConstructor<META, IN, OUT> = (context: ServiceContext, option
 /**
  * 一个channel的构造实例。
  */
-interface IChannel<META, IN, OUT> {
+interface Channel<META, IN, OUT> {
     /**
      * channel名称。
      */
@@ -45,34 +45,18 @@ interface IChannel<META, IN, OUT> {
      * @return 返回{null}表示校验通过。返回code+msg表示校验不通过。
      */
     validate?: ValidateMethod<META, IN>
+    /**
+     * 异步方法体。
+     * @return 执行结果
+     * @throws 抛出异常
+     */
+    invoke?(meta: META, req: IN): Promise<OUT>
+    /**
+     * 同步方法体。
+     * @return 执行结果
+     * @throws 抛出异常
+     */
+    invokeSync?(meta: META, req: IN): OUT
 }
 
 export interface ValidateMethod<META, IN> { (meta: META, req: IN): {code?: StatusCode, msg?: string} | null | undefined }
-
-/**
- * 异步方法体。
- */
-export interface AsyncChannel<META, IN, OUT> extends IChannel<META, IN, OUT> {
-    async: true
-    /**
-     * 方法体。
-     * @return 执行结果
-     * @throws 抛出异常
-     */
-    invoke(meta: META, req: IN): Promise<OUT>
-}
-
-/**
- * 同步方法体。
- */
-export interface SyncChannel<META, IN, OUT> extends IChannel<META, IN, OUT> {
-    async?: false
-    /**
-     * 方法体。
-     * @return 执行结果
-     * @throws 抛出异常
-     */
-    invoke(meta: META, req: IN): OUT
-}
-
-export type Channel<META, IN, OUT> = AsyncChannel<META, IN, OUT> | SyncChannel<META, IN, OUT>

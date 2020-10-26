@@ -1,3 +1,4 @@
+import * as path from "path"
 import { BrowserWindow } from "electron"
 import { FRONTEND_INDEX_DIM } from "../definitions/file-dim"
 import { Platform } from "../utils/process"
@@ -55,7 +56,7 @@ export function createWindowManager(options: WindowManagerOptions): WindowManage
             webPreferences: {
                 devTools: options.debugMode,
                 nodeIntegration: true,
-                //preload: '' 注入启动脚本
+                preload: path.join(__dirname, 'preloads/index.js')
             }
         })
         if(options.debugMode && options.debugFrontendURL) {

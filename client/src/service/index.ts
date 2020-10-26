@@ -114,14 +114,18 @@ function createChannelInstance(scopes: Scope[], context: ServiceContext, options
 
             const subRouters = routers[name] ?? (routers[name] = {})
 
-            subRouters[method] = channel.async ? {
+            subRouters[method] = channel.invoke ? {
                 name, method, forWeb,
                 async: true,
                 invoke: createAsyncInstance(name, method, channel.invoke, channel.validate)
+            } : channel.invokeSync ? {
+                name, method, forWeb,
+                async: false,
+                invoke: createSyncInstance(name, method, channel.invokeSync, channel.validate)
             } : {
                 name, method, forWeb,
                 async: false,
-                invoke: createSyncInstance(name, method, channel.invoke, channel.validate)
+                invoke: createSyncInstance(name, method, (): any => {}, channel.validate)
             };
         }
     }
