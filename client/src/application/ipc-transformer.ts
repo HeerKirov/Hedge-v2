@@ -2,8 +2,7 @@ import { ipcMain } from "electron"
 import { Service } from "../service"
 import { Platform } from "../utils/process"
 
-const CHANNEL_SERVICE = "ipc-transformer-channel"
-const CHANNEL_PLATFORM = "ipc-transformer-platform"
+const CHANNEL_SERVICE_PREFIX = "serv"
 
 export interface IpcTransformerOptions {
     debugMode: boolean
@@ -17,27 +16,18 @@ export interface IpcTransformerOptions {
  */
 export function createIpcTransformer(service: Service, options: IpcTransformerOptions) {
     /**
-     * - service serv
-     *   使用信道${CHANNEL_SERVICE}。信道使用handle模式运行，即ipcRenderer使用invoke发送参数，并异步等待结果。
-     *   接受的args(即ipcRenderer发送的args)依次为[scope, channel, method, meta, requestBody]。
-     *   返回的内容(即ipcRenderer接受的内容)为{code: StatusCode, msg?: string, data?: OUT}。
+     * ipc transformer将全部service的channel，每个channel对应一个ipc channel注册。
+     * 注册的channel name为`${PREFIX}/${scope}/${name}[${method}]`。
+     * 注册的channel的args为[META, IN]。
+     * 注册的channel的返回值为ServResult<OUT>。
+     * 异步channel通过handle方法注册，在ipdRenderer通过invoke调用并异步接收。handle方法同时支持异步和同步，因此闭包函数不需要async/await。
      */
-    ipcMain.handle(CHANNEL_SERVICE, async (event, args) => {
-        const [scope, channel, method, meta, req] = args
+    for (const channelInstance of service.findAll()) {
+        const channelName = `${CHANNEL_SERVICE_PREFIX}/${channelInstance.name}[${channelInstance.method}]`
+        ipcMain.handle(channelName, (event, args) => {
+            const [meta, req] = args
 
-        return await service.serv({scope, channel, method, meta, req})
-    })
-
-    /**
-     * - platform query
-     *   使用信道${CHANNEL_PLATFORM}。使用sendSync模式运行，即ipcRenderer使用sendSync发送参数，并立即接收结果。
-     *   返回的内容为{debugMode, platform, appDataPath}。
-     */
-    ipcMain.on(CHANNEL_PLATFORM, (event) => {
-        event.returnValue = {
-            debugMode: options.debugMode,
-            platform: options.platform,
-            appDataPath: options.appDataPath
-        }
-    })
+            return channelInstance.invoke(meta, req)
+        })
+    }
 }
