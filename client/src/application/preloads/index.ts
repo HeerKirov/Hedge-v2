@@ -12,7 +12,7 @@ import { ipcRenderer, remote } from "electron"
  * @param meta 调用元信息
  * @param req 调用业务内容
  */
-async function invokeIpc(channelName: string, method: string, meta: unknown, req: unknown): Promise<unknown> {
+async function invokeIPC(channelName: string, method: string, meta: unknown, req: unknown): Promise<unknown> {
     return await ipcRenderer.invoke(`serv/${channelName}[${method}]`, [meta, req])
 }
 
@@ -20,7 +20,7 @@ async function invokeIpc(channelName: string, method: string, meta: unknown, req
  * 注册那些全局环境的事件。
  * @param events
  */
-function registerElectronEvents(events: AppEvents) {
+function registerElectronEvents(events: ElectronEvents) {
     const window = remote.getCurrentWindow();
     window.on("enter-full-screen", () => {
         events.fullScreenChanged(true)
@@ -33,7 +33,7 @@ function registerElectronEvents(events: AppEvents) {
 /**
  * 全局事件定义。
  */
-interface AppEvents {
+interface ElectronEvents {
     fullScreenChanged(isFullScreen: boolean): void
 }
 
@@ -41,6 +41,6 @@ interface AppEvents {
     const w = window as any
 
     w['clientMode'] = true
-    w['invokeIpc'] = invokeIpc
+    w['invokeIPC'] = invokeIPC
     w['registerElectronEvents'] = registerElectronEvents
 })()

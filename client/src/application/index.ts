@@ -49,8 +49,12 @@ export function createApplication(options?: AppOptions) {
 
     registerAppEvents(windowManager, platform, options)
 
-    app.whenReady().then(() => {
-        windowManager.openSettingWindow()
+    app.whenReady().then(async () => {
+        if(appDataDriver.isInitialized()) {
+            await appDataDriver.load()
+        }
+
+        windowManager.createWindow()
     })
 }
 
