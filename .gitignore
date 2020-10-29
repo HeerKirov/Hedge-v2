@@ -2,9 +2,15 @@
 .idea
 .DS_Store
 
-node_modules
-target
-dist
+/client/node_modules
+/frontend/node_modules
+/client/target
+/frontend/dist
+/server/.gradle
+/server/gradle
+/server/gradlew
+/server/gradlew.bat
+/server/build
 debug
 *.db
 

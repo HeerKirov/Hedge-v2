@@ -21,7 +21,7 @@ async function invokeIPC(channelName: string, method: string, meta: unknown, req
  * @param events
  */
 function registerElectronEvents(events: ElectronEvents) {
-    const window = remote.getCurrentWindow();
+    const window = remote.getCurrentWindow()
     window.on("enter-full-screen", () => {
         events.fullScreenChanged(true)
     })

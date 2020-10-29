@@ -13,15 +13,13 @@
 ```sh
 build/              # 存放项目最终构建脚本
     darwin/         # macOS平台的构建脚本和构建材料
-        ...
-client/             # 客户端项目
-    ...
 frontend/           # 前端项目
-    ...
+client/             # 客户端项目
+server/             # 后台服务项目
+cli/                # 命令行工具项目
 ```
 
 ## Sub Project
-进入各个子项目获取该子项目的内容和开发规范。
 * Frontend [README.md](https://github.com/HeerKirov/Hedge-v2/tree/master/frontend/README.md)
 * Client [README.md](https://github.com/HeerKirov/Hedge-v2/tree/master/client/README.md)
 
