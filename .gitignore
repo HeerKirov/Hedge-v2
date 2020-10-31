@@ -14,7 +14,5 @@
 debug
 *.db
 
-.env.local
-.env.*.local
-
 *.local.*
+*.local

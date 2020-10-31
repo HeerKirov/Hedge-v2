@@ -1,14 +1,11 @@
 import * as path from "path"
 import { BrowserWindow } from "electron"
-import { FRONTEND_INDEX_DIM } from "../definitions/file-dim"
 import { Platform } from "../utils/process"
 
-export interface WindowManagerOptions {
-    debugMode: boolean
-    debugFrontendURL?: string
-    platform: Platform
-}
-
+/**
+ * electron的窗口管理器。管控窗口的建立。
+ * 窗口管理器会区分不同业务的窗口。
+ */
 export interface WindowManager {
     /**
      * 创建一个承载一般业务的普通窗口。
@@ -32,13 +29,15 @@ export interface WindowManager {
     getAllWindows(): BrowserWindow[]
 }
 
-/**
- * 构造窗口管理器。
- * 窗口管理器将全权控制应用程序的窗口建立。
- * @param options
- */
-export function createWindowManager(options: WindowManagerOptions): WindowManager {
+export interface WindowManagerOptions {
+    platform: Platform
+    debug?: {
+        frontendFromURL?: string
+        frontendFromFolder?: string
+    }
+}
 
+export function createWindowManager(options: WindowManagerOptions): WindowManager {
     let guideWindow: BrowserWindow | null = null
     let settingWindow: BrowserWindow | null = null
 
@@ -54,15 +53,18 @@ export function createWindowManager(options: WindowManagerOptions): WindowManage
             minWidth: 672,
             titleBarStyle: configure?.titleBarStyle ?? "hiddenInset",
             webPreferences: {
-                devTools: options.debugMode,
+                devTools: !!options.debug,
                 nodeIntegration: true,
                 preload: path.join(__dirname, 'preloads/index.js')
             }
         })
-        if(options.debugMode && options.debugFrontendURL) {
-            win.loadURL(options.debugFrontendURL + (hashURL ? `#/${hashURL}` : '')).finally(() => {})
+
+        if(options.debug?.frontendFromURL) {
+            win.loadURL(options.debug.frontendFromURL + (hashURL ? `#/${hashURL}` : '')).finally(() => {})
+        }else if(options.debug?.frontendFromFolder) {
+            win.loadFile(path.join(options.debug.frontendFromFolder, DIM.INDEX), {hash: hashURL}).finally(() => {})
         }else{
-            win.loadFile(FRONTEND_INDEX_DIM, {hash: hashURL}).finally(() => {})
+            win.loadFile(path.join(DIM.FRONTEND_FOLDER, DIM.INDEX), {hash: hashURL}).finally(() => {})
         }
         return win
     }
@@ -110,4 +112,9 @@ export function createWindowManager(options: WindowManagerOptions): WindowManage
         openSettingWindow,
         getAllWindows
     }
+}
+
+const DIM = {
+    FRONTEND_FOLDER: "frontend",
+    INDEX: "index.html"
 }

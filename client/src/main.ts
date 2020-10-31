@@ -3,9 +3,16 @@ import { createParameters } from "./utils/parameters"
 
 const parameters = createParameters(process.argv)
 
+console.log(process.argv)
+
 createApplication({
-    debugMode: parameters.contains("--debug-mode"),
-    debugFrontendURL: parameters.opt("--debug-frontend-url"),
-    debugAppDataFolder: parameters.opt("--debug-appdata-folder"),
-    debugFrontendDist: parameters.opt("--debug-frontend-dist")
+    channel: parameters.opt("--channel"),
+    debug: parameters.contains("--debug-mode") ? {
+        localDataPath: parameters.opt("--local-data-path"),
+        frontendFromURL: parameters.opt("--frontend-from-url"),
+        frontendFromFolder: parameters.opt("--frontend-from-folder"),
+        serverFromURL: parameters.opt("--server-from-url"),
+        serverFromFolder: parameters.opt("--server-from-folder"),
+        serverFromResource: parameters.opt("--server-from-resource")
+    } : undefined,
 })

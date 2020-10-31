@@ -13,10 +13,10 @@ export async function writeFile<T>(file: string, data: T): Promise<T> {
 }
 
 export async function readFile<T>(file: string): Promise<T | null> {
+    if(!await existsFile(file)) {
+        return null
+    }
     return new Promise(((resolve, reject) => {
-        if(!nodeFs.existsSync(file)) {
-            resolve(null)
-        }
         nodeFs.readFile(file, {encoding: "utf8"}, (e, data) => {
             if(e) {
                 reject(e)
@@ -27,12 +27,16 @@ export async function readFile<T>(file: string): Promise<T | null> {
     }))
 }
 
-export function exists(path: string): boolean {
+export function existsFileSync(path: string): boolean {
     return nodeFs.existsSync(path)
 }
 
+export async function existsFile(path: string): Promise<boolean> {
+    return new Promise((resolve => nodeFs.access(path, (e) => resolve(!e))))
+}
+
 export async function mkdir(path: string): Promise<void> {
-    if(nodeFs.existsSync(path)) {
+    if(await existsFile(path)) {
         return
     }
     return new Promise(((resolve, reject) => {
@@ -47,7 +51,7 @@ export async function mkdir(path: string): Promise<void> {
 }
 
 export async function rmdir(path: string): Promise<void> {
-    if(!nodeFs.existsSync(path)) {
+    if(!await existsFile(path)) {
         return
     }
     return new Promise(((resolve, reject) => {

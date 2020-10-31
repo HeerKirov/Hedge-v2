@@ -7,20 +7,14 @@
   "scripts": {
     "compile": "tsc",
     "start": "electron .",
-    "debug": "electron . --debug-mode --debug-frontend-url http://localhost:3000 --debug-appdata-folder ./debug --debug-frontend-dist ../frontend/dist"
+    "debug": "electron . $(cat args.dev.local)"
   },
   "dependencies": {
-    "koa": "^2.13.0",
-    "sqlite": "^4.0.14",
-    "sqlite3": "^5.0.0",
-    "tslib": "^2.0.1"
+    "tslib": "^2.0.3"
   },
   "devDependencies": {
-    "@types/koa": "^2.11.4",
-    "@types/node": "^14.11.2",
-    "@types/sqlite3": "^3.1.6",
+    "@types/node": "^14.14.6",
     "electron": "10.1.2",
-    "node-gyp": "^7.1.0",
-    "typescript": "^4.0.3"
+    "typescript": "^4.0.5"
   }
 }

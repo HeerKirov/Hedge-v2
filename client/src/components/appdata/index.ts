@@ -1,102 +1,128 @@
 import path from "path"
-import { APP_DATA_DIM } from "../../definitions/file-dim"
-import { mkdir, readFile, writeFile, exists } from "../../utils/fs"
+import { existsFile, mkdir, readFile, writeFile } from "../../utils/fs"
 import { AppData, defaultValue } from "./model"
 import { migrate } from "./migrations"
 
 /**
- * 连接到外部系统中，appData相关数据的模块。提供基本的对数据的存取功能，并定义了数据格式。
- * 相当于dao层。更多业务实现则需要service层。
+ * 连接到指定频道的appdata数据。
+ * 在频道不存在时，driver会检测并发现，并可以调用函数对其进行初始化。
+ * 连接到数据后，允许对client范围内的数据进行读写操作。
  */
 export interface AppDataDriver {
     /**
-     * 判断本地文件系统上是否已存在初始化的文件。
-     * 用于配合检查是否已经初始化存储。
+     * 在app的后初始化环节调用，异步地读取appdata的当前状况，并更新到状态。如果appdata可读，将加载数据到内存，并应用可能的更改。
      */
-    isInitialized(): boolean
+    load(): Promise<void>
     /**
-     * 判断内存数据是否已加载。
+     * 即时返回app内部的初始化状况。
      */
-    isLoaded(): boolean
+    status(): AppDataStatus
     /**
-     * 加载appData的数据到内存。这会从文件系统读取值。如果文件系统中的值不存在，那么会写入默认值再返回。
+     * 在appdata没有初始化时可调用，对appdata进行初始化写入。
      */
-    load(): Promise<AppData>
+    init(): Promise<void>
     /**
-     * 取得appData的数据内容。需要在初始化之后再执行。
-     * @return 返回AppData。
+     * 获得appdata数据。
      */
     getAppData(): AppData
     /**
-     * 保存appData的内容。需要在初始化之后再执行。
-     * appData的内容使用全局共享的object。可以修改getAppData的结果，然后保存。
-     * @param processData 提供此回调在保存之前做一次修改
-     * @return 保存成功返回AppData内容，否则返回{null}表示appData不存在，无法执行保存(这也将不调用processData)。
+     * 保存appdata到文件。
+     * @param process 在保存时顺手做一次修改。
      */
-    saveAppData(processData?: (d: AppData) => void): Promise<AppData>
+    saveAppData(process?: (data: AppData) => void): Promise<AppData>
 }
 
+enum AppDataStatus {
+    UNKNOWN,
+    NOT_INIT,
+    LOADING,
+    LOADED
+}
+
+/**
+ * 构造参数。
+ */
 export interface AppDataDriverOptions {
-    debugMode: boolean,
-    appDataPath: string
+    /**
+     * app的数据目录。例如对于macOS，它是~/Library/Application Support/Hedge-v2目录。
+     */
+    userDataPath: string
+    /**
+     * app运行所在的频道名称。启动没有指定频道时，默认频道名为default。
+     */
+    channel: string | null
+    /**
+     * app是否以开发调试模式运行。
+     */
+    debugMode: boolean
 }
 
 export function createAppDataDriver(options: AppDataDriverOptions): AppDataDriver {
-    const appDataFolder = path.join(options.appDataPath, APP_DATA_DIM.FOLDER)
-    const appDataFilepath = path.join(appDataFolder, APP_DATA_DIM.MAIN_STORAGE)
+    const channel = options.channel ?? "default"
+    const channelPath = path.join(options.userDataPath, DIM.CHANNEL_FOLDER, channel)
+    const clientDataPath = path.join(channelPath, DIM.CLIENT_DATA)
 
+    let status = AppDataStatus.UNKNOWN
     let appData: AppData | null = null
 
-    function getAppData() {
-        if(appData != null) {
-            return appData
-        }
-        throw new Error("Appdata is not initialized.")
-    }
+    async function load() {
+        const data = await readFile<AppData>(clientDataPath)
+        if(data != null) {
+            status = AppDataStatus.LOADING
 
-    function isInitialized() {
-        return appData != null ? true : exists(appDataFilepath)
-    }
-
-    function isLoaded() {
-        return appData != null
-    }
-
-    async function saveAppData(processData?: (d: AppData) => void): Promise<AppData> {
-        if(appData == null) {
-            throw new Error("Appdata is not initialized.")
-        }
-        if(typeof processData === 'function') {
-            processData(appData)
-        }
-        return await writeFile(appDataFilepath, appData)
-    }
-
-    async function load(): Promise<AppData> {
-        if(appData == null) {
-            if(isInitialized()) {
-                appData = await readFile(appDataFilepath)
-                if(appData == null) {
-                    throw new Error("Appdata is not initialized.")
-                }
-            }else{
-                await mkdir(appDataFolder)
-                await writeFile(appDataFilepath, appData = defaultValue())
-            }
-            
-            const { appData: newAppData, changed } = await migrate({appData})
+            const { appData: newAppData, changed } = await migrate({appData: data})
             if(changed) {
-                await writeFile(appDataFilepath, appData = newAppData)
+                await writeFile(clientDataPath, newAppData)
             }
+            appData = newAppData
+
+            status = AppDataStatus.LOADED
+        }else{
+            status = AppDataStatus.NOT_INIT
         }
-        return appData
+    }
+
+    async function init() {
+        if(status != AppDataStatus.NOT_INIT) {
+            throw new Error("Appdata status must be NOT_INIT.")
+        }
+        status = AppDataStatus.LOADING
+
+        await mkdir(channelPath)
+        await writeFile(clientDataPath, appData = defaultValue())
+
+        const { appData: newAppData, changed } = await migrate({appData})
+        if(changed) {
+            await writeFile(clientDataPath, appData = newAppData)
+        }
+
+        status = AppDataStatus.LOADED
+    }
+
+    async function saveAppData(process?: (data: AppData) => void) {
+        if(appData == null) {
+            throw new Error("AppData is not initialized.")
+        }
+        if(typeof process === 'function') {
+            process(appData)
+        }
+        return await writeFile(clientDataPath, appData)
     }
 
     return {
-        isInitialized,
-        isLoaded,
         load,
-        getAppData,
-        saveAppData
+        init,
+        saveAppData,
+        getAppData() {
+            return appData!!
+        },
+        status() {
+            return status
+        }
     }
+}
+
+const DIM = {
+    CHANNEL_FOLDER: "channel",
+    CLIENT_DATA: "client.dat"
 }

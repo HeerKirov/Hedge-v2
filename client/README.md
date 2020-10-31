@@ -1,11 +1,9 @@
 # Hedge v2 Client
-这是App的客户端子项目。它承载大部分业务逻辑以及App主体的运行功能。
+这是App的客户端子项目。它是主要的对用户交互方式。承载后台服务启动管理、前端对接、app基本数据管理功能。
 
 ## Technology Stack
 * `electron`
 * `typescript`
-* `sqlite3`
-* `koa`
 
 ## Deploy
 ```sh
@@ -18,34 +16,23 @@ npm install     # 使用npm安装全部依赖
 > export ELECTRON_MIRROR=https://npm.taobao.org/mirrors/electron/
 > ```
 
-由于使用到了`SQLite`，需要在安装完依赖后编译node模块。下面是macOS平台上的编译命令示例。
-```sh
-cd node_modules
-./node-gyp/bin/node-gyp.js rebuild \
-    --target=10.1.2 \
-    --arch=x64 \
-    --target_platform=darwin \
-    --dist-url=https://atom.io/download/electron/ \
-    --module_name=node_sqlite3 
-    --module_path=./sqlite3/lib/building/electron-v10.1-darwin-x64
-```
-> 在macOS上，编译可能会遇到`No Xcode or CLT version detected!`问题。此时可以尝试重装XCode工具。
-> ```sh
-> sudo rm -rf $(xcode-select -print-path)
-> xcode-select --install
-> ```
-
 ## Development
 客户端使用`tsc`完成编译工作。在任何客户端代码运行之前或更改之后，执行编译。
 ```sh
 tsc     # 编译更新源代码
 ```
-此外，客户端还要处理两个问题：
-1. 在开发模式实时预览的情况下，前端从URL而不是本地文件加载，且本地加载也无法加载到release模式下预期之中的前端资源；
-2. 客户端的数据在release模式下会存放在userData目录下(macOS为`~/Library/Application Support`)，在开发模式下则不应该混用release模式的数据，因此需要指定本地调试数据位置。  
-
-而这些问题已在客户端的代码构建中处理。通过启动参数指定App的运行模式，可切换至debug模式。
+在开发过程中，有必要使用与生产环境隔离的数据库；此外，客户端还联系着前端和后台服务，这两部分都需要不同程度的开发调试。为此客户端提供了相关的调试选项。  
 ```sh
-npm run debug   # > electron . --debug-mode --debug-frontend-url http://localhost:3000 --debug-appdata-folder ./debug
+cp args.dev args.dev.local
+npm run debug
 ```
-可以看到`package.json`的`scripts.debug`选项中已经指定了默认的调试参数。
+复制一份开发模式启动参数。执行debug script以开发模式启动。随后，编辑`args.dev.local`文件以调整启动参数。
+```sh
+--debug-mode    # 在调试模式启动，启用devtool。指定此参数，下列其他参数才有效。
+--local-data-path   # 指定一个文件夹作为开发模式数据文件夹。
+--frontend-from-url     # 从指定URL加载前端资源，用于前端业务开发。
+--frontend-from-folder  # 从指定文件夹加载前端资源，用于前端生产模式+客户端开发模式。
+--server-fron-url       # 从指定URL调用后台服务，用于后台服务业务开发。使用此选项时后台服务启动管理功能被禁用。
+--server-from-folder    # 从指定文件夹调用后台服务程序，用于后台服务生产模式+客户端开发模式。使用此选项时资源管理功能被禁用。
+--server-from-resource  # 从指定压缩文件调用后台服务程序，用于后台服务生产模式+资源管理功能调试。
+```

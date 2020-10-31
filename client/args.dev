@@ -1,0 +1,1 @@
+--debug-mode --local-data-path ./debug --frontend-from-url http://localhost:3000 --server-from-url http://localhost:8080
