@@ -3,8 +3,6 @@ import { createParameters } from "./utils/parameters"
 
 const parameters = createParameters(process.argv)
 
-console.log(process.argv)
-
 createApplication({
     channel: parameters.opt("--channel"),
     debug: parameters.contains("--debug-mode") ? {

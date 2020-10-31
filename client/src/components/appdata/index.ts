@@ -77,8 +77,10 @@ export function createAppDataDriver(options: AppDataDriverOptions): AppDataDrive
             appData = newAppData
 
             status = AppDataStatus.LOADED
+            console.log("[AppDataDriver] App data is loaded.")
         }else{
             status = AppDataStatus.NOT_INIT
+            console.log("[AppDataDriver] App data is not init.")
         }
     }
 
