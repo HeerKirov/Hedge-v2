@@ -1,4 +1,6 @@
 import nodeFs from "fs"
+import unzipper from "unzipper"
+import { spawn } from "child_process"
 
 export async function writeFile<T>(file: string, data: T): Promise<T> {
     return new Promise(((resolve, reject) => {
@@ -63,4 +65,26 @@ export async function rmdir(path: string): Promise<void> {
             }
         })
     }))
+}
+
+export async function cpR(src: string, dest: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+        const s = spawn("cp", ["-r", src, dest])
+        s.on('close', code => {
+            if(code === 0) {
+                resolve()
+            }else{
+                reject(new Error("cp -r throws an error."))
+            }
+        })
+    })
+}
+
+export async function unzip(src: string, dest: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+        nodeFs.createReadStream(src)
+            .pipe(unzipper.Extract({path: dest}))
+            .on('close', () => resolve())
+            .on('error', e => reject(e))
+    })
 }

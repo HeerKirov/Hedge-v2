@@ -2,6 +2,7 @@ import { app, systemPreferences } from "electron"
 import { getNodePlatform, Platform } from "../utils/process"
 import { createWindowManager, WindowManager } from "./window-manager"
 import { createAppDataDriver } from "../components/appdata"
+import { createResourceManager } from "../components/resource-manager"
 
 /**
  * app的启动参数。
@@ -58,12 +59,15 @@ export function createApplication(options?: AppOptions) {
 
     const appDataDriver = createAppDataDriver({userDataPath, channel, debugMode: !!options?.debug})
 
+    const resourceManager = createResourceManager({userDataPath, debug: options?.debug && {frontendFromFolder: options.debug.frontendFromFolder, serverFromResource: options.debug.serverFromResource}})
+
     const windowManager = createWindowManager({platform, debug: options?.debug && {frontendFromFolder: options.debug.frontendFromFolder, frontendFromURL: options.debug.frontendFromURL}})
 
     registerAppEvents(windowManager, platform, options)
 
     app.whenReady().then(async () => {
         await appDataDriver.load()
+        await resourceManager.load()
 
         windowManager.createWindow()
     })

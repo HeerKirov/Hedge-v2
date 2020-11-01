@@ -1,5 +1,5 @@
 import path from "path"
-import { existsFile, mkdir, readFile, writeFile } from "../../utils/fs"
+import { existsFile, mkdir, readFile, writeFile          } from "../../utils/fs"
 import { AppData, defaultValue } from "./model"
 import { migrate } from "./migrations"
 
