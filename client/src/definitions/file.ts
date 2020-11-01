@@ -1,0 +1,23 @@
+export const APP_FILE = {
+    FRONTEND_FOLDER: "../frontend",
+    SERVER_ZIP: "../server.zip",
+    CLI_ZIP: "../cli.zip"
+}
+
+export const DATA_FILE = {
+    RESOURCE: {
+        VERSION_LOCK: "version.lock",
+        SERVER_FOLDER: "server",
+        FRONTEND_FOLDER: "server/frontend",
+        CLI_FOLDER: "cli"
+    },
+    APPDATA: {
+        CLIENT_CONFIG: "appdata/client.json",
+        CHANNEL_FOLDER(name: string) { return `appdata/channel/${name}` },
+        CHANNEL: {
+            SERVER_PID: "server.pid",
+            CLIENT_DATA: "client.dat",
+            CLIENT_STORAGE(name: string) { return `client.${name}.storage` }
+        }
+    }
+}

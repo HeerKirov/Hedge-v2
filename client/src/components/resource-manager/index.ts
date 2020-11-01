@@ -1,7 +1,8 @@
 import path from "path"
-import { Version, VersionLock, VersionStatus, VersionStatusSet } from "./model"
-import { cpR, unzip, rmdir, readFile, writeFile } from "../../utils/fs"
 import { arrays } from "../../utils/types"
+import { cpR, unzip, rmdir, readFile, writeFile } from "../../utils/fs"
+import { DATA_FILE, APP_FILE } from "../../definitions/file"
+import { Version, VersionLock, VersionStatus, VersionStatusSet } from "./model"
 
 /**
  * 记录系统中资源组件的最新版本号。必须更新此记录值至最新，才能正确触发版本更新。
@@ -101,7 +102,7 @@ function createForbiddenResourceManager(): ResourceManager {
 }
 
 function createProductionResourceManager(options: ResourceManagerOptions): ResourceManager {
-    const versionLockPath = path.join(options.userDataPath, DIM.VERSION_LOCK)
+    const versionLockPath = path.join(options.userDataPath, DATA_FILE.RESOURCE.VERSION_LOCK)
 
     let status: ResourceStatus = ResourceStatus.UNKNOWN
     let cliStatus: ResourceStatus = ResourceStatus.UNKNOWN
@@ -164,23 +165,23 @@ function createProductionResourceManager(options: ResourceManagerOptions): Resou
     }
 
     async function updatePartServer() {
-        const dest = path.join(options.userDataPath, DIM.SERVER_FOLDER);
+        const dest = path.join(options.userDataPath, DATA_FILE.RESOURCE.SERVER_FOLDER);
         await rmdir(dest)
-        await unzip(DIM.RESOURCE_SERVER_ZIP, dest)
+        await unzip(APP_FILE.SERVER_ZIP, dest)
         version.server = {lastUpdateTime: new Date(), currentVersion: version.server?.latestVersion!!}
     }
 
     async function updatePartFrontend() {
-        const dest = path.join(options.userDataPath, DIM.FRONTEND_FOLDER);
+        const dest = path.join(options.userDataPath, DATA_FILE.RESOURCE.FRONTEND_FOLDER);
         await rmdir(dest)
-        await cpR(DIM.RESOURCE_FRONTEND, dest)
+        await cpR(APP_FILE.FRONTEND_FOLDER, dest)
         version.frontend = {lastUpdateTime: new Date(), currentVersion: version.frontend?.latestVersion!!}
     }
 
     async function updatePartCli() {
-        const dest = path.join(options.userDataPath, DIM.CLI_FOLDER);
+        const dest = path.join(options.userDataPath, DATA_FILE.RESOURCE.CLI_FOLDER);
         await rmdir(dest)
-        await unzip(DIM.RESOURCE_CLI_ZIP, dest)
+        await unzip(APP_FILE.CLI_ZIP, dest)
         version.cli = {lastUpdateTime: new Date(), currentVersion: version.cli!.latestVersion!!}
     }
 
@@ -195,16 +196,6 @@ function createProductionResourceManager(options: ResourceManagerOptions): Resou
             return cliStatus
         }
     }
-}
-
-const DIM = {
-    VERSION_LOCK: "version.lock",
-    SERVER_FOLDER: "server",
-    FRONTEND_FOLDER: "server/frontend",
-    CLI_FOLDER: "cli",
-    RESOURCE_FRONTEND: "../frontend",
-    RESOURCE_SERVER_ZIP: "../server.zip",
-    RESOURCE_CLI_ZIP: "../cli.zip"
 }
 
 /**

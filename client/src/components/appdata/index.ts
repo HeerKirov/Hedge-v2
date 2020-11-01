@@ -1,5 +1,6 @@
 import path from "path"
-import { existsFile, mkdir, readFile, writeFile          } from "../../utils/fs"
+import { mkdir, readFile, writeFile } from "../../utils/fs"
+import { DATA_FILE } from "../../definitions/file"
 import { AppData, defaultValue } from "./model"
 import { migrate } from "./migrations"
 
@@ -50,7 +51,7 @@ export interface AppDataDriverOptions {
     /**
      * app运行所在的频道名称。启动没有指定频道时，默认频道名为default。
      */
-    channel: string | null
+    channel: string
     /**
      * app是否以开发调试模式运行。
      */
@@ -58,9 +59,8 @@ export interface AppDataDriverOptions {
 }
 
 export function createAppDataDriver(options: AppDataDriverOptions): AppDataDriver {
-    const channel = options.channel ?? "default"
-    const channelPath = path.join(options.userDataPath, DIM.CHANNEL_FOLDER, channel)
-    const clientDataPath = path.join(channelPath, DIM.CLIENT_DATA)
+    const channelPath = path.join(options.userDataPath, DATA_FILE.APPDATA.CHANNEL_FOLDER(options.channel))
+    const clientDataPath = path.join(channelPath, DATA_FILE.APPDATA.CHANNEL.CLIENT_DATA)
 
     let status = AppDataStatus.UNKNOWN
     let appData: AppData | null = null
@@ -122,9 +122,4 @@ export function createAppDataDriver(options: AppDataDriverOptions): AppDataDrive
             return status
         }
     }
-}
-
-const DIM = {
-    CHANNEL_FOLDER: "channel",
-    CLIENT_DATA: "client.dat"
 }
