@@ -1,6 +1,7 @@
 import * as path from "path"
-import { BrowserWindow } from "electron"
 import { Platform } from "../utils/process"
+import { BrowserWindow } from "electron"
+import {APP_FILE, RESOURCE_FILE} from "../definitions/file"
 
 /**
  * electron的窗口管理器。管控窗口的建立。
@@ -62,9 +63,9 @@ export function createWindowManager(options: WindowManagerOptions): WindowManage
         if(options.debug?.frontendFromURL) {
             win.loadURL(options.debug.frontendFromURL + (hashURL ? `#/${hashURL}` : '')).finally(() => {})
         }else if(options.debug?.frontendFromFolder) {
-            win.loadFile(path.join(options.debug.frontendFromFolder, DIM.INDEX), {hash: hashURL}).finally(() => {})
+            win.loadFile(path.join(options.debug.frontendFromFolder, RESOURCE_FILE.FRONTEND.INDEX), {hash: hashURL}).finally(() => {})
         }else{
-            win.loadFile(path.join(DIM.FRONTEND_FOLDER, DIM.INDEX), {hash: hashURL}).finally(() => {})
+            win.loadFile(path.join(APP_FILE.FRONTEND_FOLDER, RESOURCE_FILE.FRONTEND.INDEX), {hash: hashURL}).finally(() => {})
         }
         return win
     }
@@ -112,9 +113,4 @@ export function createWindowManager(options: WindowManagerOptions): WindowManage
         openSettingWindow,
         getAllWindows
     }
-}
-
-const DIM = {
-    FRONTEND_FOLDER: "frontend",
-    INDEX: "index.html"
 }

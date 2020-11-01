@@ -29,10 +29,6 @@ export async function readFile<T>(file: string): Promise<T | null> {
     }))
 }
 
-export function existsFileSync(path: string): boolean {
-    return nodeFs.existsSync(path)
-}
-
 export async function existsFile(path: string): Promise<boolean> {
     return new Promise((resolve => nodeFs.access(path, (e) => resolve(!e))))
 }

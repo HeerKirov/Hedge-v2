@@ -21,3 +21,12 @@ export const DATA_FILE = {
         }
     }
 }
+
+export const RESOURCE_FILE = {
+    SERVER: {
+        BIN: "bin/hedge-v2-server"
+    },
+    FRONTEND: {
+        INDEX: "index.html"
+    }
+}

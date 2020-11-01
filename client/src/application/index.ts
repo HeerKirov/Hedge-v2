@@ -2,8 +2,9 @@ import { app, systemPreferences } from "electron"
 import { getNodePlatform, Platform } from "../utils/process"
 import { createWindowManager, WindowManager } from "./window-manager"
 import { createAppDataDriver } from "../components/appdata"
-import { createResourceManager } from "../components/resource-manager"
-import {createBucket} from "../components/bucket";
+import { createResourceManager } from "../components/resource"
+import { createBucket } from "../components/bucket"
+import { createServerManager } from "../components/server"
 
 /**
  * app的启动参数。
@@ -58,13 +59,15 @@ export function createApplication(options?: AppOptions) {
     const channel = options?.channel ?? "default"
     const userDataPath = options?.debug?.localDataPath ?? app.getPath("userData")
 
+    const windowManager = createWindowManager({platform, debug: options?.debug && {frontendFromFolder: options.debug.frontendFromFolder, frontendFromURL: options.debug.frontendFromURL}})
+
     const appDataDriver = createAppDataDriver({userDataPath, channel, debugMode: !!options?.debug})
 
     const resourceManager = createResourceManager({userDataPath, debug: options?.debug && {frontendFromFolder: options.debug.frontendFromFolder, serverFromResource: options.debug.serverFromResource}})
 
     const bucket = createBucket({userDataPath, channel})
 
-    const windowManager = createWindowManager({platform, debug: options?.debug && {frontendFromFolder: options.debug.frontendFromFolder, frontendFromURL: options.debug.frontendFromURL}})
+    const serverManager = createServerManager({userDataPath, channel})
 
     registerAppEvents(windowManager, platform, options)
 
