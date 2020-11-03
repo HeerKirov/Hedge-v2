@@ -3,13 +3,12 @@
 .DS_Store
 
 /client/node_modules
-/frontend/node_modules
 /client/target
+/frontend/node_modules
 /frontend/dist
 /server/.gradle
 /server/gradle
-/server/gradlew
-/server/gradlew.bat
+/server/gradlew*
 /server/build
 debug
 *.db
