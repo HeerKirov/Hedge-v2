@@ -13,11 +13,12 @@ export default defineComponent({
             <div class="v-columns">
                 <TagTree/>
                 <Transition name="v-detail-transition">
-                    {() => showDetail.value && <TagDetail/>}
+                    {showDetail.value && <TagDetail/>}
                 </Transition>
             </div>
             <TopBar>
-                {() => <TopBarContent editorMode={showDetail.value} onUpdateEditorMode={(v: boolean) => showDetail.value = v}/>/*测试用。实际编辑模式与边栏无关 */}
+                <TopBarContent editorMode={showDetail.value} onUpdateEditorMode={(v: boolean) => showDetail.value = v}/>
+                {/*测试用。实际编辑模式与边栏无关 */}
             </TopBar>
         </div>
     }

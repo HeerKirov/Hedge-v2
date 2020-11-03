@@ -1,5 +1,5 @@
 import { defineComponent, ref } from "vue"
-import { arrays } from "../../../utils/collections"
+import { arrays } from "@/utils/collections"
 
 /**
  * 详情页面的侧边栏，显示图像信息的分栏。

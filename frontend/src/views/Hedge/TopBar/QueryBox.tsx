@@ -1,5 +1,5 @@
 import { defineComponent } from "vue"
-import Input from "../../../components/Input"
+import Input from "@/components/Input"
 
 /**
  * 定义好了样式的查询框。定义了半圆的样式。虽然业务逻辑在不同的顶栏中不一定通用，但外形是一样的。

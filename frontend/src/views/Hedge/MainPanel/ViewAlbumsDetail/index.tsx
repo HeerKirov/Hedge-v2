@@ -1,8 +1,8 @@
 import { defineComponent } from "vue"
 import TopBar from "../../TopBar"
 import TopBarContent from "./TopBarContent"
-import ImageGrid from "../../../../layouts/ImageGrid"
-import { arrays } from "../../../../utils/collections"
+import ImageGrid from "@/layouts/ImageGrid"
+import { arrays } from "@/utils/collections"
 import "./style.scss"
 
 import img1 from "@/assets/img1.local.jpg"
@@ -15,21 +15,19 @@ export default defineComponent({
         ]
 
         return () => <div id="hedge-albums-detail">
-            <ImageGrid items={images} marginTopBar={true}>
-                {{
-                    header: () => <div class="m-1">
-                        <p class="is-size-7">这是一段描述。</p>
-                        <div class="mt-1">
-                            {arrays.newArray(4, () => <i class="fa fa-star mr-1"/>)}
-                        </div>
-                        <div class="mt-1">
-                            {arrays.newArray(30, i => <span class="tag is-light is-success mr-1">标签 {i}</span>)}
-                        </div>
+            <ImageGrid items={images} marginTopBar={true} v-slots={{
+                header: () => <div class="m-1">
+                    <p class="is-size-7">这是一段描述。</p>
+                    <div class="mt-1">
+                        {arrays.newArray(4, () => <i class="fa fa-star mr-1"/>)}
                     </div>
-                }}
-            </ImageGrid>
+                    <div class="mt-1">
+                        {arrays.newArray(30, i => <span class="tag is-light is-success mr-1">标签 {i}</span>)}
+                    </div>
+                </div>
+            }}/>
             <TopBar>
-                {() => <TopBarContent/>}
+                <TopBarContent/>
             </TopBar>
         </div>
     }

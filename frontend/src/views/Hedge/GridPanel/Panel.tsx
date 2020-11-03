@@ -1,8 +1,8 @@
 import { defineComponent } from "vue"
-import ImageGrid from "../../../layouts/ImageGrid"
+import ImageGrid from "@/layouts/ImageGrid"
 
-// import img1 from "../../../assets/img1.local.jpg"
-// import img2 from "../../../assets/img2.local.jpg"
+// import img1 from "@/assets/img1.local.jpg"
+// import img2 from "@/assets/img2.local.jpg"
 
 /**
  * grid panel的内容。

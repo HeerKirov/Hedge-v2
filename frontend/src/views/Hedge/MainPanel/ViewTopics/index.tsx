@@ -25,7 +25,7 @@ export default defineComponent({
         return () => <div id="hedge-topics">
             <PanelListView items={items}/>
             <TopBar>
-                {() => <TopBarContent/>}
+                <TopBarContent/>
             </TopBar>
         </div>
     }

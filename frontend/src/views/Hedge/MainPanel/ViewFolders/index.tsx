@@ -30,7 +30,7 @@ export default defineComponent({
         return () => <div id="hedge-folders">
             {viewType.value === "item" ? <PanelItemView items={items}/> : <PanelListView items={items}/>}
             <TopBar>
-                {() => <TopBarContent viewType={viewType.value} onUpdateViewType={(v: ViewType) => viewType.value = v}/>}
+                <TopBarContent viewType={viewType.value} onUpdateViewType={(v: ViewType) => viewType.value = v}/>
             </TopBar>
         </div>
     }

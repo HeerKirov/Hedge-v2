@@ -9,7 +9,7 @@ export default defineComponent({
         src: String
     },
     setup(props) {
-        return () => <div class="v-image-detail">
+        return () => <div id="image-detail">
             <div>
                 <img src={props.src}></img>
             </div>

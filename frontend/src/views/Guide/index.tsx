@@ -1,6 +1,6 @@
 import { defineComponent } from "vue"
 import { RouterView } from "vue-router"
-import SideLayout from "../../layouts/SideLayout"
+import SideLayout from "@/layouts/SideLayout"
 import SideBar from "./SideBar"
 import "./style.scss"
 

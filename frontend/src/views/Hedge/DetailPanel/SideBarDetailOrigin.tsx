@@ -1,5 +1,5 @@
 import { defineComponent } from "vue"
-import { arrays } from "../../../utils/collections"
+import { arrays } from "@/utils/collections"
 
 /**
  * 详情页面的侧边栏，显示原始数据的分栏。

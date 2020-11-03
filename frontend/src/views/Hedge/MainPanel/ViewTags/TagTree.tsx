@@ -135,7 +135,7 @@ const RootNode = defineComponent({
             </p>
             
             <Transition name="v-expand-transition">
-                {() => isExpanded.value && <div class="v-expanded-box">
+                {isExpanded.value && <div class="v-expanded-box">
                     <ChildNodeList class="ml-2 mt-4" inline={false} value={props.value.children ?? []} color={props.color}/>
                 </div>}
             </Transition>

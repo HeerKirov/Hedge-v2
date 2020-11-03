@@ -1,5 +1,5 @@
 import { defineComponent, ref } from "vue"
-import { arrays } from "../../../utils/collections"
+import { arrays } from "@/utils/collections"
 
 /**
  * Grid面板的侧边栏。主要展示collection/album的info。此外还有编辑入口。

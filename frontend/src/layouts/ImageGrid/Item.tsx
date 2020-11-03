@@ -30,7 +30,7 @@ export default defineComponent({
                 "width": `${100 / columnNumber.value}%`,
                 "padding": `${50 / columnNumber.value}% 0`
             }
-            return <div class="v-image-item" style={layoutCSS}>
+            return <div id="image-item" style={layoutCSS}>
                 <div class={selected.value ? "selected" : ""}>
                     <img src={props.src} style={{"objectFit": fit.value}}/>
                     {props.numTag && <span class="tag is-dark"><i class="fa fa-images mr-1"/><b>{props.numTag}</b></span>}

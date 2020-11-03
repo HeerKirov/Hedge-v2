@@ -1,11 +1,11 @@
 import { defineComponent } from "vue"
 import TopBar from "../../TopBar"
 import TopBarContent from "./TopBarContent"
-import ImageGrid from "../../../../layouts/ImageGrid"
+import ImageGrid from "@/layouts/ImageGrid"
 import "./style.scss"
 
-import img1 from "../../../../assets/img1.local.jpg"
-import img2 from "../../../../assets/img2.local.jpg"
+import img1 from "@/assets/img1.local.jpg"
+import img2 from "@/assets/img2.local.jpg"
 
 export default defineComponent({
     setup() {
@@ -16,7 +16,7 @@ export default defineComponent({
         return () => <div id="hedge-image">
             <ImageGrid items={images} marginTopBar={true}/>
             <TopBar>
-                {() => <TopBarContent/>}
+                <TopBarContent/>
             </TopBar>
         </div>
     }

@@ -1,6 +1,6 @@
 import { defineComponent, ref } from "vue"
 
-import img1 from "../../../assets/img1.local.jpg"
+import img1 from "@/assets/img1.local.jpg"
 
 /**
  * 详情页面的侧边栏，显示相关项目的分栏。

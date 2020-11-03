@@ -29,7 +29,7 @@ export default defineComponent({
             attachRange: props.attachRange
         })
 
-        return () => <div class="v-side-layout">
+        return () => <div id="side-layout">
             <div class="v-content" style={{"left": `${sideBarSwitch.value ? sideBarWidth.value : 0}px`}}>
                 {slots.default?.()}
             </div>

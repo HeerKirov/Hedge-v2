@@ -1,5 +1,4 @@
 import { defineComponent, inject } from "vue"
-import MiddleLayout from "../TopBar/MiddleLayout"
 import TopBarViewController from "../TopBar/ViewController"
 import { panelInjection } from ".."
 
@@ -9,20 +8,20 @@ import { panelInjection } from ".."
  */
 export default defineComponent({
     setup() {
-        const panelMode = inject(panelInjection)
+        const panelMode = inject(panelInjection)!
 
-        return () => <MiddleLayout>
-            {{
-                left: () => <>
-                    <button class="no-drag button is-white is-small" onClick={() => panelMode.value = "main"}>
-                        <span class="icon"><i class="fa fa-lg fa-angle-left"/></span>
-                    </button>
-                    <button class="no-drag button is-white is-small" onClick={() => panelMode.value = "detail"}>
-                        <span class="icon"><i class="fa fa-lg fa-open"/></span>打开display页(UI TEST)
-                    </button>
-                </>,
-                right: () => <TopBarViewController/>
-            }}
-        </MiddleLayout>
+        return () => <div class="h-middle-layout absolute stretch">
+            <div class="left">
+                <button class="no-drag button is-white is-small" onClick={() => panelMode.value = "main"}>
+                    <span class="icon"><i class="fa fa-lg fa-angle-left"/></span>
+                </button>
+                <button class="no-drag button is-white is-small" onClick={() => panelMode.value = "detail"}>
+                    <span class="icon"><i class="fa fa-lg fa-open"/></span>打开display页(UI TEST)
+                </button>
+            </div>
+            <div class="right">
+                <TopBarViewController/>
+            </div>
+        </div>
     }
 })

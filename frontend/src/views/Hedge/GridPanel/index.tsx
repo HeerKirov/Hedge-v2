@@ -1,5 +1,5 @@
 import { defineComponent } from "vue"
-import SideLayout from "../../../layouts/SideLayout"
+import SideLayout from "@/layouts/SideLayout"
 import SideBar from "../SideBar"
 import TopBar from "../TopBar"
 import Panel from "./Panel"
@@ -14,19 +14,17 @@ import "./style.scss"
 export default defineComponent({
     setup() {
         return () => <div id="grid-panel">
-            <SideLayout>
-                {{
-                    side: () => <SideBar>
-                        {() => <SideBarContent/>}
-                    </SideBar>,
-                    default: () => <>
-                        <Panel/>
-                        {/* <TopBar>
-                            {() => <TopBarContent/>}
-                        </TopBar> */}
-                    </>
-                }}
-            </SideLayout>
+            <SideLayout v-slots={{
+                side: () => <SideBar>
+                    <SideBarContent/>
+                </SideBar>,
+                default: () => <>
+                    <Panel/>
+                    <TopBar>
+                        <TopBarContent/>
+                    </TopBar>
+                </>
+            }}/>
         </div>
     }
 })

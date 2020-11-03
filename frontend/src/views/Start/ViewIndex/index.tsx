@@ -19,7 +19,7 @@ export default defineComponent({
         return () => <div id="start-index">
             <div class="v-content">
                 <TransitionGroup name="v-transition-list" tag="div">
-                    {() => databases.map((v, i) => {
+                    {databases.map((v, i) => {
                         const isMain = i === selectedIndex.value
                         const offset = (i - selectedIndex.value) * 225 - (i > selectedIndex.value ? 100 : i < selectedIndex.value ? 150 : 125)
 
@@ -35,17 +35,15 @@ export default defineComponent({
                 </TransitionGroup>
             </div>
             <BottomBar>
-                {() => <>
-                    <button class="button is-small is-light mr-5"><i class="fa fa-trash mr-2"></i>删除</button>
-                    {openedIndex.value == null ?
-                        <button class="button is-info is-medium"><i class="fa fa-inbox mr-4"></i>打开</button>
-                    : selectedIndex.value == openedIndex.value ?
-                        <button class="button is-link is-medium"><i class="fa fa-inbox mr-4"></i>打开</button>
-                    :
-                        <button class="button is-info is-medium"><i class="fa fa-sync mr-4"></i>切换</button>
-                    }
-                    <button onClick={plus} class="button is-small is-light ml-5"><i class="fa fa-edit mr-2"></i>编辑</button>
-                </>}
+                <button class="button is-small is-light mr-5"><i class="fa fa-trash mr-2"></i>删除</button>
+                {openedIndex.value == null ?
+                    <button class="button is-info is-medium"><i class="fa fa-inbox mr-4"></i>打开</button>
+                : selectedIndex.value == openedIndex.value ?
+                    <button class="button is-link is-medium"><i class="fa fa-inbox mr-4"></i>打开</button>
+                :
+                    <button class="button is-info is-medium"><i class="fa fa-sync mr-4"></i>切换</button>
+                }
+                <button onClick={plus} class="button is-small is-light ml-5"><i class="fa fa-edit mr-2"></i>编辑</button>
             </BottomBar>
         </div>
     }

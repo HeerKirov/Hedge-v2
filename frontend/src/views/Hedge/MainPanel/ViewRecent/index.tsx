@@ -1,12 +1,12 @@
 import { defineComponent, provide, ref } from "vue"
-import { columnNumberInjection, fitTypeInjection, FitType } from "../../../../layouts/ImageGrid/Item"
-import ImageGrid, { Item } from "../../../../layouts/ImageGrid"
+import { columnNumberInjection, fitTypeInjection, FitType } from "@/layouts/ImageGrid/Item"
+import ImageGrid, { Item } from "@/layouts/ImageGrid"
 import TopBar from "../../TopBar"
 import TopBarContent from "./TopBarContent"
 import "./style.scss"
 
-import img1 from "../../../../assets/img1.local.jpg"
-import img2 from "../../../../assets/img2.local.jpg"
+import img1 from "@/assets/img1.local.jpg"
+import img2 from "@/assets/img2.local.jpg"
 
 export default defineComponent({
     setup() {
@@ -24,7 +24,7 @@ export default defineComponent({
         return () => <div id="hedge-recent">
             <ImageGrid items={images} marginTopBar={true}/>
             <TopBar>
-                {() => <TopBarContent/>}
+                <TopBarContent/>
             </TopBar>
         </div>
     }

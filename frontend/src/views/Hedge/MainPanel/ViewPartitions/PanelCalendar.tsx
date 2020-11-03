@@ -1,7 +1,7 @@
 import { computed, defineComponent, PropType, reactive, Ref, ref, watch } from "vue"
-import NumberInput from "../../../../components/NumberInput"
-import { arrays } from "../../../../utils/collections"
-import { getDaysOfMonth } from "../../../../utils/datetime"
+import NumberInput from "@/components/NumberInput"
+import { arrays } from "@/utils/collections"
+import { getDaysOfMonth } from "@/utils/datetime"
 
 type YearAndMonth = {year: number, month: number}
 

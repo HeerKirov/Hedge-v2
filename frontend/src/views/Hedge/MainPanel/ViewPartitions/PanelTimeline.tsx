@@ -1,6 +1,6 @@
 import { ComponentInternalInstance, defineComponent, onMounted, PropType, reactive, ref, watch } from "vue"
-import { arrays } from "../../../../utils/collections"
-import { getDaysOfMonth } from "../../../../utils/datetime"
+import { arrays } from "@/utils/collections"
+import { getDaysOfMonth } from "@/utils/datetime"
 
 /**
  * 时间线形态的面板。

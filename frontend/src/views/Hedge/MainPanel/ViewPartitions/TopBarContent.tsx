@@ -1,5 +1,4 @@
 import { defineComponent, inject, PropType, Ref, ref, watch } from "vue"
-import MiddleLayout from "../../TopBar/MiddleLayout"
 
 export type PanelType = "timeline" | "calendar"
 
@@ -23,19 +22,20 @@ export default defineComponent({
             emit("updatePanel", panel.value)
         }
 
-        return () => <MiddleLayout v-slots=
-            {{
-                left: () => <span class="ml-3">{panel.value === "calendar" ? "日历" : "时间线"}</span>,
-                right: () => <>
-                    <div class="buttons has-addons">
-                        <button class={`button no-drag is-small ${panel.value === "timeline" ? "is-link" : ""}`} onClick={onTimelinePanel}>
-                            <i class="fa fa-lg fa-sort-amount-down"/>
-                        </button>
-                        <button class={`button no-drag is-small ${panel.value === "calendar" ? "is-link" : ""}`} onClick={onCalendarPanel}>
-                            <i class="fa fa-lg fa-calendar"/>
-                        </button>
-                    </div>
-                </>
-            }}/>
+        return () => <div class="h-middle-layout absolute stretch">
+            <div class="left">
+                <span class="ml-3">{panel.value === "calendar" ? "日历" : "时间线"}</span>
+            </div>
+            <div class="right">
+                <div class="buttons has-addons">
+                    <button class={`button no-drag is-small ${panel.value === "timeline" ? "is-link" : ""}`} onClick={onTimelinePanel}>
+                        <i class="fa fa-lg fa-sort-amount-down"/>
+                    </button>
+                    <button class={`button no-drag is-small ${panel.value === "calendar" ? "is-link" : ""}`} onClick={onCalendarPanel}>
+                        <i class="fa fa-lg fa-calendar"/>
+                    </button>
+                </div>
+            </div>
+        </div>
     }
 })

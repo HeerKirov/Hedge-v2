@@ -1,6 +1,6 @@
 import { defineComponent } from "vue"
-import { arrays } from "../utils/collections"
-import { numbers } from "../utils/primitives"
+import { arrays } from "@/utils/collections"
+import { numbers } from "@/utils/primitives"
 
 export default defineComponent({
     props: {

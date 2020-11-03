@@ -4,8 +4,8 @@ import TopBarContent from "./TopBarContent"
 import AlbumItem from "./Item"
 import "./style.scss"
 
-import img1 from "../../../../assets/img1.local.jpg"
-import img2 from "../../../../assets/img2.local.jpg"
+import img1 from "@/assets/img1.local.jpg"
+import img2 from "@/assets/img2.local.jpg"
 
 export default defineComponent({
     setup() {
@@ -30,7 +30,7 @@ export default defineComponent({
                 {items.map(item => <AlbumItem src={item.src} title={item.title}/>)}
             </div>
             <TopBar>
-                {() => <TopBarContent/>}
+                <TopBarContent/>
             </TopBar>
         </div>
     }

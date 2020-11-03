@@ -23,11 +23,7 @@ export default defineComponent({
                     </div>
                 </div>
                 <div class="level-item">
-                    {Object.keys(slots).length > 0 ? 
-                        slots
-                    :
-                        <button onClick={routeTo("StartIndex")} class="button is-light is-medium"><i class="fa fa-inbox mr-4"/>列表</button>
-                    }
+                    {slots.default?.() ?? <button onClick={routeTo("StartIndex")} class="button is-light is-medium"><i class="fa fa-inbox mr-4"/>列表</button>}
                 </div>
                 <div class="level-right">
                     <div class="buttons">

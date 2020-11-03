@@ -26,8 +26,8 @@ export default defineComponent({
         items: null as any as PropType<Item[]>
     },
     setup(props, { slots }) {
-        return () => <div class="v-image-grid">
-            <div class={`overflow-content ${props.marginTopBar ? "mt-title-bar" : ""}`}>
+        return () => <div id="image-grid">
+            <div class={{"overflow-content": true, "mt-title-bar": props.marginTopBar}}>
                 {slots.header?.()}
                 <div class="grid-content">
                     {props.items?.map(item => {

@@ -1,5 +1,4 @@
 import { defineComponent, ref, Transition, watch } from "vue"
-import MiddleLayout from "../../TopBar/MiddleLayout"
 import QueryBox from "../../TopBar/QueryBox"
 
 export default defineComponent({
@@ -15,11 +14,13 @@ export default defineComponent({
             emit("updateEditorMode", editorMode.value)
         }
 
-        return () => <MiddleLayout>
-            {{
-                default: () => <QueryBox placeholder="在标签树中搜索…" icon="tags"/>,
-                right: () => <Transition name="v-edit-button-transition">
-                    {() => editorMode.value ? 
+        return () => <div class="h-middle-layout absolute stretch">
+            <div class="middle">
+                <QueryBox placeholder="在标签树中搜索…" icon="tags"/>
+            </div>
+            <div class="right">
+                <Transition name="v-edit-button-transition">
+                    {editorMode.value ? 
                         <button key="submit" class="v-edit-button button no-drag is-rounded is-small is-link" onClick={changeEditorMode}>
                             <span class="icon mr-1"><i class="fa fa-check"/></span>退出编辑并应用所有更改
                         </button> 
@@ -29,7 +30,7 @@ export default defineComponent({
                         </button>
                     }
                 </Transition>
-            }}
-        </MiddleLayout>
+            </div>
+        </div>
     }
 })

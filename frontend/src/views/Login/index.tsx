@@ -1,5 +1,5 @@
 import { defineComponent, ref } from "vue"
-import Input from "../../components/Input"
+import Input from "@/components/Input"
 
 export default defineComponent({
     setup() {

@@ -9,7 +9,7 @@ export default defineComponent({
         return () => <div id="hedge-authors-detail">
             <Panel/>
             <TopBar>
-                {() => <TopBarContent/>}
+                <TopBarContent/>
             </TopBar>
         </div>
     }

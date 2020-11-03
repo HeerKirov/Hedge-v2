@@ -1,5 +1,5 @@
 import { defineComponent, ref, provide, InjectionKey, Ref, KeepAlive, Transition } from "vue"
-import { sideBarSwitchInjection, sideBarWidthInjection } from "../../layouts/SideLayout"
+import { sideBarSwitchInjection, sideBarWidthInjection } from "@/layouts/SideLayout"
 import MainPanel from "./MainPanel"
 import GridPanel from "./GridPanel"
 import DetailPanel from "./DetailPanel"
