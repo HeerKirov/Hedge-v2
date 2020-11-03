@@ -21,9 +21,9 @@ export default defineComponent({
                     </SideBar>,
                     default: () => <>
                         <Panel/>
-                        <TopBar>
+                        {/* <TopBar>
                             {() => <TopBarContent/>}
-                        </TopBar>
+                        </TopBar> */}
                     </>
                 }}
             </SideLayout>

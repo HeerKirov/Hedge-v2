@@ -5,8 +5,8 @@ import ImageGrid from "../../../../layouts/ImageGrid"
 import { arrays } from "../../../../utils/collections"
 import "./style.scss"
 
-import img1 from "../../../../assets/img1.local.jpg"
-import img2 from "../../../../assets/img2.local.jpg"
+import img1 from "@/assets/img1.local.jpg"
+import img2 from "@/assets/img2.local.jpg"
 
 export default defineComponent({
     setup() {

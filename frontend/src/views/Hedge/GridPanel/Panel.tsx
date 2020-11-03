@@ -1,19 +1,19 @@
 import { defineComponent } from "vue"
 import ImageGrid from "../../../layouts/ImageGrid"
 
-import img1 from "../../../assets/img1.local.jpg"
-import img2 from "../../../assets/img2.local.jpg"
+// import img1 from "../../../assets/img1.local.jpg"
+// import img2 from "../../../assets/img2.local.jpg"
 
 /**
  * grid panel的内容。
  */
 export default defineComponent({
     setup() {
-        const images = [img1, img2, img1, img2]
+        const images = []
 
         return () => <div id="panel">
-            <ImageGrid items={images}>
-                {{header: () => <div class="h-title-bar"/>}}
+            <ImageGrid marginTopBar={true} items={images}>
+                
             </ImageGrid>
         </div>
     }

@@ -6,7 +6,7 @@ import { AuthorType, AuthorItem } from "."
  */
 export default defineComponent({
     props: {
-        items: {type: null as PropType<AuthorItem[]>, required: true}
+        items: {type: null as any as PropType<AuthorItem[]>, required: true}
     },
     setup(props) {
         return () => <div id="panel-list-view">
@@ -25,8 +25,8 @@ export default defineComponent({
 const Item = defineComponent({
     props: {
         name: String,
-        type: null as PropType<AuthorType>,
-        annotations: null as PropType<string[]>,
+        type: null as any as PropType<AuthorType>,
+        annotations: null as any as PropType<string[]>,
         favorite: Boolean,
         count: Number
     },
@@ -43,7 +43,7 @@ const Item = defineComponent({
             <td>
                 {props.annotations?.map(a => <span class="tag mr-1">{a}</span>)}
             </td>
-            <td class="is-narrow is-size-7 pt-3">{AUTHOR_TYPE_TAG[props.type]}</td>
+            <td class="is-narrow is-size-7 pt-3">{props.type && AUTHOR_TYPE_TAG[props.type]}</td>
             <td class="has-text-right is-size-7 pt-3">{props.count == null ? "" : `${props.count}项`}</td>
         </tr>
     }

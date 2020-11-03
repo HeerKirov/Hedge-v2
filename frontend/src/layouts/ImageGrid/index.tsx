@@ -23,14 +23,14 @@ export type Item = ImageModel | TitleModel | string
 export default defineComponent({
     props: {
         marginTopBar: {type: Boolean, default: false},
-        items: null as PropType<Item[]>
+        items: null as any as PropType<Item[]>
     },
     setup(props, { slots }) {
         return () => <div class="v-image-grid">
             <div class={`overflow-content ${props.marginTopBar ? "mt-title-bar" : ""}`}>
                 {slots.header?.()}
                 <div class="grid-content">
-                    {props.items.map(item => {
+                    {props.items?.map(item => {
                         if(typeof item === "string") {
                             return <ImageItem src={item} numTag={2} selected={item.endsWith(".png")}/>
                         }else if(item.type === "title") {

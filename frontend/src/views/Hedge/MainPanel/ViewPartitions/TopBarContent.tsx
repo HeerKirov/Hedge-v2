@@ -8,12 +8,12 @@ export type PanelType = "timeline" | "calendar"
  */
 export default defineComponent({
     props: {
-        panel: {type: null as PropType<PanelType>}
+        panel: {type: null as any as PropType<PanelType>}
     },
     emits: ["updatePanel"],
     setup(props, { emit }) {
         const panel = ref(props.panel ?? "timeline")
-        watch(() => props.panel, () => { panel.value = props.panel })
+        watch(() => props.panel, () => { panel.value = props.panel ?? "timeline" })
         const onCalendarPanel = () => {
             panel.value = "calendar"
             emit("updatePanel", panel.value)
@@ -23,7 +23,7 @@ export default defineComponent({
             emit("updatePanel", panel.value)
         }
 
-        return () => <MiddleLayout>
+        return () => <MiddleLayout v-slots=
             {{
                 left: () => <span class="ml-3">{panel.value === "calendar" ? "日历" : "时间线"}</span>,
                 right: () => <>
@@ -36,7 +36,6 @@ export default defineComponent({
                         </button>
                     </div>
                 </>
-            }}
-        </MiddleLayout>
+            }}/>
     }
 })

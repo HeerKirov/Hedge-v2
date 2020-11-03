@@ -16,12 +16,12 @@ export default defineComponent({
         numTag: Number,
         column: Number,
         selected: {type: Boolean, default: false},
-        fit: null as PropType<FitType>
+        fit: null as any as PropType<FitType>
     },
     emits: ["updateSelected"],
     setup(props, { emit }) {
-        const columnNumber = props.column !== undefined ? toRef(props, 'column') : inject(columnNumberInjection, ref(4))
-        const fit = props.fit !== undefined ? toRef(props, 'fit') : inject(fitTypeInjection, ref("cover" as FitType))
+        const columnNumber = props.column !== undefined ? toRef(props, 'column') as Ref<number> : inject(columnNumberInjection, () => ref(4), true)
+        const fit = props.fit !== undefined ? toRef(props, 'fit') : inject(fitTypeInjection, () => ref("cover" as FitType), true)
 
         const selected = toRef(props, 'selected')
 

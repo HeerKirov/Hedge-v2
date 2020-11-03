@@ -8,7 +8,7 @@ import { panelInjection } from ".."
  */
 export default defineComponent({
     setup() {
-        const panelMode = inject(panelInjection)
+        const panelMode = inject(panelInjection)!
 
         return () => <MiddleLayout>
             {{

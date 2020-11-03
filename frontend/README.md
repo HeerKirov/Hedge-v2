@@ -2,7 +2,7 @@
 这是App的前端子项目。它的目标运行容器为App(`Electron`)及浏览器(`Web`)。
 
 ## Technology Stack
-* `vue 3.x`(`vite`, `vue-router`, `jsx`)
+* `vue 3.x`(`cli`, `vue-router`, `jsx`)
 * `typescript`
 * `scss`
 * `bulma`

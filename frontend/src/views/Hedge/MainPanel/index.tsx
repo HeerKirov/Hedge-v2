@@ -8,14 +8,12 @@ import "./style.scss"
 export default defineComponent({
     setup() {
         return () => <div id="main-panel">
-            <SideLayout>
-                {{
-                    side: () => <SideBar>
-                        {() => <SideBarContent/>}
-                    </SideBar>,
-                    default: () => <RouterView/>
-                }}
-            </SideLayout>
+            <SideLayout v-slots={{
+                side: () => <SideBar>
+                    <SideBarContent/>
+                </SideBar>, 
+                default: () => <RouterView/>
+            }}/>
         </div>
     }
 })

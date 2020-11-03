@@ -5,7 +5,7 @@ import { defineComponent, PropType } from "vue"
  */
 export default defineComponent({
     props: {
-        tab: {type: null as PropType<"info" | "origin" | "others">, required: true}
+        tab: {type: null as any as PropType<"info" | "origin" | "others">, required: true}
     },
     emits: ["updateTab"],
     setup(props, { emit }) {

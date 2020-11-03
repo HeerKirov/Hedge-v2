@@ -17,7 +17,7 @@ export default defineComponent({
         return () => <div id="hedge-partitions">
             {panelType.value === "calendar" ? <PanelCalendar/> : <PanelTimeline/>}
             <TopBar>
-                {() => <TopBarContent panel={panelType.value} onUpdatePanel={(v: PanelType) => panelType.value = v}/>}
+                <TopBarContent panel={panelType.value} onUpdatePanel={(v: PanelType) => panelType.value = v}/>
             </TopBar>
         </div>
     }

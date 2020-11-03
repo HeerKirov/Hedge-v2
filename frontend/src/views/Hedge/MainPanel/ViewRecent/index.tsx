@@ -22,9 +22,7 @@ export default defineComponent({
         provide(fitTypeInjection, fitType)
 
         return () => <div id="hedge-recent">
-            <ImageGrid items={images}>
-                {{header: () => <div class="h-title-bar"/>}}
-            </ImageGrid>
+            <ImageGrid items={images} marginTopBar={true}/>
             <TopBar>
                 {() => <TopBarContent/>}
             </TopBar>

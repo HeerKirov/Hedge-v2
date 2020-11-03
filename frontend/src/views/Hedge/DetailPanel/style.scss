@@ -11,7 +11,7 @@
 #app #hedge #detail-panel #side-bar-detail-others {
     > .collection-grid {
         display: flex;
-        justify-content: start;
+        justify-content: flex-start;
         align-items: flex-start;
         flex-wrap: wrap;
         > div {

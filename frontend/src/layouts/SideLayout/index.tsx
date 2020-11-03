@@ -34,7 +34,7 @@ export default defineComponent({
                 {slots.default?.()}
             </div>
             <Transition name="v-side-bar-collapse">
-                {() => sideBarSwitch.value && <div class="v-side-content" style={{"width": `${sideBarWidth.value}px`}}>
+                {sideBarSwitch.value && <div class="v-side-content" style={{"width": `${sideBarWidth.value}px`}}>
                     {slots.side?.()}
                 </div>}
             </Transition>

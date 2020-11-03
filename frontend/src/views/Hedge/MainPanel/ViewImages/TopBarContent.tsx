@@ -10,7 +10,7 @@ import TopBarViewController from "../../TopBar/ViewController"
 export default defineComponent({
     setup() {
         const queryInCollection = ref(true)
-        const panelMode = inject(panelInjection)
+        const panelMode = inject(panelInjection)!
 
         const changeQueryInCollection = () => {
             queryInCollection.value = !queryInCollection.value

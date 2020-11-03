@@ -26,11 +26,11 @@ export default defineComponent({
         return () => <div id="hedge">
             <KeepAlive>
                 <Transition name="v-main-panel-transition">
-                    {() => panel.value === "main" && <MainPanel/>}
+                    {panel.value === "main" && <MainPanel/>}
                 </Transition>
             </KeepAlive>
             <Transition name="v-other-panel-transition">
-                {() => panel.value === "grid" ? <GridPanel/>
+                {panel.value === "grid" ? <GridPanel/>
                 : panel.value === "detail" ? <DetailPanel/>
                 : null
                 }

@@ -19,7 +19,7 @@ export default defineComponent({
             }
         })
 
-        const sideBarSwitch = inject(sideBarSwitchInjection)
+        const sideBarSwitch = inject(sideBarSwitchInjection)!
         const openSideBar = () => {
             sideBarSwitch.value = true
         }
@@ -27,7 +27,7 @@ export default defineComponent({
         return () => <div id="top-bar" class={layoutCSS.value}>
             <div class="title-bar absolute top w-100"></div>
             <Transition name="v-collapse-button">
-                {() => !sideBarSwitch.value && <button class="no-drag button is-white is-small v-collapse-button" onClick={openSideBar}><span class="icon"><i class="fa fa-lg fa-bars"/></span></button>}
+                {!sideBarSwitch.value && <button class="no-drag button is-white is-small v-collapse-button" onClick={openSideBar}><span class="icon"><i class="fa fa-lg fa-bars"/></span></button>}
             </Transition>
             <div class={`v-content ${sideBarSwitch.value ? "hide" : "show"}-cl-btn`}>
                 {slots.default?.()}

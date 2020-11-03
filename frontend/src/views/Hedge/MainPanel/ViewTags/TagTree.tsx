@@ -117,7 +117,7 @@ interface RootTagDescription {
 
 const RootNode = defineComponent({
     props: {
-        value: {type: null as PropType<TagItem>, required: true},
+        value: {type: null as any as PropType<TagItem>, required: true},
         color: {type: String, required: true},
         description: String
     },
@@ -145,8 +145,8 @@ const RootNode = defineComponent({
 
 const ChildNodeList = defineComponent({
     props: {
-        value: {type: null as PropType<TagItem[]>, required: true},
-        inline: null as PropType<boolean | undefined>,
+        value: {type: null as any as PropType<TagItem[]>, required: true},
+        inline: null as any as PropType<boolean | undefined>,
         color: String
     },
     setup(props) {
@@ -154,7 +154,7 @@ const ChildNodeList = defineComponent({
             const inline = props.inline ?? !props.value.find(t => t.children?.length)
 
             return <div class={`v-child-node-list ${inline && "field is-grouped is-grouped-multiline"}`}>
-                {props.value.map(tag => <ChildNode value={tag} color={props.color} inline={inline}/>)}
+                {props.value.map(tag => <ChildNode value={tag} color={props.color!} inline={inline}/>)}
             </div>
         }
     }
@@ -162,7 +162,7 @@ const ChildNodeList = defineComponent({
 
 const ChildNode = defineComponent({
     props: {
-        value: {type: null as PropType<TagItem>, required: true},
+        value: {type: null as any as PropType<TagItem>, required: true},
         color: {type: String, required: true},
         inline: {type: Boolean, required: true}
     },
@@ -181,7 +181,7 @@ const ChildNode = defineComponent({
                         <i class={`fa fa-angle-${isExpanded.value ? "down" : "right"}`}/>
                     </a>}
                 </div>
-                {hasChildren && isExpanded.value && <ChildNodeList class="ml-6 mb-1" value={props.value.children} color={props.color}/>}
+                {hasChildren && isExpanded.value && <ChildNodeList class="ml-6 mb-1" value={props.value.children!} color={props.color}/>}
             </div>
         }
     }
@@ -189,7 +189,7 @@ const ChildNode = defineComponent({
 
 const TagElement = defineComponent({
     props: {
-        value: {type: null as PropType<TagItem>, required: true},
+        value: {type: null as any as PropType<TagItem>, required: true},
         color: {type: String, required: true}
     },
     setup(props) {

@@ -6,12 +6,12 @@ export type ViewType = "list" | "item"
 
 export default defineComponent({
     props: {
-        viewType: null as PropType<ViewType>
+        viewType: null as any as PropType<ViewType>
     },
     emits: ["updateViewType"],
     setup(props, { emit }) {
         const viewType = ref<ViewType>(props.viewType ?? "item")
-        watch(() => props.viewType, () => { viewType.value = props.viewType })
+        watch(() => props.viewType, () => { viewType.value = props.viewType ?? "item" })
         const onListView = () => {
             viewType.value = "list"
             emit("updateViewType", viewType.value)

@@ -6,7 +6,7 @@ import { FolderItem } from "."
  */
 export default defineComponent({
     props: {
-        items: {type: null as PropType<FolderItem[]>, required: true}
+        items: {type: null as any as PropType<FolderItem[]>, required: true}
     },
     setup(props) {
         return () => <div id="panel-list-view">

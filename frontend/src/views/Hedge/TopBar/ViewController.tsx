@@ -11,7 +11,7 @@ export default defineComponent({
         const column = ref(props.column ?? 8)
 
         watch(() => props.expandMode, () => { expandMode.value = props.expandMode })
-        watch(() => props.column, () => { column.value = props.column })
+        watch(() => props.column, () => { column.value = props.column ?? 8 })
 
         const changeViewExpandMode = () => {
             expandMode.value = !expandMode.value

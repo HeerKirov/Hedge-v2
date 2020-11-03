@@ -25,7 +25,7 @@ export default defineComponent({
  */
 const NavBar = defineComponent({
     props: {
-        value: null as PropType<YearAndMonth>
+        value: null as any as PropType<YearAndMonth>
     },
     emits: ["updateValue"],
     setup(props, { emit }) {
@@ -59,9 +59,10 @@ const NavBar = defineComponent({
         }
 
         watch(() => props.value, () => {
-            showValue.value = {
-                year: props.value?.year ?? now.getFullYear(), 
-                month: props.value?.month ?? (now.getMonth() + 1)
+            const year = props.value?.year ?? now.getFullYear()
+            const month = props.value?.month ?? (now.getMonth() + 1)
+            if(showValue.value.year != year || showValue.value.month != month) {
+                showValue.value = {year, month}
             }
             if(editMode.value) {
                 editValue.year = showValue.value.year
@@ -92,7 +93,7 @@ const NavBar = defineComponent({
  */
 const Grid = defineComponent({
     props: {
-        date: {type: null as PropType<YearAndMonth>, required: true}
+        date: {type: null as any as PropType<YearAndMonth>, required: true}
     },
     setup(props) {
         const weekdayNames = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"]
@@ -106,7 +107,7 @@ const Grid = defineComponent({
 
         const items: Ref<({day: number, exist: boolean} | null)[]> = computed(() => {
             //实际计算时，每次变化会异步查询一次当前月份的partitions项，获取找出存在数据的partitions。
-            return days.value.map(day => day && {day, exist: !!(day % 3)})
+            return days.value.map(day => day ? {day, exist: !!(day % 3)} : null)
         })
 
         return () => <div class="v-grid">

@@ -8,7 +8,7 @@ import TopBarViewController from "../../TopBar/ViewController"
  */
 export default defineComponent({
     setup() {
-        const fitType = inject(fitTypeInjection)
+        const fitType = inject(fitTypeInjection)!
 
         return () => <MiddleLayout>
             {{

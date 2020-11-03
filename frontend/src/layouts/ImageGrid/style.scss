@@ -1,4 +1,4 @@
-@import '../../styles/App.scss';
+@import '@/styles/App.scss';
 
 #app .v-image-grid {
     //滚动面板
@@ -19,7 +19,7 @@
             position: absolute;
             width: 100%;    
             display: flex;
-            justify-content: start;
+            justify-content: flex-start;
             align-items: flex-start;
             flex-wrap: wrap;
             > div.line {

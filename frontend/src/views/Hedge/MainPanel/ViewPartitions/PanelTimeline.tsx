@@ -1,4 +1,4 @@
-import { defineComponent, onMounted, PropType, reactive, ref, watch } from "vue"
+import { ComponentInternalInstance, defineComponent, onMounted, PropType, reactive, ref, watch } from "vue"
 import { arrays } from "../../../../utils/collections"
 import { getDaysOfMonth } from "../../../../utils/datetime"
 
@@ -7,7 +7,7 @@ import { getDaysOfMonth } from "../../../../utils/datetime"
  */
 export default defineComponent({
     setup() {
-        const mainList = arrays.newArray<ListItem>(31, i => ({name: `2020-10-${i + 1}`, title: `2020年10月${i + 1}日`, count: i * 100, anchor: i == 0 ? "2020-10" : null}))
+        const mainList = arrays.newArray<ListItem>(31, i => ({name: `2020-10-${i + 1}`, title: `2020年10月${i + 1}日`, count: i * 100, anchor: i == 0 ? "2020-10" : undefined}))
         const monthList = arrays.newArray<ListItem>(12, i => ({name: `2020-${i + 1}`, title: `2020年${i + 1}月`, count: i * 300}))
 
         const mainAnchor = ref<string | undefined>(undefined)
@@ -39,7 +39,7 @@ interface ListItem {
  */
 const Timeline = defineComponent({
     props: {
-        items: {type: null as PropType<ListItem[]>, required: true},
+        items: {type: null as any as PropType<ListItem[]>, required: true},
         small: {type: Boolean, default: false},
         colored: {type: Boolean, default: false},
         anchor: String,
@@ -48,12 +48,12 @@ const Timeline = defineComponent({
     setup(props, { emit }) {
         let anchors: {[name: string]: HTMLDivElement} = {}
         let latestAnchor: HTMLDivElement | undefined = undefined
-        const refAnchor = (item: ListItem, latest: boolean) => (e: HTMLDivElement) => {
+        const refAnchor = (item: ListItem, latest: boolean) => (e: ComponentInternalInstance | Element | null) => {
             if(item.anchor) {
-                anchors[item.anchor] = e
+                anchors[item.anchor] = e as HTMLDivElement
             }
             if(latest) {
-                latestAnchor = e
+                latestAnchor = e as HTMLDivElement
             }
         }
         const scroll = () => {
