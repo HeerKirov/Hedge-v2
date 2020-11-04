@@ -16,17 +16,21 @@ export default defineComponent({
         }
 
         return () => <div id="init">
-            <div class="title-bar"></div>
-            <div class="v-dialog fixed center box">
-                {[
-                    () => <WelcomePage onNext={next} />,
-                    () => <PasswordPage onNext={next} password={password.value} onUpdatePassword={(v?: string) => { password.value = v }} />,
-                    () => <TouchIDPage onNext={next} onPrev={prev} />, /*在不输入密码，或系统不支持touchID时，应该想办法跳过这个page*/
-                    () => <DBPage onNext={next} onPrev={prev} />,
-                    () => <FinishPage onFinish={onFinish} />
-                ][page.value]()}
-            </div>
+            <div class="title-bar"/>
         </div>
+
+        // return () => <div id="init">
+        //     <div class="title-bar"></div>
+        //     <div class="v-dialog fixed center box">
+        //         {[
+        //             () => <WelcomePage onNext={next} />,
+        //             () => <PasswordPage onNext={next} password={password.value} onUpdatePassword={(v?: string) => { password.value = v }} />,
+        //             () => <TouchIDPage onNext={next} onPrev={prev} />, /*在不输入密码，或系统不支持touchID时，应该想办法跳过这个page*/
+        //             () => <DBPage onNext={next} onPrev={prev} />,
+        //             () => <FinishPage onFinish={onFinish} />
+        //         ][page.value]()}
+        //     </div>
+        // </div>
     }
 })
 

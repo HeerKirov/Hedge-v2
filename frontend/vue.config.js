@@ -11,6 +11,13 @@ module.exports = {
       })
     ]
   },
+  css: {
+    loaderOptions: {
+      css: {
+        localsConvention: 'camelCaseOnly'
+      }
+    }
+  },
 
   publicPath: '',
   assetsDir: 'static'

@@ -2,9 +2,15 @@
 
 @import './colors.scss';
 
+$notification-padding: 1.25rem 2rem 1.25rem 1.5rem;
+$notification-padding-ltr: $notification-padding;
+$notification-padding-rtl: $notification-padding;
+
 @import 'bulma/sass/utilities/_all.sass';
 
 @import 'bulma/sass/base/_all.sass';
+
+@import 'bulma/sass/grid/_all.sass';
 
 @import 'bulma/sass/components/dropdown.sass';
 @import 'bulma/sass/components/level.sass';
@@ -20,6 +26,7 @@
 @import 'bulma/sass/elements/notification.sass';
 @import 'bulma/sass/elements/table.sass';
 @import 'bulma/sass/elements/tag.sass';
+@import 'bulma/sass/elements/progress.sass';
 @import 'bulma/sass/elements/other.sass';
 
 @import 'bulma/sass/form/shared.sass';
