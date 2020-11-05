@@ -36,6 +36,11 @@ dependencies {
     implementation group: 'org.slf4j', name: 'slf4j-api', version: slf4jVersion
 }
 
+sourceSets {
+    //使开发模式下的gradle能正确处理资源文件的位置，防止读取不到
+    main.output.resourcesDir = main.java.outputDir
+}
+
 compileJava {
     doFirst {
         options.compilerArgs = ['--module-path', classpath.asPath]
