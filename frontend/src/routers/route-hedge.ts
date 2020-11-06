@@ -18,9 +18,9 @@ export default [
                 component: () => import('@/views/Hedge/MainPanel/ViewImages')
             },
             {
-                name: 'HedgeRecent',
-                path: 'recent',
-                component: () => import('@/views/Hedge/MainPanel/ViewRecent')
+                name: 'HedgeImport',
+                path: 'import',
+                component: () => import('@/views/Hedge/MainPanel/ViewImport')
             },
             {
                 name: 'HedgePartitions',

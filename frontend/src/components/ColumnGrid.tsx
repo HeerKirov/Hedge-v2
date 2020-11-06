@@ -1,6 +1,9 @@
 import { computed, defineComponent } from "vue"
 import style from "./ColumnGrid.module.scss"
 
+/**
+ * 具有一定特殊性质的flex布局。其列数固定，且每个单元格的长宽比固定不变。
+ */
 export default defineComponent({
     props: {
         column: {type: Number, default: 8}

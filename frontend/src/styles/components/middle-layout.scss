@@ -1,11 +1,12 @@
 //拥有左中右三段布局的布局CSS。
 .h-middle-layout {
     position: relative;
-    margin: 0.3rem;
+    padding: 0.3rem;
 
     > div.left {
         position: absolute;
         left: 0; top: 0; height: 100%;
+        padding: 0.3rem;
         display: flex; 
         align-items: center;
         justify-content: flex-start;
@@ -23,6 +24,7 @@
     > div.right {
         position: absolute;
         right: 0; top: 0; height: 100%;
+        padding: 0.3rem;
         display: flex;
         align-items: center;
         justify-content: flex-start;

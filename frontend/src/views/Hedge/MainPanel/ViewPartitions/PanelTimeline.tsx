@@ -1,4 +1,5 @@
-import { ComponentInternalInstance, defineComponent, onMounted, PropType, reactive, ref, watch } from "vue"
+import { ComponentInternalInstance, defineComponent, onMounted, PropType, ref, watch } from "vue"
+import { useRouter } from 'vue-router'
 import { arrays } from "@/utils/collections"
 import { getDaysOfMonth } from "@/utils/datetime"
 
@@ -7,6 +8,8 @@ import { getDaysOfMonth } from "@/utils/datetime"
  */
 export default defineComponent({
     setup() {
+        const router = useRouter()
+
         const mainList = arrays.newArray<ListItem>(31, i => ({name: `2020-10-${i + 1}`, title: `2020年10月${i + 1}日`, count: i * 100, anchor: i == 0 ? "2020-10" : undefined}))
         const monthList = arrays.newArray<ListItem>(12, i => ({name: `2020-${i + 1}`, title: `2020年${i + 1}月`, count: i * 300}))
 
@@ -18,7 +21,8 @@ export default defineComponent({
 
         return () => <div id="panel-timeline">
             <div class="v-left-column">
-                <Timeline items={mainList} colored={true} anchor={mainAnchor.value} onClearAnchor={() => mainAnchor.value = undefined}/>
+                <Timeline items={mainList} colored={true} anchor={mainAnchor.value} onClearAnchor={() => mainAnchor.value = undefined} 
+                        onClick={(name: string) => { router.push({name: "HedgePartitionsDetail", params: {partition: name}}) }}/>
             </div>
             <div class="v-right-column">
                 <Timeline items={monthList} onClick={clickMonthList} small={true}/>

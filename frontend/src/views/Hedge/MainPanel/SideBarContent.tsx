@@ -1,4 +1,6 @@
-import { defineComponent } from "vue"
+import { computed, ComputedRef, defineComponent, inject, PropType, reactive, ref, toRef, watch } from "vue"
+import { useRoute, useRouter } from 'vue-router'
+import { SideBarDataInjection } from './inject'
 
 /**
  * 主要界面的侧边菜单栏。内嵌在通用布局内使用。
@@ -11,48 +13,107 @@ export default defineComponent({
             日历默认就显示最近的几个时间项。
         */
         return () => <aside id="side-bar-menu" class="h-menu">
-            <a class="menu-label">图库</a>
-            <ul class="menu-list">
-                <li><a class="is-active"><span class="icon"><i class="fa fa-th"/></span>图库</a></li>
-                <li><a><span class="icon"><i class="fa fa-plus-square"/></span>最近导入</a></li>
-                <li>
-                    <a><span class="icon"><i class="fa fa-calendar-alt"/></span>时间分区</a>
-                    <ul>
-                        <li><a>2020年10月3日</a></li>
-                        <li><a class="is-active">2020年10月2日</a></li>
-                        <li><a>2020年10月1日</a></li>
-                    </ul>
-                </li>
-                <li><a><span class="icon"><i class="fa fa-clone"/></span>画集</a></li>
-            </ul>
-            <a class="menu-label">元数据</a>
-            <ul class="menu-list">
-                <li><a><span class="icon"><i class="fa fa-tag"/></span>标签</a></li>
-                <li>
-                    <a class="is-active"><span class="icon"><i class="fa fa-user-tag"/></span>作者</a>
-                    <ul>
-                        <li><a>作者1</a></li>
-                    </ul>
-                </li>
-                <li>
-                    <a><span class="icon"><i class="fa fa-hashtag"/></span>主题</a>
-                    <ul>
-                        <li><a>主题1</a></li>
-                    </ul>
-                </li>
-            </ul>
-            <a class="menu-label">文件夹</a>
-            <ul class="menu-list">
-                <li>
-                    <a><span class="icon"><i class="fa fa-archive"/></span>所有文件夹</a>
-                    <ul>
-                        <li><a>文件夹1</a></li>
-                        <li><a>文件夹2</a></li>
-                    </ul>
-                </li>
-                <li><a><span class="icon"><i class="fa fa-shopping-basket"/></span>临时文件夹</a></li>
-                <li><a><span class="icon"><i class="fa fa-folder"/></span>pin的文件夹</a></li>
-            </ul>
+            <ScopeComponent name="图库">
+                <StdItemComponent name="图库" icon="th" routeName="HedgeIndex"/>
+                <StdItemComponent name="搜索" icon="search" routeName="HedgeImage"/>
+                <StdItemComponent name="时间分区" icon="calendar-alt" routeName="HedgePartitions">
+                    <SubItemGroups routeName="HedgePartitionsDetail" paramKey="partition"/>
+                </StdItemComponent>
+                <StdItemComponent name="画集" icon="clone" routeName="HedgeAlbums"/>
+            </ScopeComponent>
+            <ScopeComponent name="标签">
+                <StdItemComponent name="标签" icon="tag" routeName="HedgeTags"/>
+                <StdItemComponent name="作者" icon="user-tag" routeName="HedgeAuthors"/>
+                <StdItemComponent name="主题" icon="hashtag" routeName="HedgeTopics"/>
+            </ScopeComponent>
+            <ScopeComponent name="工具箱">
+                <StdItemComponent name="导入项目" icon="plus-square" routeName="HedgeImport"/>
+                <StdItemComponent name="文件管理" icon="folder-open" routeName="HedgeFile"/>
+                <StdItemComponent name="爬虫" icon="spider" routeName="HedgeSpider"/>
+            </ScopeComponent>
+            <ScopeComponent name="文件夹">
+                <StdItemComponent name="所有文件夹" icon="archive" routeName="HedgeFolders"/>
+            </ScopeComponent>
         </aside>
+    }
+})
+
+const ScopeComponent = defineComponent({
+    props: {
+        name: {type: String, required: true}
+    },
+    setup(props, { slots }) {
+        const isOpen = ref(true)
+        const switchOpen = () => { isOpen.value = !isOpen.value }
+
+        return () => <>
+            <p class="mt-1"><a class="menu-label" onClick={switchOpen}>{props.name}</a></p>
+            {isOpen.value && <ul class="menu-list">
+                {slots.default?.()}
+            </ul>}
+        </>
+    }
+})
+
+const StdItemComponent = defineComponent({
+    props: {
+        name: {type: String, required: true},
+        icon: {type: String, required: true},
+        routeName: String
+    },
+    setup(props, { slots }) {
+        const route = useRoute()
+        const router = useRouter()
+        const routeName = toRef(route, 'name')
+        const click = () => {
+            router.push({name: props.routeName})
+        }
+
+        return () => {
+            return <li>
+                <a class={{"is-active": routeName.value === props.routeName}} onClick={click}><span class="icon"><i class={`fa fa-${props.icon}`}/></span>{props.name}</a>
+                {slots.default?.()}
+            </li>
+        }
+    }
+})
+
+const SubItemGroups = defineComponent({
+    props: {
+        routeName: {type: String, required: true},
+        paramKey: {type: String, default: "id"},
+        maxCount: {type: Number, default: 5},
+        titleFunction: null as any as PropType<(key: string) => Promise<string>>
+    },
+    setup(props) {
+        const route = useRoute()
+        const router = useRouter()
+        const routeName = toRef(route, 'name')
+        const routeParams = toRef(route, 'params')
+
+        const onClick = (key: string) => () => {
+            router.push({name: props.routeName, params: {[props.paramKey]: key}})
+        }
+
+        const sideBarData = inject(SideBarDataInjection)!
+
+        const items: ComputedRef<readonly {readonly key: string, readonly title: string}[]> = computed(() => sideBarData.subItems[props.routeName])
+        const currentItemKey = ref<string>()
+
+        watch(routeName, routeName => {
+            currentItemKey.value = routeName === props.routeName ? route.params[props.paramKey] as string : undefined
+        }, {immediate: true})
+
+        watch(routeParams, params => {
+            if(routeName.value === props.routeName) {
+                currentItemKey.value = params[props.paramKey] as string
+            }
+        })
+
+        return () => items.value && <ul>
+            {items.value.map(item => <li key={item.key}>
+                <a class={{"is-active": item.key === currentItemKey.value}} onClick={onClick(item.key)}>{item.title ?? item.key}</a>
+            </li>)}
+        </ul>
     }
 })

@@ -1,5 +1,5 @@
-import { defineComponent, inject, InjectionKey, onUnmounted, ref, Ref, Transition } from "vue"
-import "./style.scss"
+import { defineComponent, inject, InjectionKey, KeepAlive, onUnmounted, ref, Ref, Transition } from "vue"
+import style from "./style.module.scss"
 
 export const sideBarSwitchInjection: InjectionKey<Ref<boolean>> = Symbol()
 
@@ -29,16 +29,14 @@ export default defineComponent({
             attachRange: props.attachRange
         })
 
-        return () => <div id="side-layout">
-            <div class="v-content" style={{"left": `${sideBarSwitch.value ? sideBarWidth.value : 0}px`}}>
+        return () => <div class={style.sideLayout}>
+            <div class={style.content} style={{"left": `${sideBarSwitch.value ? sideBarWidth.value : 0}px`}}>
                 {slots.default?.()}
             </div>
-            <Transition name="v-side-bar-collapse">
-                {sideBarSwitch.value && <div class="v-side-content" style={{"width": `${sideBarWidth.value}px`}}>
-                    {slots.side?.()}
-                </div>}
-            </Transition>
-            {sideBarSwitch.value && <div class="v-resize-content" style={{"left": `${sideBarWidth.value}px`}} onMousedown={resizeAreaMouseDown}/>}
+            <div class={style.sideContent} style={{"width": `${sideBarWidth.value}px`, "transform": `translateX(${sideBarSwitch.value ? '0' : '-100%'})`}}>
+                {slots.side?.()}
+            </div>
+            {sideBarSwitch.value && <div class={style.resizeContent} style={{"left": `${sideBarWidth.value}px`}} onMousedown={resizeAreaMouseDown}/>}
         </div>
     }
 })
