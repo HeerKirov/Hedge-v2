@@ -1,5 +1,6 @@
 import { defineComponent, inject } from "vue"
 import { sideBarSwitchInjection } from "."
+import style from "./style.module.scss"
 
 /**
  * 主页面的侧栏内容的框架模块。只提供布局框架，以及基本功能，比如折叠按钮，以及底栏的基本功能按钮。
@@ -11,13 +12,13 @@ export default defineComponent({
             sideBarSwitch.value = false
         }
 
-        return () => <div id="side-bar">
+        return () => <div class={style.sideBar}>
             <div class="title-bar absolute left-top w-100"></div>
-            <button class="no-drag button is-light is-small v-collapse-button" onClick={collapseSideBar}><span class="icon"><i class="fa fa-lg fa-bars"/></span></button>
-            <div class="v-content">
+            <button class={[style.collapseButton, "no-drag", "button", "is-light", "is-small"]} onClick={collapseSideBar}><span class="icon"><i class="fa fa-lg fa-bars"/></span></button>
+            <div class={style.content}>
                 {slots.default?.()}
             </div>
-            <div class="v-buttons">
+            <div class={style.buttons}>
                 {slots.bottom?.() ?? <div class="buttons">
                     <button class="button is-small is-light mb-0 mr-1"><span class="icon mr-1"><i class="fa fa-angle-double-left"/></span>HEDGE</button>
                     <button class="button is-small is-light mb-0 mr-1"><span class="icon"><i class="fa fa-cog"/></span></button>

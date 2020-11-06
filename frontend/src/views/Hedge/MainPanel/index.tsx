@@ -4,13 +4,13 @@ import SideLayout from "@/layouts/SideLayout"
 import SideBar from "../SideBar"
 import SideBarContent from "./SideBarContent"
 import { SideBarDataInjection, useSideBarData } from "./inject"
-import "./style.scss"
+import style from "./style.module.scss"
 
 export default defineComponent({
     setup() {
         provide(SideBarDataInjection, useSideBarData())
 
-        return () => <div id="main-panel">
+        return () => <div class={style.root}>
             <SideLayout v-slots={{
                 side: () => <SideBar>
                     <SideBarContent/>

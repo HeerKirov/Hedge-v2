@@ -1,31 +1,31 @@
 @import '@/styles/variable.scss';
 
-#app #hedge {
+.root {
     //主面板的进入和离开变换
-    > .v-main-panel-transition-enter-from,
-    > .v-main-panel-transition-leave-to {
+    > :global(.v-main-panel-transition-enter-from),
+    > :global(.v-main-panel-transition-leave-to) {
         transform: translateY(25%);
     }
-    > .v-main-panel-transition-enter-active {
+    > :global(.v-main-panel-transition-enter-active) {
         transition: transform 0.3s ease-out;
     }
-    > .v-main-panel-transition-leave-active {
+    > :global(.v-main-panel-transition-leave-active) {
         transition: transform 0.3s ease-in;
     }
     //其他面板的进入和离开变换
-    > .v-other-panel-transition-enter-from,
-    > .v-other-panel-transition-leave-to {
+    > :global(.v-other-panel-transition-enter-from),
+    > :global(.v-other-panel-transition-leave-to) {
         transform: translateY(100%);
     }
-    > .v-other-panel-transition-enter-active {
+    > :global(.v-other-panel-transition-enter-active) {
         transition: transform 0.3s ease-out;
     }
-    > .v-other-panel-transition-leave-active {
+    > :global(.v-other-panel-transition-leave-active) {
         transition: transform 0.3s ease-in;
     }
 }
 
-#app #hedge #side-bar {
+.side-bar {
     /*侧边栏的底栏按钮高度*/ $bottom-buttons-height: 40px;
 
     background-color: $side-background-color;
@@ -34,20 +34,20 @@
     left: 0; top: 0; height: 100%; width: 100%;
 
     //侧边栏顶的折叠按钮
-    > .v-collapse-button {
+    > .collapse-button {
         position: absolute;
         right: 0.5rem;
         top: 0.35rem;
     }
     //侧边栏主要内容区域的menu
-    > .v-content {
+    > .content {
         margin-top: $title-bar-height;
         padding: 0.75rem;
         overflow-y: auto;
         height: calc(100% - #{$title-bar-height + $bottom-buttons-height});
     }
     //侧边栏底部的按钮组
-    > .v-buttons {
+    > .buttons {
         padding: 5px 0 5px 5px;
         width: 100%;
         overflow: hidden;

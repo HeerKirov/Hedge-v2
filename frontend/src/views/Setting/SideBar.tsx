@@ -1,5 +1,6 @@
 import { defineComponent, toRef } from "vue"
 import { useRoute, useRouter } from "vue-router"
+import style from "./style.module.scss"
 
 /**
  * 主页面的侧栏内容的框架模块。只提供布局框架，以及基本功能，比如折叠按钮，以及底栏的基本功能按钮。
@@ -11,9 +12,9 @@ export default defineComponent({
 
         const routeName = toRef(route, 'name')
 
-        return () => <div id="side-bar">
+        return () => <div class={style.sideBar}>
             <div class="title-bar absolute left-top w-100"></div>
-            <div class="v-content">
+            <div class={style.content}>
                 <p class="is-size-5 mt-2 ml-1">设置</p>
                 <aside class="h-menu mt-2">
                     {settings.map(scope => <>

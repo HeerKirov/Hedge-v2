@@ -1,6 +1,6 @@
 import { computed, defineComponent, inject, ref, Transition } from "vue"
 import { sideBarSwitchInjection } from ".."
-import "./style.scss"
+import style from "./style.module.scss"
 
 /**
  * 内容区域的顶栏模块。
@@ -13,9 +13,9 @@ export default defineComponent({
         const isFullScreen = ref(false) //inject it
         const layoutCSS = computed(() => {
             if(isFullScreen.value || sideBarSwitch.value || platform.value !== "macOS") {
-                return "platform-web"
+                return style.platformWeb
             }else{
-                return "platform-macos"
+                return style.platformMac
             }
         })
 
@@ -24,12 +24,12 @@ export default defineComponent({
             sideBarSwitch.value = true
         }
 
-        return () => <div id="top-bar" class={layoutCSS.value}>
+        return () => <div class={[style.root, layoutCSS.value]}>
             <div class="title-bar absolute top w-100"></div>
             <Transition name="v-collapse-button">
-                {!sideBarSwitch.value && <button class="no-drag button is-white is-small v-collapse-button" onClick={openSideBar}><span class="icon"><i class="fa fa-lg fa-bars"/></span></button>}
+                {!sideBarSwitch.value && <button class={[style.collapseButton, "no-drag", "button", "is-white", "is-small"]} onClick={openSideBar}><span class="icon"><i class="fa fa-lg fa-bars"/></span></button>}
             </Transition>
-            <div class={`v-content ${sideBarSwitch.value ? "hide" : "show"}-cl-btn`}>
+            <div class={[style.content, sideBarSwitch.value ? style.hideClBtn : style.showClBtn]}>
                 {slots.default?.()}
             </div>
         </div>

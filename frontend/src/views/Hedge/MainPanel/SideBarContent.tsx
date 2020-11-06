@@ -1,6 +1,7 @@
 import { computed, ComputedRef, defineComponent, inject, PropType, reactive, ref, toRef, watch } from "vue"
 import { useRoute, useRouter } from 'vue-router'
 import { SideBarDataInjection } from './inject'
+import style from "./style.module.scss"
 
 /**
  * 主要界面的侧边菜单栏。内嵌在通用布局内使用。
@@ -12,7 +13,7 @@ export default defineComponent({
             每个种类的subitem数量有上限，多了之后挤走旧的。
             日历默认就显示最近的几个时间项。
         */
-        return () => <aside id="side-bar-menu" class="h-menu">
+        return () => <aside class={[style.sideBarMenu, "h-menu"]}>
             <ScopeComponent name="图库">
                 <StdItemComponent name="图库" icon="th" routeName="HedgeIndex"/>
                 <StdItemComponent name="搜索" icon="search" routeName="HedgeImage"/>

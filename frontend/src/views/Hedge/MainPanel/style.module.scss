@@ -1,9 +1,9 @@
-#app #hedge #main-panel {
+.root {
     position: fixed;
     top: 0; bottom: 0; left: 0; right: 0;
 }
 
-#app #hedge #main-panel #side-bar-menu {
+.side-bar-menu {
     > ul.menu-list {
         //边栏中的menu按钮文本不可换行，并省略过长的文本
         a {

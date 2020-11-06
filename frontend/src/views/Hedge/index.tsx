@@ -3,7 +3,7 @@ import { sideBarSwitchInjection, sideBarWidthInjection } from "@/layouts/SideLay
 import MainPanel from "./MainPanel"
 import GridPanel from "./GridPanel"
 import DetailPanel from "./DetailPanel"
-import "./style.scss"
+import style from "./style.module.scss"
 
 export { sideBarSwitchInjection, sideBarWidthInjection }
 
@@ -23,7 +23,7 @@ export default defineComponent({
 
         provide(panelInjection, panel)
 
-        return () => <div id="hedge">
+        return () => <div id="hedge" class={style.root}>
             <KeepAlive>
                 <Transition name="v-main-panel-transition">
                     {panel.value === "main" && <MainPanel/>}
