@@ -20,7 +20,6 @@ export default defineComponent({
             </div>
             <div class={style.buttons}>
                 {slots.bottom?.() ?? <div class="buttons">
-                    <button class="button is-small is-light mb-0 mr-1"><span class="icon mr-1"><i class="fa fa-angle-double-left"/></span>HEDGE</button>
                     <button class="button is-small is-light mb-0 mr-1"><span class="icon"><i class="fa fa-cog"/></span></button>
                     <button class="button is-small is-light mb-0 mr-1"><span class="icon"><i class="fa fa-question-circle"/></span></button>
                     <button class="button is-small is-light mb-0 mr-0"><span class="icon mr-1"><i class="fa fa-clipboard"/></span>777</button>

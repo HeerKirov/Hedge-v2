@@ -1,0 +1,14 @@
+.init {
+    //对话框区域
+    > .dialog {
+        height: 500px;
+        width: 425px;
+        //底部按钮区域
+        > .bottom {
+            position: absolute;
+            bottom: 0; left: 0;
+            width: calc(100% - 2.5rem);
+            margin: 1.25rem;
+        }
+    }
+}

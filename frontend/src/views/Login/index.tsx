@@ -6,7 +6,9 @@ export default defineComponent({
         const useTouchId = ref(false)
 
         return () => <div id="login">
-            <div class="title-bar"></div>
+            <div class="title-bar has-text-centered">
+                <span>HEDGE</span>
+            </div>
             <div class="fixed center has-text-centered">
                 {useTouchId.value ?     
                     <div class="has-text-centered">

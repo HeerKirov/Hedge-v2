@@ -1,12 +1,12 @@
 import { InjectionKey, reactive, readonly, ref } from "vue"
 import { useRoute } from 'vue-router'
 
-export const SideBarDataInjection: InjectionKey<SideBarData> = Symbol()
+export const SideBarContextInjection: InjectionKey<SideBarContext> = Symbol()
 
 /**
  * main panel页面的侧边栏相关的依赖。
  */
-export interface SideBarData {
+export interface SideBarContext {
     /**
      * 存储侧边栏子项的地方。可按route name读取对应的子项列表。
      */
@@ -19,7 +19,7 @@ export interface SideBarData {
     pushSubItem(key: string, title: string): void
 }
 
-export function useSideBarData(maxCount: number = 5): SideBarData {
+export function useSideBarContext(maxCount: number = 5): SideBarContext {
     const route = useRoute()
 
     const subItems = reactive<{[routeName: string]: {key: string, title: string}[]}>({})

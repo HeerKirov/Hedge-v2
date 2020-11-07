@@ -49,7 +49,7 @@ export default [
             },
             {
                 name: 'HedgeFoldersDetail',
-                path: 'folders/:id(\\d+)',
+                path: 'folders/:id(tmp|\\d+)',
                 component: () => import('@/views/Hedge/MainPanel/ViewFoldersDetail')
             },
             {
