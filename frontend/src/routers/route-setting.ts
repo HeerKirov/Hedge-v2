@@ -17,9 +17,29 @@ export default [
                 component: () => import('@/views/Setting/ViewAppSecurity')
             },
             {
-                name: 'SettingAppWebAccess',
+                name: 'SettingWebAccess',
                 path: 'app/web-access',
-                component: () => import('@/views/Setting/ViewAppWebAccess')
+                component: () => import('@/views/Setting/ViewWebAccess')
+            },
+            {
+                name: 'SettingBackup',
+                path: 'app/backup',
+                component: () => import('@/views/Setting/ViewBackup')
+            },
+            {
+                name: 'SettingServer',
+                path: 'advanced/server',
+                component: () => import('@/views/Setting/ViewServer')
+            },
+            {
+                name: 'SettingCli',
+                path: 'advanced/cli',
+                component: () => import('@/views/Setting/ViewCli')
+            },
+            {
+                name: 'SettingChannel',
+                path: 'advanced/channel',
+                component: () => import('@/views/Setting/ViewChannel')
             }
         ]
     }

@@ -14,12 +14,6 @@ export default defineComponent({
                     <p class="is-size-7 has-text-grey">您的mac支持touch ID。每次登录前首先尝试获得来自touch ID的授权。</p>
                 </label>
             </div>
-            <p class="mb-1">登录杂项</p>
-            <div class="field">
-                <label class="checkbox">
-                    <input type="checkbox" class="mr-1"/>登录后自动打开上一次使用的数据库
-                </label>
-            </div>
         </div>
     }
 })

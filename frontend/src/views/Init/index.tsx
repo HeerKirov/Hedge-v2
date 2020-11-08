@@ -18,7 +18,7 @@ export default defineComponent({
         return () => {
             const CurrentPage = pages[context.page.num.value]
 
-            return <div class={style.init}>
+            return <div class={style.root}>
                 <div class="title-bar has-text-centered">
                     <span>HEDGE</span>
                 </div>
