@@ -10,4 +10,8 @@ module com.heerkirov.hedge.server {
     requires sqlite.jdbc;
     requires com.fasterxml.jackson.databind;
     requires jackson.module.kotlin;
+
+    requires org.slf4j;
+
+    opens com.heerkirov.hedge.server.components.health;
 }
