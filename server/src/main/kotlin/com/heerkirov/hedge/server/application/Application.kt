@@ -1,7 +1,7 @@
 package com.heerkirov.hedge.server.application
 
-import com.heerkirov.hedge.server.components.appdata.Appdata
-import com.heerkirov.hedge.server.components.appdata.AppdataImpl
+import com.heerkirov.hedge.server.components.appdata.AppDataRepository
+import com.heerkirov.hedge.server.components.appdata.AppDataRepositoryImpl
 import com.heerkirov.hedge.server.components.appdata.AppdataOptions
 import com.heerkirov.hedge.server.framework.Framework
 import com.heerkirov.hedge.server.components.health.Health
@@ -24,7 +24,7 @@ class Application(options: ApplicationOptions) {
         Framework()
             .addComponent(Health::class) { ctx -> HealthImpl(ctx, HealthOptions(options.channel, options.userDataPath)) }
             .addComponent(Lifetime::class) { ctx -> LifetimeImpl(ctx, LifetimeOptions(options.permanent)) }
-            .addComponent(Appdata::class) { AppdataImpl(AppdataOptions(options.channel, options.userDataPath)) }
+            .addComponent(AppDataRepository::class) { AppDataRepositoryImpl(AppdataOptions(options.channel, options.userDataPath)) }
             .addComponent(HttpServer::class) { HttpServerImpl(HttpServerOptions(options.userDataPath, options.frontendFromFolder)) }
             .then(HttpServer::class) { start() }
             .then(Lifetime::class) {

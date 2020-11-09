@@ -16,6 +16,15 @@ object Fs {
         File(path).writeText(content.toJSONString())
     }
 
+    fun readText(path: String): String? {
+        val f = File(path)
+        return if(f.exists()) { f.readText() }else{ null }
+    }
+
+    fun writeText(path: String, content: String) {
+        File(path).writeText(content)
+    }
+
     fun rm(path: String): Boolean {
         return File(path).delete()
     }

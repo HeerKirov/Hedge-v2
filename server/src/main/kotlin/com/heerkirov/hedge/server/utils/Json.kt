@@ -18,6 +18,10 @@ inline fun <reified T> String.parseJSONObject(): T {
     return objectMapper().readValue(this, T::class.java)
 }
 
+fun <T> String.parseJSONObject(clazz: Class<T>): T {
+    return objectMapper().readValue(this, clazz)
+}
+
 fun <T> T.toJsonNode(): JsonNode {
     return objectMapper.valueToTree(this)
 }
