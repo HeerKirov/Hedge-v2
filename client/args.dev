@@ -1,1 +1,1 @@
---debug-mode --local-data-path ./debug --frontend-from-url http://localhost:3000 --server-from-url http://localhost:8080
+--debug-mode --local-data-path $PWD../userdata.local --frontend-from-url http://localhost:8080 --server-from-url http://localhost:8080

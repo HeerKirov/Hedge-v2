@@ -10,7 +10,6 @@
 /server/gradle
 /server/gradlew*
 /server/build
-debug
 *.db
 
 *.local.*

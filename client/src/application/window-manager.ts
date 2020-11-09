@@ -71,7 +71,7 @@ export function createWindowManager(options: WindowManagerOptions): WindowManage
     }
 
     function createWindow(): BrowserWindow {
-        return newBrowserWindow("hedge/images")
+        return newBrowserWindow("start")
     }
 
     function createDisplayWindow(/*content*/): BrowserWindow {
