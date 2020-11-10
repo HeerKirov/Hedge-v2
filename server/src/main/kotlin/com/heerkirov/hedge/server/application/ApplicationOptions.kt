@@ -20,5 +20,9 @@ class ApplicationOptions(
     /**
      * 从此文件夹，而不是userData目录下的预定路径，取用前端资源。
      */
-    val frontendFromFolder: String? = null
+    val frontendFromFolder: String? = null,
+    /**
+     * 强制使用此单一端口启动server，用于固定端口的开发模式。
+     */
+    val forcePort: Int? = null
 )

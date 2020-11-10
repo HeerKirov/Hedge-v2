@@ -12,6 +12,7 @@ fun main(args: Array<String>) {
         userDataPath = parameters["--user-data"]!!,
         frontendFromFolder = parameters["--frontend-from-folder"],
         debugMode = parameters.contain("--debug-mode"),
-        permanent = parameters.contain("--permanent")
+        permanent = parameters.contain("--permanent"),
+        forcePort = parameters["--force-port"]?.toInt()
     ))
 }

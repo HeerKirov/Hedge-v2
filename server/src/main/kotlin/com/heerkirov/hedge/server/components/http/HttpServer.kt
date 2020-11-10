@@ -1,10 +1,17 @@
 package com.heerkirov.hedge.server.components.http
 
+import com.heerkirov.hedge.server.components.appdata.AppDataRepository
+import com.heerkirov.hedge.server.components.health.Health
+import com.heerkirov.hedge.server.components.http.modules.WebAccessor
 import com.heerkirov.hedge.server.framework.StatefulComponent
 import com.heerkirov.hedge.server.definitions.Filename
-import com.heerkirov.hedge.server.utils.Resources
+import com.heerkirov.hedge.server.enums.LoadStatus
+import com.heerkirov.hedge.server.utils.Net
+import com.heerkirov.hedge.server.utils.Token
 import io.javalin.Javalin
-import io.javalin.http.staticfiles.Location
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import java.net.BindException
 
 interface HttpServer : StatefulComponent {
     /**
@@ -14,26 +21,41 @@ interface HttpServer : StatefulComponent {
 }
 
 class HttpServerOptions(
+    /**
+     * userData目录。
+     */
     val userDataPath: String,
-    val frontendFromFolder: String? = null
+    /**
+     * 开发模式下强制使用此路径作为获取前端资源的路径。
+     */
+    val frontendFromFolder: String? = null,
+    /**
+     * 开发模式下强制使用此端口。
+     */
+    val forcePort: Int? = null,
+    /**
+     * 当用户没有在配置中指定端口时，从此端口开始迭代。
+     */
+    val defaultPort: Int = 9000
 )
 
-class HttpServerImpl(options: HttpServerOptions) : HttpServer {
-    private val frontendPath = options.frontendFromFolder ?: "${Filename.FRONTEND_FOLDER}/${options.userDataPath}"
+class HttpServerImpl(private val health: Health,
+                     private val appdata: AppDataRepository,
+                     private val options: HttpServerOptions) : HttpServer {
+    private val log: Logger = LoggerFactory.getLogger(HttpServerImpl::class.java)
+
+    private var token: String = Token.token()
+    private var port: Int? = null
 
     private lateinit var server: Javalin
 
-    override fun start() {
-        server = Javalin.create {
-            it.addStaticFiles("/static", "${frontendPath}/static", Location.EXTERNAL)
-            it.addStaticFiles("/favicon.ico", "${frontendPath}/favicon.ico", Location.EXTERNAL)
-        }
-            .get("/") { ctx ->
-                ctx.html(Resources.getResourceAsText("/forbidden.html"))
-            }
+    private val web = WebAccessor(appdata, options.frontendFromFolder ?: "${Filename.FRONTEND_FOLDER}/${options.userDataPath}")
 
-        //TODO 绑定试探
-        server.start(9000)
+    override fun start() {
+        server = Javalin
+            .create { web.configure(it) }
+            .handle(web)
+            .bind()
     }
 
     override val isIdle: Boolean
@@ -42,4 +64,38 @@ class HttpServerImpl(options: HttpServerOptions) : HttpServer {
     override fun close() {
         server.stop()
     }
+
+    /**
+     * 向javalin添加新的handler。
+     */
+    private fun Javalin.handle(endpoints: Endpoints): Javalin {
+        endpoints.handle(this)
+        return this
+    }
+
+    /**
+     * 进行绑定试探。将server绑定到端口，启动http服务。
+     * @throws BindException 如果所有的端口绑定都失败，那么抛出异常，告知framework发生了致命错误。
+     */
+    private fun Javalin.bind(): Javalin {
+        val ports = options.forcePort?.let { sequenceOf(it) }
+            ?: if(appdata.status == LoadStatus.LOADED) { appdata.getAppData().service.port }else{ null }?.let { Net.analyzePort(it) }
+            ?: Net.generatePort(options.defaultPort)
+
+        for (port in ports) {
+            try {
+                this.start(port)
+                this@HttpServerImpl.port = port
+                health.save(port = port, token = token)
+                return this
+            }catch (e: BindException) {
+                log.warn("Binding port $port failed: ${e.message}")
+            }
+        }
+        throw BindException("Server starting failed because no port is available.")
+    }
+}
+
+interface Endpoints {
+    fun handle(javalin: Javalin)
 }

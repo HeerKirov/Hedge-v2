@@ -25,7 +25,11 @@ class Application(options: ApplicationOptions) {
             .addComponent(Health::class) { ctx -> HealthImpl(ctx, HealthOptions(options.channel, options.userDataPath)) }
             .addComponent(Lifetime::class) { ctx -> LifetimeImpl(ctx, LifetimeOptions(options.permanent)) }
             .addComponent(AppDataRepository::class) { AppDataRepositoryImpl(AppdataOptions(options.channel, options.userDataPath)) }
-            .addComponent(HttpServer::class) { HttpServerImpl(HttpServerOptions(options.userDataPath, options.frontendFromFolder)) }
+            .addComponent(HttpServer::class) { ctx -> HttpServerImpl(
+                ctx.getComponent(Health::class),
+                ctx.getComponent(AppDataRepository::class),
+                HttpServerOptions(options.userDataPath, options.frontendFromFolder)) }
+            .then(AppDataRepository::class) { load() }
             .then(HttpServer::class) { start() }
             .then(Lifetime::class) {
                 thread()

@@ -3,6 +3,7 @@ package com.heerkirov.hedge.server.components.lifetime
 import com.heerkirov.hedge.server.framework.Component
 import com.heerkirov.hedge.server.framework.FrameworkContext
 import com.heerkirov.hedge.server.framework.StatefulComponent
+import com.heerkirov.hedge.server.utils.Token
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.*
@@ -70,7 +71,7 @@ class LifetimeImpl(private val context: FrameworkContext, private val options: L
     override var permanent: Boolean = options.permanent
 
     override fun register(interval: Long?): String {
-        val id = UUID.randomUUID().toString()
+        val id = Token.uuid()
         val now = System.currentTimeMillis()
         val realInterval = interval ?: options.defaultInterval
         lifetimes[id] = LifetimeRow(now + realInterval, realInterval)

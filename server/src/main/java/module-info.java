@@ -14,4 +14,6 @@ module com.heerkirov.hedge.server {
     requires org.slf4j;
 
     opens com.heerkirov.hedge.server.components.health;
+    opens com.heerkirov.hedge.server.components.appdata;
+//    opens com.heerkirov.hedge.server.components.database;
 }
