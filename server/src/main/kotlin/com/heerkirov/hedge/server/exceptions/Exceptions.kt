@@ -50,14 +50,24 @@ open class AlreadyExist(objectName: String) : BadRequestException("ALREADY_EXIST
 open class Reject(message: String): BadRequestException("REJECT", message)
 
 /**
+ * 由于服务尚未初始化，API不能被调用。
+ */
+open class NotInit: BadRequestException("NOT_INIT", "Server is not initialized.")
+
+/**
  * 在headers中没有发现任何token，然而此API需要验证。或者token无法被正确解析。
  */
-class NoToken : UnauthorizedException("NO_TOKEN", "No token in headers.")
+class NoToken : UnauthorizedException("NO_TOKEN", "No available token.")
 
 /**
  * 使用的token是错误的，无法将其与任何token认证匹配。
  */
-class TokenWrong : UnauthorizedException("TOKEN_WRONG", "This token is incorrect.")
+class TokenWrong : UnauthorizedException("TOKEN_WRONG", "Token is incorrect.")
+
+/**
+ * 使用的password是错误的。
+ */
+class PasswordWrong : UnauthorizedException("PASSWORD_WRONG", "Password is incorrect.")
 
 /**
  * 此API只能在web端调用。

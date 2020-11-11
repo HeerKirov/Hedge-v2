@@ -2,6 +2,9 @@ package com.heerkirov.hedge.server.components.http
 
 import com.heerkirov.hedge.server.components.appdata.AppDataRepository
 import com.heerkirov.hedge.server.components.health.Health
+import com.heerkirov.hedge.server.components.http.modules.Aspect
+import com.heerkirov.hedge.server.components.http.modules.Authentication
+import com.heerkirov.hedge.server.components.http.modules.ErrorHandler
 import com.heerkirov.hedge.server.components.http.modules.WebAccessor
 import com.heerkirov.hedge.server.framework.StatefulComponent
 import com.heerkirov.hedge.server.definitions.Filename
@@ -44,7 +47,7 @@ class HttpServerImpl(private val health: Health,
                      private val options: HttpServerOptions) : HttpServer {
     private val log: Logger = LoggerFactory.getLogger(HttpServerImpl::class.java)
 
-    private var token: String = Token.token()
+    private val token: String = Token.token()
     private var port: Int? = null
 
     private lateinit var server: Javalin
@@ -52,14 +55,18 @@ class HttpServerImpl(private val health: Health,
     private val web = WebAccessor(appdata, options.frontendFromFolder ?: "${Filename.FRONTEND_FOLDER}/${options.userDataPath}")
 
     override fun start() {
+        val aspect = Aspect(appdata)
+        val authentication = Authentication(token, web)
+        val errorHandler = ErrorHandler()
+
         server = Javalin
             .create { web.configure(it) }
-            .handle(web)
+            .handle(aspect, authentication, web, errorHandler)
             .bind()
     }
 
-    override val isIdle: Boolean
-        get() = true
+    override val isIdle: Boolean //当web可访问且打开了web的永久访问开关时，http server标记为忙，使进程不会退出
+        get() = !(web.isAccess && appdata.getAppData().web.permanent)
 
     override fun close() {
         server.stop()
@@ -68,8 +75,10 @@ class HttpServerImpl(private val health: Health,
     /**
      * 向javalin添加新的handler。
      */
-    private fun Javalin.handle(endpoints: Endpoints): Javalin {
-        endpoints.handle(this)
+    private fun Javalin.handle(vararg endpoints: Endpoints): Javalin {
+        for (endpoint in endpoints) {
+            endpoint.handle(this)
+        }
         return this
     }
 

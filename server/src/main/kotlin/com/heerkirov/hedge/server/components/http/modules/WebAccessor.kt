@@ -4,14 +4,30 @@ import com.heerkirov.hedge.server.components.appdata.AppDataRepository
 import com.heerkirov.hedge.server.components.http.Endpoints
 import com.heerkirov.hedge.server.definitions.Filename
 import com.heerkirov.hedge.server.enums.LoadStatus
+import com.heerkirov.hedge.server.exceptions.PasswordWrong
+import com.heerkirov.hedge.server.exceptions.Reject
 import com.heerkirov.hedge.server.utils.Resources
+import com.heerkirov.hedge.server.utils.Token
 import io.javalin.Javalin
+import io.javalin.apibuilder.ApiBuilder.*
 import io.javalin.core.JavalinConfig
 import io.javalin.http.Context
 import io.javalin.http.staticfiles.Location
+import java.util.*
+import kotlin.collections.HashSet
 
+
+/**
+ * Web访问模块。
+ * 1. 提供静态文件访问支持和HTML页面的访问支持。
+ * 2. 维护web访问开关。
+ * 3. 提供web登录相关的专有API。
+ * 4. 维护web登录的token组。
+ */
 class WebAccessor(private val appdata: AppDataRepository, private val frontendPath: String) : Endpoints {
-    private var isAccess: Boolean = false
+    val tokens: MutableSet<String> = Collections.synchronizedSet(HashSet())
+
+    var isAccess: Boolean = false
 
     /**
      * 初始化，并给javalin添加几项配置项。
@@ -26,10 +42,14 @@ class WebAccessor(private val appdata: AppDataRepository, private val frontendPa
     }
 
     override fun handle(javalin: Javalin) {
-        javalin
-            .get("/", this::index)
-            .post("/web/login", this::webLogin)
-            .post("/web/verify-token", this::webVerifyToken)
+        javalin.routes {
+            get("/", this::index)
+            path("web") {
+                get("access", this::webAccess)
+                post("login", this::webLogin)
+                post("verify-token", this::webVerifyToken)
+            }
+        }
     }
 
     private fun index(ctx: Context) {
@@ -40,15 +60,38 @@ class WebAccessor(private val appdata: AppDataRepository, private val frontendPa
         }
     }
 
+    private fun webAccess(ctx: Context) {
+        val password = appdata.getAppData().web.password
+
+        ctx.json(AccessResponse(access = isAccess, needPassword = password != null))
+    }
+
     private fun webLogin(ctx: Context) {
+        if(!isAccess) { throw Reject("Web access is not open.") }
         val form = ctx.bodyAsClass(LoginForm::class.java)
+        val password = appdata.getAppData().web.password
+        if(form.password == password) {
+            val token = Token.webToken().also { tokens.add(it) }
+
+            ctx.json(TokenForm(token = token))
+        }else{
+            throw PasswordWrong()
+        }
     }
 
     private fun webVerifyToken(ctx: Context) {
+        if(!isAccess) { throw Reject("Web access is not open.") }
 
+        val form = ctx.bodyAsClass(TokenForm::class.java)
+
+        ctx.json(TokenResponse(ok = form.token in tokens))
     }
 
     private data class LoginForm(val password: String)
 
-    private data class LoginResponse(val token: String)
+    private data class TokenForm(val token: String)
+
+    private data class AccessResponse(val access: Boolean, val needPassword: Boolean)
+
+    private data class TokenResponse(val ok: Boolean)
 }

@@ -47,6 +47,7 @@ class AppDataRepositoryImpl(options: AppdataOptions) : AppDataRepository {
     private var appData: AppData? = null
 
     override fun load() {
+        //TODO 仍然需要添加一个migration模块
         appData = Fs.readFile<AppData>(appDataPath)
         loadStatus = if(appData != null) { LoadStatus.LOADED }else{ LoadStatus.NOT_INIT }
     }
