@@ -3,6 +3,7 @@ module com.heerkirov.hedge.server {
     requires java.sql;
     requires kotlin.stdlib;
     requires kotlin.reflect;
+    requires kotlin.stdlib.jdk7;
 
     requires io.javalin;
     requires ktorm.core;

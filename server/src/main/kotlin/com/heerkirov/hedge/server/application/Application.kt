@@ -1,8 +1,11 @@
 package com.heerkirov.hedge.server.application
 
-import com.heerkirov.hedge.server.components.appdata.AppDataRepository
-import com.heerkirov.hedge.server.components.appdata.AppDataRepositoryImpl
+import com.heerkirov.hedge.server.components.appdata.AppDataDriver
+import com.heerkirov.hedge.server.components.appdata.AppDataDriverImpl
 import com.heerkirov.hedge.server.components.appdata.AppdataOptions
+import com.heerkirov.hedge.server.components.database.DataOptions
+import com.heerkirov.hedge.server.components.database.DataRepository
+import com.heerkirov.hedge.server.components.database.DataRepositoryImpl
 import com.heerkirov.hedge.server.framework.Framework
 import com.heerkirov.hedge.server.components.health.Health
 import com.heerkirov.hedge.server.components.health.HealthImpl
@@ -24,12 +27,15 @@ class Application(options: ApplicationOptions) {
         Framework()
             .addComponent(Health::class) { ctx -> HealthImpl(ctx, HealthOptions(options.channel, options.userDataPath)) }
             .addComponent(Lifetime::class) { ctx -> LifetimeImpl(ctx, LifetimeOptions(options.permanent)) }
-            .addComponent(AppDataRepository::class) { AppDataRepositoryImpl(AppdataOptions(options.channel, options.userDataPath)) }
+            .addComponent(DataRepository::class) { DataRepositoryImpl(DataOptions(options.channel, options.userDataPath)) }
+            .addComponent(AppDataDriver::class) { ctx -> AppDataDriverImpl(
+                ctx.getComponent(DataRepository::class),
+                AppdataOptions(options.channel, options.userDataPath)) }
             .addComponent(HttpServer::class) { ctx -> HttpServerImpl(
                 ctx.getComponent(Health::class),
-                ctx.getComponent(AppDataRepository::class),
+                ctx.getComponent(AppDataDriver::class),
                 HttpServerOptions(options.userDataPath, options.frontendFromFolder)) }
-            .then(AppDataRepository::class) { load() }
+            .then(AppDataDriver::class) { load() }
             .then(HttpServer::class) { start() }
             .then(Lifetime::class) {
                 thread()

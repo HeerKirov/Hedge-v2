@@ -55,6 +55,7 @@ class Framework {
                 call(context.getComponent(clazz))
             }catch (e: Exception) {
                 exceptions.add(e)
+                log.error("Error occurred in then.", e)
             }
         }
         return this

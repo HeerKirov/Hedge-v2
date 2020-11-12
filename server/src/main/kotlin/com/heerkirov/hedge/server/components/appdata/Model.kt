@@ -8,23 +8,23 @@ data class AppData(
 )
 
 data class ServiceOption(
-    val port: String?
+    var port: String?
 )
 
 data class WebOption(
-    val autoWebAccess: Boolean,
-    val permanent: Boolean,
-    val password: String?
+    var autoWebAccess: Boolean,
+    var permanent: Boolean,
+    var password: String?
 )
 
 data class DBOption(
-    val path: String
+    var path: String
 )
 
 data class BackupOption(
-    val path: String?,
-    val lastUpdate: Long?,
-    val autoBackup: Boolean
+    var path: String?,
+    var lastUpdate: Long?,
+    var autoBackup: Boolean
 )
 
 fun defaultValue(dbPath: String): AppData {

@@ -1,6 +1,6 @@
 package com.heerkirov.hedge.server.components.http.modules
 
-import com.heerkirov.hedge.server.components.appdata.AppDataRepository
+import com.heerkirov.hedge.server.components.appdata.AppDataDriver
 import com.heerkirov.hedge.server.components.http.Endpoints
 import com.heerkirov.hedge.server.definitions.Filename
 import com.heerkirov.hedge.server.enums.LoadStatus
@@ -24,7 +24,7 @@ import kotlin.collections.HashSet
  * 3. 提供web登录相关的专有API。
  * 4. 维护web登录的token组。
  */
-class WebAccessor(private val appdata: AppDataRepository, private val frontendPath: String) : Endpoints {
+class WebAccessor(private val appdata: AppDataDriver, private val frontendPath: String) : Endpoints {
     val tokens: MutableSet<String> = Collections.synchronizedSet(HashSet())
 
     var isAccess: Boolean = false
@@ -33,7 +33,7 @@ class WebAccessor(private val appdata: AppDataRepository, private val frontendPa
      * 初始化，并给javalin添加几项配置项。
      */
     fun configure(javalinConfig: JavalinConfig) {
-        if(if(appdata.status == LoadStatus.LOADED) { appdata.getAppData().web.autoWebAccess }else{ false }) {
+        if(if(appdata.status == LoadStatus.LOADED) { appdata.data.web.autoWebAccess }else{ false }) {
             isAccess = true
         }
 
@@ -61,7 +61,7 @@ class WebAccessor(private val appdata: AppDataRepository, private val frontendPa
     }
 
     private fun webAccess(ctx: Context) {
-        val password = appdata.getAppData().web.password
+        val password = appdata.data.web.password
 
         ctx.json(AccessResponse(access = isAccess, needPassword = password != null))
     }
@@ -69,7 +69,7 @@ class WebAccessor(private val appdata: AppDataRepository, private val frontendPa
     private fun webLogin(ctx: Context) {
         if(!isAccess) { throw Reject("Web access is not open.") }
         val form = ctx.bodyAsClass(LoginForm::class.java)
-        val password = appdata.getAppData().web.password
+        val password = appdata.data.web.password
         if(form.password == password) {
             val token = Token.webToken().also { tokens.add(it) }
 

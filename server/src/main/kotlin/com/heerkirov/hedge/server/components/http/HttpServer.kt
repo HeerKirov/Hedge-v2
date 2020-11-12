@@ -1,6 +1,6 @@
 package com.heerkirov.hedge.server.components.http
 
-import com.heerkirov.hedge.server.components.appdata.AppDataRepository
+import com.heerkirov.hedge.server.components.appdata.AppDataDriver
 import com.heerkirov.hedge.server.components.health.Health
 import com.heerkirov.hedge.server.components.http.modules.Aspect
 import com.heerkirov.hedge.server.components.http.modules.Authentication
@@ -43,14 +43,14 @@ class HttpServerOptions(
 )
 
 class HttpServerImpl(private val health: Health,
-                     private val appdata: AppDataRepository,
+                     private val appdata: AppDataDriver,
                      private val options: HttpServerOptions) : HttpServer {
     private val log: Logger = LoggerFactory.getLogger(HttpServerImpl::class.java)
 
     private val token: String = Token.token()
     private var port: Int? = null
 
-    private lateinit var server: Javalin
+    private var server: Javalin? = null
 
     private val web = WebAccessor(appdata, options.frontendFromFolder ?: "${Filename.FRONTEND_FOLDER}/${options.userDataPath}")
 
@@ -66,10 +66,10 @@ class HttpServerImpl(private val health: Health,
     }
 
     override val isIdle: Boolean //当web可访问且打开了web的永久访问开关时，http server标记为忙，使进程不会退出
-        get() = !(web.isAccess && appdata.getAppData().web.permanent)
+        get() = !(web.isAccess && appdata.data.web.permanent)
 
     override fun close() {
-        server.stop()
+        server?.stop()
     }
 
     /**
@@ -88,7 +88,7 @@ class HttpServerImpl(private val health: Health,
      */
     private fun Javalin.bind(): Javalin {
         val ports = options.forcePort?.let { sequenceOf(it) }
-            ?: if(appdata.status == LoadStatus.LOADED) { appdata.getAppData().service.port }else{ null }?.let { Net.analyzePort(it) }
+            ?: if(appdata.status == LoadStatus.LOADED) { appdata.data.service.port }else{ null }?.let { Net.analyzePort(it) }
             ?: Net.generatePort(options.defaultPort)
 
         for (port in ports) {

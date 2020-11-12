@@ -12,4 +12,10 @@ object Filename {
     const val CHANNEL = "appdata/channel"
     const val SERVER_PID = "server.pid"
     const val DATA_DAT = "data.dat"
+
+    const val META_DAT = "meta.dat"
+    const val DATA_SQLITE = "data.sqlite"
+    const val ORIGIN_SQLITE = "origin.sqlite"
+    const val STATISTIC_SQLITE = "statistic.sqlite"
+    const val VERSION_LOCK = "version"
 }

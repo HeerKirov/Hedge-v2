@@ -30,6 +30,10 @@ inline fun <reified T> JsonNode.parseJSONObject(): T {
     return objectMapper().convertValue(this, T::class.java)
 }
 
+fun <T> JsonNode.parseJSONObject(clazz: Class<T>): T {
+    return objectMapper().convertValue(this, clazz)
+}
+
 fun String.parseJsonNode(): JsonNode {
     return objectMapper.readTree(this)
 }

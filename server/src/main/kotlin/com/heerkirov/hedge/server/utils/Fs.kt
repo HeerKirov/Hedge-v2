@@ -3,7 +3,7 @@ package com.heerkirov.hedge.server.utils
 import java.io.File
 
 object Fs {
-    fun exists(path: String): Boolean {
+    private fun exists(path: String): Boolean {
         return File(path).exists()
     }
 

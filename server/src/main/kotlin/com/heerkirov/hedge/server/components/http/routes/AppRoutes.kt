@@ -1,6 +1,6 @@
 package com.heerkirov.hedge.server.components.http.routes
 
-import com.heerkirov.hedge.server.components.appdata.AppDataRepository
+import com.heerkirov.hedge.server.components.appdata.AppDataDriver
 import com.heerkirov.hedge.server.components.http.Endpoints
 import com.heerkirov.hedge.server.components.lifetime.Lifetime
 import com.heerkirov.hedge.server.enums.LoadStatus
@@ -10,7 +10,7 @@ import io.javalin.apibuilder.ApiBuilder.*
 import io.javalin.http.Context
 
 
-class AppRoutes(private val lifetime: Lifetime, private val appdata: AppDataRepository) : Endpoints {
+class AppRoutes(private val lifetime: Lifetime, private val appdata: AppDataDriver) : Endpoints {
     override fun handle(javalin: Javalin) {
         javalin.routes {
             path("app") {
