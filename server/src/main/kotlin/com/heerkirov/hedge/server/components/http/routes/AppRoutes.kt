@@ -28,16 +28,22 @@ class AppRoutes(private val lifetime: Lifetime, private val appdata: AppDataDriv
         }
     }
 
+    /**
+     * 一般用来健康检查的api。此外，提供对appdata加载状态的检查。
+     */
     private fun health(ctx: Context) {
         ctx.json(HealthResponse(status = appdata.status))
     }
 
+    /**
+     * 对server进行初始化。
+     * @throws Reject server已经初始化过了。
+     */
     private fun init(ctx: Context) {
         if(appdata.status != LoadStatus.NOT_INIT) {
             throw Reject("Server has already been initialized.")
         }
         val form = ctx.bodyAsClass(InitForm::class.java)
-        //TODO 后续还包括db的初始化
         appdata.init(form.dbPath)
     }
 

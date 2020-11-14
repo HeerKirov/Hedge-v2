@@ -1,10 +1,10 @@
 import path from "path"
-import { request } from "http"
 import { spawn } from "child_process"
+import axios, { AxiosRequestConfig } from "axios"
 import { DATA_FILE, RESOURCE_FILE } from "../../definitions/file"
 import { ServerConnectionInfo, ServerPID, ServerStatus } from "./model"
 import { readFile } from "../../utils/fs"
-import { sleep } from "../../utils/process"
+import { sleep, schedule, Future } from "../../utils/process"
 
 /**
  * 对接后台服务部分的管理器。负责监视本频道对应的后台服务的运行状态，获取其运行参数，提供启动后台服务的功能，提供部分必须的后台服务功能接入。
@@ -34,6 +34,13 @@ export interface ServerManager {
      * - 通知server删除当前client的lifetime。
      */
     closeConnection(): Promise<void>
+
+    /**
+     * 对server进行初始化。
+     * @param dbPath 初始化的数据库文件夹路径
+     * @return 指示是否成功初始化。如果初始化过，执行此方法会失败并返回false。
+     */
+    initializeRemoteServer(dbPath: string): Promise<boolean>
 }
 
 /**
@@ -76,7 +83,7 @@ export function createServerManager(options: ServerManagerOptions): ServerManage
 }
 
 function createProxyServerManager(options: ServerManagerOptions): ServerManager {
-    const info = {url: options.debug!.serverFromURL!!, token: ""}
+    const info = {pid: 0 ,url: options.debug!.serverFromURL!!, token: ""}
 
     return {
         async startConnection(): Promise<ServerConnectionInfo> {
@@ -88,7 +95,10 @@ function createProxyServerManager(options: ServerManagerOptions): ServerManager 
         connectionInfo(): ServerConnectionInfo {
             return info
         },
-        async closeConnection(): Promise<void> {}
+        async closeConnection(): Promise<void> {},
+        async initializeRemoteServer(): Promise<boolean> {
+            return true
+        }
     }
 }
 
@@ -102,6 +112,9 @@ function createStdServerManager(options: ServerManagerOptions): ServerManager {
     let status: ServerStatus = ServerStatus.UNKNOWN
     let connectionInfo: ServerConnectionInfo | null = null
 
+    let lifetimeId: string | null = null
+    let scheduleFuture: Future | null = null
+
     /**
      * 调用spawn创建进程。
      */
@@ -113,86 +126,89 @@ function createStdServerManager(options: ServerManagerOptions): ServerManager {
     }
 
     /**
-     * 检查server服务是否可用(方式是调/health接口检查是否已经可以走通)。
-     * @return 如果已经可用，返回true；还不可用则返回false。
-     * @throws 如果访问产生401/403，视为无法解决的致命错误，抛出一个Error。
+     * 等待，直到server可用。如果等待时间过长，会抛出一个异常。
      */
-    async function checkForHealth(url: string, token: string): Promise<boolean> {
-        return new Promise((resolve, reject) => {
-            request(`${url}/app/health`, {method: 'GET', headers: {'Authorization': `bearer ${token}`}}, res => {
-                if(res.statusCode != undefined && res.statusCode < 300) {
-                    resolve(true)
-                }else if(res.statusCode == undefined) {
-                    resolve(false)
-                }else if(res.statusCode == 401 || res.statusCode == 403) {
-                    reject(new Error(`Access is forbidden(status code is ${res.statusCode}).`))
-                }
-            })
-        })
-    }
-    /**TODO 设计不对。error这个东西到底该如何处理？
-     *      应该把errors从server.pid里剥离出去，使其不再负责errors传递。
-     *      errors都写入本地另外的log文件中，根据需要读取。
-     */
-
-    /**
-     * 查询serverPID文件以及端口是否可用。
-     * @return 如果可用，返回url和token；如果存在致命错误，抛出一个string异常。
-     * @throws 如果token不对，视为无法解决的致命错误，抛出一个Error。
-     */
-    async function checkForAvailable(): Promise<{url: string, token: string} | null> {
-        const serverPID = await readFile<ServerPID>(serverPIDPath)
-        if(serverPID != null) {
-            if(serverPID.port != null && serverPID.token != null) {
-                const url = `http://127.0.0.1:${serverPID.port}`
-                const token = serverPID.token
-                if(await checkForHealth(url, token)) {
-                    return {url, token}
-                }else{
-                    return null
-                }
-            }else if(serverPID.errors != null) {
-                throw serverPID.errors.join("\n")
-            }else{
-                return null
-            }
-        }else{
-            return null
-        }
-    }
-
-    /**
-     * 等待，直到server可用。如果等待时间过长，会抛出一个string异常。
-     */
-    async function waitForReady(): Promise<{url: string, token: string}> {
-        for(let i = 0; i < 10; ++i) {
+    async function waitForReady(): Promise<ServerConnectionInfo> {
+        for(let i = 0; i < 30; ++i) {
             await sleep(i <= 1 ? 250 : 1000)
-            const result = await checkForAvailable()
+            const result = await checkForAvailable(serverPIDPath)
             if(result != null) {
                 return result
             }
         }
-        throw "Waiting for server starting over 10s."
+        throw new Error("Waiting for server starting over 30s.")
     }
 
+    /**
+     * 尝试启动并创建心跳任务。
+     */
     async function startConnection(): Promise<ServerConnectionInfo> {
         const serverPID = await readFile<ServerPID>(serverPIDPath)
         if(serverPID == null) {
             await callSpawn()
         }
 
-        await waitForReady()
+        connectionInfo = await waitForReady()
 
-        return connectionInfo!
+        {
+            const res = await request({url: `${connectionInfo!.url}/app/lifetime`, method: "post", headers: {'Authorization': `bearer ${connectionInfo!.token}`}, data: {interval: 1000 * 120}})
+            if(res.ok) {
+                lifetimeId = (<{id: string}>res.data).id
+            }else{
+                throw new Error(`Error occurred in creating heart in server: ${res.message}`)
+            }
+        }
+
+        scheduleFuture = schedule(1000 * 40, async () => {
+            const res = await request({url: `${connectionInfo!.url}/app/lifetime/${lifetimeId!}`, method: "put", headers: {'Authorization': `bearer ${connectionInfo!.token}`}})
+            if(!res.ok) {
+                console.error(`Error occurred in heart to server: ${res.message}`)
+            }
+        })
+
+        return connectionInfo
     }
 
+    /**
+     * 停止心跳任务并关闭连接。
+     */
     async function closeConnection(): Promise<void> {
+        if(scheduleFuture != null) {
+            scheduleFuture.stop()
+            scheduleFuture = null
+        }
 
+        {
+            const res = await request({url: `${connectionInfo!.url}/app/lifetime/${lifetimeId!}`, method: "delete", headers: {'Authorization': `bearer ${connectionInfo!.token}`}})
+            if(!res.ok) {
+                console.error(`Error occurred in deleting heart from server: ${res.message}`)
+            }
+            lifetimeId = null
+        }
+    }
+
+    /**
+     * 初始化server。
+     */
+    async function initializeRemoteServer(dbPath: string): Promise<boolean> {
+        const res = await request({url: `${connectionInfo?.url!}/app/init`, method: "post", headers: {'Authorization': `bearer ${connectionInfo!.token}`}, data: {dbPath}})
+        if(res.ok) {
+            return true
+        }else if(res.status) {
+            if(res.code === "REJECT") {
+                return false
+            }else{
+                throw new Error(`Initialization error [${res.code}]: ${res.message}`)
+            }
+        }else{
+            throw new Error(`Error occurred while initializing server: ${res.message}`)
+        }
     }
 
     return {
         startConnection,
         closeConnection,
+        initializeRemoteServer,
         status(): ServerStatus {
             return status
         },
@@ -200,4 +216,93 @@ function createStdServerManager(options: ServerManagerOptions): ServerManager {
             return connectionInfo
         }
     }
+}
+
+/**
+ * 检查server服务是否可用(方式是调/health接口检查是否已经可以走通)。
+ * @return 如果已经可用，返回true；还不可用则返回false。
+ * @throws 如果访问产生401/403，视为无法解决的致命错误，抛出一个Error。
+ */
+async function checkForHealth(url: string, token: string): Promise<boolean> {
+    const res = await request({url: `${url}/app/health`, method: 'GET', headers: {'Authorization': `bearer ${token}`}})
+    if(res.ok) {
+        return true
+    }else if(res.status) {
+        throw new Error(`Unexpected status ${res.status} in health check: ${res.message}`)
+    }else{
+        return false
+    }
+}
+
+/**
+ * 查询serverPID文件以及端口是否可用。
+ * @return 如果可用，返回pid、url和token；如果存在致命错误，抛出一个string异常。
+ * @throws 如果token不对，视为无法解决的致命错误，抛出一个Error。
+ */
+async function checkForAvailable(pidPath: string): Promise<ServerConnectionInfo | null> {
+    const serverPID = await readFile<ServerPID>(pidPath)
+    if(serverPID != null) {
+        if(serverPID.port != null && serverPID.token != null) {
+            const pid = serverPID.pid
+            const url = `http://127.0.0.1:${serverPID.port}`
+            const token = serverPID.token
+            if(await checkForHealth(url, token)) {
+                return {pid, url, token}
+            }
+        }
+    }
+    return null
+}
+
+/**
+ * 发送一个http请求。包装过axios方法，处理其异常。
+ */
+function request<T>(config: AxiosRequestConfig): Promise<Response<T>> {
+    return new Promise(resolve => {
+        axios.request(config)
+            .then(res => {
+                resolve({
+                    ok: true,
+                    status: res.status,
+                    data: res.data
+                })
+            }).catch(reason => {
+                if(reason.response) {
+                    const data = reason.response.data as {code: string, message: string | null, info: any}
+                    resolve({
+                        ok: false,
+                        status: reason.response.status,
+                        code: data.code,
+                        message: data.message
+                    })
+                }else{
+                    resolve({
+                        ok: false,
+                        status: undefined,
+                        message: reason.message
+                    })
+                }
+            })
+    })
+}
+
+type Response<T> = ResponseOk<T> | ResponseError | ResponseConnectionError
+
+interface ResponseOk<T> {
+    ok: true
+    status: number
+    data: T
+}
+
+interface ResponseError {
+    ok: false
+    status: number
+    code: string
+    message: string | null
+}
+
+interface ResponseConnectionError {
+    ok: false
+    status: undefined
+    message: string
 }

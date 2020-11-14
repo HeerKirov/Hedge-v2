@@ -70,6 +70,7 @@ class Framework {
                 call(context)
             }catch (e: Exception) {
                 exceptions.add(e)
+                log.error("Error occurred in then.", e)
             }
         }
         return this

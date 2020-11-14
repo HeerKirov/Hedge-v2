@@ -32,17 +32,20 @@ class HealthImpl(private val context: FrameworkContext, options: HealthOptions) 
     private val pid: Long = ProcessHandle.current().pid()
     private val model: ServerPID
 
+    private var initialized: Boolean = false
+
     init {
         checkCurrentProcess()
         model = ServerPID(pid, null, null, null)
         save()
+        initialized = true
     }
 
     private fun checkCurrentProcess() {
         Fs.mkdir(channelPath)
         val f = Fs.readFile<ServerPID>(pidPath)
         if(f != null && f.pid != pid && ProcessHandle.of(f.pid).isPresent) {
-            log.info("Hedge server has been running with PID ${f.pid}.")
+            log.info("Hedge server has been running with PID ${f.pid}. Exit current progress.")
             exitProcess(0)
         }
     }
@@ -55,10 +58,8 @@ class HealthImpl(private val context: FrameworkContext, options: HealthOptions) 
     }
 
     override fun close() {
-        if(context.getExceptions().isNotEmpty()) {
-            model.errors = context.getExceptions().mapNotNull { e -> e.message }
-            save(null, null)
-        }else{
+        //initialized值用于防止意外的对server.pid的更改。此值为true时表明当前进程确实是有效进程，因此在close时拥有对server.pid的删除权。
+        if(initialized) {
             Fs.rm(pidPath)
         }
     }

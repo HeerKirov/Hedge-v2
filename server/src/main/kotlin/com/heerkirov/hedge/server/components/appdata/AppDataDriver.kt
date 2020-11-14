@@ -59,6 +59,7 @@ class AppDataDriverImpl(private val repository: DataRepository, options: Appdata
         if(appdata == null) {
             this.loadStatus = LoadStatus.NOT_INIT
         }else{
+            this.loadStatus = LoadStatus.LOADING
             VersionFileMigrator(versionLockPath).use {
                 it.migrate(appdataFile, AppDataMigrationStrategy).let { (d, changed) ->
                     if(changed) { Fs.writeText(appDataPath, d.toJSONString()) }
@@ -90,7 +91,7 @@ class AppDataDriverImpl(private val repository: DataRepository, options: Appdata
     }
 
     override fun save(call: (AppData.() -> Unit)?) {
-        if(appdata == null) { throw RuntimeException("Appdata is not initiailized.") }
+        if(appdata == null) { throw RuntimeException("Appdata is not initialized.") }
         if(call != null) {
             appdata?.call()
         }

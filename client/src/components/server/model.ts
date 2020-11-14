@@ -1,13 +1,7 @@
 export interface ServerPID {
-    pid?: number
+    pid: number
     port?: number
     token?: string
-    errors?: string[]
-}
-
-interface ServerErrPID {
-    ok: false
-    error: string[]
 }
 
 export enum ServerStatus {
@@ -18,6 +12,7 @@ export enum ServerStatus {
 }
 
 export interface ServerConnectionInfo {
+    pid: number
     url: string
     token: string
 }

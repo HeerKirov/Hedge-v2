@@ -10,6 +10,7 @@
     "debug": "electron . $(cat args.dev.local)"
   },
   "dependencies": {
+    "axios": "^0.21.0",
     "tslib": "^2.0.3",
     "unzipper": "^0.10.11"
   },
