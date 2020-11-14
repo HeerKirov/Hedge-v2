@@ -7,3 +7,7 @@ export function getNodePlatform(): Platform {
     }
     throw new Error(`Unsupported platform ${platform}.`)
 }
+
+export async function sleep(timeMs: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, timeMs))
+}

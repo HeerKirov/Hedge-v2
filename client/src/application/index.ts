@@ -67,7 +67,7 @@ export function createApplication(options?: AppOptions) {
 
     const bucket = createBucket({userDataPath, channel})
 
-    const serverManager = createServerManager({userDataPath, channel})
+    const serverManager = createServerManager({userDataPath, channel, debug: options?.debug && {serverFromURL: options.debug.serverFromURL, serverFromFolder: options.debug.serverFromFolder, frontendFromFolder: options.debug.frontendFromFolder}})
 
     registerAppEvents(windowManager, platform, options)
 
