@@ -24,5 +24,9 @@ class ApplicationOptions(
     /**
      * 强制使用此单一端口启动server，用于固定端口的开发模式。
      */
-    val forcePort: Int? = null
+    val forcePort: Int? = null,
+    /**
+     * 强制使用此token启动server，用于固定token的开发模式。
+     */
+    val forceToken: String? = null
 )

@@ -33,8 +33,9 @@ class Application(options: ApplicationOptions) {
                 AppdataOptions(options.channel, options.userDataPath)) }
             .addComponent(HttpServer::class) { ctx -> HttpServerImpl(
                 ctx.getComponent(Health::class),
+                ctx.getComponent(Lifetime::class),
                 ctx.getComponent(AppDataDriver::class),
-                HttpServerOptions(options.userDataPath, options.frontendFromFolder)) }
+                HttpServerOptions(options.userDataPath, options.frontendFromFolder, options.forceToken, options.forcePort)) }
             .then(AppDataDriver::class) { load() }
             .then(HttpServer::class) { start() }
             .then(Lifetime::class) {

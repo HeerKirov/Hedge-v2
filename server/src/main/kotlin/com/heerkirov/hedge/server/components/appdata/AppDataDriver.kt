@@ -56,7 +56,7 @@ class AppDataDriverImpl(private val repository: DataRepository, options: Appdata
 
     override fun load() {
         val appdataFile = Fs.readText(appDataPath)
-        if(appdata == null) {
+        if(appdataFile == null) {
             this.loadStatus = LoadStatus.NOT_INIT
         }else{
             this.loadStatus = LoadStatus.LOADING
@@ -76,18 +76,28 @@ class AppDataDriverImpl(private val repository: DataRepository, options: Appdata
 
         this.loadStatus = LoadStatus.LOADING
 
-        VersionFileMigrator(versionLockPath).use {
-            it.migrate(null, AppDataMigrationStrategy).let { (d, changed) ->
-                if(changed) { Fs.writeText(appDataPath, d.toJSONString()) }
-                appdata = d
+        try {
+            VersionFileMigrator(versionLockPath).use {
+                it.migrate(null, AppDataMigrationStrategy).let { (d, changed) ->
+                    if(changed) { Fs.writeText(appDataPath, d.toJSONString()) }
+                    appdata = d
+                }
             }
+            appdata!!.db.path = dbPath
+
+            Fs.writeFile(appDataPath, appdata)
+
+            this.repository.loadDatabase(appdata!!.db.path)
+
+            this.loadStatus = LoadStatus.LOADED
+        }catch (e: Throwable) {
+            Fs.rm(appDataPath)
+
+            appdata = null
+            loadStatus = LoadStatus.NOT_INIT
+
+            throw e
         }
-        appdata!!.db.path = dbPath
-
-        Fs.writeFile(appDataPath, appdata)
-
-        this.repository.loadDatabase(appdata!!.db.path)
-        this.loadStatus = LoadStatus.LOADED
     }
 
     override fun save(call: (AppData.() -> Unit)?) {

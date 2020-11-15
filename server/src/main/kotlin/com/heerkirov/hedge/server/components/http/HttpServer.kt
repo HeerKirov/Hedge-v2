@@ -6,6 +6,8 @@ import com.heerkirov.hedge.server.components.http.modules.Aspect
 import com.heerkirov.hedge.server.components.http.modules.Authentication
 import com.heerkirov.hedge.server.components.http.modules.ErrorHandler
 import com.heerkirov.hedge.server.components.http.modules.WebAccessor
+import com.heerkirov.hedge.server.components.http.routes.AppRoutes
+import com.heerkirov.hedge.server.components.lifetime.Lifetime
 import com.heerkirov.hedge.server.framework.StatefulComponent
 import com.heerkirov.hedge.server.definitions.Filename
 import com.heerkirov.hedge.server.enums.LoadStatus
@@ -33,6 +35,10 @@ class HttpServerOptions(
      */
     val frontendFromFolder: String? = null,
     /**
+     * 开发模式下强制使用此token。
+     */
+    val forceToken: String? = null,
+    /**
      * 开发模式下强制使用此端口。
      */
     val forcePort: Int? = null,
@@ -43,11 +49,12 @@ class HttpServerOptions(
 )
 
 class HttpServerImpl(private val health: Health,
+                     private val lifetime: Lifetime,
                      private val appdata: AppDataDriver,
                      private val options: HttpServerOptions) : HttpServer {
     private val log: Logger = LoggerFactory.getLogger(HttpServerImpl::class.java)
 
-    private val token: String = Token.token()
+    private val token: String = options.forceToken ?: Token.token()
     private var port: Int? = null
 
     private var server: Javalin? = null
@@ -62,6 +69,7 @@ class HttpServerImpl(private val health: Health,
         server = Javalin
             .create { web.configure(it) }
             .handle(aspect, authentication, web, errorHandler)
+            .handle(AppRoutes(lifetime, appdata))
             .bind()
     }
 

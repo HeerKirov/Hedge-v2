@@ -26,8 +26,8 @@ object DatabaseMigrationStrategy : SimpleStrategy<Database>() {
      * 向database应用resources资源文件中的sql文件。
      */
     private fun Database.useSQLResource(version: Version): Database {
-        useTransaction { trans ->
-            trans.connection.createStatement().use { stat ->
+        useConnection { conn ->
+            conn.createStatement().use { stat ->
                 Resources.getResourceAsText("/migrations/v$$version.sql")
                     .let { SQLUtil.splitByDelimiter(it) }
                     .forEach { stat.execute(it) }
