@@ -1,10 +1,13 @@
-import { app, systemPreferences } from "electron"
+import { app } from "electron"
 import { getNodePlatform, Platform } from "../utils/process"
 import { createWindowManager, WindowManager } from "./window-manager"
 import { createAppDataDriver } from "../components/appdata"
+import { createStateManager } from "../components/state"
 import { createResourceManager } from "../components/resource"
+import { createServerManager, ServerManager, ServerStatus } from "../components/server"
 import { createBucket } from "../components/bucket"
-import { createServerManager } from "../components/server"
+import { createService } from "../components/service"
+import { createIpcTransformer } from "./ipc-transformer"
 
 /**
  * app的启动参数。
@@ -56,12 +59,13 @@ interface DebugOption {
 
 export function createApplication(options?: AppOptions) {
     const platform = getNodePlatform()
+    const debugMode = !!options?.debug
     const channel = options?.channel ?? "default"
     const userDataPath = options?.debug?.localDataPath ?? app.getPath("userData")
 
-    const windowManager = createWindowManager({platform, debug: options?.debug && {frontendFromFolder: options.debug.frontendFromFolder, frontendFromURL: options.debug.frontendFromURL}})
+    const appDataDriver = createAppDataDriver({userDataPath, channel, debugMode})
 
-    const appDataDriver = createAppDataDriver({userDataPath, channel, debugMode: !!options?.debug})
+    const stateManager = createStateManager(appDataDriver)
 
     const resourceManager = createResourceManager({userDataPath, debug: options?.debug && {frontendFromFolder: options.debug.frontendFromFolder, serverFromResource: options.debug.serverFromResource}})
 
@@ -69,20 +73,33 @@ export function createApplication(options?: AppOptions) {
 
     const serverManager = createServerManager({userDataPath, channel, debug: options?.debug && {serverFromURL: options.debug.serverFromURL, serverFromFolder: options.debug.serverFromFolder, frontendFromFolder: options.debug.frontendFromFolder}})
 
-    registerAppEvents(windowManager, platform, options)
+    const windowManager = createWindowManager(stateManager, {platform, debug: options?.debug && {frontendFromFolder: options.debug.frontendFromFolder, frontendFromURL: options.debug.frontendFromURL}})
+
+    const service = createService(appDataDriver, resourceManager, serverManager, bucket, stateManager, {debugMode, userDataPath, platform, channel})
+
+    const ipcTransformer = createIpcTransformer(service)
+
+    registerAppEvents(windowManager, serverManager, platform, options)
 
     app.whenReady().then(async () => {
         await appDataDriver.load()
+        await stateManager.load()
         await resourceManager.load()
 
         windowManager.createWindow()
     })
 }
 
-function registerAppEvents(windowManager: WindowManager, platform: Platform, options?: AppOptions) {
+function registerAppEvents(windowManager: WindowManager, serverManager: ServerManager, platform: Platform, options?: AppOptions) {
     app.on('window-all-closed', () => {
         if (platform !== 'darwin') {
             app.quit()
+        }
+    })
+
+    app.on('quit', async () => {
+        if(serverManager.status() == ServerStatus.OPEN) {
+            await serverManager.closeConnection()
         }
     })
 

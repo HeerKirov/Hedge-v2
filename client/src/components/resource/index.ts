@@ -46,12 +46,12 @@ export interface ResourceManager {
     getCliStatus(): ResourceStatus
 }
 
-enum ResourceStatus {
-    UNKNOWN,
-    NOT_INIT,
-    NEED_UPDATE,
-    UPDATING,
-    LATEST
+export enum ResourceStatus {
+    UNKNOWN = "UNKNOWN",
+    NOT_INIT = "NOT_INIT",
+    NEED_UPDATE = "NEED_UPDATE",
+    UPDATING = "UPDATING",
+    LATEST = "LATEST"
 }
 
 /**

@@ -6,6 +6,8 @@ import { ServerConnectionInfo, ServerPID, ServerStatus } from "./model"
 import { readFile } from "../../utils/fs"
 import { sleep, schedule, Future } from "../../utils/process"
 
+export { ServerStatus }
+
 /**
  * 对接后台服务部分的管理器。负责监视本频道对应的后台服务的运行状态，获取其运行参数，提供启动后台服务的功能，提供部分必须的后台服务功能接入。
  */

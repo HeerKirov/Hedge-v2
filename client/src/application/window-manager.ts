@@ -1,7 +1,8 @@
 import * as path from "path"
-import { Platform } from "../utils/process"
 import { BrowserWindow } from "electron"
-import {APP_FILE, RESOURCE_FILE} from "../definitions/file"
+import { Platform } from "../utils/process"
+import { StateManager } from "../components/state"
+import { APP_FILE, RESOURCE_FILE } from "../definitions/file"
 
 /**
  * electron的窗口管理器。管控窗口的建立。
@@ -15,7 +16,7 @@ export interface WindowManager {
     /**
      * 创建一个轮播图片专用的窗口。
      */
-    createDisplayWindow(/*content*/): BrowserWindow
+    createDisplayWindow(/*content*/): BrowserWindow | null
     /**
      * 打开guide窗口。
      */
@@ -23,7 +24,7 @@ export interface WindowManager {
     /**
      * 打开设置窗口。
      */
-    openSettingWindow(): BrowserWindow
+    openSettingWindow(): BrowserWindow | null
     /**
      * 获得全部窗口列表。
      */
@@ -38,14 +39,11 @@ export interface WindowManagerOptions {
     }
 }
 
-export function createWindowManager(options: WindowManagerOptions): WindowManager {
+export function createWindowManager(state: StateManager, options: WindowManagerOptions): WindowManager {
     let guideWindow: BrowserWindow | null = null
     let settingWindow: BrowserWindow | null = null
 
-    function newBrowserWindow(hashURL: string, configure?: {
-        title?: string,
-        titleBarStyle?: ('default' | 'hidden' | 'hiddenInset')
-    }): BrowserWindow {
+    function newBrowserWindow(hashURL: string, configure?: { title?: string, titleBarStyle?: ('default' | 'hidden' | 'hiddenInset') }): BrowserWindow {
         const win = new BrowserWindow({
             title: configure?.title ?? 'Hedge',
             height: 720,
@@ -71,16 +69,31 @@ export function createWindowManager(options: WindowManagerOptions): WindowManage
     }
 
     function createWindow(): BrowserWindow {
-        return newBrowserWindow("start")
+        if(!state.isLogin()) {
+            //在未登录时，只允许开启一个主要窗口。开启第二窗口只会去唤醒已有窗口。
+            for (let window of getAllWindows()) {
+                if(window != guideWindow && window != settingWindow) {
+                    window.show()
+                    return window
+                }
+            }
+        }
+        return newBrowserWindow("")
     }
 
-    function createDisplayWindow(/*content*/): BrowserWindow {
+    function createDisplayWindow(/*content*/): BrowserWindow | null {
+        if(!state.isLogin()) {
+            return null
+        }
         return newBrowserWindow("display")
     }
 
-    function openSettingWindow(): BrowserWindow {
+    function openSettingWindow(): BrowserWindow | null {
+        if(!state.isLogin()) {
+            return null
+        }
         if(settingWindow == null) {
-            settingWindow = newBrowserWindow('setting', {title: "设置", titleBarStyle: "hidden"})
+            settingWindow = newBrowserWindow('setting', {title: "Hedge设置", titleBarStyle: "hidden"})
             settingWindow.on("closed", () => {
                 settingWindow = null
             })
@@ -92,7 +105,7 @@ export function createWindowManager(options: WindowManagerOptions): WindowManage
 
     function openGuideWindow(): BrowserWindow {
         if(guideWindow == null) {
-            guideWindow = newBrowserWindow('guide', {title: "向导", titleBarStyle: "hidden"})
+            guideWindow = newBrowserWindow('guide', {title: "Hedge向导", titleBarStyle: "hidden"})
             guideWindow.on("closed", () => {
                 guideWindow = null
             })

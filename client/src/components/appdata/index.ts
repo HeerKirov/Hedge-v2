@@ -33,11 +33,11 @@ export interface AppDataDriver {
     saveAppData(process?: (data: AppData) => void): Promise<AppData>
 }
 
-enum AppDataStatus {
-    UNKNOWN,
-    NOT_INIT,
-    LOADING,
-    LOADED
+export enum AppDataStatus {
+    UNKNOWN = "UNKNOWN",
+    NOT_INIT = "NOT_INIT",
+    LOADING = "LOADING",
+    LOADED = "LOADED"
 }
 
 /**
