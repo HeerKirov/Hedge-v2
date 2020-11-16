@@ -73,5 +73,6 @@ jlink {
          */
         uses 'kotlin.reflect.jvm.internal.impl.resolve.ExternalOverridabilityCondition'
         uses 'kotlin.reflect.jvm.internal.impl.util.ModuleVisibilityHelper'
+        uses 'kotlin.reflect.jvm.internal.impl.builtins.BuiltInsLoader'
     }
 }

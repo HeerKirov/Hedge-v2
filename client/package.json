@@ -7,7 +7,7 @@
   "scripts": {
     "compile": "tsc",
     "start": "electron .",
-    "debug": "electron . $(cat args.dev.local)"
+    "debug": "electron . --debug-mode --local-data-path $(pwd)/../userdata.local --frontend-from-folder ../frontend/dist --server-from-folder ../server/build/image"
   },
   "dependencies": {
     "axios": "^0.21.0",

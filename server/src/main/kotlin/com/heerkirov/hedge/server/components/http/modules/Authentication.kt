@@ -20,7 +20,7 @@ class Authentication(private val baseToken: String, private val webAccessor: Web
 
     private fun authenticate(ctx: Context) {
         val bearer = ctx.header("Authorization") ?: throw NoToken()
-        val userToken = if(bearer.startsWith("Bearer ")) bearer.substring("Bearer ".length) else throw NoToken()
+        val userToken = if(bearer.substring(0, "Bearer ".length).toLowerCase() == "bearer ") bearer.substring("Bearer ".length) else throw NoToken()
 
         if(baseToken == userToken) {
             //通过baseToken的验证
@@ -35,7 +35,7 @@ class Authentication(private val baseToken: String, private val webAccessor: Web
 
     private fun authenticateOnlyForClient(ctx: Context) {
         val bearer = ctx.header("Authorization") ?: throw NoToken()
-        val userToken = if(bearer.startsWith("Bearer ")) bearer.substring("Bearer ".length) else throw NoToken()
+        val userToken = if(bearer.substring(0, "Bearer ".length).toLowerCase() == "bearer ") bearer.substring("Bearer ".length) else throw NoToken()
 
         if(baseToken == userToken) {
             //通过baseToken的验证

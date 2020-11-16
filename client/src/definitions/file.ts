@@ -16,6 +16,7 @@ export const DATA_FILE = {
         CHANNEL_FOLDER(name: string) { return `appdata/channel/${name}` },
         CHANNEL: {
             SERVER_PID: "server.pid",
+            SERVER_LOG: "server.log",
             CLIENT_DATA: "client.dat",
             CLIENT_STORAGE(name: string) { return `client.${name}.storage` }
         }

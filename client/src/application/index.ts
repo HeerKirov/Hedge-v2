@@ -97,9 +97,10 @@ function registerAppEvents(windowManager: WindowManager, serverManager: ServerMa
         }
     })
 
-    app.on('quit', async () => {
+    app.on('quit', () => {
+        //此事件实际上将同步完成，在同步执行完成后app就已经退出，等不到异步返回
         if(serverManager.status() == ServerStatus.OPEN) {
-            await serverManager.closeConnection()
+            serverManager.closeConnection().finally(() => {})
         }
     })
 

@@ -4,7 +4,7 @@ import axios, { AxiosRequestConfig } from "axios"
 import { DATA_FILE, RESOURCE_FILE } from "../../definitions/file"
 import { ServerConnectionInfo, ServerPID, ServerStatus } from "./model"
 import { readFile } from "../../utils/fs"
-import { sleep, schedule, Future } from "../../utils/process"
+import { Future, schedule, sleep } from "../../utils/process"
 
 export { ServerStatus }
 
@@ -85,7 +85,7 @@ export function createServerManager(options: ServerManagerOptions): ServerManage
 }
 
 function createProxyServerManager(options: ServerManagerOptions): ServerManager {
-    const info = {pid: 0 ,url: options.debug!.serverFromURL!!, token: ""}
+    const info = {pid: 0, url: options.debug!.serverFromURL!!, token: "dev"}
 
     return {
         async startConnection(): Promise<ServerConnectionInfo> {
@@ -110,6 +110,7 @@ function createStdServerManager(options: ServerManagerOptions): ServerManager {
         ? path.join(options.debug?.serverFromFolder, RESOURCE_FILE.SERVER.BIN)
         : path.join(options.userDataPath, DATA_FILE.RESOURCE.SERVER_FOLDER, RESOURCE_FILE.SERVER.BIN)
     const serverPIDPath = path.join(options.userDataPath, DATA_FILE.APPDATA.CHANNEL_FOLDER(options.channel), DATA_FILE.APPDATA.CHANNEL.SERVER_PID)
+    const serverLogPath = path.join(options.userDataPath, DATA_FILE.APPDATA.CHANNEL_FOLDER(options.channel), DATA_FILE.APPDATA.CHANNEL.SERVER_LOG)
 
     let status: ServerStatus = ServerStatus.UNKNOWN
     let connectionInfo: ServerConnectionInfo | null = null
@@ -120,11 +121,16 @@ function createStdServerManager(options: ServerManagerOptions): ServerManager {
     /**
      * 调用spawn创建进程。
      */
-    async function callSpawn(): Promise<void> {
+    function callSpawn() {
         const baseArgs = ['--channel', options.channel, '--user-data', options.userDataPath]
         const debugModeArgs = debugMode ? ['--debug-mode'] : []
         const frontendFromFolderArgs = options.debug?.frontendFromFolder ? ['--frontend-from-folder', options.debug.frontendFromFolder] : []
-        spawn(serverBinPath, [...baseArgs, ...debugModeArgs, ...frontendFromFolderArgs], {detached: true})
+        const out = require("fs").openSync(serverLogPath, "w")
+        const s = spawn(serverBinPath, [...baseArgs, ...debugModeArgs, ...frontendFromFolderArgs], {
+            detached: true,
+            stdio: ["ignore", out, out]
+        })
+        s.unref()
     }
 
     /**
@@ -147,13 +153,14 @@ function createStdServerManager(options: ServerManagerOptions): ServerManager {
     async function startConnection(): Promise<ServerConnectionInfo> {
         const serverPID = await readFile<ServerPID>(serverPIDPath)
         if(serverPID == null) {
-            await callSpawn()
+            callSpawn()
         }
 
+        status = ServerStatus.OPEN
         connectionInfo = await waitForReady()
 
         {
-            const res = await request({url: `${connectionInfo!.url}/app/lifetime`, method: "post", headers: {'Authorization': `bearer ${connectionInfo!.token}`}, data: {interval: 1000 * 120}})
+            const res = await request({url: `${connectionInfo!.url}/app/lifetime`, method: "post", headers: {'Authorization': `Bearer ${connectionInfo!.token}`}, data: {interval: 1000 * 120}})
             if(res.ok) {
                 lifetimeId = (<{id: string}>res.data).id
             }else{
@@ -162,7 +169,7 @@ function createStdServerManager(options: ServerManagerOptions): ServerManager {
         }
 
         scheduleFuture = schedule(1000 * 40, async () => {
-            const res = await request({url: `${connectionInfo!.url}/app/lifetime/${lifetimeId!}`, method: "put", headers: {'Authorization': `bearer ${connectionInfo!.token}`}})
+            const res = await request({url: `${connectionInfo!.url}/app/lifetime/${lifetimeId!}`, method: "put", headers: {'Authorization': `Bearer ${connectionInfo!.token}`}, data: {}})
             if(!res.ok) {
                 console.error(`Error occurred in heart to server: ${res.message}`)
             }
@@ -181,19 +188,21 @@ function createStdServerManager(options: ServerManagerOptions): ServerManager {
         }
 
         {
-            const res = await request({url: `${connectionInfo!.url}/app/lifetime/${lifetimeId!}`, method: "delete", headers: {'Authorization': `bearer ${connectionInfo!.token}`}})
+            const res = await request({url: `${connectionInfo!.url}/app/lifetime/${lifetimeId!}`, method: "delete", headers: {'Authorization': `Bearer ${connectionInfo!.token}`}})
             if(!res.ok) {
                 console.error(`Error occurred in deleting heart from server: ${res.message}`)
             }
             lifetimeId = null
         }
+
+        status = ServerStatus.CLOSE
     }
 
     /**
      * 初始化server。
      */
     async function initializeRemoteServer(dbPath: string): Promise<boolean> {
-        const res = await request({url: `${connectionInfo?.url!}/app/init`, method: "post", headers: {'Authorization': `bearer ${connectionInfo!.token}`}, data: {dbPath}})
+        const res = await request({url: `${connectionInfo?.url!}/app/init`, method: "post", headers: {'Authorization': `Bearer ${connectionInfo!.token}`}, data: {dbPath}})
         if(res.ok) {
             return true
         }else if(res.status) {
@@ -226,7 +235,7 @@ function createStdServerManager(options: ServerManagerOptions): ServerManager {
  * @throws 如果访问产生401/403，视为无法解决的致命错误，抛出一个Error。
  */
 async function checkForHealth(url: string, token: string): Promise<boolean> {
-    const res = await request({url: `${url}/app/health`, method: 'GET', headers: {'Authorization': `bearer ${token}`}})
+    const res = await request({url: `${url}/app/health`, method: 'GET', headers: {'Authorization': `Bearer ${token}`}})
     if(res.ok) {
         return true
     }else if(res.status) {
