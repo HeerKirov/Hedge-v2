@@ -1,46 +1,56 @@
 import { ipcRenderer, remote } from "electron"
 
-/*
+/**
  * 定义在client，但实际上要注入页面在前端运行的脚本。
  * 这一部分的作用是把来自Electron的API抽离到单一脚本内隔离，并直接注入前端，使用接口模式无感知地运行。
  */
-
-/**
- * 向ipcRenderer发送invoke调用。
- * @param channelName channel名称，对应的是service中的channel名称
- * @param method channel method
- * @param meta 调用元信息
- * @param req 调用业务内容
- */
-async function invokeIPC(channelName: string, method: string, meta: unknown, req: unknown): Promise<unknown> {
-    return await ipcRenderer.invoke(`serv/${channelName}[${method}]`, [meta, req])
+interface RemoteClientAdapter {
+    fullscreen: {
+        /**
+         * 判断当前是否处于全屏状态。
+         */
+        isFullscreen(): boolean
+        /**
+         * 全屏状态发生变化时触发事件。
+         * @param event
+         */
+        onFullscreenChanged(event: (fullscreen: boolean) => void): void
+        /**
+         * 手动设置全屏状态。
+         * @param fullscreen
+         */
+        setFullscreen(fullscreen: boolean): void
+    }
 }
 
-/**
- * 注册那些全局环境的事件。
- * @param events
- */
-function registerElectronEvents(events: ElectronEvents) {
+function createRemoteClientAdapter(): RemoteClientAdapter {
     const window = remote.getCurrentWindow()
-    window.on("enter-full-screen", () => {
-        events.fullScreenChanged(true)
-    })
-    window.on("leave-full-screen", () => {
-        events.fullScreenChanged(false)
-    })
+    return {
+        fullscreen: {
+            isFullscreen() {
+                return window.isFullScreen()
+            },
+            onFullscreenChanged(event: (fullscreen: boolean) => void) {
+                window.on("enter-full-screen", () => event(true))
+                window.on("leave-full-screen", () => event(false))
+            },
+            setFullscreen(fullscreen: boolean) {
+                window.setFullScreen(fullscreen)
+            }
+        }
+    }
 }
 
 /**
- * 全局事件定义。
+ * 对接ipcRenderer。
  */
-interface ElectronEvents {
-    fullScreenChanged(isFullScreen: boolean): void
+function ipcInvoke<T, R>(channel: string, form?: T): Promise<R> {
+    return ipcRenderer.invoke(channel, [form])
 }
 
 (() => {
     const w = window as any
-
-    w['clientMode'] = true
-    w['invokeIPC'] = invokeIPC
-    w['registerElectronEvents'] = registerElectronEvents
+    w["clientMode"] = true
+    w["ipcInvoke"] = ipcInvoke
+    w["createRemoteClientAdapter"] = createRemoteClientAdapter
 })()

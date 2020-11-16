@@ -85,10 +85,10 @@ App.scss        -- App的全局样式
 ### functions
 这里定义业务相关的函数库。  
 以文件夹为单位分开定义。大部分情况下，这里的产出会是`vue hooks`函数或插件。
-* `api`: 与后方对接的相关库。包括接口定义、http API对接实现、IPC对接实现、client的preloads注入识别。在client或web模式下提供的接口定义保持一致。
-* `state`: 前端的大业务层。在api和ipc的基础上进行包装，将所有后端、客户端提供的功能包装为hooks函数提供服务。
+* `adapter-ipc`: 与来自client的IPC接口对接，提供API函数包装。
+* `adapter-http`: 与来自server的HTTP接口对接，提供API函数包装，并在函数包装的基础上提供http client封装。
+* `service`: 前端的大业务层。将来自ipc、http等的功能包装为一个一个的服务模块，通过install plugin->use的方式提供。这层包装会将API包装为VCA，抹去其remote API特征。
 * `document`: 与web document相关的功能的hooks函数。
-* `http`: 通用的http API接入hooks函数，包括request模式和SWR模式。
 * `notification`: 提供消息通知框服务。
 * `message-box`: 提供简单对话框服务。
 

@@ -1,6 +1,6 @@
 import { RouteRecordRaw } from 'vue-router'
 
-export default [
+export default <RouteRecordRaw[]>[
     {
         name: 'Guide',
         path: '/guide',
@@ -18,4 +18,4 @@ export default [
             }
         ]
     }
-] as RouteRecordRaw[]
+]

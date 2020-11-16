@@ -1,6 +1,6 @@
 import { RouteRecordRaw } from "vue-router"
 
-export default [
+export default <RouteRecordRaw[]>[
     {
         name: 'Index',
         path: '/',
@@ -16,4 +16,4 @@ export default [
         path: '/login',
         component: () => import('@/views/Login')
     }
-] as RouteRecordRaw[]
+]

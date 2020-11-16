@@ -1,6 +1,6 @@
 import { RouteRecordRaw } from 'vue-router'
 
-export default [
+export default <RouteRecordRaw[]>[
     {
         name: 'Setting',
         path: '/setting',
@@ -43,4 +43,4 @@ export default [
             }
         ]
     }
-] as RouteRecordRaw[]
+]

@@ -1,7 +1,7 @@
 import { RouteRecordRaw } from 'vue-router'
 
 
-export default [
+export default <RouteRecordRaw[]>[
     {
         name: 'Hedge',
         path: '/hedge',
@@ -79,4 +79,4 @@ export default [
             },
         ]
     }
-] as RouteRecordRaw[]
+]
