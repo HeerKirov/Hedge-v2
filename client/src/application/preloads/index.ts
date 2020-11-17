@@ -20,7 +20,21 @@ interface RemoteClientAdapter {
          * @param fullscreen
          */
         setFullscreen(fullscreen: boolean): void
+    },
+    menu: {
+        /**
+         * 创建一个弹出菜单的调用。给出菜单模板，返回一个函数，调用此函数以弹出此菜单。
+         */
+        createPopup(items: MenuTemplate[]): () => void
     }
+}
+
+interface MenuTemplate {
+    label?: string
+    enabled?: boolean
+    type?: 'normal' | 'separator' | 'submenu' | 'checkbox' | 'radio'
+    submenu?: MenuTemplate[]
+    click?(): void
 }
 
 function createRemoteClientAdapter(): RemoteClientAdapter {
@@ -37,6 +51,11 @@ function createRemoteClientAdapter(): RemoteClientAdapter {
             setFullscreen(fullscreen: boolean) {
                 window.setFullScreen(fullscreen)
             }
+        },
+        menu: {
+            createPopup(items: MenuTemplate[]) {
+                return remote.Menu.buildFromTemplate(items).popup
+            }
         }
     }
 }
@@ -45,12 +64,20 @@ function createRemoteClientAdapter(): RemoteClientAdapter {
  * 对接ipcRenderer。
  */
 function ipcInvoke<T, R>(channel: string, form?: T): Promise<R> {
-    return ipcRenderer.invoke(channel, [form])
+    return ipcRenderer.invoke(channel, form)
+}
+
+/**
+ * 对接ipcRenderer的同步实现。
+ */
+function ipcInvokeSync<T, R>(channel: string, form?: T): R {
+    return ipcRenderer.sendSync(channel, form)
 }
 
 (() => {
     const w = window as any
     w["clientMode"] = true
     w["ipcInvoke"] = ipcInvoke
+    w["ipcInvokeSync"] = ipcInvokeSync
     w["createRemoteClientAdapter"] = createRemoteClientAdapter
 })()

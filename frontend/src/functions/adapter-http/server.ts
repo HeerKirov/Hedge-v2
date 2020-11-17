@@ -37,20 +37,27 @@ export interface HttpInstance {
      * 设置token。
      */
     setToken(token: string | undefined): void
+    /**
+     * 获得baseURL。
+     */
+    getBaseURL(): string | undefined
+    /**
+     * 设定baseURL。
+     */
+    setBaseURL(baseURL: string | undefined): void
 }
 
-export interface HttpInstanceOptions {
-    token?: string
-    baseURL?: string
-}
+export function createHttpInstance(): HttpInstance {
+    const instance = axios.create()
 
-export function createHttpInstance({ token, baseURL }: HttpInstanceOptions): HttpInstance {
-    const instance = axios.create({baseURL})
+    let baseURL: string | undefined = undefined
+    let token: string | undefined = undefined
     let headers = token ? {'Authorization': `Bearer ${token}`} : undefined
 
     function request<R>(config: RequestConfig): Promise<Response<R>> {
         return new Promise(resolve => {
             instance.request({
+                baseURL: config.baseURL,
                 url: config.url,
                 method: config.method,
                 params: config.query,
@@ -84,23 +91,30 @@ export function createHttpInstance({ token, baseURL }: HttpInstanceOptions): Htt
 
     return {
         request,
-        createPathQueryRequest: <P, Q, R>(url: (path: P) => string, method?: Method) => (path: P, query: Q) => request<R>({url: url(path), method, query}),
-        createPathDataRequest: <P, T, R>(url: (path: P) => string, method?: Method) => (path: P, data: T) => request<R>({url: url(path), method, data}),
-        createPathRequest: <P, R>(url: (path: P) => string, method?: Method) => (path: P) => request<R>({url: url(path), method}),
-        createQueryRequest: <Q, R>(url: string, method?: Method) => (query: Q) => request<R>({url, method, query}),
-        createDataRequest: <T, R>(url: string, method?: Method) => (data: T) => request<R>({url, method, data}),
-        createRequest: <R>(url: string, method?: Method) => () => request<R>({url, method}),
+        createPathQueryRequest: <P, Q, R>(url: (path: P) => string, method?: Method) => (path: P, query: Q) => request<R>({baseURL, url: url(path), method, query}),
+        createPathDataRequest: <P, T, R>(url: (path: P) => string, method?: Method) => (path: P, data: T) => request<R>({baseURL, url: url(path), method, data}),
+        createPathRequest: <P, R>(url: (path: P) => string, method?: Method) => (path: P) => request<R>({baseURL, url: url(path), method}),
+        createQueryRequest: <Q, R>(url: string, method?: Method) => (query: Q) => request<R>({baseURL, url, method, query}),
+        createDataRequest: <T, R>(url: string, method?: Method) => (data: T) => request<R>({baseURL, url, method, data}),
+        createRequest: <R>(url: string, method?: Method) => () => request<R>({baseURL, url, method}),
         getToken() {
             return token
         },
         setToken(newToken: string | undefined) {
             token = newToken
             headers = token ? {'Authorization': `Bearer ${token}`} : undefined
+        },
+        getBaseURL() {
+            return baseURL
+        },
+        setBaseURL(newBaseURL: string | undefined) {
+            baseURL = newBaseURL
         }
     }
 }
 
 interface RequestConfig {
+    baseURL?: string
     url: string
     method?: Method
     query?: {[name: string]: any}

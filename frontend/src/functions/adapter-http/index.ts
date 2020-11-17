@@ -1,8 +1,14 @@
-import { HttpInstanceOptions, createHttpInstance } from "./server"
-import { createWebService } from './impl/web'
+import { createHttpInstance, HttpInstance } from "./server"
+import { createWebService, WebService } from './impl/web'
 
-export function createAPIService(options: HttpInstanceOptions) {
-    const httpInstance = createHttpInstance(options)
+export { HttpInstance }
+
+export interface APIService {
+    web: WebService
+}
+
+export function createAPIService(): APIService {
+    const httpInstance = createHttpInstance()
 
     return {
         web: createWebService(httpInstance)

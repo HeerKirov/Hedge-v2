@@ -4,9 +4,9 @@ import { Service } from "../components/service"
 /**
  * 通过ipc信道与前端进行服务通信的controller。将service的功能暴露给前端使用。
  */
-export function createIpcTransformer(service: Service) {
-    ipcHandle("/app/env", service.app.env)
-    ipcHandle("/app/status", service.app.status)
+export function registerIpcTransformer(service: Service) {
+    ipcHandleSync("/app/env", service.app.env)
+    ipcHandleSync("/app/status", service.app.status)
     ipcHandle("/app/init", service.app.init)
     ipcHandle("/app/login", service.app.login)
     ipcHandle("/app/login-by-touch-id", service.app.loginByTouchID)
@@ -30,4 +30,10 @@ export function createIpcTransformer(service: Service) {
 
 function ipcHandle<T, R>(channel: string, invoke: (f: T) => Promise<R>) {
     ipcMain.handle(channel, (event, args) => invoke(args[0]))
+}
+
+function ipcHandleSync<T, R>(channel: string, invoke: (f: T) => R) {
+    ipcMain.on(channel, (event, args) => {
+        event.returnValue = invoke(args[0])
+    })
 }

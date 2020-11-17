@@ -1,13 +1,14 @@
-import { ipcInvoke } from "./client"
+import { ipcInvoke, ipcInvokeSync } from "./client"
 import { IPCService } from "./definition"
 
 const invoke = <T, R>(channel: string) => (form?: T): Promise<R> => ipcInvoke(channel, form)
+const invokeSync = <T, R>(channel: string) => (form?: T): R => ipcInvokeSync(channel, form)
 
 export function createIPCService(): IPCService {
     return {
         app: {
-            env: invoke("/app/env"),
-            status: invoke("/app/status"),
+            env: invokeSync("/app/env"),
+            status: invokeSync("/app/status"),
             init: invoke("/app/init"),
             login: invoke("/app/login"),
             loginByTouchID: invoke("/app/login-by-touch-id")

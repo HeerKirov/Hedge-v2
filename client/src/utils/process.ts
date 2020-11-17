@@ -8,6 +8,12 @@ export function getNodePlatform(): Platform {
     throw new Error(`Unsupported platform ${platform}.`)
 }
 
+export async function promiseAll(...promises: Promise<void>[]): Promise<void> {
+    for (let promise of promises) {
+        await promise
+    }
+}
+
 /**
  * 线程睡眠一段时间。
  * @param timeMs

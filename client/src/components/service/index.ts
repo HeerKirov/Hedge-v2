@@ -11,8 +11,8 @@ export { createService } from "./impl"
  */
 export interface Service {
     app: {
-        env(): Promise<AppEnvResponse>
-        status(): Promise<AppStatusResponse>
+        env(): AppEnvResponse
+        status(): AppStatusResponse
         init(form: AppInitForm): Promise<AppLoginResponse>
         login(form: AppLoginForm): Promise<AppLoginResponse>
         loginByTouchID(): Promise<AppLoginResponse>

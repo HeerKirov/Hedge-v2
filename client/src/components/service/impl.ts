@@ -26,7 +26,7 @@ export interface ServiceOptions {
 export function createService(appdata: AppDataDriver, resource: ResourceManager, server: ServerManager, bucket: Bucket, state: StateManager, options: ServiceOptions): Service {
     return {
         app: {
-            async env() {
+            env() {
                 return {
                     platform: options.platform,
                     debugMode: options.debugMode,
@@ -53,7 +53,7 @@ export function createService(appdata: AppDataDriver, resource: ResourceManager,
             async loginByTouchID() {
                 return {ok: await state.loginByTouchID()}
             },
-            async status() {
+            status() {
                 return {
                     status: appdata.status(),
                     isLogin: state.isLogin()

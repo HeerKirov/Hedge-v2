@@ -1,13 +1,13 @@
 import { app } from "electron"
-import { getNodePlatform, Platform } from "../utils/process"
+import { promiseAll, getNodePlatform, Platform } from "../utils/process"
 import { createWindowManager, WindowManager } from "./window-manager"
-import { createAppDataDriver, AppDataStatus } from "../components/appdata"
+import { createAppDataDriver } from "../components/appdata"
 import { createStateManager } from "../components/state"
 import { createResourceManager } from "../components/resource"
 import { createServerManager, ServerManager, ServerStatus } from "../components/server"
 import { createBucket } from "../components/bucket"
 import { createService } from "../components/service"
-import { createIpcTransformer } from "./ipc-transformer"
+import { registerIpcTransformer } from "./ipc-transformer"
 import { registerAppMenu } from "./menu"
 import { registerDockMenu } from "./dock"
 
@@ -80,38 +80,25 @@ export async function createApplication(options?: AppOptions) {
 
     const service = createService(appDataDriver, resourceManager, serverManager, bucket, stateManager, {debugMode, userDataPath, platform, channel})
 
-    const ipcTransformer = createIpcTransformer(service)
+    registerIpcTransformer(service)
 
-    registerAppEvents(windowManager, serverManager, platform, options)
+    registerAppEvents(windowManager, serverManager, platform)
+
+    await promiseAll(
+        appDataDriver.load(),
+        stateManager.load(),
+        resourceManager.load(),
+        app.whenReady()
+    )
 
     registerAppMenu(windowManager, {debugMode, platform})
 
-    await app.whenReady()
-
     registerDockMenu(windowManager)
 
-    await appDataDriver.load()
-    await stateManager.load()
-    await resourceManager.load()
-
-    console.log("module loaded.")
-
-    if(appDataDriver.status() == AppDataStatus.NOT_INIT) {
-        await appDataDriver.init()
-        console.log("appdata initialized.")
-    }
-
-    await resourceManager.update()
-    console.log("resource updated.")
-
-    await serverManager.startConnection()
-    console.log("server started.", serverManager.connectionInfo())
-
     windowManager.createWindow()
-    windowManager.openSettingWindow()
 }
 
-function registerAppEvents(windowManager: WindowManager, serverManager: ServerManager, platform: Platform, options?: AppOptions) {
+function registerAppEvents(windowManager: WindowManager, serverManager: ServerManager, platform: Platform) {
     app.on('window-all-closed', () => {
         if (platform !== 'darwin') {
             app.quit()

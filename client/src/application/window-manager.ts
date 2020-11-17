@@ -56,6 +56,7 @@ export function createWindowManager(state: StateManager, options: WindowManagerO
             titleBarStyle: configure?.titleBarStyle ?? "hiddenInset",
             webPreferences: {
                 devTools: !!options.debug,
+                enableRemoteModule: true,
                 preload: path.join(__dirname, 'preloads/index.js')
             }
         })

@@ -15,15 +15,35 @@ export interface RemoteClientAdapter {
          * @param fullscreen
          */
         setFullscreen(fullscreen: boolean): void
+    },
+    menu: {
+        /**
+         * 创建一个弹出菜单的调用。给出菜单模板，返回一个函数，调用此函数以弹出此菜单。
+         */
+        createPopup(items: MenuTemplate[]): () => void
     }
+}
+
+interface MenuTemplate {
+    label?: string
+    enabled?: boolean
+    type?: 'normal' | 'separator' | 'submenu' | 'checkbox' | 'radio'
+    submenu?: MenuTemplate[]
+    click?(): void
 }
 
 interface IpcInvoke {
     <T, R>(channel: string, form?: T): Promise<R>
 }
 
+interface IpcInvokeSync {
+    <T, R>(channel: string, form?: T): R
+}
+
 export const clientMode: boolean = !!window['clientMode']
 
-export const remoteClientAdapter: RemoteClientAdapter = window['createRemoteClientAdapter']?.()
+export const createRemoteClientAdapter: () => RemoteClientAdapter = window['createRemoteClientAdapter']
 
 export const ipcInvoke: IpcInvoke = window['ipcInvoke']
+
+export const ipcInvokeSync: IpcInvokeSync = window['ipcInvokeSync']
