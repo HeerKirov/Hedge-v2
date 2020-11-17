@@ -43,19 +43,19 @@ class AppRoutes(private val lifetime: Lifetime, private val appdata: AppDataDriv
         if(appdata.status != LoadStatus.NOT_INIT) {
             throw Reject("Server has already been initialized.")
         }
-        val form = ctx.bodyAsClass(InitForm::class.java)
+        val form = ctx.body<InitForm>()
         appdata.init(form.dbPath)
     }
 
     private fun addLifetime(ctx: Context) {
-        val form = ctx.bodyAsClass(OptionalSignalForm::class.java)
+        val form = ctx.body<OptionalSignalForm>()
         val id = this.lifetime.register(form.interval)
         ctx.json(AddResponse(id = id))
     }
 
     private fun updateLifetime(ctx: Context) {
         val id = ctx.pathParam("id")
-        val form = ctx.bodyAsClass(OptionalSignalForm::class.java)
+        val form = ctx.body<OptionalSignalForm>()
         this.lifetime.heart(id, form.interval)
     }
 
@@ -66,7 +66,7 @@ class AppRoutes(private val lifetime: Lifetime, private val appdata: AppDataDriv
     }
 
     private fun signal(ctx: Context) {
-        val form = ctx.bodyAsClass(SignalForm::class.java)
+        val form = ctx.body<SignalForm>()
         this.lifetime.signal(form.interval)
     }
 

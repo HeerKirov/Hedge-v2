@@ -9,6 +9,7 @@ export const DATA_FILE = {
         VERSION_LOCK: "version.lock",
         SERVER_FOLDER: "server",
         FRONTEND_FOLDER: "server/frontend",
+        ORIGINAL_SERVER_FOLDER: "image",
         CLI_FOLDER: "cli"
     },
     APPDATA: {

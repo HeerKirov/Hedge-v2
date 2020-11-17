@@ -14,7 +14,10 @@ export default createRouter({
         {
             name: 'NotFound',
             path: '/:catchAll(.*)',
-            component: () => import('@/views/NotFound')
+            component: () => import('@/views/NotFound'),
+            meta: {
+                title: "Hedge"
+            }
         }
     ]
 })

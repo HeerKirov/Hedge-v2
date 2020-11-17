@@ -1,13 +1,15 @@
 import { app } from "electron"
 import { getNodePlatform, Platform } from "../utils/process"
 import { createWindowManager, WindowManager } from "./window-manager"
-import { createAppDataDriver } from "../components/appdata"
+import { createAppDataDriver, AppDataStatus } from "../components/appdata"
 import { createStateManager } from "../components/state"
 import { createResourceManager } from "../components/resource"
 import { createServerManager, ServerManager, ServerStatus } from "../components/server"
 import { createBucket } from "../components/bucket"
 import { createService } from "../components/service"
 import { createIpcTransformer } from "./ipc-transformer"
+import { registerAppMenu } from "./menu"
+import { registerDockMenu } from "./dock"
 
 /**
  * app的启动参数。
@@ -57,17 +59,18 @@ interface DebugOption {
     serverFromResource?: string
 }
 
-export function createApplication(options?: AppOptions) {
+export async function createApplication(options?: AppOptions) {
     const platform = getNodePlatform()
     const debugMode = !!options?.debug
     const channel = options?.channel ?? "default"
+    const appPath = app.getAppPath()
     const userDataPath = options?.debug?.localDataPath ?? app.getPath("userData")
 
     const appDataDriver = createAppDataDriver({userDataPath, channel, debugMode})
 
     const stateManager = createStateManager(appDataDriver)
 
-    const resourceManager = createResourceManager({userDataPath, debug: options?.debug && {frontendFromFolder: options.debug.frontendFromFolder, serverFromResource: options.debug.serverFromResource}})
+    const resourceManager = createResourceManager({userDataPath, appPath, debug: options?.debug && {frontendFromFolder: options.debug.frontendFromFolder, serverFromResource: options.debug.serverFromResource}})
 
     const bucket = createBucket({userDataPath, channel})
 
@@ -81,13 +84,31 @@ export function createApplication(options?: AppOptions) {
 
     registerAppEvents(windowManager, serverManager, platform, options)
 
-    app.whenReady().then(async () => {
-        await appDataDriver.load()
-        await stateManager.load()
-        await resourceManager.load()
+    registerAppMenu(windowManager, {debugMode, platform})
 
-        windowManager.createWindow()
-    })
+    await app.whenReady()
+
+    registerDockMenu(windowManager)
+
+    await appDataDriver.load()
+    await stateManager.load()
+    await resourceManager.load()
+
+    console.log("module loaded.")
+
+    if(appDataDriver.status() == AppDataStatus.NOT_INIT) {
+        await appDataDriver.init()
+        console.log("appdata initialized.")
+    }
+
+    await resourceManager.update()
+    console.log("resource updated.")
+
+    await serverManager.startConnection()
+    console.log("server started.", serverManager.connectionInfo())
+
+    windowManager.createWindow()
+    windowManager.openSettingWindow()
 }
 
 function registerAppEvents(windowManager: WindowManager, serverManager: ServerManager, platform: Platform, options?: AppOptions) {

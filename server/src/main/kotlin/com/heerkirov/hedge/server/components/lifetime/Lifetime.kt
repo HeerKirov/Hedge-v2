@@ -106,7 +106,7 @@ class LifetimeImpl(private val context: FrameworkContext, private val options: L
 
         var continuous = 0
         while (true) {
-            Thread.sleep(1000L * 10)
+            Thread.sleep(options.threadInterval)
             //进行信号清理
             val now = System.currentTimeMillis()
             if(lifetimes.isNotEmpty()) {

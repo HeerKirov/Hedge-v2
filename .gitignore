@@ -10,6 +10,7 @@
 /server/gradle
 /server/gradlew*
 /server/build
+/dist
 *.db
 
 *.local.*

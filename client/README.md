@@ -2,10 +2,12 @@
 这是App的客户端子项目。它是主要的对用户交互方式。承载后台服务启动管理、前端对接、app基本数据管理功能。
 
 ## Technology Stack
+* `node >= 14.14.0`
 * `electron`
 * `typescript`
 
-## Deploy
+## Development & Debug
+### Deploy
 ```sh
 npm install     # 使用npm安装全部依赖
 ```
@@ -16,17 +18,17 @@ npm install     # 使用npm安装全部依赖
 > export ELECTRON_MIRROR=https://npm.taobao.org/mirrors/electron/
 > ```
 
-## Development
+### Development
 客户端使用`tsc`完成编译工作。在任何客户端代码运行之前或更改之后，执行编译。
 ```sh
 tsc     # 编译更新源代码
 ```
 在开发过程中，有必要使用与生产环境隔离的数据库；此外，客户端还联系着前端和后台服务，这两部分都需要不同程度的开发调试。为此客户端提供了相关的调试选项。  
 ```sh
-cp args.dev args.dev.local
+cp debug.args.sh debug.args.local.sh
 npm run debug
 ```
-复制一份开发模式启动参数。执行debug script以开发模式启动。随后，编辑`args.dev.local`文件以调整启动参数。
+复制一份`debug.args.sh`作为开发模式启动参数。执行debug script以开发模式启动。随后，编辑`debug.args.local.sh`文件以调整启动参数。
 ```sh
 --debug-mode    # 在调试模式启动，启用devtool。指定此参数，下列其他参数才有效。
 --local-data-path   # 指定一个文件夹作为开发模式数据文件夹。
@@ -38,20 +40,31 @@ npm run debug
 ```
 
 ## Build
-项目最终应该打包成应用程序，在release模式下运行。客户端的最终打包就是整个项目的最终打包。  
-对于打包过程，项目已经提供了打包脚本来完成打包工作。
-
-因为主要平台是`macOS`，目前提供的是`macOS`平台上的打包脚本。
-### macOS (darwin)
-进入`build/darwin`文件夹，可以看到这里的内容：
-```bash
-files/...               # 打包相关的资料
-build.sh                # 执行此命令以完成整个打包流程
-clean.sh                # 打包流程的一部分：清除打包结果
-build-client.sh         # 打包流程的一部分：将客户端文件编译，并拷贝进Electron资源库(这也会清除前端资源)
-build-frtonend.sh       # 打包流程的一部分：将前端文件编译，并拷贝进Electron资源库
+项目最终将打包为特定平台的应用程序，在release模式下运行。在打包完成后，项目的各个组成部分都会以electron程序为基础组装在一起。  
+项目提供了脚本去完成这部分的工作。在构建脚本运行以前，首先确保项目的各个部分都已经在开发模式下部署完毕。
+```sh
+npm run build
 ```
-运行`build.sh`，随后打包结果会出现在`build/darwin/target/Hedge.app`位置。
+这将运行默认的构建流程。构建产物位于`/dist`目录下。
+### 自定义构建
+除默认流程外，还可以添加命令以执行部分构建。
+```sh
+clean               # 清空dist目录
+build-client        # 对client项目执行编译
+build-frontend      # 对frontend项目执行生产环境编译
+build-server        # 对server项目执行生产环境编译打包
+build-cli           # 对cli项目执行生产环境编译打包
+install-app         # 在dist目录下添加electron应用程序的内容
+install-client      # 将client资源添加到electron程序
+install-frontend    # 将frontend资源添加到electron应用程序
+install-server      # 将server资源添加到electron应用程序
+install-cli         # 将cli资源添加到electron应用程序
+```
+### 编译平台
+因为主要平台是`macOS`，目前仅提供`macOS`平台上的打包脚本。
+### macOS (darwin)
+默认构建的打包产物是`/dist/Hedge.app`。
+
 > **如何打包为dmg镜像？**  
 > macOS应用程序有打包为镜像分发的需求。要打包为镜像，可以使用npm的`appdmg`工具包。
 > ```bash

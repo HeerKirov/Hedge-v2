@@ -6,6 +6,9 @@ export default <RouteRecordRaw[]>[
         name: 'Hedge',
         path: '/hedge',
         component: () => import('@/views/Hedge'),
+        meta: {
+            title: "Hedge"
+        },
         children: [
             {
                 name: 'HedgeIndex',

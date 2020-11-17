@@ -5,6 +5,9 @@ export default <RouteRecordRaw[]>[
         name: 'Setting',
         path: '/setting',
         component: () => import('@/views/Setting'),
+        meta: {
+            title: "Hedge设置"
+        },
         children: [
             {
                 name: 'SettingIndex',

@@ -12,6 +12,7 @@ import io.javalin.http.Context
  * 使用before handler拦截所有需要认证的API，验证其token，检验token是否能访问目标API，然后放通。
  */
 class Authentication(private val baseToken: String, private val webAccessor: WebAccessor) : Endpoints {
+    private val prefixBearer = "bearer "
 
     override fun handle(javalin: Javalin) {
         javalin.before("/api/*", this::authenticate)
@@ -20,7 +21,7 @@ class Authentication(private val baseToken: String, private val webAccessor: Web
 
     private fun authenticate(ctx: Context) {
         val bearer = ctx.header("Authorization") ?: throw NoToken()
-        val userToken = if(bearer.substring(0, "Bearer ".length).toLowerCase() == "bearer ") bearer.substring("Bearer ".length) else throw NoToken()
+        val userToken = if(bearer.substring(0, prefixBearer.length).toLowerCase() == prefixBearer) bearer.substring(prefixBearer.length) else throw NoToken()
 
         if(baseToken == userToken) {
             //通过baseToken的验证
@@ -35,7 +36,7 @@ class Authentication(private val baseToken: String, private val webAccessor: Web
 
     private fun authenticateOnlyForClient(ctx: Context) {
         val bearer = ctx.header("Authorization") ?: throw NoToken()
-        val userToken = if(bearer.substring(0, "Bearer ".length).toLowerCase() == "bearer ") bearer.substring("Bearer ".length) else throw NoToken()
+        val userToken = if(bearer.substring(0, prefixBearer.length).toLowerCase() == prefixBearer) bearer.substring(prefixBearer.length) else throw NoToken()
 
         if(baseToken == userToken) {
             //通过baseToken的验证

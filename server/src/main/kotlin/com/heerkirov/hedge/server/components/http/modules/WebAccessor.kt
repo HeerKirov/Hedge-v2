@@ -68,7 +68,7 @@ class WebAccessor(private val appdata: AppDataDriver, private val frontendPath: 
 
     private fun webLogin(ctx: Context) {
         if(!isAccess) { throw Reject("Web access is not open.") }
-        val form = ctx.bodyAsClass(LoginForm::class.java)
+        val form = ctx.body<LoginForm>()
         val password = appdata.data.web.password
         if(form.password == password) {
             val token = Token.webToken().also { tokens.add(it) }
@@ -82,7 +82,7 @@ class WebAccessor(private val appdata: AppDataDriver, private val frontendPath: 
     private fun webVerifyToken(ctx: Context) {
         if(!isAccess) { throw Reject("Web access is not open.") }
 
-        val form = ctx.bodyAsClass(TokenForm::class.java)
+        val form = ctx.body<TokenForm>()
 
         ctx.json(TokenResponse(ok = form.token in tokens))
     }

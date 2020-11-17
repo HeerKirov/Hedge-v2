@@ -9,17 +9,11 @@
 
 以`macOS`作为主要开发和运行平台。
 
-## Structures
-```sh
-build/              # 存放项目最终构建脚本
-    darwin/         # macOS平台的构建脚本和构建材料
-frontend/           # 前端项目
-client/             # 客户端项目
-server/             # 后台服务项目
-cli/                # 命令行工具项目
-```
-
 ## Sub Project
-* Frontend [README.md](https://github.com/HeerKirov/Hedge-v2/tree/master/frontend/README.md)
-* Client [README.md](https://github.com/HeerKirov/Hedge-v2/tree/master/client/README.md)
-* Server [README.md](https://github.com/HeerKirov/Hedge-v2/tree/master/server/README.md)
+前往检视各个子项目的概览和开发部署说明。
+### frontend
+[前端](https://github.com/HeerKirov/Hedge-v2/tree/master/frontend)
+### client
+[客户端](https://github.com/HeerKirov/Hedge-v2/tree/master/client)
+### server
+[后台服务](https://github.com/HeerKirov/Hedge-v2/tree/master/server)

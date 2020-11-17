@@ -1,7 +1,7 @@
 import path from "path"
 import { arrays } from "../../utils/types"
-import { cpR, unzip, rmdir, readFile, writeFile } from "../../utils/fs"
-import { DATA_FILE, APP_FILE } from "../../definitions/file"
+import { cpR, unzip, rename, chmod, rmdir, readFile, writeFile } from "../../utils/fs"
+import { DATA_FILE, APP_FILE, RESOURCE_FILE } from "../../definitions/file"
 import { Version, VersionLock, VersionStatus, VersionStatusSet } from "./model"
 
 /**
@@ -62,6 +62,10 @@ export interface ResourceManagerOptions {
      * app的数据目录。
      */
     userDataPath: string
+    /**
+     * app的资源目录，指代/Resource/app目录，在此目录下寻找资源。
+     */
+    appPath: string
     /**
      * 在调试模式下运行，默认将禁用资源管理，除非指定其他选项，对资源管理进行调试。
      */
@@ -131,24 +135,26 @@ function createProductionResourceManager(options: ResourceManagerOptions): Resou
     }
 
     async function update() {
-        if(version.server?.latestVersion || version.frontend?.latestVersion || version.cli?.latestVersion) {
-            if(version.cli?.latestVersion) {
+        if(status == ResourceStatus.NOT_INIT || status == ResourceStatus.NEED_UPDATE || cliStatus == ResourceStatus.NEED_UPDATE) {
+            if(cliStatus == ResourceStatus.NEED_UPDATE) {
                 cliStatus = ResourceStatus.UPDATING
                 await updatePartCli()
                 cliStatus = ResourceStatus.LATEST
             }
-
-            status = ResourceStatus.UPDATING
-            await updatePartServer()
-            await updatePartFrontend()
-            status = ResourceStatus.LATEST
-
+            if(status == ResourceStatus.NOT_INIT || status == ResourceStatus.NEED_UPDATE) {
+                status = ResourceStatus.UPDATING
+                if(version.server == undefined || version.server.latestVersion != undefined) {
+                    await updatePartServer()
+                }
+                await updatePartFrontend()
+                status = ResourceStatus.LATEST
+            }
             await save()
         }
     }
 
     async function updateCli() {
-        if(version.cli?.latestVersion) {
+        if(cliStatus == ResourceStatus.NOT_INIT || cliStatus == ResourceStatus.NEED_UPDATE) {
             cliStatus = ResourceStatus.UPDATING
             await updatePartCli()
             cliStatus = ResourceStatus.LATEST
@@ -165,24 +171,32 @@ function createProductionResourceManager(options: ResourceManagerOptions): Resou
     }
 
     async function updatePartServer() {
-        const dest = path.join(options.userDataPath, DATA_FILE.RESOURCE.SERVER_FOLDER);
+        const originDest = path.join(options.userDataPath, DATA_FILE.RESOURCE.ORIGINAL_SERVER_FOLDER)
+        const dest = path.join(options.userDataPath, DATA_FILE.RESOURCE.SERVER_FOLDER)
         await rmdir(dest)
-        await unzip(APP_FILE.SERVER_ZIP, dest)
-        version.server = {lastUpdateTime: new Date(), currentVersion: version.server?.latestVersion!!}
+        //image.zip解压后的文件是/image目录，因此采取将其解压到根目录然后重命名的方法。
+        await unzip(options.debug?.serverFromResource || path.join(options.appPath, APP_FILE.SERVER_ZIP), options.userDataPath)
+        await rename(originDest, dest)
+        //通过unzipper解压后，可执行信息丢失，需要重新添加。
+        await chmod(path.join(options.userDataPath, DATA_FILE.RESOURCE.SERVER_FOLDER, RESOURCE_FILE.SERVER.BIN), "755")
+        await chmod(path.join(options.userDataPath, DATA_FILE.RESOURCE.SERVER_FOLDER, "bin/java"), "755")
+        await chmod(path.join(options.userDataPath, DATA_FILE.RESOURCE.SERVER_FOLDER, "bin/keytool"), "755")
+        await chmod(path.join(options.userDataPath, DATA_FILE.RESOURCE.SERVER_FOLDER, "lib/jspawnhelper"), "755")
+        version.server = {lastUpdateTime: new Date(), currentVersion: version.server?.latestVersion ?? VERSION.server}
     }
 
     async function updatePartFrontend() {
         const dest = path.join(options.userDataPath, DATA_FILE.RESOURCE.FRONTEND_FOLDER);
         await rmdir(dest)
-        await cpR(APP_FILE.FRONTEND_FOLDER, dest)
-        version.frontend = {lastUpdateTime: new Date(), currentVersion: version.frontend?.latestVersion!!}
+        await cpR(options.debug?.frontendFromFolder || path.join(options.appPath, APP_FILE.FRONTEND_FOLDER), dest)
+        version.frontend = {lastUpdateTime: new Date(), currentVersion: version.frontend?.latestVersion ?? VERSION.frontend}
     }
 
     async function updatePartCli() {
         const dest = path.join(options.userDataPath, DATA_FILE.RESOURCE.CLI_FOLDER);
         await rmdir(dest)
-        await unzip(APP_FILE.CLI_ZIP, dest)
-        version.cli = {lastUpdateTime: new Date(), currentVersion: version.cli!.latestVersion!!}
+        await unzip(path.join(options.appPath, APP_FILE.CLI_ZIP), dest)
+        version.cli = {lastUpdateTime: new Date(), currentVersion: version.cli!.latestVersion ?? VERSION.cli}
     }
 
     return {

@@ -59,7 +59,7 @@ class HttpServerImpl(private val health: Health,
 
     private var server: Javalin? = null
 
-    private val web = WebAccessor(appdata, options.frontendFromFolder ?: "${Filename.FRONTEND_FOLDER}/${options.userDataPath}")
+    private val web = WebAccessor(appdata, options.frontendFromFolder ?: "${options.userDataPath}/${Filename.FRONTEND_FOLDER}")
 
     override fun start() {
         val aspect = Aspect(appdata)

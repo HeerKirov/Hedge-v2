@@ -4,6 +4,6 @@
   "background-color": "#FFFFFF",
   "contents": [
     { "x": 448, "y": 240, "type": "link", "path": "/Applications" },
-    { "x": 192, "y": 240, "type": "file", "path": "../target/Hedge.app" }
+    { "x": 192, "y": 240, "type": "file", "path": "../../../../dist/Hedge.app" }
   ]
 }

@@ -13,4 +13,4 @@ createApplication({
         serverFromFolder: parameters.opt("--server-from-folder"),
         serverFromResource: parameters.opt("--server-from-resource")
     } : undefined,
-})
+}).catch(console.error)

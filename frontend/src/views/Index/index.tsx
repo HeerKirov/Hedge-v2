@@ -6,6 +6,9 @@ export default defineComponent({
         const loading: Ref<LoadingType | undefined> = ref("data")
 
         return () => <div id="index">
+            <div class="title-bar has-text-centered">
+                <span>HEDGE</span>
+            </div>
             {loading.value && <Loading type={loading.value}/>}
         </div>
     }

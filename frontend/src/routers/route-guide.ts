@@ -5,6 +5,9 @@ export default <RouteRecordRaw[]>[
         name: 'Guide',
         path: '/guide',
         component: () => import('@/views/Guide'),
+        meta: {
+            title: "Hedge帮助向导"
+        },
         children: [
             {
                 name: 'GuideIndex',

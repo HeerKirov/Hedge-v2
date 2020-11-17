@@ -1,4 +1,4 @@
-import nodeFs from "fs"
+import nodeFs, { Mode } from "fs"
 import unzipper from "unzipper"
 import { spawn } from "child_process"
 
@@ -53,13 +53,9 @@ export async function rmdir(path: string): Promise<void> {
         return
     }
     return new Promise(((resolve, reject) => {
-        nodeFs.rmdir(path, {}, e => {
-            if(e) {
-                reject(e)
-            }else{
-                resolve()
-            }
-        })
+        const s = spawn("rm", ["-rf", path])
+        s.on("close", resolve)
+        s.on("error", reject)
     }))
 }
 
@@ -80,7 +76,31 @@ export async function unzip(src: string, dest: string): Promise<void> {
     return new Promise((resolve, reject) => {
         nodeFs.createReadStream(src)
             .pipe(unzipper.Extract({path: dest}))
-            .on('close', () => resolve())
-            .on('error', e => reject(e))
+            .on('close', resolve)
+            .on('error', reject)
+    })
+}
+
+export async function rename(src: string, dest: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+        nodeFs.rename(src, dest, (e) => {
+            if(e) {
+                reject(e)
+            }else{
+                resolve()
+            }
+        })
+    })
+}
+
+export async function chmod(dest: string, mode: Mode): Promise<void> {
+    return new Promise((resolve, reject) => {
+        nodeFs.chmod(dest, mode, (e) => {
+            if(e) {
+                reject(e)
+            }else{
+                resolve()
+            }
+        })
     })
 }

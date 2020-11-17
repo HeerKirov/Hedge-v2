@@ -43,17 +43,19 @@ export function createWindowManager(state: StateManager, options: WindowManagerO
     let guideWindow: BrowserWindow | null = null
     let settingWindow: BrowserWindow | null = null
 
-    function newBrowserWindow(hashURL: string, configure?: { title?: string, titleBarStyle?: ('default' | 'hidden' | 'hiddenInset') }): BrowserWindow {
+    function newBrowserWindow(hashURL: string, configure?: {
+        titleBarStyle?: ('default' | 'hidden' | 'hiddenInset'),
+        height?: number, width?: number
+    }): BrowserWindow {
         const win = new BrowserWindow({
-            title: configure?.title ?? 'Hedge',
-            height: 720,
-            width: 1200,
+            title: 'Hedge',
+            height: configure?.height ?? 720,
+            width: configure?.width ?? 1080,
             minHeight: 480,
-            minWidth: 672,
+            minWidth: 640,
             titleBarStyle: configure?.titleBarStyle ?? "hiddenInset",
             webPreferences: {
                 devTools: !!options.debug,
-                nodeIntegration: true,
                 preload: path.join(__dirname, 'preloads/index.js')
             }
         })
@@ -93,7 +95,7 @@ export function createWindowManager(state: StateManager, options: WindowManagerO
             return null
         }
         if(settingWindow == null) {
-            settingWindow = newBrowserWindow('setting', {title: "Hedge设置", titleBarStyle: "hidden"})
+            settingWindow = newBrowserWindow('setting', {titleBarStyle: "hidden", width: 960})
             settingWindow.on("closed", () => {
                 settingWindow = null
             })
@@ -105,7 +107,7 @@ export function createWindowManager(state: StateManager, options: WindowManagerO
 
     function openGuideWindow(): BrowserWindow {
         if(guideWindow == null) {
-            guideWindow = newBrowserWindow('guide', {title: "Hedge向导", titleBarStyle: "hidden"})
+            guideWindow = newBrowserWindow('guide', {titleBarStyle: "hidden", width: 960})
             guideWindow.on("closed", () => {
                 guideWindow = null
             })
