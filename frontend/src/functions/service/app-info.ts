@@ -1,10 +1,7 @@
 import { inject, InjectionKey, provide, readonly } from "vue"
-import { Platform } from "../adapter-ipc/definition"
-import { BasicComponentInjection } from "./install"
+import { IPCService, Platform } from "../adapter-ipc/definition"
 
-export function provideAppInfo() {
-    const { clientMode, ipc } = inject(BasicComponentInjection)!
-
+export function provideAppInfo(clientMode: boolean, ipc: IPCService) {
     const env = ipc.app.env()
 
     provide(AppInfoInjection, readonly({...env, clientMode}))

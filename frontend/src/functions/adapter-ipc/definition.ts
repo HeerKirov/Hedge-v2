@@ -11,16 +11,16 @@ export interface IPCService {
     }
     resource: {
         server: {
-            status(): Promise<ResourceStatusResponse>
+            status(): ResourceStatusResponse
             update(): Promise<void>
         }
         cli: {
-            status(): Promise<ResourceStatusResponse>
+            status(): ResourceStatusResponse
             update(): Promise<void>
         }
     }
     server: {
-        status(): Promise<ServerStatusResponse>
+        status(): ServerStatusResponse
         env(): Promise<ServerEnvResponse>
         open(): Promise<ServerStatusResponse>
         close(): Promise<ServerStatusResponse>
@@ -28,7 +28,7 @@ export interface IPCService {
     }
     setting: {
         auth: {
-            get(): Promise<SettingAuthResponse>
+            get(): SettingAuthResponse
             set(form: SettingAuthForm): Promise<SettingAuthResponse>
         }
         channel: {
@@ -108,7 +108,8 @@ export interface SettingChannelForm {
 }
 
 export interface SettingAuthResponse {
-
+    password: string | null
+    touchID: boolean
 }
 
 export interface SettingChannelListResponse {
@@ -130,15 +131,17 @@ export interface StorageSetForm {
 
 export type Platform = "win32" | "darwin" | "linux"
 
+//前端的enum移除了unknown的定义，是因为在前端之前这些状态必定已经初始化完成。
+
 export enum AppDataStatus {
-    UNKNOWN = "UNKNOWN",
+    //UNKNOWN = "UNKNOWN",
     NOT_INIT = "NOT_INIT",
     LOADING = "LOADING",
     LOADED = "LOADED"
 }
 
 export enum ResourceStatus {
-    UNKNOWN = "UNKNOWN",
+    //UNKNOWN = "UNKNOWN",
     NOT_INIT = "NOT_INIT",
     NEED_UPDATE = "NEED_UPDATE",
     UPDATING = "UPDATING",
@@ -146,8 +149,7 @@ export enum ResourceStatus {
 }
 
 export enum ServerStatus {
-    UNKNOWN = "UNKNOWN",
+    //UNKNOWN = "UNKNOWN",
     CLOSE = "CLOSE",
-    OPEN = "OPEN",
-    ERROR = "ERROR",
+    OPEN = "OPEN"
 }

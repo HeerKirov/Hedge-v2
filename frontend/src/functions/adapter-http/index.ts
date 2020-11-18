@@ -1,15 +1,13 @@
 import { createHttpInstance, HttpInstance } from "./server"
 import { createWebService, WebService } from "./impl/web"
 
-export { HttpInstance }
+export { HttpInstance, createHttpInstance }
 
 export interface APIService {
     web: WebService
 }
 
-export function createAPIService(): APIService {
-    const httpInstance = createHttpInstance()
-
+export function createAPIService(httpInstance: HttpInstance): APIService {
     return {
         web: createWebService(httpInstance)
     }

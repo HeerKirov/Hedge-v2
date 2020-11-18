@@ -32,18 +32,31 @@ interface MenuTemplate {
     click?(): void
 }
 
-interface IpcInvoke {
-    <T, R>(channel: string, form?: T): Promise<R>
+type IpcInvoke = <T, R>(channel: string, form?: T) => Promise<R>
+
+type IpcInvokeSync = <T, R>(channel: string, form?: T) => R
+
+function forbidden (): any {
+    throw new Error("Cannot call IPC in web.")
 }
 
-interface IpcInvokeSync {
-    <T, R>(channel: string, form?: T): R
+function createEmptyRemoteClientAdapter(): RemoteClientAdapter {
+    return {
+        fullscreen: {
+            isFullscreen: forbidden,
+            onFullscreenChanged: forbidden,
+            setFullscreen: forbidden
+        },
+        menu: {
+            createPopup: forbidden
+        }
+    }
 }
 
 export const clientMode: boolean = !!window['clientMode']
 
-export const createRemoteClientAdapter: () => RemoteClientAdapter = window['createRemoteClientAdapter']
+export const createRemoteClientAdapter: () => RemoteClientAdapter = clientMode ? window['createRemoteClientAdapter'] : createEmptyRemoteClientAdapter
 
-export const ipcInvoke: IpcInvoke = window['ipcInvoke']
+export const ipcInvoke: IpcInvoke = clientMode ? window['ipcInvoke'] : forbidden
 
-export const ipcInvokeSync: IpcInvokeSync = window['ipcInvokeSync']
+export const ipcInvokeSync: IpcInvokeSync = clientMode ? window['ipcInvokeSync'] : forbidden

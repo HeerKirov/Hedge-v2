@@ -64,7 +64,7 @@ export function createService(appdata: AppDataDriver, resource: ResourceManager,
         },
         resource: {
             cli: {
-                async status() {
+                status() {
                     return {status: resource.getCliStatus()}
                 },
                 async update() {
@@ -72,7 +72,7 @@ export function createService(appdata: AppDataDriver, resource: ResourceManager,
                 }
             },
             server: {
-                async status() {
+                status() {
                     return {status: resource.status()}
                 },
                 async update() {
@@ -92,7 +92,7 @@ export function createService(appdata: AppDataDriver, resource: ResourceManager,
                 await server.startConnection()
                 return {status: server.status()}
             },
-            async status() {
+            status() {
                 return {status: server.status()}
             },
             async init(form: ServerInitForm) {
@@ -101,18 +101,21 @@ export function createService(appdata: AppDataDriver, resource: ResourceManager,
         },
         setting: {
             auth: {
-                get: function () {
+                get() {
                     throw new Error("Not Implemented")
-                }, set: function (p1: SettingAuthForm) {
+                },
+                async set(form: SettingAuthForm) {
                     throw new Error("Not Implemented")
                 }
             },
             channel: {
-                change: function (p1: SettingChannelForm) {
+                async change(form: SettingChannelForm) {
                     throw new Error("Not Implemented")
-                }, list: function () {
+                },
+                async list() {
                     throw new Error("Not Implemented")
-                }, setDefault: function (p1: SettingChannelForm) {
+                },
+                async setDefault(form: SettingChannelForm) {
                     throw new Error("Not Implemented")
                 }
             }

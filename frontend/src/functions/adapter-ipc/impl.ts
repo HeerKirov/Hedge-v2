@@ -15,16 +15,16 @@ export function createIPCService(): IPCService {
         },
         resource: {
             server: {
-                status: invoke("/resource/server/status"),
+                status: invokeSync("/resource/server/status"),
                 update: invoke("/resource/server/update")
             },
             cli: {
-                status: invoke("/resource/cli/status"),
+                status: invokeSync("/resource/cli/status"),
                 update: invoke("/resource/cli/update")
             }
         },
         server: {
-            status: invoke("/server/status"),
+            status: invokeSync("/server/status"),
             env: invoke("/server/env"),
             open: invoke("/server/open"),
             close: invoke("/server/close"),
@@ -32,7 +32,7 @@ export function createIPCService(): IPCService {
         },
         setting: {
             auth: {
-                get: invoke("/setting/auth/get"),
+                get: invokeSync("/setting/auth/get"),
                 set: invoke("/setting/auth/set")
             },
             channel: {

@@ -19,16 +19,16 @@ export interface Service {
     }
     resource: {
         server: {
-            status(): Promise<ResourceStatusResponse>
+            status(): ResourceStatusResponse
             update(): Promise<void>
         }
         cli: {
-            status(): Promise<ResourceStatusResponse>
+            status(): ResourceStatusResponse
             update(): Promise<void>
         }
     }
     server: {
-        status(): Promise<ServerStatusResponse>
+        status(): ServerStatusResponse
         env(): Promise<ServerEnvResponse>
         open(): Promise<ServerStatusResponse>
         close(): Promise<ServerStatusResponse>
@@ -36,7 +36,7 @@ export interface Service {
     }
     setting: {
         auth: {
-            get(): Promise<SettingAuthResponse>
+            get(): SettingAuthResponse
             set(form: SettingAuthForm): Promise<SettingAuthResponse>
         }
         channel: {
@@ -112,7 +112,8 @@ export interface SettingChannelForm {
 }
 
 export interface SettingAuthResponse {
-
+    password: string | null
+    touchID: boolean
 }
 
 export interface SettingChannelListResponse {
