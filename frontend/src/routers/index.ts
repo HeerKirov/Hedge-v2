@@ -1,4 +1,4 @@
-import { createRouter, createWebHashHistory } from 'vue-router'
+import { createRouter, createWebHashHistory } from "vue-router"
 import route from "./route"
 import routeHedge from "./route-hedge"
 import routeSetting from "./route-setting"

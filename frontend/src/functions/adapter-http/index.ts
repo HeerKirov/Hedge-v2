@@ -1,5 +1,5 @@
 import { createHttpInstance, HttpInstance } from "./server"
-import { createWebService, WebService } from './impl/web'
+import { createWebService, WebService } from "./impl/web"
 
 export { HttpInstance }
 

@@ -45,6 +45,8 @@ export function createService(appdata: AppDataDriver, resource: ResourceManager,
                     d.loginOption.password = form.password
                 })
 
+                state.login(form.password ?? undefined)
+
                 return {ok: true}
             },
             async login(form: AppLoginForm) {

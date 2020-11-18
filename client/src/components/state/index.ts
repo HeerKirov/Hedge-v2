@@ -20,7 +20,7 @@ export interface StateManager {
      * 使用密码登录。
      * @param password
      */
-    login(password: string): boolean
+    login(password?: string): boolean
 
     /**
      * 使用touchID登录。
@@ -41,7 +41,7 @@ export function createStateManager(appdata: AppDataDriver): StateManager {
         isLogin(): boolean {
             return isLogin
         },
-        login(password: string): boolean {
+        login(password?: string): boolean {
             const truePassword = appdata.getAppData().loginOption.password
             if(truePassword == null || password === truePassword) {
                 isLogin = true

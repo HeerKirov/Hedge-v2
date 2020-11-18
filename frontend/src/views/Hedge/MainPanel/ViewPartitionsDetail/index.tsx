@@ -6,8 +6,8 @@ import "./style.scss"
 
 import img1 from "@/assets/img1.local.jpg"
 import img2 from "@/assets/img2.local.jpg"
-import { SideBarContextInjection } from '../inject'
-import { useRoute } from 'vue-router'
+import { SideBarContextInjection } from "../inject"
+import { useRoute } from "vue-router"
 
 export default defineComponent({
     setup() {

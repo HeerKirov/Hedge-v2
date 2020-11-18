@@ -1,5 +1,5 @@
-import { inject, ref, Ref, watch } from 'vue'
-import { BasicComponentInjection } from '.'
+import { inject, ref, Ref, watch } from "vue"
+import { BasicComponentInjection } from "./install"
 
 /**
  * 引用一个local storage存储器。
@@ -10,32 +10,20 @@ import { BasicComponentInjection } from '.'
 export function useLocalStorage<T>(bucketName: string): Ref<T | null | undefined> {
     const { clientMode, ipc } = inject(BasicComponentInjection)!
 
-    if(clientMode) {
-        const data: Ref<T | null | undefined> = ref()
-        
-        ipc.storage.get({key: bucketName}).then(value => { data.value = value ?? null }).catch(console.error)
+    const storageName = `${bucketName}`
 
-        watch(data, async (value, ov) => {
-            if(ov != undefined) {
-                await ipc.storage.set({key: bucketName, content: value})
-            }
-        })
-        
-        return data
-    }else{
-        const data: Ref<T | null | undefined> = ref((() => {
-            const value = window.localStorage.getItem(bucketName)
-            return value != undefined ? JSON.parse(value) : null
-        })())
+    const data: Ref<T | null | undefined> = ref((() => {
+        const value = window.localStorage.getItem(storageName)
+        return value != undefined ? JSON.parse(value) : null
+    })())
 
-        watch(data, value => {
-            if(value != null) {
-                window.localStorage.setItem(bucketName, JSON.stringify(value))
-            }else{
-                window.localStorage.removeItem(bucketName)
-            }
-        })
+    watch(data, value => {
+        if(value != null) {
+            window.localStorage.setItem(storageName, JSON.stringify(value))
+        }else{
+            window.localStorage.removeItem(storageName)
+        }
+    })
 
-        return data
-    }
+    return data
 }

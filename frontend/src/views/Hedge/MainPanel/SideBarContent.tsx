@@ -1,6 +1,6 @@
 import { computed, ComputedRef, defineComponent, inject, PropType, reactive, Ref, ref, toRef, watch } from "vue"
-import { useRoute, useRouter } from 'vue-router'
-import { SideBarContextInjection } from './inject'
+import { useRoute, useRouter } from "vue-router"
+import { SideBarContextInjection } from "./inject"
 import style from "./style.module.scss"
 
 /**

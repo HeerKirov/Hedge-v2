@@ -1,5 +1,5 @@
 import { defineComponent, inject, ref, Ref } from "vue"
-import { InitContextInjection } from './inject'
+import { InitContextInjection } from "./inject"
 import style from "./style.module.scss"
 
 export default defineComponent({
