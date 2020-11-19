@@ -1,6 +1,7 @@
-import { clientMode, createRemoteClientAdapter, RemoteClientAdapter } from "./client"
+import { clientMode, createRemoteClientAdapter } from "./client"
 import { createIPCService } from "./impl"
-import { IPCService } from "./definition"
+import type { RemoteClientAdapter } from "./client"
+import type { IPCService } from "./definition"
 
 export { 
     clientMode, 

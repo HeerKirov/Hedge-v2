@@ -1,9 +1,46 @@
-import { defineComponent, ref } from "vue"
+import { defineComponent, onMounted, ref } from "vue"
+import { useRouter } from "vue-router"
+import { useAppState } from "@/functions/service"
 import Input from "@/components/Input"
 
 export default defineComponent({
     setup() {
-        const useTouchId = ref(false)
+        const router = useRouter()
+        const appState = useAppState()
+
+        const useTouchId = ref(appState.canPromptTouchID)
+
+        const password = ref("")
+        const passwordWrong = ref(false)
+        const disabled = ref(false)
+
+        const doLogin = async () => {
+            disabled.value = true
+            passwordWrong.value = false
+            const res = await appState.login(password.value)
+            if(res) {
+                router.push({name: "Index"})
+            }else{
+                disabled.value = false
+                passwordWrong.value = true
+            }
+        }
+        const enter = async (e: KeyboardEvent) => {
+            if(e.key === "Enter") {
+                await doLogin()
+            }
+        }
+
+        onMounted(async () => {
+            if(useTouchId.value) {
+                const res = await appState.loginByTouchID()
+                if(res) {
+                    router.push({name: "Index"})
+                }else{
+                    useTouchId.value = false
+                }
+            }
+        })
 
         return () => <div id="login">
             <div class="title-bar has-text-centered">
@@ -18,10 +55,10 @@ export default defineComponent({
                 :
                     <div class="field is-grouped">
                         <p class="control is-expanded">
-                            <Input class="is-small has-text-centered" type="password"/>{/*用is-danger表示密码错误*/}
+                            <Input class={{"is-small": true, "has-text-centered": true, "is-danger": passwordWrong.value}} type="password" value={password.value} onUpdateValue={v => password.value = v} onKeydown={enter}/>
                         </p>
                         <p class="control">
-                            <button class="button is-small is-success"><span class="icon"><i class="fa fa-check"/></span></button>
+                            <button class="button is-small is-success" onClick={doLogin}><span class="icon"><i class="fa fa-check"/></span></button>
                         </p>
                     </div>
                 }

@@ -23,7 +23,7 @@ export default defineComponent({
                     <span>HEDGE</span>
                 </div>
                 <div class={[style.dialog, "fixed", "center", "box"]}>
-                <CurrentPage/>
+                    <CurrentPage/>
                 </div>
             </div>
         }

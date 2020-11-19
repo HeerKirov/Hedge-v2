@@ -28,7 +28,7 @@ object DatabaseMigrationStrategy : SimpleStrategy<Database>() {
     private fun Database.useSQLResource(version: Version): Database {
         useConnection { conn ->
             conn.createStatement().use { stat ->
-                Resources.getResourceAsText("/migrations/v$$version.sql")
+                Resources.getResourceAsText("/migrations/v$version.sql")
                     .let { SQLUtil.splitByDelimiter(it) }
                     .forEach { stat.execute(it) }
             }

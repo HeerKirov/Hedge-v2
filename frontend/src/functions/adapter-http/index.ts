@@ -1,4 +1,5 @@
-import { createHttpInstance, HttpInstance } from "./server"
+import type { HttpInstance } from "./server"
+import { createHttpInstance } from "./server"
 import { createWebService, WebService } from "./impl/web"
 
 export { HttpInstance, createHttpInstance }

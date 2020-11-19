@@ -42,7 +42,7 @@ export interface Service {
         channel: {
             list(): Promise<SettingChannelListResponse>
             setDefault(form: SettingChannelForm): Promise<void>
-            change(form: SettingChannelForm): Promise<void>
+            change(form: SettingChannelForm): void
         }
     }
     storage: {
@@ -104,11 +104,12 @@ export interface ServerEnvResponse extends ServerConnectionInfo {}
 //== setting ==
 
 export interface SettingAuthForm {
-
+    password?: string | null
+    touchID?: boolean
 }
 
 export interface SettingChannelForm {
-
+    channel: string
 }
 
 export interface SettingAuthResponse {
@@ -117,7 +118,7 @@ export interface SettingAuthResponse {
 }
 
 export interface SettingChannelListResponse {
-    
+    channels: string[]
 }
 
 //== storage ==

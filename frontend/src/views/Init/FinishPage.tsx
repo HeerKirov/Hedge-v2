@@ -1,12 +1,38 @@
-import { defineComponent, inject, ref, Ref } from "vue"
+import { defineComponent, inject, onMounted, ref } from "vue"
+import { useRouter } from "vue-router"
+import { useAppInfo, useAppResource, useAppServer, useAppState } from "@/functions/service"
 import { InitContextInjection } from "./inject"
 import style from "./style.module.scss"
 
 export default defineComponent({
     setup() {
+        const router = useRouter()
+        const appState = useAppState()
+        const appResource = useAppResource()
+        const appServer = useAppServer()
+        const appInfo = useAppInfo()
+
         const context = inject(InitContextInjection)!
 
-        const status = ref<"data" | "resource" | "starting" | "finished">("finished")
+        const status = ref<"loading" | "data" | "resource" | "starting" | "server" | "finished">("loading")
+
+        const next = () => { router.push({name: "HedgeIndex"}) }
+
+        onMounted(async () => {
+            status.value = "data"
+            await appState.initializeApp(context.password.hasPassword ? context.password.value : null)
+
+            status.value = "resource"
+            await appResource.main.update()
+
+            status.value = "starting"
+            await appServer.connect()
+
+            status.value = "server"
+            await appServer.initializeDatabase(context.db.custom ? context.db.customFolderPath : `${appInfo.userDataPath}/appdata/channel/${appInfo.channel}/database/${context.db.folderInAppData}`)
+
+            status.value = "finished"
+        })
 
         return () => status.value === "finished"? <>
             <h2 class="is-size-5 mb-2">完成</h2> 
@@ -15,7 +41,7 @@ export default defineComponent({
                 <div>初始化已完成。点击继续开始使用。</div>
             </div>
             <div class={style.bottom}>
-                <button class="button is-link absolute right-bottom">继续<i class="fa fa-hand-peace ml-2"/></button>
+                <button class="button is-link absolute right-bottom" onClick={next}>继续<i class="fa fa-hand-peace ml-2"/></button>
             </div>
         </> : <div class="has-text-centered absolute center">
             <span class="icon"><i class="fa fa-3x fa-code-branch"/></span>
@@ -25,7 +51,9 @@ export default defineComponent({
 })
 
 const loadingMessage = {
-    "data": "正在构建App数据……",
-    "resource": "正在更新App资源……",
-    "starting": "正在启动服务……"
+    "loading": "",
+    "data": "正在构建数据……",
+    "resource": "正在部署资源……",
+    "starting": "正在启动服务……",
+    "server": "正在构建数据库……"
 }

@@ -1,10 +1,20 @@
-import { inject, InjectionKey, provide, readonly } from "vue"
+import { inject, InjectionKey, readonly } from "vue"
 import { IPCService, Platform } from "../adapter-ipc/definition"
 
-export function provideAppInfo(clientMode: boolean, ipc: IPCService) {
-    const env = ipc.app.env()
-
-    provide(AppInfoInjection, readonly({...env, clientMode}))
+export function useAppInfoInjection(clientMode: boolean, ipc: IPCService): AppInfo {
+    if(clientMode) {
+        const env = ipc.app.env()
+        return readonly({...env, clientMode: true})
+    }else{
+        return readonly({
+            clientMode: false,
+            platform: "web",
+            debugMode: false,
+            userDataPath: "",
+            channel: "",
+            canPromptTouchID: false
+        })
+    }
 }
 
 /**
@@ -23,4 +33,4 @@ export interface AppInfo {
     canPromptTouchID: boolean
 }
 
-const AppInfoInjection: InjectionKey<Readonly<AppInfo>> = Symbol()
+export const AppInfoInjection: InjectionKey<Readonly<AppInfo>> = Symbol()

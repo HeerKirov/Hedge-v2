@@ -2,7 +2,7 @@ import nodeFs, { Mode } from "fs"
 import unzipper from "unzipper"
 import { spawn } from "child_process"
 
-export async function writeFile<T>(file: string, data: T): Promise<T> {
+export function writeFile<T>(file: string, data: T): Promise<T> {
     return new Promise(((resolve, reject) => {
         nodeFs.writeFile(file, JSON.stringify(data), {encoding: "utf8"}, e => {
             if(e) {
@@ -29,8 +29,20 @@ export async function readFile<T>(file: string): Promise<T | null> {
     }))
 }
 
-export async function existsFile(path: string): Promise<boolean> {
+export function existsFile(path: string): Promise<boolean> {
     return new Promise((resolve => nodeFs.access(path, (e) => resolve(!e))))
+}
+
+export async function readdir(dir: string): Promise<string[]> {
+    return new Promise((resolve, reject) => {
+        nodeFs.readdir(dir, (e, files) => {
+            if(e) {
+                reject(e)
+            }else{
+                resolve(files)
+            }
+        })
+    })
 }
 
 export async function mkdir(path: string): Promise<void> {
@@ -59,7 +71,7 @@ export async function rmdir(path: string): Promise<void> {
     }))
 }
 
-export async function cpR(src: string, dest: string): Promise<void> {
+export function cpR(src: string, dest: string): Promise<void> {
     return new Promise((resolve, reject) => {
         const s = spawn("cp", ["-r", src, dest])
         s.on('close', code => {
@@ -72,7 +84,7 @@ export async function cpR(src: string, dest: string): Promise<void> {
     })
 }
 
-export async function unzip(src: string, dest: string): Promise<void> {
+export function unzip(src: string, dest: string): Promise<void> {
     return new Promise((resolve, reject) => {
         nodeFs.createReadStream(src)
             .pipe(unzipper.Extract({path: dest}))
@@ -81,7 +93,7 @@ export async function unzip(src: string, dest: string): Promise<void> {
     })
 }
 
-export async function rename(src: string, dest: string): Promise<void> {
+export function rename(src: string, dest: string): Promise<void> {
     return new Promise((resolve, reject) => {
         nodeFs.rename(src, dest, (e) => {
             if(e) {
@@ -93,7 +105,7 @@ export async function rename(src: string, dest: string): Promise<void> {
     })
 }
 
-export async function chmod(dest: string, mode: Mode): Promise<void> {
+export function chmod(dest: string, mode: Mode): Promise<void> {
     return new Promise((resolve, reject) => {
         nodeFs.chmod(dest, mode, (e) => {
             if(e) {

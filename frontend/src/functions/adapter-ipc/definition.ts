@@ -34,7 +34,7 @@ export interface IPCService {
         channel: {
             list(): Promise<SettingChannelListResponse>
             setDefault(form: SettingChannelForm): Promise<void>
-            change(form: SettingChannelForm): Promise<void>
+            change(form: SettingChannelForm): void
         }
     }
     storage: {
@@ -100,11 +100,12 @@ export interface ServerEnvResponse {
 //== setting ==
 
 export interface SettingAuthForm {
-
+    password?: string | null
+    touchID?: boolean
 }
 
 export interface SettingChannelForm {
-
+    channel: string
 }
 
 export interface SettingAuthResponse {
@@ -113,7 +114,7 @@ export interface SettingAuthResponse {
 }
 
 export interface SettingChannelListResponse {
-    
+    channels: string[]
 }
 
 //== storage ==
@@ -129,7 +130,7 @@ export interface StorageSetForm {
 
 //== enum ==
 
-export type Platform = "win32" | "darwin" | "linux"
+export type Platform = "win32" | "darwin" | "linux" | "web"
 
 //前端的enum移除了unknown的定义，是因为在前端之前这些状态必定已经初始化完成。
 

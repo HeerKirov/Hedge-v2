@@ -5,6 +5,7 @@ import { ResourceManager } from "../resource"
 import { ServerManager } from "../server"
 import { StateManager } from "../state"
 import { Bucket } from "../bucket"
+import { Channel } from "../channel"
 import {
     AppInitForm,
     AppLoginForm,
@@ -23,7 +24,7 @@ export interface ServiceOptions {
     channel: string
 }
 
-export function createService(appdata: AppDataDriver, resource: ResourceManager, server: ServerManager, bucket: Bucket, state: StateManager, options: ServiceOptions): Service {
+export function createService(appdata: AppDataDriver, resource: ResourceManager, server: ServerManager, bucket: Bucket, state: StateManager, channel: Channel, options: ServiceOptions): Service {
     return {
         app: {
             env() {
@@ -102,21 +103,27 @@ export function createService(appdata: AppDataDriver, resource: ResourceManager,
         setting: {
             auth: {
                 get() {
-                    throw new Error("Not Implemented")
+                    return appdata.getAppData().loginOption
                 },
                 async set(form: SettingAuthForm) {
-                    throw new Error("Not Implemented")
+                    const data = await appdata.saveAppData(data => {
+                        if(form.password !== undefined) data.loginOption.password = form.password
+                        if(form.touchID !== undefined) data.loginOption.touchID = form.touchID
+                    })
+                    return data.loginOption
                 }
             },
             channel: {
-                async change(form: SettingChannelForm) {
-                    throw new Error("Not Implemented")
+                change(form: SettingChannelForm) {
+                    channel.restartWithChannel(form.channel)
                 },
                 async list() {
-                    throw new Error("Not Implemented")
+                    return {
+                        channels: await channel.getChannelList()
+                    }
                 },
                 async setDefault(form: SettingChannelForm) {
-                    throw new Error("Not Implemented")
+                    await channel.setDefaultChannel(form.channel)
                 }
             }
         },

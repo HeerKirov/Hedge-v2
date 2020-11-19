@@ -1,5 +1,5 @@
-import { inject, ref, Ref, watch } from "vue"
-import { BasicComponentInjection } from "./install"
+import { ref, Ref, watch } from "vue"
+import { useAppInfo } from './app-info'
 
 /**
  * 引用一个local storage存储器。
@@ -8,9 +8,11 @@ import { BasicComponentInjection } from "./install"
  * @return 存储的响应式数据。null表示无值，其他表示有值
  */
 export function useLocalStorage<T>(bucketName: string): Ref<T | null> {
-    const { clientMode, ipc } = inject(BasicComponentInjection)!
+    const appInfo = useAppInfo()
 
-    const storageName = `com.heerkirov.hedge.v2/${ipc.app.env().channel}/${bucketName}`
+    const storageName = appInfo.clientMode 
+        ? `com.heerkirov.hedge.v2/${appInfo.channel}/${bucketName}` 
+        : `com.heerkirov.hedge.v2/${bucketName}`
 
     const data: Ref<T | null> = ref((() => {
         const value = window.localStorage.getItem(storageName)

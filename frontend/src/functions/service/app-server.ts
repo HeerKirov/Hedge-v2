@@ -10,7 +10,8 @@ export function useAppServer(): AppServer {
         return {
             status: readonly(ref(true)),
             connect() { throw new Error("Cannot call IPC in web.") },
-            disconnect() { throw new Error("Cannot call IPC in web.") }
+            disconnect() { throw new Error("Cannot call IPC in web.") },
+            initializeDatabase() { throw new Error("Cannot call IPC in web.") }
         }
     }
 
@@ -26,10 +27,15 @@ export function useAppServer(): AppServer {
         status.value = res.status === ServerStatus.OPEN
     }
 
+    const initializeDatabase = async (dbPath: string) => {
+        await ipc.server.init({dbPath})
+    }
+
     return {
         status: readonly(status),
         connect,
-        disconnect
+        disconnect,
+        initializeDatabase
     }
 }
 
@@ -37,4 +43,5 @@ export interface AppServer {
     status: Readonly<Ref<boolean>>
     connect(): Promise<void>
     disconnect(): Promise<void>
+    initializeDatabase(dbPath: string): Promise<void>
 }

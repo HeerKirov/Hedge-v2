@@ -21,6 +21,14 @@ export interface RemoteClientAdapter {
          * 创建一个弹出菜单的调用。给出菜单模板，返回一个函数，调用此函数以弹出此菜单。
          */
         createPopup(items: MenuTemplate[]): () => void
+    },
+    dialog: {
+        /**
+         * 打开一个对话框用于打开文件或文件夹。
+         * @param options 对话框的配置项
+         * @return 如果选择了项并确认，返回选择项的文件地址；否则返回null
+         */
+        openDialog(options: OpenDialogOptions): Promise<string[] | null>
     }
 }
 
@@ -30,6 +38,13 @@ interface MenuTemplate {
     type?: 'normal' | 'separator' | 'submenu' | 'checkbox' | 'radio'
     submenu?: MenuTemplate[]
     click?(): void
+}
+
+export interface OpenDialogOptions {
+    title?: string
+    defaultPath?: string
+    filters?: {name: string, extensions: string[]}[]
+    properties?: ("openFile" | "openDirectory" | "multiSelections" | "createDirectory"/*macOS*/)[]
 }
 
 type IpcInvoke = <T, R>(channel: string, form?: T) => Promise<R>
@@ -49,6 +64,9 @@ function createEmptyRemoteClientAdapter(): RemoteClientAdapter {
         },
         menu: {
             createPopup: forbidden
+        },
+        dialog: {
+            openDialog: forbidden
         }
     }
 }

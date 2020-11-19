@@ -1,18 +1,19 @@
-import { inject, InjectionKey, provide, readonly, ref, Ref, watch } from "vue"
+import { inject, InjectionKey, readonly, ref, Ref } from "vue"
 import { AppDataStatus, IPCService } from "../adapter-ipc/definition"
 import { APIService, HttpInstance } from "../adapter-http"
-import { useLocalStorage } from './storage'
+import { AppInfo } from "./app-info"
+import { useLocalStorage } from "./storage"
 
-export function provideAppState(clientMode: boolean, ipc: IPCService, api: APIService, httpInstance: HttpInstance) {
-    provide(AppStateInjection, clientMode 
-        ? useAppStateInClientMode(ipc)
-        : useAppStateInWebMode(api, httpInstance))
+export function useAppStateInjection(clientMode: boolean, ipc: IPCService, api: APIService, httpInstance: HttpInstance, appInfo: AppInfo): AppState {
+    return clientMode 
+        ? useAppStateInClientMode(ipc, appInfo)
+        : useAppStateInWebMode(api, httpInstance)
 }
 
-function useAppStateInClientMode(ipc: IPCService): AppState {
+function useAppStateInClientMode(ipc: IPCService, appInfo: AppInfo): AppState {
     const ipcStatus = ipc.app.status()
-    
-    const canPromptTouchID: boolean = ipc.app.env() && ipc.setting.auth.get().touchID
+
+    const canPromptTouchID: boolean = appInfo.canPromptTouchID && ipcStatus.status == AppDataStatus.LOADED && ipc.setting.auth.get().touchID
     const status: Ref<AppStateStatus> = ref(ipcStatus.status == AppDataStatus.NOT_INIT ? "NOT_INIT" : ipcStatus.isLogin ? "LOGIN" : "NOT_LOGIN")
 
     const initializeApp = async (password: string | null) => {
@@ -130,4 +131,4 @@ export interface AppState {
 
 export type AppStateStatus = "NOT_INIT" | "NOT_LOGIN" | "LOGIN" | "UNKNOWN"
 
-const AppStateInjection: InjectionKey<AppState> = Symbol()
+export const AppStateInjection: InjectionKey<AppState> = Symbol()

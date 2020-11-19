@@ -3,6 +3,7 @@ import { promiseAll, getNodePlatform, Platform } from "../utils/process"
 import { createWindowManager, WindowManager } from "./window-manager"
 import { createAppDataDriver } from "../components/appdata"
 import { createStateManager } from "../components/state"
+import { createChannel } from "../components/channel"
 import { createResourceManager } from "../components/resource"
 import { createServerManager, ServerManager, ServerStatus } from "../components/server"
 import { createBucket } from "../components/bucket"
@@ -62,9 +63,11 @@ interface DebugOption {
 export async function createApplication(options?: AppOptions) {
     const platform = getNodePlatform()
     const debugMode = !!options?.debug
-    const channel = options?.channel ?? "default"
     const appPath = app.getAppPath()
     const userDataPath = options?.debug?.localDataPath ?? app.getPath("userData")
+
+    const channelManager = await createChannel({userDataPath, defaultChannel: "default", manualChannel: options?.channel})
+    const channel = channelManager.currentChannel()
 
     const appDataDriver = createAppDataDriver({userDataPath, channel, debugMode})
 
@@ -78,7 +81,7 @@ export async function createApplication(options?: AppOptions) {
 
     const windowManager = createWindowManager(stateManager, {platform, debug: options?.debug && {frontendFromFolder: options.debug.frontendFromFolder, frontendFromURL: options.debug.frontendFromURL}})
 
-    const service = createService(appDataDriver, resourceManager, serverManager, bucket, stateManager, {debugMode, userDataPath, platform, channel})
+    const service = createService(appDataDriver, resourceManager, serverManager, bucket, stateManager, channelManager, {debugMode, userDataPath, platform, channel})
 
     registerIpcTransformer(service)
 

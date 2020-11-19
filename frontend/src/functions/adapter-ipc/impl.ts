@@ -38,7 +38,7 @@ export function createIPCService(): IPCService {
             channel: {
                 list: invoke("/setting/channel/list"),
                 setDefault: invoke("/setting/channel/set-default"),
-                change: invoke("/setting/channel/change")
+                change: invokeSync("/setting/channel/change")
             }
         },
         storage: {
