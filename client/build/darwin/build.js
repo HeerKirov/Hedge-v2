@@ -83,8 +83,11 @@ function buildFrontend() {
 
 function installFrontend(target) {
     console.log("install frontend...")
-    const resourcePath = path.join(target, APP_NAME, "Contents/Resources")
-    child.spawnSync("cp", ["-R", "../frontend/dist", path.join(resourcePath, "frontend")])
+    const frontendPath = path.join(target, APP_NAME, "Contents/Resources/frontend")
+    if(fs.existsSync(frontendPath)) {
+        fs.rmSync(frontendPath, {recursive: true, force: true})
+    }
+    child.spawnSync("cp", ["-R", "../frontend/dist", frontendPath])
 }
 
 function buildServer() {

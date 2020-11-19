@@ -55,7 +55,7 @@ export default defineComponent({
                 :
                     <div class="field is-grouped">
                         <p class="control is-expanded">
-                            <Input class={{"is-small": true, "has-text-centered": true, "is-danger": passwordWrong.value}} type="password" value={password.value} onUpdateValue={v => password.value = v} onKeydown={enter}/>
+                            <Input class={{"is-small": true, "has-text-centered": true, "is-danger": passwordWrong.value}} type="password" refreshOnInput={true} value={password.value} onUpdateValue={v => password.value = v} onKeydown={enter}/>
                         </p>
                         <p class="control">
                             <button class="button is-small is-success" onClick={doLogin}><span class="icon"><i class="fa fa-check"/></span></button>
