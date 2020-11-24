@@ -15,7 +15,9 @@ object Filename {
 
     const val META_DAT = "meta.dat"
     const val DATA_SQLITE = "data.sqlite"
+    const val META_SQLITE = "meta.sqlite"
     const val ORIGIN_SQLITE = "origin.sqlite"
+    const val SOURCE_SQLITE = "source.sqlite"
     const val STATISTIC_SQLITE = "statistic.sqlite"
     const val VERSION_LOCK = "version"
 }

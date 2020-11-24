@@ -21,7 +21,9 @@ class DBInstance(val dbPath: String) : Closeable {
         Fs.mkdir(dbPath)
 
         conn = DriverManager.getConnection("jdbc:sqlite:$dbPath/${Filename.DATA_SQLITE}")
-        conn.attach("$dbPath/${Filename.ORIGIN_SQLITE}", "origin")
+        conn.attach("$dbPath/${Filename.META_SQLITE}", "meta_db")
+        conn.attach("$dbPath/${Filename.ORIGIN_SQLITE}", "origin_db")
+        conn.attach("$dbPath/${Filename.SOURCE_SQLITE}", "source_db")
 
         database = Database.connect {
             object : Connection by conn {

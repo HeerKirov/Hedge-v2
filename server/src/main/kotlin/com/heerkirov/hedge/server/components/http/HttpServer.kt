@@ -13,7 +13,9 @@ import com.heerkirov.hedge.server.definitions.Filename
 import com.heerkirov.hedge.server.enums.LoadStatus
 import com.heerkirov.hedge.server.utils.Net
 import com.heerkirov.hedge.server.utils.Token
+import com.heerkirov.hedge.server.utils.objectMapper
 import io.javalin.Javalin
+import io.javalin.plugin.json.JavalinJackson
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.net.BindException
@@ -62,6 +64,8 @@ class HttpServerImpl(private val health: Health,
     private val web = WebAccessor(appdata, options.frontendFromFolder ?: "${options.userDataPath}/${Filename.FRONTEND_FOLDER}")
 
     override fun start() {
+        JavalinJackson.configure(objectMapper())
+
         val aspect = Aspect(appdata)
         val authentication = Authentication(token, web)
         val errorHandler = ErrorHandler()
