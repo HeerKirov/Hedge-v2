@@ -1,6 +1,6 @@
 package com.heerkirov.hedge.server.model
 
-import com.heerkirov.hedge.server.utils.BinaryComposition
+import com.heerkirov.hedge.server.utils.Composition
 
 /**
  * 注解。
@@ -23,22 +23,22 @@ data class Annotation(val id: Int?,
                        */
                       val availableFor: AnnotationTarget?) {
 
-    enum class AnnotationTarget(override val binary: Int) : BinaryComposition.CompositionOperator {
-        TAG(0b1),
-        ARTIST(0b10),
-        STUDIO(0b100),
-        PUBLISH(0b1000),
-        COPYRIGHT(0b10000),
-        WORK(0b100000),
-        CHARACTER(0b1000000),
-        AUTHOR(ARTIST.binary + STUDIO.binary + PUBLISH.binary),
-        TOPIC(COPYRIGHT.binary + WORK.binary + CHARACTER.binary)
+    open class AnnotationTarget(value: Int) : Composition<AnnotationTarget>(AnnotationTarget::class, value) {
+        object TAG : AnnotationTarget(0b1)
+        object ARTIST : AnnotationTarget(0b10)
+        object STUDIO : AnnotationTarget(0b100)
+        object PUBLISH : AnnotationTarget(0b1000)
+        object COPYRIGHT : AnnotationTarget(0b10000)
+        object WORK : AnnotationTarget(0b100000)
+        object CHARACTER : AnnotationTarget(0b1000000)
+        object AUTHOR : AnnotationTarget((TAG + STUDIO + PUBLISH).value)
+        object TOPIC : AnnotationTarget((COPYRIGHT + WORK + CHARACTER).value)
     }
 
-    enum class ExportedFrom(override val binary: Int): BinaryComposition.CompositionOperator {
-        TAG(0b1),
-        AUTHOR(0b10),
-        TOPIC(0b100)
+    open class ExportedFrom(value: Int): Composition<ExportedFrom>(ExportedFrom::class, value) {
+        object TAG : ExportedFrom(0b1)
+        object AUTHOR : ExportedFrom(0b10)
+        object TOPIC : ExportedFrom(0b100)
     }
 
     /**

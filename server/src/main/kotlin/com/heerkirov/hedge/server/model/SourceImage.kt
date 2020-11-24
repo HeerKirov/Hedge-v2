@@ -8,17 +8,17 @@ import java.time.LocalDateTime
  */
 data class SourceImage(val imageId: Int,
                        /**
-                        * 来源网站的代号。
+                        * 来源网站的代号。""表示不存在。
                         */
-                       val source: String? = null,
+                       val source: String = "",
                        /**
-                        * 来源网站中的图像id。
+                        * 来源网站中的图像id。-1表示不存在。
                         */
-                       val sourceId: Int? = null,
+                       val sourceId: Int = -1,
                        /**
-                        * 来源网站中的二级图像id，有些会有，比如pixiv。
+                        * 来源网站中的二级图像id，有些会有，比如pixiv。-1表示不存在。
                         */
-                       val sourcePart: Int? = null,
+                       val sourcePart: Int = -1,
                        /**
                         * 原数据的标题信息，有些会有，比如pixiv。
                         */

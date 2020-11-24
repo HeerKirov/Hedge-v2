@@ -40,6 +40,10 @@ fun <T> String.parseJSONObject(typeReference: TypeReference<T>): T {
     return objectMapper().readValue(this, typeReference)
 }
 
+fun <T> String.parseJSONObject(javaType: JavaType): T {
+    return objectMapper().readValue(this, javaType)
+}
+
 fun <T> T.toJsonNode(): JsonNode {
     return objectMapper.valueToTree(this)
 }

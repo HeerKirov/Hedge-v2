@@ -1,6 +1,6 @@
 package com.heerkirov.hedge.server.model
 
-import com.heerkirov.hedge.server.utils.BinaryComposition
+import com.heerkirov.hedge.server.utils.Composition
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -92,27 +92,27 @@ data class Illust(val id: Int?,
         COLLECTION
     }
 
-    enum class Tagme(override val binary: Int) : BinaryComposition.CompositionOperator {
+    open class Tagme(value: Int) : Composition<Tagme>(Tagme::class, value) {
         /**
          * 标签。
          */
-        TAG(0b1),
+        object TAG : Tagme(0b1)
         /**
          * 作者标签。
          */
-        AUTHOR(0b10),
+        object AUTHOR : Tagme(0b10)
         /**
          * 主题标签。
          */
-        TOPIC(0b100),
+        object TOPIC : Tagme(0b100)
         /**
          * 任意关联关系。
          */
-        RELATION(0b1000),
+        object RELATION : Tagme(0b1000)
         /**
          * 其他元数据。
          */
-        OTHER(0b10000)
+        object OTHER : Tagme(0b10000)
     }
 
     /**

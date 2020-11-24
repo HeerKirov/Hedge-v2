@@ -8,12 +8,12 @@ CREATE TABLE illust(
     file_id				        INTEGER NOT NULL,				    -- 链接的文件ID。对集合来说链接的是封面图像的ID冗余
 
     description			        TEXT NOT NULL DEFAULT '',           -- 简述信息，不存在时记空串
-    score						INTEGER NOT NULL DEFAULT 0,         -- 图像的评分，没有写0。具体含义由setting定义
+    score						INTEGER DEFAULT NULL,               -- 图像的评分。具体含义由setting定义
     favorite				    BOOLEAN NOT NULL DEFAULT FALSE,     -- [only image]喜爱标记
     tagme                       TINYINT NOT NULL,                   -- 标记为tagme{0b1=标签, 0b10=作者, 0b100=主题, 0b1000=有关系项, 0b10000=其他信息}
 
     exported_description        TEXT NOT NULL DEFAULT '',           -- [导出]导出的简述信息。聚合时采用
-    exported_score			    INTEGER NOT NULL DEFAULT 0,         -- [导出]导出的评分。聚合时取平均值
+    exported_score			    INTEGER DEFAULT NULL,               -- [导出]导出的评分。聚合时取平均值
 
     relations                   TEXT DEFAULT NULL,                  -- 裙带关系::json<number[]>
 
@@ -31,7 +31,7 @@ CREATE TABLE album(
     id 				INTEGER PRIMARY KEY,
     title 			TEXT NOT NULL DEFAULT '',       -- 画集标题，不存在时记空串
     description 	TEXT NOT NULL DEFAULT '',       -- 画集的简述信息，不存在时记空串
-    score 			INTEGER NOT NULL DEFAULT 0,     -- 画集的评分，不写存0。评分的具体含义和范围在setting中配置
+    score 			INTEGER DEFAULT NULL,           -- 画集的评分。评分的具体含义和范围在setting中配置
     favorite		BOOLEAN NOT NULL DEFAULT FALSE, -- 喜爱标记，会用于收藏展示
 
     subtitles       TEXT DEFAULT NULL,              -- 画集中的子标题分割项::json<{ordinal: number, title: string}[]>
@@ -65,7 +65,6 @@ CREATE TABLE folder_image_relation(
 );
 CREATE UNIQUE INDEX folder_image__index ON folder_image_relation(folder_id, image_id);
 
-
 -- 时间分区
 CREATE TABLE partition(
     id              INTEGER PRIMARY KEY,
@@ -87,7 +86,7 @@ CREATE TABLE meta_db.tag(
     description		TEXT NOT NULL,              -- 标签的内容描述
     links           TEXT DEFAULT NULL,          -- 链接到其他标签::json<number[]>，填写tagId列表，在应用此标签的同时导出链接的标签
     examples		TEXT DEFAULT NULL,          -- 标签的样例image列表::json<number[]>，填写id列表，NULL表示无
-    exported_score  INTEGER NOT NULL DEFAULT 0, -- [导出]根据其关联的image导出的统计分数
+    exported_score  INTEGER DEFAULT NULL,       -- [导出]根据其关联的image导出的统计分数
     cached_count 	INTEGER NOT NULL DEFAULT 0  -- [冗余]此标签关联的图片数量
 );
 
@@ -97,12 +96,12 @@ CREATE TABLE meta_db.author(
     name 			TEXT NOT NULL,                  -- 标签的名称
     other_names     TEXT NOT NULL DEFAULT '',       -- 标签的别名::string("nameA|nameB|nameC")
     type 			TINYINT NOT NULL,               -- 此标签的类型{0=未知, 1=画师, 2=工作室, 3=出版物}
-    score			INTEGER NOT NULL DEFAULT 0,    -- 评分，不写记0
+    score			INTEGER DEFAULT NULL,           -- 评分
     favorite		BOOLEAN NOT NULL DEFAULT FALSE, -- 喜爱标记，会用于收藏展示
     links			TEXT DEFAULT NULL,              -- 相关链接::json<Link[]>
     description     TEXT NOT NULL,                  -- 标签的内容描述
 
-    exported_score  INTEGER NOT NULL DEFAULT 0,     -- 根据评分或其关联的image导出的统计分数
+    exported_score  INTEGER DEFAULT NULL,           -- 根据评分或其关联的image导出的统计分数
     cached_count 	INTEGER NOT NULL DEFAULT 0,     -- [冗余]此标签关联的图片数量
     annotations 	TEXT DEFAULT NULL               -- [冗余]此标签的注解的缓存，用于显示::json<string[]>
 );
@@ -115,12 +114,12 @@ CREATE TABLE meta_db.topic(
     other_names     TEXT NOT NULL DEFAULT '',       -- 标签的别名::string("nameA|nameB|nameC")
     parent_id 	    INTEGER DEFAULT NULL,           -- 父标签的ID。IP可以以IP/版权方为父；角色可以以作品为父
     type 			TINYINT NOT NULL,               -- 此标签的类型{1=持有IP的版权方, 2=IP(作品), 3=角色}
-    score			INTEGER NOT NULL DEFAULT 0,     -- 评分，不写记0
+    score			INTEGER DEFAULT NULL,           -- 评分
     favorite		BOOLEAN NOT NULL DEFAULT FALSE, -- 喜爱标记，会用于收藏展示
     links			TEXT DEFAULT NULL,              -- 相关链接::json<Link[]>
     description		TEXT NOT NULL,                  -- 标签的内容描述
 
-    exported_score  INTEGER NOT NULL DEFAULT 0,     -- [导出]根据评分或其关联的image导出的统计分数
+    exported_score  INTEGER DEFAULT NULL,           -- [导出]根据评分或其关联的image导出的统计分数
     cached_count 	INTEGER NOT NULL DEFAULT 0,     -- [冗余]此标签关联的图片数量
     annotations 	TEXT DEFAULT NULL               -- [冗余]此标签的注解的缓存，用于显示::json<string[]>
 );
