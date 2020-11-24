@@ -1,5 +1,5 @@
 import { ref, Ref, watch } from "vue"
-import { useAppInfo } from './app-info'
+import { AppInfo, useAppInfo } from './app-info'
 
 /**
  * 引用一个local storage存储器。
@@ -7,8 +7,8 @@ import { useAppInfo } from './app-info'
  * @param bucketName 存储器使用的名称
  * @return 存储的响应式数据。null表示无值，其他表示有值
  */
-export function useLocalStorage<T>(bucketName: string): Ref<T | null> {
-    const appInfo = useAppInfo()
+export function useLocalStorage<T>(bucketName: string, provideAppInfo?: AppInfo): Ref<T | null> {
+    const appInfo = provideAppInfo ?? useAppInfo()
 
     const storageName = appInfo.clientMode 
         ? `com.heerkirov.hedge.v2/${appInfo.channel}/${bucketName}` 

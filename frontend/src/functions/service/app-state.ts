@@ -7,7 +7,7 @@ import { useLocalStorage } from "./storage"
 export function useAppStateInjection(clientMode: boolean, ipc: IPCService, api: APIService, httpInstance: HttpInstance, appInfo: AppInfo): AppState {
     return clientMode 
         ? useAppStateInClientMode(ipc, appInfo)
-        : useAppStateInWebMode(api, httpInstance)
+        : useAppStateInWebMode(api, httpInstance, appInfo)
 }
 
 function useAppStateInClientMode(ipc: IPCService, appInfo: AppInfo): AppState {
@@ -51,8 +51,8 @@ function useAppStateInClientMode(ipc: IPCService, appInfo: AppInfo): AppState {
     }
 }
 
-function useAppStateInWebMode(api: APIService, httpInstance: HttpInstance): AppState {
-    const ls = useLocalStorage<{token: string}>("web-access")
+function useAppStateInWebMode(api: APIService, httpInstance: HttpInstance, appInfo: AppInfo): AppState {
+    const ls = useLocalStorage<{token: string}>("web-access", appInfo)
 
     const status: Ref<AppStateStatus> = ref("UNKNOWN")
 
@@ -73,7 +73,11 @@ function useAppStateInWebMode(api: APIService, httpInstance: HttpInstance): AppS
     async function loadStatus() {
         const webAccess = await api.web.access()
         if(!webAccess.ok) {
-            console.error(webAccess.message)
+            if(webAccess.status) {
+                console.error(`Error ${webAccess.status}: ${console.error(webAccess.message)}`)
+            }else{
+                console.error("Web server connection error.")
+            }
             return
         }else if(!webAccess.data.access) {
             console.error("Web access is disabled.")
