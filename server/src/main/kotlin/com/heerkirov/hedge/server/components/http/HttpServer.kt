@@ -24,7 +24,7 @@ interface HttpServer : StatefulComponent {
     /**
      * 启动HTTP server。
      */
-    fun start()
+    override fun load()
 }
 
 class HttpServerOptions(
@@ -63,7 +63,7 @@ class HttpServerImpl(private val health: Health,
 
     private val web = WebAccessor(appdata, options.frontendFromFolder ?: "${options.userDataPath}/${Filename.FRONTEND_FOLDER}")
 
-    override fun start() {
+    override fun load() {
         JavalinJackson.configure(objectMapper())
 
         val aspect = Aspect(appdata)

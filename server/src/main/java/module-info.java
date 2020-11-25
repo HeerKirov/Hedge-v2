@@ -19,4 +19,5 @@ module com.heerkirov.hedge.server {
     opens com.heerkirov.hedge.server.components.database;
     opens com.heerkirov.hedge.server.components.http.modules;
     opens com.heerkirov.hedge.server.components.http.routes;
+    opens com.heerkirov.hedge.server.model;
 }

@@ -3,6 +3,7 @@ package com.heerkirov.hedge.server.components.lifetime
 import com.heerkirov.hedge.server.framework.Component
 import com.heerkirov.hedge.server.framework.FrameworkContext
 import com.heerkirov.hedge.server.framework.StatefulComponent
+import com.heerkirov.hedge.server.framework.ThreadComponent
 import com.heerkirov.hedge.server.utils.Token
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -16,7 +17,7 @@ import kotlin.system.exitProcess
  * 3. 除此之外，生命周期维持还要看其他组件的空闲情况。每过一段时间检查其他有状态组件是否空闲，所有有状态组件都空闲时才允许退出。
  * 4. 最后，还允许用户直接将此组件设定为永久持续。
  */
-interface Lifetime : Component {
+interface Lifetime : ThreadComponent {
     /**
      * 生命周期维持组件被标记为永久存续。如果标记为真，那么无视其他一切生命周期信号，永久保持运行。
      */
@@ -52,7 +53,7 @@ interface Lifetime : Component {
     /**
      * 启动生命周期维持线程。使用此方法阻塞主线程。
      */
-    fun thread()
+    override fun thread()
 }
 
 data class LifetimeOptions(
@@ -138,7 +139,7 @@ class LifetimeImpl(private val context: FrameworkContext, private val options: L
                 continue
             }else{
                 if(continuous == 0) {
-                    log.info("No signal exists in lifetime. It will be into subsisting state as most ${options.threadInterval * options.threadContinuousCount}ms.")
+                    log.info("No signal exists in lifetime. It will be into subsisting state as most ${(options.threadInterval * options.threadContinuousCount / 1000).toInt()}s.")
                 }
                 //不存在就进入存续期
                 continuous += 1
@@ -146,9 +147,6 @@ class LifetimeImpl(private val context: FrameworkContext, private val options: L
                 if(continuous > options.threadContinuousCount) { break }
             }
         }
-        //最后发送关闭指令。
-        //不沿执行流程自动退出是因为其他组件可能持有非背景线程，这些线程会阻止shutdown的发生。
-        exitProcess(0)
     }
 
     private fun anySignal(statefulComponents: List<StatefulComponent>): Boolean {

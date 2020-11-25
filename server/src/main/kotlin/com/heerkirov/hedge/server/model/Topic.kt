@@ -51,7 +51,7 @@ data class Topic(val id: Int?,
                  /**
                   * [cache field]冗余存储关联的注解。在author列表中会用到，防止N+1查询。
                   */
-                 val annotations: List<String>? = null) {
+                 val cachedAnnotations: List<String>? = null) {
     enum class Type {
         /**
          * 未知。

@@ -67,8 +67,7 @@ CREATE UNIQUE INDEX folder_image__index ON folder_image_relation(folder_id, imag
 
 -- 时间分区
 CREATE TABLE partition(
-    id              INTEGER PRIMARY KEY,
-    `date`          DATE NOT NULL,              -- 此时间分区的值
+    `date`        DATE NOT NULL PRIMARY KEY , -- 此时间分区的值
     cached_count  INTEGER NOT NULL DEFAULT 0  -- [冗余]属于此时间分区的图片数量
 );
 CREATE UNIQUE INDEX partition_date__index ON partition(date);
@@ -103,9 +102,9 @@ CREATE TABLE meta_db.author(
 
     exported_score  INTEGER DEFAULT NULL,           -- 根据评分或其关联的image导出的统计分数
     cached_count 	INTEGER NOT NULL DEFAULT 0,     -- [冗余]此标签关联的图片数量
-    annotations 	TEXT DEFAULT NULL               -- [冗余]此标签的注解的缓存，用于显示::json<string[]>
+    cached_annotations 	TEXT DEFAULT NULL           -- [冗余]此标签的注解的缓存，用于显示::json<string[]>
 );
-CREATE INDEX meta_db.author_filter_index ON meta_db.author(type, favorite);
+CREATE INDEX meta_db.author_filter_index ON author(type, favorite);
 
 -- 主题 标签
 CREATE TABLE meta_db.topic(
@@ -121,9 +120,9 @@ CREATE TABLE meta_db.topic(
 
     exported_score  INTEGER DEFAULT NULL,           -- [导出]根据评分或其关联的image导出的统计分数
     cached_count 	INTEGER NOT NULL DEFAULT 0,     -- [冗余]此标签关联的图片数量
-    annotations 	TEXT DEFAULT NULL               -- [冗余]此标签的注解的缓存，用于显示::json<string[]>
+    cached_annotations 	TEXT DEFAULT NULL           -- [冗余]此标签的注解的缓存，用于显示::json<string[]>
 );
-CREATE INDEX meta_db.topic_filter_index ON meta_db.topic(type, favorite);
+CREATE INDEX meta_db.topic_filter_index ON topic(type, favorite);
 
 -- tag和illust/album的关联
 CREATE TABLE illust_tag_relation(
@@ -172,7 +171,7 @@ CREATE TABLE meta_db.annotation(
     id                  INTEGER PRIMARY KEY,
     name                TEXT NOT NULL,        -- 注解名称
     can_be_exported     BOOLEAN NOT NULL,     -- 是否为导出注解
-    available_for       TEXT DEFAULT NULL     -- 注解的适用范围，null表示无限制::json<string[]>, 字符串表示可用的类型(tag/topic/author)，还可以用细分类型(artist/character/.etc)
+    target              TEXT DEFAULT NULL     -- 注解的适用范围，null表示无限制::json<string[]>
 );
 CREATE TABLE meta_db.tag_annotation_relation(
     annotation_id INTEGER NOT NULL,
@@ -196,9 +195,9 @@ CREATE TABLE album_annotation_relation(
     album_id INTEGER NOT NULL,
     exported_from TINYINT NOT NULL  -- 通过哪种标签导入进来的{0b1=标签, 0b10=作者, 0b100=主题}
 );
-CREATE UNIQUE INDEX meta_db.tag_annotation__index ON meta_db.tag_annotation_relation(annotation_id, tag_id);
-CREATE UNIQUE INDEX meta_db.topic_annotation__index ON meta_db.topic_annotation_relation(annotation_id, topic_id);
-CREATE UNIQUE INDEX meta_db.copyright_annotation__index ON meta_db.author_annotation_relation(annotation_id, author_id);
+CREATE UNIQUE INDEX meta_db.tag_annotation__index ON tag_annotation_relation(annotation_id, tag_id);
+CREATE UNIQUE INDEX meta_db.topic_annotation__index ON topic_annotation_relation(annotation_id, topic_id);
+CREATE UNIQUE INDEX meta_db.copyright_annotation__index ON author_annotation_relation(annotation_id, author_id);
 CREATE UNIQUE INDEX illust_annotation__index ON illust_annotation_relation(annotation_id, exported_from, illust_id);
 CREATE UNIQUE INDEX album_annotation__index ON album_annotation_relation(annotation_id, exported_from, album_id);
 
@@ -240,7 +239,7 @@ CREATE TABLE source_db.source_image(
     analyse_status  TINYINT NOT NULL DEFAULT 0,         -- 原数据的解析状态{0=无,1=已解析, 2=解析出错, 3=手动填写, 4=未找到信息}
     analyse_time    TIMESTAMP DEFAULT NULL              -- 对原数据进行解析的时间
 );
-CREATE INDEX source_db.source_image__source__index ON source_db.source_image(source, source_id, source_part);
+CREATE INDEX source_db.source_image__source__index ON source_image(source, source_id, source_part);
 
 -- 原始标签映射
 CREATE TABLE source_db.source_tag_mapping(

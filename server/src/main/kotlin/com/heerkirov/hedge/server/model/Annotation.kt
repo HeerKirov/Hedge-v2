@@ -21,7 +21,7 @@ data class Annotation(val id: Int?,
                        * 此注解的适用范围。
                        * 限定此注解只能适用于什么类型的标签。可以分到tag/author/topic大类，或细分到更细的子类。
                        */
-                      val availableFor: AnnotationTarget?) {
+                      val target: AnnotationTarget?) {
 
     open class AnnotationTarget(value: Int) : Composition<AnnotationTarget>(AnnotationTarget::class, value) {
         object TAG : AnnotationTarget(0b1)
@@ -40,25 +40,4 @@ data class Annotation(val id: Int?,
         object AUTHOR : ExportedFrom(0b10)
         object TOPIC : ExportedFrom(0b100)
     }
-
-    /**
-     * 注解与tag的关联。
-     */
-    data class TagRelation(val annotationId: Int, val tagId: Int)
-    /**
-     * 注解与topic的关联。
-     */
-    data class TopicRelation(val annotationId: Int, val topicId: Int)
-    /**
-     * 注解与author的关联。
-     */
-    data class AuthorRelation(val annotationId: Int, val authorId: Int)
-    /**
-     * 可导出的注解与illust的关联。
-     */
-    data class IllustRelation(val annotationId: Int, val illustId: Int, /** 标记此注解从哪类标签导出来的。*/val exportedFrom: ExportedFrom)
-    /**
-     * 可导出的注解与album的关联。
-     */
-    data class AlbumRelation(val annotationId: Int, val albumId: Int, /** 标记此注解从哪类标签导出来的。*/val exportedFrom: ExportedFrom)
 }

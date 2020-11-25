@@ -6,6 +6,7 @@ import com.heerkirov.hedge.server.definitions.Filename
 import com.heerkirov.hedge.server.enums.LoadStatus
 import com.heerkirov.hedge.server.exceptions.PasswordWrong
 import com.heerkirov.hedge.server.exceptions.Reject
+import com.heerkirov.hedge.server.utils.Fs
 import com.heerkirov.hedge.server.utils.Resources
 import com.heerkirov.hedge.server.utils.Token
 import io.javalin.Javalin
@@ -27,18 +28,23 @@ import kotlin.collections.HashSet
 class WebAccessor(private val appdata: AppDataDriver, private val frontendPath: String) : Endpoints {
     val tokens: MutableSet<String> = Collections.synchronizedSet(HashSet())
 
+    var isResourceExists: Boolean = true
     var isAccess: Boolean = false
 
     /**
      * 初始化，并给javalin添加几项配置项。
      */
     fun configure(javalinConfig: JavalinConfig) {
+        if(!Fs.exists(frontendPath)) {
+            isResourceExists = false
+        }else{
+            javalinConfig.addStaticFiles("/${Filename.STATIC_FOLDER}", "${frontendPath}/${Filename.STATIC_FOLDER}", Location.EXTERNAL)
+            javalinConfig.addStaticFiles("/${Filename.FAVICON_ICO}", "${frontendPath}/${Filename.FAVICON_ICO}", Location.EXTERNAL)
+        }
+
         if(if(appdata.status == LoadStatus.LOADED) { appdata.data.web.autoWebAccess }else{ false }) {
             isAccess = true
         }
-
-        javalinConfig.addStaticFiles("/${Filename.STATIC_FOLDER}", "${frontendPath}/${Filename.STATIC_FOLDER}", Location.EXTERNAL)
-        javalinConfig.addStaticFiles("/${Filename.FAVICON_ICO}", "${frontendPath}/${Filename.FAVICON_ICO}", Location.EXTERNAL)
     }
 
     override fun handle(javalin: Javalin) {
@@ -53,10 +59,10 @@ class WebAccessor(private val appdata: AppDataDriver, private val frontendPath: 
     }
 
     private fun index(ctx: Context) {
-        if(isAccess) {
-            ctx.html(Resources.getFileAsText("$frontendPath/${Filename.FRONTEND_INDEX}"))
-        }else{
-            ctx.html(Resources.getResourceAsText("/forbidden.html"))
+        when {
+            isAccess -> ctx.html(Resources.getFileAsText("$frontendPath/${Filename.FRONTEND_INDEX}"))
+            isResourceExists -> ctx.html(Resources.getResourceAsText("/forbidden.html"))
+            else -> ctx.html("<b>No frontend resource found in $frontendPath.</b>")
         }
     }
 

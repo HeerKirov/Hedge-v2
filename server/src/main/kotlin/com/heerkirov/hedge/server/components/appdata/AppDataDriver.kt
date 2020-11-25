@@ -18,7 +18,7 @@ interface AppDataDriver : Component {
     /**
      * 程序启动时，加载appdata的状态。如果数据存在，将其加载到内存；如果不存在，记为未初始化的状态。
      */
-    fun load()
+    override fun load()
     /**
      * 目前的加载状态。
      */

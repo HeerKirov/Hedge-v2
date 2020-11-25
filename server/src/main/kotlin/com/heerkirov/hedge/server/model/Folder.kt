@@ -25,15 +25,4 @@ data class Folder(val id: Int?,
                   /**
                    * 文件夹中的项的更改时间/query查询表达式的更改时间。
                    */
-                  val updateTime: LocalDateTime) {
-
-    /**
-     * 文件夹中的image的关联关系。
-     */
-    data class ImageRelation(val folderId: Int,
-                             val imageId: Int,
-                             /**
-                              * 此image在此文件夹中的排序顺位，从0开始，由系统统一调配，0号视作封面
-                              */
-                             val ordinal: Int)
-}
+                  val updateTime: LocalDateTime)

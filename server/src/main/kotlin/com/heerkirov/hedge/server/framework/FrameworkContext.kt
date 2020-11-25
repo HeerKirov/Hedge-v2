@@ -9,3 +9,7 @@ interface FrameworkContext {
 
     fun getExceptions(): List<Exception>
 }
+
+inline fun <reified T : Component> FrameworkContext.getComponent(): T {
+    return this.getComponent(T::class)
+}

@@ -42,3 +42,11 @@ fun <T : Composition<T>> compositionConstructorOf(clazz: KClass<T>): (Int) -> T 
     }
     throw ReflectiveOperationException("Type ${clazz.qualifiedName} not have constructor(Int).")
 }
+
+fun <T : Composition<T>> T.filterAs(vararg baseElements: T): List<T> {
+    return baseElements.filter { this.contains(it) }
+}
+
+fun <T : Composition<T>> T.filterAsSequence(vararg baseElements: T): Sequence<T> {
+    return baseElements.asSequence().filter { this.contains(it) }
+}

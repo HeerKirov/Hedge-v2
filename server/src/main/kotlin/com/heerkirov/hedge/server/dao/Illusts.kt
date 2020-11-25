@@ -1,6 +1,6 @@
 package com.heerkirov.hedge.server.dao
 
-import com.heerkirov.hedge.server.model.Illust
+import com.heerkirov.hedge.server.model.*
 import com.heerkirov.hedge.server.utils.ktorm.composition
 import com.heerkirov.hedge.server.utils.ktorm.enum
 import com.heerkirov.hedge.server.utils.ktorm.json
@@ -24,7 +24,21 @@ object Illusts : BaseTable<Illust>("illust") {
     val createTime = datetime("create_time")
     val updateTime = datetime("update_time")
 
-    override fun doCreateEntity(row: QueryRowSet, withReferences: Boolean): Illust {
-        TODO("Not yet implemented")
-    }
+    override fun doCreateEntity(row: QueryRowSet, withReferences: Boolean) = Illust(
+        id = row[id],
+        type = row[type]!!,
+        parentId = row[parentId],
+        fileId = row[fileId]!!,
+        description = row[description]!!,
+        score = row[score],
+        favorite = row[favorite]!!,
+        tagme = row[tagme]!!,
+        relations = row[relations],
+        exportedDescription = row[exportedDescription]!!,
+        exportedScore = row[exportedScore],
+        partitionTime = row[partitionTime]!!,
+        orderTime = row[orderTime]!!,
+        createTime = row[createTime]!!,
+        updateTime = row[updateTime]!!
+    )
 }

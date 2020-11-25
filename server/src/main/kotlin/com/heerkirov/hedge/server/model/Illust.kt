@@ -114,19 +114,4 @@ data class Illust(val id: Int?,
          */
         object OTHER : Tagme(0b10000)
     }
-
-    /**
-     * illust和topic的关联关系。
-     */
-    data class TopicRelation(val illustId: Int, val topicId: Int, /** 由规则导出而非用户编写的标签。 */val isExported: Boolean)
-
-    /**
-     * illust和tag的关联关系。
-     */
-    data class TagRelation(val illustId: Int, val tagId: Int, /** 由规则导出而非用户编写的标签。 */val isExported: Boolean)
-
-    /**
-     * illust和author的关联关系。
-     */
-    data class AuthorRelation(val illustId: Int, val authorId: Int, /** 由规则导出而非用户编写的标签。 */val isExported: Boolean)
 }

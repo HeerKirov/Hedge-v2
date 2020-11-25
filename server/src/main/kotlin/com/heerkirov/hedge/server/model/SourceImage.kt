@@ -14,7 +14,7 @@ data class SourceImage(val imageId: Int,
                        /**
                         * 来源网站中的图像id。-1表示不存在。
                         */
-                       val sourceId: Int = -1,
+                       val sourceId: Long = -1,
                        /**
                         * 来源网站中的二级图像id，有些会有，比如pixiv。-1表示不存在。
                         */

@@ -47,7 +47,7 @@ data class ImportImage(val id: Int?,
                         * 对于macOS，使用xattr获得。
                         * (一级文件信息，主要是从文件直接取得的原始文件信息，用于配合策略生成后续的二级文件信息。)
                         */
-                       val fileFromSource: List<String>,
+                       val fileFromSource: List<String>?,
                        /**
                         * 标记为tagme。
                         * 可以通过配置决定要不要给项目加初始tagme，以及该加哪些。

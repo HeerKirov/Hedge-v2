@@ -7,6 +7,7 @@ import java.io.Closeable
  * 在系统关闭时，执行组件的close方法以关闭资源。
  */
 interface Component : Closeable {
+    fun load() { }
     override fun close() { }
 }
 
@@ -19,4 +20,11 @@ interface StatefulComponent : Component {
      * 判断当前组件是否空闲。
      */
     val isIdle: Boolean
+}
+
+/**
+ * 线程组件，框架会在初始化结束后调用这些线程，并等待它们执行完毕后，发出程序退出信号。
+ */
+interface ThreadComponent : Component {
+    fun thread()
 }
