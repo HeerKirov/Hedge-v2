@@ -1,7 +1,7 @@
 import { defineComponent, onMounted, PropType, Ref, ref } from "vue"
 import { useRouter } from "vue-router"
 import { useAppState, useAppResource, useAppServer } from "@/functions/service"
-import style from "./style.module.scss"
+import ProgressFlag from "@/components/ProgressFlag"
 
 export default defineComponent({
     setup() {
@@ -44,7 +44,7 @@ export default defineComponent({
             router.push({name: "HedgeIndex"})
         })
 
-        return () => <div class={style.root}>
+        return () => <div>
             {loading.value && <Loading type={loading.value}/>}
         </div>
     }
@@ -66,7 +66,7 @@ const Loading = defineComponent({
         return () => <div class="fixed center has-text-centered">
             <span class="icon"><i class="fa fa-3x fa-code-branch"/></span>
             <p class="mt-4">{loadingMessage[props.type]}</p>
-            <progress class={["progress", "is-small", "is-info", style.progressBar]} max="100"></progress>
+            <ProgressFlag class="mt-2"/>
         </div>
     }
 })

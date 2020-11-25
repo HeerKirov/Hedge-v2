@@ -1,6 +1,7 @@
 import { defineComponent, inject, onMounted, ref } from "vue"
 import { useRouter } from "vue-router"
 import { useAppInfo, useAppResource, useAppServer, useAppState } from "@/functions/service"
+import ProgressFlag from "@/components/ProgressFlag"
 import { InitContextInjection } from "./inject"
 import style from "./style.module.scss"
 
@@ -46,7 +47,7 @@ export default defineComponent({
         </> : <div class="has-text-centered absolute center">
             <span class="icon"><i class="fa fa-3x fa-code-branch"/></span>
             <p class="mt-4">{loadingMessage[status.value]}</p>
-            <progress class={["progress", "is-small", "is-info", style.progressBar]} max="100"></progress>
+            <ProgressFlag class="mt-2"/>
         </div>
     }
 })
