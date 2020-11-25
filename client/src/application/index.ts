@@ -94,6 +94,8 @@ export async function createApplication(options?: AppOptions) {
         app.whenReady()
     )
 
+    windowManager.load()
+
     registerAppMenu(windowManager, {debugMode, platform})
 
     registerDockMenu(windowManager)

@@ -64,10 +64,11 @@ export function registerAppMenu(windowManager: WindowManager, options: MenuOptio
             },
             {
                 label: '帮助',
+                role: "help",
                 submenu: [
-                    {label: '帮助向导', accelerator: 'Command+/', click() { windowManager.openGuideWindow() }},
+                    {label: '帮助向导', click() { windowManager.openGuideWindow() }},
                     {type: 'separator'},
-                    {label: '在Github上查看此项目', async click() { await shell.openExternal('https://github.com/HeerKirov/Hedge-v2') }}
+                    {label: 'Github', async click() { await shell.openExternal('https://github.com/HeerKirov/Hedge-v2') }}
                 ]
             }
         ]))

@@ -1,5 +1,5 @@
 import * as path from "path"
-import { BrowserWindow } from "electron"
+import { BrowserWindow, BrowserWindowConstructorOptions } from "electron"
 import { Platform } from "../utils/process"
 import { StateManager } from "../components/state"
 import { APP_FILE, RESOURCE_FILE } from "../definitions/file"
@@ -10,9 +10,13 @@ import { APP_FILE, RESOURCE_FILE } from "../definitions/file"
  */
 export interface WindowManager {
     /**
+     * 初始化加载。并没有什么业务要加载，主要是告知window manager程序已经可用。
+     */
+    load(): void
+    /**
      * 创建一个承载一般业务的普通窗口。
      */
-    createWindow(): BrowserWindow
+    createWindow(): BrowserWindow | null
     /**
      * 创建一个轮播图片专用的窗口。
      */
@@ -20,7 +24,7 @@ export interface WindowManager {
     /**
      * 打开guide窗口。
      */
-    openGuideWindow(): BrowserWindow
+    openGuideWindow(): BrowserWindow | null
     /**
      * 打开设置窗口。
      */
@@ -40,25 +44,24 @@ export interface WindowManagerOptions {
 }
 
 export function createWindowManager(state: StateManager, options: WindowManagerOptions): WindowManager {
+    let ready = false
     let guideWindow: BrowserWindow | null = null
     let settingWindow: BrowserWindow | null = null
 
-    function newBrowserWindow(hashURL: string, configure?: {
-        titleBarStyle?: ('default' | 'hidden' | 'hiddenInset'),
-        height?: number, width?: number
-    }): BrowserWindow {
+    function newBrowserWindow(hashURL: string, configure: BrowserWindowConstructorOptions = {}): BrowserWindow {
         const win = new BrowserWindow({
             title: 'Hedge',
-            height: configure?.height ?? 720,
-            width: configure?.width ?? 1080,
+            height: 720,
+            width: 1080,
             minHeight: 480,
             minWidth: 640,
-            titleBarStyle: configure?.titleBarStyle ?? "hiddenInset",
+            titleBarStyle: "hiddenInset",
             webPreferences: {
                 devTools: !!options.debug,
                 enableRemoteModule: true,
                 preload: path.join(__dirname, 'preloads/index.js')
-            }
+            },
+            ...configure
         })
 
         if(options.debug?.frontendFromURL) {
@@ -71,8 +74,12 @@ export function createWindowManager(state: StateManager, options: WindowManagerO
         return win
     }
 
-    function createWindow(): BrowserWindow {
-        if(!state.isLogin()) {
+    function load() {
+        ready = true
+    }
+
+    function createWindow(): BrowserWindow | null {
+        if(!ready || !state.isLogin()) {
             //在未登录时，只允许开启一个主要窗口。开启第二窗口只会去唤醒已有窗口。
             for (let window of getAllWindows()) {
                 if(window != guideWindow && window != settingWindow) {
@@ -85,18 +92,18 @@ export function createWindowManager(state: StateManager, options: WindowManagerO
     }
 
     function createDisplayWindow(/*content*/): BrowserWindow | null {
-        if(!state.isLogin()) {
+        if(!ready || !state.isLogin()) {
             return null
         }
         return newBrowserWindow("display")
     }
 
     function openSettingWindow(): BrowserWindow | null {
-        if(!state.isLogin()) {
+        if(!ready || !state.isLogin()) {
             return null
         }
         if(settingWindow == null) {
-            settingWindow = newBrowserWindow('setting', {titleBarStyle: "hidden", width: 960})
+            settingWindow = newBrowserWindow('setting', {titleBarStyle: "hidden", width: 960, height: 640, fullscreenable: false})
             settingWindow.on("closed", () => {
                 settingWindow = null
             })
@@ -106,9 +113,12 @@ export function createWindowManager(state: StateManager, options: WindowManagerO
         return settingWindow
     }
 
-    function openGuideWindow(): BrowserWindow {
+    function openGuideWindow(): BrowserWindow | null {
+        if(!ready) {
+            return null
+        }
         if(guideWindow == null) {
-            guideWindow = newBrowserWindow('guide', {titleBarStyle: "hidden", width: 960})
+            guideWindow = newBrowserWindow('guide', {titleBarStyle: "hidden", width: 875})
             guideWindow.on("closed", () => {
                 guideWindow = null
             })
@@ -123,6 +133,7 @@ export function createWindowManager(state: StateManager, options: WindowManagerO
     }
 
     return {
+        load,
         createWindow,
         createDisplayWindow,
         openGuideWindow,
