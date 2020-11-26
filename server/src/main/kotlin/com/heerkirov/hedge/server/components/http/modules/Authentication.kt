@@ -3,6 +3,7 @@ package com.heerkirov.hedge.server.components.http.modules
 import com.heerkirov.hedge.server.components.http.Endpoints
 import com.heerkirov.hedge.server.exceptions.NoToken
 import com.heerkirov.hedge.server.exceptions.OnlyForClient
+import com.heerkirov.hedge.server.exceptions.RemoteDisabled
 import com.heerkirov.hedge.server.exceptions.TokenWrong
 import io.javalin.Javalin
 import io.javalin.http.Context
@@ -25,6 +26,9 @@ class Authentication(private val baseToken: String, private val webAccessor: Web
 
         if(baseToken == userToken) {
             //通过baseToken的验证
+            if(!(ctx.req.remoteHost == "127.0.0.1" || ctx.req.remoteHost == "::1" || ctx.req.remoteHost == "0:0:0:0:0:0:0:1" || ctx.req.remoteHost == "localhost")) {
+                throw RemoteDisabled()
+            }
             return
         }else if(webAccessor.isAccess && userToken in webAccessor.tokens) {
             //web访问开启且通过webToken验证
@@ -40,6 +44,9 @@ class Authentication(private val baseToken: String, private val webAccessor: Web
 
         if(baseToken == userToken) {
             //通过baseToken的验证
+            if(!(ctx.req.remoteHost == "127.0.0.1" || ctx.req.remoteHost == "::1" || ctx.req.remoteHost == "0:0:0:0:0:0:0:1" || ctx.req.remoteHost == "localhost")) {
+                throw RemoteDisabled()
+            }
             return
         }else if(webAccessor.isAccess && userToken in webAccessor.tokens) {
             //web访问开启且通过webToken验证，但是此API不提供给web访问

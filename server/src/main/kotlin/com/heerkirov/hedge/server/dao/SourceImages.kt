@@ -7,7 +7,6 @@ import me.liuwj.ktorm.dsl.QueryRowSet
 import me.liuwj.ktorm.schema.*
 
 object SourceImages : BaseTable<SourceImage>("source_image", schema = "source_db") {
-    val imageId = int("image_id").primaryKey()
     val source = varchar("source")
     val sourceId = long("source_id")
     val sourcePart = int("source_part")
@@ -19,7 +18,6 @@ object SourceImages : BaseTable<SourceImage>("source_image", schema = "source_db
     val analyseTime = datetime("analyse_time")
 
     override fun doCreateEntity(row: QueryRowSet, withReferences: Boolean) = SourceImage(
-        imageId = row[imageId]!!,
         source = row[source]!!,
         sourceId = row[sourceId]!!,
         sourcePart = row[sourcePart]!!,

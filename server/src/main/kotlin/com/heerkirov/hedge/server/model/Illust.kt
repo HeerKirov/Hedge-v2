@@ -27,6 +27,18 @@ data class Illust(val id: Int?,
                    */
                   val fileId: Int,
                   /**
+                   * 链接的来源网站。
+                   */
+                  val source: String? = null,
+                  /**
+                   * 链接的来源网站的图像id。
+                   */
+                  val sourceId: Long? = null,
+                  /**
+                   * 链接的来源网站的二级图像id。有些会有，比如pixiv。来源网站没有这个信息时，写0。
+                   */
+                  val sourcePart: Int? = null,
+                  /**
                    * 简述信息。
                    */
                   val description: String = "",

@@ -7,6 +7,10 @@ CREATE TABLE illust(
     parent_id				    INTEGER,                            -- [only image]有父集合时，记录父集合的ID
     file_id				        INTEGER NOT NULL,				    -- 链接的文件ID。对集合来说链接的是封面图像的ID冗余
 
+    source 			            VARCHAR(16),                        -- 链接的来源网站的代号
+    source_id 		            BIGINT,                             -- 链接的来源网站中的图像代号
+    source_part 	            INTEGER,                            -- 链接的来源网站中的二级图像代号，如果此来源没有这个信息，写0
+
     description			        TEXT NOT NULL DEFAULT '',           -- 简述信息，不存在时记空串
     score						INTEGER DEFAULT NULL,               -- 图像的评分。具体含义由setting定义
     favorite				    BOOLEAN NOT NULL DEFAULT FALSE,     -- [only image]喜爱标记
@@ -53,7 +57,9 @@ CREATE TABLE folder(
     title 			TEXT NOT NULL DEFAULT '',   -- 文件夹标题，不存在时记空串
     query 			TEXT,                       -- 虚拟查询表达式。此项不为NULL时，文件夹为虚拟文件夹
 
-    cached_count  INTEGER NOT NULL,           -- [冗余]文件夹中的图片数量，仅对非虚拟文件夹有效
+    pin             INTEGER,                    -- pin标记及其排序顺位
+
+    cached_count    INTEGER NOT NULL,           -- [冗余]文件夹中的图片数量，仅对非虚拟文件夹有效
     create_time 	TIMESTAMP NOT NULL,         -- 此画集初次建立的真实时间
     update_time 	TIMESTAMP NOT NULL          -- 对画集进行更新的真实更新时间(指画集内容变更，比如image source变化、图像替换增删)
 );
@@ -226,10 +232,9 @@ CREATE TABLE import_image(
 
 -- 来源信息
 CREATE TABLE source_db.source_image(
-    image_id 		INTEGER PRIMARY KEY,                -- 关联的image
-    source 			VARCHAR(16) NOT NULL DEFAULT '',    -- 来源网站的代号。没有填''
-    source_id 		BIGINT NOT NULL DEFAULT -1,         -- 来源网站中的图像代号。没有填-1
-    source_part 	INTEGER NOT NULL DEFAULT -1,        -- 来源网站中的二级图像代号，有些会有，比如pixiv。没有填-1
+    source 			VARCHAR(16) NOT NULL,               -- 来源网站的代号
+    source_id 		BIGINT NOT NULL,                    -- 来源网站中的图像代号
+    source_part 	INTEGER NOT NULL DEFAULT 0,         -- 来源网站中的二级图像代号，有些会有，比如pixiv。如果此来源没有这个信息，写0
 
     title 			TEXT DEFAULT NULL,                  -- 原数据的标题信息，有些会有，比如pixiv
     description     TEXT DEFAULT NULL,                  -- 原数据的描述信息，有些会有，比如pixiv

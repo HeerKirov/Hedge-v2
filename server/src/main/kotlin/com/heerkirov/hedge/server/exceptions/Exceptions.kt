@@ -80,6 +80,11 @@ class OnlyForWeb : ForbiddenException("ONLY_FOR_WEB", "This API can only be call
 class OnlyForClient : ForbiddenException("ONLY_FOR_CLIENT", "This API can only be called from client.")
 
 /**
+ * 此token只能由localhost使用。
+ */
+class RemoteDisabled : ForbiddenException("REMOTE_DISABLED", "This Token can only be used in localhost.")
+
+/**
  * 当前主体资源未找到。
  */
 class NotFound(resourceName: String? = null) : NotFoundException("NOT_FOUND", "${resourceName ?: "Resource"} not found.")

@@ -101,8 +101,8 @@ const SubItemGroups = defineComponent({
         const items: ComputedRef<readonly {readonly key: string, readonly title: string}[]> = computed(() => sideBarContext.subItems[props.routeName])
         const currentItemKey = ref<string>()
 
-        watch(routeName, routeName => {
-            currentItemKey.value = routeName === props.routeName ? route.params[props.paramKey] as string : undefined
+        watch(routeName, () => {
+            currentItemKey.value = routeName.value === props.routeName ? route.params[props.paramKey] as string : undefined
         }, {immediate: true})
 
         watch(routeParams, params => {
@@ -137,13 +137,14 @@ const SubItemFolders = defineComponent({
 
         const currentItemKey = ref<string>()
         const items: Ref<{key: string, title: string, virtual?: boolean}[]> = ref([
+            //TODO 更改策略。对于文件夹，仍采取pin+临时二级菜单的格式。为此需要更加复杂和业务化的组件构造。
             //mock data，实际数据从server拉取folder列表
             {key: "1", title: "文件夹A"},
             {key: "2", title: "文件夹B", virtual: true}
         ])
 
-        watch(routeName, routeName => {
-            currentItemKey.value = routeName === props.routeName ? route.params[props.paramKey] as string : undefined
+        watch(routeName, () => {
+            currentItemKey.value = routeName.value === props.routeName ? route.params[props.paramKey] as string : undefined
         }, {immediate: true})
 
         watch(routeParams, params => {

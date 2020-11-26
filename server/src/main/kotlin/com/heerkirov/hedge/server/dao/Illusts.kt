@@ -12,6 +12,9 @@ object Illusts : BaseTable<Illust>("illust") {
     val type = enum("type", typeRef<Illust.Type>())
     val parentId = int("parent_id")
     val fileId = int("file_id")
+    val source = varchar("source")
+    val sourceId = long("source_id")
+    val sourcePart = int("source_part")
     val description = varchar("description")
     val score = int("score")
     val favorite = boolean("favorite")
@@ -29,6 +32,9 @@ object Illusts : BaseTable<Illust>("illust") {
         type = row[type]!!,
         parentId = row[parentId],
         fileId = row[fileId]!!,
+        source = row[source],
+        sourceId = row[sourceId],
+        sourcePart = row[sourcePart],
         description = row[description]!!,
         score = row[score],
         favorite = row[favorite]!!,

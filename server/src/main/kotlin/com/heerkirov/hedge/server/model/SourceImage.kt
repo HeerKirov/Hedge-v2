@@ -6,19 +6,18 @@ import java.time.LocalDateTime
  * 来源信息。
  * 分离存储illust关联的来源信息，与image类型的illust 1:1存储。
  */
-data class SourceImage(val imageId: Int,
-                       /**
-                        * 来源网站的代号。""表示不存在。
+data class SourceImage(/**
+                        * 来源网站的代号。
                         */
-                       val source: String = "",
+                       val source: String,
                        /**
-                        * 来源网站中的图像id。-1表示不存在。
+                        * 来源网站中的图像id。
                         */
-                       val sourceId: Long = -1,
+                       val sourceId: Long,
                        /**
-                        * 来源网站中的二级图像id，有些会有，比如pixiv。-1表示不存在。
+                        * 来源网站中的二级图像id，有些会有，比如pixiv。来源网站没有这个信息时，写0。
                         */
-                       val sourcePart: Int = -1,
+                       val sourcePart: Int = 0,
                        /**
                         * 原数据的标题信息，有些会有，比如pixiv。
                         */

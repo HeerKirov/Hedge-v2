@@ -15,6 +15,10 @@ data class Folder(val id: Int?,
                    */
                   val query: String?,
                   /**
+                   * pin标记及其排序顺位。pin指将文件夹pin在侧边栏上永久显示。没有pin时填null。
+                   */
+                  val pin: Int?,
+                  /**
                    * [cache field]文件夹包含的图片数量，仅对非虚拟文件夹有效。
                    */
                   val cachedCount: Int = 0,
