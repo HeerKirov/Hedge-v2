@@ -32,6 +32,8 @@ dependencies {
     implementation group: 'me.liuwj.ktorm', name: 'ktorm-core', version: ktormVersion
     implementation group: 'me.liuwj.ktorm', name: 'ktorm-support-sqlite', version: ktormVersion
     implementation group: 'io.javalin', name: 'javalin', version: javalinVersion
+    implementation group: 'ws.schild', name: 'jave-core', version: javeVersion
+    implementation group: 'ws.schild', name: 'jave-nativebin-osx64', version: javeVersion
     implementation group: 'org.slf4j', name: 'slf4j-simple', version: slf4jVersion
     implementation group: 'org.slf4j', name: 'slf4j-api', version: slf4jVersion
 }

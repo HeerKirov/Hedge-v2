@@ -3,6 +3,8 @@ package com.heerkirov.hedge.server.components.database
 import com.heerkirov.hedge.server.enums.LoadStatus
 import com.heerkirov.hedge.server.framework.Component
 import me.liuwj.ktorm.database.Database
+import me.liuwj.ktorm.database.Transaction
+import me.liuwj.ktorm.database.TransactionIsolation
 import java.lang.RuntimeException
 
 /**
@@ -25,7 +27,7 @@ interface DataRepository : Component {
      */
     val dbPath: String
     /**
-     * 取得db连接。
+     * 取得db连接。使用此连接完成read操作。
      */
     val db: Database
 }
@@ -54,5 +56,16 @@ class DataRepositoryImpl(options: DataOptions) : DataRepository {
         statusRef = LoadStatus.LOADING
         instance = DBInstance(dbPath)
         statusRef = LoadStatus.LOADED
+    }
+}
+
+/**
+ * 开始一个事务会话。在业务中，任何write操作，都应使用此包装的会话。不要直接使用Database::useTransaction会话。
+ * - 此函数默认使用了level 8的事务级别，以适配SQLite引擎。
+ * - 此函数使用了synchronized同步锁，确保全局总是只有单一write调用。为了防止过多的阻塞，纯read的业务不要使用事务。
+ */
+inline fun <T> Database.transaction(func: (Transaction) -> T): T {
+    synchronized(this) {
+        return useTransaction(TransactionIsolation.SERIALIZABLE, func)
     }
 }

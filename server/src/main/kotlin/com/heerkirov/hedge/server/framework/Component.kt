@@ -23,8 +23,15 @@ interface StatefulComponent : Component {
 }
 
 /**
+ * 背景线程组件，框架会在初始化结束后调用这些线程，并背景执行。
+ */
+interface DaemonThreadComponent : Component {
+    fun thread()
+}
+
+/**
  * 线程组件，框架会在初始化结束后调用这些线程，并等待它们执行完毕后，发出程序退出信号。
  */
-interface ThreadComponent : Component {
-    fun thread()
+interface ThreadComponent : DaemonThreadComponent {
+    override fun thread()
 }

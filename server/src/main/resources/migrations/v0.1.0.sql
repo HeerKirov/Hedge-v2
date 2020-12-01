@@ -244,7 +244,7 @@ CREATE TABLE source_db.source_image(
     analyse_status  TINYINT NOT NULL DEFAULT 0,         -- 原数据的解析状态{0=无,1=已解析, 2=解析出错, 3=手动填写, 4=未找到信息}
     analyse_time    TIMESTAMP DEFAULT NULL              -- 对原数据进行解析的时间
 );
-CREATE INDEX source_db.source_image__source__index ON source_image(source, source_id, source_part);
+CREATE UNIQUE INDEX source_db.source_image__source__index ON source_image(source, source_id, source_part);
 
 -- 原始标签映射
 CREATE TABLE source_db.source_tag_mapping(
