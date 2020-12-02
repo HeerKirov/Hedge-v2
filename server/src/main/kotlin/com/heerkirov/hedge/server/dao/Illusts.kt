@@ -28,7 +28,7 @@ object Illusts : BaseTable<Illust>("illust") {
     val updateTime = datetime("update_time")
 
     override fun doCreateEntity(row: QueryRowSet, withReferences: Boolean) = Illust(
-        id = row[id],
+        id = row[id]!!,
         type = row[type]!!,
         parentId = row[parentId],
         fileId = row[fileId]!!,

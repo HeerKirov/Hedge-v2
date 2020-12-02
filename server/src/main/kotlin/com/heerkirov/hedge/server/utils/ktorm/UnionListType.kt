@@ -10,12 +10,13 @@ import java.sql.Types
 object UnionListType : SqlType<List<String>>(Types.VARCHAR, typeName = "varchar") {
     private const val SPLIT = "|"
 
-    override fun doGetResult(rs: ResultSet, index: Int): List<String>? {
-        return rs.getString(index)?.split(SPLIT)?.takeIf { it.isNotEmpty() } ?: emptyList()
+    override fun doGetResult(rs: ResultSet, index: Int): List<String> {
+        val value = rs.getString(index)
+        return if(value.isBlank()) emptyList() else value.split(SPLIT)
     }
 
     override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: List<String>) {
-        ps.setString(index, parameter.joinToString(SPLIT))
+        ps.setString(index, if(parameter.isEmpty()) "" else parameter.joinToString(SPLIT))
     }
 }
 

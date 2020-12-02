@@ -4,7 +4,7 @@ package com.heerkirov.hedge.server.model
  * 原始标签映射。
  * 记录由来源信息的tag到app tag的映射关系，符合映射表的tag会放入建议列表。
  */
-data class SourceTagMapping(val id: Int?,
+data class SourceTagMapping(val id: Int,
                             /**
                              * 来源网站的代号，可以为null表示对任意来源适用。
                              */

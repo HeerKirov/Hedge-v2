@@ -25,24 +25,61 @@ abstract class NotFoundException(code: String, message: String, info: Any? = nul
 //== 在此基础上扩展的通用错误类型 ==
 
 /**
+ * 表单参数的类型错误。
+ */
+open class ParamTypeError(paramName: String, reason: String) : BadRequestException("PARAM_TYPE_ERROR", "Param '$paramName' $reason"), Unchecked
+
+/**
  * 表单参数的值错误。
  */
-open class ParamError(paramName: String) : BadRequestException("PARAM_ERROR", "Param '$paramName' has incorrect value."), Unchecked
+open class ParamError(paramName: String) : BadRequestException("PARAM_ERROR", "Param '$paramName' has incorrect value.", listOf(paramName)), Unchecked
 
 /**
  * 表单参数的值空缺，但是业务需要这个值。
  */
-open class ParamRequired(paramName: String) : BadRequestException("PARAM_ERROR", "Param '$paramName' is required."), Unchecked
+open class ParamRequired(paramName: String) : BadRequestException("PARAM_REQUIRED", "Param '$paramName' is required.", listOf(paramName)), Unchecked
 
 /**
- * 表单中选取的某种目标资源并不存在，因此业务无法进行。
+ * 表单参数选取的某种目标资源并不存在，因此业务无法进行。
  */
-open class NotExist(objectName: String) : BadRequestException("NOT_EXIST", "$objectName is not exist.")
+open class ResourceNotExist : BadRequestException, Unchecked {
+    /**
+     * 指明是一项属性的目标资源。
+     */
+    constructor(prop: String) : super("NOT_EXIST", "Resource of $prop is not exist.", listOf(prop))
+    /**
+     * 指明是一项属性的目标资源。同时指明具体的值。
+     */
+    constructor(prop: String, value: Any) : super("NOT_EXIST", "Resource of $prop '$value' is not exist.", listOf(prop, value))
+}
 
 /**
- * 表单中指定的某种目标资源已经存在，因此业务无法进行。
+ * 表单参数选取的某种目标资源在当前业务中不可用，因此业务无法进行。
  */
-open class AlreadyExist(objectName: String) : BadRequestException("ALREADY_EXIST", "$objectName is already exist.")
+open class ResourceNotAvailable : BadRequestException, Unchecked {
+    /**
+     * 指明是一项属性的目标资源。
+     */
+    constructor(prop: String) : super("NOT_AVAILABLE", "Resource of $prop is not available.", listOf(prop))
+    /**
+     * 指明是一项属性的目标资源。同时指明具体的值。
+     */
+    constructor(prop: String, value: Any) : super("NOT_AVAILABLE", "Resource of $prop '$value' is not available.", listOf(prop, value))
+}
+
+/**
+ * 表单的某种目标资源已经存在，因此业务无法进行。
+ */
+open class AlreadyExists : BadRequestException {
+    /**
+     * 指定资源名称、资源属性、属性值。
+     */
+    constructor(resource: String, prop: String, value: Any) : super("ALREADY_EXISTS", "$resource with $prop '$value' is already exists.", listOf(resource, prop, value))
+    /**
+     * 只指定资源名称。
+     */
+    constructor(resource: String) : super("ALREADY_EXISTS", "$resource is already exists.", listOf(resource))
+}
 
 /**
  * API的操作或一部分操作，因为某种原因拒绝执行。

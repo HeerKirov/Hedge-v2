@@ -1,7 +1,7 @@
 package com.heerkirov.hedge.server.components.health
 
-import com.heerkirov.hedge.server.framework.Component
-import com.heerkirov.hedge.server.framework.FrameworkContext
+import com.heerkirov.hedge.server.library.framework.Component
+import com.heerkirov.hedge.server.library.framework.FrameworkContext
 import com.heerkirov.hedge.server.definitions.Filename
 import com.heerkirov.hedge.server.utils.Fs
 import org.slf4j.Logger

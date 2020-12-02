@@ -5,6 +5,7 @@ import com.heerkirov.hedge.server.components.http.Endpoints
 import com.heerkirov.hedge.server.components.lifetime.Lifetime
 import com.heerkirov.hedge.server.enums.LoadStatus
 import com.heerkirov.hedge.server.exceptions.Reject
+import com.heerkirov.hedge.server.library.form.bodyAsForm
 import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder.*
 import io.javalin.http.Context
@@ -43,19 +44,19 @@ class AppRoutes(private val lifetime: Lifetime, private val appdata: AppDataDriv
         if(appdata.status != LoadStatus.NOT_INIT) {
             throw Reject("Server has already been initialized.")
         }
-        val form = ctx.body<InitForm>()
+        val form = ctx.bodyAsForm<InitForm>()
         appdata.init(form.dbPath)
     }
 
     private fun addLifetime(ctx: Context) {
-        val form = ctx.body<OptionalSignalForm>()
+        val form = ctx.bodyAsForm<OptionalSignalForm>()
         val id = this.lifetime.register(form.interval)
         ctx.json(AddResponse(id = id))
     }
 
     private fun updateLifetime(ctx: Context) {
         val id = ctx.pathParam("id")
-        val form = ctx.body<OptionalSignalForm>()
+        val form = ctx.bodyAsForm<OptionalSignalForm>()
         this.lifetime.heart(id, form.interval)
     }
 
@@ -66,7 +67,7 @@ class AppRoutes(private val lifetime: Lifetime, private val appdata: AppDataDriv
     }
 
     private fun signal(ctx: Context) {
-        val form = ctx.body<SignalForm>()
+        val form = ctx.bodyAsForm<SignalForm>()
         this.lifetime.signal(form.interval)
     }
 

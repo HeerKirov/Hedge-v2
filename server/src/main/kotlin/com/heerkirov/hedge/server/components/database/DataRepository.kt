@@ -1,7 +1,7 @@
 package com.heerkirov.hedge.server.components.database
 
 import com.heerkirov.hedge.server.enums.LoadStatus
-import com.heerkirov.hedge.server.framework.Component
+import com.heerkirov.hedge.server.library.framework.Component
 import me.liuwj.ktorm.database.Database
 import me.liuwj.ktorm.database.Transaction
 import me.liuwj.ktorm.database.TransactionIsolation

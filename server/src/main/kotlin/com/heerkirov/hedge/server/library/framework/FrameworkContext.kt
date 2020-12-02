@@ -1,4 +1,4 @@
-package com.heerkirov.hedge.server.framework
+package com.heerkirov.hedge.server.library.framework
 
 import kotlin.reflect.KClass
 

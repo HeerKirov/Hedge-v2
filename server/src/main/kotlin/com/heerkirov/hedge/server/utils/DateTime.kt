@@ -59,7 +59,4 @@ object DateTime {
      * 将日期格式化为yyyy-MM-dd。
      */
     fun LocalDate.toDateString(): String = format(dateFormat)
-
-    //TODO 完成时间系列工具函数
-
 }

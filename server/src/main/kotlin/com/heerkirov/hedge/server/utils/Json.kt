@@ -9,6 +9,7 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.heerkirov.hedge.server.utils.DateTime.parseDateTime
 import com.heerkirov.hedge.server.utils.DateTime.toDateTimeString
 import java.time.LocalDateTime
+import java.util.*
 
 
 private val objectMapper = jacksonObjectMapper()
@@ -67,7 +68,13 @@ class LocalDateTimeSerializer : JsonSerializer<LocalDateTime>() {
 }
 
 class LocalDateTimeDeserializer : JsonDeserializer<LocalDateTime>() {
-    override fun deserialize(jsonParser: JsonParser, context: DeserializationContext?): LocalDateTime {
+    override fun deserialize(jsonParser: JsonParser, context: DeserializationContext): LocalDateTime {
         return jsonParser.text.parseDateTime()
+    }
+}
+
+class OptionalDeserializer<T> : JsonDeserializer<Optional<T>>() {
+    override fun deserialize(parser: JsonParser, context: DeserializationContext): Optional<T> {
+        TODO()
     }
 }

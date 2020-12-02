@@ -6,9 +6,11 @@ import com.heerkirov.hedge.server.components.http.modules.Aspect
 import com.heerkirov.hedge.server.components.http.modules.Authentication
 import com.heerkirov.hedge.server.components.http.modules.ErrorHandler
 import com.heerkirov.hedge.server.components.http.modules.WebAccessor
+import com.heerkirov.hedge.server.components.http.routes.TagRoutes
 import com.heerkirov.hedge.server.components.http.routes.AppRoutes
 import com.heerkirov.hedge.server.components.lifetime.Lifetime
-import com.heerkirov.hedge.server.framework.StatefulComponent
+import com.heerkirov.hedge.server.components.service.AllServices
+import com.heerkirov.hedge.server.library.framework.StatefulComponent
 import com.heerkirov.hedge.server.definitions.Filename
 import com.heerkirov.hedge.server.enums.LoadStatus
 import com.heerkirov.hedge.server.utils.Net
@@ -50,7 +52,8 @@ class HttpServerOptions(
     val defaultPort: Int = 9000
 )
 
-class HttpServerImpl(private val health: Health,
+class HttpServerImpl(private val allServices: AllServices,
+                     private val health: Health,
                      private val lifetime: Lifetime,
                      private val appdata: AppDataDriver,
                      private val options: HttpServerOptions) : HttpServer {
@@ -74,6 +77,7 @@ class HttpServerImpl(private val health: Health,
             .create { web.configure(it) }
             .handle(aspect, authentication, web, errorHandler)
             .handle(AppRoutes(lifetime, appdata))
+            .handle(TagRoutes(allServices.tag))
             .bind()
     }
 

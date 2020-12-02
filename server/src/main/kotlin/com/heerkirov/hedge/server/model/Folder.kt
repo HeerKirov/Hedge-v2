@@ -5,7 +5,7 @@ import java.time.LocalDateTime
 /**
  * 文件夹。
  */
-data class Folder(val id: Int?,
+data class Folder(val id: Int,
                   /**
                    * 标题。
                    */

@@ -3,7 +3,7 @@ package com.heerkirov.hedge.server.model
 /**
  * 内容标签。
  */
-data class Tag(val id: Int?,
+data class Tag(val id: Int,
                /**
                 * 排序下标，由系统维护，同一父标签一组从0开始。
                 */

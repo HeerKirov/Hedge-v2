@@ -3,7 +3,7 @@ package com.heerkirov.hedge.server.model
 /**
  * 主题标签。
  */
-data class Topic(val id: Int?,
+data class Topic(val id: Int,
                  /**
                   * 标签名。
                   */

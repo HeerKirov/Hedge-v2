@@ -8,7 +8,7 @@ import com.heerkirov.hedge.server.utils.Composition
  * 不能直接关联到illust等，因为它不是标签。不过，标记为导出的注解会以导出的形式关联到illust，此时可以使用注解查询语法。
  * 非导出注解不会导出给images，因此只能用于标签查询。在image查询中也可用，但因为会严重拖慢性能而受到限制。
  */
-data class Annotation(val id: Int?,
+data class Annotation(val id: Int,
                       /**
                        * 注解名称。
                        */

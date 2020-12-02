@@ -5,7 +5,7 @@ import java.time.LocalDateTime
 /**
  * 画集。
  */
-data class Album(val id: Int?,
+data class Album(val id: Int,
                  /**
                   * 标题。
                   */

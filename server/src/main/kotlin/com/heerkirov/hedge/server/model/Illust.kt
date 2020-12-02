@@ -13,7 +13,7 @@ import java.time.LocalDateTime
  *  - 编写集合的信息而没写某张图像的信息时，此信息会复制导出至图像；
  *  - 为了在相同的字段内查询，导出信息也会复制一份手写属性。
  */
-data class Illust(val id: Int?,
+data class Illust(val id: Int,
                   /**
                    * 对象类型。区分image和collection。
                    */

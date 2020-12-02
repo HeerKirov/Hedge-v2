@@ -3,7 +3,7 @@ package com.heerkirov.hedge.server.components.appdata
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.definitions.Filename
 import com.heerkirov.hedge.server.enums.LoadStatus
-import com.heerkirov.hedge.server.framework.Component
+import com.heerkirov.hedge.server.library.framework.Component
 import com.heerkirov.hedge.server.utils.Fs
 import com.heerkirov.hedge.server.utils.migrations.VersionFileMigrator
 import com.heerkirov.hedge.server.utils.toJSONString

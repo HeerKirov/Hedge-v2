@@ -1,15 +1,13 @@
 package com.heerkirov.hedge.server.components.lifetime
 
-import com.heerkirov.hedge.server.framework.Component
-import com.heerkirov.hedge.server.framework.FrameworkContext
-import com.heerkirov.hedge.server.framework.StatefulComponent
-import com.heerkirov.hedge.server.framework.ThreadComponent
+import com.heerkirov.hedge.server.library.framework.FrameworkContext
+import com.heerkirov.hedge.server.library.framework.StatefulComponent
+import com.heerkirov.hedge.server.library.framework.ThreadComponent
 import com.heerkirov.hedge.server.utils.Token
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
-import kotlin.system.exitProcess
 
 /**
  * 负责生命周期维持的组件。因为server一般不允许无限制地在后台运行，就需要各种机制来配合web、client、cli，确保它们在使用时server不会退出。

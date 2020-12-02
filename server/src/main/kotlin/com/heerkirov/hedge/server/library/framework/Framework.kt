@@ -1,4 +1,4 @@
-package com.heerkirov.hedge.server.framework
+package com.heerkirov.hedge.server.library.framework
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -33,6 +33,11 @@ class Framework {
      */
     fun <T : Component> addComponent(call: (context: FrameworkContext) -> T): Framework {
         components.add(call(context))
+        return this
+    }
+
+    fun addComponents(call: (context: FrameworkContext) -> Sequence<Component>): Framework {
+        components.addAll(call(context))
         return this
     }
 

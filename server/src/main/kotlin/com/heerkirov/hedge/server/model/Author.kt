@@ -3,7 +3,7 @@ package com.heerkirov.hedge.server.model
 /**
  * 作者标签。
  */
-data class Author(val id: Int?,
+data class Author(val id: Int,
                   /**
                    * 标签名。
                    */

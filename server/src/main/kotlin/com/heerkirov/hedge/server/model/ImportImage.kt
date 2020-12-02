@@ -8,7 +8,7 @@ import java.time.LocalDateTime
  * 在二阶导入逻辑中，用于存储第一阶导入的图像的信息。
  * 在后续的逻辑中，删除导入记录，并转换为illust记录。
  */
-data class ImportImage(val id: Int?,
+data class ImportImage(val id: Int,
                        /**
                         * 关联的文件id。
                         */

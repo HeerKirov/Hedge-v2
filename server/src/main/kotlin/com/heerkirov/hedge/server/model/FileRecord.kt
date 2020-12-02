@@ -11,7 +11,7 @@ import java.time.LocalDateTime
  *  - 通过update_time比对扫描得出需要更新的记录。
  *  - 比对记录的sync_records记录，根据这个记录对物理文件进行同步。
  */
-data class FileRecord(val id: Int?,
+data class FileRecord(val id: Int,
                       /**
                        * 所在文件夹名称<yyyy-MM-dd>，一般用其添加日期作为文件夹名称
                        */
