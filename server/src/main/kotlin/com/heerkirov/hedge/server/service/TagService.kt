@@ -7,6 +7,9 @@ import com.heerkirov.hedge.server.exceptions.*
 import com.heerkirov.hedge.server.form.*
 import com.heerkirov.hedge.server.model.Illust
 import com.heerkirov.hedge.server.model.Tag
+import com.heerkirov.hedge.server.utils.applyIf
+import com.heerkirov.hedge.server.utils.optOf
+import com.heerkirov.hedge.server.utils.undefined
 import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.entity.*
 
@@ -36,9 +39,11 @@ class TagService(private val repo: DataRepository) {
             //检查parent是否存在
             if(form.parentId != null && repo.db.sequenceOf(Tags).none { it.id eq form.parentId }) throw ResourceNotExist("parentId", form.parentId)
 
-            val tagsInParent = repo.db.sequenceOf(Tags)
-                .filter { if(form.parentId != null) { Tags.parentId eq form.parentId }else{ Tags.parentId.isNull() } }
-                .toList()
+            val tagsInParent = lazy {
+                repo.db.sequenceOf(Tags)
+                    .filter { if(form.parentId != null) { Tags.parentId eq form.parentId }else{ Tags.parentId.isNull() } }
+                    .toList()
+            }
 
             //检查标签重名
             if(form.type == Tag.Type.TAG) {
@@ -46,7 +51,7 @@ class TagService(private val repo: DataRepository) {
                 if(repo.db.sequenceOf(Tags).any { it.name eq form.name }) throw AlreadyExists("Tag", "name", form.name)
             }else{
                 //addr类型的标签禁止在相同的parent下重名
-                if(tagsInParent.any { it.name == form.name }) throw AlreadyExists("Tag", "name", form.name)
+                if(tagsInParent.value.any { it.name == form.name }) throw AlreadyExists("Tag", "name", form.name)
             }
 
             //存在link时，检查link的目标是否存在
@@ -74,12 +79,12 @@ class TagService(private val repo: DataRepository) {
 
             val ordinal = if(form.ordinal == null) {
                 //未指定ordinal时，将其排在序列的末尾，相当于当前的序列长度
-                tagsInParent.size
+                tagsInParent.value.size
             }else{
                 //指定时，限制ordinal的值在[0, count]的范围内
                 val ordinal = when {
                     form.ordinal < 0 -> 0
-                    form.ordinal >= tagsInParent.size -> tagsInParent.size
+                    form.ordinal >= tagsInParent.value.size -> tagsInParent.value.size
                     else -> form.ordinal
                 }
                 //同parent下，ordinal>=newOrdinal的那些tag，向后顺延一位
@@ -116,12 +121,9 @@ class TagService(private val repo: DataRepository) {
         repo.db.transaction {
             val record = repo.db.sequenceOf(Tags).firstOrNull { it.id eq id } ?: throw NotFound()
 
-            //TODO 处理parentId更换，同时要处理约束(parent是否存在，同级addr是否重名冲突)
-            //TODO 处理ordinal和重排序，还要和parentId的变换一同处理
-            //TODO links发生变化时，会引发关联内容重导出
-            //TODO type的类型发生变化时，会引发关联内容重导出。将type从tag变为addr不删除直接引用
-
-            //TODO 关联内容的标签重导出过程可能耗时巨大，因此做一个持久化到数据库的消息队列
+            //TODO 关联内容的标签重导出过程可能耗时巨大，因此做一个持久化到数据库的消息队列。
+            //     links发生变化时，会引发关联内容重导出
+            //     type的类型发生变化时，会引发关联内容重导出
 
             val newName = form.name.applyOpt {
                 if(!checkTagName(this)) throw ParamError("name")
@@ -152,6 +154,74 @@ class TagService(private val repo: DataRepository) {
                     this
                 }
             }
+            val (newParentId, newOrdinal, tagsInParent) = if(form.parentId.isPresent && form.parentId.value != record.parentId) {
+                //parentId发生了变化
+                val newParentId = form.parentId.value
+
+                //检查parentId是否存在
+                if(newParentId != null && repo.db.sequenceOf(Tags).none { it.id eq newParentId }) throw ResourceNotExist("parentId", newParentId)
+
+                //调整旧的parent下的元素顺序
+                repo.db.update(Tags) {
+                    where { if(record.parentId != null) { Tags.parentId eq record.parentId }else{ Tags.parentId.isNull() } and (it.ordinal greater record.ordinal) }
+                    set(it.ordinal, it.ordinal - 1)
+                }
+
+                val tagsInNewParent = repo.db.sequenceOf(Tags)
+                    .filter { if(newParentId != null) { Tags.parentId eq newParentId }else{ Tags.parentId.isNull() } }
+                    .toList()
+
+                Tuple3(optOf(newParentId), if(form.ordinal.isPresent) {
+                    //指定了新的ordinal
+                    val max = tagsInNewParent.size
+                    val newOrdinal = if(form.ordinal.value > max) max else form.ordinal.value
+
+                    repo.db.update(Tags) {
+                        where { if(newParentId != null) { Tags.parentId eq newParentId }else{ Tags.parentId.isNull() } and (it.ordinal greaterEq newOrdinal) }
+                        set(it.ordinal, it.ordinal + 1)
+                    }
+                    optOf(newOrdinal)
+                }else{
+                    //没有指定新ordinal，追加到末尾
+                    optOf(tagsInNewParent.size)
+                }, tagsInNewParent)
+            }else{
+                //parentId没有变化，只在当前范围内变动
+                val tagsInParent = repo.db.sequenceOf(Tags)
+                    .filter { if(record.parentId != null) { Tags.parentId eq record.parentId }else{ Tags.parentId.isNull() } }
+                    .toList()
+                Tuple3(undefined(), if(form.ordinal.isUndefined || form.ordinal.value == record.ordinal) undefined() else {
+                    //ordinal发生了变化
+                    val max = tagsInParent.size
+                    val newOrdinal = if(form.ordinal.value > max) max else form.ordinal.value
+                    if(newOrdinal > record.ordinal) {
+                        repo.db.update(Tags) {
+                            where { if(record.parentId != null) { Tags.parentId eq record.parentId }else{ Tags.parentId.isNull() } and (it.ordinal greater record.ordinal) and (it.ordinal lessEq newOrdinal) }
+                            set(it.ordinal, it.ordinal - 1)
+                        }
+                    }else{
+                        repo.db.update(Tags) {
+                            where { if(record.parentId != null) { Tags.parentId eq record.parentId }else{ Tags.parentId.isNull() } and (it.ordinal greaterEq newOrdinal) and (it.ordinal less record.ordinal) }
+                            set(it.ordinal, it.ordinal + 1)
+                        }
+                    }
+                    optOf(newOrdinal)
+                }, tagsInParent)
+            }
+
+            applyIf(form.type.isPresent || form.name.isPresent || form.parentId.isPresent) {
+                //type/name/parentId的变化会触发重名检查
+                val name = newName.unwrapOr { record.name }
+                val type = form.type.unwrapOr { record.type }
+                //检查标签重名
+                if (type == Tag.Type.TAG) {
+                    //tag类型的标签禁止全局重名
+                    if (repo.db.sequenceOf(Tags).any { it.name eq name }) throw AlreadyExists("Tag", "name", name)
+                } else {
+                    //addr类型的标签禁止在相同的parent下重名
+                    if (tagsInParent.any { it.name == name }) throw AlreadyExists("Tag", "name", name)
+                }
+            }
 
             repo.db.update(Tags) {
                 where { it.id eq id }
@@ -161,6 +231,8 @@ class TagService(private val repo: DataRepository) {
                 form.description.applyOpt { set(it.description, this) }
                 newLinks.applyOpt { set(it.links, this) }
                 newExamples.applyOpt { set(it.examples, this) }
+                newParentId.applyOpt { set(it.parentId, this) }
+                newOrdinal.applyOpt { set(it.ordinal, this) }
             }
         }
     }

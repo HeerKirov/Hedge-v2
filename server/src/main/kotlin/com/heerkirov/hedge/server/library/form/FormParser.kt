@@ -4,11 +4,9 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.JsonNodeType
 import com.heerkirov.hedge.server.exceptions.ParamRequired
 import com.heerkirov.hedge.server.exceptions.ParamTypeError
+import com.heerkirov.hedge.server.utils.*
 import com.heerkirov.hedge.server.utils.DateTime.parseDate
 import com.heerkirov.hedge.server.utils.DateTime.parseDateTime
-import com.heerkirov.hedge.server.utils.map
-import com.heerkirov.hedge.server.utils.parseJSONObject
-import com.heerkirov.hedge.server.utils.parseJsonNode
 import io.javalin.http.Context
 import java.lang.Exception
 import java.lang.IllegalArgumentException
@@ -31,55 +29,6 @@ import kotlin.reflect.full.primaryConstructor
 inline fun <reified T : Any> Context.bodyAsForm(): T {
     return mapForm(this.body().parseJsonNode(), T::class)
 }
-
-/**
- * 主要作用是在partial update表单中充当存在标示器。当一个字段类型标记为Opt<T>?时，将特殊处理此字段，当找不到此字段的值时，填入Opt::null，否则填入Opt::some。
- */
-class Opt<T> {
-    private val v: T?
-    private val has: Boolean
-
-    constructor(v: T) {
-        this.v = v
-        this.has = true
-    }
-    constructor() {
-        this.v = null
-        this.has = false
-    }
-
-    override fun equals(other: Any?) = other is Opt<*> && other.has == this.has && other.v == this.v
-
-    override fun hashCode() = Objects.hash(has, v)
-
-    val isPresent get() = has
-
-    val value: T get() = if(has) {
-        @Suppress("UNCHECKED_CAST")
-        v as T
-    }else throw NullPointerException()
-
-    inline fun <R> unwrap(call: T.() -> R): R = value.call()
-
-    /**
-     * 如果值存在，计算一个新值。参数使用this传递。
-     */
-    inline fun <R> mapOpt(call: T.() -> R): Opt<R> = if(isPresent) Opt(value.call()) else {
-        @Suppress("UNCHECKED_CAST")
-        this as Opt<R>
-    }
-
-    /**
-     * 如果值存在，执行一段代码。参数使用this传递。
-     */
-    inline fun applyOpt(call: T.() -> Unit): Opt<T> {
-        value.call()
-        return this
-    }
-}
-
-
-private val undefined = Opt<Any?>()
 
 //TODO Optimize: 将类型解析的过程提到执行之前，并缓存类型解析信息，供下次复用。
 
@@ -278,7 +227,7 @@ fun <T : Any> mapForm(jsonNode: JsonNode, formClass: KClass<T>): T {
             //不包含定义且必选
             else -> if(parameter.type.classifier == Opt::class) {
                 //Opt类型会自动解析为undefined值
-                Pair(parameter, undefined)
+                Pair(parameter, undefined<Any?>())
             }else{
                 throw ParamRequired(name)
             }
