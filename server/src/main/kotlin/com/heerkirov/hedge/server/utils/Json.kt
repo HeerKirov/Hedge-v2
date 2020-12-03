@@ -6,6 +6,7 @@ import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.*
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.jacksonTypeRef
 import com.heerkirov.hedge.server.utils.DateTime.parseDateTime
 import com.heerkirov.hedge.server.utils.DateTime.toDateTimeString
 import java.time.LocalDateTime
@@ -18,8 +19,10 @@ private val objectMapper = jacksonObjectMapper()
     .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
     .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
     .registerModule(SimpleModule().also {
-        it.addSerializer(LocalDateTime::class.java, LocalDateTimeSerializer())
-        it.addDeserializer(LocalDateTime::class.java, LocalDateTimeDeserializer())
+        it.addSerializer(LocalDateTime::class.java, LocalDateTimeSerializer)
+        it.addDeserializer(LocalDateTime::class.java, LocalDateTimeDeserializer)
+        it.addSerializer(Composition::class.java, CompositionSerializer)
+        it.addDeserializer(Composition::class.java, CompositionDeserializer)
     })
 
 
@@ -61,20 +64,27 @@ fun String.parseJsonNode(): JsonNode {
     return objectMapper.readTree(this)
 }
 
-class LocalDateTimeSerializer : JsonSerializer<LocalDateTime>() {
+object LocalDateTimeSerializer : JsonSerializer<LocalDateTime>() {
     override fun serialize(localDateTime: LocalDateTime, jsonGenerator: JsonGenerator, serializerProvider: SerializerProvider) {
         jsonGenerator.writeString(localDateTime.toDateTimeString())
     }
 }
 
-class LocalDateTimeDeserializer : JsonDeserializer<LocalDateTime>() {
+object LocalDateTimeDeserializer : JsonDeserializer<LocalDateTime>() {
     override fun deserialize(jsonParser: JsonParser, context: DeserializationContext): LocalDateTime {
         return jsonParser.text.parseDateTime()
     }
 }
 
-class OptionalDeserializer<T> : JsonDeserializer<Optional<T>>() {
-    override fun deserialize(parser: JsonParser, context: DeserializationContext): Optional<T> {
+object CompositionSerializer : JsonSerializer<Composition<*>>() {
+    override fun serialize(element: Composition<*>, jsonGenerator: JsonGenerator, serializerProvider: SerializerProvider) {
+        TODO()
+    }
+}
+
+object CompositionDeserializer : JsonDeserializer<Composition<*>>() {
+    override fun deserialize(jsonParser: JsonParser, context: DeserializationContext): Composition<*> {
+        val array = jsonParser.readValueAs<List<String>>(jacksonTypeRef<List<String>>())
         TODO()
     }
 }
