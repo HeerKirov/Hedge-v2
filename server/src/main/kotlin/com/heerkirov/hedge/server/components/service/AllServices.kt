@@ -4,6 +4,7 @@ import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.library.framework.Component
 import com.heerkirov.hedge.server.library.framework.FrameworkContext
 import com.heerkirov.hedge.server.library.framework.getComponent
+import com.heerkirov.hedge.server.manager.TagManager
 import com.heerkirov.hedge.server.service.TagService
 
 interface AllServices : Component {
@@ -16,6 +17,8 @@ class AllServicesImpl(ctx: FrameworkContext) : AllServices {
     init {
         val repo = ctx.getComponent<DataRepository>()
 
-        tag = TagService(repo)
+        val tagMgr = TagManager(repo)
+
+        tag = TagService(repo, tagMgr)
     }
 }

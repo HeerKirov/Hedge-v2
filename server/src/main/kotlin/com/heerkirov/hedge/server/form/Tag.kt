@@ -1,6 +1,7 @@
 package com.heerkirov.hedge.server.form
 
 import com.heerkirov.hedge.server.library.form.Length
+import com.heerkirov.hedge.server.library.form.Min
 import com.heerkirov.hedge.server.library.form.NotBlank
 import com.heerkirov.hedge.server.model.Tag
 import com.heerkirov.hedge.server.utils.Opt
@@ -24,7 +25,7 @@ data class TagDetailRes(val id: Int, val ordinal: Int, val parentId: Int?,
 
 data class TagCreateForm(@NotBlank @Length(32) val name: String,
                          val otherNames: List<String>? = null,
-                         val ordinal: Int? = null,
+                         @Min(0) val ordinal: Int? = null,
                          val parentId: Int?,
                          val type: Tag.Type,
                          val group: Tag.IsGroup = Tag.IsGroup.NO,
@@ -34,7 +35,7 @@ data class TagCreateForm(@NotBlank @Length(32) val name: String,
 
 data class TagUpdateForm(@NotBlank @Length(32) val name: Opt<String>,
                          val otherNames: Opt<List<String>?>,
-                         val ordinal: Opt<Int>,
+                         @Min(0) val ordinal: Opt<Int>,
                          val parentId: Opt<Int?>,
                          val type: Opt<Tag.Type>,
                          val group: Opt<Tag.IsGroup>,

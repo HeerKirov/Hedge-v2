@@ -208,15 +208,21 @@ fun <T : Any> mapForm(jsonNode: JsonNode, formClass: KClass<T>): T {
                     throw ParamTypeError(name, "cannot be null.")
                 }
 
-                if(value != null) {
-                    try {
-                        if(value is Opt<*>) {
+                if(value is Opt<*>) {
+                    if(value.value != null) {
+                        try {
                             analyseValidation(parameter.annotations, value.value as Any)
-                        }else{
-                            analyseValidation(parameter.annotations, value)
+                        }catch (e: Exception) {
+                            throw ParamTypeError(name, e.message ?: "validation failed.")
                         }
-                    }catch (e: Exception) {
-                        throw ParamTypeError(name, e.message ?: "validation failed.")
+                    }
+                }else{
+                    if(value != null) {
+                        try {
+                            analyseValidation(parameter.annotations, value)
+                        }catch (e: Exception) {
+                            throw ParamTypeError(name, e.message ?: "validation failed.")
+                        }
                     }
                 }
 

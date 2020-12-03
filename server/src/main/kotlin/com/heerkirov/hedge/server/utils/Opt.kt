@@ -29,10 +29,10 @@ class Opt<T> {
     val value: T get() = if(has) {
         @Suppress("UNCHECKED_CAST")
         v as T
-    }else throw NullPointerException()
+    }else throw NullPointerException("Opt is undefined.")
 
     /**
-     * 解包，并将值map为一个新值。
+     * 断言值存在并解包，并将值map为一个新值。
      */
     inline fun <R> unwrap(call: T.() -> R): R = value.call()
 
@@ -44,7 +44,15 @@ class Opt<T> {
     /**
      * 如果值存在，计算一个新值。参数使用this传递。
      */
-    inline fun <R> mapOpt(call: T.() -> R): Opt<R> = if(isPresent) Opt(value.call()) else {
+    inline fun <R> runOpt(call: T.() -> R): Opt<R> = if(isPresent) Opt(value.call()) else {
+        @Suppress("UNCHECKED_CAST")
+        this as Opt<R>
+    }
+
+    /**
+     * 如果值存在，计算一个新值。
+     */
+    inline fun <R> letOpt(call: (T) -> R): Opt<R> = if(isPresent) Opt(call(value)) else {
         @Suppress("UNCHECKED_CAST")
         this as Opt<R>
     }
@@ -52,13 +60,13 @@ class Opt<T> {
     /**
      * 如果值不存在，执行函数生成一个新值。
      */
-    inline fun mapOr(call: () -> T): Opt<T> = if(isUndefined) Opt(call()) else this
+    inline fun elseOr(call: () -> T): Opt<T> = if(isUndefined) Opt(call()) else this
 
     /**
      * 如果值存在，执行一段代码。参数使用this传递。
      */
     inline fun applyOpt(call: T.() -> Unit): Opt<T> {
-        value.call()
+        if(isPresent) value.call()
         return this
     }
 }
@@ -70,4 +78,11 @@ fun <T> optOf(value: T) = Opt(value)
 fun <T> undefined(): Opt<T> {
     @Suppress("UNCHECKED_CAST")
     return undefinedRef as Opt<T>
+}
+
+fun anyOpt(vararg opts: Opt<*>): Boolean {
+    for (opt in opts) {
+        if(opt.isPresent) return true
+    }
+    return false
 }
