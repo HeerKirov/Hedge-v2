@@ -16,8 +16,7 @@ import me.liuwj.ktorm.entity.*
 
 class TagService(private val data: DataRepository, private val tagMgr: TagManager) {
     fun list(): List<TagRes> {
-        return data.db.sequenceOf(Tags)
-            .map { newTagRes(it) }
+        return data.db.sequenceOf(Tags).map { newTagRes(it) }
     }
 
     fun tree(): List<TagTreeNode> {
@@ -75,7 +74,7 @@ class TagService(private val data: DataRepository, private val tagMgr: TagManage
                 }
             }
 
-            return data.db.insertAndGenerateKey(Tags) {
+            val id = data.db.insertAndGenerateKey(Tags) {
                 set(it.name, name)
                 set(it.otherNames, otherNames)
                 set(it.ordinal, ordinal)
@@ -88,13 +87,23 @@ class TagService(private val data: DataRepository, private val tagMgr: TagManage
                 set(it.exportedScore, null)
                 set(it.cachedCount, 0)
             } as Int
+
+            tagMgr.processAnnotations(id, form.annotations, creating = true)
+
+            return id
         }
     }
 
     fun get(id: Int): TagDetailRes {
-        return data.db.sequenceOf(Tags).firstOrNull { it.id eq id }
-            ?.let { newTagDetailRes(it) }
-            ?: throw NotFound()
+        val tag = data.db.sequenceOf(Tags).firstOrNull { it.id eq id } ?: throw NotFound()
+
+        val annotations = data.db.from(TagAnnotationRelations)
+            .innerJoin(Annotations, TagAnnotationRelations.annotationId eq Annotations.id)
+            .select(Annotations.id, Annotations.name, Annotations.canBeExported)
+            .where { TagAnnotationRelations.tagId eq id }
+            .map { TagDetailRes.Annotation(it[Annotations.id]!!, it[Annotations.name]!!, it[Annotations.canBeExported]!!) }
+
+        return newTagDetailRes(tag, annotations)
     }
 
     fun update(id: Int, form: TagUpdateForm) {
@@ -115,7 +124,7 @@ class TagService(private val data: DataRepository, private val tagMgr: TagManage
                 val newParentId = form.parentId.value
 
                 if(newParentId != null) {
-                    fun recursiveCheckParent(id: Int, chains: Set<Int>) {
+                    tailrec fun recursiveCheckParent(id: Int, chains: Set<Int>) {
                         if(id in chains) {
                             //在过去经历过的parent中发现了重复的id，判定存在闭环
                             throw RecursiveParentError()
@@ -199,12 +208,15 @@ class TagService(private val data: DataRepository, private val tagMgr: TagManage
                 }
             }
 
-            if(anyOpt(newName, newOtherNames, form.description, newLinks, newExamples, newParentId, newOrdinal)) {
+            form.annotations.letOpt { newAnnotations -> tagMgr.processAnnotations(id, newAnnotations) }
+
+            if(anyOpt(newName, newOtherNames, form.type, form.description, newLinks, newExamples, newParentId, newOrdinal)) {
                 data.db.update(Tags) {
                     where { it.id eq id }
 
                     newName.applyOpt { set(it.name, this) }
                     newOtherNames.applyOpt { set(it.otherNames, this) }
+                    form.type.applyOpt { set(it.type, this) }
                     form.description.applyOpt { set(it.description, this) }
                     newLinks.applyOpt { set(it.links, this) }
                     newExamples.applyOpt { set(it.examples, this) }
@@ -212,6 +224,7 @@ class TagService(private val data: DataRepository, private val tagMgr: TagManage
                     newOrdinal.applyOpt { set(it.ordinal, this) }
                 }
             }
+
         }
     }
 

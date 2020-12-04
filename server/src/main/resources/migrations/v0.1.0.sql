@@ -14,7 +14,7 @@ CREATE TABLE illust(
     description			        TEXT NOT NULL DEFAULT '',           -- 简述信息，不存在时记空串
     score						INTEGER DEFAULT NULL,               -- 图像的评分。具体含义由setting定义
     favorite				    BOOLEAN NOT NULL DEFAULT FALSE,     -- [only image]喜爱标记
-    tagme                       TINYINT NOT NULL,                   -- 标记为tagme{0b1=标签, 0b10=作者, 0b100=主题, 0b1000=有关系项, 0b10000=其他信息}
+    tagme                       INTEGER NOT NULL,                   -- 标记为tagme{0b1=标签, 0b10=作者, 0b100=主题, 0b1000=有关系项, 0b10000=其他信息}
 
     exported_description        TEXT NOT NULL DEFAULT '',           -- [导出]导出的简述信息。聚合时采用
     exported_score			    INTEGER DEFAULT NULL,               -- [导出]导出的评分。聚合时取平均值
@@ -177,7 +177,7 @@ CREATE TABLE meta_db.annotation(
     id                  INTEGER PRIMARY KEY,
     name                TEXT NOT NULL,        -- 注解名称
     can_be_exported     BOOLEAN NOT NULL,     -- 是否为导出注解
-    target              TEXT DEFAULT NULL     -- 注解的适用范围，null表示无限制::json<string[]>
+    target              INTEGER NOT NULL      -- 注解的适用范围
 );
 CREATE TABLE meta_db.tag_annotation_relation(
     annotation_id INTEGER NOT NULL,

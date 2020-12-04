@@ -6,6 +6,7 @@ import com.heerkirov.hedge.server.components.http.modules.Aspect
 import com.heerkirov.hedge.server.components.http.modules.Authentication
 import com.heerkirov.hedge.server.components.http.modules.ErrorHandler
 import com.heerkirov.hedge.server.components.http.modules.WebAccessor
+import com.heerkirov.hedge.server.components.http.routes.AnnotationRoutes
 import com.heerkirov.hedge.server.components.http.routes.TagRoutes
 import com.heerkirov.hedge.server.components.http.routes.AppRoutes
 import com.heerkirov.hedge.server.components.lifetime.Lifetime
@@ -78,6 +79,7 @@ class HttpServerImpl(private val allServices: AllServices,
             .handle(aspect, authentication, web, errorHandler)
             .handle(AppRoutes(lifetime, appdata))
             .handle(TagRoutes(allServices.tag))
+            .handle(AnnotationRoutes(allServices.annotation))
             .bind()
     }
 

@@ -6,7 +6,6 @@ import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.*
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.fasterxml.jackson.module.kotlin.jacksonTypeRef
 import com.heerkirov.hedge.server.utils.DateTime.parseDateTime
 import com.heerkirov.hedge.server.utils.DateTime.toDateTimeString
 import java.time.LocalDateTime
@@ -22,7 +21,6 @@ private val objectMapper = jacksonObjectMapper()
         it.addSerializer(LocalDateTime::class.java, LocalDateTimeSerializer)
         it.addDeserializer(LocalDateTime::class.java, LocalDateTimeDeserializer)
         it.addSerializer(Composition::class.java, CompositionSerializer)
-        it.addDeserializer(Composition::class.java, CompositionDeserializer)
     })
 
 
@@ -78,13 +76,8 @@ object LocalDateTimeDeserializer : JsonDeserializer<LocalDateTime>() {
 
 object CompositionSerializer : JsonSerializer<Composition<*>>() {
     override fun serialize(element: Composition<*>, jsonGenerator: JsonGenerator, serializerProvider: SerializerProvider) {
-        TODO()
-    }
-}
-
-object CompositionDeserializer : JsonDeserializer<Composition<*>>() {
-    override fun deserialize(jsonParser: JsonParser, context: DeserializationContext): Composition<*> {
-        val array = jsonParser.readValueAs<List<String>>(jacksonTypeRef<List<String>>())
-        TODO()
+        val generator = CompositionGenerator.getGenerator(element::class)
+        val result = generator.exportedElementsOfGeneric(element).map { it.toString() }
+        jsonGenerator.writeObject(result)
     }
 }

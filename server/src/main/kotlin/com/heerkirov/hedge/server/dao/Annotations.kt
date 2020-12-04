@@ -18,6 +18,6 @@ object Annotations : BaseTable<Annotation>("annotation", schema = "meta_db") {
         id = row[id]!!,
         name = row[name]!!,
         canBeExported = row[canBeExported]!!,
-        target = row[target]
+        target = row[target]!!
     )
 }

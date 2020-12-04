@@ -13,7 +13,6 @@ import java.lang.IllegalArgumentException
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeParseException
-import java.util.*
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
 import kotlin.reflect.full.isSubclassOf
@@ -123,6 +122,19 @@ private fun <T : Any> mapAny(jsonNode: JsonNode, kType: KType): Any? {
             }catch (e: Exception) {
                 throw ClassCastException("Cannot convert '$value' to enum type ${kClass.simpleName}.")
             }
+        }
+        kClass.isSubclassOf(Composition::class) -> {
+            if(jsonNode.nodeType != JsonNodeType.ARRAY) throw ClassCastException("Excepted type is ${JsonNodeType.ARRAY} but actual type is ${jsonNode.nodeType}.")
+            val generator = CompositionGenerator.getGenericGenerator(kClass as KClass<out Composition<*>>)
+            val elements = jsonNode.parseJSONObject<List<String>>().map {
+                generator.parse(it) ?: throw ClassCastException("Cannot convert '$it' to composition type ${kClass.simpleName}.")
+            }
+            //使用union函数会产生协变类型的问题，因此copy一份实现
+            var base: Int? = null
+            for (element in elements) {
+                base = if(base == null) element.value else base or element.value
+            }
+            generator.newInstance(base!!)
         }
         else -> throw IllegalArgumentException("Cannot analyse argument of type '$kClass'.")
     }

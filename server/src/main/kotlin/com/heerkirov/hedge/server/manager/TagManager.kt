@@ -2,24 +2,26 @@ package com.heerkirov.hedge.server.manager
 
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.dao.Illusts
+import com.heerkirov.hedge.server.dao.TagAnnotationRelations
 import com.heerkirov.hedge.server.dao.Tags
 import com.heerkirov.hedge.server.exceptions.ParamError
 import com.heerkirov.hedge.server.exceptions.ResourceNotAvailable
 import com.heerkirov.hedge.server.exceptions.ResourceNotExist
 import com.heerkirov.hedge.server.model.Illust
-import me.liuwj.ktorm.dsl.inList
+import com.heerkirov.hedge.server.utils.ktorm.asSequence
+import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.entity.filter
 import me.liuwj.ktorm.entity.sequenceOf
 import me.liuwj.ktorm.entity.toList
 
-class TagManager(private val data: DataRepository) {
+class TagManager(private val data: DataRepository, private val annotationMgr: AnnotationManager) {
 
     /**
      * 校验并纠正name。
      */
     fun validateName(newName: String): String {
         return newName.trim().apply {
-            if(!checkTagName(this)) throw ParamError("name")
+            if(!ManagerTool.checkTagName(this)) throw ParamError("name")
         }
     }
 
@@ -28,7 +30,7 @@ class TagManager(private val data: DataRepository) {
      */
     fun validateOtherNames(newOtherNames: List<String>?): List<String> {
         return newOtherNames.let { if(it.isNullOrEmpty()) emptyList() else it.map(String::trim) }.apply {
-            if(any { !checkTagName(it) }) throw ParamError("otherNames")
+            if(any { !ManagerTool.checkTagName(it) }) throw ParamError("otherNames")
         }
     }
 
@@ -67,24 +69,29 @@ class TagManager(private val data: DataRepository) {
     }
 
     /**
-     * 检查tag的命名是否符合要求。
+     * 检验给出的annotations参数的正确性，根据需要add/delete。
      */
-    private fun checkTagName(name: String): Boolean {
-        //检查tag name是否符合规范。
-
-        //不能不包含非空字符
-        if(name.isBlank()) {
-            return false
+    fun processAnnotations(thisId: Int, newAnnotations: List<Any>?, creating: Boolean = false) {
+        val annotationIds = if(newAnnotations != null) annotationMgr.analyseAnnotationParam(newAnnotations) else emptyList()
+        val oldAnnotationIds = if(creating) emptySet() else {
+            data.db.from(TagAnnotationRelations).select(TagAnnotationRelations.annotationId)
+                .where { TagAnnotationRelations.tagId eq thisId }
+                .asSequence()
+                .map { it[TagAnnotationRelations.annotationId]!! }
+                .toSet()
         }
 
-        //不能包含禁用符号' " ` . |
-        for (c in disableCharacter) {
-            if(name.contains(c)) {
-                return false
+        val deleteIds = oldAnnotationIds - annotationIds
+        data.db.delete(TagAnnotationRelations) { (it.tagId eq thisId) and (it.annotationId inList deleteIds) }
+
+        val addIds = annotationIds - oldAnnotationIds
+        data.db.batchInsert(TagAnnotationRelations) {
+            for (addId in addIds) {
+                item {
+                    set(it.tagId, thisId)
+                    set(it.annotationId, addId)
+                }
             }
         }
-        return true
     }
-
-    private val disableCharacter = arrayOf('\'', '"', '`', '.', '|')
 }

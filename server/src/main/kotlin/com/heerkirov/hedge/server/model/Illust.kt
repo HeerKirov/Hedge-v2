@@ -125,5 +125,12 @@ data class Illust(val id: Int,
          * 其他元数据。
          */
         object OTHER : Tagme(0b10000)
+
+        object EMPTY :Tagme(0b0)
+
+        companion object {
+            val baseElements = listOf(TAG, AUTHOR, TOPIC, RELATION, OTHER)
+            val empty = EMPTY
+        }
     }
 }
