@@ -15,6 +15,8 @@ abstract class Composition<T : Composition<T>>(clazz: KClass<T>, val value: Int)
 
     operator fun contains(element: Composition<T>): Boolean = element.value and value.inv() == 0
 
+    fun isEmpty(): Boolean = value == 0b0
+
     override fun equals(other: Any?) = if(other is Composition<*>) other.value == value else false
 
     override fun hashCode() = value

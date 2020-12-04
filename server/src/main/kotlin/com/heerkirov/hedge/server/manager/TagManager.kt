@@ -5,8 +5,9 @@ import com.heerkirov.hedge.server.dao.Illusts
 import com.heerkirov.hedge.server.dao.TagAnnotationRelations
 import com.heerkirov.hedge.server.dao.Tags
 import com.heerkirov.hedge.server.exceptions.ParamError
-import com.heerkirov.hedge.server.exceptions.ResourceNotAvailable
+import com.heerkirov.hedge.server.exceptions.ResourceNotSuitable
 import com.heerkirov.hedge.server.exceptions.ResourceNotExist
+import com.heerkirov.hedge.server.model.Annotation
 import com.heerkirov.hedge.server.model.Illust
 import com.heerkirov.hedge.server.utils.ktorm.asSequence
 import me.liuwj.ktorm.dsl.*
@@ -61,7 +62,7 @@ class TagManager(private val data: DataRepository, private val annotationMgr: An
             }
             for (example in examples) {
                 if (example.type == Illust.Type.COLLECTION) {
-                    throw ResourceNotAvailable("examples", example.id)
+                    throw ResourceNotSuitable("examples", example.id)
                 }
             }
             newExamples
@@ -72,7 +73,7 @@ class TagManager(private val data: DataRepository, private val annotationMgr: An
      * 检验给出的annotations参数的正确性，根据需要add/delete。
      */
     fun processAnnotations(thisId: Int, newAnnotations: List<Any>?, creating: Boolean = false) {
-        val annotationIds = if(newAnnotations != null) annotationMgr.analyseAnnotationParam(newAnnotations) else emptyList()
+        val annotationIds = if(newAnnotations != null) annotationMgr.analyseAnnotationParam(newAnnotations, Annotation.AnnotationTarget.TAG) else emptyList()
         val oldAnnotationIds = if(creating) emptySet() else {
             data.db.from(TagAnnotationRelations).select(TagAnnotationRelations.annotationId)
                 .where { TagAnnotationRelations.tagId eq thisId }

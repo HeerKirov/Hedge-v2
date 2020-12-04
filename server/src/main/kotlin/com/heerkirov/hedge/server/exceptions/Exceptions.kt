@@ -54,17 +54,17 @@ open class ResourceNotExist : BadRequestException, Unchecked {
 }
 
 /**
- * 表单参数选取的某种目标资源在当前业务中不可用，因此业务无法进行。
+ * 表单参数选取的某种目标资源在当前业务中不适用，因此业务无法进行。
  */
-open class ResourceNotAvailable : BadRequestException, Unchecked {
+open class ResourceNotSuitable : BadRequestException, Unchecked {
     /**
      * 指明是一项属性的目标资源。
      */
-    constructor(prop: String) : super("NOT_AVAILABLE", "Resource of $prop is not available.", listOf(prop))
+    constructor(prop: String) : super("NOT_SUITABLE", "Resource of $prop is not suitable.", listOf(prop))
     /**
      * 指明是一项属性的目标资源。同时指明具体的值。
      */
-    constructor(prop: String, value: Any) : super("NOT_AVAILABLE", "Resource of $prop '$value' is not available.", listOf(prop, value))
+    constructor(prop: String, value: Any) : super("NOT_SUITABLE", "Resource of $prop '$value' is not suitable.", listOf(prop, value))
 }
 
 /**
