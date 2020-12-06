@@ -18,7 +18,7 @@ object Authors : BaseTable<Author>("author", schema = "meta_db") {
     val description = varchar("description")
     val exportedScore = int("exported_score")
     val cachedCount = int("cached_count")
-    val cachedAnnotations = json("cached_annotations", typeRef<List<String>>())
+    val cachedAnnotations = json("cached_annotations", typeRef<List<Author.CachedAnnotation>>())
 
     override fun doCreateEntity(row: QueryRowSet, withReferences: Boolean) = Author(
         id = row[id]!!,

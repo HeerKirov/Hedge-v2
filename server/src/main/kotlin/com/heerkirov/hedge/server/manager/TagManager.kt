@@ -73,7 +73,7 @@ class TagManager(private val data: DataRepository, private val annotationMgr: An
      * 检验给出的annotations参数的正确性，根据需要add/delete。
      */
     fun processAnnotations(thisId: Int, newAnnotations: List<Any>?, creating: Boolean = false) {
-        val annotationIds = if(newAnnotations != null) annotationMgr.analyseAnnotationParam(newAnnotations, Annotation.AnnotationTarget.TAG) else emptyList()
+        val annotationIds = if(newAnnotations != null) annotationMgr.analyseAnnotationParam(newAnnotations, Annotation.AnnotationTarget.TAG) else emptyMap()
         val oldAnnotationIds = if(creating) emptySet() else {
             data.db.from(TagAnnotationRelations).select(TagAnnotationRelations.annotationId)
                 .where { TagAnnotationRelations.tagId eq thisId }
@@ -82,10 +82,10 @@ class TagManager(private val data: DataRepository, private val annotationMgr: An
                 .toSet()
         }
 
-        val deleteIds = oldAnnotationIds - annotationIds
+        val deleteIds = oldAnnotationIds - annotationIds.keys
         data.db.delete(TagAnnotationRelations) { (it.tagId eq thisId) and (it.annotationId inList deleteIds) }
 
-        val addIds = annotationIds - oldAnnotationIds
+        val addIds = annotationIds.keys - oldAnnotationIds
         data.db.batchInsert(TagAnnotationRelations) {
             for (addId in addIds) {
                 item {

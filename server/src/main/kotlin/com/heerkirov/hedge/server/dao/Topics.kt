@@ -19,7 +19,7 @@ object Topics : BaseTable<Topic>("topic", schema = "meta_db") {
     val description = varchar("description")
     val exportedScore = int("exported_score")
     val cachedCount = int("cached_count")
-    val cachedAnnotations = json("cached_annotations", typeRef<List<String>>())
+    val cachedAnnotations = json("cached_annotations", typeRef<List<Topic.CachedAnnotation>>())
 
     override fun doCreateEntity(row: QueryRowSet, withReferences: Boolean) = Topic(
         id = row[id]!!,

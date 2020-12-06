@@ -8,17 +8,17 @@ import com.heerkirov.hedge.server.model.Tag
 import com.heerkirov.hedge.server.utils.Opt
 
 data class TagRes(val id: Int, val ordinal: Int, val parentId: Int?,
-                  val name: String, val otherNames: List<String>?,
+                  val name: String, val otherNames: List<String>,
                   val type: Tag.Type, val group: Tag.IsGroup)
 
-data class TagTreeNode(val id: Int, val name: String, val otherNames: List<String>?,
+data class TagTreeNode(val id: Int, val name: String, val otherNames: List<String>,
                        val type: Tag.Type, val group: Tag.IsGroup,
                        val children: List<TagTreeNode>?)
 
 data class TagDetailRes(val id: Int, val ordinal: Int, val parentId: Int?,
-                        val name: String, val otherNames: List<String>?,
-                        val type: Tag.Type, val group: Tag.IsGroup, val links: List<Int>?,
-                        val description: String, val examples: List<Example>?, val annotations: List<Annotation>,
+                        val name: String, val otherNames: List<String>,
+                        val type: Tag.Type, val group: Tag.IsGroup, val links: List<Int>,
+                        val description: String, val examples: List<Example>, val annotations: List<Annotation>,
                         val score: Int?, val count: Int) {
     //TODO 完成illust之后，补全example的字段
     data class Example(val id: Int)
@@ -47,12 +47,12 @@ data class TagUpdateForm(@NotBlank @Length(32) val name: Opt<String>,
                          val description: Opt<String>,
                          val examples: Opt<List<Int>?>)
 
-fun newTagRes(tag: Tag) = TagRes(tag.id, tag.ordinal, tag.parentId, tag.name, tag.otherNames.takeIf { i -> i.isNotEmpty() }, tag.type, tag.isGroup)
+fun newTagRes(tag: Tag) = TagRes(tag.id, tag.ordinal, tag.parentId, tag.name, tag.otherNames, tag.type, tag.isGroup)
 
-fun newTagTreeNode(it: Tag, children: List<TagTreeNode>?) = TagTreeNode(it.id, it.name, it.otherNames.takeIf { i -> i.isNotEmpty() }, it.type, it.isGroup, children)
+fun newTagTreeNode(it: Tag, children: List<TagTreeNode>?) = TagTreeNode(it.id, it.name, it.otherNames, it.type, it.isGroup, children)
 
 fun newTagDetailRes(tag: Tag, annotations: List<TagDetailRes.Annotation>) = TagDetailRes(tag.id, tag.ordinal, tag.parentId,
-    tag.name, tag.otherNames.takeIf { i -> i.isNotEmpty() },
-    tag.type, tag.isGroup, tag.links, tag.description,
-    tag.examples?.map { TagDetailRes.Example(it) }, annotations,
+    tag.name, tag.otherNames,
+    tag.type, tag.isGroup, tag.links ?: emptyList(), tag.description,
+    tag.examples?.map { TagDetailRes.Example(it) } ?: emptyList(), annotations,
     tag.exportedScore, tag.cachedCount)

@@ -67,6 +67,7 @@ class AnnotationService(private val data: DataRepository, private val annotation
             data.db.delete(AuthorAnnotationRelations) { it.annotationId eq id }
             data.db.delete(IllustAnnotationRelations) { it.annotationId eq id }
             data.db.delete(AlbumAnnotationRelations) { it.annotationId eq id }
+            //TODO 更新关联的Topic/Author的annotation cache
         }
     }
 }

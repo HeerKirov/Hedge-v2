@@ -43,7 +43,7 @@ data class Author(val id: Int,
                   /**
                    * [cache field]冗余存储关联的注解。在author列表中会用到，防止N+1查询。
                    */
-                  val cachedAnnotations: List<String>? = null) {
+                  val cachedAnnotations: List<CachedAnnotation>? = null) {
     enum class Type {
         /**
          * 未知类型。
@@ -64,4 +64,6 @@ data class Author(val id: Int,
     }
 
     data class Link(val title: String?, val link: String)
+
+    data class CachedAnnotation(val id: Int, val name: String)
 }
