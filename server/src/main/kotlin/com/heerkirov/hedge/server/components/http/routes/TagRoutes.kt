@@ -3,8 +3,11 @@ package com.heerkirov.hedge.server.components.http.routes
 import com.heerkirov.hedge.server.components.http.Endpoints
 import com.heerkirov.hedge.server.components.http.IdRes
 import com.heerkirov.hedge.server.form.TagCreateForm
+import com.heerkirov.hedge.server.form.TagFilter
+import com.heerkirov.hedge.server.form.TagTreeFilter
 import com.heerkirov.hedge.server.form.TagUpdateForm
 import com.heerkirov.hedge.server.library.form.bodyAsForm
+import com.heerkirov.hedge.server.library.query.queryAsFilter
 import com.heerkirov.hedge.server.service.TagService
 import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder.*
@@ -29,7 +32,8 @@ class TagRoutes(private val tagService: TagService) : Endpoints {
     }
 
     private fun list(ctx: Context) {
-        ctx.json(tagService.list())
+        val filter = ctx.queryAsFilter<TagFilter>()
+        ctx.json(tagService.list(filter))
     }
 
     private fun create(ctx: Context) {
@@ -39,7 +43,8 @@ class TagRoutes(private val tagService: TagService) : Endpoints {
     }
 
     private fun tree(ctx: Context) {
-        ctx.json(tagService.tree())
+        val filter = ctx.queryAsFilter<TagTreeFilter>()
+        ctx.json(tagService.tree(filter))
     }
 
     private fun get(ctx: Context) {

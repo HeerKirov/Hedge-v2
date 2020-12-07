@@ -34,6 +34,10 @@ data class Tag(val id: Int,
                 */
                val description: String,
                /**
+                * 标签的颜色名称。
+                */
+               val color: String?,
+               /**
                 * 链接到其他标签。给出tag id列表。
                 * 引入此标签时，链接到的其他标签会像此标签的父标签一样被导出。
                 */

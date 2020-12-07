@@ -94,7 +94,7 @@ class CompositionGenerator<T : Composition<T>>(clazz: KClass<T>) {
 
     private val baseElements: List<T> = getTypeDeclaredElements(clazz, "baseElements")
     private val exportedElements: List<T> = getTypeDeclaredElements(clazz, "exportedElements")
-    private val emptyElement: T? = getTypeDeclaredElement(clazz, "empty")
+    private val emptyElement: T? = getTypeDeclaredElement(clazz)
 
     private val typeConstructor: KFunction<T> = getTypePrimaryConstructor(clazz)
     private val instanceCache: ConcurrentHashMap<Int, T> = ConcurrentHashMap<Int, T>().apply {
@@ -168,7 +168,7 @@ class CompositionGenerator<T : Composition<T>>(clazz: KClass<T>) {
         }
     }
 
-    private fun getTypeDeclaredElement(clazz: KClass<T>, name: String): T? {
+    private fun getTypeDeclaredElement(clazz: KClass<T>, name: String = "empty"): T? {
         return clazz.companionObject!!.declaredMemberProperties.firstOrNull { it.name == name }?.let { properties ->
             @Suppress("UNCHECKED_CAST")
             properties.getter.call(clazz.companionObjectInstance) as T

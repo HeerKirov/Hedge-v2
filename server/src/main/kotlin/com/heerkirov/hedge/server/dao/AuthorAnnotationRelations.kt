@@ -6,7 +6,7 @@ import me.liuwj.ktorm.dsl.QueryRowSet
 import me.liuwj.ktorm.schema.BaseTable
 import me.liuwj.ktorm.schema.int
 
-object AuthorAnnotationRelations : BaseTable<AuthorAnnotationRelation>("topic_annotation_relation", schema = "meta_db") {
+object AuthorAnnotationRelations : BaseTable<AuthorAnnotationRelation>("author_annotation_relation", schema = "meta_db") {
     val authorId = int("author_id")
     val annotationId = int("annotation_id")
 

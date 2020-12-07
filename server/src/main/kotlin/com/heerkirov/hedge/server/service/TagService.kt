@@ -7,26 +7,43 @@ import com.heerkirov.hedge.server.exceptions.*
 import com.heerkirov.hedge.server.form.*
 import com.heerkirov.hedge.server.manager.TagManager
 import com.heerkirov.hedge.server.model.Tag
-import com.heerkirov.hedge.server.utils.anyOpt
-import com.heerkirov.hedge.server.utils.applyIf
-import com.heerkirov.hedge.server.utils.optOf
-import com.heerkirov.hedge.server.utils.undefined
+import com.heerkirov.hedge.server.utils.*
+import com.heerkirov.hedge.server.utils.ktorm.OrderTranslator
+import com.heerkirov.hedge.server.utils.ktorm.orderBy
+import com.heerkirov.hedge.server.utils.types.ListResult
+import com.heerkirov.hedge.server.utils.types.toListResult
 import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.entity.*
 
 class TagService(private val data: DataRepository, private val tagMgr: TagManager) {
-    fun list(): List<TagRes> {
-        return data.db.sequenceOf(Tags).map { newTagRes(it) }
+    private val orderTranslator = OrderTranslator {
+        "id" to Tags.id
+        "name" to Tags.name
+        "ordinal" to Tags.ordinal
     }
 
-    fun tree(): List<TagTreeNode> {
+    fun list(filter: TagFilter): ListResult<TagRes> {
+        return data.db.from(Tags).select()
+            .whereWithConditions {
+                if(filter.parent != null) { it += Tags.parentId eq filter.parent }
+                if(filter.type != null) { it += Tags.type eq filter.type }
+                if(filter.group != null) { it += if(filter.group) Tags.isGroup notEq Tag.IsGroup.NO else Tags.isGroup eq Tag.IsGroup.NO }
+            }
+            .orderBy(filter.order, orderTranslator)
+            .limit(filter.offset, filter.limit)
+            .toListResult {
+                newTagRes(Tags.createEntity(it))
+            }
+    }
+
+    fun tree(filter: TagTreeFilter): List<TagTreeNode> {
         val records = data.db.sequenceOf(Tags).asKotlinSequence().groupBy { it.parentId }
 
         fun generateNodeList(key: Int?): List<TagTreeNode>? = records[key]
             ?.sortedBy { it.ordinal }
             ?.map { newTagTreeNode(it, generateNodeList(it.id)) }
 
-        return generateNodeList(null) ?: emptyList()
+        return generateNodeList(filter.parent) ?: emptyList()
     }
 
     fun create(form: TagCreateForm): Int {
@@ -35,7 +52,10 @@ class TagService(private val data: DataRepository, private val tagMgr: TagManage
 
         data.db.transaction {
             //检查parent是否存在
-            if(form.parentId != null && data.db.sequenceOf(Tags).none { it.id eq form.parentId }) throw ResourceNotExist("parentId", form.parentId)
+            val parent = form.parentId?.let { parentId -> data.db.sequenceOf(Tags).firstOrNull { it.id eq parentId } ?: throw ResourceNotExist("parentId", form.parentId) }
+
+            //检查颜色，只有顶层tag允许指定颜色
+            if(form.color != null && parent != null) throw CannotGiveColorError()
 
             //检查标签重名
             //addr类型的标签在相同的parent下重名
@@ -82,6 +102,7 @@ class TagService(private val data: DataRepository, private val tagMgr: TagManage
                 set(it.type, form.type)
                 set(it.isGroup, form.group)
                 set(it.description, form.description)
+                set(it.color, parent?.color ?: form.color)
                 set(it.links, links)
                 set(it.examples, examples)
                 set(it.exportedScore, null)
@@ -192,6 +213,21 @@ class TagService(private val data: DataRepository, private val tagMgr: TagManage
                 })
             }
 
+            val newColor = if(form.color.isPresent) {
+                //指定新color。此时如果parent为null，新color为指定的color，否则抛异常
+                newParentId.unwrapOr { record.parentId }?.let { throw CannotGiveColorError() } ?: optOf(form.color.value)
+            }else{
+                //没有指定新color
+                if(newParentId.isPresent && newParentId.value != null) {
+                    //指定的parent且不是null，此时new color为新parent的color
+                    data.db.from(Tags).select(Tags.color).where { Tags.id eq newParentId.value!! }.map { optOf(it[Tags.color]!!) }.first()
+                }else{
+                    //color和parent都没有变化，不修改color的值
+                    //指定新parent为null，策略是继承之前的颜色，因此也不修改color的值
+                    undefined()
+                }
+            }
+
             applyIf(form.type.isPresent || form.name.isPresent || form.parentId.isPresent) {
                 //type/name/parentId的变化会触发重名检查
                 val name = newName.unwrapOr { record.name }
@@ -210,7 +246,18 @@ class TagService(private val data: DataRepository, private val tagMgr: TagManage
 
             form.annotations.letOpt { newAnnotations -> tagMgr.processAnnotations(id, newAnnotations) }
 
-            if(anyOpt(newName, newOtherNames, form.type, form.description, newLinks, newExamples, newParentId, newOrdinal)) {
+            newColor.letOpt { color ->
+                fun recursionUpdateColor(parentId: Int) {
+                    data.db.update(Tags) {
+                        where { it.parentId eq parentId }
+                        set(it.color, color)
+                    }
+                    data.db.from(Tags).select(Tags.id).where { Tags.parentId eq parentId }.map { it[Tags.id]!! }.forEach(::recursionUpdateColor)
+                }
+                recursionUpdateColor(id)
+            }
+
+            if(anyOpt(newName, newOtherNames, form.type, form.description, newLinks, newExamples, newParentId, newOrdinal, newColor)) {
                 data.db.update(Tags) {
                     where { it.id eq id }
 
@@ -222,9 +269,9 @@ class TagService(private val data: DataRepository, private val tagMgr: TagManage
                     newExamples.applyOpt { set(it.examples, this) }
                     newParentId.applyOpt { set(it.parentId, this) }
                     newOrdinal.applyOpt { set(it.ordinal, this) }
+                    newColor.applyOpt { set(it.color, this) }
                 }
             }
-
         }
     }
 
@@ -249,4 +296,6 @@ class TagService(private val data: DataRepository, private val tagMgr: TagManage
     }
 
     class RecursiveParentError : BadRequestException("RECURSIVE_PARENT", "Param 'parentId' has recursive.")
+
+    class CannotGiveColorError : BadRequestException("CANNOT_GIVE_COLOR", "Cannot give 'color' for a not root tag.")
 }

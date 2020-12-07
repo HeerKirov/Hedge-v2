@@ -23,4 +23,5 @@ module com.heerkirov.hedge.server {
     opens com.heerkirov.hedge.server.components.http.routes;
     opens com.heerkirov.hedge.server.model;
     opens com.heerkirov.hedge.server.form;
+    opens com.heerkirov.hedge.server.utils.types;
 }

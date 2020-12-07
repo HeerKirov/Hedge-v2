@@ -3,8 +3,10 @@ package com.heerkirov.hedge.server.components.http.routes
 import com.heerkirov.hedge.server.components.http.Endpoints
 import com.heerkirov.hedge.server.components.http.IdRes
 import com.heerkirov.hedge.server.form.AnnotationCreateForm
+import com.heerkirov.hedge.server.form.AnnotationFilter
 import com.heerkirov.hedge.server.form.AnnotationUpdateForm
 import com.heerkirov.hedge.server.library.form.bodyAsForm
+import com.heerkirov.hedge.server.library.query.queryAsFilter
 import com.heerkirov.hedge.server.service.AnnotationService
 import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder
@@ -26,7 +28,8 @@ class AnnotationRoutes(private val annotationService: AnnotationService) : Endpo
     }
 
     private fun list(ctx: Context) {
-        ctx.json(annotationService.list())
+        val filter = ctx.queryAsFilter<AnnotationFilter>()
+        ctx.json(annotationService.list(filter))
     }
 
     private fun create(ctx: Context) {

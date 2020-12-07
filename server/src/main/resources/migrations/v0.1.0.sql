@@ -89,6 +89,7 @@ CREATE TABLE meta_db.tag(
     is_group 		TINYINT NOT NULL,           -- 开启组的标记{0=非组, 1=组, 2=强制组, 3=序列化组, 4=强制&序列化组}
 
     description		TEXT NOT NULL,              -- 标签的内容描述
+    color           TEXT DEFAULT NULL,          -- 标签的颜色名称
     links           TEXT DEFAULT NULL,          -- 链接到其他标签::json<number[]>，填写tagId列表，在应用此标签的同时导出链接的标签
     examples		TEXT DEFAULT NULL,          -- 标签的样例image列表::json<number[]>，填写id列表，NULL表示无
     exported_score  INTEGER DEFAULT NULL,       -- [导出]根据其关联的image导出的统计分数

@@ -1,9 +1,10 @@
 package com.heerkirov.hedge.server.manager
 
 import com.heerkirov.hedge.server.components.database.DataRepository
-import com.heerkirov.hedge.server.dao.Annotations
+import com.heerkirov.hedge.server.dao.*
 import com.heerkirov.hedge.server.exceptions.*
 import com.heerkirov.hedge.server.model.Annotation
+import com.heerkirov.hedge.server.utils.ktorm.asSequence
 import com.heerkirov.hedge.server.utils.runIf
 import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.entity.any
@@ -67,5 +68,44 @@ class AnnotationManager(private val data: DataRepository) {
             .map { Pair(it.id, it.name) }
 
         return (resultFromIds + resultFromNames).toMap()
+    }
+
+    /**
+     * 更新与此annotation关联的author/topic的annotation cache，删除当前注解。
+     */
+    fun updateAnnotationCacheForDelete(annotationId: Int) {
+        val authors = data.db.from(Authors)
+            .innerJoin(AuthorAnnotationRelations, AuthorAnnotationRelations.authorId eq Authors.id)
+            .select(Authors.id, Authors.cachedAnnotations)
+            .where { AuthorAnnotationRelations.annotationId eq annotationId }
+            .asSequence()
+            .map { Pair(it[Authors.id]!!, it[Authors.cachedAnnotations]!!) }
+            .map { (id, cache) -> Pair(id, cache.filter { it.id != annotationId }) }
+            .toMap()
+        data.db.batchUpdate(Authors) {
+            for ((id, cache) in authors) {
+                item {
+                    where { it.id eq id }
+                    set(it.cachedAnnotations, cache)
+                }
+            }
+        }
+
+        val topics = data.db.from(Topics)
+            .innerJoin(TopicAnnotationRelations, TopicAnnotationRelations.topicId eq Topics.id)
+            .select(Topics.id, Topics.cachedAnnotations)
+            .where { TopicAnnotationRelations.annotationId eq annotationId }
+            .asSequence()
+            .map { Pair(it[Topics.id]!!, it[Topics.cachedAnnotations]!!) }
+            .map { (id, cache) -> Pair(id, cache.filter { it.id != annotationId }) }
+            .toMap()
+        data.db.batchUpdate(Topics) {
+            for ((id, cache) in topics) {
+                item {
+                    where { it.id eq id }
+                    set(it.cachedAnnotations, cache)
+                }
+            }
+        }
     }
 }

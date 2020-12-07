@@ -4,23 +4,25 @@ import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.database.transaction
 import com.heerkirov.hedge.server.dao.*
 import com.heerkirov.hedge.server.exceptions.NotFound
-import com.heerkirov.hedge.server.form.AnnotationCreateForm
-import com.heerkirov.hedge.server.form.AnnotationRes
-import com.heerkirov.hedge.server.form.AnnotationUpdateForm
-import com.heerkirov.hedge.server.form.newAnnotationRes
+import com.heerkirov.hedge.server.form.*
 import com.heerkirov.hedge.server.manager.AnnotationManager
 import com.heerkirov.hedge.server.utils.anyOpt
-import me.liuwj.ktorm.dsl.delete
-import me.liuwj.ktorm.dsl.eq
-import me.liuwj.ktorm.dsl.insertAndGenerateKey
-import me.liuwj.ktorm.dsl.update
+import com.heerkirov.hedge.server.utils.ktorm.contains
+import com.heerkirov.hedge.server.utils.types.ListResult
+import com.heerkirov.hedge.server.utils.types.toListResult
+import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.entity.firstOrNull
-import me.liuwj.ktorm.entity.map
 import me.liuwj.ktorm.entity.sequenceOf
 
 class AnnotationService(private val data: DataRepository, private val annotationMgr: AnnotationManager) {
-    fun list(): List<AnnotationRes> {
-        return data.db.sequenceOf(Annotations).map { newAnnotationRes(it) }
+    fun list(filter: AnnotationFilter): ListResult<AnnotationRes> {
+        return data.db.from(Annotations).select()
+            .whereWithConditions {
+                if(filter.canBeExported != null) { it += Annotations.canBeExported eq filter.canBeExported }
+                if(filter.target != null) { it += Annotations.target contains filter.target }
+            }
+            .limit(filter.offset, filter.limit)
+            .toListResult { newAnnotationRes(Annotations.createEntity(it)) }
     }
 
     fun create(form: AnnotationCreateForm): Int {
@@ -62,12 +64,13 @@ class AnnotationService(private val data: DataRepository, private val annotation
             data.db.delete(Annotations) { it.id eq id }.let {
                 if(it <= 0) NotFound()
             }
-            data.db.delete(TagAnnotationRelations) { it.annotationId eq id }
-            data.db.delete(TopicAnnotationRelations) { it.annotationId eq id }
-            data.db.delete(AuthorAnnotationRelations) { it.annotationId eq id }
             data.db.delete(IllustAnnotationRelations) { it.annotationId eq id }
             data.db.delete(AlbumAnnotationRelations) { it.annotationId eq id }
-            //TODO 更新关联的Topic/Author的annotation cache
+            data.db.delete(TagAnnotationRelations) { it.annotationId eq id }
+
+            annotationMgr.updateAnnotationCacheForDelete(id)
+            data.db.delete(AuthorAnnotationRelations) { it.annotationId eq id }
+            data.db.delete(TopicAnnotationRelations) { it.annotationId eq id }
         }
     }
 }

@@ -1,12 +1,22 @@
 package com.heerkirov.hedge.server.form
 
+import com.heerkirov.hedge.server.library.query.*
 import com.heerkirov.hedge.server.model.Author
 import com.heerkirov.hedge.server.utils.Opt
+import com.heerkirov.hedge.server.utils.OrderItem
 
 data class AuthorRes(val id: Int, val name: String,
                      val type: Author.Type, val favorite: Boolean,
                      val annotations: List<Author.CachedAnnotation>,
                      val score: Int?, val count: Int)
+
+data class AuthorFilter(@Limit val limit: Int,
+                        @Offset val offset: Int,
+                        @Search val ql: String?,
+                        @Order(options = ["id", "name", "score", "count"])
+                        val order: List<OrderItem> = listOf(OrderItem("id", desc = false)),
+                        val type: Author.Type? = null,
+                        val favorite: Boolean? = null)
 
 data class AuthorDetailRes(val id: Int, val name: String, val otherNames: List<String>, val description: String,
                            val type: Author.Type, val favorite: Boolean,

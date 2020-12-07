@@ -6,18 +6,33 @@ import com.heerkirov.hedge.server.dao.*
 import com.heerkirov.hedge.server.exceptions.NotFound
 import com.heerkirov.hedge.server.form.*
 import com.heerkirov.hedge.server.manager.AuthorManager
-import com.heerkirov.hedge.server.model.Annotation
-import com.heerkirov.hedge.server.model.Author
 import com.heerkirov.hedge.server.model.Illust
+import com.heerkirov.hedge.server.utils.ktorm.OrderTranslator
 import com.heerkirov.hedge.server.utils.ktorm.first
+import com.heerkirov.hedge.server.utils.ktorm.orderBy
+import com.heerkirov.hedge.server.utils.types.ListResult
+import com.heerkirov.hedge.server.utils.types.toListResult
 import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.entity.firstOrNull
-import me.liuwj.ktorm.entity.map
 import me.liuwj.ktorm.entity.sequenceOf
 
 class AuthorService(private val data: DataRepository, private val authorMgr: AuthorManager) {
-    fun list(): List<AuthorRes> {
-        return data.db.sequenceOf(Authors).map { newAuthorRes(it) }
+    private val orderTranslator = OrderTranslator {
+        "id" to Authors.id
+        "name" to Authors.name
+        "score" to Authors.exportedScore nulls last
+        "count" to Authors.cachedCount nulls last
+    }
+
+    fun list(filter: AuthorFilter): ListResult<AuthorRes> {
+        return data.db.from(Authors).select()
+            .whereWithConditions {
+                if(filter.favorite != null) { it += Authors.favorite eq filter.favorite }
+                if(filter.type != null) { it += Authors.type eq filter.type }
+            }
+            .orderBy(filter.order, orderTranslator)
+            .limit(filter.offset, filter.limit)
+            .toListResult { newAuthorRes(Authors.createEntity(it)) }
     }
 
     fun create(form: AuthorCreateForm): Int {
@@ -35,7 +50,7 @@ class AuthorService(private val data: DataRepository, private val authorMgr: Aut
                 set(it.links, form.links)
                 set(it.favorite, form.favorite)
                 set(it.score, form.score)
-                set(it.exportedScore, form.score)
+                set(it.exportedScore, form.score ?: 0)
                 set(it.cachedCount, 0)
                 set(it.cachedAnnotations, annotations)
             } as Int

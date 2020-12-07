@@ -3,8 +3,10 @@ package com.heerkirov.hedge.server.components.http.routes
 import com.heerkirov.hedge.server.components.http.Endpoints
 import com.heerkirov.hedge.server.components.http.IdRes
 import com.heerkirov.hedge.server.form.AuthorCreateForm
+import com.heerkirov.hedge.server.form.AuthorFilter
 import com.heerkirov.hedge.server.form.AuthorUpdateForm
 import com.heerkirov.hedge.server.library.form.bodyAsForm
+import com.heerkirov.hedge.server.library.query.queryAsFilter
 import com.heerkirov.hedge.server.service.AuthorService
 import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder
@@ -26,7 +28,8 @@ class AuthorRoutes(private val authorService: AuthorService) : Endpoints {
     }
 
     private fun list(ctx: Context) {
-        ctx.json(authorService.list())
+        val filter = ctx.queryAsFilter<AuthorFilter>()
+        ctx.json(authorService.list(filter))
     }
 
     private fun create(ctx: Context) {

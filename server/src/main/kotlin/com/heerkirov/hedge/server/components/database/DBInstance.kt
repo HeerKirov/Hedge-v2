@@ -2,6 +2,7 @@ package com.heerkirov.hedge.server.components.database
 
 import com.heerkirov.hedge.server.definitions.Filename
 import com.heerkirov.hedge.server.utils.Fs
+import com.heerkirov.hedge.server.utils.ktorm.HedgeDialect
 import com.heerkirov.hedge.server.utils.migrations.VersionFileMigrator
 import com.heerkirov.hedge.server.utils.toJSONString
 import me.liuwj.ktorm.database.Database
@@ -25,7 +26,7 @@ class DBInstance(val dbPath: String) : Closeable {
         conn.attach("$dbPath/${Filename.ORIGIN_SQLITE}", "origin_db")
         conn.attach("$dbPath/${Filename.SOURCE_SQLITE}", "source_db")
 
-        database = Database.connect {
+        database = Database.connect(dialect = HedgeDialect()) {
             object : Connection by conn {
                 override fun close() { /* do nothing */ }
             }
