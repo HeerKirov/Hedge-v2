@@ -1,7 +1,7 @@
 package com.heerkirov.hedge.server.utils.ktorm
 
 import com.heerkirov.hedge.server.exceptions.ParamTypeError
-import com.heerkirov.hedge.server.utils.OrderItem
+import com.heerkirov.hedge.server.utils.types.OrderItem
 import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.expression.OrderByExpression
 import me.liuwj.ktorm.schema.ColumnDeclaring

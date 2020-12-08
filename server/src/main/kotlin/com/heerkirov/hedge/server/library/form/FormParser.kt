@@ -7,6 +7,8 @@ import com.heerkirov.hedge.server.exceptions.ParamTypeError
 import com.heerkirov.hedge.server.utils.*
 import com.heerkirov.hedge.server.utils.DateTime.parseDate
 import com.heerkirov.hedge.server.utils.DateTime.parseDateTime
+import com.heerkirov.hedge.server.utils.types.Opt
+import com.heerkirov.hedge.server.utils.types.undefined
 import io.javalin.http.Context
 import java.lang.Exception
 import java.lang.IllegalArgumentException

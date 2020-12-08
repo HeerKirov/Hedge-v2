@@ -38,7 +38,7 @@ object DateTime {
     /**
      * 将UTC时间转换为目标时区的时间。
      */
-    private fun LocalDateTime.asZonedTime(zoneId: ZoneId): ZonedDateTime = this.atZone(ZoneId.of("UTC")).withZoneSameInstant(zoneId)
+    fun LocalDateTime.asZonedTime(zoneId: ZoneId): ZonedDateTime = this.atZone(ZoneId.of("UTC")).withZoneSameInstant(zoneId)
 
     /**
      * 将UTC时间转换为当前系统时区的时间。

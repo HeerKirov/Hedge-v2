@@ -26,6 +26,7 @@ repositories {
 dependencies {
     implementation group: "org.jetbrains.kotlin", name: "kotlin-stdlib-jdk8", version: kotlinVersion
     implementation group: "org.jetbrains.kotlin", name: "kotlin-reflect", version: kotlinVersion
+    testImplementation group: "org.jetbrains.kotlin", name: "kotlin-test-junit", version: kotlinVersion
     implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: jacksonVersion
     implementation group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: jacksonVersion
     implementation group: 'org.xerial', name: 'sqlite-jdbc', version: sqliteVersion
@@ -36,6 +37,7 @@ dependencies {
     implementation group: 'ws.schild', name: 'jave-nativebin-osx64', version: javeVersion
     implementation group: 'org.slf4j', name: 'slf4j-simple', version: slf4jVersion
     implementation group: 'org.slf4j', name: 'slf4j-api', version: slf4jVersion
+    testImplementation group: 'junit', name: 'junit', version: junitVersion
 }
 
 sourceSets {

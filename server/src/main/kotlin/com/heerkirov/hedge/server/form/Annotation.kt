@@ -5,7 +5,7 @@ import com.heerkirov.hedge.server.library.query.Limit
 import com.heerkirov.hedge.server.library.query.Offset
 import com.heerkirov.hedge.server.library.query.Search
 import com.heerkirov.hedge.server.model.Annotation
-import com.heerkirov.hedge.server.utils.Opt
+import com.heerkirov.hedge.server.utils.types.Opt
 
 data class AnnotationRes(val id: Int, val name: String, val canBeExported: Boolean, val target: Annotation.AnnotationTarget)
 

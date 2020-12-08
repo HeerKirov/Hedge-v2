@@ -10,8 +10,7 @@ import com.heerkirov.hedge.server.model.Tag
 import com.heerkirov.hedge.server.utils.*
 import com.heerkirov.hedge.server.utils.ktorm.OrderTranslator
 import com.heerkirov.hedge.server.utils.ktorm.orderBy
-import com.heerkirov.hedge.server.utils.types.ListResult
-import com.heerkirov.hedge.server.utils.types.toListResult
+import com.heerkirov.hedge.server.utils.types.*
 import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.entity.*
 

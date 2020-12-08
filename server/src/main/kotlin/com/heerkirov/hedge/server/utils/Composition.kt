@@ -9,7 +9,7 @@ import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.full.superclasses
 
 abstract class Composition<T : Composition<T>>(clazz: KClass<T>, val value: Int) {
-    private val newInstance: (Int) -> T by lazy { { CompositionGenerator.getGenerator(clazz).newInstance(it) } }
+    private val newInstance: (Int) -> T = { CompositionGenerator.getGenerator(clazz).newInstance(it) }
 
     operator fun plus(target: Composition<T>): T = newInstance(value or target.value)
 
@@ -31,13 +31,6 @@ abstract class Composition<T : Composition<T>>(clazz: KClass<T>, val value: Int)
  */
 fun <T : Composition<T>> T.filterAs(elements: Iterable<T>): List<T> {
     return elements.filter { this.contains(it) }
-}
-
-/**
- * 从组合中，按照给定的元素列表进行过滤。
- */
-fun <T : Composition<T>> T.filterAsSequence(elements: Iterable<T>): Sequence<T> {
-    return elements.asSequence().filter { this.contains(it) }
 }
 
 /**
@@ -65,10 +58,6 @@ inline fun <reified T : Composition<T>> T.toBaseElements() = CompositionGenerato
  * 导出元素是有标记名称的、由几项基本元素组合而成的元素，且多个组合元素之间的覆盖面不重叠。当满足导出元素时，不再生成对应部分的基本元素。
  */
 inline fun <reified T : Composition<T>> T.toExportedElements() = CompositionGenerator.getGenerator(T::class).exportedElementsOf(this)
-
-fun <T : Composition<T>> Iterable<T>.toStringList(): List<String> {
-    return map { it.toString() }
-}
 
 class CompositionGenerator<T : Composition<T>>(clazz: KClass<T>) {
     companion object {

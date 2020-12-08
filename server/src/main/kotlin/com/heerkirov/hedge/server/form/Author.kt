@@ -2,8 +2,8 @@ package com.heerkirov.hedge.server.form
 
 import com.heerkirov.hedge.server.library.query.*
 import com.heerkirov.hedge.server.model.Author
-import com.heerkirov.hedge.server.utils.Opt
-import com.heerkirov.hedge.server.utils.OrderItem
+import com.heerkirov.hedge.server.utils.types.Opt
+import com.heerkirov.hedge.server.utils.types.OrderItem
 
 data class AuthorRes(val id: Int, val name: String,
                      val type: Author.Type, val favorite: Boolean,

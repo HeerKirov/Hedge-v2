@@ -129,8 +129,8 @@ data class Illust(val id: Int,
         object EMPTY :Tagme(0b0)
 
         companion object {
-            val baseElements = listOf(TAG, AUTHOR, TOPIC, RELATION, OTHER)
-            val empty = EMPTY
+            val baseElements by lazy { listOf(TAG, AUTHOR, TOPIC, RELATION, OTHER) }
+            val empty by lazy { EMPTY }
         }
     }
 }

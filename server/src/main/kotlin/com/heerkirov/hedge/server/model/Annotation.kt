@@ -36,9 +36,9 @@ data class Annotation(val id: Int,
         object EMPTY : AnnotationTarget(0b0)
 
         companion object {
-            val baseElements = listOf(TAG, ARTIST, STUDIO, PUBLISH, COPYRIGHT, WORK, CHARACTER)
-            val exportedElements = listOf(AUTHOR, TOPIC)
-            val empty = EMPTY
+            val baseElements by lazy { listOf(TAG, ARTIST, STUDIO, PUBLISH, COPYRIGHT, WORK, CHARACTER) }
+            val exportedElements by lazy { listOf(AUTHOR, TOPIC) }
+            val empty by lazy { EMPTY }
         }
     }
 
@@ -49,8 +49,8 @@ data class Annotation(val id: Int,
         object EMPTY : ExportedFrom(0b0)
 
         companion object {
-            val baseElements = listOf(TAG, AUTHOR, TOPIC)
-            val empty = EMPTY
+            val baseElements by lazy { listOf(TAG, AUTHOR, TOPIC) }
+            val empty by lazy { EMPTY }
         }
     }
 }

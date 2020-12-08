@@ -1,5 +1,7 @@
 package com.heerkirov.hedge.server.utils.migrations
 
+import java.util.*
+
 class Version(private val x: Int, private val y: Int, private val z: Int, private val attach: Int = 0) : Comparable<Version> {
     override fun compareTo(other: Version): Int {
         return when {
@@ -11,6 +13,10 @@ class Version(private val x: Int, private val y: Int, private val z: Int, privat
     }
 
     override fun toString() = "$x.$y.$z" + if(attach > 0) ".$attach" else ""
+
+    override fun equals(other: Any?) = other === this || other is Version && other.x == x && other.y == y && other.z == z && other.attach == attach
+
+    override fun hashCode() = Objects.hash(x, y, z, attach)
 }
 
 fun versionOf(v: String): Version {

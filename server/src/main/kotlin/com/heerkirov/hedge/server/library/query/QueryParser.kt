@@ -6,7 +6,7 @@ import com.heerkirov.hedge.server.utils.Composition
 import com.heerkirov.hedge.server.utils.CompositionGenerator
 import com.heerkirov.hedge.server.utils.DateTime.parseDate
 import com.heerkirov.hedge.server.utils.DateTime.parseDateTime
-import com.heerkirov.hedge.server.utils.OrderItem
+import com.heerkirov.hedge.server.utils.types.OrderItem
 import com.heerkirov.hedge.server.utils.runIf
 import io.javalin.http.Context
 import java.lang.Exception
