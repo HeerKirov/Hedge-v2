@@ -11,6 +11,7 @@ import com.heerkirov.hedge.server.utils.ktorm.OrderTranslator
 import com.heerkirov.hedge.server.utils.ktorm.first
 import com.heerkirov.hedge.server.utils.ktorm.orderBy
 import com.heerkirov.hedge.server.utils.types.ListResult
+import com.heerkirov.hedge.server.utils.types.anyOpt
 import com.heerkirov.hedge.server.utils.types.toListResult
 import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.entity.firstOrNull
@@ -84,17 +85,19 @@ class AuthorService(private val data: DataRepository, private val authorMgr: Aut
                     .first().getInt("count")
             }
 
-            data.db.update(Authors) {
-                where { it.id eq id }
-                newName.applyOpt { set(it.name, this) }
-                newOtherNames.applyOpt { set(it.otherNames, this) }
-                form.type.applyOpt { set(it.type, this) }
-                form.description.applyOpt { set(it.description, this) }
-                form.links.applyOpt { set(it.links, this) }
-                form.favorite.applyOpt { set(it.favorite, this) }
-                form.score.applyOpt { set(it.score, this) }
-                newExportedScore.applyOpt { set(it.exportedScore, this) }
-                newAnnotations.applyOpt { set(it.cachedAnnotations, this) }
+            if(anyOpt(newName, newOtherNames, form.type, form.description, form.links, form.favorite, form.score, newExportedScore, newAnnotations)) {
+                data.db.update(Authors) {
+                    where { it.id eq id }
+                    newName.applyOpt { set(it.name, this) }
+                    newOtherNames.applyOpt { set(it.otherNames, this) }
+                    form.type.applyOpt { set(it.type, this) }
+                    form.description.applyOpt { set(it.description, this) }
+                    form.links.applyOpt { set(it.links, this) }
+                    form.favorite.applyOpt { set(it.favorite, this) }
+                    form.score.applyOpt { set(it.score, this) }
+                    newExportedScore.applyOpt { set(it.exportedScore, this) }
+                    newAnnotations.applyOpt { set(it.cachedAnnotations, this) }
+                }
             }
 
             newAnnotations.letOpt { annotations -> authorMgr.processAnnotations(id, annotations.asSequence().map { it.id }.toSet()) }

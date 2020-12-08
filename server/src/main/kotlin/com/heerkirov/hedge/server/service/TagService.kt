@@ -293,8 +293,4 @@ class TagService(private val data: DataRepository, private val tagMgr: TagManage
             recursionDelete(id)
         }
     }
-
-    class RecursiveParentError : BadRequestException("RECURSIVE_PARENT", "Param 'parentId' has recursive.")
-
-    class CannotGiveColorError : BadRequestException("CANNOT_GIVE_COLOR", "Cannot give 'color' for a not root tag.")
 }

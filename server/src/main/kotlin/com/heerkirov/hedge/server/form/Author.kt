@@ -10,6 +10,12 @@ data class AuthorRes(val id: Int, val name: String,
                      val annotations: List<Author.CachedAnnotation>,
                      val score: Int?, val count: Int)
 
+data class AuthorDetailRes(val id: Int, val name: String, val otherNames: List<String>, val description: String,
+                           val type: Author.Type, val favorite: Boolean,
+                           val annotations: List<Author.CachedAnnotation>,
+                           val links: List<Author.Link>,
+                           val score: Int?, val count: Int)
+
 data class AuthorFilter(@Limit val limit: Int,
                         @Offset val offset: Int,
                         @Search val ql: String?,
@@ -17,12 +23,6 @@ data class AuthorFilter(@Limit val limit: Int,
                         val order: List<OrderItem> = listOf(OrderItem("id", desc = false)),
                         val type: Author.Type? = null,
                         val favorite: Boolean? = null)
-
-data class AuthorDetailRes(val id: Int, val name: String, val otherNames: List<String>, val description: String,
-                           val type: Author.Type, val favorite: Boolean,
-                           val annotations: List<Author.CachedAnnotation>,
-                           val links: List<Author.Link>,
-                           val score: Int?, val count: Int)
 
 data class AuthorCreateForm(val name: String,
                             val otherNames: List<String>? = null,
