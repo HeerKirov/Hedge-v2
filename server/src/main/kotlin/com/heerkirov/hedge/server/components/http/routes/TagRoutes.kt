@@ -7,7 +7,7 @@ import com.heerkirov.hedge.server.form.TagFilter
 import com.heerkirov.hedge.server.form.TagTreeFilter
 import com.heerkirov.hedge.server.form.TagUpdateForm
 import com.heerkirov.hedge.server.library.form.bodyAsForm
-import com.heerkirov.hedge.server.library.query.queryAsFilter
+import com.heerkirov.hedge.server.library.form.queryAsFilter
 import com.heerkirov.hedge.server.service.TagService
 import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder.*

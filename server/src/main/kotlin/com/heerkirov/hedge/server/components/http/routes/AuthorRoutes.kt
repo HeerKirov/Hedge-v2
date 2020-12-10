@@ -6,22 +6,22 @@ import com.heerkirov.hedge.server.form.AuthorCreateForm
 import com.heerkirov.hedge.server.form.AuthorFilter
 import com.heerkirov.hedge.server.form.AuthorUpdateForm
 import com.heerkirov.hedge.server.library.form.bodyAsForm
-import com.heerkirov.hedge.server.library.query.queryAsFilter
+import com.heerkirov.hedge.server.library.form.queryAsFilter
 import com.heerkirov.hedge.server.service.AuthorService
 import io.javalin.Javalin
-import io.javalin.apibuilder.ApiBuilder
+import io.javalin.apibuilder.ApiBuilder.*
 import io.javalin.http.Context
 
 class AuthorRoutes(private val authorService: AuthorService) : Endpoints {
     override fun handle(javalin: Javalin) {
         javalin.routes {
-            ApiBuilder.path("api/authors") {
-                ApiBuilder.get(this::list)
-                ApiBuilder.post(this::create)
-                ApiBuilder.path(":id") {
-                    ApiBuilder.get(this::get)
-                    ApiBuilder.patch(this::update)
-                    ApiBuilder.delete(this::delete)
+            path("api/authors") {
+                get(this::list)
+                post(this::create)
+                path(":id") {
+                    get(this::get)
+                    patch(this::update)
+                    delete(this::delete)
                 }
             }
         }

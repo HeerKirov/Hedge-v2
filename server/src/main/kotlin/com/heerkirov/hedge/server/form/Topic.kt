@@ -1,9 +1,9 @@
 package com.heerkirov.hedge.server.form
 
-import com.heerkirov.hedge.server.library.query.Limit
-import com.heerkirov.hedge.server.library.query.Offset
-import com.heerkirov.hedge.server.library.query.Order
-import com.heerkirov.hedge.server.library.query.Search
+import com.heerkirov.hedge.server.library.form.Limit
+import com.heerkirov.hedge.server.library.form.Offset
+import com.heerkirov.hedge.server.library.form.Order
+import com.heerkirov.hedge.server.library.form.Search
 import com.heerkirov.hedge.server.model.Topic
 import com.heerkirov.hedge.server.utils.types.Opt
 import com.heerkirov.hedge.server.utils.types.OrderItem

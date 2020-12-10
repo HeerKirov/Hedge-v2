@@ -1,6 +1,20 @@
 package com.heerkirov.hedge.server.exceptions
 
 /**
+ * 当指定导入的文件不可访问时，抛出此异常。
+ * 抛出位置：
+ * - import从本地导入
+ */
+class FileNotFoundError : BadRequestException("FILE_NOT_FOUND", "Target file is not found or not accessible.")
+
+/**
+ * 当指定的文件的扩展名不受支持时，抛出此异常。
+ * 抛出位置：
+ * - upload/import导入时
+ */
+class IllegalFileExtensionError(extension: String) : BadRequestException("ILLEGAL_FILE_EXTENSION", "Extension type '$extension' is illegal.")
+
+/**
  * 当parentId出现闭环时，抛出此异常。parentId为自己也构成闭环。
  * 抛出位置：
  * - 更新tag的parentId

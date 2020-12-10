@@ -5,7 +5,7 @@ import com.heerkirov.hedge.server.utils.ktorm.json
 import me.liuwj.ktorm.dsl.QueryRowSet
 import me.liuwj.ktorm.schema.*
 
-object FileRecords : BaseTable<FileRecord>("file_record", schema = "origin_db") {
+object FileRecords : BaseTable<FileRecord>("file", schema = "origin_db") {
     val id = int("id").primaryKey()
     val folder = varchar("folder")
     val extension = varchar("extension")

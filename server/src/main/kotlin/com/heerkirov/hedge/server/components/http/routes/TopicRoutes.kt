@@ -4,23 +4,22 @@ import com.heerkirov.hedge.server.components.http.Endpoints
 import com.heerkirov.hedge.server.components.http.IdRes
 import com.heerkirov.hedge.server.form.*
 import com.heerkirov.hedge.server.library.form.bodyAsForm
-import com.heerkirov.hedge.server.library.query.queryAsFilter
-import com.heerkirov.hedge.server.service.AuthorService
+import com.heerkirov.hedge.server.library.form.queryAsFilter
 import com.heerkirov.hedge.server.service.TopicService
 import io.javalin.Javalin
-import io.javalin.apibuilder.ApiBuilder
+import io.javalin.apibuilder.ApiBuilder.*
 import io.javalin.http.Context
 
 class TopicRoutes(private val topicService: TopicService) : Endpoints {
     override fun handle(javalin: Javalin) {
         javalin.routes {
-            ApiBuilder.path("api/topics") {
-                ApiBuilder.get(this::list)
-                ApiBuilder.post(this::create)
-                ApiBuilder.path(":id") {
-                    ApiBuilder.get(this::get)
-                    ApiBuilder.patch(this::update)
-                    ApiBuilder.delete(this::delete)
+            path("api/topics") {
+                get(this::list)
+                post(this::create)
+                path(":id") {
+                    get(this::get)
+                    patch(this::update)
+                    delete(this::delete)
                 }
             }
         }

@@ -268,7 +268,7 @@ CREATE TABLE origin_db.file(
     thumbnail_size  BIGINT NOT NULL,                -- 缩略图占用的磁盘大小，单位Byte。没有缩略图时记0
 
     deleted		    BOOLEAN NOT NULL DEFAULT FALSE, -- 文件是否处于删除状态。由于同步机制的需要，文件可以删除，记录不能删除
-    sync_records,   TEXT NOT NULL,                  -- 该文件对象的同步记录::json<SyncRecord[]>
+    sync_records    TEXT NOT NULL,                  -- 该文件对象的同步记录::json<SyncRecord[]>
     create_time 	TIMESTAMP NOT NULL,             -- 创建时间
     update_time     TIMESTAMP NOT NULL              -- 上次更新的时间
 );

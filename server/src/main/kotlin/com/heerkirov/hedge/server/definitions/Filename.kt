@@ -20,4 +20,5 @@ object Filename {
     const val SOURCE_SQLITE = "source.sqlite"
     const val STATISTIC_SQLITE = "statistic.sqlite"
     const val VERSION_LOCK = "version"
+    const val FOLDER = "folders"
 }

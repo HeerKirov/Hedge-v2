@@ -3,7 +3,7 @@ package com.heerkirov.hedge.server.form
 import com.heerkirov.hedge.server.library.form.Length
 import com.heerkirov.hedge.server.library.form.Min
 import com.heerkirov.hedge.server.library.form.NotBlank
-import com.heerkirov.hedge.server.library.query.*
+import com.heerkirov.hedge.server.library.form.*
 import com.heerkirov.hedge.server.model.Tag
 import com.heerkirov.hedge.server.utils.types.Opt
 import com.heerkirov.hedge.server.utils.types.OrderItem

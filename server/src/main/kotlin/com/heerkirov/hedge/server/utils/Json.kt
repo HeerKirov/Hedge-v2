@@ -6,8 +6,11 @@ import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.*
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.heerkirov.hedge.server.utils.DateTime.parseDate
 import com.heerkirov.hedge.server.utils.DateTime.parseDateTime
+import com.heerkirov.hedge.server.utils.DateTime.toDateString
 import com.heerkirov.hedge.server.utils.DateTime.toDateTimeString
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 
@@ -17,10 +20,12 @@ private val objectMapper = jacksonObjectMapper()
     .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
     .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
     .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
-    .registerModule(SimpleModule().also {
-        it.addSerializer(LocalDateTime::class.java, LocalDateTimeSerializer)
-        it.addDeserializer(LocalDateTime::class.java, LocalDateTimeDeserializer)
-        it.addSerializer(Composition::class.java, CompositionSerializer)
+    .registerModule(SimpleModule().apply {
+        addSerializer(LocalDateTime::class.java, LocalDateTimeSerializer)
+        addDeserializer(LocalDateTime::class.java, LocalDateTimeDeserializer)
+        addSerializer(LocalDate::class.java, LocalDateSerializer)
+        addDeserializer(LocalDate::class.java, LocalDateDeserializer)
+        addSerializer(Composition::class.java, CompositionSerializer)
     })
 
 
@@ -71,6 +76,18 @@ object LocalDateTimeSerializer : JsonSerializer<LocalDateTime>() {
 object LocalDateTimeDeserializer : JsonDeserializer<LocalDateTime>() {
     override fun deserialize(jsonParser: JsonParser, context: DeserializationContext): LocalDateTime {
         return jsonParser.text.parseDateTime()
+    }
+}
+
+object LocalDateSerializer : JsonSerializer<LocalDate>() {
+    override fun serialize(localDateTime: LocalDate, jsonGenerator: JsonGenerator, serializerProvider: SerializerProvider) {
+        jsonGenerator.writeString(localDateTime.toDateString())
+    }
+}
+
+object LocalDateDeserializer : JsonDeserializer<LocalDate>() {
+    override fun deserialize(jsonParser: JsonParser, context: DeserializationContext): LocalDate {
+        return jsonParser.text.parseDate()
     }
 }
 

@@ -57,5 +57,9 @@ data class FileRecord(val id: Int,
      * - action=delete, filepath=yyyy-MM-dd/id.png
      * - action=create, filepath=yyyy-MM-dd/id.jpg
      */
-    data class SyncRecord(val action: String, val filepath: String)
+    data class SyncRecord(val action: SyncAction, val filepath: String)
+
+    enum class SyncAction {
+        CREATE, DELETE
+    }
 }

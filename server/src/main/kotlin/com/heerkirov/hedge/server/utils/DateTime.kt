@@ -11,19 +11,24 @@ import java.time.format.DateTimeFormatter
  *  - 在项目内，总是使用基于用户当前时区的ZonedDateTime处理业务逻辑。在使用到时，利用此工具库提供的转换函数。
  */
 object DateTime {
-    private val dateTimeFormat: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'")
+    private val ZONE_UTC = ZoneId.of("UTC")
+    private val DATETIME_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'")
+    private val DATE_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
-    private val dateFormat: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+    /**
+     * 将毫秒时间戳解析为时间。
+     */
+    fun Long.parseDateTime(): LocalDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(this), ZONE_UTC)
 
     /**
      * 将字符串解析为yyyy-MM-ddTHH:mm:ssZ的时间格式。
      */
-    fun String.parseDateTime(): LocalDateTime = LocalDateTime.parse(this, dateTimeFormat)
+    fun String.parseDateTime(): LocalDateTime = LocalDateTime.parse(this, DATETIME_FORMAT)
 
     /**
      * 将字符串解析为yyyy-MM-dd的日期格式。
      */
-    fun String.parseDate(): LocalDate = LocalDate.parse(this, dateFormat)
+    fun String.parseDate(): LocalDate = LocalDate.parse(this, DATE_FORMAT)
 
     /**
      * 获得不包含时区的当前UTC时间。
@@ -38,7 +43,7 @@ object DateTime {
     /**
      * 将UTC时间转换为目标时区的时间。
      */
-    fun LocalDateTime.asZonedTime(zoneId: ZoneId): ZonedDateTime = this.atZone(ZoneId.of("UTC")).withZoneSameInstant(zoneId)
+    fun LocalDateTime.asZonedTime(zoneId: ZoneId): ZonedDateTime = this.atZone(ZONE_UTC).withZoneSameInstant(zoneId)
 
     /**
      * 将UTC时间转换为当前系统时区的时间。
@@ -53,10 +58,15 @@ object DateTime {
     /**
      * 将时间格式化为yyyy-MM-ddThh:mm:ssZ。
      */
-    fun LocalDateTime.toDateTimeString(): String = format(dateTimeFormat)
+    fun LocalDateTime.toDateTimeString(): String = format(DATETIME_FORMAT)
 
     /**
      * 将日期格式化为yyyy-MM-dd。
      */
-    fun LocalDate.toDateString(): String = format(dateFormat)
+    fun LocalDate.toDateString(): String = format(DATE_FORMAT)
+
+    /**
+     * 将时间转换为时间戳。
+     */
+    fun LocalDateTime.toMillisecond(): Long = toInstant(ZoneOffset.UTC).toEpochMilli()
 }

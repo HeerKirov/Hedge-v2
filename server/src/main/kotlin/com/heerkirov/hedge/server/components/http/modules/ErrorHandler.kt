@@ -15,7 +15,7 @@ class ErrorHandler : Endpoints {
             ctx.status(e.status).json(ErrorResult(e.code, e.message, e.info))
         }.exception(Exception::class.java) { e, ctx ->
             ctx.status(500).json(ErrorResult("INTERNAL_ERROR", e.message, null))
-            log.error("Expected exception thrown.", e)
+            log.error("Unexpected exception thrown.", e)
         }
     }
 

@@ -35,4 +35,26 @@ object Fs {
             f.mkdirs()
         }
     }
+
+    fun temp(extension: String? = null): File {
+        return File.createTempFile("hedge-v2-server", extension)
+    }
+}
+
+/**
+ * 使用此File。在方法块退出后，删除此文件。一般搭配tempFile使用。
+ */
+inline fun <T, F : File?> F.finallyUse(block: (F) -> T): T {
+    try {
+        return block(this)
+    }finally {
+        if(this != null && exists()) delete()
+    }
+}
+
+/**
+ * 如果此文件存在，就删除文件。
+ */
+fun File?.deleteIt() {
+    if(this != null && exists()) delete()
 }

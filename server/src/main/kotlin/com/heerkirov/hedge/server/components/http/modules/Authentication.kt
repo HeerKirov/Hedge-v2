@@ -18,9 +18,11 @@ class Authentication(private val baseToken: String, private val webAccessor: Web
     override fun handle(javalin: Javalin) {
         javalin.before("/api/*", this::authenticate)
             .before("/app/*", this::authenticateOnlyForClient)
+            .before("/api/imports/import", this::authenticateOnlyForClient)
     }
 
     private fun authenticate(ctx: Context) {
+        if(ctx.path() == "/api/imports/import") return
         val bearer = ctx.header("Authorization") ?: throw NoToken()
         val userToken = if(bearer.substring(0, prefixBearer.length).toLowerCase() == prefixBearer) bearer.substring(prefixBearer.length) else throw NoToken()
 

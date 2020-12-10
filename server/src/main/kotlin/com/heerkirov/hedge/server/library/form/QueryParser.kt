@@ -1,4 +1,4 @@
-package com.heerkirov.hedge.server.library.query
+package com.heerkirov.hedge.server.library.form
 
 import com.heerkirov.hedge.server.exceptions.ParamRequired
 import com.heerkirov.hedge.server.exceptions.ParamTypeError
