@@ -30,6 +30,14 @@ interface DataRepository : Component {
      * 取得db连接。使用此连接完成read操作。
      */
     val db: Database
+    /**
+     * 获得元数据。也就是那些没有存在数据库里的数据。
+     */
+    val metadata: Metadata
+    /**
+     * 保存数据。
+     */
+    fun saveMetadata()
 }
 
 data class DataOptions(
@@ -47,6 +55,12 @@ class DataRepositoryImpl(options: DataOptions) : DataRepository {
     override val dbPath: String get() = instance?.dbPath ?: throw RuntimeException("DB is not loaded yet.")
 
     override val db: Database get() = instance?.database ?: throw RuntimeException("DB is not loaded yet.")
+
+    override val metadata: Metadata get() = instance?.metadata ?: throw RuntimeException("DB is not loaded yet.")
+
+    override fun saveMetadata() {
+        instance?.saveData() ?: throw RuntimeException("DB is not loaded yet.")
+    }
 
     @Synchronized
     override fun loadDatabase(dbPath: String) {
@@ -68,4 +82,21 @@ inline fun <T> Database.transaction(func: (Transaction) -> T): T {
     synchronized(this) {
         return useTransaction(TransactionIsolation.SERIALIZABLE, func)
     }
+}
+
+/**
+ * 开始一个对metadata的同步锁，确保全局总是只有单一write调用。
+ */
+inline fun <T> DataRepository.syncMetadata(func: DataRepository.() -> T): T {
+    synchronized(this.metadata) {
+        return this.func()
+    }
+}
+
+/**
+ * 保存数据，并在之前执行一段处理代码。
+ */
+inline fun DataRepository.saveMetadata(call: Metadata.() -> Unit) {
+    metadata.call()
+    saveMetadata()
 }

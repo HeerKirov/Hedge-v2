@@ -40,6 +40,11 @@ open class ParamError(paramName: String) : BadRequestException("PARAM_ERROR", "P
 open class ParamRequired(paramName: String) : BadRequestException("PARAM_REQUIRED", "Param '$paramName' is required.", listOf(paramName)), Unchecked
 
 /**
+ * 表单参数的值已填写，但业务不需要这个值。
+ */
+open class ParamNotRequired(paramName: String) : BadRequestException("PARAM_REQUIRED", "Param '$paramName' is not required.", listOf(paramName)), Unchecked
+
+/**
  * 表单参数选取的某种目标资源并不存在，因此业务无法进行。
  */
 open class ResourceNotExist : BadRequestException, Unchecked {

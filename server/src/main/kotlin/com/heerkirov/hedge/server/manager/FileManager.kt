@@ -81,10 +81,7 @@ class FileManager(private val appdata: AppDataDriver, private val data: DataRepo
      * 撤销新建的File。此方法仅用于newFile后产生失败，回滚对物理文件的写入。不能用于删除业务，因为它会完全移除记录。
      */
     fun revertNewFile(fileId: Int) {
-        println("revert $fileId")
-        val fileRecord = data.db.sequenceOf(FileRecords).firstOrNull { it.id eq fileId } ?: return
-        println("${appdata.data.db.path}/${Filename.FOLDER}/${getFilepath(fileRecord.folder, fileRecord.id, fileRecord.extension)}")
-        println("${appdata.data.db.path}/${Filename.FOLDER}/${getThumbnailPath(fileRecord.folder, fileRecord.id)}")
+        val fileRecord = getFile(fileId) ?: return
         File("${appdata.data.db.path}/${Filename.FOLDER}/${getFilepath(fileRecord.folder, fileRecord.id, fileRecord.extension)}").deleteIt()
         File("${appdata.data.db.path}/${Filename.FOLDER}/${getThumbnailPath(fileRecord.folder, fileRecord.id)}").deleteIt()
         data.db.delete(FileRecords) { it.id eq fileId }
@@ -94,17 +91,35 @@ class FileManager(private val appdata: AppDataDriver, private val data: DataRepo
      * 查询一个指定的物理文件。
      * 因为模式固定且多处使用，因此封装为一次调用。
      */
-    fun getFile(fileId: Int): FileRecord? {
+    private fun getFile(fileId: Int): FileRecord? {
         return data.db.sequenceOf(FileRecords).firstOrNull { it.id eq fileId }
     }
 
     /**
-     * 检查并纠正一个文件的扩展名。扩展名必须是受支持的扩展名，且统一转换为小写。
+     * 删除指定的物理文件。
+     * 这是一层被包装的伪删除，数据库中的记录将保留，以便同步。
      */
-    private fun validateExtension(extension: String): String {
-        return extension.toLowerCase().apply {
-            if(this !in extensions) throw IllegalFileExtensionError(extension)
+    fun deleteFile(fileId: Int) {
+        val fileRecord = getFile(fileId) ?: return
+        val filepath = getFilepath(fileRecord.folder, fileRecord.id, fileRecord.extension)
+        val thumbnailFilepath = if(fileRecord.thumbnail) getThumbnailPath(fileRecord.folder, fileRecord.id) else null
+
+        val now = DateTime.now()
+        val syncRecords = fileRecord.syncRecords.run {
+            plus(FileRecord.SyncRecord(FileRecord.SyncAction.DELETE, filepath))
+        }.runIf(thumbnailFilepath != null) {
+            plus(FileRecord.SyncRecord(FileRecord.SyncAction.DELETE, thumbnailFilepath!!))
         }
+
+        data.db.update(FileRecords) {
+            where { it.id eq fileId }
+            set(it.updateTime, now)
+            set(it.deleted, true)
+            set(it.syncRecords, syncRecords)
+        }
+
+        File("${appdata.data.db.path}/${Filename.FOLDER}/${filepath}").deleteIt()
+        if(thumbnailFilepath != null) File("${appdata.data.db.path}/${Filename.FOLDER}/${thumbnailFilepath}").deleteIt()
     }
 
     /**
@@ -120,4 +135,14 @@ class FileManager(private val appdata: AppDataDriver, private val data: DataRepo
     fun getThumbnailPath(folder: String, fileId: Int): String {
         return "$folder/$fileId.thumbnail.jpg"
     }
+
+    /**
+     * 检查并纠正一个文件的扩展名。扩展名必须是受支持的扩展名，且统一转换为小写。
+     */
+    private fun validateExtension(extension: String): String {
+        return extension.toLowerCase().apply {
+            if(this !in extensions) throw IllegalFileExtensionError(extension)
+        }
+    }
+
 }

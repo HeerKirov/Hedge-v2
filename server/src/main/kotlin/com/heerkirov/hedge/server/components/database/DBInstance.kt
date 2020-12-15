@@ -15,7 +15,7 @@ class DBInstance(val dbPath: String) : Closeable {
 
     val database: Database
 
-    private val metadata: Metadata
+    val metadata: Metadata
     private val conn: Connection
 
     init {
@@ -39,6 +39,10 @@ class DBInstance(val dbPath: String) : Closeable {
                 metadata = d
             }
         }
+    }
+
+    fun saveData() {
+        Fs.writeFile(metadataFilePath, metadata)
     }
 
     override fun close() {

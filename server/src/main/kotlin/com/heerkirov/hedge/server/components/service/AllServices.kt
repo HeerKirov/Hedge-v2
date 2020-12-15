@@ -14,6 +14,7 @@ interface AllServices : Component {
     val annotation: AnnotationService
     val author: AuthorService
     val topic: TopicService
+    val settingSourceSite: SettingSourceSiteService
 }
 
 class AllServicesImpl(ctx: FrameworkContext) : AllServices {
@@ -22,6 +23,7 @@ class AllServicesImpl(ctx: FrameworkContext) : AllServices {
     override val annotation: AnnotationService
     override val author: AuthorService
     override val topic: TopicService
+    override val settingSourceSite: SettingSourceSiteService
 
     init {
         val appdata = ctx.getComponent<AppDataDriver>()
@@ -36,10 +38,13 @@ class AllServicesImpl(ctx: FrameworkContext) : AllServices {
         val authorMgr = AuthorManager(repo, annotationMgr)
         val topicMgr = TopicManager(repo, annotationMgr)
 
-        import = ImportService(repo, fileMgr, importMgr, sourceImageMgr)
+        val illustMgr = IllustManager(repo, sourceImageMgr, tagMgr, authorMgr, topicMgr)
+
+        import = ImportService(repo, fileMgr, importMgr, illustMgr, sourceImageMgr)
         tag = TagService(repo, tagMgr)
         annotation = AnnotationService(repo, annotationMgr)
         author = AuthorService(repo, authorMgr)
         topic = TopicService(repo, topicMgr)
+        settingSourceSite = SettingSourceSiteService(repo)
     }
 }

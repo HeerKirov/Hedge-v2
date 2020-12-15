@@ -95,4 +95,12 @@ class TagManager(private val data: DataRepository, private val annotationMgr: An
             }
         }
     }
+
+    /**
+     * 该方法使用在设置tag时，对tag进行校验并导出，返回声明式的tag列表。
+     * @return 一组tag。Int表示tag id，Boolean表示此tag是否为导出tag。
+     */
+    fun exportTag(tags: List<Int>): List<Pair<Int, Boolean>> {
+        TODO()
+    }
 }

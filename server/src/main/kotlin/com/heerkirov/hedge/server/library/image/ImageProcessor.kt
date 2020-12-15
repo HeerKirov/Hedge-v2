@@ -20,7 +20,7 @@ import javax.imageio.plugins.jpeg.JPEGImageWriteParam
 import kotlin.math.sqrt
 
 object ImageProcessor {
-    private const val RESIZE_AREA = 1 shl 18
+    private const val RESIZE_AREA = 1 shl 19
 
     init {
         //在mac上，调用Graphics组件时，会生成一个愚蠢的dock栏进程。为了隐藏掉这个进程，需要设置此属性

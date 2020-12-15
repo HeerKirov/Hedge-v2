@@ -97,6 +97,14 @@ class TopicManager(private val data: DataRepository, private val annotationMgr: 
         }
     }
 
+    /**
+     * 该方法使用在设置topic时，对topic进行校验并导出，返回声明式的topic列表。
+     * @return 一组topic。Int表示topic id，Boolean表示此topic是否为导出tag。
+     */
+    fun exportTopic(topics: List<Int>): List<Pair<Int, Boolean>> {
+        TODO()
+    }
+
     private fun isLegalTypeConstraint(parent: Topic.Type, child: Topic.Type): Boolean {
         return child == Topic.Type.UNKNOWN || parent == Topic.Type.UNKNOWN ||
                 (child == Topic.Type.COPYRIGHT && parent == Topic.Type.COPYRIGHT) ||

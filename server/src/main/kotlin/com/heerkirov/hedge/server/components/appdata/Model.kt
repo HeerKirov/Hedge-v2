@@ -26,12 +26,3 @@ data class BackupOption(
     var lastUpdate: Long?,
     var autoBackup: Boolean
 )
-
-fun defaultValue(dbPath: String): AppData {
-    return AppData(
-        service = ServiceOption(port = null),
-        web = WebOption(autoWebAccess = false, permanent = false, password = null),
-        db = DBOption(dbPath),
-        backup = BackupOption(path = null, lastUpdate = null, autoBackup = false)
-    )
-}

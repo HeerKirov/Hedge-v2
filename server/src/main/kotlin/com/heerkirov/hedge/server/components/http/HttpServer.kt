@@ -76,6 +76,7 @@ class HttpServerImpl(private val allServices: AllServices,
             .create { web.configure(it) }
             .handle(aspect, authentication, web, errorHandler)
             .handle(AppRoutes(lifetime, appdata))
+            .handle(SettingRoutes(allServices.settingSourceSite))
             .handle(ImportRoutes(allServices.import))
             .handle(TagRoutes(allServices.tag))
             .handle(TopicRoutes(allServices.topic))

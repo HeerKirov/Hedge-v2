@@ -63,6 +63,14 @@ class Opt<T> {
     inline fun elseOr(call: () -> T): Opt<T> = if(isUndefined) Opt(call()) else this
 
     /**
+     * 如果值存在，执行一段代码。
+     */
+    inline fun alsoOpt(call: (T) -> Unit): Opt<T> {
+        if(isPresent) call(value)
+        return this
+    }
+
+    /**
      * 如果值存在，执行一段代码。参数使用this传递。
      */
     inline fun applyOpt(call: T.() -> Unit): Opt<T> {

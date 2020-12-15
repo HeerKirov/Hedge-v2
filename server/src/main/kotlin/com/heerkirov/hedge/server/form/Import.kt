@@ -10,11 +10,11 @@ import java.io.InputStream
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-data class ImportImageRes(val id: Int, val file: String, val thumbnailFile: String)
+data class ImportImageRes(val id: Int, val file: String, val thumbnailFile: String?)
 
 data class ImportImageDetailRes(val id: Int,
-                                val file: String, val thumbnailFile: String,
-                                val fileName: String, val filePath: String,
+                                val file: String, val thumbnailFile: String?,
+                                val fileName: String?, val filePath: String?,
                                 val fileCreateTime: LocalDateTime?, val fileUpdateTime: LocalDateTime?, val fileImportTime: LocalDateTime,
                                 val tagme: Illust.Tagme,
                                 val source: String?, val sourceId: Long?, val sourcePart: Int?,
@@ -23,7 +23,7 @@ data class ImportImageDetailRes(val id: Int,
 
 data class ImportFilter(@Limit val limit: Int,
                         @Offset val offset: Int,
-                        @Order(options = ["id", "fileCreateTime", "fileUpdateTime", "fileImportTime"])
+                        @Order(options = ["id", "fileCreateTime", "fileUpdateTime", "fileImportTime", "orderTime"])
                         val order: List<OrderItem> = listOf(OrderItem("id", desc = false)))
 
 data class ImportForm(val filepath: String,
