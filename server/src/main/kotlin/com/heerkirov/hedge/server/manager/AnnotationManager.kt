@@ -44,11 +44,11 @@ class AnnotationManager(private val data: DataRepository) {
             .also { rows ->
                 if(rows.size < ids.size) {
                     val minus = ids.toSet() - rows.asSequence().map { it.id }.toSet()
-                    throw ResourceNotExist(paramName, minus.joinToString(", "))
+                    throw ResourceNotExist(paramName, minus)
                 }
             }.also { rows ->
                 rows.filter { target != null && !it.target.isEmpty() && !it.target.any(target) }.takeIf { it.isNotEmpty() }?.let {
-                    throw ResourceNotSuitable(paramName, it.map { a -> a.id }.joinToString(", "))
+                    throw ResourceNotSuitable(paramName, it.map { a -> a.id })
                 }
             }.map { Pair(it.id, it.name) }
 
@@ -58,11 +58,11 @@ class AnnotationManager(private val data: DataRepository) {
             .also { rows ->
                 if(rows.size < names.size) {
                     val minus = names.toSet() - rows.asSequence().map { it.name }.toSet()
-                    throw ResourceNotExist(paramName, minus.joinToString(", "))
+                    throw ResourceNotExist(paramName, minus)
                 }
             }.also { rows ->
                 rows.filter { target != null && !it.target.isEmpty() && target !in it.target }.takeIf { it.isNotEmpty() }?.let {
-                    throw ResourceNotSuitable(paramName, it.map { a -> a.id }.joinToString(", "))
+                    throw ResourceNotSuitable(paramName, it.map { a -> a.id })
                 }
             }
             .map { Pair(it.id, it.name) }

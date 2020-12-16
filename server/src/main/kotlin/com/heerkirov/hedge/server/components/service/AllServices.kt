@@ -41,7 +41,7 @@ class AllServicesImpl(ctx: FrameworkContext) : AllServices {
         val illustMgr = IllustManager(repo, sourceImageMgr, tagMgr, authorMgr, topicMgr)
 
         import = ImportService(repo, fileMgr, importMgr, illustMgr, sourceImageMgr)
-        tag = TagService(repo, tagMgr)
+        tag = TagService(repo, tagMgr, fileMgr)
         annotation = AnnotationService(repo, annotationMgr)
         author = AuthorService(repo, authorMgr)
         topic = TopicService(repo, topicMgr)

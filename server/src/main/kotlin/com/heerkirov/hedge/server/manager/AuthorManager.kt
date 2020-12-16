@@ -5,12 +5,12 @@ import com.heerkirov.hedge.server.dao.AuthorAnnotationRelations
 import com.heerkirov.hedge.server.dao.Authors
 import com.heerkirov.hedge.server.exceptions.AlreadyExists
 import com.heerkirov.hedge.server.exceptions.ParamError
+import com.heerkirov.hedge.server.exceptions.ResourceNotExist
 import com.heerkirov.hedge.server.model.Annotation
 import com.heerkirov.hedge.server.model.Author
 import com.heerkirov.hedge.server.utils.ktorm.asSequence
 import com.heerkirov.hedge.server.utils.runIf
 import me.liuwj.ktorm.dsl.*
-import me.liuwj.ktorm.entity.Tuple3
 import me.liuwj.ktorm.entity.any
 import me.liuwj.ktorm.entity.sequenceOf
 
@@ -75,11 +75,17 @@ class AuthorManager(private val data: DataRepository, private val annotationMgr:
     }
 
     /**
-     * 该方法使用在设置tag时，对tag进行校验并导出，返回声明式的tag列表。
-     * @return 一组tag。Int表示tag id，Boolean表示此tag是否为导出tag。
+     * 该方法使用在设置author时，对author进行校验并导出，返回声明式的author列表。
+     * @return 一组author。Int表示tag id，Boolean表示此tag是否为导出tag。
      */
-    fun exportTag(tags: List<Int>): List<Pair<Int, Boolean>> {
-        TODO()
+    fun exportAuthor(authors: List<Int>): List<Pair<Int, Boolean>> {
+        val ids = data.db.from(Authors).select(Authors.id).where { Authors.id inList authors }.map { it[Authors.id]!! }
+        if(ids.size < authors.size) {
+            throw ResourceNotExist("authors", authors.toSet() - ids.toSet())
+        }
+
+        //author类型的标签没有导出机制，因此直接返回结果。
+        return authors.map { Pair(it, false) }
     }
 
 }

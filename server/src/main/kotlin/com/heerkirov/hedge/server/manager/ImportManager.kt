@@ -23,12 +23,11 @@ class ImportManager(private val data: DataRepository) {
         val createTime = DateTime.now()
         val fileCreateTime = attr?.creationTime()?.toMillis()?.parseDateTime()
         val fileUpdateTime = sourceFile?.lastModified()?.parseDateTime()
-        val fileImportTime = createTime
 
-        val partitionTime = fileImportTime.asZonedTime().toLocalDate()
+        val partitionTime = createTime.asZonedTime().toLocalDate()
         val orderTime = createTime.toMillisecond()
 
-        //TODO 引入自动处理策略
+        //TODO 引入自动处理策略(在这之前首先定好actions的行为)
 
         val id = data.db.insertAndGenerateKey(ImportImages) {
             set(it.fileId, fileId)
@@ -36,7 +35,7 @@ class ImportManager(private val data: DataRepository) {
             set(it.filePath, sourceFile?.absoluteFile?.parent)
             set(it.fileCreateTime, fileCreateTime)
             set(it.fileUpdateTime, fileUpdateTime)
-            set(it.fileImportTime, fileImportTime)
+            set(it.fileImportTime, createTime)
             set(it.fileFromSource, emptyList())
             set(it.tagme, Illust.Tagme.EMPTY)
             set(it.source, null)

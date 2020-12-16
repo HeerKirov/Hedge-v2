@@ -22,8 +22,7 @@ data class TagDetailRes(val id: Int, val ordinal: Int, val parentId: Int?,
                         val description: String, val color: String?,
                         val examples: List<Example>, val annotations: List<Annotation>,
                         val score: Int?, val count: Int) {
-    //TODO 完成illust之后，补全example的字段
-    data class Example(val id: Int)
+    data class Example(val id: Int, val file: String)
     data class Annotation(val id: Int, val name: String, val canBeExported: Boolean)
 }
 
@@ -66,8 +65,8 @@ fun newTagRes(tag: Tag) = TagRes(tag.id, tag.ordinal, tag.parentId, tag.name, ta
 
 fun newTagTreeNode(tag: Tag, children: List<TagTreeNode>?) = TagTreeNode(tag.id, tag.name, tag.otherNames, tag.type, tag.isGroup, tag.color, children)
 
-fun newTagDetailRes(tag: Tag, annotations: List<TagDetailRes.Annotation>) = TagDetailRes(tag.id, tag.ordinal, tag.parentId,
+fun newTagDetailRes(tag: Tag, annotations: List<TagDetailRes.Annotation>, examples: List<TagDetailRes.Example>) = TagDetailRes(tag.id, tag.ordinal, tag.parentId,
     tag.name, tag.otherNames,
     tag.type, tag.isGroup, tag.links ?: emptyList(), tag.description, tag.color,
-    tag.examples?.map { TagDetailRes.Example(it) } ?: emptyList(), annotations,
+    examples, annotations,
     tag.exportedScore, tag.cachedCount)

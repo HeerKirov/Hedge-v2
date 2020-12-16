@@ -5,6 +5,7 @@ import com.heerkirov.hedge.server.components.database.transaction
 import com.heerkirov.hedge.server.dao.*
 import com.heerkirov.hedge.server.exceptions.*
 import com.heerkirov.hedge.server.form.*
+import com.heerkirov.hedge.server.manager.FileManager
 import com.heerkirov.hedge.server.manager.TagManager
 import com.heerkirov.hedge.server.model.Tag
 import com.heerkirov.hedge.server.utils.*
@@ -14,7 +15,7 @@ import com.heerkirov.hedge.server.utils.types.*
 import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.entity.*
 
-class TagService(private val data: DataRepository, private val tagMgr: TagManager) {
+class TagService(private val data: DataRepository, private val tagMgr: TagManager, private val fileMgr: FileManager) {
     private val orderTranslator = OrderTranslator {
         "id" to Tags.id
         "name" to Tags.name
@@ -123,7 +124,17 @@ class TagService(private val data: DataRepository, private val tagMgr: TagManage
             .where { TagAnnotationRelations.tagId eq id }
             .map { TagDetailRes.Annotation(it[Annotations.id]!!, it[Annotations.name]!!, it[Annotations.canBeExported]!!) }
 
-        return newTagDetailRes(tag, annotations)
+        val examples = if(tag.examples.isNullOrEmpty()) emptyList() else data.db.from(Illusts)
+            .innerJoin(FileRecords, FileRecords.id eq Illusts.fileId)
+            .select(Illusts.id, FileRecords.id, FileRecords.folder, FileRecords.extension, FileRecords.thumbnail)
+            .where { Illusts.id inList tag.examples }
+            .map { TagDetailRes.Example(it[Illusts.id]!!, if(it[FileRecords.thumbnail]!!) {
+                fileMgr.getThumbnailPath(it[FileRecords.folder]!!, it[FileRecords.id]!!)
+            }else{
+                fileMgr.getFilepath(it[FileRecords.folder]!!, it[FileRecords.id]!!, it[FileRecords.extension]!!)
+            }) }
+
+        return newTagDetailRes(tag, annotations, examples)
     }
 
     fun update(id: Int, form: TagUpdateForm) {

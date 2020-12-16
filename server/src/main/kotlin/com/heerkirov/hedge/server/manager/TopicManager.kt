@@ -102,7 +102,12 @@ class TopicManager(private val data: DataRepository, private val annotationMgr: 
      * @return 一组topic。Int表示topic id，Boolean表示此topic是否为导出tag。
      */
     fun exportTopic(topics: List<Int>): List<Pair<Int, Boolean>> {
-        TODO()
+        val ids = data.db.from(Topics).select(Topics.id).where { Topics.id inList topics }.map { it[Topics.id]!! }
+        if(ids.size < topics.size) {
+            throw ResourceNotExist("topics", topics.toSet() - ids.toSet())
+        }
+
+        TODO("topic的导出")
     }
 
     private fun isLegalTypeConstraint(parent: Topic.Type, child: Topic.Type): Boolean {

@@ -42,7 +42,7 @@ class TagManager(private val data: DataRepository, private val annotationMgr: An
         return if(newLinks.isNullOrEmpty()) null else {
             val links = data.db.sequenceOf(Tags).filter { it.id inList newLinks }.toList()
             if (links.size < newLinks.size) {
-                throw ResourceNotExist("links", (newLinks.toSet() - links.asSequence().map { it.id }.toSet()).joinToString(", "))
+                throw ResourceNotExist("links", newLinks.toSet() - links.asSequence().map { it.id }.toSet())
             }
             newLinks
         }
@@ -55,10 +55,7 @@ class TagManager(private val data: DataRepository, private val annotationMgr: An
         return if(newExamples.isNullOrEmpty()) null else {
             val examples = data.db.sequenceOf(Illusts).filter { it.id inList newExamples }.toList()
             if (examples.size < newExamples.size) {
-                throw ResourceNotExist(
-                    "examples",
-                    (newExamples.toSet() - examples.asSequence().map { it.id }.toSet()).joinToString(", ")
-                )
+                throw ResourceNotExist("examples", newExamples.toSet() - examples.asSequence().map { it.id }.toSet())
             }
             for (example in examples) {
                 if (example.type == Illust.Type.COLLECTION) {
@@ -101,6 +98,11 @@ class TagManager(private val data: DataRepository, private val annotationMgr: An
      * @return 一组tag。Int表示tag id，Boolean表示此tag是否为导出tag。
      */
     fun exportTag(tags: List<Int>): List<Pair<Int, Boolean>> {
-        TODO()
+        val ids = data.db.from(Tags).select(Tags.id).where { Tags.id inList tags }.map { it[Tags.id]!! }
+        if(ids.size < tags.size) {
+            throw ResourceNotExist("tags", tags.toSet() - ids.toSet())
+        }
+
+        TODO("tag的导出")
     }
 }

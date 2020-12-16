@@ -1,9 +1,11 @@
 package com.heerkirov.hedge.server.manager
 
 import com.heerkirov.hedge.server.components.database.DataRepository
-import com.heerkirov.hedge.server.dao.IllustTagRelations
-import com.heerkirov.hedge.server.dao.Illusts
+import com.heerkirov.hedge.server.dao.*
+import com.heerkirov.hedge.server.dao.types.EntityTargetRelationTable
+import com.heerkirov.hedge.server.dao.types.TargetAnnotationRelationTable
 import com.heerkirov.hedge.server.exceptions.ResourceNotExist
+import com.heerkirov.hedge.server.model.Annotation
 import com.heerkirov.hedge.server.model.Illust
 import com.heerkirov.hedge.server.utils.ktorm.asSequence
 import com.heerkirov.hedge.server.utils.ktorm.first
@@ -85,33 +87,63 @@ class IllustManager(private val data: DataRepository,
      * 检验给出的tags/topics/authors的正确性，处理导出，并应用其更改。此外，annotations的更改也会被一并导出。
      */
     private fun processAllTags(thisId: Int, creating: Boolean = false, newTags: List<Int>? = null, newTopics: List<Int>? = null, newAuthors: List<Int>? = null) {
-        if(newTags != null) processTags(thisId, newTags, creating)
-        TODO()
+        val tagAnnotations = if(newTags == null) null else
+            processTags(thisId, creating, tagRelations = IllustTagRelations, tagAnnotationRelations = TagAnnotationRelations, newTagIds = tagMgr.exportTag(newTags))
+        val topicAnnotations = if(newTopics == null) null else
+            processTags(thisId, creating, tagRelations = IllustTopicRelations, tagAnnotationRelations = TopicAnnotationRelations, newTagIds = topicMgr.exportTopic(newTopics))
+        val authorAnnotations = if(newAuthors == null) null else
+            processTags(thisId, creating, tagRelations = IllustAuthorRelations, tagAnnotationRelations = AuthorAnnotationRelations, newTagIds = authorMgr.exportAuthor(newAuthors))
+        if(tagAnnotations != null || topicAnnotations != null || authorAnnotations != null) {
+            val oldAnnotations = data.db.from(IllustAnnotationRelations).select()
+                .where { IllustAnnotationRelations.illustId eq thisId }
+                .asSequence()
+                .map { Pair(it[IllustAnnotationRelations.illustId]!!, it[IllustAnnotationRelations.exportedFrom]!!) }
+                .toMap()
+
+            val adds = mutableMapOf<Int, Annotation.ExportedFrom>()
+            tagAnnotations?.filter { it !in oldAnnotations }?.forEach {
+                if(it !in adds) adds[it] = Annotation.ExportedFrom.TAG
+                else adds[it] = adds[it]!!.plus(Annotation.ExportedFrom.TAG)
+            }
+            topicAnnotations?.filter { it !in oldAnnotations }?.forEach {
+                if(it !in adds) adds[it] = Annotation.ExportedFrom.TOPIC
+                else adds[it] = adds[it]!!.plus(Annotation.ExportedFrom.TOPIC)
+            }
+            authorAnnotations?.filter { it !in oldAnnotations }?.forEach {
+                if(it !in adds) adds[it] = Annotation.ExportedFrom.AUTHOR
+                else adds[it] = adds[it]!!.plus(Annotation.ExportedFrom.AUTHOR)
+            }
+            //TODO 完成annotation导出到illust的过程。写起来十分麻烦。
+        }
     }
 
-    private fun processTags(thisId: Int, newTags: List<Int>, creating: Boolean = false) {
-        //TODO 使用inline模版代码处理多个类别
-        val tagIds = tagMgr.exportTag(newTags).toMap()
+    /**
+     * 检验某种类型的tag，并返回它导出的annotations。
+     */
+    private fun <R, RA> processTags(thisId: Int, creating: Boolean = false, newTagIds: List<Pair<Int, Boolean>>,
+                                    tagRelations: R, tagAnnotationRelations: RA): List<Int>
+    where R: EntityTargetRelationTable<*>, RA: TargetAnnotationRelationTable<*> {
+        val tagIds = newTagIds.toMap()
         val oldTagIds = if(creating) emptyMap() else {
-            data.db.from(IllustTagRelations).select(IllustTagRelations.tagId, IllustTagRelations.isExported)
-                .where { IllustTagRelations.illustId eq thisId }
+            data.db.from(tagRelations).select(tagRelations.targetId(), tagRelations.exported())
+                .where { tagRelations.entityId() eq thisId }
                 .asSequence()
-                .map { Pair(it[IllustTagRelations.tagId]!!, it[IllustTagRelations.isExported]!!) }
+                .map { Pair(it[tagRelations.entityId()]!!, it[tagRelations.exported()]!!) }
                 .toMap()
         }
         val deleteIds = oldTagIds.keys - tagIds.keys
         if(deleteIds.isNotEmpty()) {
-            data.db.delete(IllustTagRelations) { (it.illustId eq thisId) and (it.tagId inList deleteIds) }
+            data.db.delete(tagRelations) { (tagRelations.entityId() eq thisId) and (tagRelations.targetId() inList deleteIds) }
         }
 
         val addIds = tagIds - oldTagIds.keys
         if(addIds.isNotEmpty()) {
-            data.db.batchInsert(IllustTagRelations) {
+            data.db.batchInsert(tagRelations) {
                 for ((addId, isExported) in addIds) {
                     item {
-                        set(it.illustId, thisId)
-                        set(it.tagId, addId)
-                        set(it.isExported, isExported)
+                        set(tagRelations.entityId(), thisId)
+                        set(tagRelations.targetId(), addId)
+                        set(tagRelations.exported(), isExported)
                     }
                 }
             }
@@ -120,24 +152,31 @@ class IllustManager(private val data: DataRepository,
         val changeIds = (tagIds.keys intersect oldTagIds.keys).flatMap { id ->
             val newExported = tagIds[id]
             val oldExported = oldTagIds[id]
-            if(newExported != oldExported) {
-                sequenceOf(Pair(id, newExported!!))
-            }else{
-                emptySequence()
-            }
+            if(newExported != oldExported) sequenceOf(Pair(id, newExported!!)) else emptySequence()
         }
         if(changeIds.isNotEmpty()) {
-            data.db.batchUpdate(IllustTagRelations) {
+            data.db.batchUpdate(tagRelations) {
                 for ((changeId, isExported) in changeIds) {
                     item {
-                        where { (it.illustId eq thisId) and (it.tagId eq changeId) }
-                        set(it.isExported, isExported)
+                        where { (tagRelations.entityId() eq thisId) and (tagRelations.targetId() eq changeId) }
+                        set(tagRelations.exported(), isExported)
                     }
                 }
             }
         }
+
+        return if(tagIds.isEmpty()) emptyList() else {
+            data.db.from(tagAnnotationRelations)
+                .innerJoin(Annotations, (tagAnnotationRelations.annotationId() eq Annotations.id) and Annotations.canBeExported)
+                .select(Annotations.id)
+                .where { tagAnnotationRelations.targetId() inList tagIds.keys }
+                .map { it[Annotations.id]!! }
+        }
     }
 
+    /**
+     * 校验relations。
+     */
     private fun checkRelations(relations: List<Int>) {
         val relationResult = data.db.from(Illusts).select(Illusts.id).where { Illusts.id inList relations }.map { it[Illusts.id]!! }
         if(relationResult.size < relations.size) {
