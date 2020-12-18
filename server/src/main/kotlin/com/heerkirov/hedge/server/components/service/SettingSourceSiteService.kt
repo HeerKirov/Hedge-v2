@@ -1,4 +1,4 @@
-package com.heerkirov.hedge.server.service
+package com.heerkirov.hedge.server.components.service
 
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.database.SourceOption

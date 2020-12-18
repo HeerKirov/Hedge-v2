@@ -1,11 +1,11 @@
-package com.heerkirov.hedge.server.service
+package com.heerkirov.hedge.server.components.service
 
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.database.transaction
 import com.heerkirov.hedge.server.dao.*
 import com.heerkirov.hedge.server.exceptions.NotFound
 import com.heerkirov.hedge.server.form.*
-import com.heerkirov.hedge.server.manager.AnnotationManager
+import com.heerkirov.hedge.server.components.service.manager.AnnotationManager
 import com.heerkirov.hedge.server.utils.types.anyOpt
 import com.heerkirov.hedge.server.utils.ktorm.contains
 import com.heerkirov.hedge.server.utils.types.ListResult

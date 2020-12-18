@@ -6,7 +6,7 @@ import com.heerkirov.hedge.server.exceptions.ParamRequired
 import com.heerkirov.hedge.server.form.*
 import com.heerkirov.hedge.server.library.form.bodyAsForm
 import com.heerkirov.hedge.server.library.form.queryAsFilter
-import com.heerkirov.hedge.server.service.ImportService
+import com.heerkirov.hedge.server.components.service.ImportService
 import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder.*
 import io.javalin.http.Context

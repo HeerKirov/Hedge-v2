@@ -1,4 +1,4 @@
-package com.heerkirov.hedge.server.manager
+package com.heerkirov.hedge.server.components.service.manager
 
 import com.heerkirov.hedge.server.components.appdata.AppDataDriver
 import com.heerkirov.hedge.server.components.database.DataRepository

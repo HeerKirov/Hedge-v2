@@ -1,4 +1,4 @@
-package com.heerkirov.hedge.server.manager
+package com.heerkirov.hedge.server.components.service.manager
 
 object ManagerTool {
     /**

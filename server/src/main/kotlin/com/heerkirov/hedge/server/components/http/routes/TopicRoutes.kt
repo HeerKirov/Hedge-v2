@@ -5,7 +5,7 @@ import com.heerkirov.hedge.server.components.http.IdRes
 import com.heerkirov.hedge.server.form.*
 import com.heerkirov.hedge.server.library.form.bodyAsForm
 import com.heerkirov.hedge.server.library.form.queryAsFilter
-import com.heerkirov.hedge.server.service.TopicService
+import com.heerkirov.hedge.server.components.service.TopicService
 import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder.*
 import io.javalin.http.Context

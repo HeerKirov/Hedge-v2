@@ -1,4 +1,4 @@
-package com.heerkirov.hedge.server.service
+package com.heerkirov.hedge.server.components.service
 
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.database.transaction
@@ -7,10 +7,10 @@ import com.heerkirov.hedge.server.dao.ImportImages
 import com.heerkirov.hedge.server.exceptions.FileNotFoundError
 import com.heerkirov.hedge.server.exceptions.NotFound
 import com.heerkirov.hedge.server.form.*
-import com.heerkirov.hedge.server.manager.FileManager
-import com.heerkirov.hedge.server.manager.IllustManager
-import com.heerkirov.hedge.server.manager.ImportManager
-import com.heerkirov.hedge.server.manager.SourceImageManager
+import com.heerkirov.hedge.server.components.service.manager.FileManager
+import com.heerkirov.hedge.server.components.service.manager.IllustManager
+import com.heerkirov.hedge.server.components.service.manager.ImportManager
+import com.heerkirov.hedge.server.components.service.manager.SourceImageManager
 import com.heerkirov.hedge.server.utils.DateTime.parseDateTime
 import com.heerkirov.hedge.server.utils.Fs
 import com.heerkirov.hedge.server.utils.defer

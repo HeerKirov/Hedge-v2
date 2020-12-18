@@ -5,8 +5,7 @@ import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.library.framework.Component
 import com.heerkirov.hedge.server.library.framework.FrameworkContext
 import com.heerkirov.hedge.server.library.framework.getComponent
-import com.heerkirov.hedge.server.manager.*
-import com.heerkirov.hedge.server.service.*
+import com.heerkirov.hedge.server.components.service.manager.*
 
 interface AllServices : Component {
     val import: ImportService

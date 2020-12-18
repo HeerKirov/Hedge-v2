@@ -4,7 +4,7 @@ import com.heerkirov.hedge.server.components.http.Endpoints
 import com.heerkirov.hedge.server.form.SiteCreateForm
 import com.heerkirov.hedge.server.form.SiteUpdateForm
 import com.heerkirov.hedge.server.library.form.bodyAsForm
-import com.heerkirov.hedge.server.service.SettingSourceSiteService
+import com.heerkirov.hedge.server.components.service.SettingSourceSiteService
 import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder.*
 import io.javalin.http.Context

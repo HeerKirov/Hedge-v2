@@ -7,7 +7,7 @@ import com.heerkirov.hedge.server.form.AuthorFilter
 import com.heerkirov.hedge.server.form.AuthorUpdateForm
 import com.heerkirov.hedge.server.library.form.bodyAsForm
 import com.heerkirov.hedge.server.library.form.queryAsFilter
-import com.heerkirov.hedge.server.service.AuthorService
+import com.heerkirov.hedge.server.components.service.AuthorService
 import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder.*
 import io.javalin.http.Context
