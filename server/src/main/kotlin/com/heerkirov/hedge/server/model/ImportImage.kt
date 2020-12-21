@@ -80,13 +80,5 @@ data class ImportImage(val id: Int,
                        /**
                         * 初次创建的时间。
                         */
-                       val createTime: LocalDateTime,
-                       /**
-                        * 对此记录，执行二阶导入时要采取的操作。
-                        */
-                       val actions: List<Action>? = null) {
-
-    class Action {
-        //TODO 确定import action的内容方案
-    }
+                       val createTime: LocalDateTime) {
 }

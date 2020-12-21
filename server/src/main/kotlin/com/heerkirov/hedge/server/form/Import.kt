@@ -18,8 +18,7 @@ data class ImportImageDetailRes(val id: Int,
                                 val fileCreateTime: LocalDateTime?, val fileUpdateTime: LocalDateTime?, val fileImportTime: LocalDateTime,
                                 val tagme: Illust.Tagme,
                                 val source: String?, val sourceId: Long?, val sourcePart: Int?,
-                                val partitionTime: LocalDate, val orderTime: LocalDateTime, val createTime: LocalDateTime,
-                                val actions: List<ImportImage.Action>)
+                                val partitionTime: LocalDate, val orderTime: LocalDateTime, val createTime: LocalDateTime)
 
 data class ImportFilter(@Limit val limit: Int,
                         @Offset val offset: Int,
@@ -35,10 +34,4 @@ data class UploadForm(val content: InputStream,
 
 class ImportUpdateForm()
 
-class FindDuplicateForm()
-
-class AnalyseSourceForm()
-
-class GenerateTimeForm()
-
-class GenerateActionForm()
+class AnalyseMetaForm()

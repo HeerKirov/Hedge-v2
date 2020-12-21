@@ -6,8 +6,8 @@ import me.liuwj.ktorm.schema.Column
 /**
  * 实体和标签关系表的抽象表。
  */
-abstract class EntityTargetRelationTable<T : Any>(tableName: String, schema: String? = null) : BaseTable<T>(tableName = tableName, schema = schema) {
+abstract class EntityMetaRelationTable<T : Any>(tableName: String, schema: String? = null) : BaseTable<T>(tableName = tableName, schema = schema) {
     abstract fun entityId(): Column<Int>
-    abstract fun targetId(): Column<Int>
+    abstract fun metaId(): Column<Int>
     abstract fun exported(): Column<Boolean>
 }

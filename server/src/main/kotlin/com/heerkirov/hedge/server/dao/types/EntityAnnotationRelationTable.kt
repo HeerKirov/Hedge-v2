@@ -9,6 +9,6 @@ import me.liuwj.ktorm.schema.Column
  */
 abstract class EntityAnnotationRelationTable<T : Any>(tableName: String, schema: String? = null) : BaseTable<T>(tableName = tableName, schema = schema) {
     abstract fun entityId(): Column<Int>
-    abstract fun targetId(): Column<Int>
+    abstract fun annotationId(): Column<Int>
     abstract fun exported(): Column<Annotation.ExportedFrom>
 }

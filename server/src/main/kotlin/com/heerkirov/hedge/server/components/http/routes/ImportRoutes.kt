@@ -18,10 +18,7 @@ class ImportRoutes(private val importService: ImportService) : Endpoints {
                 get(this::list)
                 post("import", this::import)
                 post("upload", this::upload)
-                post("find-duplicate", this::findDuplicate)
-                post("analyse-source", this::analyseSource)
-                post("generate-time", this::generateTime)
-                post("generate-action", this::generateAction)
+                post("analyse-meta", this::analyseMeta)
                 post("save", this::save)
                 path(":id") {
                     get(this::get)
@@ -66,24 +63,9 @@ class ImportRoutes(private val importService: ImportService) : Endpoints {
         ctx.status(204)
     }
 
-    private fun findDuplicate(ctx: Context) {
-        val form = ctx.bodyAsForm<FindDuplicateForm>()
-        ctx.json(importService.findDuplicate(form))
-    }
-
-    private fun analyseSource(ctx: Context) {
-        val form = ctx.bodyAsForm<AnalyseSourceForm>()
-        ctx.json(importService.analyseSource(form))
-    }
-
-    private fun generateTime(ctx: Context) {
-        val form = ctx.bodyAsForm<GenerateTimeForm>()
-        ctx.json(importService.generateTime(form))
-    }
-
-    private fun generateAction(ctx: Context) {
-        val form = ctx.bodyAsForm<GenerateActionForm>()
-        ctx.json(importService.generateAction(form))
+    private fun analyseMeta(ctx: Context) {
+        val form = ctx.bodyAsForm<AnalyseMetaForm>()
+        ctx.json(importService.analyseMeta(form))
     }
 
     private fun save(ctx: Context) {

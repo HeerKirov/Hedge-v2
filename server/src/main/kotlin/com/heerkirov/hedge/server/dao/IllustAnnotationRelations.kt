@@ -14,7 +14,7 @@ object IllustAnnotationRelations : EntityAnnotationRelationTable<IllustAnnotatio
     val exportedFrom = composition<Annotation.ExportedFrom>("exported_from")
 
     override fun entityId(): Column<Int> = illustId
-    override fun targetId(): Column<Int> = annotationId
+    override fun annotationId(): Column<Int> = annotationId
     override fun exported(): Column<Annotation.ExportedFrom> = exportedFrom
 
     override fun doCreateEntity(row: QueryRowSet, withReferences: Boolean) = IllustAnnotationRelation(

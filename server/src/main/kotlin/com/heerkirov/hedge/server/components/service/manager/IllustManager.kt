@@ -2,13 +2,14 @@ package com.heerkirov.hedge.server.components.service.manager
 
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.dao.*
-import com.heerkirov.hedge.server.dao.types.EntityTargetRelationTable
-import com.heerkirov.hedge.server.dao.types.TargetAnnotationRelationTable
+import com.heerkirov.hedge.server.dao.types.EntityMetaRelationTable
+import com.heerkirov.hedge.server.dao.types.MetaAnnotationRelationTable
 import com.heerkirov.hedge.server.exceptions.ResourceNotExist
 import com.heerkirov.hedge.server.model.Annotation
 import com.heerkirov.hedge.server.model.Illust
 import com.heerkirov.hedge.server.utils.ktorm.asSequence
 import com.heerkirov.hedge.server.utils.ktorm.first
+import com.heerkirov.hedge.server.utils.ktorm.firstOrNull
 import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.entity.firstOrNull
 import me.liuwj.ktorm.entity.sequenceOf
@@ -62,7 +63,7 @@ class IllustManager(private val data: DataRepository,
 
         if(score != null && collection != null && collection.score == null) {
             //指定image的score、存在parent且未指定parent的score时，为parent重新计算exported score
-            val newExportedScore = data.db.from(Illusts)
+            val newParentExportedScore = data.db.from(Illusts)
                 .select(sum(Illusts.score).aliased("score"), count(Illusts.id).aliased("count"))
                 .where { (Illusts.parentId eq collection.id) and Illusts.score.isNotNull() }
                 .first().let {
@@ -72,27 +73,68 @@ class IllustManager(private val data: DataRepository,
                 }
             data.db.update(Illusts) {
                 where { it.id eq collection.id }
-                set(it.exportedScore, newExportedScore)
+                set(it.exportedScore, newParentExportedScore)
             }
         }
 
         if(tags != null || authors != null || topics != null) {
-            processAllTags(id, creating = true, newTags = tags, newTopics = topics, newAuthors = authors)
+            //指定了任意tags时，对tag进行校验和分析，导出，并同时导出annotations
+            processAllMeta(id, creating = true, newTags = tags, newTopics = topics, newAuthors = authors)
+
+            if(collection != null && !anyNotExportedMeta(collection.id, IllustTagRelations)
+                && !anyNotExportedMeta(collection.id, IllustAuthorRelations)
+                && !anyNotExportedMeta(collection.id, IllustTopicRelations)) {
+                //TODO tag存在且parent的tag不存在时，为parent重新导出exported tag
+            }
+        }else if (collection != null && anyNotExportedMeta(collection.id, IllustTagRelations)
+            && anyNotExportedMeta(collection.id, IllustAuthorRelations)
+            && anyNotExportedMeta(collection.id, IllustTopicRelations)) {
+            //tag为空且parent的tag不为空时，直接应用parent的exported tag(因为一定是从parent的tag导出的，不需要再算一次)
+            copyAllMeta(id, collection.id)
         }
 
         return id
     }
 
     /**
+     * 使用目标的所有relations，拷贝一份赋给当前项，统一设定为exported。
+     */
+    private fun copyAllMeta(thisId: Int, fromId: Int) {
+        fun <R> copyOneMeta(thisId: Int, fromId: Int, tagRelations: R) where R: EntityMetaRelationTable<*> {
+            val ids = data.db.from(tagRelations).select(tagRelations.metaId()).where { tagRelations.entityId() eq fromId }.map { it[tagRelations.metaId()]!! }
+            data.db.batchInsert(tagRelations) {
+                for (tagId in ids) {
+                    item {
+                        set(tagRelations.entityId(), thisId)
+                        set(tagRelations.metaId(), tagId)
+                        set(tagRelations.exported(), true)
+                    }
+                }
+            }
+        }
+
+        copyOneMeta(thisId, fromId, IllustTagRelations)
+        copyOneMeta(thisId, fromId, IllustAuthorRelations)
+        copyOneMeta(thisId, fromId, IllustTopicRelations)
+    }
+
+    /**
      * 检验给出的tags/topics/authors的正确性，处理导出，并应用其更改。此外，annotations的更改也会被一并导出。
      */
-    private fun processAllTags(thisId: Int, creating: Boolean = false, newTags: List<Int>? = null, newTopics: List<Int>? = null, newAuthors: List<Int>? = null) {
+    private fun processAllMeta(thisId: Int, creating: Boolean = false, newTags: List<Int>? = null, newTopics: List<Int>? = null, newAuthors: List<Int>? = null) {
         val tagAnnotations = if(newTags == null) null else
-            processTags(thisId, creating, tagRelations = IllustTagRelations, tagAnnotationRelations = TagAnnotationRelations, newTagIds = tagMgr.exportTag(newTags))
+            processOneMeta(thisId, creating,
+                metaRelations = IllustTagRelations, metaAnnotationRelations = TagAnnotationRelations,
+                newTagIds = tagMgr.exportTag(newTags))
         val topicAnnotations = if(newTopics == null) null else
-            processTags(thisId, creating, tagRelations = IllustTopicRelations, tagAnnotationRelations = TopicAnnotationRelations, newTagIds = topicMgr.exportTopic(newTopics))
+            processOneMeta(thisId, creating,
+                metaRelations = IllustTopicRelations, metaAnnotationRelations = TopicAnnotationRelations,
+                newTagIds = topicMgr.exportTopic(newTopics))
         val authorAnnotations = if(newAuthors == null) null else
-            processTags(thisId, creating, tagRelations = IllustAuthorRelations, tagAnnotationRelations = AuthorAnnotationRelations, newTagIds = authorMgr.exportAuthor(newAuthors))
+            processOneMeta(thisId, creating,
+                metaRelations = IllustAuthorRelations, metaAnnotationRelations = AuthorAnnotationRelations,
+                newTagIds = authorMgr.exportAuthor(newAuthors))
+
         if(tagAnnotations != null || topicAnnotations != null || authorAnnotations != null) {
             val oldAnnotations = data.db.from(IllustAnnotationRelations).select()
                 .where { IllustAnnotationRelations.illustId eq thisId }
@@ -118,32 +160,31 @@ class IllustManager(private val data: DataRepository,
     }
 
     /**
-     * 检验某种类型的tag，并返回它导出的annotations。
+     * 检验并处理某种类型的tag，并返回它导出的annotations。
      */
-    private fun <R, RA> processTags(thisId: Int, creating: Boolean = false, newTagIds: List<Pair<Int, Boolean>>,
-                                    tagRelations: R, tagAnnotationRelations: RA): List<Int>
-    where R: EntityTargetRelationTable<*>, RA: TargetAnnotationRelationTable<*> {
+    private fun <R, RA> processOneMeta(thisId: Int, creating: Boolean = false, newTagIds: List<Pair<Int, Boolean>>,
+                                       metaRelations: R, metaAnnotationRelations: RA): List<Int> where R: EntityMetaRelationTable<*>, RA: MetaAnnotationRelationTable<*> {
         val tagIds = newTagIds.toMap()
         val oldTagIds = if(creating) emptyMap() else {
-            data.db.from(tagRelations).select(tagRelations.targetId(), tagRelations.exported())
-                .where { tagRelations.entityId() eq thisId }
+            data.db.from(metaRelations).select(metaRelations.metaId(), metaRelations.exported())
+                .where { metaRelations.entityId() eq thisId }
                 .asSequence()
-                .map { Pair(it[tagRelations.entityId()]!!, it[tagRelations.exported()]!!) }
+                .map { Pair(it[metaRelations.entityId()]!!, it[metaRelations.exported()]!!) }
                 .toMap()
         }
         val deleteIds = oldTagIds.keys - tagIds.keys
         if(deleteIds.isNotEmpty()) {
-            data.db.delete(tagRelations) { (tagRelations.entityId() eq thisId) and (tagRelations.targetId() inList deleteIds) }
+            data.db.delete(metaRelations) { (metaRelations.entityId() eq thisId) and (metaRelations.metaId() inList deleteIds) }
         }
 
         val addIds = tagIds - oldTagIds.keys
         if(addIds.isNotEmpty()) {
-            data.db.batchInsert(tagRelations) {
+            data.db.batchInsert(metaRelations) {
                 for ((addId, isExported) in addIds) {
                     item {
-                        set(tagRelations.entityId(), thisId)
-                        set(tagRelations.targetId(), addId)
-                        set(tagRelations.exported(), isExported)
+                        set(metaRelations.entityId(), thisId)
+                        set(metaRelations.metaId(), addId)
+                        set(metaRelations.exported(), isExported)
                     }
                 }
             }
@@ -155,32 +196,43 @@ class IllustManager(private val data: DataRepository,
             if(newExported != oldExported) sequenceOf(Pair(id, newExported!!)) else emptySequence()
         }
         if(changeIds.isNotEmpty()) {
-            data.db.batchUpdate(tagRelations) {
+            data.db.batchUpdate(metaRelations) {
                 for ((changeId, isExported) in changeIds) {
                     item {
-                        where { (tagRelations.entityId() eq thisId) and (tagRelations.targetId() eq changeId) }
-                        set(tagRelations.exported(), isExported)
+                        where { (metaRelations.entityId() eq thisId) and (metaRelations.metaId() eq changeId) }
+                        set(metaRelations.exported(), isExported)
                     }
                 }
             }
         }
 
         return if(tagIds.isEmpty()) emptyList() else {
-            data.db.from(tagAnnotationRelations)
-                .innerJoin(Annotations, (tagAnnotationRelations.annotationId() eq Annotations.id) and Annotations.canBeExported)
+            data.db.from(metaAnnotationRelations)
+                .innerJoin(Annotations, (metaAnnotationRelations.annotationId() eq Annotations.id) and Annotations.canBeExported)
                 .select(Annotations.id)
-                .where { tagAnnotationRelations.targetId() inList tagIds.keys }
+                .where { metaAnnotationRelations.metaId() inList tagIds.keys }
                 .map { it[Annotations.id]!! }
         }
     }
 
     /**
-     * 校验relations。
+     * 工具函数：使用目标关系，判断此关系直接关联(not exported)的对象是否存在。存在任意一个即返回true。
+     */
+    private fun <R> anyNotExportedMeta(id: Int, metaRelations: R): Boolean where R: EntityMetaRelationTable<*> {
+        return data.db.from(metaRelations).select(count().aliased("count"))
+            .where { (metaRelations.entityId() eq id) and (metaRelations.exported().not()) }
+            .firstOrNull()?.getInt("count")
+            ?.let { it > 0 } ?: false
+    }
+
+    /**
+     * 校验裙带关系relations。
      */
     private fun checkRelations(relations: List<Int>) {
         val relationResult = data.db.from(Illusts).select(Illusts.id).where { Illusts.id inList relations }.map { it[Illusts.id]!! }
         if(relationResult.size < relations.size) {
             throw ResourceNotExist("relations", relations.toSet() - relationResult.toSet())
         }
+        //TODO relations需要使用拓扑结构，对关联的/旧关联的对象的relations也进行更新。
     }
 }

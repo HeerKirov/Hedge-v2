@@ -23,7 +23,6 @@ object ImportImages : BaseTable<ImportImage>("import_image") {
     val partitionTime = date("partition_time")
     val orderTime = long("order_time")
     val createTime = datetime("create_time")
-    val actions = json("actions", typeRef<List<ImportImage.Action>>())
 
     override fun doCreateEntity(row: QueryRowSet, withReferences: Boolean) = ImportImage(
         id = row[id]!!,
@@ -40,7 +39,6 @@ object ImportImages : BaseTable<ImportImage>("import_image") {
         sourcePart = row[sourcePart],
         partitionTime = row[partitionTime]!!,
         orderTime = row[orderTime]!!,
-        createTime = row[createTime]!!,
-        actions = row[actions]
+        createTime = row[createTime]!!
     )
 }

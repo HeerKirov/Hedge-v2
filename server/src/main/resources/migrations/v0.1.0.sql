@@ -226,9 +226,7 @@ CREATE TABLE import_image(
     source_part         INTEGER DEFAULT NULL,           -- 来源网站中的二级图像代号，没有填null
     partition_time	    DATE NOT NULL,                  -- 用于日历分组的时间
     order_time			BIGINT NOT NULL,                -- 用于排序的时间
-    create_time			TIMESTAMP NOT NULL,             -- 初次创建的时间
-
-    actions             TEXT DEFAULT NULL               -- 对此记录，执行二阶导入时要采取的操作序列::json<ImportAction[]>
+    create_time			TIMESTAMP NOT NULL              -- 初次创建的时间
 );
 
 -- 来源信息

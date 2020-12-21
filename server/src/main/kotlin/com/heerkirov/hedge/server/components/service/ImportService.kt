@@ -102,8 +102,7 @@ class ImportService(private val data: DataRepository,
             row[ImportImages.fileName], row[ImportImages.filePath],
             row[ImportImages.fileCreateTime], row[ImportImages.fileUpdateTime], row[ImportImages.fileImportTime]!!,
             row[ImportImages.tagme]!!, row[ImportImages.source], row[ImportImages.sourceId], row[ImportImages.sourcePart],
-            row[ImportImages.partitionTime]!!, row[ImportImages.orderTime]!!.parseDateTime(), row[ImportImages.createTime]!!,
-            row[ImportImages.actions] ?: emptyList())
+            row[ImportImages.partitionTime]!!, row[ImportImages.orderTime]!!.parseDateTime(), row[ImportImages.createTime]!!)
     }
 
     fun update(id: Int, form: ImportUpdateForm) {
@@ -118,19 +117,7 @@ class ImportService(private val data: DataRepository,
         }
     }
 
-    fun findDuplicate(form: FindDuplicateForm): Any {
-        TODO()
-    }
-
-    fun analyseSource(form: AnalyseSourceForm): Any {
-        TODO()
-    }
-
-    fun generateTime(form: GenerateTimeForm): Any {
-        TODO()
-    }
-
-    fun generateAction(form: GenerateActionForm): Any {
+    fun analyseMeta(form: AnalyseMetaForm): Any {
         TODO()
     }
 

@@ -27,9 +27,7 @@ class ImportManager(private val data: DataRepository) {
         val partitionTime = createTime.asZonedTime().toLocalDate()
         val orderTime = createTime.toMillisecond()
 
-        //TODO 引入自动处理策略(在这之前首先定好actions的行为)
-
-        val id = data.db.insertAndGenerateKey(ImportImages) {
+        return data.db.insertAndGenerateKey(ImportImages) {
             set(it.fileId, fileId)
             set(it.fileName, sourceFilename ?: sourceFile?.name)
             set(it.filePath, sourceFile?.absoluteFile?.parent)
@@ -44,9 +42,6 @@ class ImportManager(private val data: DataRepository) {
             set(it.partitionTime, partitionTime)
             set(it.orderTime, orderTime)
             set(it.createTime, createTime)
-            set(it.actions, null)
         } as Int
-
-        return id
     }
 }
