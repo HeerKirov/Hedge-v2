@@ -1,6 +1,6 @@
 package com.heerkirov.hedge.server.components.service.manager
 
-object ManagerTool {
+object GeneralManager {
     /**
      * 检查命名是否符合要求。
      */

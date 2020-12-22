@@ -21,7 +21,7 @@ class TopicManager(private val data: DataRepository, private val annotationMgr: 
      */
     fun validateName(newName: String, thisId: Int? = null): String {
         return newName.trim().apply {
-            if(!ManagerTool.checkTagName(this)) throw ParamError("name")
+            if(!GeneralManager.checkTagName(this)) throw ParamError("name")
             if(data.db.sequenceOf(Topics).any { (it.name eq newName).runIf(thisId != null) { and (it.id notEq thisId!!) } })
                 throw AlreadyExists("Topic", "name", newName)
         }
@@ -32,7 +32,7 @@ class TopicManager(private val data: DataRepository, private val annotationMgr: 
      */
     fun validateOtherNames(newOtherNames: List<String>?): List<String> {
         return newOtherNames.let { if(it.isNullOrEmpty()) emptyList() else it.map(String::trim) }.apply {
-            if(any { !ManagerTool.checkTagName(it) }) throw ParamError("otherNames")
+            if(any { !GeneralManager.checkTagName(it) }) throw ParamError("otherNames")
         }
     }
 
@@ -110,6 +110,9 @@ class TopicManager(private val data: DataRepository, private val annotationMgr: 
         TODO("topic的导出")
     }
 
+    /**
+     * 校验child和parent之间的类型约束是否合法。
+     */
     private fun isLegalTypeConstraint(parent: Topic.Type, child: Topic.Type): Boolean {
         return child == Topic.Type.UNKNOWN || parent == Topic.Type.UNKNOWN ||
                 (child == Topic.Type.COPYRIGHT && parent == Topic.Type.COPYRIGHT) ||

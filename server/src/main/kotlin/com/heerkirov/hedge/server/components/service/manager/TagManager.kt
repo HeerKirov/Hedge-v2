@@ -22,7 +22,7 @@ class TagManager(private val data: DataRepository, private val annotationMgr: An
      */
     fun validateName(newName: String): String {
         return newName.trim().apply {
-            if(!ManagerTool.checkTagName(this)) throw ParamError("name")
+            if(!GeneralManager.checkTagName(this)) throw ParamError("name")
         }
     }
 
@@ -31,7 +31,7 @@ class TagManager(private val data: DataRepository, private val annotationMgr: An
      */
     fun validateOtherNames(newOtherNames: List<String>?): List<String> {
         return newOtherNames.let { if(it.isNullOrEmpty()) emptyList() else it.map(String::trim) }.apply {
-            if(any { !ManagerTool.checkTagName(it) }) throw ParamError("otherNames")
+            if(any { !GeneralManager.checkTagName(it) }) throw ParamError("otherNames")
         }
     }
 

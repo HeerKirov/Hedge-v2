@@ -84,7 +84,7 @@ class IllustManager(private val data: DataRepository,
             if(collection != null && !anyNotExportedMeta(collection.id, IllustTagRelations)
                 && !anyNotExportedMeta(collection.id, IllustAuthorRelations)
                 && !anyNotExportedMeta(collection.id, IllustTopicRelations)) {
-                //TODO tag存在且parent的tag不存在时，为parent重新导出exported tag
+                //TODO tag存在且parent的tag不存在时，为parent重新导出exported tag，放入导出队列
             }
         }else if (collection != null && anyNotExportedMeta(collection.id, IllustTagRelations)
             && anyNotExportedMeta(collection.id, IllustAuthorRelations)
@@ -124,46 +124,28 @@ class IllustManager(private val data: DataRepository,
     private fun processAllMeta(thisId: Int, creating: Boolean = false, newTags: List<Int>? = null, newTopics: List<Int>? = null, newAuthors: List<Int>? = null) {
         val tagAnnotations = if(newTags == null) null else
             processOneMeta(thisId, creating,
-                metaRelations = IllustTagRelations, metaAnnotationRelations = TagAnnotationRelations,
+                metaRelations = IllustTagRelations,
+                metaAnnotationRelations = TagAnnotationRelations,
                 newTagIds = tagMgr.exportTag(newTags))
         val topicAnnotations = if(newTopics == null) null else
             processOneMeta(thisId, creating,
-                metaRelations = IllustTopicRelations, metaAnnotationRelations = TopicAnnotationRelations,
+                metaRelations = IllustTopicRelations,
+                metaAnnotationRelations = TopicAnnotationRelations,
                 newTagIds = topicMgr.exportTopic(newTopics))
         val authorAnnotations = if(newAuthors == null) null else
             processOneMeta(thisId, creating,
-                metaRelations = IllustAuthorRelations, metaAnnotationRelations = AuthorAnnotationRelations,
+                metaRelations = IllustAuthorRelations,
+                metaAnnotationRelations = AuthorAnnotationRelations,
                 newTagIds = authorMgr.exportAuthor(newAuthors))
 
-        if(tagAnnotations != null || topicAnnotations != null || authorAnnotations != null) {
-            val oldAnnotations = data.db.from(IllustAnnotationRelations).select()
-                .where { IllustAnnotationRelations.illustId eq thisId }
-                .asSequence()
-                .map { Pair(it[IllustAnnotationRelations.illustId]!!, it[IllustAnnotationRelations.exportedFrom]!!) }
-                .toMap()
-
-            val adds = mutableMapOf<Int, Annotation.ExportedFrom>()
-            tagAnnotations?.filter { it !in oldAnnotations }?.forEach {
-                if(it !in adds) adds[it] = Annotation.ExportedFrom.TAG
-                else adds[it] = adds[it]!!.plus(Annotation.ExportedFrom.TAG)
-            }
-            topicAnnotations?.filter { it !in oldAnnotations }?.forEach {
-                if(it !in adds) adds[it] = Annotation.ExportedFrom.TOPIC
-                else adds[it] = adds[it]!!.plus(Annotation.ExportedFrom.TOPIC)
-            }
-            authorAnnotations?.filter { it !in oldAnnotations }?.forEach {
-                if(it !in adds) adds[it] = Annotation.ExportedFrom.AUTHOR
-                else adds[it] = adds[it]!!.plus(Annotation.ExportedFrom.AUTHOR)
-            }
-            //TODO 完成annotation导出到illust的过程。写起来十分麻烦。
-        }
+        processAnnotationOfMeta(thisId, tagAnnotations = tagAnnotations, topicAnnotations = topicAnnotations, authorAnnotations = authorAnnotations)
     }
 
     /**
      * 检验并处理某种类型的tag，并返回它导出的annotations。
      */
     private fun <R, RA> processOneMeta(thisId: Int, creating: Boolean = false, newTagIds: List<Pair<Int, Boolean>>,
-                                       metaRelations: R, metaAnnotationRelations: RA): List<Int> where R: EntityMetaRelationTable<*>, RA: MetaAnnotationRelationTable<*> {
+                                       metaRelations: R, metaAnnotationRelations: RA): Set<Int> where R: EntityMetaRelationTable<*>, RA: MetaAnnotationRelationTable<*> {
         val tagIds = newTagIds.toMap()
         val oldTagIds = if(creating) emptyMap() else {
             data.db.from(metaRelations).select(metaRelations.metaId(), metaRelations.exported())
@@ -206,12 +188,82 @@ class IllustManager(private val data: DataRepository,
             }
         }
 
-        return if(tagIds.isEmpty()) emptyList() else {
+        return if(tagIds.isEmpty()) emptySet() else {
             data.db.from(metaAnnotationRelations)
                 .innerJoin(Annotations, (metaAnnotationRelations.annotationId() eq Annotations.id) and Annotations.canBeExported)
                 .select(Annotations.id)
                 .where { metaAnnotationRelations.metaId() inList tagIds.keys }
+                .asSequence()
                 .map { it[Annotations.id]!! }
+                .toSet()
+        }
+    }
+
+    /**
+     * 当关联的meta变化时，会引发间接关联的annotation的变化，处理这种变化。
+     */
+    private fun processAnnotationOfMeta(thisId: Int, tagAnnotations: Set<Int>?, authorAnnotations: Set<Int>?, topicAnnotations: Set<Int>?) {
+        if(tagAnnotations != null || topicAnnotations != null || authorAnnotations != null) {
+            val oldAnnotations = data.db.from(IllustAnnotationRelations).select()
+                .where { IllustAnnotationRelations.illustId eq thisId }
+                .asSequence()
+                .map { Pair(it[IllustAnnotationRelations.illustId]!!, it[IllustAnnotationRelations.exportedFrom]!!) }
+                .toMap()
+
+            val adds = mutableMapOf<Int, Annotation.ExportedFrom>()
+            val changes = mutableMapOf<Int, Annotation.ExportedFrom>()
+            val deletes = mutableListOf<Int>()
+
+            tagAnnotations?.filter { it !in oldAnnotations }?.forEach {
+                adds[it] = if(it !in adds) Annotation.ExportedFrom.TAG
+                else adds[it]!!.plus(Annotation.ExportedFrom.TAG)
+            }
+            topicAnnotations?.filter { it !in oldAnnotations }?.forEach {
+                adds[it] = if(it !in adds) Annotation.ExportedFrom.TOPIC
+                else adds[it]!!.plus(Annotation.ExportedFrom.TOPIC)
+            }
+            authorAnnotations?.filter { it !in oldAnnotations }?.forEach {
+                adds[it] = if(it !in adds) Annotation.ExportedFrom.AUTHOR
+                else adds[it]!!.plus(Annotation.ExportedFrom.AUTHOR)
+            }
+
+            for ((annotationId, oldExportedFrom) in oldAnnotations) {
+                var exportedFrom = oldExportedFrom
+                fun processOneCase(case: Set<Int>?, value: Annotation.ExportedFrom) {
+                    if(case != null) if(annotationId in case) exportedFrom += value else exportedFrom -= value
+                }
+                processOneCase(tagAnnotations, Annotation.ExportedFrom.TAG)
+                processOneCase(authorAnnotations, Annotation.ExportedFrom.AUTHOR)
+                processOneCase(topicAnnotations, Annotation.ExportedFrom.TOPIC)
+                if(exportedFrom != oldExportedFrom) {
+                    if(exportedFrom.isEmpty()) {
+                        //值已经被删除至empty，表示已标记为删除状态
+                        deletes.add(annotationId)
+                    }else{
+                        //否则仅为changed
+                        changes[annotationId] = exportedFrom
+                    }
+                }
+            }
+
+            if(adds.isNotEmpty()) data.db.batchInsert(IllustAnnotationRelations) {
+                for ((addId, exportedFrom) in adds) {
+                    item {
+                        set(it.illustId, thisId)
+                        set(it.annotationId, addId)
+                        set(it.exportedFrom, exportedFrom)
+                    }
+                }
+            }
+            if(changes.isNotEmpty()) data.db.batchUpdate(IllustAnnotationRelations) {
+                for ((changeId, exportedFrom) in changes) {
+                    item {
+                        where { (it.illustId eq thisId) and (it.annotationId eq changeId) }
+                        set(it.exportedFrom, exportedFrom)
+                    }
+                }
+            }
+            if(deletes.isNotEmpty()) data.db.delete(IllustAnnotationRelations) { (it.illustId eq thisId) and (it.annotationId inList deletes) }
         }
     }
 

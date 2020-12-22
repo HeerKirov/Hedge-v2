@@ -13,6 +13,8 @@ abstract class Composition<T : Composition<T>>(clazz: KClass<T>, val value: Int)
 
     operator fun plus(target: Composition<T>): T = newInstance(value or target.value)
 
+    operator fun minus(target: Composition<T>): T = newInstance(value and target.value.inv())
+
     operator fun contains(element: Composition<T>): Boolean = element.value and value.inv() == 0
 
     fun any(element: Composition<T>): Boolean = element.value and value != 0

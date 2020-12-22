@@ -19,7 +19,7 @@ class AnnotationManager(private val data: DataRepository) {
      */
     fun validateName(newName: String, thisId: Int? = null): String {
         return newName.trim().apply {
-            if(!ManagerTool.checkTagName(this)) throw ParamError("name")
+            if(!GeneralManager.checkTagName(this)) throw ParamError("name")
             if(data.db.sequenceOf(Annotations).any { (it.name eq newName).runIf(thisId != null) { and (it.id notEq thisId!!) } })
                 throw AlreadyExists("Annotation", "name", newName)
         }
