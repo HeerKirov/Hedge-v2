@@ -64,6 +64,8 @@ data class LifetimeOptions(
 class LifetimeImpl(private val context: FrameworkContext, private val options: LifetimeOptions) : Lifetime {
     private val log: Logger = LoggerFactory.getLogger(LifetimeImpl::class.java)
 
+    private lateinit var statefulComponents: List<StatefulComponent>
+
     private val lifetimes: MutableMap<String, LifetimeRow> = ConcurrentHashMap()
     private val signals: MutableList<Long> = LinkedList()
 
@@ -100,9 +102,11 @@ class LifetimeImpl(private val context: FrameworkContext, private val options: L
         }
     }
 
-    override fun thread() {
-        val statefulComponents = context.getComponents().filterIsInstance<StatefulComponent>()
+    override fun load() {
+        statefulComponents = context.getComponents().filterIsInstance<StatefulComponent>()
+    }
 
+    override fun thread() {
         var continuous = 0
         while (true) {
             Thread.sleep(options.threadInterval)

@@ -40,12 +40,12 @@ interface DataRepository : Component {
     fun saveMetadata()
 }
 
-data class DataOptions(
+data class RepositoryOptions(
     val channel: String,
     val userDataPath: String
 )
 
-class DataRepositoryImpl(options: DataOptions) : DataRepository {
+class DataRepositoryImpl(options: RepositoryOptions) : DataRepository {
     private var instance: DBInstance? = null
 
     private var statusRef: LoadStatus = LoadStatus.NOT_INIT

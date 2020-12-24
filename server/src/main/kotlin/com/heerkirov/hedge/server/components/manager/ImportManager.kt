@@ -1,4 +1,4 @@
-package com.heerkirov.hedge.server.components.service.manager
+package com.heerkirov.hedge.server.components.manager
 
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.dao.ImportImages
@@ -17,7 +17,7 @@ class ImportManager(private val data: DataRepository) {
      * 创建一条新的import记录。
      * @return import image id
      */
-    fun create(fileId: Int, sourceFile: File? = null, sourceFilename: String? = null): Int {
+    fun newImportRecord(fileId: Int, sourceFile: File? = null, sourceFilename: String? = null): Int {
         val attr = sourceFile?.let { Files.readAttributes(it.toPath(), BasicFileAttributes::class.java) }
 
         val createTime = DateTime.now()

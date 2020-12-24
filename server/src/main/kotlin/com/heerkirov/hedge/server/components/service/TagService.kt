@@ -5,8 +5,8 @@ import com.heerkirov.hedge.server.components.database.transaction
 import com.heerkirov.hedge.server.dao.*
 import com.heerkirov.hedge.server.exceptions.*
 import com.heerkirov.hedge.server.form.*
-import com.heerkirov.hedge.server.components.service.manager.FileManager
-import com.heerkirov.hedge.server.components.service.manager.TagManager
+import com.heerkirov.hedge.server.components.manager.FileManager
+import com.heerkirov.hedge.server.components.kit.TagKit
 import com.heerkirov.hedge.server.model.Tag
 import com.heerkirov.hedge.server.utils.*
 import com.heerkirov.hedge.server.utils.ktorm.OrderTranslator
@@ -15,7 +15,7 @@ import com.heerkirov.hedge.server.utils.types.*
 import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.entity.*
 
-class TagService(private val data: DataRepository, private val tagMgr: TagManager, private val fileMgr: FileManager) {
+class TagService(private val data: DataRepository, private val kit: TagKit, private val fileManager: FileManager) {
     private val orderTranslator = OrderTranslator {
         "id" to Tags.id
         "name" to Tags.name
@@ -47,8 +47,8 @@ class TagService(private val data: DataRepository, private val tagMgr: TagManage
     }
 
     fun create(form: TagCreateForm): Int {
-        val name = tagMgr.validateName(form.name)
-        val otherNames = tagMgr.validateOtherNames(form.otherNames)
+        val name = kit.validateName(form.name)
+        val otherNames = kit.validateOtherNames(form.otherNames)
 
         data.db.transaction {
             //检查parent是否存在
@@ -67,10 +67,10 @@ class TagService(private val data: DataRepository, private val tagMgr: TagManage
             }
 
             //存在link时，检查link的目标是否存在
-            val links = tagMgr.validateLinks(form.links)
+            val links = kit.validateLinks(form.links)
 
             //存在example时，检查example的目标是否存在，以及限制illust不能是collection
-            val examples = tagMgr.validateExamples(form.examples)
+            val examples = kit.validateExamples(form.examples)
 
             val tagCountInParent = lazy {
                 data.db.sequenceOf(Tags)
@@ -109,7 +109,7 @@ class TagService(private val data: DataRepository, private val tagMgr: TagManage
                 set(it.cachedCount, 0)
             } as Int
 
-            tagMgr.processAnnotations(id, form.annotations, creating = true)
+            kit.processAnnotations(id, form.annotations, creating = true)
 
             return id
         }
@@ -129,9 +129,9 @@ class TagService(private val data: DataRepository, private val tagMgr: TagManage
             .select(Illusts.id, FileRecords.id, FileRecords.folder, FileRecords.extension, FileRecords.thumbnail)
             .where { Illusts.id inList tag.examples }
             .map { TagDetailRes.Example(it[Illusts.id]!!, if(it[FileRecords.thumbnail]!!) {
-                fileMgr.getThumbnailPath(it[FileRecords.folder]!!, it[FileRecords.id]!!)
+                fileManager.getThumbnailPath(it[FileRecords.folder]!!, it[FileRecords.id]!!)
             }else{
-                fileMgr.getFilepath(it[FileRecords.folder]!!, it[FileRecords.id]!!, it[FileRecords.extension]!!)
+                fileManager.getFilepath(it[FileRecords.folder]!!, it[FileRecords.id]!!, it[FileRecords.extension]!!)
             }) }
 
         return newTagDetailRes(tag, annotations, examples)
@@ -145,10 +145,10 @@ class TagService(private val data: DataRepository, private val tagMgr: TagManage
             //     links发生变化时，会引发关联内容重导出
             //     type的类型发生变化时，会引发关联内容重导出
 
-            val newName = form.name.letOpt { tagMgr.validateName(it) }
-            val newOtherNames = form.otherNames.letOpt { tagMgr.validateOtherNames(it) }
-            val newLinks = form.links.runOpt { tagMgr.validateLinks(this) }
-            val newExamples = form.examples.runOpt { tagMgr.validateExamples(this) }
+            val newName = form.name.letOpt { kit.validateName(it) }
+            val newOtherNames = form.otherNames.letOpt { kit.validateOtherNames(it) }
+            val newLinks = form.links.runOpt { kit.validateLinks(this) }
+            val newExamples = form.examples.runOpt { kit.validateExamples(this) }
 
             val (newParentId, newOrdinal) = if(form.parentId.isPresent && form.parentId.value != record.parentId) {
                 //parentId发生了变化
@@ -254,7 +254,7 @@ class TagService(private val data: DataRepository, private val tagMgr: TagManage
                 }
             }
 
-            form.annotations.letOpt { newAnnotations -> tagMgr.processAnnotations(id, newAnnotations) }
+            form.annotations.letOpt { newAnnotations -> kit.processAnnotations(id, newAnnotations) }
 
             newColor.letOpt { color ->
                 fun recursionUpdateColor(parentId: Int) {

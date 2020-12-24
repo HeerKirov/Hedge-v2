@@ -1,13 +1,13 @@
 package com.heerkirov.hedge.server
 
-import com.heerkirov.hedge.server.application.Application
 import com.heerkirov.hedge.server.application.ApplicationOptions
+import com.heerkirov.hedge.server.application.runApplication
 import com.heerkirov.hedge.server.utils.Parameters
 
 fun main(args: Array<String>) {
     val parameters = Parameters(args)
 
-    Application(
+    runApplication(
         ApplicationOptions(
             channel = parameters["--channel"]!!,
             userDataPath = parameters["--user-data"]!!,

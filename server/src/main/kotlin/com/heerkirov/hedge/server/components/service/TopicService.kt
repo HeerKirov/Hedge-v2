@@ -5,7 +5,7 @@ import com.heerkirov.hedge.server.components.database.transaction
 import com.heerkirov.hedge.server.dao.*
 import com.heerkirov.hedge.server.exceptions.NotFound
 import com.heerkirov.hedge.server.form.*
-import com.heerkirov.hedge.server.components.service.manager.TopicManager
+import com.heerkirov.hedge.server.components.kit.TopicKit
 import com.heerkirov.hedge.server.model.Illust
 import com.heerkirov.hedge.server.utils.ktorm.OrderTranslator
 import com.heerkirov.hedge.server.utils.ktorm.first
@@ -18,7 +18,7 @@ import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.entity.firstOrNull
 import me.liuwj.ktorm.entity.sequenceOf
 
-class TopicService(private val data: DataRepository, private val topicMgr: TopicManager) {
+class TopicService(private val data: DataRepository, private val kit: TopicKit) {
     private val orderTranslator = OrderTranslator {
         "id" to Topics.id
         "name" to Topics.name
@@ -40,12 +40,12 @@ class TopicService(private val data: DataRepository, private val topicMgr: Topic
 
     fun create(form: TopicCreateForm): Int {
         data.db.transaction {
-            val name = topicMgr.validateName(form.name)
-            val otherNames = topicMgr.validateOtherNames(form.otherNames)
+            val name = kit.validateName(form.name)
+            val otherNames = kit.validateOtherNames(form.otherNames)
 
-            val parentId = form.parentId?.apply { topicMgr.validateParentType(this, form.type) }
+            val parentId = form.parentId?.apply { kit.validateParentType(this, form.type) }
 
-            val annotations = topicMgr.validateAnnotations(form.annotations, form.type)
+            val annotations = kit.validateAnnotations(form.annotations, form.type)
 
             val id = data.db.insertAndGenerateKey(Topics) {
                 set(it.name, name)
@@ -61,7 +61,7 @@ class TopicService(private val data: DataRepository, private val topicMgr: Topic
                 set(it.cachedAnnotations, annotations)
             } as Int
 
-            topicMgr.processAnnotations(id, annotations.asSequence().map { it.id }.toSet(), creating = true)
+            kit.processAnnotations(id, annotations.asSequence().map { it.id }.toSet(), creating = true)
 
             return id
         }
@@ -77,18 +77,18 @@ class TopicService(private val data: DataRepository, private val topicMgr: Topic
         data.db.transaction {
             val record = data.db.sequenceOf(Topics).firstOrNull { it.id eq id } ?: throw NotFound()
 
-            val newName = form.name.letOpt { topicMgr.validateName(it, id) }
-            val newOtherNames = form.otherNames.letOpt { topicMgr.validateOtherNames(it) }
+            val newName = form.name.letOpt { kit.validateName(it, id) }
+            val newOtherNames = form.otherNames.letOpt { kit.validateOtherNames(it) }
 
             val newParentId = if(form.parentId.isPresent || form.type.isPresent) {
                 form.parentId.also {
                     it.unwrapOr { record.parentId }?.let { parentId ->
-                        topicMgr.validateParentType(parentId, form.type.unwrapOr { record.type }, id)
+                        kit.validateParentType(parentId, form.type.unwrapOr { record.type }, id)
                     }
                 }
             }else undefined()
 
-            form.type.letOpt { type -> topicMgr.checkChildrenType(id, type) }
+            form.type.letOpt { type -> kit.checkChildrenType(id, type) }
 
             val newExportedScore = form.score.letOpt {
                 it ?: data.db.from(Illusts)
@@ -98,7 +98,7 @@ class TopicService(private val data: DataRepository, private val topicMgr: Topic
                     .first().getInt("count")
             }
 
-            val newAnnotations = form.annotations.letOpt { topicMgr.validateAnnotations(it, form.type.unwrapOr { record.type }) }
+            val newAnnotations = form.annotations.letOpt { kit.validateAnnotations(it, form.type.unwrapOr { record.type }) }
 
             if(anyOpt(newName, newOtherNames, newParentId, form.type, form.description, form.links, form.favorite, form.score, newExportedScore, newAnnotations)) {
                 data.db.update(Topics) {
@@ -117,7 +117,7 @@ class TopicService(private val data: DataRepository, private val topicMgr: Topic
             }
 
 
-            newAnnotations.letOpt { annotations -> topicMgr.processAnnotations(id, annotations.asSequence().map { it.id }.toSet()) }
+            newAnnotations.letOpt { annotations -> kit.processAnnotations(id, annotations.asSequence().map { it.id }.toSet()) }
         }
     }
 

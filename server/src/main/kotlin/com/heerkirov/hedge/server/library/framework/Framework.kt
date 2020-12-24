@@ -15,7 +15,7 @@ class Framework {
 
     private val components: MutableList<Component> = LinkedList()
 
-    private val context = FrameworkContextImpl()
+    val context = FrameworkContextImpl()
 
     private val exceptions: MutableList<Exception> = ArrayList()
 
@@ -28,38 +28,8 @@ class Framework {
         })
     }
 
-    /**
-     * 增加一个新的component。
-     */
-    fun <T : Component> addComponent(call: (context: FrameworkContext) -> T): Framework {
-        components.add(call(context))
-        return this
-    }
-
-    fun addComponents(call: (context: FrameworkContext) -> Sequence<Component>): Framework {
-        components.addAll(call(context))
-        return this
-    }
-
-    /**
-     * 取得一个已注册的component。
-     */
-    fun <T : Component> getComponent(target: KClass<T>): T {
-        for (component in components) {
-            val clazz = component::class
-            if(target == clazz || clazz.allSuperclasses.any { it == target }) {
-                @Suppress("UNCHECKED_CAST")
-                return component as T
-            }
-        }
-        throw RuntimeException("Component $target not found in framework.")
-    }
-
-    /**
-     * 取得全部已注册的component。
-     */
-    fun getComponents(): List<Component> {
-        return components
+    fun <T : Component> addComponent(component: T) {
+        components.add(component)
     }
 
     /**
@@ -80,10 +50,31 @@ class Framework {
     }
 
     inner class FrameworkContextImpl : FrameworkContext {
-        override fun <T : Component> getComponent(clazz: KClass<T>): T = this@Framework.getComponent(clazz)
+        override fun <T : Component> getComponent(target: KClass<T>): T {
+            for (component in components) {
+                val clazz = component::class
+                if(target == clazz || clazz.allSuperclasses.any { it == target }) {
+                    @Suppress("UNCHECKED_CAST")
+                    return component as T
+                }
+            }
+            throw RuntimeException("Component $target not found in framework.")
+        }
 
-        override fun getComponents(): List<Component> = this@Framework.getComponents()
+        override fun getComponents(): List<Component> = this@Framework.components
 
         override fun getExceptions(): List<Exception> = this@Framework.exceptions
     }
+}
+
+inline fun <T : Component> Framework.define(call:() -> T): T {
+    val component = call()
+    addComponent(component)
+    return component
+}
+
+inline fun framework(block: Framework.() -> Unit) {
+    val framework = Framework()
+    framework.block()
+    framework.start()
 }

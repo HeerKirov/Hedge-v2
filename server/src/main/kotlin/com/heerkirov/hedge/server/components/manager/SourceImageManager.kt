@@ -1,4 +1,4 @@
-package com.heerkirov.hedge.server.components.service.manager
+package com.heerkirov.hedge.server.components.manager
 
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.exceptions.ParamNotRequired

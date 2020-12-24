@@ -1,6 +1,7 @@
-package com.heerkirov.hedge.server.components.service.manager
+package com.heerkirov.hedge.server.components.kit
 
 import com.heerkirov.hedge.server.components.database.DataRepository
+import com.heerkirov.hedge.server.components.manager.AnnotationManager
 import com.heerkirov.hedge.server.dao.Illusts
 import com.heerkirov.hedge.server.dao.TagAnnotationRelations
 import com.heerkirov.hedge.server.dao.Tags
@@ -9,20 +10,20 @@ import com.heerkirov.hedge.server.exceptions.ResourceNotSuitable
 import com.heerkirov.hedge.server.exceptions.ResourceNotExist
 import com.heerkirov.hedge.server.model.Annotation
 import com.heerkirov.hedge.server.model.Illust
+import com.heerkirov.hedge.server.tools.checkTagName
 import com.heerkirov.hedge.server.utils.ktorm.asSequence
 import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.entity.filter
 import me.liuwj.ktorm.entity.sequenceOf
 import me.liuwj.ktorm.entity.toList
 
-class TagManager(private val data: DataRepository, private val annotationMgr: AnnotationManager) {
-
+class TagKit(private val data: DataRepository, private val annotationManager: AnnotationManager) {
     /**
      * 校验并纠正name。
      */
     fun validateName(newName: String): String {
         return newName.trim().apply {
-            if(!GeneralManager.checkTagName(this)) throw ParamError("name")
+            if(!checkTagName(this)) throw ParamError("name")
         }
     }
 
@@ -31,7 +32,7 @@ class TagManager(private val data: DataRepository, private val annotationMgr: An
      */
     fun validateOtherNames(newOtherNames: List<String>?): List<String> {
         return newOtherNames.let { if(it.isNullOrEmpty()) emptyList() else it.map(String::trim) }.apply {
-            if(any { !GeneralManager.checkTagName(it) }) throw ParamError("otherNames")
+            if(any { !checkTagName(it) }) throw ParamError("otherNames")
         }
     }
 
@@ -70,7 +71,7 @@ class TagManager(private val data: DataRepository, private val annotationMgr: An
      * 检验给出的annotations参数的正确性，根据需要add/delete。
      */
     fun processAnnotations(thisId: Int, newAnnotations: List<Any>?, creating: Boolean = false) {
-        val annotationIds = if(newAnnotations != null) annotationMgr.analyseAnnotationParam(newAnnotations, Annotation.AnnotationTarget.TAG) else emptyMap()
+        val annotationIds = if(newAnnotations != null) annotationManager.analyseAnnotationParam(newAnnotations, Annotation.AnnotationTarget.TAG) else emptyMap()
         val oldAnnotationIds = if(creating) emptySet() else {
             data.db.from(TagAnnotationRelations).select(TagAnnotationRelations.annotationId)
                 .where { TagAnnotationRelations.tagId eq thisId }
@@ -91,18 +92,5 @@ class TagManager(private val data: DataRepository, private val annotationMgr: An
                 }
             }
         }
-    }
-
-    /**
-     * 该方法使用在设置tag时，对tag进行校验并导出，返回声明式的tag列表。
-     * @return 一组tag。Int表示tag id，Boolean表示此tag是否为导出tag。
-     */
-    fun exportTag(tags: List<Int>): List<Pair<Int, Boolean>> {
-        val ids = data.db.from(Tags).select(Tags.id).where { Tags.id inList tags }.map { it[Tags.id]!! }
-        if(ids.size < tags.size) {
-            throw ResourceNotExist("tags", tags.toSet() - ids.toSet())
-        }
-
-        TODO("tag的导出")
     }
 }

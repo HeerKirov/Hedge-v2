@@ -1,4 +1,4 @@
-package com.heerkirov.hedge.server.components.service.manager
+package com.heerkirov.hedge.server.components.manager
 
 import com.heerkirov.hedge.server.components.appdata.AppDataDriver
 import com.heerkirov.hedge.server.components.database.DataRepository
@@ -19,8 +19,6 @@ import java.io.File
 import java.time.LocalDate
 
 class FileManager(private val appdata: AppDataDriver, private val data: DataRepository) {
-    private val extensions = arrayOf("jpeg", "jpg", "png", "gif", "mp4", "webm")
-
     /**
      * 将指定的File载入到数据库中，同时创建一条新记录。
      * - folder指定为载入时的本地日期。
@@ -88,14 +86,6 @@ class FileManager(private val appdata: AppDataDriver, private val data: DataRepo
     }
 
     /**
-     * 查询一个指定的物理文件。
-     * 因为模式固定且多处使用，因此封装为一次调用。
-     */
-    private fun getFile(fileId: Int): FileRecord? {
-        return data.db.sequenceOf(FileRecords).firstOrNull { it.id eq fileId }
-    }
-
-    /**
      * 删除指定的物理文件。
      * 这是一层被包装的伪删除，数据库中的记录将保留，以便同步。
      */
@@ -123,6 +113,14 @@ class FileManager(private val appdata: AppDataDriver, private val data: DataRepo
     }
 
     /**
+     * 查询一个指定的物理文件记录。
+     * 因为模式固定且多处使用，因此封装为一次调用。
+     */
+    private fun getFile(fileId: Int): FileRecord? {
+        return data.db.sequenceOf(FileRecords).firstOrNull { it.id eq fileId }
+    }
+
+    /**
      * 导出文件路径。
      */
     fun getFilepath(folder: String, fileId: Int, extension: String): String {
@@ -145,4 +143,5 @@ class FileManager(private val appdata: AppDataDriver, private val data: DataRepo
         }
     }
 
+    private val extensions = arrayOf("jpeg", "jpg", "png", "gif", "mp4", "webm")
 }

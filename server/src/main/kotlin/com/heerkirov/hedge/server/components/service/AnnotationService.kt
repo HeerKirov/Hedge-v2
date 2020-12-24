@@ -2,10 +2,10 @@ package com.heerkirov.hedge.server.components.service
 
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.database.transaction
+import com.heerkirov.hedge.server.components.kit.AnnotationKit
 import com.heerkirov.hedge.server.dao.*
 import com.heerkirov.hedge.server.exceptions.NotFound
 import com.heerkirov.hedge.server.form.*
-import com.heerkirov.hedge.server.components.service.manager.AnnotationManager
 import com.heerkirov.hedge.server.utils.types.anyOpt
 import com.heerkirov.hedge.server.utils.ktorm.contains
 import com.heerkirov.hedge.server.utils.types.ListResult
@@ -14,7 +14,7 @@ import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.entity.firstOrNull
 import me.liuwj.ktorm.entity.sequenceOf
 
-class AnnotationService(private val data: DataRepository, private val annotationMgr: AnnotationManager) {
+class AnnotationService(private val data: DataRepository, private val kit: AnnotationKit) {
     fun list(filter: AnnotationFilter): ListResult<AnnotationRes> {
         return data.db.from(Annotations).select()
             .whereWithConditions {
@@ -27,7 +27,7 @@ class AnnotationService(private val data: DataRepository, private val annotation
 
     fun create(form: AnnotationCreateForm): Int {
         data.db.transaction {
-            val name = annotationMgr.validateName(form.name)
+            val name = kit.validateName(form.name)
             return data.db.insertAndGenerateKey(Annotations) {
                 set(it.name, name)
                 set(it.canBeExported, form.canBeExported)
@@ -46,7 +46,7 @@ class AnnotationService(private val data: DataRepository, private val annotation
         data.db.transaction {
             data.db.sequenceOf(Annotations).firstOrNull { it.id eq id } ?: throw NotFound()
 
-            val newName = form.name.letOpt { annotationMgr.validateName(it, id) }
+            val newName = form.name.letOpt { kit.validateName(it, id) }
             if(anyOpt(newName, form.canBeExported, form.target)) {
                 data.db.update(Annotations) {
                     where { it.id eq id }
@@ -68,7 +68,7 @@ class AnnotationService(private val data: DataRepository, private val annotation
             data.db.delete(AlbumAnnotationRelations) { it.annotationId eq id }
             data.db.delete(TagAnnotationRelations) { it.annotationId eq id }
 
-            annotationMgr.updateAnnotationCacheForDelete(id)
+            kit.updateAnnotationCacheForDelete(id)
             data.db.delete(AuthorAnnotationRelations) { it.annotationId eq id }
             data.db.delete(TopicAnnotationRelations) { it.annotationId eq id }
         }

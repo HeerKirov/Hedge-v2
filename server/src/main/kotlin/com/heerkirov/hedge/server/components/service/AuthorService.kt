@@ -2,10 +2,10 @@ package com.heerkirov.hedge.server.components.service
 
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.database.transaction
+import com.heerkirov.hedge.server.components.kit.AuthorKit
 import com.heerkirov.hedge.server.dao.*
 import com.heerkirov.hedge.server.exceptions.NotFound
 import com.heerkirov.hedge.server.form.*
-import com.heerkirov.hedge.server.components.service.manager.AuthorManager
 import com.heerkirov.hedge.server.model.Illust
 import com.heerkirov.hedge.server.utils.ktorm.OrderTranslator
 import com.heerkirov.hedge.server.utils.ktorm.first
@@ -17,7 +17,7 @@ import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.entity.firstOrNull
 import me.liuwj.ktorm.entity.sequenceOf
 
-class AuthorService(private val data: DataRepository, private val authorMgr: AuthorManager) {
+class AuthorService(private val data: DataRepository, private val kit: AuthorKit) {
     private val orderTranslator = OrderTranslator {
         "id" to Authors.id
         "name" to Authors.name
@@ -38,10 +38,10 @@ class AuthorService(private val data: DataRepository, private val authorMgr: Aut
 
     fun create(form: AuthorCreateForm): Int {
         data.db.transaction {
-            val name = authorMgr.validateName(form.name)
-            val otherNames = authorMgr.validateOtherNames(form.otherNames)
+            val name = kit.validateName(form.name)
+            val otherNames = kit.validateOtherNames(form.otherNames)
 
-            val annotations = authorMgr.validateAnnotations(form.annotations, form.type)
+            val annotations = kit.validateAnnotations(form.annotations, form.type)
 
             val id = data.db.insertAndGenerateKey(Authors) {
                 set(it.name, name)
@@ -56,7 +56,7 @@ class AuthorService(private val data: DataRepository, private val authorMgr: Aut
                 set(it.cachedAnnotations, annotations)
             } as Int
 
-            authorMgr.processAnnotations(id, annotations.asSequence().map { it.id }.toSet(), creating = true)
+            kit.processAnnotations(id, annotations.asSequence().map { it.id }.toSet(), creating = true)
 
             return id
         }
@@ -72,10 +72,10 @@ class AuthorService(private val data: DataRepository, private val authorMgr: Aut
         data.db.transaction {
             val record = data.db.sequenceOf(Authors).firstOrNull { it.id eq id } ?: throw NotFound()
 
-            val newName = form.name.letOpt { authorMgr.validateName(it, id) }
-            val newOtherNames = form.otherNames.letOpt { authorMgr.validateOtherNames(it) }
+            val newName = form.name.letOpt { kit.validateName(it, id) }
+            val newOtherNames = form.otherNames.letOpt { kit.validateOtherNames(it) }
 
-            val newAnnotations = form.annotations.letOpt { authorMgr.validateAnnotations(it, form.type.unwrapOr { record.type }) }
+            val newAnnotations = form.annotations.letOpt { kit.validateAnnotations(it, form.type.unwrapOr { record.type }) }
 
             val newExportedScore = form.score.letOpt {
                 it ?: data.db.from(Illusts)
@@ -100,7 +100,7 @@ class AuthorService(private val data: DataRepository, private val authorMgr: Aut
                 }
             }
 
-            newAnnotations.letOpt { annotations -> authorMgr.processAnnotations(id, annotations.asSequence().map { it.id }.toSet()) }
+            newAnnotations.letOpt { annotations -> kit.processAnnotations(id, annotations.asSequence().map { it.id }.toSet()) }
         }
     }
 
