@@ -36,3 +36,14 @@ class CannotGiveColorError : BadRequestException("CANNOT_GIVE_COLOR", "Cannot gi
  * - 更新topic的type，且type与任意children不适用时
  */
 class IllegalConstraintError(paramName: String, relation: String, relationValue: Any?) : BadRequestException("ILLEGAL_CONSTRAINT", "Param '$paramName' is illegal for constraint of $relation with $paramName $relationValue.", listOf(paramName, relation, relationValue))
+
+/**
+ * 当给出的tag组中，直接存在或间接导出了具有强制属性的同一冲突组下的至少两个成员时，抛出此异常。
+ * 抛出位置：
+ * - 设定illust的tags时
+ * @param conflictingMembers 发生冲突的组成员。外层Map指代组，内层List指代同一个组下冲突的组员。
+ */
+class ConflictingGroupMembersError(conflictingMembers: Map<Int, List<ConflictingMember>>) : BadRequestException("CONFLICTING_GROUP_MEMBERS",
+    "Tags ${conflictingMembers.entries.joinToString { (groupId, members) -> "$groupId: [${members.joinToString { "${it.member}(${it.memberId})" }}]" }} are in same conflicting group.", conflictingMembers) {
+    data class ConflictingMember(val memberId: Int, val member: String)
+}
