@@ -20,6 +20,7 @@ CREATE TABLE illust(
     exported_score			    INTEGER DEFAULT NULL,               -- [导出]导出的评分。聚合时取平均值
 
     relations                   TEXT DEFAULT NULL,                  -- 裙带关系::json<number[]>
+    exported_relations          TEXT DEFAULT NULL,                  -- [导出]裙带关系
 
     partition_time	            DATE NOT NULL,                      -- 用于日历分组的时间。集合的值是导出值，取最早项
     order_time			        BIGINT NOT NULL,                    -- 用于排序的时间。集合的值是导出值，取最早时间

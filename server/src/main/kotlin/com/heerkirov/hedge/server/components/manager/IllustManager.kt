@@ -1,5 +1,7 @@
 package com.heerkirov.hedge.server.components.manager
 
+import com.heerkirov.hedge.server.components.backend.MetaExporter
+import com.heerkirov.hedge.server.components.backend.MetaExporterTask
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.kit.IllustKit
 import com.heerkirov.hedge.server.dao.*
@@ -14,7 +16,9 @@ import java.time.LocalDateTime
 
 class IllustManager(private val data: DataRepository,
                     private val kit: IllustKit,
-                    private val sourceImageManager: SourceImageManager) {
+                    private val relationManager: RelationManager,
+                    private val sourceImageManager: SourceImageManager,
+                    private val metaExporter: MetaExporter) {
     /**
      * 创建新的image。
      */
@@ -29,7 +33,7 @@ class IllustManager(private val data: DataRepository,
                 ?: throw ResourceNotExist("parentId", collectionId)
         }
 
-        if(relations != null) kit.checkRelations(relations)
+        if(relations != null) relationManager.validateRelations(relations)
         if(source != null) sourceImageManager.checkSource(source, sourceId, sourcePart)
 
         val exportedDescription = if(description.isEmpty() && collection != null) collection.exportedDescription else description
@@ -71,6 +75,8 @@ class IllustManager(private val data: DataRepository,
             }
         }
 
+        if(relations != null) relationManager.processExportedRelations(id, relations)
+
         if(tags != null || authors != null || topics != null) {
             //指定了任意tags时，对tag进行校验和分析，导出，并同时导出annotations
             kit.processAllMeta(id, creating = true, newTags = tags, newTopics = topics, newAuthors = authors)
@@ -78,7 +84,7 @@ class IllustManager(private val data: DataRepository,
             if(collection != null && !kit.anyNotExportedMeta(collection.id, IllustTagRelations)
                 && !kit.anyNotExportedMeta(collection.id, IllustAuthorRelations)
                 && !kit.anyNotExportedMeta(collection.id, IllustTopicRelations)) {
-                //TODO tag存在且parent的tag不存在时，为parent重新导出exported tag，放入导出队列
+                metaExporter.appendNewTask(MetaExporterTask.Type.ILLUST, collection.id)
             }
         }else if (collection != null && kit.anyNotExportedMeta(collection.id, IllustTagRelations)
             && kit.anyNotExportedMeta(collection.id, IllustAuthorRelations)

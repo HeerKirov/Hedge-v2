@@ -193,15 +193,4 @@ class IllustKit(private val data: DataRepository, private val metaManager: MetaM
             .firstOrNull()?.getInt("count")
             ?.let { it > 0 } ?: false
     }
-
-    /**
-     * 校验裙带关系relations。
-     */
-    fun checkRelations(relations: List<Int>) {
-        val relationResult = data.db.from(Illusts).select(Illusts.id).where { Illusts.id inList relations }.map { it[Illusts.id]!! }
-        if(relationResult.size < relations.size) {
-            throw ResourceNotExist("relations", relations.toSet() - relationResult.toSet())
-        }
-        //TODO relations需要使用拓扑结构，对关联的/旧关联的对象的relations也进行更新。
-    }
 }

@@ -20,6 +20,7 @@ object Illusts : BaseTable<Illust>("illust") {
     val favorite = boolean("favorite")
     val tagme = composition<Illust.Tagme>("tagme")
     val relations = json("relations", typeRef<List<Int>>())
+    val exportedRelations = json("exported_relations", typeRef<List<Int>>())
     val exportedDescription = varchar("exported_description")
     val exportedScore = int("exported_score")
     val partitionTime = date("partition_time")
@@ -40,6 +41,7 @@ object Illusts : BaseTable<Illust>("illust") {
         favorite = row[favorite]!!,
         tagme = row[tagme]!!,
         relations = row[relations],
+        exportedRelations = row[exportedRelations],
         exportedDescription = row[exportedDescription]!!,
         exportedScore = row[exportedScore],
         partitionTime = row[partitionTime]!!,

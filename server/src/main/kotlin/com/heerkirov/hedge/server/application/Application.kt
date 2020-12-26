@@ -2,6 +2,7 @@ package com.heerkirov.hedge.server.application
 
 import com.heerkirov.hedge.server.components.appdata.AppDataDriverImpl
 import com.heerkirov.hedge.server.components.appdata.AppdataOptions
+import com.heerkirov.hedge.server.components.backend.MetaExporterImpl
 import com.heerkirov.hedge.server.components.database.RepositoryOptions
 import com.heerkirov.hedge.server.components.database.DataRepositoryImpl
 import com.heerkirov.hedge.server.components.health.HealthImpl
@@ -32,7 +33,10 @@ fun runApplication(options: ApplicationOptions) {
         val repo = define { DataRepositoryImpl(repositoryOptions) }
         val appdata = define { AppDataDriverImpl(repo, appdataOptions) }
 
+        val metaExporter = define { MetaExporterImpl(repo) }
+
         val services = define {
+            val relationManager = RelationManager(repo)
             val sourceImageManager = SourceImageManager(repo)
 
             val fileManager = FileManager(appdata, repo)
@@ -47,10 +51,10 @@ fun runApplication(options: ApplicationOptions) {
             val metaManager = MetaManager(repo)
 
             val illustKit = IllustKit(repo, metaManager)
-            val illustManager = IllustManager(repo, illustKit, sourceImageManager)
+            val illustManager = IllustManager(repo, illustKit, relationManager, sourceImageManager, metaExporter)
 
             val importService = ImportService(repo, fileManager, importManager, illustManager)
-            val tagService = TagService(repo, tagKit, fileManager)
+            val tagService = TagService(repo, tagKit, fileManager, metaExporter)
             val annotationService = AnnotationService(repo, annotationKit)
             val authorService = AuthorService(repo, authorKit)
             val topicService = TopicService(repo, topicKit)

@@ -80,5 +80,4 @@ data class ImportImage(val id: Int,
                        /**
                         * 初次创建的时间。
                         */
-                       val createTime: LocalDateTime) {
-}
+                       val createTime: LocalDateTime)

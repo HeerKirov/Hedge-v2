@@ -1,5 +1,7 @@
 package com.heerkirov.hedge.server.components.service
 
+import com.heerkirov.hedge.server.components.backend.MetaExporter
+import com.heerkirov.hedge.server.components.backend.MetaExporterTask
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.database.transaction
 import com.heerkirov.hedge.server.dao.*
@@ -15,7 +17,10 @@ import com.heerkirov.hedge.server.utils.types.*
 import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.entity.*
 
-class TagService(private val data: DataRepository, private val kit: TagKit, private val fileManager: FileManager) {
+class TagService(private val data: DataRepository,
+                 private val kit: TagKit,
+                 private val fileManager: FileManager,
+                 private val metaExporter: MetaExporter) {
     private val orderTranslator = OrderTranslator {
         "id" to Tags.id
         "name" to Tags.name
@@ -141,10 +146,6 @@ class TagService(private val data: DataRepository, private val kit: TagKit, priv
         data.db.transaction {
             val record = data.db.sequenceOf(Tags).firstOrNull { it.id eq id } ?: throw NotFound()
 
-            //TODO 关联内容的标签重导出过程可能耗时巨大，因此做一个持久化到数据库的任务队列。
-            //     links发生变化时，会引发关联内容重导出
-            //     type的类型发生变化时，会引发关联内容重导出
-
             val newName = form.name.letOpt { kit.validateName(it) }
             val newOtherNames = form.otherNames.letOpt { kit.validateOtherNames(it) }
             val newLinks = form.links.runOpt { kit.validateLinks(this) }
@@ -248,9 +249,13 @@ class TagService(private val data: DataRepository, private val kit: TagKit, priv
                 //tag类型的标签除上一条外，还禁止与全局的其他tag类型标签重名
                 //更新动作还要排除自己，防止与自己重名的检查
                 if(type == Tag.Type.TAG) {
-                    if(data.db.sequenceOf(Tags).any { (if(parentId != null) { Tags.parentId eq parentId }else{ Tags.parentId.isNull() } or (it.type eq Tag.Type.TAG)) and (it.name eq name) and (it.id notEq record.id) }) throw AlreadyExists("Tag", "name", name)
+                    if(data.db.sequenceOf(Tags).any {
+                            (if(parentId != null) { Tags.parentId eq parentId }else{ Tags.parentId.isNull() } or (it.type eq Tag.Type.TAG)) and (it.name eq name) and (it.id notEq record.id)
+                    }) throw AlreadyExists("Tag", "name", name)
                 }else{
-                    if(data.db.sequenceOf(Tags).any { if(parentId != null) { Tags.parentId eq parentId }else{ Tags.parentId.isNull() } and (it.name eq name) and (it.id notEq record.id) }) throw AlreadyExists("Tag", "name", name)
+                    if(data.db.sequenceOf(Tags).any {
+                            if(parentId != null) { Tags.parentId eq parentId }else{ Tags.parentId.isNull() } and (it.name eq name) and (it.id notEq record.id)
+                    }) throw AlreadyExists("Tag", "name", name)
                 }
             }
 
@@ -282,6 +287,22 @@ class TagService(private val data: DataRepository, private val kit: TagKit, priv
                     newColor.applyOpt { set(it.color, this) }
                 }
             }
+
+            if ((newLinks.isPresent && newLinks.value != record.links) ||
+                (form.type.isPresent && form.type.value != record.type) ||
+                (newParentId.isPresent && newParentId.value != record.parentId)) {
+                    //发生关系类变化时，将关联的illust/album重导出
+                    data.db.from(IllustTagRelations)
+                        .select(IllustTagRelations.illustId)
+                        .where { IllustTagRelations.tagId eq id }
+                        .map { MetaExporterTask(MetaExporterTask.Type.ILLUST, it[IllustTagRelations.illustId]!!) }
+                        .let { metaExporter.appendNewTask(it) }
+                    data.db.from(AlbumTagRelations)
+                        .select(AlbumTagRelations.albumId)
+                        .where { AlbumTagRelations.tagId eq id }
+                        .map { MetaExporterTask(MetaExporterTask.Type.ALBUM, it[AlbumTagRelations.albumId]!!) }
+                        .let { metaExporter.appendNewTask(it) }
+            }
         }
     }
 
@@ -291,7 +312,6 @@ class TagService(private val data: DataRepository, private val kit: TagKit, priv
             data.db.delete(IllustTagRelations) { it.tagId eq id }
             data.db.delete(AlbumTagRelations) { it.tagId eq id }
             data.db.delete(TagAnnotationRelations) { it.tagId eq id }
-            //TODO 删除标签时将关联的对象的标签重导出
             val children = data.db.from(Tags).select(Tags.id).where { Tags.parentId eq id }.map { it[Tags.id]!! }
             for (child in children) {
                 recursionDelete(child)
@@ -301,6 +321,17 @@ class TagService(private val data: DataRepository, private val kit: TagKit, priv
             if(data.db.sequenceOf(Tags).none { it.id eq id }) {
                 throw NotFound()
             }
+            //删除标签时，将关联的illust/album重导出。只需要导出当前标签的关联，而不需要导出子标签的。
+            data.db.from(IllustTagRelations)
+                .select(IllustTagRelations.illustId)
+                .where { IllustTagRelations.tagId eq id }
+                .map { MetaExporterTask(MetaExporterTask.Type.ILLUST, it[IllustTagRelations.illustId]!!) }
+                .let { metaExporter.appendNewTask(it) }
+            data.db.from(AlbumTagRelations)
+                .select(AlbumTagRelations.albumId)
+                .where { AlbumTagRelations.tagId eq id }
+                .map { MetaExporterTask(MetaExporterTask.Type.ALBUM, it[AlbumTagRelations.albumId]!!) }
+                .let { metaExporter.appendNewTask(it) }
             recursionDelete(id)
         }
     }

@@ -62,6 +62,10 @@ data class Illust(val id: Int,
                    */
                   val relations: List<Int>? = null,
                   /**
+                   * [exported field]导出的裙带关系，与关联的项目进行关联传播，然后得到的项目列表。
+                   */
+                  val exportedRelations: List<Int>? = null,
+                  /**
                    * [exported field]导出的简述信息。聚合时采用。
                    */
                   val exportedDescription: String = "",
