@@ -4,7 +4,8 @@ data class AppData(
     val service: ServiceOption,
     val web: WebOption,
     val db: DBOption,
-    val backup: BackupOption
+    val backup: BackupOption,
+    val proxy: ProxyOption
 )
 
 data class ServiceOption(
@@ -25,4 +26,9 @@ data class BackupOption(
     var path: String?,
     var lastUpdate: Long?,
     var autoBackup: Boolean
+)
+
+data class ProxyOption(
+    var socks5Proxy: String?,
+    var httpProxy: String?
 )

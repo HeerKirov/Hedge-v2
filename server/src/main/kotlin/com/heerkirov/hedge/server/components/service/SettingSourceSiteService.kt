@@ -15,7 +15,7 @@ class SettingSourceSiteService(private val data: DataRepository) {
         return supportedSourceSite
     }
 
-    fun list(): List<SourceOption.SiteItem> {
+    fun list(): List<SourceOption.Site> {
         return data.metadata.source.sites
     }
 
@@ -24,7 +24,7 @@ class SettingSourceSiteService(private val data: DataRepository) {
             val sites = metadata.source.sites
             if(sites.any { it.name.equals(form.name, ignoreCase = true) }) throw AlreadyExists("Site", "name", form.name)
 
-            val newSite = SourceOption.SiteItem(form.name, form.title, form.hasId, form.hasSecondaryId)
+            val newSite = SourceOption.Site(form.name, form.title, form.hasId, form.hasSecondaryId)
 
             val ordinal = form.ordinal?.let {
                 when {
@@ -44,7 +44,7 @@ class SettingSourceSiteService(private val data: DataRepository) {
         }
     }
 
-    fun get(name: String): SourceOption.SiteItem {
+    fun get(name: String): SourceOption.Site {
         return data.metadata.source.sites.firstOrNull { it.name.equals(name, ignoreCase = true) } ?: throw NotFound()
     }
 

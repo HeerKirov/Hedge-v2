@@ -11,6 +11,18 @@ object MetadataMigrationStrategy : JsonObjectStrategy<Metadata>(Metadata::class)
         return Metadata(
             source = SourceOption(
                 sites = mutableListOf()
+            ),
+            import = ImportOption(
+                autoAnalyseMeta = false,
+                setTagme = mutableListOf(),
+                setCreateTimeBy = ImportOption.TimeType.CREATE_TIME,
+                setPartitionTimeDelay = null,
+                sourceAnalyseRules = mutableListOf(),
+                systemDownloadHistoryPath = null
+            ),
+            spider = SpiderOption(
+                publicRule = SpiderOption.SpiderRule(),
+                siteRules = mutableMapOf()
             )
         )
     }

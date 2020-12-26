@@ -10,7 +10,8 @@ object AppDataMigrationStrategy : JsonObjectStrategy<AppData>(AppData::class) {
             service = ServiceOption(port = null),
             web = WebOption(autoWebAccess = false, permanent = false, password = null),
             db = DBOption(""),
-            backup = BackupOption(path = null, lastUpdate = null, autoBackup = false)
+            backup = BackupOption(path = null, lastUpdate = null, autoBackup = false),
+            proxy = ProxyOption(socks5Proxy = null, httpProxy = null)
         )
     }
 
