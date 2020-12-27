@@ -10,19 +10,19 @@ object MetadataMigrationStrategy : JsonObjectStrategy<Metadata>(Metadata::class)
     override fun defaultData(): Metadata {
         return Metadata(
             source = SourceOption(
-                sites = mutableListOf()
+                sites = emptyList()
             ),
             import = ImportOption(
                 autoAnalyseMeta = false,
-                setTagme = mutableListOf(),
+                setTagme = emptyList(),
                 setCreateTimeBy = ImportOption.TimeType.CREATE_TIME,
                 setPartitionTimeDelay = null,
-                sourceAnalyseRules = mutableListOf(),
+                sourceAnalyseRules = emptyList(),
                 systemDownloadHistoryPath = null
             ),
             spider = SpiderOption(
                 publicRule = SpiderOption.SpiderRule(),
-                siteRules = mutableMapOf()
+                siteRules = emptyMap()
             )
         )
     }

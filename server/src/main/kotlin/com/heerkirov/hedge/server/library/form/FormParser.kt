@@ -138,7 +138,7 @@ private fun <T : Any> mapAny(jsonNode: JsonNode, kType: KType): Any? {
             }
             generator.newInstance(base!!)
         }
-        else -> throw IllegalArgumentException("Cannot analyse argument of type '$kClass'.")
+        else -> jsonNode.parseJSONObject(kClass.java)
     }
 }
 

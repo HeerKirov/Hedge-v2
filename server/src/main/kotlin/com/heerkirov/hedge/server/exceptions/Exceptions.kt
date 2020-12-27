@@ -91,6 +91,11 @@ open class AlreadyExists : BadRequestException {
 }
 
 /**
+ * 表单的某种目标资源重复给出，业务受此影响无法进行。
+ */
+open class ResourceDuplicated(prop: String, value: Collection<Any>) : BadRequestException("DUPLICATED", "Param $prop [$value] is duplicated.", listOf(prop, value)), Unchecked
+
+/**
  * API的操作或一部分操作，因为某种原因拒绝执行。
  */
 open class Reject(message: String): BadRequestException("REJECT", message)

@@ -1,5 +1,13 @@
 package com.heerkirov.hedge.server.utils
 
+fun <T> Iterable<T>.duplicateCount(): Map<T, Int> {
+    val map = HashMap<T, Int>()
+    for (t in this) {
+        map[t] = map.computeIfAbsent(t) { 0 } + 1
+    }
+    return map
+}
+
 inline fun <T, R> Iterator<T>.map (transform: (T) -> R): List<R> {
     val list = arrayListOf<R>()
     this.forEach { list.add(transform(it)) }
@@ -68,7 +76,7 @@ class Deferrable(private val completes: MutableList<() -> Unit>,
 /**
  * 启动一个延后作用的作用域。
  * 在作用域中，使用defer和except函数注册当退出作用域时执行的内容。
- * 本质上仍相当于try catch finally结构，但是使用更加累死Go/Swift的defer模式体现。
+ * 本质上仍相当于try catch finally结构，但是使用更加类似Go/Swift的defer模式体现。
  */
 inline fun <T> defer(block: Deferrable.() -> T): T {
     val completes: MutableList<() -> Unit> = mutableListOf()

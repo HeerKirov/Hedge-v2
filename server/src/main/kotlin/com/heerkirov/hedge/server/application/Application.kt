@@ -58,7 +58,8 @@ fun runApplication(options: ApplicationOptions) {
             val annotationService = AnnotationService(repo, annotationKit)
             val authorService = AuthorService(repo, authorKit)
             val topicService = TopicService(repo, topicKit)
-            val settingSourceSiteService = SettingSourceSiteService(repo)
+            val settingImportService = SettingImportService(repo)
+            val settingSourceSiteService = SettingSourceService(repo)
 
             AllServicesImpl(
                 importService,
@@ -66,6 +67,7 @@ fun runApplication(options: ApplicationOptions) {
                 annotationService,
                 authorService,
                 topicService,
+                settingImportService,
                 settingSourceSiteService
             )
         }

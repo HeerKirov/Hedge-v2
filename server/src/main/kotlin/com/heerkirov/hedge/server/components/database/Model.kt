@@ -16,7 +16,7 @@ data class SourceOption(
     /**
      * 注册在系统中的原始数据的site列表。此列表与SourceImage的source列值关联。
      */
-    val sites: MutableList<Site>
+    var sites: List<Site>
 ) {
     data class Site(val name: String, var title: String, val hasId: Boolean, val hasSecondaryId: Boolean)
 }
@@ -32,24 +32,24 @@ data class ImportOption(
     /**
      * 导入的新文件的tagme属性的默认值。这里的值是enum的name的列表。
      */
-    val setTagme: MutableList<String>,
+    var setTagme: List<String>,
     /**
      * 导入的新文件的createTime属性从什么属性派生。给出的可选项是几类文件的物理属性。
      * 其中有的属性是有可能不存在的。如果选用了这些不存在的属性，那么会去选用必定存在的属性，即IMPORT_TIME。
      */
-    val setCreateTimeBy: TimeType,
+    var setCreateTimeBy: TimeType,
     /**
      * 默认的分区时间从createTime截取。但是此属性将影响日期的范围，使延后一定时间的时间范围仍然算作昨天。单位ms。
      */
-    val setPartitionTimeDelay: Long?,
+    var setPartitionTimeDelay: Long?,
     /**
      * 解析来源时，使用的规则列表。
      */
-    val sourceAnalyseRules: MutableList<SourceAnalyseRule>,
+    var sourceAnalyseRules: List<SourceAnalyseRule>,
     /**
      * 指定系统的下载历史数据库的位置路径。
      */
-    val systemDownloadHistoryPath: String?,
+    var systemDownloadHistoryPath: String?,
 ) {
     enum class TimeType {
         IMPORT_TIME,
@@ -95,32 +95,32 @@ class SpiderOption(
     /**
      * 全局的爬虫规则。
      */
-    val publicRule: SpiderRule,
+    var publicRule: SpiderRule,
     /**
      * 针对每种不同的site单独设置的爬虫规则。这些规则可空，空时从全局取默认值。
      */
-    val siteRules: MutableMap<String, SpiderRule>
+    var siteRules: Map<String, SpiderRule>
 ) {
     class SpiderRule(
         /**
          * 开启使用代理。全局默认值为不开启。
          */
-        var useProxy: Boolean? = null,
+        val useProxy: Boolean? = null,
         /**
          * 在失败指定的次数后，移除代理并尝试直连。设为-1表示总是使用代理。全局默认值-1。
          */
-        var disableProxyAfterTimes: Int? = null,
+        val disableProxyAfterTimes: Int? = null,
         /**
          * 单次请求多久未响应视作超时，单位毫秒。全局默认值15000。
          */
-        var timeout: Long? = null,
+        val timeout: Long? = null,
         /**
          * 失败重试的次数。全局默认值3。
          */
-        var retryCount: Int? = null,
+        val retryCount: Int? = null,
         /**
          * 在完成一个项目后等待多长时间，防止因频率过高引起的封禁。单位毫秒。全局默认值8000。
          */
-        var tryInterval: Long? = null
+        val tryInterval: Long? = null
     )
 }

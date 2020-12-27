@@ -8,7 +8,8 @@ interface AllServices : Component {
     val annotation: AnnotationService
     val author: AuthorService
     val topic: TopicService
-    val settingSourceSite: SettingSourceSiteService
+    val settingImport: SettingImportService
+    val settingSource: SettingSourceService
 }
 
 class AllServicesImpl(
@@ -17,5 +18,6 @@ class AllServicesImpl(
     override val annotation: AnnotationService,
     override val author: AuthorService,
     override val topic: TopicService,
-    override val settingSourceSite: SettingSourceSiteService
+    override val settingImport: SettingImportService,
+    override val settingSource: SettingSourceService
 ) : AllServices
