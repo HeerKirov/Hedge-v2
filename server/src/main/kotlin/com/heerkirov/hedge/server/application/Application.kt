@@ -40,7 +40,8 @@ fun runApplication(options: ApplicationOptions) {
             val sourceImageManager = SourceImageManager(repo)
 
             val fileManager = FileManager(appdata, repo)
-            val importManager = ImportManager(repo)
+            val importMetaManager = ImportMetaManager(repo)
+            val importManager = ImportManager(repo, importMetaManager)
 
             val annotationKit = AnnotationKit(repo)
             val annotationManager = AnnotationManager(repo)
