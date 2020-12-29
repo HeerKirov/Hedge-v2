@@ -63,20 +63,20 @@ data class ImportOption(
         JsonSubTypes.Type(value = SourceAnalyseRuleByFromMeta::class, name = "from-meta"),
         JsonSubTypes.Type(value = SourceAnalyseRuleBySystemHistory::class, name = "system-history")
     ])
-    interface SourceAnalyseRule { var site: String }
+    interface SourceAnalyseRule { val site: String }
 
     /**
      * 规则类型name：通过正则解析文件名来分析。
      * @param regex 使用此正则表达式匹配文件名来分析id。
      */
-    class SourceAnalyseRuleByName(override var site: String, var regex: String, var idIndex: Int?, var secondaryIdIndex: Int?) : SourceAnalyseRule
+    class SourceAnalyseRuleByName(override val site: String, val regex: String, val idIndex: Int?, val secondaryIdIndex: Int?) : SourceAnalyseRule
 
     /**
      * 规则类型from-meta：通过正则解析来源信息来分析。仅对macOS有效。
      * macOS通常会在下载的文件中附加元信息，标记文件的下载来源URL。可以解析这个URL来获得需要的来源信息。
      * @param regex 使用此正则表达式匹配并分析下载来源URL，分析id。
      */
-    class SourceAnalyseRuleByFromMeta(override var site: String, var regex: String, var idIndex: Int?, var secondaryIdIndex: Int?) : SourceAnalyseRule
+    class SourceAnalyseRuleByFromMeta(override val site: String, val regex: String, val idIndex: Int?, val secondaryIdIndex: Int?) : SourceAnalyseRule
 
     /**
      * 规则类型system-history：通过查阅系统下载历史数据库来分析。仅对macOS有效。
@@ -85,7 +85,7 @@ data class ImportOption(
      * @param pattern 在{LSQuarantineDataURLString}列中，使用此正则表达式匹配文件名。
      * @param regex 在{LSQuarantineOriginURLString}列中，使用此正则表达式匹配并分析id。
      */
-    class SourceAnalyseRuleBySystemHistory(override var site: String, var pattern: String, var regex: String, var idIndex: Int?, var secondaryIdIndex: Int?) : SourceAnalyseRule
+    class SourceAnalyseRuleBySystemHistory(override val site: String, val pattern: String, val regex: String, val idIndex: Int?, val secondaryIdIndex: Int?) : SourceAnalyseRule
 }
 
 /**

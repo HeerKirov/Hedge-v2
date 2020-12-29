@@ -14,6 +14,7 @@ module com.heerkirov.hedge.server {
     requires java.desktop;
     requires jave.core;
     requires org.slf4j;
+    requires dd.plist;
 
     opens com.heerkirov.hedge.server.components.health;
     opens com.heerkirov.hedge.server.components.appdata;

@@ -3,6 +3,7 @@ package com.heerkirov.hedge.server.components.manager
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.database.ImportOption
 import com.heerkirov.hedge.server.dao.ImportImages
+import com.heerkirov.hedge.server.library.xattr.XAttrProcessor
 import com.heerkirov.hedge.server.model.Illust
 import com.heerkirov.hedge.server.utils.DateTime
 import com.heerkirov.hedge.server.utils.DateTime.asZonedTime
@@ -26,7 +27,10 @@ class ImportManager(private val data: DataRepository, private val importMetaMana
 
         val attr = sourceFile?.let { Files.readAttributes(it.toPath(), BasicFileAttributes::class.java) }
 
-        val fileFromSource = emptyList<String>() //TODO 完成下载来源的提取
+        val fileFromSource = sourceFile?.let {
+            val xattr = XAttrProcessor.readXattrProp(it.absolutePath, "com.apple.metadata:kMDItemWhereFroms")
+            if(xattr != null) XAttrProcessor.decodePList(xattr) else null
+        }
 
         val fileImportTime = DateTime.now()
         val fileCreateTime = attr?.creationTime()?.toMillis()?.parseDateTime()

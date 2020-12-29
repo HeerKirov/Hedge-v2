@@ -35,6 +35,7 @@ dependencies {
     implementation group: 'io.javalin', name: 'javalin', version: javalinVersion
     implementation group: 'ws.schild', name: 'jave-core', version: javeVersion
     implementation group: 'ws.schild', name: 'jave-nativebin-osx64', version: javeVersion
+    implementation group: 'com.googlecode.plist', name: 'dd-plist', version: plistVersion
     implementation group: 'org.slf4j', name: 'slf4j-simple', version: slf4jVersion
     implementation group: 'org.slf4j', name: 'slf4j-api', version: slf4jVersion
     testImplementation group: 'junit', name: 'junit', version: junitVersion

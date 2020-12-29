@@ -47,3 +47,11 @@ class ConflictingGroupMembersError(conflictingMembers: Map<Int, List<Conflicting
     "Tags ${conflictingMembers.entries.joinToString { (groupId, members) -> "$groupId: [${members.joinToString { "${it.member}(${it.memberId})" }}]" }} are in same conflicting group.", conflictingMembers) {
     data class ConflictingMember(val memberId: Int, val member: String)
 }
+
+/**
+ * 当regex表达式解析出现错误，且引起错误的原因大概率是编写的错误时，抛出此异常。
+ * 抛出位置：
+ * - 导入新的项目，且开启自动source meta解析时
+ * - 调用source meta解析工具时
+ */
+class InvalidRegexError(regex: String, msg: String): BadRequestException("INVALID_REGEX", "Regex $regex may has some error because an exception was thrown: $msg", regex)
