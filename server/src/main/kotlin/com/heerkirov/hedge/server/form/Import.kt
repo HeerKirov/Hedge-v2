@@ -1,10 +1,11 @@
 package com.heerkirov.hedge.server.form
 
+import com.heerkirov.hedge.server.components.database.ImportOption
 import com.heerkirov.hedge.server.library.form.Limit
 import com.heerkirov.hedge.server.library.form.Offset
 import com.heerkirov.hedge.server.library.form.Order
 import com.heerkirov.hedge.server.model.Illust
-import com.heerkirov.hedge.server.model.ImportImage
+import com.heerkirov.hedge.server.utils.types.Opt
 import com.heerkirov.hedge.server.utils.types.OrderItem
 import java.io.InputStream
 import java.time.LocalDate
@@ -32,6 +33,18 @@ data class UploadForm(val content: InputStream,
                       val filename: String,
                       val extension: String)
 
-class ImportUpdateForm()
+class ImportUpdateForm(val tagme: Opt<Illust.Tagme>,
+                       val source: Opt<String?>,
+                       val sourceId: Opt<Long?>,
+                       val sourcePart: Opt<Int?>,
+                       val partitionTime: Opt<LocalDate>,
+                       val orderTime: Opt<LocalDateTime>,
+                       val createTime: Opt<LocalDateTime>)
 
-class AnalyseMetaForm()
+class ImportBatchUpdateForm(val target: List<Int>,
+                            val tagme: Opt<Illust.Tagme>,
+                            val setCreateTimeBy: Opt<ImportOption.TimeType>,
+                            val setOrderTimeBy: Opt<ImportOption.TimeType>,
+                            val partitionTime: Opt<LocalDate>)
+
+class AnalyseMetaForm(val target: List<Int>)

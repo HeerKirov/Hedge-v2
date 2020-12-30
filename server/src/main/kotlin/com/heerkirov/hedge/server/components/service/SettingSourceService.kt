@@ -5,26 +5,86 @@ import com.heerkirov.hedge.server.components.database.SourceOption
 import com.heerkirov.hedge.server.components.database.saveMetadata
 import com.heerkirov.hedge.server.components.database.syncMetadata
 import com.heerkirov.hedge.server.definitions.supportedSourceSite
-import com.heerkirov.hedge.server.exceptions.ResourceDuplicated
-import com.heerkirov.hedge.server.form.SourceSiteForm
-import com.heerkirov.hedge.server.utils.duplicateCount
+import com.heerkirov.hedge.server.exceptions.AlreadyExists
+import com.heerkirov.hedge.server.exceptions.NotFound
+import com.heerkirov.hedge.server.form.SiteCreateForm
+import com.heerkirov.hedge.server.form.SiteUpdateForm
 
 class SettingSourceService(private val data: DataRepository) {
     fun getSupportedSites(): List<String> {
         return supportedSourceSite
     }
 
-    fun getSites(): List<SourceOption.Site> {
+    fun list(): List<SourceOption.Site> {
         return data.metadata.source.sites
     }
 
-    fun updateSites(sites: List<SourceSiteForm>) {
-        val duplicates = sites.map { it.name }.duplicateCount().filter { (_, n) -> n > 1 }
-        if(duplicates.isNotEmpty()) throw ResourceDuplicated("name", duplicates.keys)
-
+    fun create(form: SiteCreateForm) {
         data.syncMetadata {
-            data.saveMetadata {
-                source.sites = sites.map { SourceOption.Site(it.name, it.title, it.hasId, it.hasSecondaryId) }
+            val sites = metadata.source.sites
+            if(sites.any { it.name.equals(form.name, ignoreCase = true) }) throw AlreadyExists("Site", "name", form.name)
+
+            val newSite = SourceOption.Site(form.name, form.title, form.hasId, form.hasSecondaryId)
+
+            val ordinal = form.ordinal?.let {
+                when {
+                    it < 0 -> 0
+                    it >= sites.size -> null
+                    else -> it
+                }
+            }
+
+            saveMetadata {
+                if(ordinal != null) {
+                    sites.add(ordinal, newSite)
+                }else{
+                    sites.add(newSite)
+                }
+            }
+        }
+    }
+
+    fun get(name: String): SourceOption.Site {
+        return data.metadata.source.sites.firstOrNull { it.name.equals(name, ignoreCase = true) } ?: throw NotFound()
+    }
+
+    fun update(name: String, form: SiteUpdateForm) {
+        data.syncMetadata {
+            val site = get(name)
+
+            saveMetadata {
+                form.title.alsoOpt { site.title = it }
+                form.ordinal.alsoOpt {
+                    val sites = data.metadata.source.sites
+                    val newOrdinal = when {
+                        it < 0 -> 0
+                        it > sites.size -> sites.size
+                        else -> it
+                    }
+                    val oldOrdinal = sites.indexOf(site)
+
+                    if(oldOrdinal < newOrdinal) {
+                        data.metadata.source.sites.apply {
+                            clear()
+                            addAll(sites.subList(0, oldOrdinal) + sites.subList(oldOrdinal + 1, newOrdinal) + site + sites.subList(newOrdinal, sites.size))
+                        }
+                    }else if(oldOrdinal > newOrdinal) {
+                        data.metadata.source.sites.apply {
+                            clear()
+                            addAll(sites.subList(0, newOrdinal) + site + sites.subList(newOrdinal, oldOrdinal) + site + sites.subList(oldOrdinal + 1, sites.size))
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    fun delete(name: String) {
+        data.syncMetadata {
+            val site = get(name)
+
+            saveMetadata {
+                source.sites.remove(site)
             }
         }
     }

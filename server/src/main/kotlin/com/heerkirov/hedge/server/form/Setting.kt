@@ -6,7 +6,14 @@ import com.heerkirov.hedge.server.library.form.Range
 import com.heerkirov.hedge.server.model.Illust
 import com.heerkirov.hedge.server.utils.types.Opt
 
-data class SourceSiteForm(@NotBlank val name: String, @NotBlank val title: String, val hasId: Boolean = true, val hasSecondaryId: Boolean = false)
+data class SiteCreateForm(@NotBlank val name: String,
+                          @NotBlank val title: String,
+                          val hasId: Boolean = true,
+                          val hasSecondaryId: Boolean = false,
+                          val ordinal: Int? = null)
+
+data class SiteUpdateForm(@NotBlank val title: Opt<String>,
+                          val ordinal: Opt<Int>)
 
 data class ImportOptionUpdateForm(val autoAnalyseMeta: Opt<Boolean>,
                                   val setTagme: Opt<Illust.Tagme>,

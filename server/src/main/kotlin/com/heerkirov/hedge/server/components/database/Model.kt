@@ -16,7 +16,7 @@ data class SourceOption(
     /**
      * 注册在系统中的原始数据的site列表。此列表与SourceImage的source列值关联。
      */
-    var sites: List<Site>
+    val sites: MutableList<Site>
 ) {
     data class Site(val name: String, var title: String, val hasId: Boolean, val hasSecondaryId: Boolean)
 }

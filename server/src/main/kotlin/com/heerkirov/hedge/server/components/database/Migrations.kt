@@ -10,7 +10,7 @@ object MetadataMigrationStrategy : JsonObjectStrategy<Metadata>(Metadata::class)
     override fun defaultData(): Metadata {
         return Metadata(
             source = SourceOption(
-                sites = emptyList()
+                sites = mutableListOf()
             ),
             import = ImportOption(
                 autoAnalyseMeta = false,

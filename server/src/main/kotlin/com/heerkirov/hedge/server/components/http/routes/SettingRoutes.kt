@@ -5,7 +5,8 @@ import com.heerkirov.hedge.server.components.service.SettingImportService
 import com.heerkirov.hedge.server.library.form.bodyAsForm
 import com.heerkirov.hedge.server.components.service.SettingSourceService
 import com.heerkirov.hedge.server.form.ImportOptionUpdateForm
-import com.heerkirov.hedge.server.form.SourceSiteForm
+import com.heerkirov.hedge.server.form.SiteCreateForm
+import com.heerkirov.hedge.server.form.SiteUpdateForm
 import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder.*
 import io.javalin.http.Context
@@ -48,13 +49,31 @@ class SettingRoutes(settingImportService: SettingImportService, settingSourceSer
             ctx.json(service.getSupportedSites())
         }
 
+        fun list(ctx: Context) {
+            ctx.json(service.list())
+        }
+
+        fun create(ctx: Context) {
+            val form = ctx.bodyAsForm<SiteCreateForm>()
+            service.create(form)
+            ctx.status(201)
+        }
+
         fun get(ctx: Context) {
-            ctx.json(service.getSites())
+            val name = ctx.pathParam("name")
+            ctx.json(service.get(name))
         }
 
         fun update(ctx: Context) {
-            val form = ctx.bodyAsForm<List<SourceSiteForm>>()
-            service.updateSites(form)
+            val name = ctx.pathParam("name")
+            val form = ctx.bodyAsForm<SiteUpdateForm>()
+            service.update(name, form)
+        }
+
+        fun delete(ctx: Context) {
+            val name = ctx.pathParam("name")
+            service.delete(name)
+            ctx.status(204)
         }
     }
 }
