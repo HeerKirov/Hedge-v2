@@ -20,10 +20,14 @@ class SettingRoutes(settingImportService: SettingImportService, settingSourceSer
                     patch(import::update)
                 }
                 path("source") {
-                    get("supported-sites", site::systemSiteList)
                     path("sites") {
-                        get(site::get)
-                        patch(site::update)
+                        get(site::list)
+                        post(site::create)
+                        path(":name") {
+                            get(site::get)
+                            patch(site::update)
+                            delete(site::delete)
+                        }
                     }
                 }
             }
@@ -45,10 +49,6 @@ class SettingRoutes(settingImportService: SettingImportService, settingSourceSer
     }
 
     private class Site(private val service: SettingSourceService) {
-        fun systemSiteList(ctx: Context) {
-            ctx.json(service.getSupportedSites())
-        }
-
         fun list(ctx: Context) {
             ctx.json(service.list())
         }

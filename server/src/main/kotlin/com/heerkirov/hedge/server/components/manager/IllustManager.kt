@@ -17,7 +17,7 @@ import java.time.LocalDateTime
 class IllustManager(private val data: DataRepository,
                     private val kit: IllustKit,
                     private val relationManager: RelationManager,
-                    private val sourceImageManager: SourceImageManager,
+                    private val sourceManager: SourceManager,
                     private val metaExporter: MetaExporter) {
     /**
      * 创建新的image。
@@ -34,7 +34,10 @@ class IllustManager(private val data: DataRepository,
         }
 
         if(relations != null) relationManager.validateRelations(relations)
-        if(source != null) sourceImageManager.checkSource(source, sourceId, sourcePart)
+        if(source != null) {
+            sourceManager.checkSource(source, sourceId, sourcePart)
+            sourceManager.createSourceImageIfNotExist(source, sourceId, sourcePart)
+        }
 
         val exportedDescription = if(description.isEmpty() && collection != null) collection.exportedDescription else description
         val exportedScore = if(score == null && collection != null) collection.exportedScore else score

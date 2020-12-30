@@ -65,18 +65,24 @@ data class ImportOption(
     ])
     interface SourceAnalyseRule { val site: String }
 
+    interface SourceAnalyseRuleOfRegex : SourceAnalyseRule {
+        val regex: String
+        val idIndex: Int?
+        val secondaryIdIndex: Int?
+    }
+
     /**
      * 规则类型name：通过正则解析文件名来分析。
      * @param regex 使用此正则表达式匹配文件名来分析id。
      */
-    class SourceAnalyseRuleByName(override val site: String, val regex: String, val idIndex: Int?, val secondaryIdIndex: Int?) : SourceAnalyseRule
+    class SourceAnalyseRuleByName(override val site: String, override val regex: String, override val idIndex: Int?, override val secondaryIdIndex: Int?) : SourceAnalyseRuleOfRegex
 
     /**
      * 规则类型from-meta：通过正则解析来源信息来分析。仅对macOS有效。
      * macOS通常会在下载的文件中附加元信息，标记文件的下载来源URL。可以解析这个URL来获得需要的来源信息。
      * @param regex 使用此正则表达式匹配并分析下载来源URL，分析id。
      */
-    class SourceAnalyseRuleByFromMeta(override val site: String, val regex: String, val idIndex: Int?, val secondaryIdIndex: Int?) : SourceAnalyseRule
+    class SourceAnalyseRuleByFromMeta(override val site: String, override val regex: String, override val idIndex: Int?, override val secondaryIdIndex: Int?) : SourceAnalyseRuleOfRegex
 
     /**
      * 规则类型system-history：通过查阅系统下载历史数据库来分析。仅对macOS有效。
@@ -85,13 +91,17 @@ data class ImportOption(
      * @param pattern 在{LSQuarantineDataURLString}列中，使用此正则表达式匹配文件名。
      * @param regex 在{LSQuarantineOriginURLString}列中，使用此正则表达式匹配并分析id。
      */
-    class SourceAnalyseRuleBySystemHistory(override val site: String, val pattern: String, val regex: String, val idIndex: Int?, val secondaryIdIndex: Int?) : SourceAnalyseRule
+    class SourceAnalyseRuleBySystemHistory(override val site: String, val pattern: String, override val regex: String, override val idIndex: Int?, override val secondaryIdIndex: Int?) : SourceAnalyseRuleOfRegex
 }
 
 /**
  * 与爬虫相关的选项。
  */
 class SpiderOption(
+    /**
+     * 爬虫算法的配对规则。key:value=siteName:爬虫算法名称。爬虫算法名称在系统中写死。
+     */
+    var rules: Map<String, String>,
     /**
      * 全局的爬虫规则。
      */

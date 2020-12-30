@@ -96,6 +96,12 @@ open class AlreadyExists : BadRequestException {
 open class ResourceDuplicated(prop: String, value: Collection<Any>) : BadRequestException("DUPLICATED", "Param $prop [$value] is duplicated.", listOf(prop, value)), Unchecked
 
 /**
+ * 当前资源存在某种级联的资源依赖，因此业务无法进行。
+ * 多见于删除业务，且目标资源不允许被静默操作的情况，需要此错误提示，并搭配一个强制删除参数。
+ */
+open class CascadeResourceExists(resource: String) : BadRequestException("CASCADE_RESOURCE_EXISTS", "$resource depending on this exists.", resource)
+
+/**
  * API的操作或一部分操作，因为某种原因拒绝执行。
  */
 open class Reject(message: String): BadRequestException("REJECT", message)

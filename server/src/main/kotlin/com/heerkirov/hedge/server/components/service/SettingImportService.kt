@@ -1,9 +1,8 @@
 package com.heerkirov.hedge.server.components.service
 
-import com.heerkirov.hedge.server.components.database.DataRepository
-import com.heerkirov.hedge.server.components.database.ImportOption
-import com.heerkirov.hedge.server.components.database.saveMetadata
-import com.heerkirov.hedge.server.components.database.syncMetadata
+import com.heerkirov.hedge.server.components.database.*
+import com.heerkirov.hedge.server.exceptions.InvalidRuleIndexError
+import com.heerkirov.hedge.server.exceptions.ResourceNotExist
 import com.heerkirov.hedge.server.form.ImportOptionUpdateForm
 import com.heerkirov.hedge.server.utils.toBaseElements
 
@@ -14,7 +13,16 @@ class SettingImportService(private val data: DataRepository) {
 
     fun update(form: ImportOptionUpdateForm) {
         data.syncMetadata {
-            data.saveMetadata {
+            form.sourceAnalyseRules.alsoOpt { rules ->
+                val sites = metadata.source.sites.map { Pair(it.name, it) }.toMap()
+
+                for (rule in rules) {
+                    val site = sites[rule.site] ?: throw ResourceNotExist("site", rule.site)
+                    checkImportRule(rule, site)
+                }
+            }
+
+            saveMetadata {
                 form.autoAnalyseMeta.alsoOpt { import.autoAnalyseMeta = it }
                 form.setTagme.alsoOpt { import.setTagme = it.toBaseElements().map { i -> i.toString() } }
                 form.setCreateTimeBy.alsoOpt { import.setCreateTimeBy = it }
@@ -22,6 +30,12 @@ class SettingImportService(private val data: DataRepository) {
                 form.systemDownloadHistoryPath.alsoOpt { import.systemDownloadHistoryPath = it }
                 form.sourceAnalyseRules.alsoOpt { import.sourceAnalyseRules = it }
             }
+        }
+    }
+
+    private fun checkImportRule(rule: ImportOption.SourceAnalyseRule, site: SourceOption.Site) {
+        if(rule is ImportOption.SourceAnalyseRuleOfRegex) {
+            if(((rule.idIndex != null) xor site.hasId) || ((rule.secondaryIdIndex != null) xor site.hasSecondaryId)) throw InvalidRuleIndexError(site.name, rule.regex)
         }
     }
 }

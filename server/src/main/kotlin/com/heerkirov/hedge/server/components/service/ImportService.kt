@@ -2,14 +2,11 @@ package com.heerkirov.hedge.server.components.service
 
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.database.transaction
+import com.heerkirov.hedge.server.components.manager.*
 import com.heerkirov.hedge.server.dao.FileRecords
 import com.heerkirov.hedge.server.dao.ImportImages
-import com.heerkirov.hedge.server.exceptions.FileNotFoundError
-import com.heerkirov.hedge.server.exceptions.NotFound
 import com.heerkirov.hedge.server.form.*
-import com.heerkirov.hedge.server.components.manager.FileManager
-import com.heerkirov.hedge.server.components.manager.IllustManager
-import com.heerkirov.hedge.server.components.manager.ImportManager
+import com.heerkirov.hedge.server.exceptions.*
 import com.heerkirov.hedge.server.utils.DateTime.parseDateTime
 import com.heerkirov.hedge.server.utils.DateTime.toMillisecond
 import com.heerkirov.hedge.server.utils.Fs
@@ -19,10 +16,11 @@ import com.heerkirov.hedge.server.utils.ktorm.OrderTranslator
 import com.heerkirov.hedge.server.utils.ktorm.firstOrNull
 import com.heerkirov.hedge.server.utils.ktorm.orderBy
 import com.heerkirov.hedge.server.utils.types.ListResult
+import com.heerkirov.hedge.server.utils.types.Opt
 import com.heerkirov.hedge.server.utils.types.toListResult
+import com.heerkirov.hedge.server.utils.types.undefined
 import me.liuwj.ktorm.dsl.*
-import me.liuwj.ktorm.entity.firstOrNull
-import me.liuwj.ktorm.entity.sequenceOf
+import me.liuwj.ktorm.entity.*
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
@@ -30,7 +28,9 @@ import java.nio.file.StandardCopyOption
 class ImportService(private val data: DataRepository,
                     private val fileKit: FileManager,
                     private val importManager: ImportManager,
-                    private val illustManager: IllustManager) {
+                    private val illustManager: IllustManager,
+                    private val sourceManager: SourceManager,
+                    private val importMetaManager: ImportMetaManager) {
     private val orderTranslator = OrderTranslator {
         "id" to ImportImages.id
         "fileCreateTime" to ImportImages.fileCreateTime nulls last
@@ -54,7 +54,7 @@ class ImportService(private val data: DataRepository,
             }
     }
 
-    fun import(form: ImportForm): Int = defer {
+    fun import(form: ImportForm): Pair<Int, List<BaseException>> = defer {
         val file = File(form.filepath).applyReturns {
             if(form.removeOriginFile) deleteIt()
         }
@@ -69,7 +69,7 @@ class ImportService(private val data: DataRepository,
         }
     }
 
-    fun upload(form: UploadForm): Int = defer {
+    fun upload(form: UploadForm): Pair<Int, List<BaseException>> = defer {
         val file = Fs.temp(form.extension).applyDefer {
             deleteIt()
         }.also { file ->
@@ -112,24 +112,32 @@ class ImportService(private val data: DataRepository,
         data.db.transaction {
             val record = data.db.sequenceOf(ImportImages).firstOrNull { it.id eq id } ?: throw NotFound()
 
-            //TODO 调整site的模式：
-            //      - 使用严格模式，在导入/设置解析规则等时都要比对site列表进行验证，包括验证id的缺失
-            //      - 换回使用REST五段API操作site
-            //      - 对site的更新会反映到import/illust上；对site的删除会报错 或 在SET_NULL模式设null
-            //      - id的存在性配置无法变更，是锁死的
-            //     rule与之配对的方式是解耦的，仅通过site名称联系在一起，没有强指定作用。
-            //      - import rule通过site名称配对，没有系统预定的部分；
-            //      - spider rule的爬虫算法是写死的，已经实现的爬虫算法列出一个列表，需要和import rule一样创建spider rule，为site指定使用的算法(也要校验id的缺失)
-            //     尽管site/import rule/spider rule三方解耦，但系统在模块之外仍然内置了支持site的全套预设方案，以方便使用。解耦是为了创造灵活性。
+            //source更新检查
+            val (newSource, newSourceId, newSourcePart) = if(form.source.isPresent) {
+                val source = form.source.value
+                if(source == null) {
+                    if(form.sourceId.isPresent || form.sourcePart.isPresent) throw ParamNotRequired("sourceId/sourcePart")
+                    else Triple(Opt(null), Opt(null), Opt(null))
+                }else{
+                    sourceManager.checkSource(source, form.sourceId.unwrapOr { record.sourceId }, form.sourcePart.unwrapOr { record.sourcePart })
+                    Triple(form.source, form.sourceId, form.sourcePart)
+                }
+            }else if(form.sourceId.isPresent || form.sourcePart.isPresent) {
+                if(record.source == null) throw ParamNotRequired("sourceId/sourcePart")
+                else{
+                    sourceManager.checkSource(record.source, form.sourceId.unwrapOr { record.sourceId }, form.sourcePart.unwrapOr { record.sourcePart })
+                    Triple(undefined(), form.sourceId, form.sourcePart)
+                }
+            }else Triple(undefined(), undefined(), undefined())
 
             if (form.tagme.isPresent || form.source.isPresent || form.sourceId.isPresent || form.sourcePart.isPresent ||
                 form.partitionTime.isPresent || form.orderTime.isPresent || form.createTime.isPresent) {
                 data.db.update(ImportImages) {
                     where { it.id eq id }
                     form.tagme.applyOpt { set(it.tagme, this) }
-                    form.source.applyOpt { set(it.source, this) }
-                    form.sourceId.applyOpt { set(it.sourceId, this) }
-                    form.sourcePart.applyOpt { set(it.sourcePart, this) }
+                    newSource.applyOpt { set(it.source, this) }
+                    newSourceId.applyOpt { set(it.sourceId, this) }
+                    newSourcePart.applyOpt { set(it.sourcePart, this) }
                     form.partitionTime.applyOpt { set(it.partitionTime, this) }
                     form.orderTime.applyOpt { set(it.orderTime, this.toMillisecond()) }
                     form.createTime.applyOpt { set(it.createTime, this) }
@@ -146,8 +154,46 @@ class ImportService(private val data: DataRepository,
         }
     }
 
-    fun analyseMeta(form: AnalyseMetaForm): Any {
-        TODO()
+    fun analyseMeta(form: AnalyseMetaForm): AnalyseMetaRes {
+        val records = if(form.target.isNullOrEmpty()) {
+            data.db.sequenceOf(ImportImages).toList()
+        }else{
+            data.db.sequenceOf(ImportImages).filter { ImportImages.id inList form.target }.toList().also { records ->
+                if(records.size < form.target.size) {
+                    throw ResourceNotExist("target", form.target.toSet() - records.asSequence().map { it.id }.toSet())
+                }
+            }
+        }
+
+        val warnings = mutableListOf<ErrorResult>()
+        val batch = mutableListOf<Tuple4<Int, String, Long?, Int?>>()
+
+        for(record in records) {
+            val (source, sourceId, sourcePart) = try {
+                importMetaManager.analyseSourceMeta(record.fileName, record.filePath, record.fileFromSource)
+            }catch (e: BaseException) {
+                warnings.add(ErrorResult(e))
+                continue
+            }
+            if(source != null) {
+                batch.add(Tuple4(record.id, source, sourceId, sourcePart))
+            }
+        }
+
+        if(batch.isNotEmpty()) {
+            data.db.batchUpdate(ImportImages) {
+                for ((id, source, sourceId, sourcePart) in batch) {
+                    item {
+                        where { it.id eq id }
+                        set(it.source, source)
+                        set(it.sourceId, sourceId)
+                        set(it.sourcePart, sourcePart)
+                    }
+                }
+            }
+        }
+
+        return AnalyseMetaRes(records.size, batch.size, records.size - batch.size - warnings.size, warnings)
     }
 
     fun save() {

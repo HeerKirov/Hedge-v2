@@ -5,7 +5,7 @@ import com.heerkirov.hedge.server.exceptions.ParamNotRequired
 import com.heerkirov.hedge.server.exceptions.ParamRequired
 import com.heerkirov.hedge.server.exceptions.ResourceNotExist
 
-class SourceImageManager(private val data: DataRepository) {
+class SourceManager(private val data: DataRepository) {
     /**
      * 检查source key。主要检查source是否是已注册的site，并检查id是否存在，检查part是否存在。
      */
@@ -15,5 +15,12 @@ class SourceImageManager(private val data: DataRepository) {
         else if(!site.hasId && sourceId != null) throw ParamNotRequired("sourceId")
         if(site.hasSecondaryId && sourcePart == null) throw ParamRequired("sourcePart")
         else if(!site.hasSecondaryId && sourcePart != null) throw ParamNotRequired("sourcePart")
+    }
+
+    /**
+     * 检查目标sourceImage是否存在并创建对应的记录。
+     */
+    fun createSourceImageIfNotExist(source: String, sourceId: Long?, sourcePart: Int?) {
+        TODO()
     }
 }

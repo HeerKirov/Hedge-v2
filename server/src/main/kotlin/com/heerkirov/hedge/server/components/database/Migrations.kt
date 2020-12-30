@@ -21,6 +21,7 @@ object MetadataMigrationStrategy : JsonObjectStrategy<Metadata>(Metadata::class)
                 systemDownloadHistoryPath = null
             ),
             spider = SpiderOption(
+                rules = mutableMapOf(),
                 publicRule = SpiderOption.SpiderRule(),
                 siteRules = emptyMap()
             )

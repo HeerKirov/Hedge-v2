@@ -1,7 +1,6 @@
 package com.heerkirov.hedge.server.components.http.routes
 
 import com.heerkirov.hedge.server.components.http.Endpoints
-import com.heerkirov.hedge.server.components.http.IdRes
 import com.heerkirov.hedge.server.exceptions.ParamRequired
 import com.heerkirov.hedge.server.form.*
 import com.heerkirov.hedge.server.library.form.bodyAsForm
@@ -36,14 +35,14 @@ class ImportRoutes(private val importService: ImportService) : Endpoints {
 
     private fun import(ctx: Context) {
         val form = ctx.bodyAsForm<ImportForm>()
-        val id = importService.import(form)
-        ctx.status(201).json(IdRes(id))
+        val (id, warnings) = importService.import(form)
+        ctx.status(201).json(IdResWithWarnings(id, warnings.map { ErrorResult(it) }))
     }
 
     private fun upload(ctx: Context) {
         val form = ctx.uploadedFile("file")?.let { UploadForm(it.content, it.filename, it.extension) } ?: throw ParamRequired("file")
-        val id = importService.upload(form)
-        ctx.status(201).json(IdRes(id))
+        val (id, warnings) = importService.upload(form)
+        ctx.status(201).json(IdResWithWarnings(id, warnings.map { ErrorResult(it) }))
     }
 
     private fun get(ctx: Context) {

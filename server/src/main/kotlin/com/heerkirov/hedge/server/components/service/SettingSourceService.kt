@@ -1,20 +1,17 @@
 package com.heerkirov.hedge.server.components.service
 
-import com.heerkirov.hedge.server.components.database.DataRepository
-import com.heerkirov.hedge.server.components.database.SourceOption
-import com.heerkirov.hedge.server.components.database.saveMetadata
-import com.heerkirov.hedge.server.components.database.syncMetadata
-import com.heerkirov.hedge.server.definitions.supportedSourceSite
+import com.heerkirov.hedge.server.components.database.*
+import com.heerkirov.hedge.server.dao.SourceImages
 import com.heerkirov.hedge.server.exceptions.AlreadyExists
+import com.heerkirov.hedge.server.exceptions.CascadeResourceExists
 import com.heerkirov.hedge.server.exceptions.NotFound
 import com.heerkirov.hedge.server.form.SiteCreateForm
 import com.heerkirov.hedge.server.form.SiteUpdateForm
+import me.liuwj.ktorm.dsl.eq
+import me.liuwj.ktorm.entity.any
+import me.liuwj.ktorm.entity.sequenceOf
 
 class SettingSourceService(private val data: DataRepository) {
-    fun getSupportedSites(): List<String> {
-        return supportedSourceSite
-    }
-
     fun list(): List<SourceOption.Site> {
         return data.metadata.source.sites
     }
@@ -80,11 +77,23 @@ class SettingSourceService(private val data: DataRepository) {
     }
 
     fun delete(name: String) {
-        data.syncMetadata {
+        data.db.transaction {
             val site = get(name)
 
-            saveMetadata {
-                source.sites.remove(site)
+            if(data.db.sequenceOf(SourceImages).any { it.source eq name }) {
+                throw CascadeResourceExists("SourceImage")
+            }
+            if(data.metadata.import.sourceAnalyseRules.any { it.site == name }) {
+                throw CascadeResourceExists("SourceAnalyseRule")
+            }
+            if(data.metadata.spider.rules.any { (site, _) -> site == name }) {
+                throw CascadeResourceExists("SpiderRule")
+            }
+
+            data.syncMetadata {
+                saveMetadata {
+                    source.sites.remove(site)
+                }
             }
         }
     }

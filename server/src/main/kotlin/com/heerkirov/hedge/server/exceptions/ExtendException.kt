@@ -55,3 +55,11 @@ class ConflictingGroupMembersError(conflictingMembers: Map<Int, List<Conflicting
  * - 调用source meta解析工具时
  */
 class InvalidRegexError(regex: String, msg: String): BadRequestException("INVALID_REGEX", "Regex $regex may has some error because an exception was thrown: $msg", regex)
+
+/**
+ * 当编写的rule的index与site的规则不匹配时，抛出此异常。
+ * 指id/secondaryId存在/不存在而与site的规则要求相反时的情况。
+ * 抛出位置：
+ * - 更新import rule列表时
+ */
+class InvalidRuleIndexError(site: String, regex: String) : BadRequestException("INVALID_RULE_INDEX", "Rule [$site] $regex has id/secondaryId config which not suit to site config.")

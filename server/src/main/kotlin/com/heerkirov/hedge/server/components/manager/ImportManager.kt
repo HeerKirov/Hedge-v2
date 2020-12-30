@@ -3,6 +3,7 @@ package com.heerkirov.hedge.server.components.manager
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.database.ImportOption
 import com.heerkirov.hedge.server.dao.ImportImages
+import com.heerkirov.hedge.server.exceptions.BaseException
 import com.heerkirov.hedge.server.library.xattr.XAttrProcessor
 import com.heerkirov.hedge.server.model.Illust
 import com.heerkirov.hedge.server.utils.DateTime
@@ -20,9 +21,10 @@ import java.nio.file.attribute.BasicFileAttributes
 class ImportManager(private val data: DataRepository, private val importMetaManager: ImportMetaManager) {
     /**
      * 创建一条新的import记录。
-     * @return import image id
+     * 在此方法中进行source analyse时，分析过程抛出的异常会被捕获，并以警告的形式返回。
+     * @return (import image id, warnings)
      */
-    fun newImportRecord(fileId: Int, sourceFile: File? = null, sourceFilename: String? = null): Int {
+    fun newImportRecord(fileId: Int, sourceFile: File? = null, sourceFilename: String? = null): Pair<Int, List<BaseException>> {
         val options = data.metadata.import
 
         val attr = sourceFile?.let { Files.readAttributes(it.toPath(), BasicFileAttributes::class.java) }
@@ -51,11 +53,18 @@ class ImportManager(private val data: DataRepository, private val importMetaMana
         val fileName = sourceFilename ?: sourceFile?.name
         val filePath = sourceFile?.absoluteFile?.parent
 
+        val warnings = mutableListOf<BaseException>()
+
         val (source, sourceId, sourcePart) = if(options.autoAnalyseMeta) {
-            importMetaManager.analyseSourceMeta(fileName, filePath, fileFromSource)
+            try {
+                importMetaManager.analyseSourceMeta(fileName, filePath, fileFromSource)
+            }catch (e: BaseException) {
+                warnings.add(e)
+                Triple(null, null, null)
+            }
         }else Triple(null, null, null)
 
-        return data.db.insertAndGenerateKey(ImportImages) {
+        val id = data.db.insertAndGenerateKey(ImportImages) {
             set(it.fileId, fileId)
             set(it.fileName, fileName)
             set(it.filePath, filePath)
@@ -71,5 +80,7 @@ class ImportManager(private val data: DataRepository, private val importMetaMana
             set(it.orderTime, orderTime)
             set(it.createTime, createTime)
         } as Int
+
+        return Pair(id, warnings)
     }
 }
