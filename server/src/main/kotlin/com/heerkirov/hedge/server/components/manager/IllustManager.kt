@@ -34,10 +34,8 @@ class IllustManager(private val data: DataRepository,
         }
 
         if(relations != null) relationManager.validateRelations(relations)
-        if(source != null) {
-            sourceManager.checkSource(source, sourceId, sourcePart)
-            sourceManager.createSourceImageIfNotExist(source, sourceId, sourcePart)
-        }
+
+        val (newSource, newSourceId, newSourcePart) = sourceManager.validateAndCreateSourceImageIfNotExist(source, sourceId, sourcePart)
 
         val exportedDescription = if(description.isEmpty() && collection != null) collection.exportedDescription else description
         val exportedScore = if(score == null && collection != null) collection.exportedScore else score
@@ -46,9 +44,9 @@ class IllustManager(private val data: DataRepository,
             set(it.type, if(collection != null) Illust.Type.IMAGE_WITH_PARENT else Illust.Type.IMAGE)
             set(it.parentId, collectionId)
             set(it.fileId, fileId)
-            set(it.source, source)
-            set(it.sourceId, sourceId)
-            set(it.sourcePart, sourcePart)
+            set(it.source, newSource)
+            set(it.sourceId, newSourceId)
+            set(it.sourcePart, newSourcePart)
             set(it.description, description)
             set(it.score, score)
             set(it.favorite, favorite)

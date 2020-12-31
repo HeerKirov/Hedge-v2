@@ -25,7 +25,7 @@ class SettingImportService(private val data: DataRepository) {
             saveMetadata {
                 form.autoAnalyseMeta.alsoOpt { import.autoAnalyseMeta = it }
                 form.setTagme.alsoOpt { import.setTagme = it.toBaseElements().map { i -> i.toString() } }
-                form.setCreateTimeBy.alsoOpt { import.setCreateTimeBy = it }
+                form.setTimeBy.alsoOpt { import.setTimeBy = it }
                 form.setPartitionTimeDelay.alsoOpt { import.setPartitionTimeDelay = it }
                 form.systemDownloadHistoryPath.alsoOpt { import.systemDownloadHistoryPath = it }
                 form.sourceAnalyseRules.alsoOpt { import.sourceAnalyseRules = it }
@@ -35,7 +35,7 @@ class SettingImportService(private val data: DataRepository) {
 
     private fun checkImportRule(rule: ImportOption.SourceAnalyseRule, site: SourceOption.Site) {
         if(rule is ImportOption.SourceAnalyseRuleOfRegex) {
-            if(((rule.idIndex != null) xor site.hasId) || ((rule.secondaryIdIndex != null) xor site.hasSecondaryId)) throw InvalidRuleIndexError(site.name, rule.regex)
+            if((rule.secondaryIdIndex != null) xor site.hasSecondaryId) throw InvalidRuleIndexError(site.name, rule.regex)
         }
     }
 }

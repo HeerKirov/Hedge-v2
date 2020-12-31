@@ -26,10 +26,10 @@ data class MetaExporterTask(val type: Type, val id: Int) {
 }
 
 class MetaExporterImpl(private val data: DataRepository) : MetaExporter {
-    override val isIdle: Boolean get() = TODO()
+    override val isIdle: Boolean get() = true //TODO
 
     override fun load() {
-        TODO()
+        //TODO
     }
 
     override fun appendNewTask(tasks: Iterable<MetaExporterTask>) {

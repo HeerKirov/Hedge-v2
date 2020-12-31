@@ -1,6 +1,8 @@
 package com.heerkirov.hedge.server.components.service
 
 import com.heerkirov.hedge.server.components.database.*
+import com.heerkirov.hedge.server.dao.Illusts
+import com.heerkirov.hedge.server.dao.ImportImages
 import com.heerkirov.hedge.server.dao.SourceImages
 import com.heerkirov.hedge.server.exceptions.AlreadyExists
 import com.heerkirov.hedge.server.exceptions.CascadeResourceExists
@@ -21,7 +23,7 @@ class SettingSourceService(private val data: DataRepository) {
             val sites = metadata.source.sites
             if(sites.any { it.name.equals(form.name, ignoreCase = true) }) throw AlreadyExists("Site", "name", form.name)
 
-            val newSite = SourceOption.Site(form.name, form.title, form.hasId, form.hasSecondaryId)
+            val newSite = SourceOption.Site(form.name, form.title, form.hasSecondaryId)
 
             val ordinal = form.ordinal?.let {
                 when {
@@ -80,8 +82,11 @@ class SettingSourceService(private val data: DataRepository) {
         data.db.transaction {
             val site = get(name)
 
-            if(data.db.sequenceOf(SourceImages).any { it.source eq name }) {
-                throw CascadeResourceExists("SourceImage")
+            if(data.db.sequenceOf(Illusts).any { it.source eq name }) {
+                throw CascadeResourceExists("Illust")
+            }
+            if(data.db.sequenceOf(ImportImages).any { it.source eq name }) {
+                throw CascadeResourceExists("ImportImage")
             }
             if(data.metadata.import.sourceAnalyseRules.any { it.site == name }) {
                 throw CascadeResourceExists("SourceAnalyseRule")

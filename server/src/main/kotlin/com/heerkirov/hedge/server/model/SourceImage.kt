@@ -15,9 +15,9 @@ data class SourceImage(/**
                         */
                        val sourceId: Long,
                        /**
-                        * 来源网站中的二级图像id，有些会有，比如pixiv。来源网站没有这个信息时，写0。
+                        * 来源网站中的二级图像id，有些会有，比如pixiv。来源网站没有这个信息时，写-1。
                         */
-                       val sourcePart: Int = 0,
+                       val sourcePart: Int = -1,
                        /**
                         * 原数据的标题信息，有些会有，比如pixiv。
                         */

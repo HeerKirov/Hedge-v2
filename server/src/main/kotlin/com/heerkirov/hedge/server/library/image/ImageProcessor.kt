@@ -127,7 +127,7 @@ object ImageProcessor {
             }
         }
 
-        return Fs.temp(src.extension).also { dest ->
+        return Fs.temp("jpg").also { dest ->
             try {
                 val writer = ImageIO.getImageWritersByFormatName("jpg").next()
                 try {

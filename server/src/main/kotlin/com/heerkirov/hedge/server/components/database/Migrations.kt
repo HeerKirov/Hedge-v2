@@ -15,7 +15,7 @@ object MetadataMigrationStrategy : JsonObjectStrategy<Metadata>(Metadata::class)
             import = ImportOption(
                 autoAnalyseMeta = false,
                 setTagme = emptyList(),
-                setCreateTimeBy = ImportOption.TimeType.UPDATE_TIME,
+                setTimeBy = ImportOption.TimeType.UPDATE_TIME,
                 setPartitionTimeDelay = null,
                 sourceAnalyseRules = emptyList(),
                 systemDownloadHistoryPath = null

@@ -105,11 +105,11 @@ class CompositionGenerator<T : Composition<T>>(clazz: KClass<T>) {
     }
 
     fun union(elements: Iterable<T>): T {
-        var base: Int? = null
+        var base = 0
         for (element in elements) {
-            base = if(base == null) element.value else base or element.value
+            base = base or element.value
         }
-        return newInstance(base!!)
+        return newInstance(base)
     }
 
     fun baseElementsOf(element: T): List<T> {

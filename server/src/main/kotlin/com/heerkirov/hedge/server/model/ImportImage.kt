@@ -65,7 +65,7 @@ data class ImportImage(val id: Int,
                         */
                        val sourceId: Long?,
                        /**
-                        * 来源网站中的二级图像id。
+                        * 来源网站中的二级图像id。来源网站没有这个信息时，写null。
                         * (二级文件信息，经过处理后导出，或填写的，属于基础元信息的部分。)
                         */
                        val sourcePart: Int?,

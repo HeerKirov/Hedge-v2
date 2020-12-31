@@ -18,7 +18,7 @@ data class SourceOption(
      */
     val sites: MutableList<Site>
 ) {
-    data class Site(val name: String, var title: String, val hasId: Boolean, val hasSecondaryId: Boolean)
+    data class Site(val name: String, var title: String, val hasSecondaryId: Boolean)
 }
 
 /**
@@ -37,7 +37,7 @@ data class ImportOption(
      * 导入的新文件的createTime属性从什么属性派生。给出的可选项是几类文件的物理属性。
      * 其中有的属性是有可能不存在的。如果选用了这些不存在的属性，那么会去选用必定存在的属性，即IMPORT_TIME。
      */
-    var setCreateTimeBy: TimeType,
+    var setTimeBy: TimeType,
     /**
      * 默认的分区时间从createTime截取。但是此属性将影响日期的范围，使延后一定时间的时间范围仍然算作昨天。单位ms。
      */
@@ -67,7 +67,7 @@ data class ImportOption(
 
     interface SourceAnalyseRuleOfRegex : SourceAnalyseRule {
         val regex: String
-        val idIndex: Int?
+        val idIndex: Int
         val secondaryIdIndex: Int?
     }
 
@@ -75,14 +75,14 @@ data class ImportOption(
      * 规则类型name：通过正则解析文件名来分析。
      * @param regex 使用此正则表达式匹配文件名来分析id。
      */
-    class SourceAnalyseRuleByName(override val site: String, override val regex: String, override val idIndex: Int?, override val secondaryIdIndex: Int?) : SourceAnalyseRuleOfRegex
+    class SourceAnalyseRuleByName(override val site: String, override val regex: String, override val idIndex: Int, override val secondaryIdIndex: Int?) : SourceAnalyseRuleOfRegex
 
     /**
      * 规则类型from-meta：通过正则解析来源信息来分析。仅对macOS有效。
      * macOS通常会在下载的文件中附加元信息，标记文件的下载来源URL。可以解析这个URL来获得需要的来源信息。
      * @param regex 使用此正则表达式匹配并分析下载来源URL，分析id。
      */
-    class SourceAnalyseRuleByFromMeta(override val site: String, override val regex: String, override val idIndex: Int?, override val secondaryIdIndex: Int?) : SourceAnalyseRuleOfRegex
+    class SourceAnalyseRuleByFromMeta(override val site: String, override val regex: String, override val idIndex: Int, override val secondaryIdIndex: Int?) : SourceAnalyseRuleOfRegex
 
     /**
      * 规则类型system-history：通过查阅系统下载历史数据库来分析。仅对macOS有效。
@@ -91,7 +91,7 @@ data class ImportOption(
      * @param pattern 在{LSQuarantineDataURLString}列中，使用此正则表达式匹配文件名。
      * @param regex 在{LSQuarantineOriginURLString}列中，使用此正则表达式匹配并分析id。
      */
-    class SourceAnalyseRuleBySystemHistory(override val site: String, val pattern: String, override val regex: String, override val idIndex: Int?, override val secondaryIdIndex: Int?) : SourceAnalyseRuleOfRegex
+    class SourceAnalyseRuleBySystemHistory(override val site: String, val pattern: String, override val regex: String, override val idIndex: Int, override val secondaryIdIndex: Int?) : SourceAnalyseRuleOfRegex
 }
 
 /**

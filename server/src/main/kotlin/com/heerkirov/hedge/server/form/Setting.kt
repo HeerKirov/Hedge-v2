@@ -8,7 +8,6 @@ import com.heerkirov.hedge.server.utils.types.Opt
 
 data class SiteCreateForm(@NotBlank val name: String,
                           @NotBlank val title: String,
-                          val hasId: Boolean = true,
                           val hasSecondaryId: Boolean = false,
                           val ordinal: Int? = null)
 
@@ -17,7 +16,7 @@ data class SiteUpdateForm(@NotBlank val title: Opt<String>,
 
 data class ImportOptionUpdateForm(val autoAnalyseMeta: Opt<Boolean>,
                                   val setTagme: Opt<Illust.Tagme>,
-                                  val setCreateTimeBy: Opt<ImportOption.TimeType>,
+                                  val setTimeBy: Opt<ImportOption.TimeType>,
                                   @Range(min = 0 - 86400000, max = 86400000) val setPartitionTimeDelay: Opt<Long>,
                                   val sourceAnalyseRules: Opt<List<ImportOption.SourceAnalyseRule>>,
                                   val systemDownloadHistoryPath: Opt<String?>)

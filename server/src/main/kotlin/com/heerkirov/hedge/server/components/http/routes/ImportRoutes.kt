@@ -18,6 +18,7 @@ class ImportRoutes(private val importService: ImportService) : Endpoints {
                 post("import", this::import)
                 post("upload", this::upload)
                 post("analyse-meta", this::analyseMeta)
+                post("batch-update", this::batchUpdate)
                 post("save", this::save)
                 path(":id") {
                     get(this::get)
@@ -67,7 +68,12 @@ class ImportRoutes(private val importService: ImportService) : Endpoints {
         ctx.json(importService.analyseMeta(form))
     }
 
+    private fun batchUpdate(ctx: Context) {
+        val form = ctx.bodyAsForm<ImportBatchUpdateForm>()
+        importService.batchUpdate(form)
+    }
+
     private fun save(ctx: Context) {
-        importService.save()
+        ctx.json(importService.save())
     }
 }

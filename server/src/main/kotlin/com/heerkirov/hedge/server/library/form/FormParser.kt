@@ -132,13 +132,17 @@ private fun <T : Any> mapAny(jsonNode: JsonNode, kType: KType): Any? {
                 generator.parse(it) ?: throw ClassCastException("Cannot convert '$it' to composition type ${kClass.simpleName}.")
             }
             //使用union函数会产生协变类型的问题，因此copy一份实现
-            var base: Int? = null
+            var base = 0
             for (element in elements) {
-                base = if(base == null) element.value else base or element.value
+                base = base or element.value
             }
-            generator.newInstance(base!!)
+            generator.newInstance(base)
         }
-        else -> jsonNode.parseJSONObject(kClass.java)
+        else -> try {
+            jsonNode.parseJSONObject(kClass.java)
+        }catch (e: Exception) {
+            throw ClassCastException("Cannot convert object to ${kClass.simpleName}: ${e.message}")
+        }
     }
 }
 

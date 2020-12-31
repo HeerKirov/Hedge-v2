@@ -25,7 +25,7 @@ class ImportMetaManager(private val data: DataRepository) {
         return Triple(null, null, null)
     }
 
-    private fun analyseSourceMetaByName(rule: ImportOption.SourceAnalyseRuleByName, filename: String?): Pair<Long?, Int?>? {
+    private fun analyseSourceMetaByName(rule: ImportOption.SourceAnalyseRuleByName, filename: String?): Pair<Long, Int?>? {
         if(filename == null) return null
         val text = getFilenameWithoutExtension(filename)
         val pattern = patterns.computeIfAbsent(rule.regex) { Pattern.compile(it) }
@@ -33,7 +33,7 @@ class ImportMetaManager(private val data: DataRepository) {
         val matcher = pattern.matcher(text)
         if(!matcher.find()) return null
         try {
-            val id = rule.idIndex?.let { matcher.group(it) }?.toLong()
+            val id = rule.idIndex.let { matcher.group(it) }.toLong()
             val secondaryId = rule.secondaryIdIndex?.let { matcher.group(it) }?.toInt()
             return Pair(id, secondaryId)
         }catch(e: IndexOutOfBoundsException) {
@@ -45,7 +45,7 @@ class ImportMetaManager(private val data: DataRepository) {
         }
     }
 
-    private fun analyseSourceMetaByFromMeta(rule: ImportOption.SourceAnalyseRuleByFromMeta, fromSource: List<String>?): Pair<Long?, Int?>? {
+    private fun analyseSourceMetaByFromMeta(rule: ImportOption.SourceAnalyseRuleByFromMeta, fromSource: List<String>?): Pair<Long, Int?>? {
         if(fromSource.isNullOrEmpty()) return null
         val pattern = patterns.computeIfAbsent(rule.regex) { Pattern.compile(it) }
 
@@ -53,7 +53,7 @@ class ImportMetaManager(private val data: DataRepository) {
             val matcher = pattern.matcher(from)
             if(matcher.find()) {
                 try {
-                    val id = rule.idIndex?.let { matcher.group(it) }?.toLong()
+                    val id = rule.idIndex.let { matcher.group(it) }.toLong()
                     val secondaryId = rule.secondaryIdIndex?.let { matcher.group(it) }?.toInt()
                     return Pair(id, secondaryId)
                 }catch(e: IndexOutOfBoundsException) {
@@ -68,8 +68,8 @@ class ImportMetaManager(private val data: DataRepository) {
         return null
     }
 
-    private fun analyseSourceMetaBySystemHistory(rule: ImportOption.SourceAnalyseRuleBySystemHistory, filepath: String?, filename: String?): Pair<Long?, Int?>? {
-        TODO()
+    private fun analyseSourceMetaBySystemHistory(rule: ImportOption.SourceAnalyseRuleBySystemHistory, filepath: String?, filename: String?): Pair<Long, Int?>? {
+        TODO("实现从system download history查询下载历史的功能")
     }
 
     private fun getFilenameWithoutExtension(filename: String): String {

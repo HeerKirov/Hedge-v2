@@ -37,7 +37,7 @@ object Fs {
     }
 
     fun temp(extension: String? = null): File {
-        return File.createTempFile("hedge-v2-server", extension)
+        return File.createTempFile("hedge-v2-server", ".$extension")
     }
 }
 

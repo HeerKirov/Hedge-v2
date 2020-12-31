@@ -15,6 +15,7 @@ import com.heerkirov.hedge.server.utils.runIf
 import com.heerkirov.hedge.server.utils.union
 import me.liuwj.ktorm.dsl.insertAndGenerateKey
 import java.io.File
+import java.lang.UnsupportedOperationException
 import java.nio.file.Files
 import java.nio.file.attribute.BasicFileAttributes
 
@@ -29,24 +30,21 @@ class ImportManager(private val data: DataRepository, private val importMetaMana
 
         val attr = sourceFile?.let { Files.readAttributes(it.toPath(), BasicFileAttributes::class.java) }
 
-        val fileFromSource = sourceFile?.let {
-            val xattr = XAttrProcessor.readXattrProp(it.absolutePath, "com.apple.metadata:kMDItemWhereFroms")
-            if(xattr != null) XAttrProcessor.decodePList(xattr) else null
-        }
+        val fileFromSource = sourceFile?.let { XAttrProcessor.readWhereFromsMetaInMacOS(it.absolutePath) }
 
         val fileImportTime = DateTime.now()
         val fileCreateTime = attr?.creationTime()?.toMillis()?.parseDateTime()
         val fileUpdateTime = sourceFile?.lastModified()?.parseDateTime()
 
-        val createTime = when(options.setCreateTimeBy) {
+        val createTime = when(options.setTimeBy) {
             ImportOption.TimeType.CREATE_TIME -> fileCreateTime
-            ImportOption.TimeType.IMPORT_TIME -> fileImportTime
             ImportOption.TimeType.UPDATE_TIME -> fileUpdateTime
-        }
-        val partitionTime = fileImportTime.runIf(options.setPartitionTimeDelay != null && options.setPartitionTimeDelay!! > 0) {
+            ImportOption.TimeType.IMPORT_TIME -> fileImportTime
+        } ?: fileImportTime
+        val partitionTime = createTime.runIf(options.setPartitionTimeDelay != null && options.setPartitionTimeDelay!! > 0) {
             (this.toMillisecond() - options.setPartitionTimeDelay!!).parseDateTime()
         }.asZonedTime().toLocalDate()
-        val orderTime = fileImportTime.toMillisecond()
+        val orderTime = createTime.toMillisecond()
 
         val tagme = if(options.setTagme.isEmpty()) Illust.Tagme.EMPTY else options.setTagme.map { compositionOf<Illust.Tagme>(it) }.union()
 
