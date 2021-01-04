@@ -23,7 +23,7 @@ data class FileRecord(val id: Int,
                       /**
                        * 是否存在缩略图。
                        */
-                      val thumbnail: Boolean,
+                      val thumbnail: ThumbnailStatus,
                       /**
                        * 此文件占用的磁盘大小，单位Byte。
                        */
@@ -61,5 +61,20 @@ data class FileRecord(val id: Int,
 
     enum class SyncAction {
         CREATE, DELETE
+    }
+
+    enum class ThumbnailStatus {
+        /**
+         * 缩略图未生成。
+         */
+        NULL,
+        /**
+         * 缩略图存在。
+         */
+        YES,
+        /**
+         * 缩略图不存在，使用主图代替即可。
+         */
+        NO
     }
 }

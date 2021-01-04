@@ -55,6 +55,6 @@ inline fun <T, F : File?> F.finallyUse(block: (F) -> T): T {
 /**
  * 如果此文件存在，就删除文件。
  */
-fun File?.deleteIt() {
+fun File?.deleteIfExists() {
     if(this != null && exists()) delete()
 }

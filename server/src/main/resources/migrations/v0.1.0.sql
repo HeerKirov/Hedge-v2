@@ -221,7 +221,7 @@ CREATE TABLE import_image(
     file_import_time    TIMESTAMP NOT NULL,             -- 一阶导入此文件的时间
     file_from_source    TEXT,                           -- 原文件的来源信息::json<string[]>。对于macOS，从metadata用xattr取得
 
-    tagme               TINYINT NOT NULL,               -- 标记为tagme，详见illust部分。可以通过配置决定要不要给项目加初始tagme，以及该加哪些
+    tagme               INTEGER NOT NULL,               -- 标记为tagme，详见illust部分。可以通过配置决定要不要给项目加初始tagme，以及该加哪些
     source              VARCHAR(16) DEFAULT NULL,       -- 来源网站的代号，没有填null
     source_id           BIGINT DEFAULT NULL,            -- 来源网站中的图像代号，没有填null
     source_part         INTEGER DEFAULT NULL,           -- 来源网站中的二级图像代号，没有填null
@@ -248,12 +248,12 @@ CREATE UNIQUE INDEX source_db.source_image__source__index ON source_image(source
 
 -- 原始标签映射
 CREATE TABLE source_db.source_tag_mapping(
-    id INTEGER PRIMARY KEY,
-    source VARCHAR(16),                 -- 来源网站的代号，可以为空表示对任意来源适用
-    source_tag_type TEXT,               -- 源tag的类型，可以为空表示不区分类型
-    source_tag TEXT NOT NULL,           -- 源tag名称
-    save_tag_type VARCHAR(10) NOT NULL, -- 转换为什么类型的tag{tag, author, topic}
-    save_tag_id INTEGER NOT NULL        -- 目标tag的tag id
+    id              INTEGER PRIMARY KEY,
+    source          VARCHAR(16),                    -- 来源网站的代号，可以为空表示对任意来源适用
+    source_tag_type TEXT,                           -- 源tag的类型，可以为空表示不区分类型
+    source_tag      TEXT NOT NULL,                  -- 源tag名称
+    save_tag_type   VARCHAR(10) NOT NULL,           -- 转换为什么类型的tag{tag, author, topic}
+    save_tag_id     INTEGER NOT NULL                -- 目标tag的tag id
 );
 
 -- 物理文件
@@ -261,7 +261,7 @@ CREATE TABLE origin_db.file(
     id 				INTEGER PRIMARY KEY,            -- 自增ID
     folder 			VARCHAR(16) NOT NULL,           -- 所在文件夹名称::format<yyyy-MM-dd>，一般用其添加日期作为文件夹名称
     extension		VARCHAR(8) NOT NULL,            -- 文件扩展名，同时也表示此文件的类型
-    thumbnail	    BOOLEAN NOT NULL,               -- 是否存在缩略图
+    thumbnail	    TINYINT NOT NULL,               -- 是否存在缩略图
 
     size            BIGINT NOT NULL,                -- 此文件占用的磁盘大小，单位Byte
     thumbnail_size  BIGINT NOT NULL,                -- 缩略图占用的磁盘大小，单位Byte。没有缩略图时记0

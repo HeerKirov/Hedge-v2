@@ -5,8 +5,9 @@ import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.dao.source.FileRecords
 import com.heerkirov.hedge.server.definitions.Filename
 import com.heerkirov.hedge.server.exceptions.IllegalFileExtensionError
-import com.heerkirov.hedge.server.library.image.ImageProcessor
 import com.heerkirov.hedge.server.model.source.FileRecord
+import com.heerkirov.hedge.server.tools.getFilepath
+import com.heerkirov.hedge.server.tools.getThumbnailFilepath
 import com.heerkirov.hedge.server.utils.*
 import com.heerkirov.hedge.server.utils.DateTime.toDateString
 import me.liuwj.ktorm.dsl.delete
@@ -32,16 +33,12 @@ class FileManager(private val appdata: AppDataDriver, private val data: DataRepo
         val folder = LocalDate.now().toDateString()
         val extension = validateExtension(file.extension)
 
-        val thumbnailFile = ImageProcessor.generateThumbnail(file).applyDefer {
-            deleteIt()
-        }
-
         val id = data.db.insertAndGenerateKey(FileRecords) {
             set(it.folder, folder)
             set(it.extension, extension)
-            set(it.thumbnail, thumbnailFile != null)
+            set(it.thumbnail, FileRecord.ThumbnailStatus.NULL)
             set(it.size, file.length())
-            set(it.thumbnailSize, thumbnailFile?.length() ?: 0)
+            set(it.thumbnailSize, 0)
             set(it.deleted, false)
             set(it.syncRecords, emptyList())
             set(it.createTime, now)
@@ -50,26 +47,13 @@ class FileManager(private val appdata: AppDataDriver, private val data: DataRepo
 
         val filepath = getFilepath(folder, id, extension).also { path ->
             file.copyTo(File("${appdata.data.db.path}/${Filename.FOLDER}/$path").applyExcept {
-                deleteIt()
+                deleteIfExists()
             }, overwrite = true)
-        }
-        val thumbnailFilepath = thumbnailFile?.let {
-            getThumbnailPath(folder, id).also { path ->
-                it.copyTo(File("${appdata.data.db.path}/${Filename.FOLDER}/$path").applyExcept {
-                    deleteIt()
-                }, overwrite = true)
-            }
-        }
-
-        val syncRecords = if(thumbnailFilepath != null) {
-            listOf(FileRecord.SyncRecord(FileRecord.SyncAction.CREATE, filepath), FileRecord.SyncRecord(FileRecord.SyncAction.CREATE, thumbnailFilepath))
-        }else{
-            listOf(FileRecord.SyncRecord(FileRecord.SyncAction.CREATE, filepath))
         }
 
         data.db.update(FileRecords) {
             where { it.id eq id }
-            set(it.syncRecords, syncRecords)
+            set(it.syncRecords, listOf(FileRecord.SyncRecord(FileRecord.SyncAction.CREATE, filepath)))
         }
 
         return id
@@ -80,8 +64,10 @@ class FileManager(private val appdata: AppDataDriver, private val data: DataRepo
      */
     fun revertNewFile(fileId: Int) {
         val fileRecord = getFile(fileId) ?: return
-        File("${appdata.data.db.path}/${Filename.FOLDER}/${getFilepath(fileRecord.folder, fileRecord.id, fileRecord.extension)}").deleteIt()
-        File("${appdata.data.db.path}/${Filename.FOLDER}/${getThumbnailPath(fileRecord.folder, fileRecord.id)}").deleteIt()
+        File("${appdata.data.db.path}/${Filename.FOLDER}/${getFilepath(fileRecord.folder, fileRecord.id, fileRecord.extension)}").deleteIfExists()
+        if(fileRecord.thumbnail == FileRecord.ThumbnailStatus.YES) {
+            File("${appdata.data.db.path}/${Filename.FOLDER}/${getThumbnailFilepath(fileRecord.folder, fileRecord.id)}").deleteIfExists()
+        }
         data.db.delete(FileRecords) { it.id eq fileId }
     }
 
@@ -92,7 +78,9 @@ class FileManager(private val appdata: AppDataDriver, private val data: DataRepo
     fun deleteFile(fileId: Int) {
         val fileRecord = getFile(fileId) ?: return
         val filepath = getFilepath(fileRecord.folder, fileRecord.id, fileRecord.extension)
-        val thumbnailFilepath = if(fileRecord.thumbnail) getThumbnailPath(fileRecord.folder, fileRecord.id) else null
+        val thumbnailFilepath = if(fileRecord.thumbnail == FileRecord.ThumbnailStatus.YES) {
+            getThumbnailFilepath(fileRecord.folder, fileRecord.id)
+        }else null
 
         val now = DateTime.now()
         val syncRecords = fileRecord.syncRecords.run {
@@ -108,8 +96,8 @@ class FileManager(private val appdata: AppDataDriver, private val data: DataRepo
             set(it.syncRecords, syncRecords)
         }
 
-        File("${appdata.data.db.path}/${Filename.FOLDER}/${filepath}").deleteIt()
-        if(thumbnailFilepath != null) File("${appdata.data.db.path}/${Filename.FOLDER}/${thumbnailFilepath}").deleteIt()
+        File("${appdata.data.db.path}/${Filename.FOLDER}/${filepath}").deleteIfExists()
+        if(thumbnailFilepath != null) File("${appdata.data.db.path}/${Filename.FOLDER}/${thumbnailFilepath}").deleteIfExists()
     }
 
     /**
@@ -118,20 +106,6 @@ class FileManager(private val appdata: AppDataDriver, private val data: DataRepo
      */
     private fun getFile(fileId: Int): FileRecord? {
         return data.db.sequenceOf(FileRecords).firstOrNull { it.id eq fileId }
-    }
-
-    /**
-     * 导出文件路径。
-     */
-    fun getFilepath(folder: String, fileId: Int, extension: String): String {
-        return "$folder/$fileId.$extension"
-    }
-
-    /**
-     * 导出缩略图的路径。
-     */
-    fun getThumbnailPath(folder: String, fileId: Int): String {
-        return "$folder/$fileId.thumbnail.jpg"
     }
 
     /**

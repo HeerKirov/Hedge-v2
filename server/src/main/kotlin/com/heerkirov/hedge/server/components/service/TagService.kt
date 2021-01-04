@@ -16,6 +16,9 @@ import com.heerkirov.hedge.server.dao.meta.TagAnnotationRelations
 import com.heerkirov.hedge.server.dao.meta.Tags
 import com.heerkirov.hedge.server.dao.source.FileRecords
 import com.heerkirov.hedge.server.model.meta.Tag
+import com.heerkirov.hedge.server.model.source.FileRecord
+import com.heerkirov.hedge.server.tools.getFilepath
+import com.heerkirov.hedge.server.tools.getThumbnailFilepath
 import com.heerkirov.hedge.server.utils.*
 import com.heerkirov.hedge.server.utils.ktorm.OrderTranslator
 import com.heerkirov.hedge.server.utils.ktorm.orderBy
@@ -139,10 +142,10 @@ class TagService(private val data: DataRepository,
             .innerJoin(FileRecords, FileRecords.id eq Illusts.fileId)
             .select(Illusts.id, FileRecords.id, FileRecords.folder, FileRecords.extension, FileRecords.thumbnail)
             .where { Illusts.id inList tag.examples }
-            .map { TagDetailRes.Example(it[Illusts.id]!!, if(it[FileRecords.thumbnail]!!) {
-                fileManager.getThumbnailPath(it[FileRecords.folder]!!, it[FileRecords.id]!!)
-            }else{
-                fileManager.getFilepath(it[FileRecords.folder]!!, it[FileRecords.id]!!, it[FileRecords.extension]!!)
+            .map { TagDetailRes.Example(it[Illusts.id]!!, when(it[FileRecords.thumbnail]!!) {
+                FileRecord.ThumbnailStatus.YES -> getThumbnailFilepath(it[FileRecords.folder]!!, it[FileRecords.id]!!)
+                FileRecord.ThumbnailStatus.NO -> getFilepath(it[FileRecords.folder]!!, it[FileRecords.id]!!, it[FileRecords.extension]!!)
+                FileRecord.ThumbnailStatus.NULL -> null
             }) }
 
         return newTagDetailRes(tag, annotations, examples)

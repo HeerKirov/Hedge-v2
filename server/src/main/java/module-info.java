@@ -22,7 +22,11 @@ module com.heerkirov.hedge.server {
     opens com.heerkirov.hedge.server.components.http;
     opens com.heerkirov.hedge.server.components.http.modules;
     opens com.heerkirov.hedge.server.components.http.routes;
-    opens com.heerkirov.hedge.server.model;
+    opens com.heerkirov.hedge.server.model.source;
+    opens com.heerkirov.hedge.server.model.album;
+    opens com.heerkirov.hedge.server.model.collection;
+    opens com.heerkirov.hedge.server.model.meta;
+    opens com.heerkirov.hedge.server.model.illust;
     opens com.heerkirov.hedge.server.form;
     opens com.heerkirov.hedge.server.utils.types;
 }

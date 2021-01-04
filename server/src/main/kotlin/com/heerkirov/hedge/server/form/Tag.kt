@@ -22,7 +22,7 @@ data class TagDetailRes(val id: Int, val ordinal: Int, val parentId: Int?,
                         val description: String, val color: String?,
                         val examples: List<Example>, val annotations: List<Annotation>,
                         val score: Int?, val count: Int) {
-    data class Example(val id: Int, val file: String)
+    data class Example(val id: Int, val file: String?)
     data class Annotation(val id: Int, val name: String, val canBeExported: Boolean)
 }
 

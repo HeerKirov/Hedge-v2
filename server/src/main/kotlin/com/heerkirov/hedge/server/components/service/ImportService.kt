@@ -1,5 +1,6 @@
 package com.heerkirov.hedge.server.components.service
 
+import com.heerkirov.hedge.server.components.backend.ThumbnailGenerator
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.database.ImportOption
 import com.heerkirov.hedge.server.components.database.transaction
@@ -8,11 +9,14 @@ import com.heerkirov.hedge.server.dao.source.FileRecords
 import com.heerkirov.hedge.server.dao.source.ImportImages
 import com.heerkirov.hedge.server.form.*
 import com.heerkirov.hedge.server.exceptions.*
+import com.heerkirov.hedge.server.model.source.FileRecord
+import com.heerkirov.hedge.server.tools.getFilepath
+import com.heerkirov.hedge.server.tools.getThumbnailFilepath
 import com.heerkirov.hedge.server.utils.DateTime.parseDateTime
 import com.heerkirov.hedge.server.utils.DateTime.toMillisecond
 import com.heerkirov.hedge.server.utils.Fs
 import com.heerkirov.hedge.server.utils.defer
-import com.heerkirov.hedge.server.utils.deleteIt
+import com.heerkirov.hedge.server.utils.deleteIfExists
 import com.heerkirov.hedge.server.utils.ktorm.OrderTranslator
 import com.heerkirov.hedge.server.utils.ktorm.firstOrNull
 import com.heerkirov.hedge.server.utils.ktorm.orderBy
@@ -31,7 +35,8 @@ class ImportService(private val data: DataRepository,
                     private val importManager: ImportManager,
                     private val illustManager: IllustManager,
                     private val sourceManager: SourceManager,
-                    private val importMetaManager: ImportMetaManager) {
+                    private val importMetaManager: ImportMetaManager,
+                    private val thumbnailGenerator: ThumbnailGenerator) {
     private val orderTranslator = OrderTranslator {
         "id" to ImportImages.id
         "fileCreateTime" to ImportImages.fileCreateTime nulls last
@@ -50,19 +55,26 @@ class ImportService(private val data: DataRepository,
                 val fileId = it[FileRecords.id]!!
                 val folder = it[FileRecords.folder]!!
                 val extension = it[FileRecords.extension]!!
-                val hasThumbnail = it[FileRecords.thumbnail]!!
-                ImportImageRes(it[ImportImages.id]!!, fileManager.getFilepath(folder, fileId, extension), if(hasThumbnail) fileManager.getThumbnailPath(folder, fileId) else null)
+                val filepath = getFilepath(folder, fileId, extension)
+                val thumbnailPath = when(it[FileRecords.thumbnail]!!) {
+                    FileRecord.ThumbnailStatus.YES -> getThumbnailFilepath(folder, fileId)
+                    FileRecord.ThumbnailStatus.NO -> filepath
+                    FileRecord.ThumbnailStatus.NULL -> null
+                }
+                ImportImageRes(it[ImportImages.id]!!, filepath, thumbnailPath)
             }
     }
 
     fun import(form: ImportForm): Pair<Int, List<BaseException>> = defer {
         val file = File(form.filepath).applyReturns {
-            if(form.removeOriginFile) deleteIt()
+            if(form.removeOriginFile) deleteIfExists()
         }
         if(!file.exists() || !file.canRead()) throw FileNotFoundError()
 
         val fileId = data.db.transaction { fileManager.newFile(file) }.alsoExcept { fileId ->
             fileManager.revertNewFile(fileId)
+        }.alsoReturns {
+            thumbnailGenerator.appendTask(it)
         }
 
         data.db.transaction {
@@ -72,13 +84,15 @@ class ImportService(private val data: DataRepository,
 
     fun upload(form: UploadForm): Pair<Int, List<BaseException>> = defer {
         val file = Fs.temp(form.extension).applyDefer {
-            deleteIt()
+            deleteIfExists()
         }.also { file ->
             Files.copy(form.content, file.toPath(), StandardCopyOption.REPLACE_EXISTING)
         }
 
         val fileId = data.db.transaction { fileManager.newFile(file) }.alsoExcept { fileId ->
             fileManager.revertNewFile(fileId)
+        }.alsoReturns {
+            thumbnailGenerator.appendTask(it)
         }
 
         data.db.transaction {
@@ -96,12 +110,16 @@ class ImportService(private val data: DataRepository,
         val fileId = row[FileRecords.id]!!
         val folder = row[FileRecords.folder]!!
         val extension = row[FileRecords.extension]!!
-        val hasThumbnail = row[FileRecords.thumbnail]!!
+        val filepath = getFilepath(folder, fileId, extension)
+        val thumbnailPath = when(row[FileRecords.thumbnail]!!) {
+            FileRecord.ThumbnailStatus.YES -> getThumbnailFilepath(folder, fileId)
+            FileRecord.ThumbnailStatus.NO -> filepath
+            FileRecord.ThumbnailStatus.NULL -> null
+        }
 
         return ImportImageDetailRes(
             row[ImportImages.id]!!,
-            fileManager.getFilepath(folder, fileId, extension),
-            if(hasThumbnail) fileManager.getThumbnailPath(folder, fileId) else null,
+            filepath, thumbnailPath,
             row[ImportImages.fileName], row[ImportImages.filePath], row[ImportImages.fileFromSource] ?: emptyList(),
             row[ImportImages.fileCreateTime], row[ImportImages.fileUpdateTime], row[ImportImages.fileImportTime]!!,
             row[ImportImages.tagme]!!, row[ImportImages.source], row[ImportImages.sourceId], row[ImportImages.sourcePart],
