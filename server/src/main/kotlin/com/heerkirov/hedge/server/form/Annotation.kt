@@ -4,7 +4,7 @@ import com.heerkirov.hedge.server.library.form.NotBlank
 import com.heerkirov.hedge.server.library.form.Limit
 import com.heerkirov.hedge.server.library.form.Offset
 import com.heerkirov.hedge.server.library.form.Search
-import com.heerkirov.hedge.server.model.Annotation
+import com.heerkirov.hedge.server.model.meta.Annotation
 import com.heerkirov.hedge.server.utils.types.Opt
 
 data class AnnotationRes(val id: Int, val name: String, val canBeExported: Boolean, val target: Annotation.AnnotationTarget)

@@ -1,11 +1,10 @@
 package com.heerkirov.hedge.server.form
 
 import com.heerkirov.hedge.server.components.database.ImportOption
-import com.heerkirov.hedge.server.exceptions.BaseException
 import com.heerkirov.hedge.server.library.form.Limit
 import com.heerkirov.hedge.server.library.form.Offset
 import com.heerkirov.hedge.server.library.form.Order
-import com.heerkirov.hedge.server.model.Illust
+import com.heerkirov.hedge.server.model.illust.Illust
 import com.heerkirov.hedge.server.utils.types.Opt
 import com.heerkirov.hedge.server.utils.types.OrderItem
 import java.io.InputStream

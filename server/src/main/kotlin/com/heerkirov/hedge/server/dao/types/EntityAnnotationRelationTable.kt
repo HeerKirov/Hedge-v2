@@ -1,6 +1,6 @@
 package com.heerkirov.hedge.server.dao.types
 
-import com.heerkirov.hedge.server.model.Annotation
+import com.heerkirov.hedge.server.model.meta.Annotation
 import me.liuwj.ktorm.schema.BaseTable
 import me.liuwj.ktorm.schema.Column
 

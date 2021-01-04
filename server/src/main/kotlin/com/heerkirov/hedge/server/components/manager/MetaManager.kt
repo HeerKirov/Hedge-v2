@@ -1,13 +1,13 @@
 package com.heerkirov.hedge.server.components.manager
 
 import com.heerkirov.hedge.server.components.database.DataRepository
-import com.heerkirov.hedge.server.dao.Authors
-import com.heerkirov.hedge.server.dao.Tags
-import com.heerkirov.hedge.server.dao.Topics
+import com.heerkirov.hedge.server.dao.meta.Authors
+import com.heerkirov.hedge.server.dao.meta.Tags
+import com.heerkirov.hedge.server.dao.meta.Topics
 import com.heerkirov.hedge.server.exceptions.ConflictingGroupMembersError
 import com.heerkirov.hedge.server.exceptions.ResourceNotExist
-import com.heerkirov.hedge.server.model.Tag
-import com.heerkirov.hedge.server.model.Topic
+import com.heerkirov.hedge.server.model.meta.Tag
+import com.heerkirov.hedge.server.model.meta.Topic
 import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.entity.filter
 import me.liuwj.ktorm.entity.firstOrNull

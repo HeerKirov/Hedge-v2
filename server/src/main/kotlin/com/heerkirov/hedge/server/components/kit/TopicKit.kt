@@ -2,11 +2,11 @@ package com.heerkirov.hedge.server.components.kit
 
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.manager.AnnotationManager
-import com.heerkirov.hedge.server.dao.TopicAnnotationRelations
-import com.heerkirov.hedge.server.dao.Topics
+import com.heerkirov.hedge.server.dao.meta.TopicAnnotationRelations
+import com.heerkirov.hedge.server.dao.meta.Topics
 import com.heerkirov.hedge.server.exceptions.*
-import com.heerkirov.hedge.server.model.Annotation
-import com.heerkirov.hedge.server.model.Topic
+import com.heerkirov.hedge.server.model.meta.Annotation
+import com.heerkirov.hedge.server.model.meta.Topic
 import com.heerkirov.hedge.server.tools.checkTagName
 import com.heerkirov.hedge.server.utils.ktorm.asSequence
 import com.heerkirov.hedge.server.utils.runIf

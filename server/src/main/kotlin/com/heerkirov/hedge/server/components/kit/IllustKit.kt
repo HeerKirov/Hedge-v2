@@ -2,11 +2,17 @@ package com.heerkirov.hedge.server.components.kit
 
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.manager.MetaManager
-import com.heerkirov.hedge.server.dao.*
+import com.heerkirov.hedge.server.dao.illust.IllustAnnotationRelations
+import com.heerkirov.hedge.server.dao.illust.IllustAuthorRelations
+import com.heerkirov.hedge.server.dao.illust.IllustTagRelations
+import com.heerkirov.hedge.server.dao.illust.IllustTopicRelations
+import com.heerkirov.hedge.server.dao.meta.Annotations
+import com.heerkirov.hedge.server.dao.meta.AuthorAnnotationRelations
+import com.heerkirov.hedge.server.dao.meta.TagAnnotationRelations
+import com.heerkirov.hedge.server.dao.meta.TopicAnnotationRelations
 import com.heerkirov.hedge.server.dao.types.EntityMetaRelationTable
 import com.heerkirov.hedge.server.dao.types.MetaAnnotationRelationTable
-import com.heerkirov.hedge.server.exceptions.ResourceNotExist
-import com.heerkirov.hedge.server.model.Annotation
+import com.heerkirov.hedge.server.model.meta.Annotation
 import com.heerkirov.hedge.server.utils.ktorm.asSequence
 import com.heerkirov.hedge.server.utils.ktorm.firstOrNull
 import me.liuwj.ktorm.dsl.*

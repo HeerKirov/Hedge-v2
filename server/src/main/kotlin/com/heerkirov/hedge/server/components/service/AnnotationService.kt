@@ -3,7 +3,12 @@ package com.heerkirov.hedge.server.components.service
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.database.transaction
 import com.heerkirov.hedge.server.components.kit.AnnotationKit
-import com.heerkirov.hedge.server.dao.*
+import com.heerkirov.hedge.server.dao.album.AlbumAnnotationRelations
+import com.heerkirov.hedge.server.dao.illust.IllustAnnotationRelations
+import com.heerkirov.hedge.server.dao.meta.Annotations
+import com.heerkirov.hedge.server.dao.meta.AuthorAnnotationRelations
+import com.heerkirov.hedge.server.dao.meta.TagAnnotationRelations
+import com.heerkirov.hedge.server.dao.meta.TopicAnnotationRelations
 import com.heerkirov.hedge.server.exceptions.NotFound
 import com.heerkirov.hedge.server.form.*
 import com.heerkirov.hedge.server.utils.types.anyOpt

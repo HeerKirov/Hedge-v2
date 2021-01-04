@@ -1,7 +1,7 @@
 package com.heerkirov.hedge.server.form
 
 import com.heerkirov.hedge.server.library.form.*
-import com.heerkirov.hedge.server.model.Author
+import com.heerkirov.hedge.server.model.meta.Author
 import com.heerkirov.hedge.server.utils.types.Opt
 import com.heerkirov.hedge.server.utils.types.OrderItem
 

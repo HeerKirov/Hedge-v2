@@ -1,9 +1,8 @@
 package com.heerkirov.hedge.server.components.service
 
 import com.heerkirov.hedge.server.components.database.*
-import com.heerkirov.hedge.server.dao.Illusts
-import com.heerkirov.hedge.server.dao.ImportImages
-import com.heerkirov.hedge.server.dao.SourceImages
+import com.heerkirov.hedge.server.dao.illust.Illusts
+import com.heerkirov.hedge.server.dao.source.ImportImages
 import com.heerkirov.hedge.server.exceptions.AlreadyExists
 import com.heerkirov.hedge.server.exceptions.CascadeResourceExists
 import com.heerkirov.hedge.server.exceptions.NotFound

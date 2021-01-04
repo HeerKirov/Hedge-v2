@@ -4,7 +4,7 @@ import com.heerkirov.hedge.server.library.form.Limit
 import com.heerkirov.hedge.server.library.form.Offset
 import com.heerkirov.hedge.server.library.form.Order
 import com.heerkirov.hedge.server.library.form.Search
-import com.heerkirov.hedge.server.model.Topic
+import com.heerkirov.hedge.server.model.meta.Topic
 import com.heerkirov.hedge.server.utils.types.Opt
 import com.heerkirov.hedge.server.utils.types.OrderItem
 

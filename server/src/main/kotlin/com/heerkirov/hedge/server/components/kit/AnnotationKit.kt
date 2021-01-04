@@ -1,7 +1,7 @@
 package com.heerkirov.hedge.server.components.kit
 
 import com.heerkirov.hedge.server.components.database.DataRepository
-import com.heerkirov.hedge.server.dao.*
+import com.heerkirov.hedge.server.dao.meta.*
 import com.heerkirov.hedge.server.exceptions.AlreadyExists
 import com.heerkirov.hedge.server.exceptions.ParamError
 import com.heerkirov.hedge.server.tools.checkTagName

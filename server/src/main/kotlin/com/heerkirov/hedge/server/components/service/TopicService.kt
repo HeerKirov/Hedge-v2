@@ -2,11 +2,15 @@ package com.heerkirov.hedge.server.components.service
 
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.database.transaction
-import com.heerkirov.hedge.server.dao.*
 import com.heerkirov.hedge.server.exceptions.NotFound
 import com.heerkirov.hedge.server.form.*
 import com.heerkirov.hedge.server.components.kit.TopicKit
-import com.heerkirov.hedge.server.model.Illust
+import com.heerkirov.hedge.server.dao.album.AlbumTopicRelations
+import com.heerkirov.hedge.server.dao.illust.IllustTopicRelations
+import com.heerkirov.hedge.server.dao.illust.Illusts
+import com.heerkirov.hedge.server.dao.meta.TopicAnnotationRelations
+import com.heerkirov.hedge.server.dao.meta.Topics
+import com.heerkirov.hedge.server.model.illust.Illust
 import com.heerkirov.hedge.server.utils.ktorm.OrderTranslator
 import com.heerkirov.hedge.server.utils.ktorm.first
 import com.heerkirov.hedge.server.utils.ktorm.orderBy

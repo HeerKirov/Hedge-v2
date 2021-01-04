@@ -2,12 +2,12 @@ package com.heerkirov.hedge.server.components.kit
 
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.manager.AnnotationManager
-import com.heerkirov.hedge.server.dao.AuthorAnnotationRelations
-import com.heerkirov.hedge.server.dao.Authors
+import com.heerkirov.hedge.server.dao.meta.AuthorAnnotationRelations
+import com.heerkirov.hedge.server.dao.meta.Authors
 import com.heerkirov.hedge.server.exceptions.AlreadyExists
 import com.heerkirov.hedge.server.exceptions.ParamError
-import com.heerkirov.hedge.server.model.Annotation
-import com.heerkirov.hedge.server.model.Author
+import com.heerkirov.hedge.server.model.meta.Annotation
+import com.heerkirov.hedge.server.model.meta.Author
 import com.heerkirov.hedge.server.tools.checkTagName
 import com.heerkirov.hedge.server.utils.ktorm.asSequence
 import com.heerkirov.hedge.server.utils.runIf
