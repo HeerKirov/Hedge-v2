@@ -10,6 +10,8 @@ data class AuthorRes(val id: Int, val name: String,
                      val annotations: List<Author.CachedAnnotation>,
                      val score: Int?, val count: Int)
 
+data class AuthorSimpleRes(val id: Int, val name: String)
+
 data class AuthorDetailRes(val id: Int, val name: String, val otherNames: List<String>, val description: String,
                            val type: Author.Type, val favorite: Boolean,
                            val annotations: List<Author.CachedAnnotation>,

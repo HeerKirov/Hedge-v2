@@ -92,6 +92,7 @@ data class Illust(val id: Int,
                    * [for collection]集合的内容发生变化的时间。
                    */
                   val updateTime: LocalDateTime) {
+    enum class IllustType { COLLECTION, IMAGE }
 
     enum class Type {
         /**

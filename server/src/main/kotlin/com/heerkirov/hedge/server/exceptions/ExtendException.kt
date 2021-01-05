@@ -63,3 +63,10 @@ class InvalidRegexError(regex: String, msg: String): BadRequestException("INVALI
  * - 更新import rule列表时
  */
 class InvalidRuleIndexError(site: String, regex: String) : BadRequestException("INVALID_RULE_INDEX", "Rule [$site] $regex has secondaryId config which not suit to site config.")
+
+/**
+ * 当业务所需的某种选项内容不支持当前业务时，抛出此异常。
+ * 抛出位置：
+ * - 当使用SystemDownloadHistory解析source但未设置systemDownloadHistoryPath时
+ */
+class InvalidOptionError(option: String, msg: String) : BadRequestException("INVALID_OPTION", "Option '$option' is invalid: $msg", option)

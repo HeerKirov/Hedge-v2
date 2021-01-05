@@ -12,6 +12,8 @@ data class TagRes(val id: Int, val ordinal: Int, val parentId: Int?,
                   val name: String, val otherNames: List<String>,
                   val type: Tag.Type, val group: Tag.IsGroup, val color: String?)
 
+data class TagSimpleRes(val id: Int, val name: String, val color: String?)
+
 data class TagTreeNode(val id: Int, val name: String, val otherNames: List<String>,
                        val type: Tag.Type, val group: Tag.IsGroup, val color: String?,
                        val children: List<TagTreeNode>?)
@@ -20,9 +22,8 @@ data class TagDetailRes(val id: Int, val ordinal: Int, val parentId: Int?,
                         val name: String, val otherNames: List<String>,
                         val type: Tag.Type, val group: Tag.IsGroup, val links: List<Int>,
                         val description: String, val color: String?,
-                        val examples: List<Example>, val annotations: List<Annotation>,
+                        val examples: List<IllustSimpleRes>, val annotations: List<Annotation>,
                         val score: Int?, val count: Int) {
-    data class Example(val id: Int, val file: String?)
     data class Annotation(val id: Int, val name: String, val canBeExported: Boolean)
 }
 
@@ -65,7 +66,7 @@ fun newTagRes(tag: Tag) = TagRes(tag.id, tag.ordinal, tag.parentId, tag.name, ta
 
 fun newTagTreeNode(tag: Tag, children: List<TagTreeNode>?) = TagTreeNode(tag.id, tag.name, tag.otherNames, tag.type, tag.isGroup, tag.color, children)
 
-fun newTagDetailRes(tag: Tag, annotations: List<TagDetailRes.Annotation>, examples: List<TagDetailRes.Example>) = TagDetailRes(tag.id, tag.ordinal, tag.parentId,
+fun newTagDetailRes(tag: Tag, annotations: List<TagDetailRes.Annotation>, examples: List<IllustSimpleRes>) = TagDetailRes(tag.id, tag.ordinal, tag.parentId,
     tag.name, tag.otherNames,
     tag.type, tag.isGroup, tag.links ?: emptyList(), tag.description, tag.color,
     examples, annotations,

@@ -12,6 +12,7 @@ import com.heerkirov.hedge.server.exceptions.*
 import com.heerkirov.hedge.server.model.source.FileRecord
 import com.heerkirov.hedge.server.tools.getFilepath
 import com.heerkirov.hedge.server.tools.getThumbnailFilepath
+import com.heerkirov.hedge.server.tools.takeAllFilepath
 import com.heerkirov.hedge.server.utils.DateTime.parseDateTime
 import com.heerkirov.hedge.server.utils.DateTime.toMillisecond
 import com.heerkirov.hedge.server.utils.Fs
@@ -52,16 +53,8 @@ class ImportService(private val data: DataRepository,
             .orderBy(filter.order, orderTranslator)
             .limit(filter.offset, filter.limit)
             .toListResult {
-                val fileId = it[FileRecords.id]!!
-                val folder = it[FileRecords.folder]!!
-                val extension = it[FileRecords.extension]!!
-                val filepath = getFilepath(folder, fileId, extension)
-                val thumbnailPath = when(it[FileRecords.thumbnail]!!) {
-                    FileRecord.ThumbnailStatus.YES -> getThumbnailFilepath(folder, fileId)
-                    FileRecord.ThumbnailStatus.NO -> filepath
-                    FileRecord.ThumbnailStatus.NULL -> null
-                }
-                ImportImageRes(it[ImportImages.id]!!, filepath, thumbnailPath)
+                val (file, thumbnailFile) = takeAllFilepath(it)
+                ImportImageRes(it[ImportImages.id]!!, file, thumbnailFile)
             }
     }
 
@@ -107,19 +100,11 @@ class ImportService(private val data: DataRepository,
             .where { ImportImages.id eq id }
             .firstOrNull() ?: throw NotFound()
 
-        val fileId = row[FileRecords.id]!!
-        val folder = row[FileRecords.folder]!!
-        val extension = row[FileRecords.extension]!!
-        val filepath = getFilepath(folder, fileId, extension)
-        val thumbnailPath = when(row[FileRecords.thumbnail]!!) {
-            FileRecord.ThumbnailStatus.YES -> getThumbnailFilepath(folder, fileId)
-            FileRecord.ThumbnailStatus.NO -> filepath
-            FileRecord.ThumbnailStatus.NULL -> null
-        }
+        val (file, thumbnailFile) = takeAllFilepath(row)
 
         return ImportImageDetailRes(
             row[ImportImages.id]!!,
-            filepath, thumbnailPath,
+            file, thumbnailFile,
             row[ImportImages.fileName], row[ImportImages.filePath], row[ImportImages.fileFromSource] ?: emptyList(),
             row[ImportImages.fileCreateTime], row[ImportImages.fileUpdateTime], row[ImportImages.fileImportTime]!!,
             row[ImportImages.tagme]!!, row[ImportImages.source], row[ImportImages.sourceId], row[ImportImages.sourcePart],
@@ -190,7 +175,7 @@ class ImportService(private val data: DataRepository,
 
             for(record in records) {
                 val (source, sourceId, sourcePart) = try {
-                    importMetaManager.analyseSourceMeta(record.fileName, record.filePath, record.fileFromSource)
+                    importMetaManager.analyseSourceMeta(record.fileName, record.fileFromSource, record.fileCreateTime)
                 }catch (e: BaseException) {
                     errors[record.id] = ErrorResult(e)
                     continue

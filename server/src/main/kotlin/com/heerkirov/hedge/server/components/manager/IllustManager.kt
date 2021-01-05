@@ -21,6 +21,7 @@ class IllustManager(private val data: DataRepository,
                     private val kit: IllustKit,
                     private val relationManager: RelationManager,
                     private val sourceManager: SourceManager,
+                    private val partitionManager: PartitionManager,
                     private val metaExporter: MetaExporter) {
     /**
      * 创建新的image。
@@ -35,6 +36,8 @@ class IllustManager(private val data: DataRepository,
                 .firstOrNull { (Illusts.type eq Illust.Type.COLLECTION) and (Illusts.id eq collectionId) }
                 ?: throw ResourceNotExist("parentId", collectionId)
         }
+
+        partitionManager.addItemInPartition(partitionTime)
 
         if(relations != null) relationManager.validateRelations(relations)
 

@@ -25,7 +25,7 @@ class SettingRoutes(settingImportService: SettingImportService, settingSourceSer
                         post(site::create)
                         path(":name") {
                             get(site::get)
-                            patch(site::update)
+                            put(site::update)
                             delete(site::delete)
                         }
                     }
