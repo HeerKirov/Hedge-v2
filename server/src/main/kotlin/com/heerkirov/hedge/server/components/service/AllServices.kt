@@ -4,6 +4,7 @@ import com.heerkirov.hedge.server.library.framework.Component
 
 interface AllServices : Component {
     val illust: IllustService
+    val partition: PartitionService
     val import: ImportService
     val tag: TagService
     val annotation: AnnotationService
@@ -15,6 +16,7 @@ interface AllServices : Component {
 
 class AllServicesImpl(
     override val illust: IllustService,
+    override val partition: PartitionService,
     override val import: ImportService,
     override val tag: TagService,
     override val annotation: AnnotationService,

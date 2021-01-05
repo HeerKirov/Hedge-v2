@@ -40,7 +40,6 @@ fun runApplication(options: ApplicationOptions) {
         val services = define {
             val relationManager = RelationManager(repo)
             val sourceManager = SourceManager(repo)
-            val partitionManager = PartitionManager(repo)
 
             val fileManager = FileManager(appdata, repo)
             val importMetaManager = ImportMetaManager(repo)
@@ -53,6 +52,9 @@ fun runApplication(options: ApplicationOptions) {
             val topicKit = TopicKit(repo, annotationManager)
             val tagKit = TagKit(repo, annotationManager)
             val metaManager = MetaManager(repo)
+
+            val partitionManager = PartitionManager(repo)
+            val partitionService = PartitionService(repo)
 
             val illustKit = IllustKit(repo, metaManager)
             val illustManager = IllustManager(repo, illustKit, relationManager, sourceManager, partitionManager, metaExporter)
@@ -68,6 +70,7 @@ fun runApplication(options: ApplicationOptions) {
 
             AllServicesImpl(
                 illustService,
+                partitionService,
                 importService,
                 tagService,
                 annotationService,

@@ -78,6 +78,7 @@ class HttpServerImpl(private val allServices: AllServices,
             .handle(AppRoutes(lifetime, appdata))
             .handle(SettingRoutes(allServices.settingImport, allServices.settingSource))
             .handle(IllustRoutes(allServices.illust))
+            .handle(PartitionRoutes(allServices.partition))
             .handle(ImportRoutes(allServices.import))
             .handle(TagRoutes(allServices.tag))
             .handle(TopicRoutes(allServices.topic))
