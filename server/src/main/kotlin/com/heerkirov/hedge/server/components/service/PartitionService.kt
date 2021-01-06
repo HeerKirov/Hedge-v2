@@ -26,7 +26,7 @@ class PartitionService(private val data: DataRepository) {
 
     fun get(date: LocalDate): PartitionRes {
         return data.db.from(Partitions).select()
-            .where { Partitions.date eq date }
+            .where { (Partitions.date eq date) and (Partitions.cachedCount greater 0) }
             .firstOrNull()
             ?.let { PartitionRes(it[Partitions.date]!!, it[Partitions.cachedCount]!!) }
             ?: throw NotFound()

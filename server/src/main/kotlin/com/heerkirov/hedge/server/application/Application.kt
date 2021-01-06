@@ -2,7 +2,7 @@ package com.heerkirov.hedge.server.application
 
 import com.heerkirov.hedge.server.components.appdata.AppDataDriverImpl
 import com.heerkirov.hedge.server.components.appdata.AppdataOptions
-import com.heerkirov.hedge.server.components.backend.MetaExporterImpl
+import com.heerkirov.hedge.server.components.backend.IllustMetaExporterImpl
 import com.heerkirov.hedge.server.components.backend.ThumbnailGeneratorImpl
 import com.heerkirov.hedge.server.components.database.RepositoryOptions
 import com.heerkirov.hedge.server.components.database.DataRepositoryImpl
@@ -34,13 +34,11 @@ fun runApplication(options: ApplicationOptions) {
         val repo = define { DataRepositoryImpl(repositoryOptions) }
         val appdata = define { AppDataDriverImpl(repo, appdataOptions) }
 
-        val metaExporter = define { MetaExporterImpl(repo) }
-        val thumbnailGenerator = define { ThumbnailGeneratorImpl(appdata, repo) }
-
         val services = define {
             val relationManager = RelationManager(repo)
             val sourceManager = SourceManager(repo)
 
+            val thumbnailGenerator = define { ThumbnailGeneratorImpl(appdata, repo) }
             val fileManager = FileManager(appdata, repo)
             val importMetaManager = ImportMetaManager(repo)
             val importManager = ImportManager(repo, importMetaManager)
@@ -56,12 +54,13 @@ fun runApplication(options: ApplicationOptions) {
             val partitionManager = PartitionManager(repo)
             val partitionService = PartitionService(repo)
 
-            val illustKit = IllustKit(repo, metaManager)
-            val illustManager = IllustManager(repo, illustKit, relationManager, sourceManager, partitionManager, metaExporter)
-            val illustService = IllustService(repo, illustKit, partitionManager)
+            val illustMetaExporter = define { IllustMetaExporterImpl(repo) }
+            val illustKit = IllustKit(repo, metaManager, relationManager, illustMetaExporter)
+            val illustManager = IllustManager(repo, illustKit, relationManager, sourceManager, partitionManager, illustMetaExporter)
+            val illustService = IllustService(repo, illustKit, illustManager, fileManager, relationManager, sourceManager, partitionManager, illustMetaExporter)
 
             val importService = ImportService(repo, fileManager, importManager, illustManager, sourceManager, importMetaManager, thumbnailGenerator)
-            val tagService = TagService(repo, tagKit, fileManager, metaExporter)
+            val tagService = TagService(repo, tagKit, fileManager, illustMetaExporter)
             val annotationService = AnnotationService(repo, annotationKit)
             val authorService = AuthorService(repo, authorKit)
             val topicService = TopicService(repo, topicKit)

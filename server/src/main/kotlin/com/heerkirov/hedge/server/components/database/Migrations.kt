@@ -9,6 +9,10 @@ import me.liuwj.ktorm.database.Database
 object MetadataMigrationStrategy : JsonObjectStrategy<Metadata>(Metadata::class) {
     override fun defaultData(): Metadata {
         return Metadata(
+            meta = MetaOption(
+                scoreMaximum = 5,
+                scoreDescriptions = emptyList()
+            ),
             source = SourceOption(
                 sites = mutableListOf()
             ),

@@ -1,6 +1,6 @@
 package com.heerkirov.hedge.server.components.service
 
-import com.heerkirov.hedge.server.components.backend.MetaExporter
+import com.heerkirov.hedge.server.components.backend.IllustMetaExporter
 import com.heerkirov.hedge.server.components.backend.MetaExporterTask
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.database.transaction
@@ -16,9 +16,6 @@ import com.heerkirov.hedge.server.dao.meta.TagAnnotationRelations
 import com.heerkirov.hedge.server.dao.meta.Tags
 import com.heerkirov.hedge.server.dao.source.FileRecords
 import com.heerkirov.hedge.server.model.meta.Tag
-import com.heerkirov.hedge.server.model.source.FileRecord
-import com.heerkirov.hedge.server.tools.getFilepath
-import com.heerkirov.hedge.server.tools.getThumbnailFilepath
 import com.heerkirov.hedge.server.tools.takeThumbnailFilepath
 import com.heerkirov.hedge.server.utils.*
 import com.heerkirov.hedge.server.utils.ktorm.OrderTranslator
@@ -30,7 +27,7 @@ import me.liuwj.ktorm.entity.*
 class TagService(private val data: DataRepository,
                  private val kit: TagKit,
                  private val fileManager: FileManager,
-                 private val metaExporter: MetaExporter) {
+                 private val illustMetaExporter: IllustMetaExporter) {
     private val orderTranslator = OrderTranslator {
         "id" to Tags.id
         "name" to Tags.name
@@ -302,12 +299,12 @@ class TagService(private val data: DataRepository,
                         .select(IllustTagRelations.illustId)
                         .where { IllustTagRelations.tagId eq id }
                         .map { MetaExporterTask(MetaExporterTask.Type.ILLUST, it[IllustTagRelations.illustId]!!) }
-                        .let { metaExporter.appendNewTask(it) }
+                        .let { illustMetaExporter.appendNewTask(it) }
                     data.db.from(AlbumTagRelations)
                         .select(AlbumTagRelations.albumId)
                         .where { AlbumTagRelations.tagId eq id }
                         .map { MetaExporterTask(MetaExporterTask.Type.ALBUM, it[AlbumTagRelations.albumId]!!) }
-                        .let { metaExporter.appendNewTask(it) }
+                        .let { illustMetaExporter.appendNewTask(it) }
             }
         }
     }
@@ -332,12 +329,12 @@ class TagService(private val data: DataRepository,
                 .select(IllustTagRelations.illustId)
                 .where { IllustTagRelations.tagId eq id }
                 .map { MetaExporterTask(MetaExporterTask.Type.ILLUST, it[IllustTagRelations.illustId]!!) }
-                .let { metaExporter.appendNewTask(it) }
+                .let { illustMetaExporter.appendNewTask(it) }
             data.db.from(AlbumTagRelations)
                 .select(AlbumTagRelations.albumId)
                 .where { AlbumTagRelations.tagId eq id }
                 .map { MetaExporterTask(MetaExporterTask.Type.ALBUM, it[AlbumTagRelations.albumId]!!) }
-                .let { metaExporter.appendNewTask(it) }
+                .let { illustMetaExporter.appendNewTask(it) }
             recursionDelete(id)
         }
     }

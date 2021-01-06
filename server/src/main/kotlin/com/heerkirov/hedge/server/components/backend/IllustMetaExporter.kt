@@ -4,10 +4,10 @@ import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.library.framework.StatefulComponent
 
 /**
- * 处理meta元信息重导出的后台任务。适用于处理大批量重新导出的情况。
+ * 处理元信息重导出的后台任务。适用于处理大批量重新导出的情况。
  * 会将持有的任务持久化到数据库。
  */
-interface MetaExporter : StatefulComponent {
+interface IllustMetaExporter : StatefulComponent {
     fun appendNewTask(type: MetaExporterTask.Type, id: Int) {
         appendNewTask(listOf(MetaExporterTask(type, id)))
     }
@@ -25,7 +25,7 @@ data class MetaExporterTask(val type: Type, val id: Int) {
     }
 }
 
-class MetaExporterImpl(private val data: DataRepository) : MetaExporter {
+class IllustMetaExporterImpl(private val data: DataRepository) : IllustMetaExporter {
     override val isIdle: Boolean get() = true //TODO
 
     override fun load() {
@@ -33,6 +33,6 @@ class MetaExporterImpl(private val data: DataRepository) : MetaExporter {
     }
 
     override fun appendNewTask(tasks: Iterable<MetaExporterTask>) {
-        //TODO 实现meta exporter后台任务
+        //TODO 实现property exporter后台任务
     }
 }

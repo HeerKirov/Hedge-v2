@@ -13,7 +13,7 @@ data class TopicRes(val id: Int, val name: String,
                     val annotations: List<Topic.CachedAnnotation>,
                     val score: Int?, val count: Int)
 
-data class TopicSimpleRes(val id: Int, val name: String)
+data class TopicSimpleRes(val id: Int, val name: String, val isExported: Boolean)
 
 data class TopicDetailRes(val id: Int, val name: String, val parent: Parent?,
                           val otherNames: List<String>, val description: String,

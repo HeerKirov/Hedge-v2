@@ -31,12 +31,18 @@ class PartitionManager(private val data: DataRepository) {
      */
     fun updateItemPartition(fromDate: LocalDate, toDate: LocalDate) {
         if(fromDate != toDate) {
-            data.db.update(Partitions) {
-                where { it.date eq fromDate }
-                set(it.cachedCount, it.cachedCount minus 1)
-            }
-
+            deleteItemInPartition(fromDate)
             addItemInPartition(toDate)
+        }
+    }
+
+    /**
+     * 将一个项目从一个时间分区移除。计数归零的时间分区不会删除，但是应当在列表查询中过滤掉计数为0的分区。
+     */
+    fun deleteItemInPartition(date: LocalDate) {
+        data.db.update(Partitions) {
+            where { it.date eq date }
+            set(it.cachedCount, it.cachedCount minus 1)
         }
     }
 }

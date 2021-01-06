@@ -35,7 +35,7 @@ class ThumbnailGeneratorImpl(private val appdata: AppDataDriver, private val dat
 
     private val daemonTask = controlledThread(thread = this::daemonThread)
 
-    override val isIdle: Boolean get() = true // 此组件不占用运行，总是可打断
+    override val isIdle: Boolean get() = !daemonTask.isAlive
 
     override fun load() {
         val tasks = data.db.from(FileRecords)

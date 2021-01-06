@@ -32,7 +32,7 @@ class RelationManager(private val data: DataRepository) {
         //放入this
         elements[thisId] = Element(thisId, oldRelations ?: emptyList(), oldExportedRelations ?: emptyList())
         //放入由this的旧依赖拓扑查到的所有element
-        if(oldExportedRelations != null) elements.putAll(findAll(oldExportedRelations).asSequence().map { Pair(it.id, it) })
+        if(!oldExportedRelations.isNullOrEmpty()) elements.putAll(findAll(oldExportedRelations).asSequence().map { Pair(it.id, it) })
         //放入新旧对比之后新增的部分
         val adds = findAll(relationSet - (oldRelationSet ?: emptySet()) - elements.keys)
         elements.putAll(adds.asSequence().map { Pair(it.id, it) })
@@ -47,7 +47,7 @@ class RelationManager(private val data: DataRepository) {
         data.db.batchUpdate(Illusts) {
             for (element in elements.values) {
                 if(element.id != thisId) {
-                    val newExportedRelations = graph[element]
+                    val newExportedRelations = graph[element].map { it.id }
                     if(newExportedRelations != element.exportedRelations) {
                         item {
                             where { it.id eq element.id }
@@ -57,7 +57,42 @@ class RelationManager(private val data: DataRepository) {
                 }else{
                     item {
                         where { it.id eq element.id }
-                        set(it.exportedRelations, graph[element])
+                        set(it.exportedRelations, graph[element].map { it.id })
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * 欲删除一个项，因此从它的关系拓扑的所有项中剔除自己。
+     */
+    fun removeItemInRelations(thisId: Int, relations: List<Int>) {
+        val elements = mutableMapOf<Int, Element>()
+        //将全量拓扑的关联节点全部放入集合
+        elements.putAll(findAll(relations).map { Pair(it.id, it) })
+
+        //发生变化的relation集合
+        val relationChanges = mutableMapOf<Int, List<Int>>()
+        //生成拓扑图
+        val graph = RelationGraph(elements.values.toTypedArray(), elements.values.asSequence().flatMap { element ->
+            val newRelations = element.relations.filter { it != thisId }
+            if(newRelations.size < element.relations.size) {
+                relationChanges[element.id] = newRelations
+            }
+            newRelations.map { Pair(element, elements[it]!!) }
+        })
+
+        //保存更改
+        data.db.batchUpdate(Illusts) {
+            for (element in elements.values) {
+                val newRelations = relationChanges[element.id]
+                val newExportedRelations = graph[element].map { it.id }
+                if(newRelations != null || element.exportedRelations != newExportedRelations) {
+                    item {
+                        where { it.id eq element.id }
+                        set(it.relations, newRelations)
+                        set(it.exportedRelations, newExportedRelations)
                     }
                 }
             }

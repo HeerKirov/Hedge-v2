@@ -12,7 +12,7 @@ data class TagRes(val id: Int, val ordinal: Int, val parentId: Int?,
                   val name: String, val otherNames: List<String>,
                   val type: Tag.Type, val group: Tag.IsGroup, val color: String?)
 
-data class TagSimpleRes(val id: Int, val name: String, val color: String?)
+data class TagSimpleRes(val id: Int, val name: String, val color: String?, val isExported: Boolean)
 
 data class TagTreeNode(val id: Int, val name: String, val otherNames: List<String>,
                        val type: Tag.Type, val group: Tag.IsGroup, val color: String?,

@@ -74,6 +74,10 @@ open class ResourceNotSuitable : BadRequestException, Unchecked {
      * 指明是一项属性的目标资源。同时指明具体的值。
      */
     constructor(prop: String, value: Any) : super("NOT_SUITABLE", "Resource of $prop '$value' is not suitable.", listOf(prop, value))
+    /**
+     * 指明是一项属性的目标资源。同时指明具体的值。
+     */
+    constructor(prop: String, value: Collection<Any>) : super("NOT_SUITABLE", "Resource of $prop '${value.joinToString(", ")}' is not suitable.", listOf(prop, value))
 }
 
 /**

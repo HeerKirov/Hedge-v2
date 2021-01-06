@@ -4,10 +4,24 @@ import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 
 data class Metadata(
+    val meta: MetaOption,
     val source: SourceOption,
     val import: ImportOption,
     val spider: SpiderOption
 )
+
+data class MetaOption(
+    /**
+     * illust和album中允许给出的最大score值(最小总是为1)。
+     */
+    var scoreMaximum: Int,
+    /**
+     * score值的描述。[数组下标+1]表示要描述的分数。可以不写表示空出。
+     */
+    var scoreDescriptions: List<ScoreDescription?>
+) {
+    data class ScoreDescription(val word: String, val content: String)
+}
 
 /**
  * 与原始数据相关的选项。
