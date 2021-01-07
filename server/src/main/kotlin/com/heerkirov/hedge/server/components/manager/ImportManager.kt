@@ -45,8 +45,6 @@ class ImportManager(private val data: DataRepository, private val importMetaMana
         }.asZonedTime().toLocalDate()
         val orderTime = createTime.toMillisecond()
 
-        val tagme = if(options.setTagme.isEmpty()) Illust.Tagme.EMPTY else options.setTagme.map { compositionOf<Illust.Tagme>(it) }.union()
-
         val fileName = sourceFilename ?: sourceFile?.name
         val filePath = sourceFile?.absoluteFile?.parent
 
@@ -60,6 +58,12 @@ class ImportManager(private val data: DataRepository, private val importMetaMana
                 Triple(null, null, null)
             }
         }else Triple(null, null, null)
+
+        val tagme = Illust.Tagme.EMPTY.runIf<Illust.Tagme>(options.setTagmeOfTag) {
+            this + Illust.Tagme.TAG + Illust.Tagme.AUTHOR + Illust.Tagme.TOPIC
+        }.runIf(source == null && options.setTagmeOfSource) {
+            this + Illust.Tagme.SOURCE
+        }
 
         val id = data.db.insertAndGenerateKey(ImportImages) {
             set(it.fileId, fileId)

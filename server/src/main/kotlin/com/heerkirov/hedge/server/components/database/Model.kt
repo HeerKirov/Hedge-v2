@@ -18,7 +18,11 @@ data class MetaOption(
     /**
      * score值的描述。[数组下标+1]表示要描述的分数。可以不写表示空出。
      */
-    var scoreDescriptions: List<ScoreDescription?>
+    var scoreDescriptions: List<ScoreDescription?>,
+    /**
+     * 当编辑了对应的成份时，自动对illust的tagme做清理。
+     */
+    var autoCleanTagme: Boolean
 ) {
     data class ScoreDescription(val word: String, val content: String)
 }
@@ -44,9 +48,13 @@ data class ImportOption(
      */
     var autoAnalyseMeta: Boolean,
     /**
-     * 导入的新文件的tagme属性的默认值。这里的值是enum的name的列表。
+     * 在文件导入时，自动设置tag、topic、author的tagme。
      */
-    var setTagme: List<String>,
+    var setTagmeOfTag: Boolean,
+    /**
+     * 在文件导入时如果没有解析source或无source，自动设置source的tagme；analyseMeta时如果分析出了值，自动取消source的tagme。
+     */
+    var setTagmeOfSource: Boolean,
     /**
      * 导入的新文件的createTime属性从什么属性派生。给出的可选项是几类文件的物理属性。
      * 其中有的属性是有可能不存在的。如果选用了这些不存在的属性，那么会去选用必定存在的属性，即IMPORT_TIME。

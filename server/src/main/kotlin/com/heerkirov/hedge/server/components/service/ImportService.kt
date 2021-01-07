@@ -9,6 +9,7 @@ import com.heerkirov.hedge.server.dao.source.FileRecords
 import com.heerkirov.hedge.server.dao.source.ImportImages
 import com.heerkirov.hedge.server.form.*
 import com.heerkirov.hedge.server.exceptions.*
+import com.heerkirov.hedge.server.model.illust.Illust
 import com.heerkirov.hedge.server.model.source.FileRecord
 import com.heerkirov.hedge.server.tools.getFilepath
 import com.heerkirov.hedge.server.tools.getThumbnailFilepath
@@ -170,8 +171,9 @@ class ImportService(private val data: DataRepository,
                 }
             }
 
+            val setTagmeOfSource = data.metadata.import.setTagmeOfSource
             val errors = mutableMapOf<Int, ErrorResult>()
-            val batch = mutableListOf<Tuple4<Int, String, Long?, Int?>>()
+            val batch = mutableListOf<Tuple5<Int, String, Long?, Int?, Illust.Tagme?>>()
 
             for(record in records) {
                 val (source, sourceId, sourcePart) = try {
@@ -181,18 +183,20 @@ class ImportService(private val data: DataRepository,
                     continue
                 }
                 if(source != null) {
-                    batch.add(Tuple4(record.id, source, sourceId, sourcePart))
+                    val tagme = if(setTagmeOfSource && Illust.Tagme.SOURCE in record.tagme) record.tagme - Illust.Tagme.SOURCE else null
+                    batch.add(Tuple5(record.id, source, sourceId, sourcePart, tagme))
                 }
             }
 
             if(batch.isNotEmpty()) {
                 data.db.batchUpdate(ImportImages) {
-                    for ((id, source, sourceId, sourcePart) in batch) {
+                    for ((id, source, sourceId, sourcePart, tagme) in batch) {
                         item {
                             where { it.id eq id }
                             set(it.source, source)
                             set(it.sourceId, sourceId)
                             set(it.sourcePart, sourcePart)
+                            if(tagme != null) set(it.tagme, tagme)
                         }
                     }
                 }

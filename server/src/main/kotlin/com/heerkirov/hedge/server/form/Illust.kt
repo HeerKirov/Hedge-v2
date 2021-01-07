@@ -55,7 +55,7 @@ class IllustCollectionRelatedUpdateForm(val relations: List<Int>)
 
 class IllustImageUpdateForm(val topics: Opt<List<Int>>, val authors: Opt<List<Int>>, val tags: Opt<List<Int>>,
                             val description: Opt<String?>, val score: Opt<Int?>, val favorite: Opt<Boolean>, val tagme: Opt<Illust.Tagme>,
-                            val partitionTime: LocalDate, val orderTime: LocalDateTime)
+                            val partitionTime: Opt<LocalDate>, val orderTime: Opt<LocalDateTime>)
 
 class IllustImageRelatedUpdateForm(val relations: Opt<List<Int>>, val collectionId: Opt<Int?>)
 

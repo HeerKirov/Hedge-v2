@@ -123,18 +123,14 @@ data class Illust(val id: Int,
          */
         object TOPIC : Tagme(0b100)
         /**
-         * 任意关联关系。
+         * 原始数据。
          */
-        object RELATION : Tagme(0b1000)
-        /**
-         * 其他元数据。
-         */
-        object OTHER : Tagme(0b10000)
+        object SOURCE : Tagme(0b1000)
 
         object EMPTY : Tagme(0b0)
 
         companion object {
-            val baseElements by lazy { listOf(TAG, AUTHOR, TOPIC, RELATION, OTHER) }
+            val baseElements by lazy { listOf(TAG, AUTHOR, TOPIC, SOURCE) }
             val empty by lazy { EMPTY }
         }
     }

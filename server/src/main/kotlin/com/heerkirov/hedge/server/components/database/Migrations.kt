@@ -11,14 +11,16 @@ object MetadataMigrationStrategy : JsonObjectStrategy<Metadata>(Metadata::class)
         return Metadata(
             meta = MetaOption(
                 scoreMaximum = 5,
-                scoreDescriptions = emptyList()
+                scoreDescriptions = emptyList(),
+                autoCleanTagme = true
             ),
             source = SourceOption(
                 sites = mutableListOf()
             ),
             import = ImportOption(
                 autoAnalyseMeta = false,
-                setTagme = emptyList(),
+                setTagmeOfTag = true,
+                setTagmeOfSource = true,
                 setTimeBy = ImportOption.TimeType.UPDATE_TIME,
                 setPartitionTimeDelay = null,
                 sourceAnalyseRules = emptyList(),

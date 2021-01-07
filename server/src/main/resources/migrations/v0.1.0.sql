@@ -30,6 +30,7 @@ CREATE TABLE illust(
 CREATE INDEX illust_filter_index ON illust(type, partition_time);   -- 基于image/collection类型，分区信息的索引
 CREATE INDEX illust_tagme_index ON illust(type, tagme);             -- 基于类型和tagme的索引
 CREATE INDEX illust_file_index ON illust(id, file_id);              -- id和file的索引
+CREATE INDEX illust_parent_index ON illust(parent_id);              -- parent的索引
 
 -- 画集
 CREATE TABLE album(

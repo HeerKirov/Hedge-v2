@@ -26,12 +26,10 @@ import com.heerkirov.hedge.server.utils.ktorm.asSequence
 import com.heerkirov.hedge.server.utils.ktorm.firstOrNull
 import com.heerkirov.hedge.server.utils.ktorm.orderBy
 import com.heerkirov.hedge.server.utils.runIf
-import com.heerkirov.hedge.server.utils.types.ListResult
-import com.heerkirov.hedge.server.utils.types.QueryResult
-import com.heerkirov.hedge.server.utils.types.toListResult
-import com.heerkirov.hedge.server.utils.types.toQueryResult
+import com.heerkirov.hedge.server.utils.types.*
 import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.entity.filter
+import me.liuwj.ktorm.entity.first
 import me.liuwj.ktorm.entity.firstOrNull
 import me.liuwj.ktorm.entity.sequenceOf
 import me.liuwj.ktorm.expression.BinaryExpression
@@ -250,7 +248,59 @@ class IllustService(private val data: DataRepository,
     }
 
     fun updateCollection(id: Int, form: IllustCollectionUpdateForm) {
-        TODO()
+        data.db.transaction {
+            val illust = data.db.sequenceOf(Illusts).firstOrNull { retrieveCondition(id, Illust.IllustType.COLLECTION) } ?: throw NotFound()
+
+            form.score.alsoOpt {
+                if(it != null) kit.validateScore(it)
+            }
+            val newExportedScore = form.score.letOpt {
+                it ?: data.db.from(Illusts)
+                    .select(count(Illusts.id).aliased("count"), avg(Illusts.score).aliased("score"))
+                    .where { (Illusts.parentId eq id) and (Illusts.score.isNotNull()) }
+                    .firstOrNull()?.run {
+                        if(getInt("count") > 0) getInt("score") else null
+                    }
+            }
+
+            val newDescription = form.description.letOpt { it ?: "" }
+
+            if(anyOpt(form.tags, form.authors, form.topics)) {
+                //对meta做partial update计算
+                val anyNotExported = kit.processAllMeta(id, newTags = form.tags, newAuthors = form.authors, newTopics = form.topics)
+                if(!anyNotExported) {
+                    kit.copyAllMetaFromChildren(id)
+                }
+            }
+
+            val newTagme = if(form.tagme.isPresent) form.tagme else if(data.metadata.meta.autoCleanTagme && anyOpt(form.tags, form.authors, form.topics)) {
+                Opt(illust.tagme
+                    .runIf(form.tags.isPresent) { this - Illust.Tagme.TAG }
+                    .runIf(form.authors.isPresent) { this - Illust.Tagme.AUTHOR }
+                    .runIf(form.topics.isPresent) { this - Illust.Tagme.TOPIC }
+                )
+            }else undefined()
+
+            if(anyOpt(newTagme, newDescription, form.score, form.favorite)) {
+                data.db.update(Illusts) {
+                    where { it.id eq id }
+                    newTagme.applyOpt { set(it.tagme, this) }
+                    newDescription.applyOpt {
+                        set(it.description, this)
+                        set(it.exportedDescription, this)
+                    }
+                    form.score.applyOpt { set(it.score, this) }
+                    newExportedScore.applyOpt { set(it.exportedScore, this) }
+                    form.favorite.applyOpt { set(it.favorite, this) }
+                }
+            }
+
+            if(anyOpt(form.tags, form.authors, form.topics, form.description, form.score)) {
+                //TODO 细化metaExporter的任务。这里要细化到是因为<parent的变化>引起的<description/meta/score>的重导出，以优化重导出效率。
+                val children = data.db.from(Illusts).select(Illusts.id).where { Illusts.parentId eq id }.map { it[Illusts.id]!! }
+                illustMetaExporter.appendNewTask(children.map { MetaExporterTask(MetaExporterTask.Type.ILLUST, it) })
+            }
+        }
     }
 
     fun updateCollectionRelatedItems(id: Int, form: IllustCollectionRelatedUpdateForm) {
@@ -289,7 +339,63 @@ class IllustService(private val data: DataRepository,
     }
 
     fun updateImage(id: Int, form: IllustImageUpdateForm) {
-        TODO()
+        data.db.transaction {
+            val illust = data.db.sequenceOf(Illusts).firstOrNull { retrieveCondition(id, Illust.IllustType.IMAGE) } ?: throw NotFound()
+
+            val parent by lazy { if(illust.parentId == null) null else
+                data.db.sequenceOf(Illusts).first { (Illusts.type eq Illust.Type.COLLECTION) and (Illusts.id eq illust.parentId) }
+            }
+
+            form.score.alsoOpt {
+                if(it != null) kit.validateScore(it)
+            }
+            val newExportedScore = form.score.letOpt { it ?: parent?.score }
+
+            val newDescription = form.description.letOpt { it ?: "" }
+            val newExportedDescription = newDescription.letOpt { if(it.isEmpty()) parent?.description ?: "" else it }
+
+            form.partitionTime.alsoOpt {
+                if(illust.partitionTime != it) partitionManager.updateItemPartition(illust.partitionTime, it)
+            }
+
+            if(anyOpt(form.tags, form.authors, form.topics)) {
+                //对meta做partial update计算
+                val anyNotExported = kit.processAllMeta(id, newTags = form.tags, newAuthors = form.authors, newTopics = form.topics)
+                //当存在parent，且parent存在not exported meta tag，且meta的结果为全空时，从parent复制tag
+                if(!anyNotExported && illust.parentId != null && kit.anyNotExportedMeta(illust.parentId)) kit.copyAllMeta(id, illust.parentId)
+            }
+
+            val newTagme = if(form.tagme.isPresent) form.tagme else if(data.metadata.meta.autoCleanTagme && anyOpt(form.tags, form.authors, form.topics)) {
+                Opt(illust.tagme
+                    .runIf(form.tags.isPresent) { this - Illust.Tagme.TAG }
+                    .runIf(form.authors.isPresent) { this - Illust.Tagme.AUTHOR }
+                    .runIf(form.topics.isPresent) { this - Illust.Tagme.TOPIC }
+                )
+            }else undefined()
+
+            if(anyOpt(newTagme, newDescription, newExportedDescription, form.score, newExportedScore, form.favorite, form.partitionTime, form.orderTime)) {
+                data.db.update(Illusts) {
+                    where { it.id eq id }
+                    newTagme.applyOpt { set(it.tagme, this) }
+                    newDescription.applyOpt { set(it.description, this) }
+                    newExportedDescription.applyOpt { set(it.exportedDescription, this) }
+                    form.score.applyOpt { set(it.score, this) }
+                    newExportedScore.applyOpt { set(it.exportedScore, this) }
+                    form.favorite.applyOpt { set(it.favorite, this) }
+                    form.partitionTime.applyOpt { set(it.partitionTime, this) }
+                    form.orderTime.applyOpt { set(it.orderTime, this) }
+                }
+            }
+
+            if(illust.parentId != null
+                && ((form.score.isPresent && parent!!.score == null)
+                        || (anyOpt(form.tags, form.authors, form.topics) && !kit.anyNotExportedMeta(illust.parentId)))) {
+                //设置了score，且parent未设置score时
+                //或tags/topics/authors存在更改，且parent不存在任何not exported meta tag时
+                //将parent加入更新
+                illustMetaExporter.appendNewTask(MetaExporterTask.Type.ILLUST, illust.parentId)
+            }
+        }
     }
 
     fun updateImageRelatedItems(id: Int, form: IllustImageRelatedUpdateForm) {
@@ -328,8 +434,30 @@ class IllustService(private val data: DataRepository,
     }
 
     fun updateImageOriginData(id: Int, form: IllustImageOriginUpdateForm) {
-        TODO()
-        //source key和source内容不能同时更改，尽管它们使用了同一个接口。
+        data.db.transaction {
+            val row = data.db.from(Illusts).select(Illusts.source, Illusts.sourceId, Illusts.sourcePart, Illusts.tagme)
+                .where { retrieveCondition(id, Illust.IllustType.IMAGE) }
+                .firstOrNull()
+                ?: throw NotFound()
+            val source = row[Illusts.source]
+            val sourceId = row[Illusts.sourceId]
+            val sourcePart = row[Illusts.sourcePart]
+            val tagme = row[Illusts.tagme]!!
+            if(form.source.isPresent || form.sourceId.isPresent || form.sourcePart.isPresent) {
+                val (newSource, newSourceId, newSourcePart) = sourceManager.createOrUpdateSourceImage(
+                    form.source.unwrapOr { source }, form.sourceId.unwrapOr { sourceId }, form.sourcePart.unwrapOr { sourcePart },
+                    form.title, form.description, form.tags, form.pools, form.children, form.parents)
+                data.db.update(Illusts) {
+                    where { it.id eq id }
+                    set(it.source, newSource)
+                    set(it.sourceId, newSourceId)
+                    set(it.sourcePart, newSourcePart)
+                    if(data.metadata.meta.autoCleanTagme && Illust.Tagme.SOURCE in tagme) set(it.tagme, tagme - Illust.Tagme.SOURCE)
+                }
+            }else{
+                sourceManager.createOrUpdateSourceImage(source, sourceId, sourcePart, form.title, form.description, form.tags, form.pools, form.children, form.parents)
+            }
+        }
     }
 
     fun delete(id: Int, type: Illust.IllustType) {

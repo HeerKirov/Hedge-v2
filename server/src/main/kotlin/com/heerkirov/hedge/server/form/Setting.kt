@@ -15,7 +15,8 @@ data class SiteUpdateForm(@NotBlank val title: Opt<String>,
                           val ordinal: Opt<Int>)
 
 data class ImportOptionUpdateForm(val autoAnalyseMeta: Opt<Boolean>,
-                                  val setTagme: Opt<Illust.Tagme>,
+                                  val setTagmeOfTag: Opt<Boolean>,
+                                  val setTagmeOfSource: Opt<Boolean>,
                                   val setTimeBy: Opt<ImportOption.TimeType>,
                                   @Range(min = 0 - 86400000, max = 86400000) val setPartitionTimeDelay: Opt<Long>,
                                   val sourceAnalyseRules: Opt<List<ImportOption.SourceAnalyseRule>>,

@@ -15,13 +15,13 @@ import com.heerkirov.hedge.server.dao.types.MetaAnnotationRelationTable
 import com.heerkirov.hedge.server.exceptions.ParamError
 import com.heerkirov.hedge.server.exceptions.ParamRequired
 import com.heerkirov.hedge.server.exceptions.ResourceNotExist
-import com.heerkirov.hedge.server.exceptions.ResourceNotSuitable
 import com.heerkirov.hedge.server.model.illust.Illust
 import com.heerkirov.hedge.server.model.meta.Annotation
 import com.heerkirov.hedge.server.utils.DateTime
 import com.heerkirov.hedge.server.utils.ktorm.asSequence
 import com.heerkirov.hedge.server.utils.ktorm.firstOrNull
-import com.heerkirov.hedge.server.utils.runIf
+import com.heerkirov.hedge.server.utils.types.Opt
+import com.heerkirov.hedge.server.utils.union
 import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.dsl.where
 import me.liuwj.ktorm.entity.*
@@ -44,7 +44,7 @@ class IllustKit(private val data: DataRepository,
      * 使用目标的所有relations，拷贝一份赋给当前项，统一设定为exported。
      */
     fun copyAllMeta(thisId: Int, fromId: Int) {
-        fun <R> copyOneMeta(thisId: Int, fromId: Int, tagRelations: R) where R: EntityMetaRelationTable<*> {
+        fun <R> copyOneMeta(tagRelations: R) where R: EntityMetaRelationTable<*> {
             val ids = data.db.from(tagRelations).select(tagRelations.metaId()).where { tagRelations.entityId() eq fromId }.map { it[tagRelations.metaId()]!! }
             data.db.batchInsert(tagRelations) {
                 for (tagId in ids) {
@@ -56,33 +56,107 @@ class IllustKit(private val data: DataRepository,
                 }
             }
         }
+        fun copyAnnotation() {
+            val items = data.db.from(IllustAnnotationRelations)
+                .select(IllustAnnotationRelations.annotationId, IllustAnnotationRelations.exportedFrom)
+                .where { IllustAnnotationRelations.illustId eq fromId }
+                .map { Pair(it[IllustAnnotationRelations.annotationId]!!, it[IllustAnnotationRelations.exportedFrom]!!) }
+            data.db.batchInsert(IllustAnnotationRelations) {
+                for ((id, exportedFrom) in items) {
+                    item {
+                        set(IllustAnnotationRelations.illustId, thisId)
+                        set(IllustAnnotationRelations.annotationId, id)
+                        set(IllustAnnotationRelations.exportedFrom, exportedFrom)
+                    }
+                }
+            }
+        }
 
-        copyOneMeta(thisId, fromId, IllustTagRelations)
-        copyOneMeta(thisId, fromId, IllustAuthorRelations)
-        copyOneMeta(thisId, fromId, IllustTopicRelations)
+        copyOneMeta(IllustTagRelations)
+        copyOneMeta(IllustAuthorRelations)
+        copyOneMeta(IllustTopicRelations)
+        copyAnnotation()
+    }
+
+    /**
+     * 从当前项的所有子项拷贝全部的meta，统一设定为exported。
+     */
+    fun copyAllMetaFromChildren(thisId: Int) {
+        fun <R> copyOneMeta(tagRelations: R) where R: EntityMetaRelationTable<*> {
+            val ids = data.db.from(Illusts)
+                .innerJoin(tagRelations, tagRelations.entityId() eq Illusts.id)
+                .select(tagRelations.metaId())
+                .where { Illusts.parentId eq thisId }
+                .asSequence()
+                .map { it[tagRelations.metaId()]!! }
+                .toSet()
+            data.db.batchInsert(tagRelations) {
+                for (tagId in ids) {
+                    item {
+                        set(tagRelations.entityId(), thisId)
+                        set(tagRelations.metaId(), tagId)
+                        set(tagRelations.exported(), true)
+                    }
+                }
+            }
+        }
+        fun copyAnnotation() {
+            val items = data.db.from(Illusts)
+                .innerJoin(IllustAnnotationRelations, IllustAnnotationRelations.illustId eq Illusts.id)
+                .select(IllustAnnotationRelations.annotationId, IllustAnnotationRelations.exportedFrom)
+                .where { Illusts.parentId eq thisId }
+                .map { Pair(it[IllustAnnotationRelations.annotationId]!!, it[IllustAnnotationRelations.exportedFrom]!!) }
+                .groupBy({ it.first }) { it.second }
+                .map { (id, exportedFrom) -> Pair(id, exportedFrom.union()) }
+                .toMap()
+            data.db.batchInsert(IllustAnnotationRelations) {
+                for ((id, exportedFrom) in items) {
+                    item {
+                        set(IllustAnnotationRelations.illustId, thisId)
+                        set(IllustAnnotationRelations.annotationId, id)
+                        set(IllustAnnotationRelations.exportedFrom, exportedFrom)
+                    }
+                }
+            }
+        }
+
+        copyOneMeta(IllustTagRelations)
+        copyOneMeta(IllustAuthorRelations)
+        copyOneMeta(IllustTopicRelations)
+        copyAnnotation()
     }
 
     /**
      * 检验给出的tags/topics/authors的正确性，处理导出，并应用其更改。此外，annotations的更改也会被一并导出。
+     * @return 返回是否存在任何not exported tag。
      */
-    fun processAllMeta(thisId: Int, creating: Boolean = false, newTags: List<Int>? = null, newTopics: List<Int>? = null, newAuthors: List<Int>? = null) {
-        val tagAnnotations = if(newTags == null) null else
+    fun processAllMeta(thisId: Int, creating: Boolean = false, newTags: Opt<List<Int>>, newTopics: Opt<List<Int>>, newAuthors: Opt<List<Int>>): Boolean {
+        val tagAnnotations = if(newTags.isPresent) null else
             processOneMeta(thisId, creating,
                 metaRelations = IllustTagRelations,
                 metaAnnotationRelations = TagAnnotationRelations,
-                newTagIds = metaManager.exportTag(newTags))
-        val topicAnnotations = if(newTopics == null) null else
+                newTagIds = metaManager.exportTag(newTags.value))
+        val topicAnnotations = if(newTopics.isPresent) null else
             processOneMeta(thisId, creating,
                 metaRelations = IllustTopicRelations,
                 metaAnnotationRelations = TopicAnnotationRelations,
-                newTagIds = metaManager.exportTopic(newTopics))
-        val authorAnnotations = if(newAuthors == null) null else
+                newTagIds = metaManager.exportTopic(newTopics.value))
+        val authorAnnotations = if(newAuthors.isPresent) null else
             processOneMeta(thisId, creating,
                 metaRelations = IllustAuthorRelations,
                 metaAnnotationRelations = AuthorAnnotationRelations,
-                newTagIds = metaManager.exportAuthor(newAuthors))
+                newTagIds = metaManager.exportAuthor(newAuthors.value))
 
         processAnnotationOfMeta(thisId, tagAnnotations = tagAnnotations, topicAnnotations = topicAnnotations, authorAnnotations = authorAnnotations)
+
+        return if(creating) {
+            (newTags.isPresent && newTags.value.isNotEmpty()) || (newAuthors.isPresent && newAuthors.value.isNotEmpty()) || (newTopics.isPresent && newTopics.value.isNotEmpty())
+        }else{
+            //对于每一个列表，给出新值时，直接判断新列表是否为空；没有给出新值则需要查旧值是否有任意存在。
+            newTags.runOpt { isNotEmpty() }.unwrapOr { anyNotExportedMeta(thisId, IllustTagRelations) }
+                    || newAuthors.runOpt { isNotEmpty() }.unwrapOr { anyNotExportedMeta(thisId, IllustAuthorRelations) }
+                    || newTopics.runOpt { isNotEmpty() }.unwrapOr { anyNotExportedMeta(thisId, IllustTopicRelations) }
+        }
     }
 
     /**
@@ -212,9 +286,16 @@ class IllustKit(private val data: DataRepository,
     }
 
     /**
+     * 当目标对象存在任意一个not exported的meta tag时，返回true。
+     */
+    fun anyNotExportedMeta(id: Int): Boolean {
+        return anyNotExportedMeta(id, IllustTagRelations) || anyNotExportedMeta(id, IllustAuthorRelations) || anyNotExportedMeta(id, IllustTopicRelations)
+    }
+
+    /**
      * 工具函数：使用目标关系，判断此关系直接关联(not exported)的对象是否存在。存在任意一个即返回true。
      */
-    fun <R> anyNotExportedMeta(id: Int, metaRelations: R): Boolean where R: EntityMetaRelationTable<*> {
+    private fun <R> anyNotExportedMeta(id: Int, metaRelations: R): Boolean where R: EntityMetaRelationTable<*> {
         return data.db.from(metaRelations).select(count().aliased("count"))
             .where { (metaRelations.entityId() eq id) and (metaRelations.exported().not()) }
             .firstOrNull()?.getInt("count")

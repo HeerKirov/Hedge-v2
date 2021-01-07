@@ -42,6 +42,11 @@ class Opt<T> {
     inline fun unwrapOr(call: () -> T): T = if(isPresent) value else call()
 
     /**
+     * 解包。如果值不存在，返回null。
+     */
+    fun unwrapOrNull(): T? = if(isPresent) value else null
+
+    /**
      * 如果值存在，计算一个新值。参数使用this传递。
      */
     inline fun <R> runOpt(call: T.() -> R): Opt<R> = if(isPresent) Opt(value.call()) else {

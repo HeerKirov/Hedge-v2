@@ -24,7 +24,8 @@ class SettingImportService(private val data: DataRepository) {
 
             saveMetadata {
                 form.autoAnalyseMeta.alsoOpt { import.autoAnalyseMeta = it }
-                form.setTagme.alsoOpt { import.setTagme = it.toBaseElements().map { i -> i.toString() } }
+                form.setTagmeOfTag.alsoOpt { import.setTagmeOfTag = it }
+                form.setTagmeOfSource.alsoOpt { import.setTagmeOfSource = it }
                 form.setTimeBy.alsoOpt { import.setTimeBy = it }
                 form.setPartitionTimeDelay.alsoOpt { import.setPartitionTimeDelay = it }
                 form.systemDownloadHistoryPath.alsoOpt { import.systemDownloadHistoryPath = it }

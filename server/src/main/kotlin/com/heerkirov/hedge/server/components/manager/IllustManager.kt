@@ -12,6 +12,8 @@ import com.heerkirov.hedge.server.exceptions.ResourceNotExist
 import com.heerkirov.hedge.server.model.illust.Illust
 import com.heerkirov.hedge.server.utils.DateTime
 import com.heerkirov.hedge.server.utils.ktorm.first
+import com.heerkirov.hedge.server.utils.types.Opt
+import com.heerkirov.hedge.server.utils.types.undefined
 import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.entity.firstOrNull
 import me.liuwj.ktorm.entity.sequenceOf
@@ -85,18 +87,17 @@ class IllustManager(private val data: DataRepository,
 
         if(relations != null) relationManager.processExportedRelations(id, relations)
 
-        if(tags != null || authors != null || topics != null) {
+        if(!tags.isNullOrEmpty() || !authors.isNullOrEmpty() || !topics.isNullOrEmpty()) {
             //指定了任意tags时，对tag进行校验和分析，导出，并同时导出annotations
-            kit.processAllMeta(id, creating = true, newTags = tags, newTopics = topics, newAuthors = authors)
+            kit.processAllMeta(id, creating = true,
+                newTags = tags?.let { Opt(it) } ?: undefined(),
+                newTopics = topics?.let { Opt(it) } ?: undefined(),
+                newAuthors = authors?.let { Opt(it) } ?: undefined())
 
-            if(collection != null && !kit.anyNotExportedMeta(collection.id, IllustTagRelations)
-                && !kit.anyNotExportedMeta(collection.id, IllustAuthorRelations)
-                && !kit.anyNotExportedMeta(collection.id, IllustTopicRelations)) {
+            if(collection != null && !kit.anyNotExportedMeta(collection.id)) {
                 illustMetaExporter.appendNewTask(MetaExporterTask.Type.ILLUST, collection.id)
             }
-        }else if (collection != null && kit.anyNotExportedMeta(collection.id, IllustTagRelations)
-            && kit.anyNotExportedMeta(collection.id, IllustAuthorRelations)
-            && kit.anyNotExportedMeta(collection.id, IllustTopicRelations)) {
+        }else if (collection != null && kit.anyNotExportedMeta(collection.id)) {
             //tag为空且parent的tag不为空时，直接应用parent的exported tag(因为一定是从parent的tag导出的，不需要再算一次)
             kit.copyAllMeta(id, collection.id)
         }

@@ -7,9 +7,14 @@ import com.heerkirov.hedge.server.exceptions.ParamNotRequired
 import com.heerkirov.hedge.server.exceptions.ParamRequired
 import com.heerkirov.hedge.server.exceptions.ResourceNotExist
 import com.heerkirov.hedge.server.model.source.SourceImage
+import com.heerkirov.hedge.server.utils.types.Opt
+import com.heerkirov.hedge.server.utils.types.anyOpt
+import com.heerkirov.hedge.server.utils.types.undefined
 import me.liuwj.ktorm.dsl.and
 import me.liuwj.ktorm.dsl.eq
 import me.liuwj.ktorm.dsl.insert
+import me.liuwj.ktorm.dsl.update
+import me.liuwj.ktorm.entity.firstOrNull
 import me.liuwj.ktorm.entity.none
 import me.liuwj.ktorm.entity.sequenceOf
 
@@ -36,35 +41,93 @@ class SourceManager(private val data: DataRepository) {
      * @return 返回在sourceImage中实际存储的key。被省略的参数会被-1取代。
      */
     fun validateAndCreateSourceImageIfNotExist(source: String?, sourceId: Long?, sourcePart: Int?): Triple<String?, Long?, Int?> {
-        if(source == null) {
-            return Triple(null, null, null)
-        }
+        if(source == null) return Triple(null, null, null)
         checkSource(source, sourceId, sourcePart)
 
         val realSourceId = sourceId!!
         val realSourcePart = sourcePart ?: -1
 
         if(data.db.sequenceOf(SourceImages).none { (it.source eq source) and (it.sourceId eq realSourceId) and (it.sourcePart eq realSourcePart) }) {
-            newSourceImage(source, realSourceId, realSourcePart)
+            data.db.insert(SourceImages) {
+                set(it.source, source)
+                set(it.sourceId, realSourceId)
+                set(it.sourcePart, realSourcePart)
+                set(it.title, null)
+                set(it.description, null)
+                set(it.tags, null)
+                set(it.relations, null)
+                set(it.analyseStatus, SourceImage.AnalyseStatus.NO)
+                set(it.analyseTime, null)
+            }
         }
 
         return Triple(source, realSourceId, realSourcePart)
     }
 
     /**
-     * 创建目标sourceImage。
+     * 检查source key是否存在，创建对应记录，并手动更新内容。
+     * @return 返回在sourceImage中实际存储的key。被省略的参数会被-1取代。
      */
-    private fun newSourceImage(source: String, sourceId: Long, sourcePart: Int) {
-        data.db.insert(SourceImages) {
-            set(it.source, source)
-            set(it.sourceId, sourceId)
-            set(it.sourcePart, sourcePart)
-            set(it.title, null)
-            set(it.description, null)
-            set(it.tags, null)
-            set(it.relations, null)
-            set(it.analyseStatus, SourceImage.AnalyseStatus.NO)
-            set(it.analyseTime, null)
+    fun createOrUpdateSourceImage(source: String?, sourceId: Long?, sourcePart: Int?,
+                                  title: Opt<String?> = undefined(),
+                                  description: Opt<String?> = undefined(),
+                                  tags: Opt<List<SourceImage.SourceTag>> = undefined(),
+                                  pools: Opt<List<String>> = undefined(),
+                                  children: Opt<List<Int>> = undefined(),
+                                  parents: Opt<List<Int>> = undefined()): Triple<String?, Long?, Int?> {
+        if(source == null) return Triple(null, null, null)
+        checkSource(source, sourceId, sourcePart)
+        val realSourceId = sourceId!!
+        val realSourcePart = sourcePart ?: -1
+
+        val sourceImage = data.db.sequenceOf(SourceImages).firstOrNull { (it.source eq source) and (it.sourceId eq realSourceId) and (it.sourcePart eq realSourcePart) }
+        if(sourceImage == null) {
+            //新建
+            val analyseStatus = if(anyOpt(title, description, tags, pools, children, parents))
+                SourceImage.AnalyseStatus.MANUAL else SourceImage.AnalyseStatus.NO
+
+            val relations = if(anyOpt(pools, children, parents)) {
+                SourceImage.SourceRelation(
+                    pools.runOpt { takeIf { t -> t.isNotEmpty() } }.unwrapOr { null },
+                    parents.runOpt { takeIf { t -> t.isNotEmpty() } }.unwrapOr { null },
+                    children.runOpt { takeIf { t -> t.isNotEmpty() } }.unwrapOr { null }
+                )
+            }else null
+
+            data.db.insert(SourceImages) {
+                set(it.source, source)
+                set(it.sourceId, realSourceId)
+                set(it.sourcePart, realSourcePart)
+                set(it.title, title.unwrapOr { null })
+                set(it.description, description.unwrapOr { null })
+                set(it.tags, tags.runOpt { takeIf { t -> t.isNotEmpty() } }.unwrapOr { null })
+                set(it.relations, relations)
+                set(it.analyseStatus, analyseStatus)
+                set(it.analyseTime, null)
+            }
+        }else{
+            //更新
+            val analyseStatus = if(sourceImage.analyseStatus != SourceImage.AnalyseStatus.MANUAL && anyOpt(title, description, tags, pools, children, parents))
+                Opt(SourceImage.AnalyseStatus.MANUAL) else undefined()
+
+            val relations = if(anyOpt(pools, children, parents)) {
+                Opt(SourceImage.SourceRelation(
+                    pools.runOpt { takeIf { t -> t.isNotEmpty() } }.unwrapOr { sourceImage.relations?.pools },
+                    parents.runOpt { takeIf { t -> t.isNotEmpty() } }.unwrapOr { sourceImage.relations?.parents },
+                    children.runOpt { takeIf { t -> t.isNotEmpty() } }.unwrapOr { sourceImage.relations?.children }
+                ))
+            }else undefined()
+
+            data.db.update(SourceImages) {
+                where { (it.source eq source) and (it.sourceId eq realSourceId) and (it.sourcePart eq realSourcePart) }
+                analyseStatus.applyOpt { set(it.analyseStatus, this) }
+                title.applyOpt { set(it.title, this) }
+                description.applyOpt { set(it.description, this) }
+                tags.applyOpt { set(it.tags, this) }
+                relations.applyOpt { set(it.relations, this) }
+            }
         }
+
+        return Triple(source, realSourceId, realSourcePart)
     }
 }

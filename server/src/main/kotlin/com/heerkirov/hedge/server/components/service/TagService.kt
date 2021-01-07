@@ -84,7 +84,7 @@ class TagService(private val data: DataRepository,
             //存在example时，检查example的目标是否存在，以及限制illust不能是collection
             val examples = kit.validateExamples(form.examples)
 
-            val tagCountInParent = lazy {
+            val tagCountInParent by lazy {
                 data.db.sequenceOf(Tags)
                     .filter { if(form.parentId != null) { Tags.parentId eq form.parentId }else{ Tags.parentId.isNull() } }
                     .count()
@@ -93,10 +93,10 @@ class TagService(private val data: DataRepository,
             //未指定ordinal时，将其排在序列的末尾，相当于当前的序列长度
             //已指定ordinal时，按照指定的ordinal排序，并且不能超出[0, count]的范围
             val ordinal = if(form.ordinal == null) {
-                tagCountInParent.value
+                tagCountInParent
             }else when {
                 form.ordinal < 0 -> 0
-                form.ordinal >= tagCountInParent.value -> tagCountInParent.value
+                form.ordinal >= tagCountInParent -> tagCountInParent
                 else -> form.ordinal
             }.also { ordinal ->
                 data.db.update(Tags) {
