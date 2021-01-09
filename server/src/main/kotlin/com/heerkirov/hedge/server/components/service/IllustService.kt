@@ -270,10 +270,7 @@ class IllustService(private val data: DataRepository,
 
             if(anyOpt(form.tags, form.authors, form.topics)) {
                 //对meta做partial update计算
-                val anyNotExported = kit.processAllMeta(id, newTags = form.tags, newAuthors = form.authors, newTopics = form.topics)
-                if(!anyNotExported) {
-                    kit.copyAllMetaFromChildren(id)
-                }
+                kit.processAllMeta(id, newTags = form.tags, newAuthors = form.authors, newTopics = form.topics, copyFromChildren = true)
             }
 
             val newTagme = if(form.tagme.isPresent) form.tagme else if(data.metadata.meta.autoCleanTagme && anyOpt(form.tags, form.authors, form.topics)) {
@@ -367,10 +364,7 @@ class IllustService(private val data: DataRepository,
 
             if(anyOpt(form.tags, form.authors, form.topics)) {
                 //对meta做partial update计算
-                val anyNotExported = kit.processAllMeta(id, newTags = form.tags, newAuthors = form.authors, newTopics = form.topics)
-                //当存在parent，且parent存在not exported meta tag，且meta的结果为全空时，从parent复制tag
-                if(!anyNotExported && illust.parentId != null && kit.anyNotExportedMeta(illust.parentId)) kit.copyAllMeta(id, illust.parentId)
-                //TODO 设计缺陷：在现有meta全部从parent拷贝的情况下，只设置一个种类的meta，那只有那一个种类的meta会重设，其他种类还是维持拷贝
+                kit.processAllMeta(id, newTags = form.tags, newAuthors = form.authors, newTopics = form.topics, copyFromParent = illust.parentId)
             }
 
             val newTagme = if(form.tagme.isPresent) form.tagme else if(data.metadata.meta.autoCleanTagme && anyOpt(form.tags, form.authors, form.topics)) {

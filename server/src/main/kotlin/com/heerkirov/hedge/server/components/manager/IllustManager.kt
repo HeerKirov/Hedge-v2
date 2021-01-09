@@ -4,9 +4,6 @@ import com.heerkirov.hedge.server.components.backend.IllustMetaExporter
 import com.heerkirov.hedge.server.components.backend.MetaExporterTask
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.kit.IllustKit
-import com.heerkirov.hedge.server.dao.illust.IllustAuthorRelations
-import com.heerkirov.hedge.server.dao.illust.IllustTagRelations
-import com.heerkirov.hedge.server.dao.illust.IllustTopicRelations
 import com.heerkirov.hedge.server.dao.illust.Illusts
 import com.heerkirov.hedge.server.exceptions.ResourceNotExist
 import com.heerkirov.hedge.server.model.illust.Illust
@@ -99,7 +96,7 @@ class IllustManager(private val data: DataRepository,
             }
         }else if (collection != null && kit.anyNotExportedMeta(collection.id)) {
             //tag为空且parent的tag不为空时，直接应用parent的exported tag(因为一定是从parent的tag导出的，不需要再算一次)
-            kit.copyAllMeta(id, collection.id)
+            kit.copyAllMetaToImage(id, collection.id)
         }
 
         return id

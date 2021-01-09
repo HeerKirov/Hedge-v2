@@ -6,12 +6,10 @@ import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.manager.MetaManager
 import com.heerkirov.hedge.server.components.manager.RelationManager
 import com.heerkirov.hedge.server.dao.illust.*
-import com.heerkirov.hedge.server.dao.meta.Annotations
-import com.heerkirov.hedge.server.dao.meta.AuthorAnnotationRelations
-import com.heerkirov.hedge.server.dao.meta.TagAnnotationRelations
-import com.heerkirov.hedge.server.dao.meta.TopicAnnotationRelations
+import com.heerkirov.hedge.server.dao.meta.*
 import com.heerkirov.hedge.server.dao.types.EntityMetaRelationTable
 import com.heerkirov.hedge.server.dao.types.MetaAnnotationRelationTable
+import com.heerkirov.hedge.server.dao.types.MetaTag
 import com.heerkirov.hedge.server.exceptions.ParamError
 import com.heerkirov.hedge.server.exceptions.ParamRequired
 import com.heerkirov.hedge.server.exceptions.ResourceNotExist
@@ -43,8 +41,8 @@ class IllustKit(private val data: DataRepository,
     /**
      * 使用目标的所有relations，拷贝一份赋给当前项，统一设定为exported。
      */
-    fun copyAllMeta(thisId: Int, fromId: Int) {
-        fun <R> copyOneMeta(tagRelations: R) where R: EntityMetaRelationTable<*> {
+    fun copyAllMetaToImage(thisId: Int, fromId: Int) {
+        fun <R : EntityMetaRelationTable<*>, T : MetaTag<*>> copyOneMeta(tagRelations: R, metaTag: T) {
             val ids = data.db.from(tagRelations).select(tagRelations.metaId()).where { tagRelations.entityId() eq fromId }.map { it[tagRelations.metaId()]!! }
             data.db.batchInsert(tagRelations) {
                 for (tagId in ids) {
@@ -54,6 +52,11 @@ class IllustKit(private val data: DataRepository,
                         set(tagRelations.exported(), true)
                     }
                 }
+            }
+            //修改统计计数
+            data.db.update(metaTag) {
+                where { it.metaId() inList ids }
+                set(it.cachedCount(), it.cachedCount() plus 1)
             }
         }
         fun copyAnnotation() {
@@ -72,16 +75,37 @@ class IllustKit(private val data: DataRepository,
             }
         }
 
-        copyOneMeta(IllustTagRelations)
-        copyOneMeta(IllustAuthorRelations)
-        copyOneMeta(IllustTopicRelations)
+        copyOneMeta(IllustTagRelations, Tags)
+        copyOneMeta(IllustAuthorRelations, Authors)
+        copyOneMeta(IllustTopicRelations, Topics)
         copyAnnotation()
+    }
+
+    /**
+     * 删除image此关系关联的全部tag。
+     */
+    private fun <R : EntityMetaRelationTable<*>, T : MetaTag<*>> deleteAllMeta(id: Int, metaRelations: R, metaTag: T, analyseStatisticCount: Boolean) {
+        if(analyseStatisticCount) {
+            val ids = data.db.from(metaRelations).select(metaRelations.metaId()).where { metaRelations.entityId() eq id }.map { it[metaRelations.metaId()]!! }
+            data.db.delete(metaRelations) {
+                it.entityId() eq id
+            }
+            //修改统计计数
+            data.db.update(metaTag) {
+                where { it.metaId() inList ids }
+                set(it.cachedCount(), it.cachedCount() minus 1)
+            }
+        }else{
+            data.db.delete(metaRelations) {
+                it.entityId() eq id
+            }
+        }
     }
 
     /**
      * 从当前项的所有子项拷贝全部的meta，统一设定为exported。
      */
-    fun copyAllMetaFromChildren(thisId: Int) {
+    private fun copyAllMetaFromChildrenToCollection(thisId: Int) {
         fun <R> copyOneMeta(tagRelations: R) where R: EntityMetaRelationTable<*> {
             val ids = data.db.from(Illusts)
                 .innerJoin(tagRelations, tagRelations.entityId() eq Illusts.id)
@@ -127,45 +151,64 @@ class IllustKit(private val data: DataRepository,
     }
 
     /**
-     * 检验给出的tags/topics/authors的正确性，处理导出，并应用其更改。此外，annotations的更改也会被一并导出。
-     * @return 返回是否存在任何not exported tag。
+     * 检验给出的tags/topics/authors的正确性，处理导出，并应用其更改。此外，annotations的更改也会被一并导出处理。
+     * @param copyFromParent 当当前对象没有任何meta tag关联时，从parent复制tag，并提供parent的id
+     * @param copyFromChildren 当当前对象没有任何meta tag关联时，从children复制tag
      */
-    fun processAllMeta(thisId: Int, creating: Boolean = false, newTags: Opt<List<Int>>, newTopics: Opt<List<Int>>, newAuthors: Opt<List<Int>>): Boolean {
+    fun processAllMeta(thisId: Int, newTags: Opt<List<Int>>, newTopics: Opt<List<Int>>, newAuthors: Opt<List<Int>>,
+                       creating: Boolean = false, copyFromParent: Int? = null, copyFromChildren: Boolean = false) {
+        val analyseStatisticCount = !copyFromChildren
+
         val tagAnnotations = if(newTags.isUndefined) null else
-            processOneMeta(thisId, creating,
+            processOneMeta(thisId, creating, analyseStatisticCount,
+                metaTag = Tags,
                 metaRelations = IllustTagRelations,
                 metaAnnotationRelations = TagAnnotationRelations,
                 newTagIds = metaManager.exportTag(newTags.value))
         val topicAnnotations = if(newTopics.isUndefined) null else
-            processOneMeta(thisId, creating,
+            processOneMeta(thisId, creating, analyseStatisticCount,
+                metaTag = Topics,
                 metaRelations = IllustTopicRelations,
                 metaAnnotationRelations = TopicAnnotationRelations,
                 newTagIds = metaManager.exportTopic(newTopics.value))
         val authorAnnotations = if(newAuthors.isUndefined) null else
-            processOneMeta(thisId, creating,
+            processOneMeta(thisId, creating, analyseStatisticCount,
+                metaTag = Authors,
                 metaRelations = IllustAuthorRelations,
                 metaAnnotationRelations = AuthorAnnotationRelations,
                 newTagIds = metaManager.exportAuthor(newAuthors.value))
 
-        //TODO 处理meta tag的计数变化
-
         processAnnotationOfMeta(thisId, tagAnnotations = tagAnnotations, topicAnnotations = topicAnnotations, authorAnnotations = authorAnnotations)
 
-        return if(creating) {
-            (newTags.isPresent && newTags.value.isNotEmpty()) || (newAuthors.isPresent && newAuthors.value.isNotEmpty()) || (newTopics.isPresent && newTopics.value.isNotEmpty())
-        }else{
-            //对于每一个列表，给出新值时，直接判断新列表是否为空；没有给出新值则需要查旧值是否有任意存在。
-            newTags.runOpt { isNotEmpty() }.unwrapOr { anyNotExportedMeta(thisId, IllustTagRelations) }
-                    || newAuthors.runOpt { isNotEmpty() }.unwrapOr { anyNotExportedMeta(thisId, IllustAuthorRelations) }
-                    || newTopics.runOpt { isNotEmpty() }.unwrapOr { anyNotExportedMeta(thisId, IllustTopicRelations) }
+        val tagCount = if(newTags.isPresent) newTags.value.size else if(creating) 0 else getNotExportedMetaCount(thisId, IllustTagRelations)
+        val topicCount = if(newTopics.isPresent) newTopics.value.size else if(creating) 0 else getNotExportedMetaCount(thisId, IllustTopicRelations)
+        val authorCount = if(newAuthors.isPresent) newAuthors.value.size else if(creating) 0 else getNotExportedMetaCount(thisId, IllustAuthorRelations)
+
+        if(tagCount == 0 && topicCount == 0 && authorCount == 0) {
+            //若发现当前列表数全部为0，那么从依赖项拷贝tag
+            if(copyFromParent != null) {
+                if(anyNotExportedMeta(copyFromParent)) copyAllMetaToImage(thisId, copyFromParent)
+            }else if (copyFromChildren) {
+                copyAllMetaFromChildrenToCollection(thisId)
+            }
+        }else if(((newTags.isPresent && tagCount > 0) || (newAuthors.isPresent && authorCount > 0) || (newTopics.isPresent && topicCount > 0))
+                && (newAuthors.isUndefined && authorCount == 0 || newAuthors.isPresent)
+                && (newTopics.isUndefined && authorCount == 0 || newTopics.isPresent)
+                && (newTags.isUndefined && tagCount == 0 || newTags.isPresent)) {
+            //若发现未修改列表数量都为0，已修改至少一项不为0，那么清空未修改列表从依赖项那里获得的exported tag
+            //在copyFromChildren为false的情况下，认为是image的更改，要求修改统计计数；否则不予修改
+            if(newTags.isUndefined) deleteAllMeta(thisId, IllustTagRelations, Tags, analyseStatisticCount)
+            if(newAuthors.isUndefined) deleteAllMeta(thisId, IllustAuthorRelations, Authors, analyseStatisticCount)
+            if(newTopics.isUndefined) deleteAllMeta(thisId, IllustTopicRelations, Topics, analyseStatisticCount)
         }
     }
 
     /**
      * 检验并处理某种类型的tag，并返回它导出的annotations。
      */
-    private fun <R, RA> processOneMeta(thisId: Int, creating: Boolean = false, newTagIds: List<Pair<Int, Boolean>>,
-                                       metaRelations: R, metaAnnotationRelations: RA): Set<Int> where R: EntityMetaRelationTable<*>, RA: MetaAnnotationRelationTable<*> {
+    private fun <T, R, RA> processOneMeta(thisId: Int, creating: Boolean = false, analyseStatisticCount: Boolean, newTagIds: List<Pair<Int, Boolean>>,
+                                          metaTag: T, metaRelations: R, metaAnnotationRelations: RA): Set<Int>
+    where T: MetaTag<*>, R: EntityMetaRelationTable<*>, RA: MetaAnnotationRelationTable<*> {
         val tagIds = newTagIds.toMap()
         val oldTagIds = if(creating) emptyMap() else {
             data.db.from(metaRelations).select(metaRelations.metaId(), metaRelations.exported())
@@ -178,6 +221,12 @@ class IllustKit(private val data: DataRepository,
         if(deleteIds.isNotEmpty()) {
             data.db.delete(metaRelations) { (metaRelations.entityId() eq thisId) and (metaRelations.metaId() inList deleteIds) }
         }
+        if(analyseStatisticCount) {
+            data.db.update(metaTag) {
+                where { it.metaId() inList deleteIds }
+                set(it.cachedCount(), it.cachedCount() minus 1)
+            }
+        }
 
         val addIds = tagIds - oldTagIds.keys
         if(addIds.isNotEmpty()) {
@@ -189,6 +238,12 @@ class IllustKit(private val data: DataRepository,
                         set(metaRelations.exported(), isExported)
                     }
                 }
+            }
+        }
+        if(analyseStatisticCount) {
+            data.db.update(metaTag) {
+                where { it.metaId() inList addIds.keys }
+                set(it.cachedCount(), it.cachedCount() plus 1)
             }
         }
 
@@ -291,17 +346,16 @@ class IllustKit(private val data: DataRepository,
      * 当目标对象存在任意一个not exported的meta tag时，返回true。
      */
     fun anyNotExportedMeta(id: Int): Boolean {
-        return anyNotExportedMeta(id, IllustTagRelations) || anyNotExportedMeta(id, IllustAuthorRelations) || anyNotExportedMeta(id, IllustTopicRelations)
+        return getNotExportedMetaCount(id, IllustTagRelations) > 0 || getNotExportedMetaCount(id, IllustAuthorRelations) > 0 || getNotExportedMetaCount(id, IllustTopicRelations) > 0
     }
 
     /**
      * 工具函数：使用目标关系，判断此关系直接关联(not exported)的对象是否存在。存在任意一个即返回true。
      */
-    private fun <R> anyNotExportedMeta(id: Int, metaRelations: R): Boolean where R: EntityMetaRelationTable<*> {
+    private fun <R> getNotExportedMetaCount(id: Int, metaRelations: R): Int where R: EntityMetaRelationTable<*> {
         return data.db.from(metaRelations).select(count().aliased("count"))
             .where { (metaRelations.entityId() eq id) and (metaRelations.exported().not()) }
-            .firstOrNull()?.getInt("count")
-            ?.let { it > 0 } ?: false
+            .firstOrNull()?.getInt("count") ?: 0
     }
 
     /**

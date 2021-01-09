@@ -1,5 +1,6 @@
 package com.heerkirov.hedge.server.dao.meta
 
+import com.heerkirov.hedge.server.dao.types.MetaTag
 import com.heerkirov.hedge.server.model.meta.Tag
 import com.heerkirov.hedge.server.utils.ktorm.enum
 import com.heerkirov.hedge.server.utils.ktorm.json
@@ -7,7 +8,7 @@ import com.heerkirov.hedge.server.utils.ktorm.unionList
 import me.liuwj.ktorm.dsl.QueryRowSet
 import me.liuwj.ktorm.schema.*
 
-object Tags : BaseTable<Tag>("tag", schema = "meta_db") {
+object Tags : MetaTag<Tag>("tag", schema = "meta_db") {
     val id = int("id").primaryKey()
     val ordinal = int("ordinal")
     val parentId = int("parent_id")
@@ -21,6 +22,9 @@ object Tags : BaseTable<Tag>("tag", schema = "meta_db") {
     val examples = json("examples", typeRef<List<Int>>())
     val exportedScore = int("exported_score")
     val cachedCount = int("cached_count")
+
+    override fun metaId(): Column<Int> = id
+    override fun cachedCount(): Column<Int> = cachedCount
 
     override fun doCreateEntity(row: QueryRowSet, withReferences: Boolean) = Tag(
         id = row[id]!!,

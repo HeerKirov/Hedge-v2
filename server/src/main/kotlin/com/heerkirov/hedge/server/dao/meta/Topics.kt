@@ -1,5 +1,6 @@
 package com.heerkirov.hedge.server.dao.meta
 
+import com.heerkirov.hedge.server.dao.types.MetaTag
 import com.heerkirov.hedge.server.model.meta.Topic
 import com.heerkirov.hedge.server.utils.ktorm.enum
 import com.heerkirov.hedge.server.utils.ktorm.json
@@ -7,7 +8,7 @@ import com.heerkirov.hedge.server.utils.ktorm.unionList
 import me.liuwj.ktorm.dsl.QueryRowSet
 import me.liuwj.ktorm.schema.*
 
-object Topics : BaseTable<Topic>("topic", schema = "meta_db") {
+object Topics : MetaTag<Topic>("topic", schema = "meta_db") {
     val id = int("id").primaryKey()
     val name = varchar("name")
     val otherNames = unionList("other_names")
@@ -20,6 +21,9 @@ object Topics : BaseTable<Topic>("topic", schema = "meta_db") {
     val exportedScore = int("exported_score")
     val cachedCount = int("cached_count")
     val cachedAnnotations = json("cached_annotations", typeRef<List<Topic.CachedAnnotation>>())
+
+    override fun metaId(): Column<Int> = Authors.id
+    override fun cachedCount(): Column<Int> = Authors.cachedCount
 
     override fun doCreateEntity(row: QueryRowSet, withReferences: Boolean) = Topic(
         id = row[id]!!,

@@ -51,7 +51,7 @@ data class Tag(val id: Int,
                 */
                val exportedScore: Int? = null,
                /**
-                * [cache field]关联的image总数。仅包括image。
+                * [cache field]关联的image总数。仅包括image。只有TAG和ADDR会被计数，虚拟地址段是不会计数的。
                 */
                val cachedCount: Int = 0) {
 

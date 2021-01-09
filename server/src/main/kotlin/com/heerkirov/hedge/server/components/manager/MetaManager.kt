@@ -15,6 +15,7 @@ import me.liuwj.ktorm.entity.firstOrNull
 import me.liuwj.ktorm.entity.sequenceOf
 import me.liuwj.ktorm.entity.toList
 import java.util.*
+import kotlin.collections.HashMap
 import kotlin.collections.HashSet
 
 class MetaManager(private val data: DataRepository) {
@@ -32,8 +33,13 @@ class MetaManager(private val data: DataRepository) {
             if(isNotEmpty()) throw ResourceNotSuitable("tags", map { it.id })
         }
 
-        val been = HashSet<Int>(tags.size * 2).apply { addAll(tags.map { it.id }) }
+        //记下所有访问过的节点父子关系
+        val childrenMap = HashMap<Int, MutableSet<Int>>().apply { for (tag in tags) if(tag.parentId != null) computeIfAbsent(tag.parentId) { mutableSetOf() }.apply { add(tag.id) } }
+        //已经访问过的节点。原tags列表的节点直接进去了
+        val been = HashMap<Int, Tag?>(tags.size * 2).apply { tags.forEach { put(it.id, it) } }
+        //等待访问的队列。将原tags列表的parent加进去
         val queue = LinkedList<Int>().apply { addAll(tags.mapNotNull { it.parentId }) }
+        //导出的项的结果
         val exportedTags = LinkedList<Tag>()
 
         while(queue.isNotEmpty()) {
@@ -43,27 +49,22 @@ class MetaManager(private val data: DataRepository) {
                 if(tag != null) {
                     //只有虚拟地址段不会导出到关系表，其他类型都会导出。
                     if(tag.type != Tag.Type.VIRTUAL_ADDR) exportedTags.add(tag)
-                    if(tag.parentId != null) queue.add(tag.parentId)
+                    if(tag.parentId != null) {
+                        queue.add(tag.parentId)
+                        childrenMap.computeIfAbsent(tag.parentId) { mutableSetOf() }.apply { add(nextId) }
+                    }
                     if(tag.links != null) queue.addAll(tag.links)
                 }
-                been.add(nextId)
+                been[nextId] = tag
             }
         }
 
         val result = (tags.asSequence().map { it to false } + exportedTags.asSequence().map { it to true }).toList()
 
         //筛选出所有的强制冲突组
-        val conflictingGroups = result.asSequence()
-            .filter { (tag, _) -> tag.isGroup == Tag.IsGroup.FORCE || tag.isGroup == Tag.IsGroup.FORCE_AND_SEQUENCE }
-            .map { (tag, _) -> tag.id }
-            .toSet()
-        //筛选出所有的强制冲突组的成员，分组，然后筛选出具有冲突的组及成员
-        val conflictingMembers = result.asSequence()
-            .filter { (tag, _) -> tag.parentId != null && tag.parentId in conflictingGroups }
-            .map { (tag, _) -> tag }
-            .groupBy { it.parentId!! }.entries.asSequence()
-            .filter { (_, members) -> members.size > 1 }
-            .map { (groupId, members) -> groupId to members.map { ConflictingGroupMembersError.ConflictingMember(it.id, it.name) } }
+        val conflictingMembers = childrenMap.asSequence()
+            .filter { (id, members) -> members.size > 1 && been[id]!!.isGroup.let { it == Tag.IsGroup.FORCE || it == Tag.IsGroup.FORCE_AND_SEQUENCE } }
+            .map { (groupId, members) -> groupId to members.map { ConflictingGroupMembersError.ConflictingMember(it, been[it]!!.name) } }
             .toMap()
         //检查存在冲突成员时，抛出强制冲突异常
         if(conflictingMembers.isNotEmpty()) throw ConflictingGroupMembersError(conflictingMembers)

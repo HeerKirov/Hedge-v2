@@ -8,10 +8,16 @@ import com.heerkirov.hedge.server.library.framework.StatefulComponent
  * 会将持有的任务持久化到数据库。
  */
 interface IllustMetaExporter : StatefulComponent {
+    /**
+     * 添加一个新的任务。
+     */
     fun appendNewTask(type: MetaExporterTask.Type, id: Int) {
         appendNewTask(listOf(MetaExporterTask(type, id)))
     }
 
+    /**
+     * 添加新的任务。
+     */
     fun appendNewTask(tasks: Iterable<MetaExporterTask>)
 }
 
