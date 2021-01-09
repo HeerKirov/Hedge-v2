@@ -6,6 +6,7 @@ import com.heerkirov.hedge.server.dao.meta.Tags
 import com.heerkirov.hedge.server.dao.meta.Topics
 import com.heerkirov.hedge.server.exceptions.ConflictingGroupMembersError
 import com.heerkirov.hedge.server.exceptions.ResourceNotExist
+import com.heerkirov.hedge.server.exceptions.ResourceNotSuitable
 import com.heerkirov.hedge.server.model.meta.Tag
 import com.heerkirov.hedge.server.model.meta.Topic
 import me.liuwj.ktorm.dsl.*
@@ -25,6 +26,10 @@ class MetaManager(private val data: DataRepository) {
         val tags = data.db.sequenceOf(Tags).filter { it.id inList tagIds }.toList()
         if(tags.size < tags.size) {
             throw ResourceNotExist("tags", tagIds.toSet() - tags.asSequence().map { it.id }.toSet())
+        }
+        tags.filter { it.type != Tag.Type.TAG }.run {
+            //只允许设定类型为TAG的标签，不允许地址段。
+            if(isNotEmpty()) throw ResourceNotSuitable("tags", map { it.id })
         }
 
         val been = HashSet<Int>(tags.size * 2).apply { addAll(tags.map { it.id }) }

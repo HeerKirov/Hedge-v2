@@ -18,6 +18,7 @@ import com.heerkirov.hedge.server.exceptions.NotFound
 import com.heerkirov.hedge.server.exceptions.ResourceNotExist
 import com.heerkirov.hedge.server.form.*
 import com.heerkirov.hedge.server.model.illust.Illust
+import com.heerkirov.hedge.server.model.meta.Tag
 import com.heerkirov.hedge.server.tools.*
 import com.heerkirov.hedge.server.utils.DateTime
 import com.heerkirov.hedge.server.utils.DateTime.parseDateTime
@@ -119,7 +120,7 @@ class IllustService(private val data: DataRepository,
         val tags = data.db.from(Tags)
             .innerJoin(IllustTagRelations, IllustTagRelations.tagId eq Tags.id)
             .select(Tags.id, Tags.name, Tags.color, IllustTagRelations.isExported)
-            .where { IllustTagRelations.illustId eq id }
+            .where { (IllustTagRelations.illustId eq id) and (Tags.type eq Tag.Type.TAG) }
             .map { TagSimpleRes(it[Tags.id]!!, it[Tags.name]!!, it[Tags.color], it[IllustTagRelations.isExported]!!) }
 
         return IllustDetailRes(
@@ -133,15 +134,16 @@ class IllustService(private val data: DataRepository,
 
     fun getCollectionRelatedItems(id: Int): IllustCollectionRelatedRes {
         val row = data.db.from(Illusts)
-            .select(Illusts.exportedRelations)
+            .select(Illusts.exportedRelations, Illusts.relations)
             .where { retrieveCondition(id, Illust.IllustType.COLLECTION) }
             .firstOrNull()
             ?: throw NotFound()
 
+        val originRelations = row[Illusts.relations] ?: emptyList()
         val relationIds = row[Illusts.exportedRelations]
         val relationMap = if(relationIds.isNullOrEmpty()) emptyMap() else data.db.from(Illusts)
             .innerJoin(FileRecords, FileRecords.id eq Illusts.fileId)
-            .select(Illusts.id, FileRecords.id, FileRecords.folder, FileRecords.extension)
+            .select(Illusts.id, FileRecords.id, FileRecords.folder, FileRecords.extension, FileRecords.thumbnail)
             .where { Illusts.id inList relationIds }
             .asSequence()
             .map {
@@ -151,7 +153,7 @@ class IllustService(private val data: DataRepository,
             }
             .toMap()
 
-        return IllustCollectionRelatedRes(relations = relationIds?.map { relationMap[it]!! } ?: emptyList())
+        return IllustCollectionRelatedRes(relations = relationIds?.map { relationMap[it]!! } ?: emptyList(), originRelations)
     }
 
     fun getCollectionImages(id: Int, filter: LimitAndOffsetFilter): ListResult<IllustRes> {
@@ -176,16 +178,17 @@ class IllustService(private val data: DataRepository,
 
     fun getImageRelatedItems(id: Int): IllustImageRelatedRes {
         val row = data.db.from(Illusts)
-            .select(Illusts.exportedRelations, Illusts.parentId)
+            .select(Illusts.exportedRelations, Illusts.relations, Illusts.parentId)
             .where { retrieveCondition(id, Illust.IllustType.IMAGE) }
             .firstOrNull()
             ?: throw NotFound()
+        val originRelations = row[Illusts.relations] ?: emptyList()
         val relationIds = row[Illusts.exportedRelations]
         val parentId = row[Illusts.parentId]
 
         val relationMap = if(relationIds.isNullOrEmpty()) emptyMap() else data.db.from(Illusts)
             .innerJoin(FileRecords, FileRecords.id eq Illusts.fileId)
-            .select(Illusts.id, FileRecords.id, FileRecords.folder, FileRecords.extension)
+            .select(Illusts.id, FileRecords.id, FileRecords.folder, FileRecords.extension, FileRecords.thumbnail)
             .where { Illusts.id inList relationIds }
             .asSequence()
             .map {
@@ -198,7 +201,7 @@ class IllustService(private val data: DataRepository,
 
         val parent = if(parentId == null) null else data.db.from(Illusts)
             .innerJoin(FileRecords, FileRecords.id eq Illusts.fileId)
-            .select(Illusts.id, FileRecords.id, FileRecords.folder, FileRecords.extension)
+            .select(Illusts.id, FileRecords.id, FileRecords.folder, FileRecords.extension, FileRecords.thumbnail)
             .where { Illusts.id eq parentId }
             .firstOrNull()
             ?.let { IllustSimpleRes(it[Illusts.id]!!, takeThumbnailFilepath(it)) }
@@ -209,7 +212,7 @@ class IllustService(private val data: DataRepository,
             .where { AlbumImageRelations.imageId eq id }
             .map { AlbumSimpleRes(it[Albums.id]!!, it[Albums.title]!!) }
 
-        return IllustImageRelatedRes(parent, relations, albums)
+        return IllustImageRelatedRes(parent, relations, albums, originRelations)
     }
 
     fun getImageOriginData(id: Int): IllustImageOriginRes {
@@ -314,6 +317,10 @@ class IllustService(private val data: DataRepository,
             val oldExportedRelations = row[Illusts.exportedRelations]
 
             relationManager.validateRelations(form.relations)
+            data.db.update(Illusts) {
+                where { it.id eq id }
+                set(it.relations, form.relations)
+            }
             relationManager.processExportedRelations(id, form.relations, oldRelations, oldExportedRelations)
         }
     }
@@ -363,6 +370,7 @@ class IllustService(private val data: DataRepository,
                 val anyNotExported = kit.processAllMeta(id, newTags = form.tags, newAuthors = form.authors, newTopics = form.topics)
                 //当存在parent，且parent存在not exported meta tag，且meta的结果为全空时，从parent复制tag
                 if(!anyNotExported && illust.parentId != null && kit.anyNotExportedMeta(illust.parentId)) kit.copyAllMeta(id, illust.parentId)
+                //TODO 设计缺陷：在现有meta全部从parent拷贝的情况下，只设置一个种类的meta，那只有那一个种类的meta会重设，其他种类还是维持拷贝
             }
 
             val newTagme = if(form.tagme.isPresent) form.tagme else if(data.metadata.meta.autoCleanTagme && anyOpt(form.tags, form.authors, form.topics)) {
@@ -400,10 +408,14 @@ class IllustService(private val data: DataRepository,
 
     fun updateImageRelatedItems(id: Int, form: IllustImageRelatedUpdateForm) {
         data.db.transaction {
-            val illust = data.db.sequenceOf(Illusts).firstOrNull { retrieveCondition(id, Illust.IllustType.COLLECTION) } ?: throw NotFound()
+            val illust = data.db.sequenceOf(Illusts).firstOrNull { retrieveCondition(id, Illust.IllustType.IMAGE) } ?: throw NotFound()
 
             form.relations.alsoOpt { newRelations ->
                 relationManager.validateRelations(newRelations)
+                data.db.update(Illusts) {
+                    where { it.id eq id }
+                    set(it.relations, newRelations)
+                }
                 relationManager.processExportedRelations(id, newRelations, illust.relations, illust.exportedRelations)
             }
 

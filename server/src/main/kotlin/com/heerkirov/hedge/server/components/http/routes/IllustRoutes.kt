@@ -2,6 +2,7 @@ package com.heerkirov.hedge.server.components.http.routes
 
 import com.heerkirov.hedge.server.components.http.Endpoints
 import com.heerkirov.hedge.server.components.service.IllustService
+import com.heerkirov.hedge.server.exceptions.ParamTypeError
 import com.heerkirov.hedge.server.form.*
 import com.heerkirov.hedge.server.library.form.bodyAsForm
 import com.heerkirov.hedge.server.library.form.queryAsFilter
@@ -97,7 +98,9 @@ class IllustRoutes(private val illustService: IllustService) : Endpoints {
 
     private fun updateCollectionImages(ctx: Context) {
         val id = ctx.pathParam<Int>("id").get()
-        val images = ctx.queryAsFilter<List<Int>>()
+        val images = try { ctx.body<List<Int>>() }catch (e: Exception) {
+            throw ParamTypeError("images", e.message ?: "cannot convert to List<Int>")
+        }
         illustService.updateCollectionImages(id, images)
     }
 

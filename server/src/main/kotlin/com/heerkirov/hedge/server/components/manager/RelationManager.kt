@@ -57,7 +57,7 @@ class RelationManager(private val data: DataRepository) {
                 }else{
                     item {
                         where { it.id eq element.id }
-                        set(it.exportedRelations, graph[element].map { it.id })
+                        set(it.exportedRelations, graph[element].map(Element::id))
                     }
                 }
             }

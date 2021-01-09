@@ -49,8 +49,8 @@ class RelationGraph<E: Any>(private val elements: Array<E>, relations: Sequence<
         return map[hashMapper[element.hashCode()]!!].asSequence()
             .mapIndexed { index, b -> Pair(index, b) }
             .filter { (_, b) -> b }
-            .map { (i, _) -> i }
-            .map { elements[it] }
+            .map { (i, _) -> elements[i] }
+            .filter { it != element }
             .toList()
     }
 }

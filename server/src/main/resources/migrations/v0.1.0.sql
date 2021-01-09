@@ -207,8 +207,8 @@ CREATE TABLE album_annotation_relation(
 CREATE UNIQUE INDEX meta_db.tag_annotation__index ON tag_annotation_relation(annotation_id, tag_id);
 CREATE UNIQUE INDEX meta_db.topic_annotation__index ON topic_annotation_relation(annotation_id, topic_id);
 CREATE UNIQUE INDEX meta_db.copyright_annotation__index ON author_annotation_relation(annotation_id, author_id);
-CREATE UNIQUE INDEX illust_annotation__index ON illust_annotation_relation(annotation_id, exported_from, illust_id);
-CREATE UNIQUE INDEX album_annotation__index ON album_annotation_relation(annotation_id, exported_from, album_id);
+CREATE UNIQUE INDEX illust_annotation__index ON illust_annotation_relation(annotation_id, illust_id);
+CREATE UNIQUE INDEX album_annotation__index ON album_annotation_relation(annotation_id, album_id);
 
 -- 导入表
 CREATE TABLE import_image(

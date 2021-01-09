@@ -23,11 +23,12 @@ data class IllustDetailRes(val id: Int, val fileId: Int, val file: String,
                            val originDescription: String, val originScore: Int?,
                            val partitionTime: LocalDate, val orderTime: LocalDateTime, val createTime: LocalDateTime, val updateTime: LocalDateTime)
 
-data class IllustCollectionRelatedRes(val relations: List<IllustSimpleRes>)
+data class IllustCollectionRelatedRes(val relations: List<IllustSimpleRes>, val originRelations: List<Int>)
 
 data class IllustImageRelatedRes(val collection: IllustSimpleRes?,
                                  val relations: List<IllustSimpleRes>,
-                                 val albums: List<AlbumSimpleRes>)
+                                 val albums: List<AlbumSimpleRes>,
+                                 val originRelations: List<Int>)
 
 data class IllustImageOriginRes(val source: String?, val sourceTitle: String?, val sourceId: Long?, val sourcePart: Int?,
                                 val title: String?, val description: String?,

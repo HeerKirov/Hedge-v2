@@ -131,21 +131,23 @@ class IllustKit(private val data: DataRepository,
      * @return 返回是否存在任何not exported tag。
      */
     fun processAllMeta(thisId: Int, creating: Boolean = false, newTags: Opt<List<Int>>, newTopics: Opt<List<Int>>, newAuthors: Opt<List<Int>>): Boolean {
-        val tagAnnotations = if(newTags.isPresent) null else
+        val tagAnnotations = if(newTags.isUndefined) null else
             processOneMeta(thisId, creating,
                 metaRelations = IllustTagRelations,
                 metaAnnotationRelations = TagAnnotationRelations,
                 newTagIds = metaManager.exportTag(newTags.value))
-        val topicAnnotations = if(newTopics.isPresent) null else
+        val topicAnnotations = if(newTopics.isUndefined) null else
             processOneMeta(thisId, creating,
                 metaRelations = IllustTopicRelations,
                 metaAnnotationRelations = TopicAnnotationRelations,
                 newTagIds = metaManager.exportTopic(newTopics.value))
-        val authorAnnotations = if(newAuthors.isPresent) null else
+        val authorAnnotations = if(newAuthors.isUndefined) null else
             processOneMeta(thisId, creating,
                 metaRelations = IllustAuthorRelations,
                 metaAnnotationRelations = AuthorAnnotationRelations,
                 newTagIds = metaManager.exportAuthor(newAuthors.value))
+
+        //TODO 处理meta tag的计数变化
 
         processAnnotationOfMeta(thisId, tagAnnotations = tagAnnotations, topicAnnotations = topicAnnotations, authorAnnotations = authorAnnotations)
 
@@ -169,7 +171,7 @@ class IllustKit(private val data: DataRepository,
             data.db.from(metaRelations).select(metaRelations.metaId(), metaRelations.exported())
                 .where { metaRelations.entityId() eq thisId }
                 .asSequence()
-                .map { Pair(it[metaRelations.entityId()]!!, it[metaRelations.exported()]!!) }
+                .map { Pair(it[metaRelations.metaId()]!!, it[metaRelations.exported()]!!) }
                 .toMap()
         }
         val deleteIds = oldTagIds.keys - tagIds.keys
@@ -225,7 +227,7 @@ class IllustKit(private val data: DataRepository,
             val oldAnnotations = data.db.from(IllustAnnotationRelations).select()
                 .where { IllustAnnotationRelations.illustId eq thisId }
                 .asSequence()
-                .map { Pair(it[IllustAnnotationRelations.illustId]!!, it[IllustAnnotationRelations.exportedFrom]!!) }
+                .map { Pair(it[IllustAnnotationRelations.annotationId]!!, it[IllustAnnotationRelations.exportedFrom]!!) }
                 .toMap()
 
             val adds = mutableMapOf<Int, Annotation.ExportedFrom>()
