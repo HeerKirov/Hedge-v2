@@ -25,6 +25,7 @@ class DBInstance(val dbPath: String) : Closeable {
         conn.attach("$dbPath/${Filename.META_SQLITE}", "meta_db")
         conn.attach("$dbPath/${Filename.ORIGIN_SQLITE}", "origin_db")
         conn.attach("$dbPath/${Filename.SOURCE_SQLITE}", "source_db")
+        conn.attach("$dbPath/${Filename.SYSTEM_SQLITE}", "system_db")
 
         database = Database.connect(dialect = HedgeDialect()) {
             object : Connection by conn {

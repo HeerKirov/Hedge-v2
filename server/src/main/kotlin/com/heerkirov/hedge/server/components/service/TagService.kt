@@ -1,5 +1,7 @@
 package com.heerkirov.hedge.server.components.service
 
+import com.heerkirov.hedge.server.components.backend.AlbumExporterTask
+import com.heerkirov.hedge.server.components.backend.IllustExporterTask
 import com.heerkirov.hedge.server.components.backend.IllustMetaExporter
 import com.heerkirov.hedge.server.components.backend.MetaExporterTask
 import com.heerkirov.hedge.server.components.database.DataRepository
@@ -298,12 +300,12 @@ class TagService(private val data: DataRepository,
                     data.db.from(IllustTagRelations)
                         .select(IllustTagRelations.illustId)
                         .where { IllustTagRelations.tagId eq id }
-                        .map { MetaExporterTask(MetaExporterTask.Type.ILLUST, it[IllustTagRelations.illustId]!!) }
+                        .map { IllustExporterTask(it[IllustTagRelations.illustId]!!, exportMeta = true) }
                         .let { illustMetaExporter.appendNewTask(it) }
                     data.db.from(AlbumTagRelations)
                         .select(AlbumTagRelations.albumId)
                         .where { AlbumTagRelations.tagId eq id }
-                        .map { MetaExporterTask(MetaExporterTask.Type.ALBUM, it[AlbumTagRelations.albumId]!!) }
+                        .map { AlbumExporterTask(it[AlbumTagRelations.albumId]!!, exportMeta = true) }
                         .let { illustMetaExporter.appendNewTask(it) }
             }
         }
@@ -328,12 +330,12 @@ class TagService(private val data: DataRepository,
             data.db.from(IllustTagRelations)
                 .select(IllustTagRelations.illustId)
                 .where { IllustTagRelations.tagId eq id }
-                .map { MetaExporterTask(MetaExporterTask.Type.ILLUST, it[IllustTagRelations.illustId]!!) }
+                .map { IllustExporterTask(it[IllustTagRelations.illustId]!!, exportMeta = true) }
                 .let { illustMetaExporter.appendNewTask(it) }
             data.db.from(AlbumTagRelations)
                 .select(AlbumTagRelations.albumId)
                 .where { AlbumTagRelations.tagId eq id }
-                .map { MetaExporterTask(MetaExporterTask.Type.ALBUM, it[AlbumTagRelations.albumId]!!) }
+                .map { AlbumExporterTask(it[AlbumTagRelations.albumId]!!, exportMeta = true) }
                 .let { illustMetaExporter.appendNewTask(it) }
             recursionDelete(id)
         }

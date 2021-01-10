@@ -5,6 +5,7 @@ import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.database.transaction
 import com.heerkirov.hedge.server.dao.source.FileRecords
 import com.heerkirov.hedge.server.definitions.Filename
+import com.heerkirov.hedge.server.enums.LoadStatus
 import com.heerkirov.hedge.server.library.framework.StatefulComponent
 import com.heerkirov.hedge.server.library.image.ImageProcessor
 import com.heerkirov.hedge.server.model.source.FileRecord
@@ -38,14 +39,16 @@ class ThumbnailGeneratorImpl(private val appdata: AppDataDriver, private val dat
     override val isIdle: Boolean get() = !daemonTask.isAlive
 
     override fun load() {
-        val tasks = data.db.from(FileRecords)
-            .select(FileRecords.id)
-            .where { FileRecords.deleted.not() and (FileRecords.thumbnail eq FileRecord.ThumbnailStatus.NULL) }
-            .orderBy(FileRecords.updateTime.asc())
-            .map { it[FileRecords.id]!! }
-        if(tasks.isNotEmpty()) {
-            queue.addAll(tasks)
-            daemonTask.start()
+        if(data.status == LoadStatus.LOADED) {
+            val tasks = data.db.from(FileRecords)
+                .select(FileRecords.id)
+                .where { FileRecords.deleted.not() and (FileRecords.thumbnail eq FileRecord.ThumbnailStatus.NULL) }
+                .orderBy(FileRecords.updateTime.asc())
+                .map { it[FileRecords.id]!! }
+            if(tasks.isNotEmpty()) {
+                queue.addAll(tasks)
+                daemonTask.start()
+            }
         }
     }
 

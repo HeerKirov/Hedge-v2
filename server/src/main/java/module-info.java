@@ -27,6 +27,7 @@ module com.heerkirov.hedge.server {
     opens com.heerkirov.hedge.server.model.collection;
     opens com.heerkirov.hedge.server.model.meta;
     opens com.heerkirov.hedge.server.model.illust;
+    opens com.heerkirov.hedge.server.model.system;
     opens com.heerkirov.hedge.server.form;
     opens com.heerkirov.hedge.server.exceptions;
     opens com.heerkirov.hedge.server.utils.types;

@@ -1,7 +1,8 @@
 package com.heerkirov.hedge.server.components.service
 
+import com.heerkirov.hedge.server.components.backend.CollectionExporterTask
 import com.heerkirov.hedge.server.components.backend.IllustMetaExporter
-import com.heerkirov.hedge.server.components.backend.MetaExporterTask
+import com.heerkirov.hedge.server.components.backend.ImageExporterTask
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.database.transaction
 import com.heerkirov.hedge.server.components.kit.IllustKit
@@ -296,9 +297,11 @@ class IllustService(private val data: DataRepository,
             }
 
             if(anyOpt(form.tags, form.authors, form.topics, form.description, form.score)) {
-                //TODO 细化metaExporter的任务。这里要细化到是因为<parent的变化>引起的<description/meta/score>的重导出，以优化重导出效率。
                 val children = data.db.from(Illusts).select(Illusts.id).where { Illusts.parentId eq id }.map { it[Illusts.id]!! }
-                illustMetaExporter.appendNewTask(children.map { MetaExporterTask(MetaExporterTask.Type.ILLUST, it) })
+                illustMetaExporter.appendNewTask(children.map { ImageExporterTask(it,
+                    exportScore = form.score.isPresent,
+                    exportDescription = form.description.isPresent,
+                    exportMeta = anyOpt(form.tags, form.topics, form.authors)) })
             }
         }
     }
@@ -389,14 +392,17 @@ class IllustService(private val data: DataRepository,
                 }
             }
 
-            if(illust.parentId != null
-                && ((form.score.isPresent && parent!!.score == null)
-                        || (anyOpt(form.tags, form.authors, form.topics) && !kit.anyNotExportedMeta(illust.parentId)))) {
-                //设置了score，且parent未设置score时
-                //或tags/topics/authors存在更改，且parent不存在任何not exported meta tag时
-                //将parent加入更新
-                illustMetaExporter.appendNewTask(MetaExporterTask.Type.ILLUST, illust.parentId)
+            if(illust.parentId != null) {
+                val exportScore = form.score.isPresent && parent!!.score == null
+                val exportMeta = anyOpt(form.tags, form.authors, form.topics) && !kit.anyNotExportedMeta(illust.parentId)
+                if(exportScore || exportMeta) {
+                    //设置了score，且parent未设置score时
+                    //或tags/topics/authors存在更改，且parent不存在任何not exported meta tag时
+                    //将parent加入更新
+                    illustMetaExporter.appendNewTask(CollectionExporterTask(illust.parentId, exportScore = exportScore, exportMeta = exportMeta))
+                }
             }
+
         }
     }
 
@@ -474,6 +480,8 @@ class IllustService(private val data: DataRepository,
                 ?.let { Illusts.createEntity(it) }
                 ?: throw NotFound()
 
+            val anyNotExportedMeta = type == Illust.IllustType.COLLECTION && kit.anyNotExportedMeta(id)
+
             data.db.delete(Illusts) { it.id eq id }
             data.db.delete(IllustTagRelations) { it.illustId eq id }
             data.db.delete(IllustAuthorRelations) { it.illustId eq id }
@@ -501,7 +509,10 @@ class IllustService(private val data: DataRepository,
                     set(it.type, Illust.Type.IMAGE)
                 }
                 //对children做重导出
-                illustMetaExporter.appendNewTask(children.map { MetaExporterTask(MetaExporterTask.Type.ILLUST, it) })
+                illustMetaExporter.appendNewTask(children.map { ImageExporterTask(it,
+                    exportDescription = illust.description.isNotEmpty(),
+                    exportScore = illust.score != null,
+                    exportMeta = anyNotExportedMeta) })
             }
         }
     }

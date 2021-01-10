@@ -1,7 +1,8 @@
 package com.heerkirov.hedge.server.components.kit
 
+import com.heerkirov.hedge.server.components.backend.CollectionExporterTask
 import com.heerkirov.hedge.server.components.backend.IllustMetaExporter
-import com.heerkirov.hedge.server.components.backend.MetaExporterTask
+import com.heerkirov.hedge.server.components.backend.ImageExporterTask
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.manager.MetaManager
 import com.heerkirov.hedge.server.components.manager.RelationManager
@@ -418,7 +419,7 @@ class IllustKit(private val data: DataRepository,
             }
         }
         //将被从列表移除的images加入重导出任务
-        illustMetaExporter.appendNewTask(deleteIds.map { MetaExporterTask(MetaExporterTask.Type.ILLUST, it) })
+        illustMetaExporter.appendNewTask(deleteIds.map { ImageExporterTask(it, exportDescription = true, exportScore = true, exportMeta = true) })
     }
 
     /**
@@ -463,7 +464,7 @@ class IllustKit(private val data: DataRepository,
                 }
             }
             //其他属性稍后在metaExporter延后导出
-            illustMetaExporter.appendNewTask(MetaExporterTask.Type.ILLUST, parent.id)
+            illustMetaExporter.appendNewTask(CollectionExporterTask(parent.id, exportScore = true, exportMeta = true))
         }else{
             //此collection已经没有项了，将其删除
             data.db.delete(Illusts) { it.id eq parent.id }

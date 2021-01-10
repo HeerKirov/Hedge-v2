@@ -1,7 +1,7 @@
 package com.heerkirov.hedge.server.components.manager
 
+import com.heerkirov.hedge.server.components.backend.CollectionExporterTask
 import com.heerkirov.hedge.server.components.backend.IllustMetaExporter
-import com.heerkirov.hedge.server.components.backend.MetaExporterTask
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.kit.IllustKit
 import com.heerkirov.hedge.server.dao.illust.Illusts
@@ -91,12 +91,14 @@ class IllustManager(private val data: DataRepository,
                 newTopics = topics?.let { Opt(it) } ?: undefined(),
                 newAuthors = authors?.let { Opt(it) } ?: undefined())
 
-            if(collection != null && !kit.anyNotExportedMeta(collection.id)) {
-                illustMetaExporter.appendNewTask(MetaExporterTask.Type.ILLUST, collection.id)
-            }
         }else if (collection != null && kit.anyNotExportedMeta(collection.id)) {
             //tag为空且parent的tag不为空时，直接应用parent的exported tag(因为一定是从parent的tag导出的，不需要再算一次)
             kit.copyAllMetaToImage(id, collection.id)
+        }
+
+        if(collection != null) {
+            //对parent做重导出。尽管重导出有多个可分离的部分，但分开判定太费劲且收益不高，就统一只要有parent就重导出了
+            illustMetaExporter.appendNewTask(CollectionExporterTask(collection.id, exportFileAndTime = true, exportMeta = true))
         }
 
         return id
