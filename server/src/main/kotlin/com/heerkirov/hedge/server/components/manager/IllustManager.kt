@@ -2,9 +2,10 @@ package com.heerkirov.hedge.server.components.manager
 
 import com.heerkirov.hedge.server.components.backend.CollectionExporterTask
 import com.heerkirov.hedge.server.components.backend.IllustMetaExporter
+import com.heerkirov.hedge.server.components.backend.ImageExporterTask
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.kit.IllustKit
-import com.heerkirov.hedge.server.dao.illust.Illusts
+import com.heerkirov.hedge.server.dao.illust.*
 import com.heerkirov.hedge.server.exceptions.ResourceNotExist
 import com.heerkirov.hedge.server.model.illust.Illust
 import com.heerkirov.hedge.server.utils.DateTime
@@ -12,8 +13,7 @@ import com.heerkirov.hedge.server.utils.ktorm.first
 import com.heerkirov.hedge.server.utils.types.Opt
 import com.heerkirov.hedge.server.utils.types.undefined
 import me.liuwj.ktorm.dsl.*
-import me.liuwj.ktorm.entity.firstOrNull
-import me.liuwj.ktorm.entity.sequenceOf
+import me.liuwj.ktorm.entity.*
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -132,8 +132,106 @@ class IllustManager(private val data: DataRepository,
             set(it.updateTime, createTime)
         } as Int
 
-        kit.processSubImages(images, id, formDescription, formScore)
+        processSubImages(images, id, formDescription, formScore)
 
         return id
+    }
+
+    /**
+     * 应用images列表，设置images的parent为当前collection。
+     * 如果image已有其他parent，覆盖那些parent，并对那些parent做属性重导出(主要是fileId)。由于collection要求至少有1个子项，没有子项的collection会被删除。
+     * image的exported属性如果没有填写，会被重新导出计算。
+     */
+    fun processSubImages(images: List<Illust>, thisId: Int, thisDescription: String, thisScore: Int?) {
+        val imageIds = images.map { it.id }
+        //处理那些新列表中没有，也就是需要被移除的项
+        val deleteIds = data.db.from(Illusts).select(Illusts.id).where { (Illusts.id notInList imageIds) and (Illusts.parentId eq thisId) }.map { it[Illusts.id]!! }
+        data.db.update(Illusts) {
+            where { it.id inList deleteIds }
+            set(it.type, Illust.Type.IMAGE)
+            set(it.parentId, null)
+        }
+        //修改子项的parentId/type。如果存在description/score，那么也有可能导出给子项
+        data.db.update(Illusts) {
+            where { it.id inList imageIds }
+            set(it.parentId, thisId)
+            set(it.type, Illust.Type.IMAGE_WITH_PARENT)
+        }
+        if(thisDescription.isNotEmpty()) {
+            data.db.update(Illusts) {
+                where { (it.id inList imageIds) and (it.description eq "") }
+                set(it.exportedDescription, thisDescription)
+            }
+        }
+        if(thisScore != null) {
+            data.db.update(Illusts) {
+                where { (it.id inList imageIds) and (it.score.isNull()) }
+                set(it.exportedScore, thisScore)
+            }
+        }
+        val now = DateTime.now()
+        for (image in images) {
+            if(image.parentId != null && image.parentId != thisId) {
+                //此image有旧的parent，需要对旧parent做重新导出
+                processRemoveItemFromCollection(image.parentId, image, now)
+            }
+        }
+        //将被从列表移除的images加入重导出任务
+        illustMetaExporter.appendNewTask(deleteIds.map { ImageExporterTask(it, exportDescription = true, exportScore = true, exportMeta = true) })
+    }
+
+    /**
+     * 向collection中添加了一个新子项(由于移动子项)，对此collection做快速重导出，如有必要，放入metaExporter。
+     */
+    fun processAddItemToCollection(collectionId: Int, addedImage: Illust, currentTime: LocalDateTime? = null) {
+        val firstImage = data.db.sequenceOf(Illusts).filter { (it.parentId eq collectionId) and (it.id notEq addedImage.id) }.sortedBy { it.orderTime }.firstOrNull()
+        if(firstImage != null) {
+            if(firstImage.orderTime >= addedImage.orderTime) {
+                //只有当现有列表的第一项的排序顺位>=被放入的项时，才发起更新。
+                //如果顺位<当前项，那么旧parent的封面肯定是这个第一项而不是当前项，就不需要更新。
+                data.db.update(Illusts) {
+                    where { it.id eq collectionId }
+                    set(it.fileId, addedImage.fileId)
+                    set(it.partitionTime, addedImage.partitionTime)
+                    set(it.orderTime, addedImage.orderTime)
+                    set(it.updateTime, currentTime ?: DateTime.now())
+                }
+            }
+        }else{
+            throw RuntimeException("There is no images in collection $collectionId.")
+        }
+    }
+
+    /**
+     * 从collection中移除了一个子项(由于删除子项或移动子项)，对此collection做快速重导出，如有必要，放入metaExporter。
+     */
+    fun processRemoveItemFromCollection(collectionId: Int, removedImage: Illust, currentTime: LocalDateTime? = null) {
+        //关键属性(fileId, partitionTime, orderTime)的重导出不延后到metaExporter，在事务内立即完成
+        val parent = data.db.sequenceOf(Illusts).first { it.id eq collectionId }
+        val firstImage = data.db.sequenceOf(Illusts).filter { (it.parentId eq collectionId) and (it.id notEq removedImage.id) }.sortedBy { it.orderTime }.firstOrNull()
+        if(firstImage != null) {
+            if(firstImage.orderTime >= removedImage.orderTime) {
+                //只有当剩余列表的第一项的排序顺位>=被取出的当前项时，才发起更新。
+                //这个项肯定不是当前项，如果顺位<当前项，那么旧parent的封面肯定是这个第一项而不是当前项，就不需要更新。
+                data.db.update(Illusts) {
+                    where { it.id eq collectionId }
+                    set(it.fileId, firstImage.fileId)
+                    set(it.partitionTime, firstImage.partitionTime)
+                    set(it.orderTime, firstImage.orderTime)
+                    set(it.updateTime, currentTime ?: DateTime.now())
+                }
+            }
+            //其他属性稍后在metaExporter延后导出
+            illustMetaExporter.appendNewTask(CollectionExporterTask(parent.id, exportScore = true, exportMeta = true))
+        }else{
+            //此collection已经没有项了，将其删除
+            data.db.delete(Illusts) { it.id eq parent.id }
+            data.db.delete(IllustTagRelations) { it.illustId eq parent.id }
+            data.db.delete(IllustAuthorRelations) { it.illustId eq parent.id }
+            data.db.delete(IllustTopicRelations) { it.illustId eq parent.id }
+            data.db.delete(IllustAnnotationRelations) { it.illustId eq parent.id }
+
+            if(!parent.exportedRelations.isNullOrEmpty()) relationManager.removeItemInRelations(parent.id, parent.exportedRelations)
+        }
     }
 }

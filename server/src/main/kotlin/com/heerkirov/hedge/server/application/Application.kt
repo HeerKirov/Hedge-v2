@@ -52,18 +52,18 @@ fun runApplication(options: ApplicationOptions) {
             val metaManager = MetaManager(repo)
 
             val partitionManager = PartitionManager(repo)
-            val partitionService = PartitionService(repo)
 
-            val illustMetaExporter = define { IllustMetaExporterImpl(repo) }
-            val illustKit = IllustKit(repo, metaManager, relationManager, illustMetaExporter)
+            val illustKit = IllustKit(repo, metaManager)
+            val illustMetaExporter = define { IllustMetaExporterImpl(repo, illustKit) }
             val illustManager = IllustManager(repo, illustKit, relationManager, sourceManager, partitionManager, illustMetaExporter)
-            val illustService = IllustService(repo, illustKit, illustManager, fileManager, relationManager, sourceManager, partitionManager, illustMetaExporter)
 
-            val importService = ImportService(repo, fileManager, importManager, illustManager, sourceManager, importMetaManager, thumbnailGenerator)
+            val illustService = IllustService(repo, illustKit, illustManager, fileManager, relationManager, sourceManager, partitionManager, illustMetaExporter)
+            val partitionService = PartitionService(repo)
             val tagService = TagService(repo, tagKit, fileManager, illustMetaExporter)
             val annotationService = AnnotationService(repo, annotationKit)
             val authorService = AuthorService(repo, authorKit)
             val topicService = TopicService(repo, topicKit)
+            val importService = ImportService(repo, fileManager, importManager, illustManager, sourceManager, importMetaManager, thumbnailGenerator)
             val settingImportService = SettingImportService(repo)
             val settingSourceSiteService = SettingSourceService(repo)
 

@@ -35,6 +35,7 @@ import me.liuwj.ktorm.entity.first
 import me.liuwj.ktorm.entity.firstOrNull
 import me.liuwj.ktorm.entity.sequenceOf
 import me.liuwj.ktorm.expression.BinaryExpression
+import kotlin.math.roundToInt
 
 class IllustService(private val data: DataRepository,
                     private val kit: IllustKit,
@@ -263,7 +264,7 @@ class IllustService(private val data: DataRepository,
                     .select(count(Illusts.id).aliased("count"), avg(Illusts.score).aliased("score"))
                     .where { (Illusts.parentId eq id) and (Illusts.score.isNotNull()) }
                     .firstOrNull()?.run {
-                        if(getInt("count") > 0) getInt("score") else null
+                        if(getInt("count") > 0) getDouble("score").roundToInt() else null
                     }
             }
 
@@ -341,7 +342,7 @@ class IllustService(private val data: DataRepository,
                 set(it.updateTime, now)
             }
 
-            kit.processSubImages(images, id, illust.description, illust.score)
+            illustManager.processSubImages(images, id, illust.description, illust.score)
         }
     }
 
@@ -434,11 +435,11 @@ class IllustService(private val data: DataRepository,
 
                     val now = DateTime.now()
                     if(newParent != null) {
-                        kit.processAddItemToCollection(newParent.id, illust, now)
+                        illustManager.processAddItemToCollection(newParent.id, illust, now)
                     }
                     if(illust.parentId != null) {
                         //处理旧parent
-                        kit.processRemoveItemFromCollection(illust.parentId, illust, now)
+                        illustManager.processRemoveItemFromCollection(illust.parentId, illust, now)
                     }
                 }
             }
@@ -496,7 +497,7 @@ class IllustService(private val data: DataRepository,
                 //关联的partition的计数-1
                 partitionManager.deleteItemInPartition(illust.partitionTime)
                 //存在parent时，执行parent重导出处理。
-                if(illust.parentId != null) kit.processRemoveItemFromCollection(illust.parentId, illust)
+                if(illust.parentId != null) illustManager.processRemoveItemFromCollection(illust.parentId, illust)
                 //删除关联的file。无法撤销的删除放到最后，这样不必回滚
                 fileManager.deleteFile(illust.fileId)
             }else{

@@ -1,11 +1,7 @@
 package com.heerkirov.hedge.server.components.kit
 
-import com.heerkirov.hedge.server.components.backend.CollectionExporterTask
-import com.heerkirov.hedge.server.components.backend.IllustMetaExporter
-import com.heerkirov.hedge.server.components.backend.ImageExporterTask
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.manager.MetaManager
-import com.heerkirov.hedge.server.components.manager.RelationManager
 import com.heerkirov.hedge.server.dao.illust.*
 import com.heerkirov.hedge.server.dao.meta.*
 import com.heerkirov.hedge.server.dao.types.EntityMetaRelationTable
@@ -16,7 +12,6 @@ import com.heerkirov.hedge.server.exceptions.ParamRequired
 import com.heerkirov.hedge.server.exceptions.ResourceNotExist
 import com.heerkirov.hedge.server.model.illust.Illust
 import com.heerkirov.hedge.server.model.meta.Annotation
-import com.heerkirov.hedge.server.utils.DateTime
 import com.heerkirov.hedge.server.utils.ktorm.asSequence
 import com.heerkirov.hedge.server.utils.ktorm.firstOrNull
 import com.heerkirov.hedge.server.utils.types.Opt
@@ -25,13 +20,10 @@ import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.dsl.where
 import me.liuwj.ktorm.entity.*
 import java.time.LocalDate
-import java.time.LocalDateTime
 import kotlin.math.roundToInt
 
 class IllustKit(private val data: DataRepository,
-                private val metaManager: MetaManager,
-                private val relationManager: RelationManager,
-                private val illustMetaExporter: IllustMetaExporter) {
+                private val metaManager: MetaManager) {
     /**
      * 检查score的值，不允许其超出范围。
      */
@@ -165,19 +157,19 @@ class IllustKit(private val data: DataRepository,
                 metaTag = Tags,
                 metaRelations = IllustTagRelations,
                 metaAnnotationRelations = TagAnnotationRelations,
-                newTagIds = metaManager.exportTag(newTags.value))
+                newTagIds = metaManager.validateAndExportTag(newTags.value))
         val topicAnnotations = if(newTopics.isUndefined) null else
             processOneMeta(thisId, creating, analyseStatisticCount,
                 metaTag = Topics,
                 metaRelations = IllustTopicRelations,
                 metaAnnotationRelations = TopicAnnotationRelations,
-                newTagIds = metaManager.exportTopic(newTopics.value))
+                newTagIds = metaManager.validateAndExportTopic(newTopics.value))
         val authorAnnotations = if(newAuthors.isUndefined) null else
             processOneMeta(thisId, creating, analyseStatisticCount,
                 metaTag = Authors,
                 metaRelations = IllustAuthorRelations,
                 metaAnnotationRelations = AuthorAnnotationRelations,
-                newTagIds = metaManager.exportAuthor(newAuthors.value))
+                newTagIds = metaManager.validateAuthor(newAuthors.value))
 
         processAnnotationOfMeta(thisId, tagAnnotations = tagAnnotations, topicAnnotations = topicAnnotations, authorAnnotations = authorAnnotations)
 
@@ -193,15 +185,63 @@ class IllustKit(private val data: DataRepository,
                 copyAllMetaFromChildrenToCollection(thisId)
             }
         }else if(((newTags.isPresent && tagCount > 0) || (newAuthors.isPresent && authorCount > 0) || (newTopics.isPresent && topicCount > 0))
-                && (newAuthors.isUndefined && authorCount == 0 || newAuthors.isPresent)
-                && (newTopics.isUndefined && authorCount == 0 || newTopics.isPresent)
-                && (newTags.isUndefined && tagCount == 0 || newTags.isPresent)) {
+                && (newAuthors.isPresent || authorCount == 0)
+                && (newTopics.isPresent || authorCount == 0)
+                && (newTags.isPresent || tagCount == 0)) {
             //若发现未修改列表数量都为0，已修改至少一项不为0，那么清空未修改列表从依赖项那里获得的exported tag
             //在copyFromChildren为false的情况下，认为是image的更改，要求修改统计计数；否则不予修改
             if(newTags.isUndefined) deleteAllMeta(thisId, IllustTagRelations, Tags, analyseStatisticCount)
             if(newAuthors.isUndefined) deleteAllMeta(thisId, IllustAuthorRelations, Authors, analyseStatisticCount)
             if(newTopics.isUndefined) deleteAllMeta(thisId, IllustTopicRelations, Topics, analyseStatisticCount)
         }
+    }
+
+    /**
+     * 在没有更新的情况下，强制重新导出meta tag。被使用在meta exporter的后台任务中。
+     */
+    fun forceProcessAllMeta(thisId: Int, copyFromParent: Int? = null, copyFromChildren: Boolean = false) {
+        val analyseStatisticCount = !copyFromChildren
+
+        val tagAnnotations = processOneMeta(thisId, creating = false, analyseStatisticCount,
+                metaTag = Tags,
+                metaRelations = IllustTagRelations,
+                metaAnnotationRelations = TagAnnotationRelations,
+                newTagIds = metaManager.exportTag(TODO(), conflictingMembersCheck = false))
+        val topicAnnotations = processOneMeta(thisId, creating = false, analyseStatisticCount,
+                metaTag = Topics,
+                metaRelations = IllustTopicRelations,
+                metaAnnotationRelations = TopicAnnotationRelations,
+                newTagIds = metaManager.validateAndExportTopic(TODO()))
+        val authorAnnotations = processOneMeta(thisId, creating = false, analyseStatisticCount,
+                metaTag = Authors,
+                metaRelations = IllustAuthorRelations,
+                metaAnnotationRelations = AuthorAnnotationRelations,
+                newTagIds = metaManager.validateAuthor(TODO()))
+
+        processAnnotationOfMeta(thisId, tagAnnotations = tagAnnotations, topicAnnotations = topicAnnotations, authorAnnotations = authorAnnotations)
+
+        val tagCount = getNotExportedMetaCount(thisId, IllustTagRelations)
+        val topicCount = getNotExportedMetaCount(thisId, IllustTopicRelations)
+        val authorCount = getNotExportedMetaCount(thisId, IllustAuthorRelations)
+
+        if(tagCount == 0 && topicCount == 0 && authorCount == 0) {
+            //若发现当前列表数全部为0，那么从依赖项拷贝tag
+            if(copyFromParent != null) {
+                if(anyNotExportedMeta(copyFromParent)) copyAllMetaToImage(thisId, copyFromParent)
+            }else if (copyFromChildren) {
+                copyAllMetaFromChildrenToCollection(thisId)
+            }
+        }
+//        else if(((newTags.isPresent && tagCount > 0) || (newAuthors.isPresent && authorCount > 0) || (newTopics.isPresent && topicCount > 0))
+//            && (newAuthors.isUndefined && authorCount == 0 || newAuthors.isPresent)
+//            && (newTopics.isUndefined && authorCount == 0 || newTopics.isPresent)
+//            && (newTags.isUndefined && tagCount == 0 || newTags.isPresent)) {
+//            //若发现未修改列表数量都为0，已修改至少一项不为0，那么清空未修改列表从依赖项那里获得的exported tag
+//            //在copyFromChildren为false的情况下，认为是image的更改，要求修改统计计数；否则不予修改
+//            if(newTags.isUndefined) deleteAllMeta(thisId, IllustTagRelations, Tags, analyseStatisticCount)
+//            if(newAuthors.isUndefined) deleteAllMeta(thisId, IllustAuthorRelations, Authors, analyseStatisticCount)
+//            if(newTopics.isUndefined) deleteAllMeta(thisId, IllustTopicRelations, Topics, analyseStatisticCount)
+//        }
     }
 
     /**
@@ -377,103 +417,5 @@ class IllustKit(private val data: DataRepository,
         val score = images.asSequence().mapNotNull { it.score }.average().run { if(isNaN()) null else this }?.roundToInt()
 
         return Tuple5(images, fileId, score, partitionTime, orderTime)
-    }
-
-    /**
-     * 应用images列表，设置images的parent为当前collection。
-     * 如果image已有其他parent，覆盖那些parent，并对那些parent做属性重导出(主要是fileId)。由于collection要求至少有1个子项，没有子项的collection会被删除。
-     * image的exported属性如果没有填写，会被重新导出计算。
-     */
-    fun processSubImages(images: List<Illust>, thisId: Int, thisDescription: String, thisScore: Int?) {
-        val imageIds = images.map { it.id }
-        //处理那些新列表中没有，也就是需要被移除的项
-        val deleteIds = data.db.from(Illusts).select(Illusts.id).where { (Illusts.id notInList imageIds) and (Illusts.parentId eq thisId) }.map { it[Illusts.id]!! }
-        data.db.update(Illusts) {
-            where { it.id inList deleteIds }
-            set(it.type, Illust.Type.IMAGE)
-            set(it.parentId, null)
-        }
-        //修改子项的parentId/type。如果存在description/score，那么也有可能导出给子项
-        data.db.update(Illusts) {
-            where { it.id inList imageIds }
-            set(it.parentId, thisId)
-            set(it.type, Illust.Type.IMAGE_WITH_PARENT)
-        }
-        if(thisDescription.isNotEmpty()) {
-            data.db.update(Illusts) {
-                where { (it.id inList imageIds) and (it.description eq "") }
-                set(it.exportedDescription, thisDescription)
-            }
-        }
-        if(thisScore != null) {
-            data.db.update(Illusts) {
-                where { (it.id inList imageIds) and (it.score.isNull()) }
-                set(it.exportedScore, thisScore)
-            }
-        }
-        val now = DateTime.now()
-        for (image in images) {
-            if(image.parentId != null && image.parentId != thisId) {
-                //此image有旧的parent，需要对旧parent做重新导出
-                processRemoveItemFromCollection(image.parentId, image, now)
-            }
-        }
-        //将被从列表移除的images加入重导出任务
-        illustMetaExporter.appendNewTask(deleteIds.map { ImageExporterTask(it, exportDescription = true, exportScore = true, exportMeta = true) })
-    }
-
-    /**
-     * 向collection中添加了一个新子项(由于移动子项)，对此collection做快速重导出，如有必要，放入metaExporter。
-     */
-    fun processAddItemToCollection(collectionId: Int, addedImage: Illust, currentTime: LocalDateTime? = null) {
-        val firstImage = data.db.sequenceOf(Illusts).filter { (it.parentId eq collectionId) and (it.id notEq addedImage.id) }.sortedBy { it.orderTime }.firstOrNull()
-        if(firstImage != null) {
-            if(firstImage.orderTime >= addedImage.orderTime) {
-                //只有当现有列表的第一项的排序顺位>=被放入的项时，才发起更新。
-                //如果顺位<当前项，那么旧parent的封面肯定是这个第一项而不是当前项，就不需要更新。
-                data.db.update(Illusts) {
-                    where { it.id eq collectionId }
-                    set(it.fileId, addedImage.fileId)
-                    set(it.partitionTime, addedImage.partitionTime)
-                    set(it.orderTime, addedImage.orderTime)
-                    set(it.updateTime, currentTime ?: DateTime.now())
-                }
-            }
-        }else{
-            throw RuntimeException("There is no images in collection $collectionId.")
-        }
-    }
-
-    /**
-     * 从collection中移除了一个子项(由于删除子项或移动子项)，对此collection做快速重导出，如有必要，放入metaExporter。
-     */
-    fun processRemoveItemFromCollection(collectionId: Int, removedImage: Illust, currentTime: LocalDateTime? = null) {
-        //关键属性(fileId, partitionTime, orderTime)的重导出不延后到metaExporter，在事务内立即完成
-        val parent = data.db.sequenceOf(Illusts).first { it.id eq collectionId }
-        val firstImage = data.db.sequenceOf(Illusts).filter { (it.parentId eq collectionId) and (it.id notEq removedImage.id) }.sortedBy { it.orderTime }.firstOrNull()
-        if(firstImage != null) {
-            if(firstImage.orderTime >= removedImage.orderTime) {
-                //只有当剩余列表的第一项的排序顺位>=被取出的当前项时，才发起更新。
-                //这个项肯定不是当前项，如果顺位<当前项，那么旧parent的封面肯定是这个第一项而不是当前项，就不需要更新。
-                data.db.update(Illusts) {
-                    where { it.id eq collectionId }
-                    set(it.fileId, firstImage.fileId)
-                    set(it.partitionTime, firstImage.partitionTime)
-                    set(it.orderTime, firstImage.orderTime)
-                    set(it.updateTime, currentTime ?: DateTime.now())
-                }
-            }
-            //其他属性稍后在metaExporter延后导出
-            illustMetaExporter.appendNewTask(CollectionExporterTask(parent.id, exportScore = true, exportMeta = true))
-        }else{
-            //此collection已经没有项了，将其删除
-            data.db.delete(Illusts) { it.id eq parent.id }
-            data.db.delete(IllustTagRelations) { it.illustId eq parent.id }
-            data.db.delete(IllustAuthorRelations) { it.illustId eq parent.id }
-            data.db.delete(IllustTopicRelations) { it.illustId eq parent.id }
-            data.db.delete(IllustAnnotationRelations) { it.illustId eq parent.id }
-
-            if(!parent.exportedRelations.isNullOrEmpty()) relationManager.removeItemInRelations(parent.id, parent.exportedRelations)
-        }
     }
 }
