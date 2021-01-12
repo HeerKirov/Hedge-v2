@@ -50,6 +50,7 @@ class IllustManager(private val data: DataRepository,
             set(it.type, if(collection != null) Illust.Type.IMAGE_WITH_PARENT else Illust.Type.IMAGE)
             set(it.parentId, parentId)
             set(it.fileId, fileId)
+            set(it.cachedChildrenCount, 0)
             set(it.source, newSource)
             set(it.sourceId, newSourceId)
             set(it.sourcePart, newSourcePart)
@@ -93,7 +94,7 @@ class IllustManager(private val data: DataRepository,
 
         }else if (collection != null && kit.anyNotExportedMeta(collection.id)) {
             //tag为空且parent的tag不为空时，直接应用parent的exported tag(因为一定是从parent的tag导出的，不需要再算一次)
-            kit.copyAllMetaToImage(id, collection.id)
+            kit.copyAllMetaFromParent(id, collection.id)
         }
 
         if(collection != null) {
@@ -116,6 +117,7 @@ class IllustManager(private val data: DataRepository,
             set(it.type, Illust.Type.COLLECTION)
             set(it.parentId, null)
             set(it.fileId, fileId)
+            set(it.cachedChildrenCount, images.size)
             set(it.source, null)
             set(it.sourceId, null)
             set(it.sourcePart, null)
@@ -185,20 +187,18 @@ class IllustManager(private val data: DataRepository,
      */
     fun processAddItemToCollection(collectionId: Int, addedImage: Illust, currentTime: LocalDateTime? = null) {
         val firstImage = data.db.sequenceOf(Illusts).filter { (it.parentId eq collectionId) and (it.id notEq addedImage.id) }.sortedBy { it.orderTime }.firstOrNull()
-        if(firstImage != null) {
-            if(firstImage.orderTime >= addedImage.orderTime) {
+
+        data.db.update(Illusts) {
+            where { it.id eq collectionId }
+            if(firstImage == null || firstImage.orderTime >= addedImage.orderTime) {
                 //只有当现有列表的第一项的排序顺位>=被放入的项时，才发起更新。
                 //如果顺位<当前项，那么旧parent的封面肯定是这个第一项而不是当前项，就不需要更新。
-                data.db.update(Illusts) {
-                    where { it.id eq collectionId }
-                    set(it.fileId, addedImage.fileId)
-                    set(it.partitionTime, addedImage.partitionTime)
-                    set(it.orderTime, addedImage.orderTime)
-                    set(it.updateTime, currentTime ?: DateTime.now())
-                }
+                set(it.fileId, addedImage.fileId)
+                set(it.partitionTime, addedImage.partitionTime)
+                set(it.orderTime, addedImage.orderTime)
             }
-        }else{
-            throw RuntimeException("There is no images in collection $collectionId.")
+            set(it.cachedChildrenCount, it.cachedChildrenCount plus 1)
+            set(it.updateTime, currentTime ?: DateTime.now())
         }
     }
 
@@ -210,16 +210,17 @@ class IllustManager(private val data: DataRepository,
         val parent = data.db.sequenceOf(Illusts).first { it.id eq collectionId }
         val firstImage = data.db.sequenceOf(Illusts).filter { (it.parentId eq collectionId) and (it.id notEq removedImage.id) }.sortedBy { it.orderTime }.firstOrNull()
         if(firstImage != null) {
-            if(firstImage.orderTime >= removedImage.orderTime) {
-                //只有当剩余列表的第一项的排序顺位>=被取出的当前项时，才发起更新。
-                //这个项肯定不是当前项，如果顺位<当前项，那么旧parent的封面肯定是这个第一项而不是当前项，就不需要更新。
-                data.db.update(Illusts) {
-                    where { it.id eq collectionId }
+            data.db.update(Illusts) {
+                where { it.id eq collectionId }
+                if(firstImage.orderTime >= removedImage.orderTime) {
+                    //只有当剩余列表的第一项的排序顺位>=被取出的当前项时，才发起更新。
+                    //这个项肯定不是当前项，如果顺位<当前项，那么旧parent的封面肯定是这个第一项而不是当前项，就不需要更新。
                     set(it.fileId, firstImage.fileId)
                     set(it.partitionTime, firstImage.partitionTime)
                     set(it.orderTime, firstImage.orderTime)
-                    set(it.updateTime, currentTime ?: DateTime.now())
                 }
+                set(it.cachedChildrenCount, it.cachedChildrenCount minus 1)
+                set(it.updateTime, currentTime ?: DateTime.now())
             }
             //其他属性稍后在metaExporter延后导出
             illustMetaExporter.appendNewTask(CollectionExporterTask(parent.id, exportScore = true, exportMeta = true))

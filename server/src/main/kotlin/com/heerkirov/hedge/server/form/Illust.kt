@@ -10,7 +10,7 @@ import com.heerkirov.hedge.server.utils.types.OrderItem
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-data class IllustRes(val id: Int, val type: Illust.IllustType,
+data class IllustRes(val id: Int, val type: Illust.IllustType, val childrenCount: Int?,
                      val file: String, val thumbnailFile: String?,
                      val score: Int?, val favorite: Boolean, val tagme: Illust.Tagme,
                      val orderTime: LocalDateTime)
@@ -37,10 +37,11 @@ data class IllustImageOriginRes(val source: String?, val sourceTitle: String?, v
 
 data class IllustQueryFilter(@Limit val limit: Int,
                              @Offset val offset: Int,
-                             @Order(options = ["id", "orderTime", "createTime", "updateTime"])
+                             @Order(options = ["id", "score", "orderTime", "createTime", "updateTime"])
                              val order: List<OrderItem> = listOf(OrderItem("orderTime", desc = false)),
                              val type: Illust.IllustType,
                              val partition: LocalDate? = null,
+                             val favorite: Boolean? = null,
                              val query: String? = null)
 
 data class IllustCollectionCreateForm(val images: List<Int>,

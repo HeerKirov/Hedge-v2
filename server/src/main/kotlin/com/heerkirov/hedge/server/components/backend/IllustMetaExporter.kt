@@ -2,6 +2,7 @@ package com.heerkirov.hedge.server.components.backend
 
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.database.transaction
+import com.heerkirov.hedge.server.components.kit.AlbumKit
 import com.heerkirov.hedge.server.components.kit.IllustKit
 import com.heerkirov.hedge.server.components.manager.MetaManager
 import com.heerkirov.hedge.server.dao.album.Albums
@@ -79,7 +80,8 @@ class ImageExporterTask(id: Int, exportDescription: Boolean = false, exportScore
 open class AlbumExporterTask(id: Int, val exportMeta: Boolean = false) : MetaExporterTask(id)
 
 class IllustMetaExporterImpl(private val data: DataRepository,
-                             private val illustKit: IllustKit) : IllustMetaExporter {
+                             private val illustKit: IllustKit,
+                             private val albumKit: AlbumKit) : IllustMetaExporter {
     private val taskCount = AtomicInteger(0)
     private val totalTaskCount = AtomicInteger(0)
 
@@ -124,9 +126,13 @@ class IllustMetaExporterImpl(private val data: DataRepository,
 
     private fun daemonThread() {
         if(taskCount.get() <= 0) {
-            totalTaskCount.set(0)
-            daemonTask.stop()
-            return
+            synchronized(this) {
+                if(taskCount.get() <= 0) {
+                    totalTaskCount.set(0)
+                    daemonTask.stop()
+                    return
+                }
+            }
         }
 
         val model = data.db.sequenceOf(ExporterTasks).firstOrNull()
@@ -139,31 +145,33 @@ class IllustMetaExporterImpl(private val data: DataRepository,
         //休息间隔10ms
         Thread.sleep(10)
 
-        val task = model.toTask()
-        when(task) {
+        when(val task = model.toTask()) {
             is AlbumExporterTask -> exportAlbum(task)
             is IllustExporterTask -> exportIllust(task)
             else -> throw UnsupportedOperationException("Unsupported task type ${task::class.simpleName}.")
         }
 
-        data.db.delete(ExporterTasks) { it.id eq task.id }
+        data.db.delete(ExporterTasks) { it.id eq model.id }
         taskCount.decrementAndGet()
     }
 
     private fun exportAlbum(task: AlbumExporterTask) {
         data.db.transaction {
-            //TODO 实现album exporter后台任务
-            val album = data.db.sequenceOf(Albums).firstOrNull { it.id eq task.id } ?: return
+            data.db.sequenceOf(Albums).firstOrNull { it.id eq task.id } ?: return
+
+            if(task.exportMeta) {
+                albumKit.forceProcessAllMeta(task.id)
+            }
         }
     }
 
     private fun exportIllust(task: IllustExporterTask) {
         data.db.transaction {
-            //TODO 实现illust exporter后台任务
             val illust = data.db.sequenceOf(Illusts).firstOrNull { it.id eq task.id } ?: return
             val exportedScore: Opt<Int?>
             val exportedDescription: Opt<String>
             val exportedFileAndTime: Opt<Triple<Int, LocalDate, Long>>
+            val cachedChildrenCount: Opt<Int>
             if(illust.type == Illust.Type.COLLECTION) {
                 exportedDescription = undefined()
 
@@ -179,6 +187,10 @@ class IllustMetaExporterImpl(private val data: DataRepository,
                     }else undefined()
                 }else undefined()
 
+                cachedChildrenCount = if(task.exportFileAndTime) {
+                    Opt(data.db.sequenceOf(Illusts).filter { Illusts.parentId eq task.id }.count())
+                }else undefined()
+
                 exportedScore = if(task.exportScore) {
                     Opt(illust.score ?: data.db.from(Illusts)
                         .select(count(Illusts.id).aliased("count"), avg(Illusts.score).aliased("score"))
@@ -190,12 +202,13 @@ class IllustMetaExporterImpl(private val data: DataRepository,
                 }else undefined()
 
                 if(task.exportMeta) {
-
+                    illustKit.forceProcessAllMeta(task.id, copyFromChildren = true)
                 }
             }else{
                 val parent by lazy { if(illust.parentId == null) null else data.db.sequenceOf(Illusts).firstOrNull { it.id eq illust.parentId} }
 
                 exportedFileAndTime = undefined()
+                cachedChildrenCount = undefined()
 
                 exportedDescription = if(task.exportDescription) {
                     Opt(if(illust.description.isNotEmpty()) illust.description else parent?.description ?: "")
@@ -206,7 +219,7 @@ class IllustMetaExporterImpl(private val data: DataRepository,
                 }else undefined()
 
                 if(task.exportMeta) {
-
+                    illustKit.forceProcessAllMeta(task.id, copyFromParent = illust.parentId)
                 }
             }
 
@@ -220,6 +233,7 @@ class IllustMetaExporterImpl(private val data: DataRepository,
                         set(it.partitionTime, partitionTime)
                         set(it.orderTime, orderTime)
                     }
+                    cachedChildrenCount.applyOpt { set(it.cachedChildrenCount, this) }
                 }
             }
         }

@@ -46,8 +46,10 @@ class ThumbnailGeneratorImpl(private val appdata: AppDataDriver, private val dat
                 .orderBy(FileRecords.updateTime.asc())
                 .map { it[FileRecords.id]!! }
             if(tasks.isNotEmpty()) {
-                queue.addAll(tasks)
-                daemonTask.start()
+                synchronized(this) {
+                    queue.addAll(tasks)
+                    daemonTask.start()
+                }
             }
         }
     }
@@ -59,8 +61,12 @@ class ThumbnailGeneratorImpl(private val appdata: AppDataDriver, private val dat
 
     private fun daemonThread() {
         if(queue.isEmpty()) {
-            daemonTask.stop()
-            return
+            synchronized(this) {
+                if(queue.isEmpty()) {
+                    daemonTask.stop()
+                    return
+                }
+            }
         }
         val fileId = queue.first()
 

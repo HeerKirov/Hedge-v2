@@ -12,6 +12,8 @@ object Albums : BaseTable<Album>("album") {
     val score = int("score")
     val favorite = boolean("favorite")
     val subtitles = json("subtitles", typeRef<List<Album.Subtitle>>())
+    val fileId = int("file_id")
+    val cachedCount = int("cached_count")
     val createTime = datetime("create_time")
     val updateTime = datetime("update_time")
 
@@ -22,6 +24,8 @@ object Albums : BaseTable<Album>("album") {
         score = row[score],
         favorite = row[favorite]!!,
         subtitles = row[subtitles],
+        fileId = row[fileId],
+        cachedCount = row[cachedCount]!!,
         createTime = row[createTime]!!,
         updateTime = row[updateTime]!!
     )

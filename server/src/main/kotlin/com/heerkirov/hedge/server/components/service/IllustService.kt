@@ -40,6 +40,8 @@ import kotlin.math.roundToInt
 class IllustService(private val data: DataRepository,
                     private val kit: IllustKit,
                     private val illustManager: IllustManager,
+                    private val albumManager: AlbumManager,
+                    private val folderManager: FolderManager,
                     private val fileManager: FileManager,
                     private val relationManager: RelationManager,
                     private val sourceManager: SourceManager,
@@ -56,7 +58,7 @@ class IllustService(private val data: DataRepository,
     fun list(filter: IllustQueryFilter): QueryResult<IllustRes> {
         return data.db.from(Illusts)
             .innerJoin(FileRecords, Illusts.fileId eq FileRecords.id)
-            .select(Illusts.id, Illusts.type, Illusts.exportedScore, Illusts.favorite, Illusts.tagme, Illusts.orderTime,
+            .select(Illusts.id, Illusts.type, Illusts.exportedScore, Illusts.favorite, Illusts.tagme, Illusts.orderTime, Illusts.cachedChildrenCount,
                 FileRecords.id, FileRecords.folder, FileRecords.extension, FileRecords.thumbnail)
             .whereWithConditions {
                 it += when(filter.type) {
@@ -65,6 +67,9 @@ class IllustService(private val data: DataRepository,
                 }
                 if(filter.partition != null) {
                     it += Illusts.partitionTime eq filter.partition
+                }
+                if(filter.favorite != null) {
+                    it += if(filter.favorite) Illusts.favorite else Illusts.favorite.not()
                 }
                 //TODO 实现QL查询
             }
@@ -78,7 +83,8 @@ class IllustService(private val data: DataRepository,
                 val tagme = it[Illusts.tagme]!!
                 val orderTime = it[Illusts.orderTime]!!.parseDateTime()
                 val (file, thumbnailFile) = takeAllFilepath(it)
-                IllustRes(id, type, file, thumbnailFile, score, favorite, tagme, orderTime)
+                val childrenCount = it[Illusts.cachedChildrenCount]!!.takeIf { type == Illust.IllustType.COLLECTION }
+                IllustRes(id, type, childrenCount, file, thumbnailFile, score, favorite, tagme, orderTime)
             }
     }
 
@@ -174,7 +180,7 @@ class IllustService(private val data: DataRepository,
                 val tagme = it[Illusts.tagme]!!
                 val orderTime = it[Illusts.orderTime]!!.parseDateTime()
                 val (file, thumbnailFile) = takeAllFilepath(it)
-                IllustRes(itemId, type, file, thumbnailFile, score, favorite, tagme, orderTime)
+                IllustRes(itemId, type, null, file, thumbnailFile, score, favorite, tagme, orderTime)
             }
     }
 
@@ -336,6 +342,7 @@ class IllustService(private val data: DataRepository,
             data.db.update(Illusts) {
                 where { it.id eq id }
                 set(it.fileId, fileId)
+                set(it.cachedChildrenCount, images.size)
                 set(it.exportedScore, illust.score ?: scoreFromSub)
                 set(it.partitionTime, partitionTime)
                 set(it.orderTime, orderTime)
@@ -492,8 +499,8 @@ class IllustService(private val data: DataRepository,
             if(!illust.exportedRelations.isNullOrEmpty()) relationManager.removeItemInRelations(id, illust.exportedRelations)
 
             if(type == Illust.IllustType.IMAGE) {
-                //TODO 从所有关联的album中平滑移除此image(需要平滑ordinal)
-                //TODO 从所有关联的folder中平滑移除此image(需要平滑ordinal)
+                albumManager.removeItemInAllAlbums(id)
+                folderManager.removeItemInAllFolders(id)
                 //关联的partition的计数-1
                 partitionManager.deleteItemInPartition(illust.partitionTime)
                 //存在parent时，执行parent重导出处理。

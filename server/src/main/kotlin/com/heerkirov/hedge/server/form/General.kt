@@ -16,3 +16,7 @@ data class WarningsRes(val warnings: List<ErrorResult>)
 
 data class LimitAndOffsetFilter(@Limit val limit: Int,
                                 @Offset val offset: Int)
+
+enum class BatchAction {
+    ADD, MOVE, DELETE
+}

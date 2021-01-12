@@ -300,7 +300,7 @@ class TagService(private val data: DataRepository,
                     data.db.from(IllustTagRelations)
                         .select(IllustTagRelations.illustId)
                         .where { IllustTagRelations.tagId eq id }
-                        .map { IllustExporterTask(it[IllustTagRelations.illustId]!!, exportMeta = true) }
+                        .map { IllustExporterTask(it[IllustTagRelations.illustId]!!, exportMeta = true, exportDescription = false, exportFileAndTime = false, exportScore = false) }
                         .let { illustMetaExporter.appendNewTask(it) }
                     data.db.from(AlbumTagRelations)
                         .select(AlbumTagRelations.albumId)
@@ -330,7 +330,7 @@ class TagService(private val data: DataRepository,
             data.db.from(IllustTagRelations)
                 .select(IllustTagRelations.illustId)
                 .where { IllustTagRelations.tagId eq id }
-                .map { IllustExporterTask(it[IllustTagRelations.illustId]!!, exportMeta = true) }
+                .map { IllustExporterTask(it[IllustTagRelations.illustId]!!, exportMeta = true, exportDescription = false, exportFileAndTime = false, exportScore = false) }
                 .let { illustMetaExporter.appendNewTask(it) }
             data.db.from(AlbumTagRelations)
                 .select(AlbumTagRelations.albumId)

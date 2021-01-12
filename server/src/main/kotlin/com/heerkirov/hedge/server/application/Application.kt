@@ -53,11 +53,17 @@ fun runApplication(options: ApplicationOptions) {
 
             val partitionManager = PartitionManager(repo)
 
+            val albumKit = AlbumKit(repo, metaManager)
+            val albumManager = AlbumManager(repo, albumKit)
+
             val illustKit = IllustKit(repo, metaManager)
-            val illustMetaExporter = define { IllustMetaExporterImpl(repo, illustKit) }
+            val illustMetaExporter = define { IllustMetaExporterImpl(repo, illustKit, albumKit) }
             val illustManager = IllustManager(repo, illustKit, relationManager, sourceManager, partitionManager, illustMetaExporter)
 
-            val illustService = IllustService(repo, illustKit, illustManager, fileManager, relationManager, sourceManager, partitionManager, illustMetaExporter)
+            val folderManager = FolderManager(repo)
+
+            val illustService = IllustService(repo, illustKit, illustManager, albumManager, folderManager, fileManager, relationManager, sourceManager, partitionManager, illustMetaExporter)
+            val albumService = AlbumService(repo, albumKit, albumManager)
             val partitionService = PartitionService(repo)
             val tagService = TagService(repo, tagKit, fileManager, illustMetaExporter)
             val annotationService = AnnotationService(repo, annotationKit)
@@ -69,6 +75,7 @@ fun runApplication(options: ApplicationOptions) {
 
             AllServicesImpl(
                 illustService,
+                albumService,
                 partitionService,
                 importService,
                 tagService,

@@ -6,6 +6,7 @@ CREATE TABLE illust(
     type						TINYINT NOT NULL,                   -- 对象类型{0=无父集合的图像, 1=有父集合的图像, 2=集合}
     parent_id				    INTEGER,                            -- [only image]有父集合时，记录父集合的ID
     file_id				        INTEGER NOT NULL,				    -- 链接的文件ID。对集合来说链接的是封面图像的ID冗余
+    cached_children_count       INTEGER NOT NULL,                   -- [冗余]对collection来说是子项数量; 对image是无用字段
 
     source 			            VARCHAR(16),                        -- 链接的来源网站的代号
     source_id 		            BIGINT,                             -- 链接的来源网站中的图像代号
@@ -42,6 +43,8 @@ CREATE TABLE album(
 
     subtitles       TEXT DEFAULT NULL,              -- 画集中的子标题分割项::json<{ordinal: number, title: string}[]>
 
+    file_id         INTEGER,                        -- [冗余]画集封面的图片文件id
+    cached_count    INTEGER NOT NULL,               -- [冗余]画集中的图片数量
     create_time 	TIMESTAMP NOT NULL,             -- 此画集初次建立的真实时间
     update_time 	TIMESTAMP NOT NULL              -- 对画集进行更新的真实更新时间(指画集内容变更，比如image source变化、图像替换增删)
 );

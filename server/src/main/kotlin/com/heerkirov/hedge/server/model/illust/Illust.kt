@@ -27,6 +27,10 @@ data class Illust(val id: Int,
                    */
                   val fileId: Int,
                   /**
+                   * [cache field]collection的关联的子项的数量。
+                   */
+                  val cachedChildrenCount: Int = 0,
+                  /**
                    * 链接的来源网站。
                    */
                   val source: String? = null,

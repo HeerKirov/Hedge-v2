@@ -28,6 +28,14 @@ data class Album(val id: Int,
                   */
                  val subtitles: List<Subtitle>? = null,
                  /**
+                  * [cache field]画集封面的文件id。
+                  */
+                 val fileId: Int?,
+                 /**
+                  * [cache field]画集中的图片数量。
+                  */
+                 val cachedCount: Int = 0,
+                 /**
                   * 记录创建的时间。
                   */
                  val createTime: LocalDateTime,

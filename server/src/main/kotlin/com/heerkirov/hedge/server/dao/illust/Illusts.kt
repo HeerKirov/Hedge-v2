@@ -12,6 +12,7 @@ object Illusts : BaseTable<Illust>("illust") {
     val type = enum("type", typeRef<Illust.Type>())
     val parentId = int("parent_id")
     val fileId = int("file_id")
+    val cachedChildrenCount = int("cached_children_count")
     val source = varchar("source")
     val sourceId = long("source_id")
     val sourcePart = int("source_part")
@@ -33,6 +34,7 @@ object Illusts : BaseTable<Illust>("illust") {
         type = row[type]!!,
         parentId = row[parentId],
         fileId = row[fileId]!!,
+        cachedChildrenCount = row[cachedChildrenCount]!!,
         source = row[source],
         sourceId = row[sourceId],
         sourcePart = row[sourcePart],

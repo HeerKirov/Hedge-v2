@@ -1,15 +1,23 @@
 package com.heerkirov.hedge.server.components.manager
 
 import com.heerkirov.hedge.server.components.database.DataRepository
+import com.heerkirov.hedge.server.dao.meta.Annotations
 import com.heerkirov.hedge.server.dao.meta.Authors
 import com.heerkirov.hedge.server.dao.meta.Tags
 import com.heerkirov.hedge.server.dao.meta.Topics
+import com.heerkirov.hedge.server.dao.types.EntityAnnotationRelationTable
+import com.heerkirov.hedge.server.dao.types.EntityMetaRelationTable
+import com.heerkirov.hedge.server.dao.types.MetaAnnotationRelationTable
+import com.heerkirov.hedge.server.dao.types.MetaTag
 import com.heerkirov.hedge.server.exceptions.ConflictingGroupMembersError
 import com.heerkirov.hedge.server.exceptions.ResourceNotExist
 import com.heerkirov.hedge.server.exceptions.ResourceNotSuitable
 import com.heerkirov.hedge.server.model.meta.Author
 import com.heerkirov.hedge.server.model.meta.Tag
 import com.heerkirov.hedge.server.model.meta.Topic
+import com.heerkirov.hedge.server.utils.ktorm.asSequence
+import com.heerkirov.hedge.server.utils.ktorm.firstOrNull
+import com.heerkirov.hedge.server.utils.runIf
 import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.entity.filter
 import me.liuwj.ktorm.entity.firstOrNull
@@ -54,14 +62,14 @@ class MetaManager(private val data: DataRepository) {
      * 该方法使用在设置author时，对author进行校验并导出，返回声明式的author列表。
      * @return 一组author。Int表示tag id，Boolean表示此tag是否为导出tag。
      */
-    fun validateAuthor(authors: List<Int>): List<Pair<Int, Boolean>> {
+    fun validateAndExportAuthor(authors: List<Int>): List<Pair<Int, Boolean>> {
         val ids = data.db.from(Authors).select(Authors.id).where { Authors.id inList authors }.map { it[Authors.id]!! }
         if(ids.size < authors.size) {
             throw ResourceNotExist("authors", authors.toSet() - ids.toSet())
         }
 
         //author类型的标签没有导出机制，因此直接返回结果。
-        return exportAuthorId(authors)
+        return ids.map { it to false }
     }
 
     /**
@@ -106,7 +114,7 @@ class MetaManager(private val data: DataRepository) {
             if(conflictingMembers.isNotEmpty()) throw ConflictingGroupMembersError(conflictingMembers)
         }
 
-        return result.map { (tag, isExported) -> Pair(tag.id, isExported) }
+        return result.map { (tag, isExported) -> tag.id to isExported }
     }
 
     /**
@@ -129,14 +137,7 @@ class MetaManager(private val data: DataRepository) {
             }
         }
 
-        return topics.map { Pair(it.id, false) } + exportedTopics.map { Pair(it.id, true) }
-    }
-
-    /**
-     * 对author进行导出。
-     */
-    fun exportAuthorId(authorIds: List<Int>): List<Pair<Int, Boolean>> {
-        return authorIds.map { it to false }
+        return topics.map { it.id to false } + exportedTopics.map { it.id to true }
     }
 
     /**
@@ -144,5 +145,129 @@ class MetaManager(private val data: DataRepository) {
      */
     fun exportAuthor(authors: List<Author>): List<Pair<Int, Boolean>> {
         return authors.map { it.id to false }
+    }
+
+    /**
+     * 检验并处理某一种类的meta tag，并返回它导出的annotations。
+     * @return 返回由此列meta tag导出的annotation的id列表。
+     */
+    fun <T, R, RA> processMetaTags(thisId: Int, creating: Boolean = false, analyseStatisticCount: Boolean, newTagIds: List<Pair<Int, Boolean>>,
+                                   metaTag: T, metaRelations: R, metaAnnotationRelations: RA): Set<Int>
+            where T: MetaTag<*>, R: EntityMetaRelationTable<*>, RA: MetaAnnotationRelationTable<*> {
+        val tagIds = newTagIds.toMap()
+        val oldTagIds = if(creating) emptyMap() else {
+            data.db.from(metaRelations).select(metaRelations.metaId(), metaRelations.exported())
+                .where { metaRelations.entityId() eq thisId }
+                .asSequence()
+                .map { Pair(it[metaRelations.metaId()]!!, it[metaRelations.exported()]!!) }
+                .toMap()
+        }
+        val deleteIds = oldTagIds.keys - tagIds.keys
+        if(deleteIds.isNotEmpty()) {
+            data.db.delete(metaRelations) { (metaRelations.entityId() eq thisId) and (metaRelations.metaId() inList deleteIds) }
+        }
+        if(analyseStatisticCount) {
+            data.db.update(metaTag) {
+                where { it.metaId() inList deleteIds }
+                set(it.cachedCount(), it.cachedCount() minus 1)
+            }
+        }
+
+        val addIds = tagIds - oldTagIds.keys
+        if(addIds.isNotEmpty()) {
+            data.db.batchInsert(metaRelations) {
+                for ((addId, isExported) in addIds) {
+                    item {
+                        set(metaRelations.entityId(), thisId)
+                        set(metaRelations.metaId(), addId)
+                        set(metaRelations.exported(), isExported)
+                    }
+                }
+            }
+        }
+        if(analyseStatisticCount) {
+            data.db.update(metaTag) {
+                where { it.metaId() inList addIds.keys }
+                set(it.cachedCount(), it.cachedCount() plus 1)
+            }
+        }
+
+        val changeIds = (tagIds.keys intersect oldTagIds.keys).flatMap { id ->
+            val newExported = tagIds[id]
+            val oldExported = oldTagIds[id]
+            if(newExported != oldExported) sequenceOf(Pair(id, newExported!!)) else emptySequence()
+        }
+        if(changeIds.isNotEmpty()) {
+            data.db.batchUpdate(metaRelations) {
+                for ((changeId, isExported) in changeIds) {
+                    item {
+                        where { (metaRelations.entityId() eq thisId) and (metaRelations.metaId() eq changeId) }
+                        set(metaRelations.exported(), isExported)
+                    }
+                }
+            }
+        }
+
+        return getAnnotationsOfMetaTags(tagIds.keys, metaAnnotationRelations)
+    }
+
+    /**
+     * 删除此关系关联的全部tag。
+     * @param remainNotExported 保留not exported的tag，也就是只删除exported tag。
+     */
+    fun <R : EntityMetaRelationTable<*>, T : MetaTag<*>> deleteMetaTags(id: Int, metaRelations: R, metaTag: T, analyseStatisticCount: Boolean, remainNotExported: Boolean = false) {
+        val condition = (metaRelations.entityId() eq id).runIf(remainNotExported) { this and metaRelations.exported() }
+        if(analyseStatisticCount) {
+            val ids = data.db.from(metaRelations).select(metaRelations.metaId()).where { condition }.map { it[metaRelations.metaId()]!! }
+            data.db.delete(metaRelations) { condition }
+            //修改统计计数
+            data.db.update(metaTag) {
+                where { it.metaId() inList ids }
+                set(it.cachedCount(), it.cachedCount() minus 1)
+            }
+        }else{
+            data.db.delete(metaRelations) { condition }
+        }
+    }
+
+    /**
+     * 取得此关联对象的关系上的全部not exported的关联标签。
+     */
+    fun <R : EntityMetaRelationTable<*>, T : MetaTag<M>, M : Any> getNotExportMetaTags(id: Int, metaRelations: R, metaTag: T): List<M> {
+        return data.db.from(metaRelations)
+            .innerJoin(metaTag, metaRelations.metaId() eq metaTag.metaId())
+            .select(metaTag.columns)
+            .where { (metaRelations.entityId() eq id) and (metaRelations.exported().not()) }
+            .map { metaTag.createEntity(it) }
+    }
+
+    /**
+     * 判断此关系直接关联(not exported)的对象是否存在。存在任意一个即返回true。
+     */
+    fun <R> getNotExportedMetaCount(id: Int, metaRelations: R): Int where R: EntityMetaRelationTable<*> {
+        return data.db.from(metaRelations).select(count().aliased("count"))
+            .where { (metaRelations.entityId() eq id) and (metaRelations.exported().not()) }
+            .firstOrNull()?.getInt("count") ?: 0
+    }
+
+    /**
+     * 根据一个meta tag列表，取得这个列表关联的全部annotations的id列表。
+     */
+    fun <RA : MetaAnnotationRelationTable<*>> getAnnotationsOfMetaTags(metaIds: Collection<Int>, metaAnnotationRelations: RA): Set<Int> {
+        return if(metaIds.isEmpty()) emptySet() else
+            data.db.from(metaAnnotationRelations)
+                .innerJoin(Annotations, (metaAnnotationRelations.annotationId() eq Annotations.id) and Annotations.canBeExported)
+                .select(Annotations.id)
+                .where { metaAnnotationRelations.metaId() inList metaIds }
+                .asSequence()
+                .map { it[Annotations.id]!! }
+                .toSet()
+    }
+
+    /**
+     * 删除此关系关联的全部annotations。
+     */
+    fun <RA : EntityAnnotationRelationTable<*>> deleteAnnotations(id: Int, entityAnnotationRelations: RA) {
+        data.db.delete(entityAnnotationRelations) { it.entityId() eq id }
     }
 }

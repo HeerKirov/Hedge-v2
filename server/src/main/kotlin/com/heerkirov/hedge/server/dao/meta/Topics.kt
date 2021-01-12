@@ -22,8 +22,8 @@ object Topics : MetaTag<Topic>("topic", schema = "meta_db") {
     val cachedCount = int("cached_count")
     val cachedAnnotations = json("cached_annotations", typeRef<List<Topic.CachedAnnotation>>())
 
-    override fun metaId(): Column<Int> = Authors.id
-    override fun cachedCount(): Column<Int> = Authors.cachedCount
+    override fun metaId(): Column<Int> = id
+    override fun cachedCount(): Column<Int> = cachedCount
 
     override fun doCreateEntity(row: QueryRowSet, withReferences: Boolean) = Topic(
         id = row[id]!!,
