@@ -7,15 +7,16 @@ import com.heerkirov.hedge.server.dao.illust.*
 import com.heerkirov.hedge.server.dao.meta.*
 import com.heerkirov.hedge.server.dao.types.EntityMetaRelationTable
 import com.heerkirov.hedge.server.exceptions.ParamError
+import com.heerkirov.hedge.server.exceptions.ParamTypeError
 import com.heerkirov.hedge.server.exceptions.ResourceNotExist
-import com.heerkirov.hedge.server.model.album.Album
+import com.heerkirov.hedge.server.model.album.AlbumImageRelation
 import com.heerkirov.hedge.server.model.illust.Illust
 import com.heerkirov.hedge.server.model.meta.Annotation
 import com.heerkirov.hedge.server.utils.ktorm.asSequence
+import com.heerkirov.hedge.server.utils.ktorm.firstOrNull
+import com.heerkirov.hedge.server.utils.types.Opt
 import me.liuwj.ktorm.dsl.*
-import me.liuwj.ktorm.entity.filter
-import me.liuwj.ktorm.entity.sequenceOf
-import me.liuwj.ktorm.entity.toList
+import me.liuwj.ktorm.entity.*
 
 class AlbumKit(private val data: DataRepository,
                private val metaManager: MetaManager) {
@@ -27,10 +28,32 @@ class AlbumKit(private val data: DataRepository,
     }
 
     /**
-     * 检查全部的subtitle序列，不允许ordinal的值超限，并对subtitle排序。
+     * 检验给出的tags/topics/authors的正确性，处理导出，并应用其更改。此外，annotations的更改也会被一并导出处理。
+     * @param copyFromParent 当当前对象没有任何meta tag关联时，从parent复制tag，并提供parent的id
+     * @param copyFromChildren 当当前对象没有任何meta tag关联时，从children复制tag
      */
-    fun validateAllSubtitles(subtitles: List<Album.Subtitle>, count: Int): List<Album.Subtitle> {
-        TODO()
+    fun processAllMeta(thisId: Int, newTags: Opt<List<Int>>, newTopics: Opt<List<Int>>, newAuthors: Opt<List<Int>>,
+                       creating: Boolean = false) {
+        val tagAnnotations = if(newTags.isUndefined) null else
+            metaManager.processMetaTags(thisId, creating, false,
+                metaTag = Tags,
+                metaRelations = AlbumTagRelations,
+                metaAnnotationRelations = TagAnnotationRelations,
+                newTagIds = metaManager.validateAndExportTag(newTags.value))
+        val topicAnnotations = if(newTopics.isUndefined) null else
+            metaManager.processMetaTags(thisId, creating, false,
+                metaTag = Topics,
+                metaRelations = AlbumTopicRelations,
+                metaAnnotationRelations = TopicAnnotationRelations,
+                newTagIds = metaManager.validateAndExportTopic(newTopics.value))
+        val authorAnnotations = if(newAuthors.isUndefined) null else
+            metaManager.processMetaTags(thisId, creating, false,
+                metaTag = Authors,
+                metaRelations = AlbumAuthorRelations,
+                metaAnnotationRelations = AuthorAnnotationRelations,
+                newTagIds = metaManager.validateAndExportAuthor(newAuthors.value))
+
+        processAnnotationOfMeta(thisId, tagAnnotations = tagAnnotations, topicAnnotations = topicAnnotations, authorAnnotations = authorAnnotations)
     }
 
     /**
@@ -221,38 +244,179 @@ class AlbumKit(private val data: DataRepository,
     }
 
     /**
-     * 校验album的images列表的正确性。
-     * @return 导出exported属性(fileId)
+     * 重新计算项目数量和封面的fileId。
      */
-    fun validateSubImages(imageIds: List<Int>): Pair<List<Int>, Int?> {
-        if(imageIds.isEmpty()) return Pair(emptyList(), null)
+    fun exportFileAndCount(thisId: Int) {
+        val fileId = data.db.from(AlbumImageRelations)
+            .innerJoin(Illusts, AlbumImageRelations.imageId eq Illusts.id)
+            .select(Illusts.fileId)
+            .where { (AlbumImageRelations.albumId eq thisId) and (AlbumImageRelations.type eq AlbumImageRelation.Type.IMAGE) }
+            .orderBy(AlbumImageRelations.ordinal.asc())
+            .limit(0, 1)
+            .firstOrNull()
+            ?.let { it[Illusts.fileId]!! }
+        val count = data.db.sequenceOf(AlbumImageRelations).count { (it.albumId eq thisId) and (it.type eq AlbumImageRelation.Type.IMAGE) }
 
+        data.db.update(Albums) {
+            where { it.id eq thisId }
+            set(it.cachedCount, count)
+            set(it.fileId, fileId)
+        }
+    }
+
+    /**
+     * 校验album的sub items列表的正确性。列表的值只允许是string(subtitle)或int(image id)。subtitle不允许为空值。
+     * @return (全items列表, image类型的项目数, 封面fileId)
+     */
+    fun validateSubImages(items: List<Any>): Triple<List<Any>, Int, Int?> {
+        if(items.isEmpty()) return Triple(emptyList(), 0, null)
+
+        if(items.any { it !is Int && it !is String }) throw ParamTypeError("images", "must be string(subtitle) or int(image id).")
+
+        if(items.filterIsInstance<String>().any { it.isEmpty() }) throw ParamTypeError("images", " subtitle must be not blank.")
+
+        val imageIds = items.filterIsInstance<Int>()
         val images = data.db.from(Illusts)
             .select(Illusts.id, Illusts.fileId)
             .where { (Illusts.id inList imageIds) and (Illusts.type notEq Illust.Type.COLLECTION) }
             .map { Pair(it[Illusts.id]!!, it[Illusts.fileId]!!) }
             .toMap()
         //数量不够表示有imageId不存在(或类型是collection，被一同判定为不存在)
-        if(images.size < imageIds.size) throw ResourceNotExist("images", imageIds.toSet() - images.keys)
+        if(images.size < imageIds.size) throw ResourceNotExist("images", items.toSet() - images.keys)
 
-        val fileId = images[imageIds.first()]!!
+        val fileId = if(imageIds.isNotEmpty()) images[imageIds.first()] else null
 
-        return Pair(imageIds, fileId)
+        return Triple(items, imageIds.size, fileId)
     }
 
     /**
-     * 应用images列表。
+     * 应用images列表。对列表进行整体替换。
      */
-    fun processSubImages(imageIds: List<Int>, thisId: Int) {
+    fun processSubImages(items: List<Any>, thisId: Int) {
         data.db.delete(AlbumImageRelations) { it.albumId eq thisId }
         data.db.batchInsert(AlbumImageRelations) {
-            imageIds.forEachIndexed { index, imageId ->
+            items.forEachIndexed { index, thisItem ->
                 item {
                     set(it.albumId, thisId)
-                    set(it.imageId, imageId)
                     set(it.ordinal, index)
+                    setSubItem(thisItem)
                 }
             }
+        }
+    }
+
+    /**
+     * 插入新的images。
+     */
+    fun insertSubImages(items: List<Any>, thisId: Int, ordinal: Int?) {
+        val count = data.db.sequenceOf(AlbumImageRelations).count { it.albumId eq thisId }
+        val insertOrdinal = if(ordinal != null && ordinal <= count) ordinal else count
+        //先把原有位置的项向后挪动
+        data.db.update(AlbumImageRelations) {
+            where { (it.albumId eq thisId) and (it.ordinal greaterEq insertOrdinal) }
+            set(it.ordinal, it.ordinal plus items.size)
+        }
+        //然后插入新项
+        data.db.batchInsert(AlbumImageRelations) {
+            items.forEachIndexed { index, thisItem ->
+                item {
+                    set(it.albumId, thisId)
+                    set(it.ordinal, insertOrdinal + index)
+                    setSubItem(thisItem)
+                }
+            }
+        }
+    }
+
+    /**
+     * 移动一部分images的顺序。
+     */
+    fun moveSubImages(indexes: List<Int>, thisId: Int, ordinal: Int?) {
+        if(indexes.isNotEmpty()) {
+            val sortedIndexes = indexes.sorted()
+            val count = data.db.sequenceOf(AlbumImageRelations).count { it.albumId eq thisId }
+            val insertOrdinal = if(ordinal != null && ordinal <= count) ordinal else count
+            val itemMap = data.db.sequenceOf(AlbumImageRelations)
+                .filter { (it.albumId eq thisId) and (it.ordinal inList indexes) }
+                .map { it.ordinal to it }.toMap()
+
+            if(itemMap.size < indexes.size) throw ResourceNotExist("itemIndexes", indexes.toSet() - itemMap.keys)
+            //先删除所有要移动的项
+            data.db.delete(AlbumImageRelations) { (it.albumId eq thisId) and (it.ordinal inList indexes) }
+            //将余下的项向前缩进
+            data.db.batchUpdate(AlbumImageRelations) {
+                sortedIndexes.asSequence()
+                    .windowed(2, 1, true) { it[0] to it.getOrElse(1) { count } }
+                    .forEachIndexed { index, (fromOrdinal, toOrdinal) ->
+                        item {
+                            where { (it.albumId eq thisId) and (it.ordinal greaterEq fromOrdinal) and (it.ordinal less toOrdinal) }
+                            set(it.ordinal, it.ordinal minus (index + 1))
+                        }
+                    }
+            }
+            //再向后挪动空出位置
+            data.db.update(AlbumImageRelations) {
+                where { (it.albumId eq thisId) and (it.ordinal greaterEq insertOrdinal) }
+                set(it.ordinal, it.ordinal plus indexes.size)
+            }
+            //重新插入要移动的项
+            data.db.batchInsert(AlbumImageRelations) {
+                //迭代这部分要移动的项目列表。迭代的是原始列表，没有经过排序
+                indexes.forEachIndexed { index, thisIndex ->
+                    //从map中取出对应的relation项
+                    val r = itemMap[thisIndex]!!
+                    item {
+                        set(it.albumId, thisId)
+                        set(it.ordinal, insertOrdinal + index)
+                        set(it.type, r.type)
+                        set(it.imageId, r.imageId)
+                        set(it.subtitle, r.subtitle)
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * 删除一部分images。
+     */
+    fun deleteSubImages(indexes: List<Int>, thisId: Int) {
+        if(indexes.isNotEmpty()) {
+            val sortedIndexes = indexes.sorted()
+            val count = data.db.sequenceOf(AlbumImageRelations).count { it.albumId eq thisId }
+            if(sortedIndexes.last() >= count) throw ResourceNotExist("itemIndexes", indexes.filter { it >= count })
+            //删除
+            data.db.delete(AlbumImageRelations) { (it.albumId eq thisId) and (it.ordinal inList indexes) }
+            //将余下的项向前缩进
+            data.db.batchUpdate(AlbumImageRelations) {
+                sortedIndexes.asSequence()
+                    .windowed(2, 1, true) { it[0] to it.getOrElse(1) { count } }
+                    .forEachIndexed { index, (fromOrdinal, toOrdinal) ->
+                        item {
+                            where { (it.albumId eq thisId) and (it.ordinal greaterEq fromOrdinal) and (it.ordinal less toOrdinal) }
+                            set(it.ordinal, it.ordinal minus (index + 1))
+                        }
+                    }
+            }
+        }
+    }
+
+    /**
+     * 设置relation的model内容。
+     */
+    private fun AssignmentsBuilder.setSubItem(thisItem: Any) {
+        when (thisItem) {
+            is String -> {
+                set(AlbumImageRelations.type, AlbumImageRelation.Type.SUBTITLE)
+                set(AlbumImageRelations.imageId, 0)
+                set(AlbumImageRelations.subtitle, thisItem)
+            }
+            is Int -> {
+                set(AlbumImageRelations.type, AlbumImageRelation.Type.IMAGE)
+                set(AlbumImageRelations.imageId, thisItem)
+                set(AlbumImageRelations.subtitle, null)
+            }
+            else -> throw UnsupportedOperationException()
         }
     }
 }

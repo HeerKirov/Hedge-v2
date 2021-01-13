@@ -5,6 +5,7 @@ import com.heerkirov.hedge.server.library.framework.Component
 interface AllServices : Component {
     val illust: IllustService
     val album: AlbumService
+    val folder: FolderService
     val partition: PartitionService
     val import: ImportService
     val tag: TagService
@@ -18,6 +19,7 @@ interface AllServices : Component {
 class AllServicesImpl(
     override val illust: IllustService,
     override val album: AlbumService,
+    override val folder: FolderService,
     override val partition: PartitionService,
     override val import: ImportService,
     override val tag: TagService,

@@ -41,8 +41,6 @@ CREATE TABLE album(
     score 			INTEGER DEFAULT NULL,           -- 画集的评分。评分的具体含义和范围在setting中配置
     favorite		BOOLEAN NOT NULL DEFAULT FALSE, -- 喜爱标记，会用于收藏展示
 
-    subtitles       TEXT DEFAULT NULL,              -- 画集中的子标题分割项::json<{ordinal: number, title: string}[]>
-
     file_id         INTEGER,                        -- [冗余]画集封面的图片文件id
     cached_count    INTEGER NOT NULL,               -- [冗余]画集中的图片数量
     create_time 	TIMESTAMP NOT NULL,             -- 此画集初次建立的真实时间
@@ -51,10 +49,12 @@ CREATE TABLE album(
 -- 画集与image的M:N关系
 CREATE TABLE album_image_relation(
     album_id 	INTEGER NOT NULL,
-    image_id 	INTEGER NOT NULL,
+    type        TINYINT NOT NULL,   -- 此关联的类型{0=image, 1=subtitle}
+    image_id 	INTEGER NOT NULL,   -- 类型为image时，关联的image id。没有时写0
+    subtitle    TEXT DEFAULT NULL,  -- 类型为subtitle时，标题的内容
     ordinal 	INTEGER NOT NULL    -- 此image在此画集中的排序顺位，从0开始，由系统统一调配，0号视作封面
 );
-CREATE UNIQUE INDEX album_image__index ON album_image_relation(album_id, image_id);
+CREATE INDEX album_image__index ON album_image_relation(album_id, image_id);
 
 -- 文件夹
 CREATE TABLE folder(
@@ -74,7 +74,7 @@ CREATE TABLE folder_image_relation(
     image_id 	INTEGER NOT NULL,
     ordinal		INTEGER NOT NULL    -- 此image在此文件夹中的排序顺位，从0开始，由系统统一调配，0号视作封面
 );
-CREATE UNIQUE INDEX folder_image__index ON folder_image_relation(folder_id, image_id);
+CREATE INDEX folder_image__index ON folder_image_relation(folder_id, image_id);
 
 -- 时间分区
 CREATE TABLE partition(

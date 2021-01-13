@@ -45,20 +45,20 @@ class AlbumManager(private val data: DataRepository, private val kit: AlbumKit) 
         }
     }
 
-    fun newAlbum(formImages: List<Int>, formSubtitles: List<Album.Subtitle>? = null, formTitle: String = "", formDescription: String = "", formScore: Int? = null, formFavorite: Boolean = false): Int {
+    /**
+     * 新建一个album。
+     */
+    fun newAlbum(formImages: List<Any>, formTitle: String = "", formDescription: String = "", formScore: Int? = null, formFavorite: Boolean = false): Int {
+        val (images, imageCount, fileId) = kit.validateSubImages(formImages)
         val createTime = DateTime.now()
-
-        val (images, fileId) = kit.validateSubImages(formImages)
-        val subtitles = if(!formSubtitles.isNullOrEmpty()) kit.validateAllSubtitles(formSubtitles, images.size) else null
 
         val id = data.db.insertAndGenerateKey(Albums) {
             set(it.title, formTitle)
             set(it.description, formDescription)
             set(it.score, formScore)
             set(it.favorite, formFavorite)
-            set(it.subtitles, subtitles)
             set(it.fileId, fileId)
-            set(it.cachedCount, images.size)
+            set(it.cachedCount, imageCount)
             set(it.createTime, createTime)
             set(it.updateTime, createTime)
         } as Int

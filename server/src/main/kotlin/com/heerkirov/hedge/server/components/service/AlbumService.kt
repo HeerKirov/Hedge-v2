@@ -11,7 +11,9 @@ import com.heerkirov.hedge.server.dao.meta.Tags
 import com.heerkirov.hedge.server.dao.meta.Topics
 import com.heerkirov.hedge.server.dao.source.FileRecords
 import com.heerkirov.hedge.server.exceptions.NotFound
+import com.heerkirov.hedge.server.exceptions.ParamRequired
 import com.heerkirov.hedge.server.form.*
+import com.heerkirov.hedge.server.model.album.AlbumImageRelation
 import com.heerkirov.hedge.server.model.meta.Tag
 import com.heerkirov.hedge.server.tools.takeAllFilepath
 import com.heerkirov.hedge.server.tools.takeFilepath
@@ -65,7 +67,7 @@ class AlbumService(private val data: DataRepository,
     fun create(form: AlbumCreateForm): Int {
         if(form.score != null) kit.validateScore(form.score)
         data.db.transaction {
-            return albumManager.newAlbum(form.images, form.subtitles, form.title ?: "", form.description ?: "", form.score, form.favorite)
+            return albumManager.newAlbum(form.images, form.title ?: "", form.description ?: "", form.score, form.favorite)
         }
     }
 
@@ -79,7 +81,7 @@ class AlbumService(private val data: DataRepository,
             .firstOrNull()
             ?: throw NotFound()
 
-        val file = takeFilepath(row)
+        val file = if(row[FileRecords.id] != null) takeFilepath(row) else null
 
         val title = row[Albums.title]!!
         val description = row[Albums.description]!!
@@ -121,7 +123,11 @@ class AlbumService(private val data: DataRepository,
             val newTitle = form.title.letOpt { it ?: "" }
             val newDescription = form.description.letOpt { it ?: "" }
 
-            if(anyOpt(form.score, newDescription)) {
+            if(anyOpt(form.tags, form.authors, form.topics)) {
+                kit.processAllMeta(id, newTags = form.tags, newTopics = form.topics, newAuthors = form.authors)
+            }
+
+            if(anyOpt(form.score, form.favorite, newTitle, newDescription)) {
                 data.db.update(Albums) {
                     where { it.id eq id }
                     form.score.applyOpt { set(it.score, this) }
@@ -145,43 +151,45 @@ class AlbumService(private val data: DataRepository,
         }
     }
 
-    fun getImages(id: Int, filter: LimitAndOffsetFilter): AlbumImageResult {
-        val albumRow = data.db.from(Albums).select(Albums.subtitles).where { Albums.id eq id }.firstOrNull() ?: throw NotFound()
-        val subtitles = albumRow[Albums.subtitles]?.filter { it.ordinal >= filter.offset && it.ordinal < filter.offset + filter.limit } ?: emptyList()
-
-        val rows = data.db.from(Illusts)
-            .innerJoin(AlbumImageRelations, AlbumImageRelations.imageId eq Illusts.id)
-            .select(AlbumImageRelations.ordinal, Illusts.id, Illusts.type, Illusts.exportedScore, Illusts.favorite, Illusts.tagme, Illusts.orderTime,
+    fun getImages(id: Int, filter: LimitAndOffsetFilter): ListResult<AlbumSubItem> {
+        return data.db.from(AlbumImageRelations)
+            .leftJoin(Illusts, (AlbumImageRelations.type eq AlbumImageRelation.Type.IMAGE) and (AlbumImageRelations.imageId eq Illusts.id))
+            .leftJoin(FileRecords, Illusts.fileId eq FileRecords.id)
+            .select(AlbumImageRelations.ordinal, AlbumImageRelations.type, AlbumImageRelations.subtitle,
+                Illusts.id, Illusts.exportedScore, Illusts.favorite, Illusts.tagme, Illusts.orderTime,
                 FileRecords.id, FileRecords.folder, FileRecords.extension, FileRecords.thumbnail)
             .where { AlbumImageRelations.albumId eq id }
             .limit(filter.offset, filter.limit)
             .orderBy(AlbumImageRelations.ordinal.asc())
-
-        return AlbumImageResult(rows.totalRecords, subtitles, rows.map {
-            val ordinal = it[AlbumImageRelations.ordinal]!!
-            val itemId = it[Illusts.id]!!
-            val score = it[Illusts.exportedScore]
-            val favorite = it[Illusts.favorite]!!
-            val tagme = it[Illusts.tagme]!!
-            val orderTime = it[Illusts.orderTime]!!.parseDateTime()
-            val (file, thumbnailFile) = takeAllFilepath(it)
-            AlbumImageResult.ImageItem(itemId, ordinal, file, thumbnailFile, score, favorite, tagme, orderTime)
-        })
+            .toListResult {
+                val ordinal = it[AlbumImageRelations.ordinal]!!
+                val type = it[AlbumImageRelations.type]!!
+                if(type == AlbumImageRelation.Type.IMAGE) {
+                    val itemId = it[Illusts.id]!!
+                    val score = it[Illusts.exportedScore]
+                    val favorite = it[Illusts.favorite]!!
+                    val tagme = it[Illusts.tagme]!!
+                    val orderTime = it[Illusts.orderTime]!!.parseDateTime()
+                    val (file, thumbnailFile) = takeAllFilepath(it)
+                    AlbumImageRes(ordinal, AlbumImageRelation.Type.IMAGE, itemId, file, thumbnailFile, score, favorite, tagme, orderTime)
+                }else{
+                    val subtitle = it[AlbumImageRelations.subtitle]!!
+                    AlbumSubtitleRes(ordinal, AlbumImageRelation.Type.SUBTITLE, subtitle)
+                }
+            }
     }
 
-    fun updateImages(id: Int, form: AlbumImageUpdateForm) {
+    fun updateImages(id: Int, items: List<Any>) {
         data.db.transaction {
             data.db.sequenceOf(Albums).firstOrNull { Albums.id eq id } ?: throw NotFound()
 
-            val (images, fileId) = kit.validateSubImages(form.images)
-            val subtitles = kit.validateAllSubtitles(form.subtitles, images.size)
+            val (images, imageCount, fileId) = kit.validateSubImages(items)
             val now = DateTime.now()
 
             data.db.update(Albums) {
                 where { it.id eq id }
                 set(it.fileId, fileId)
-                set(it.cachedCount, images.size)
-                set(it.subtitles, subtitles)
+                set(it.cachedCount, imageCount)
                 set(it.updateTime, now)
             }
 
@@ -190,6 +198,31 @@ class AlbumService(private val data: DataRepository,
     }
 
     fun partialUpdateImages(id: Int, form: AlbumImagesPartialUpdateForm) {
-        TODO()
+        data.db.transaction {
+            data.db.sequenceOf(Albums).firstOrNull { Albums.id eq id } ?: throw NotFound()
+
+            when (form.action) {
+                BatchAction.ADD -> {
+                    val images = form.images ?: throw ParamRequired("images")
+                    kit.validateSubImages(images)
+                    kit.insertSubImages(images, id, form.ordinal)
+                    kit.exportFileAndCount(id)
+                }
+                BatchAction.MOVE -> {
+                    val itemIndexes = form.itemIndexes ?: throw ParamRequired("itemIndexes")
+                    if(itemIndexes.isNotEmpty()) {
+                        kit.moveSubImages(itemIndexes, id, form.ordinal)
+                        kit.exportFileAndCount(id)
+                    }
+                }
+                BatchAction.DELETE -> {
+                    val itemIndexes = form.itemIndexes ?: throw ParamRequired("itemIndexes")
+                    if(itemIndexes.isNotEmpty()) {
+                        kit.deleteSubImages(itemIndexes, id)
+                        kit.exportFileAndCount(id)
+                    }
+                }
+            }
+        }
     }
 }

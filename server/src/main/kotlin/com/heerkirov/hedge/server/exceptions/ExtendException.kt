@@ -23,6 +23,14 @@ class IllegalFileExtensionError(extension: String) : BadRequestException("ILLEGA
 class RecursiveParentError : BadRequestException("RECURSIVE_PARENT", "Param 'parentId' has recursive.")
 
 /**
+ * 当给出的排序顺位超出可用的范围时，抛出此异常。
+ * 抛出位置：
+ * - 设定album的subtitles
+ * - 修改album的子项
+ */
+class OrdinalOutOfBoundsError(paramName: String) : BadRequestException("ORDINAL_OUT_OF_BOUNDS", "Param '$paramName': ordinal is out of bounds.", paramName)
+
+/**
  * 当将color赋值给一个非根的tag时，抛出此异常。
  * 抛出位置：
  * - 设定tag的color
