@@ -21,7 +21,7 @@ object LexicalAnalyzer {
             val (morpheme, endIndex) = analyseSpace(queryLanguage, index)
                 ?: analyseSymbol(queryLanguage, index)
                 ?: analyseString(queryLanguage, index, collector)
-                ?: analyseRestrictedString(queryLanguage, index, collector)
+                ?: analyseRestrictedString(queryLanguage, index)
             result.add(LexicalItem(morpheme, index, endIndex))
             index = endIndex
         }
@@ -97,16 +97,14 @@ object LexicalAnalyzer {
         return null
     }
 
-    private fun analyseRestrictedString(text: String, beginIndex: Int, collector: ErrorCollector<LexicalError>): ParseItem {
+    private fun analyseRestrictedString(text: String, beginIndex: Int): ParseItem {
         for(index in beginIndex until text.length) {
             val char = text[index]
-            if(char in spaceSymbols || char in singleSymbols) {
-                //遇到空格、符号表时，有限字符串结束
+            if(char in spaceSymbols || char in restrictedSymbols) {
+                //遇到空格、受限符号表时，有限字符串结束
                 return ParseItem(CharSequence(CharSequenceType.RESTRICTED, text.substring(beginIndex, index)), index)
-            }else if(char in stringSymbols) {
-                //WARNING：在受限字符串内遇到了字符串符号
-                collector.warning(FoundQuoteInRestrictedString(char, index))
             }
+            //其他任何符号，包括字符串符号、转义符号，都被视作受限字符串的合法的一部分
         }
         //遇到EOF，有限字符串结束
         return ParseItem(CharSequence(CharSequenceType.RESTRICTED, text.substring(beginIndex)), text.length)

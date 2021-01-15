@@ -17,8 +17,3 @@ class ExpectQuoteButEOF(quote: Char, pos: Int) : LexicalError(1002, "Expecting q
  * 希望在转义字符后遇到一个符号用于转义，但是却遇到了字符串末尾。转义符号丢失。
  */
 class ExpectEscapedCharacterButEOF(pos: Int) : LexicalError(1003, "Expecting an escaped character but actually EOF", range(pos - 1, pos))
-
-/**
- * 在一个受限字符串中出现了字符串符号。正确的写法是写在无限字符串中，然后转义。
- */
-class FoundQuoteInRestrictedString(quote: Char, pos: Int) : LexicalError(1004, "Found quote $quote in a restricted string", range(pos))
