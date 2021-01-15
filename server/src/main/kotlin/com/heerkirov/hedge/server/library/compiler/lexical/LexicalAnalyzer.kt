@@ -48,7 +48,7 @@ object LexicalAnalyzer {
             if(beginIndex + 1 < text.length) {
                 val d = doubleSymbolsMap[char]
                 if(d != null && text[beginIndex + 1] in d) {
-                    return ParseItem(Symbol.of(text.substring(beginIndex, beginIndex + 1)), beginIndex + 2)
+                    return ParseItem(Symbol.of(text.substring(beginIndex, beginIndex + 2)), beginIndex + 2)
                 }
             }
             return ParseItem(Symbol.of(char.toString()), beginIndex + 1)
@@ -67,7 +67,7 @@ object LexicalAnalyzer {
                 when (val char = text[index]) {
                     quote -> {
                         //遇到匹配的字符串结束符号，结束这段字符串
-                        return ParseItem(CharSequence(stringSymbols[quote]!!, builder.toString()), index)
+                        return ParseItem(CharSequence(stringSymbols[quote]!!, builder.toString()), index + 1)
                     }
                     '\\' -> {
                         //遇到转义符号
