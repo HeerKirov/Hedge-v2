@@ -8,7 +8,7 @@ import java.util.*
 /**
  * 词法分析器。执行Query语句 -> 词素列表的步骤。
  */
-object LexicalAnalyzer {
+class LexicalAnalyzer {
     /**
      * 执行词法分析。
      * 返回的列表除词素外，还包括每个词素的出身位置，以及生成该词素的原始字符串，便于进行错误回溯。
