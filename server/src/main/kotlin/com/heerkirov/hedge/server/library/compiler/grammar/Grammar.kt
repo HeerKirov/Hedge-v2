@@ -1,86 +1,94 @@
 package com.heerkirov.hedge.server.library.compiler.grammar
 
-const val EXPRESSION_ITEM = "expressionItem"
-const val CONJUNCTION = "conjunction"
-const val CONJUNCT = "conjunct"
-const val SFP = "SFP"
-const val SP = "SP"
-const val SUBJECT = "subject"
-const val FAMILY = "family"
-const val UNARY_FAMILY = "unaryFamily"
-const val PREDICATIVE = "predicative"
-const val ELEMENT = "element"
-const val ANNOTATION = "annotation"
-const val COLLECTION = "collection"
-const val RANGE = "range"
-const val SORTED_LIST = "sortedList"
-const val SORTED_ITEM = "sortedItem"
+enum class GrammarNode {
+    EXPRESSION,
+    EXPRESSION_ITEM,
+    CONJUNCTION,
+    CONJUNCT,
+    SFP,
+    SP,
+    SUBJECT,
+    FAMILY,
+    UNARY_FAMILY,
+    PREDICATIVE,
+    OPTIONAL_SPACE,
+    ELEMENT,
+    ANNOTATION,
+    COLLECTION,
+    RANGE,
+    SORTED_LIST,
+    SORTED_ITEM
+}
 
 /**
  * 文法的实际定义。
  */
-val grammarDefinition = grammar {
-    rootNode {
-        start next node(EXPRESSION_ITEM).also {
-            it next space() next it
-            it next symbol("&") next it
-        } next end
+val grammarDefinition = grammar<GrammarNode> {
+    this root node(GrammarNode.EXPRESSION) {
+        start next node(GrammarNode.OPTIONAL_SPACE) next node(GrammarNode.EXPRESSION_ITEM).also { item ->
+            item next space().also {
+                it next item
+                it next end
+            }
+            item next symbol("&") next item
+            item next end
+        }
     }
 
-    node(EXPRESSION_ITEM) {
-        val conjunction = start next node(CONJUNCTION).also {
+    node(GrammarNode.EXPRESSION_ITEM) {
+        val conjunction = start next node(GrammarNode.CONJUNCTION).also {
             it next end
         }
-        val optionalSpaceToConjunction = optionalSpace() next conjunction
+        val optionalSpaceToConjunction = node(GrammarNode.OPTIONAL_SPACE) next conjunction
         val sourceSymbol = start next symbol("^", flag = true).also {
             it next optionalSpaceToConjunction
         }
         start next symbol("-", flag = true).also {
             it next optionalSpaceToConjunction
-            it next optionalSpace() next sourceSymbol
+            it next node(GrammarNode.OPTIONAL_SPACE) next sourceSymbol
         }
     }
 
-    node(CONJUNCTION) {
-        start next node(CONJUNCT).also {
+    node(GrammarNode.CONJUNCTION) {
+        start next node(GrammarNode.CONJUNCT).also {
             it next end
-            it next optionalSpace() next symbol("|") next optionalSpace() next it
+            it next node(GrammarNode.OPTIONAL_SPACE) next symbol("|") next node(GrammarNode.OPTIONAL_SPACE) next it
         }
     }
 
-    node(CONJUNCT) {
-        start next node(SFP) next end
-        start next node(SP) next end
+    node(GrammarNode.CONJUNCT) {
+        start next node(GrammarNode.SFP) next end
+        start next node(GrammarNode.SP) next end
     }
 
-    node(SP) {
-        val optionalSpaceUnit = optionalSpace() next node(PREDICATIVE) next end
+    node(GrammarNode.SP) {
+        val optionalSpaceUnit = node(GrammarNode.OPTIONAL_SPACE) next node(GrammarNode.PREDICATIVE) next end
         start next symbol(".") next optionalSpaceUnit
         start next symbol("!") next optionalSpaceUnit
         start next symbol("?") next optionalSpaceUnit
     }
 
-    node(SFP) {
-        start next node(SUBJECT).also {
+    node(GrammarNode.SFP) {
+        start next node(GrammarNode.SUBJECT).also {
             it next end
-            it next optionalSpace().also { space ->
-                space next node(UNARY_FAMILY) next end
-                space next node(FAMILY) next optionalSpace() next node(PREDICATIVE) next end
+            it next node(GrammarNode.OPTIONAL_SPACE).also { space ->
+                space next node(GrammarNode.UNARY_FAMILY) next end
+                space next node(GrammarNode.FAMILY) next node(GrammarNode.OPTIONAL_SPACE) next node(GrammarNode.PREDICATIVE) next end
             }
         }
     }
 
-    node(SUBJECT) {
-        start next node(ELEMENT) next end
-        start next node(ANNOTATION) next end
+    node(GrammarNode.SUBJECT) {
+        start next node(GrammarNode.ELEMENT) next end
+        start next node(GrammarNode.ANNOTATION) next end
     }
 
-    node(UNARY_FAMILY) {
+    node(GrammarNode.UNARY_FAMILY) {
         start next symbol("++") next end
         start next symbol("--") next end
     }
 
-    node(FAMILY) {
+    node(GrammarNode.FAMILY) {
         start next symbol(":") next end
         start next symbol(">=") next end
         start next symbol("<=") next end
@@ -89,14 +97,19 @@ val grammarDefinition = grammar {
         start next symbol("~") next end
     }
 
-    node(PREDICATIVE) {
-        start next node(ELEMENT) next end
-        start next node(COLLECTION) next end
-        start next node(RANGE) next end
-        start next node(SORTED_LIST) next end
+    node(GrammarNode.PREDICATIVE) {
+        start next node(GrammarNode.ELEMENT) next end
+        start next node(GrammarNode.COLLECTION) next end
+        start next node(GrammarNode.RANGE) next end
+        start next node(GrammarNode.SORTED_LIST) next end
+    }
+    
+    node(GrammarNode.OPTIONAL_SPACE) {
+        start next end
+        start next space() next end
     }
 
-    node(ELEMENT) {
+    node(GrammarNode.ELEMENT) {
         val string = sequence(record = true).also {
             it next end
             it next symbol(".") next it
@@ -107,7 +120,7 @@ val grammarDefinition = grammar {
         start next symbol("$", flag = true) next string
     }
 
-    node(ANNOTATION) {
+    node(GrammarNode.ANNOTATION) {
         start next symbol("[").also { left ->
             val string = left next sequence(record = true).also {
                 it next symbol("]") next end
@@ -148,18 +161,39 @@ val grammarDefinition = grammar {
         }
     }
 
-    node(COLLECTION) {
-        start next symbol("{") next optionalSpace().also { space1 ->
+    node(GrammarNode.COLLECTION) {
+        start next symbol("{") next node(GrammarNode.OPTIONAL_SPACE).also { space1 ->
             val right = symbol("}") next end
             space1 next right
-            space1 next sequence(record = true) next optionalSpace().also { space2 ->
+            space1 next sequence(record = true) next node(GrammarNode.OPTIONAL_SPACE).also { space2 ->
                 space2 next right
                 space2 next symbol(",") next space1
             }
         }
     }
 
-    node(RANGE) {
-        start next symbol("[")
+    node(GrammarNode.RANGE) {
+         node(GrammarNode.OPTIONAL_SPACE).also {
+             start next symbol("[", flag = true) next it
+             start next symbol("(", flag = true) next it
+         } next sequence(record = true) next node(GrammarNode.OPTIONAL_SPACE) next symbol(",") next node(GrammarNode.OPTIONAL_SPACE) next sequence(record = true) next node(GrammarNode.OPTIONAL_SPACE).also {
+             it next symbol("]", flag = true) next end
+             it next symbol(")", flag = true) next end
+         }
+    }
+
+    node(GrammarNode.SORTED_LIST) {
+        start next node(GrammarNode.SORTED_ITEM).also {
+            it next end
+            it next node(GrammarNode.OPTIONAL_SPACE) next symbol(",") next node(GrammarNode.OPTIONAL_SPACE) next it
+        }
+    }
+
+    node(GrammarNode.SORTED_ITEM) {
+        sequence(record = true).also {
+            start next it
+            start next symbol("+", flag = true) next it
+            start next symbol("-", flag = true) next it
+        } next end
     }
 }

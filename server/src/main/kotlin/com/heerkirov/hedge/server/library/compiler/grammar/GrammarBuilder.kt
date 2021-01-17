@@ -12,36 +12,45 @@ import kotlin.collections.ArrayList
  * 定义一段文法。
  * 由于语法文法的定义有那么点复杂度，因此把文法的定义、优化、执行拆分开了。这里是文法的构造器。
  */
-fun grammar(block: GrammarBuilder.() -> Unit) {
-    val builder = GrammarBuilder()
+fun <T : Enum<T>> grammar(block: GrammarBuilder<T>.() -> Unit): GrammarBuilder<T> {
+    val builder = GrammarBuilder<T>()
     builder.block()
+    return builder
 }
 
 /**
  * 总构造器。
  */
-class GrammarBuilder {
+class GrammarBuilder<T : Enum<T>> {
+    private val nodes = mutableMapOf<T, GrammarNodeBuilder<T>>()
+    private var root: GrammarNodeBuilder<T>? = null
+
     /**
      * 定义一个新的文法节点，也就是一个非终结符。它包含名称、构成文法节点的执行单元。
      */
-    fun node(name: String, block: GrammarNodeBuilder.() -> Unit) {
-
+    fun node(name: T, block: GrammarNodeBuilder<T>.() -> Unit): GrammarNodeBuilder<T> {
+        val nodeBuilder = GrammarNodeBuilder<T>()
+        nodeBuilder.block()
+        nodes[name] = nodeBuilder
+        return nodeBuilder
     }
 
     /**
-     * 定义一个文法节点，并作为根节点。
+     * 将一个节点作为文法的根节点。
      */
-    fun rootNode(block: GrammarNodeBuilder.() -> Unit) {
-
+    infix fun root(node: GrammarNodeBuilder<T>): GrammarNodeBuilder<T> {
+        root = node
+        return node
     }
 }
 
 /**
  * 文法节点的构造器。
  */
-class GrammarNodeBuilder {
-    private val flags: MutableList<MorphemeUnit<Symbol>> = LinkedList()
-    private var records: MutableList<GrammarUnit> = ArrayList(4)
+class GrammarNodeBuilder<T : Enum<T>> {
+    private val units: MutableList<GrammarUnit> = ArrayList()
+    private val flags: MutableSet<MorphemeUnit<Symbol>> = mutableSetOf()
+    private val records: MutableList<GrammarUnit> = ArrayList(4)
 
     /**
      * 此节点的开始。
@@ -57,14 +66,7 @@ class GrammarNodeBuilder {
      * 定义一个终结符单元，类型为空格。
      */
     fun space(): MorphemeUnit<Space> {
-        return SpaceUnit()
-    }
-
-    /**
-     * 定义一个特殊单元，类型为可选的空格。实质是定义了可选的指向单元。
-     */
-    fun optionalSpace(): NextGrammarUnit {
-        TODO()
+        return SpaceUnit().also { units.add(it) }
     }
 
     /**
@@ -72,7 +74,7 @@ class GrammarNodeBuilder {
      * @param flag 将此符号记入此文法节点的flag表。
      */
     fun symbol(symbol: String, flag: Boolean = false): MorphemeUnit<Symbol> {
-        return SymbolUnit(symbol).also { if(flag) flags.add(it) }
+        return SymbolUnit(symbol).also { if(flag) flags.add(it) }.also { units.add(it) }
     }
 
     /**
@@ -80,15 +82,15 @@ class GrammarNodeBuilder {
      * @param record 将此字符串记入此文法节点的记录列表。
      */
     fun sequence(record: Boolean = false): MorphemeUnit<CharSequence> {
-        return SequenceUnit().also { if(record) records.add(it) }
+        return SequenceUnit().also { if(record) records.add(it) }.also { units.add(it) }
     }
 
     /**
      * 定义一个非终结符单元，也就是节点。
      * @param record 将此字符串记入此文法节点的记录列表。
      */
-    fun node(nodeName: String, record: Boolean = false): NodeUnit {
-        return NodeUnit(nodeName).also { if(record) records.add(it) }
+    fun node(nodeName: T, record: Boolean = false): NodeUnit<T> {
+        return NodeUnit(nodeName).also { if(record) records.add(it) }.also { units.add(it) }
     }
 
     /**
@@ -96,20 +98,6 @@ class GrammarNodeBuilder {
      */
     infix fun <U : GrammarUnit> NextGrammarUnit.next(unit: U): U {
         return unit.also { this.addNext(it) }
-    }
-
-    /**
-     * 为此单元设定多项下一个的指向单元，且这些指向单元都会指向相同的下一个的目标。
-     */
-    fun NextGrammarUnit.next(vararg units: NextGrammarUnit): NextGrammarUnit {
-        return GroupUnit(units.toList())
-    }
-
-    /**
-     * 为此单元设定多项下一个的指向单元，且这些指向单元都会指向相同的下一个的目标。此外还包含当前单元在内，也就是此next指定的项可省略
-     */
-    fun NextGrammarUnit.optionalNext(vararg units: NextGrammarUnit): NextGrammarUnit {
-        return GroupUnit(units.toList() + this)
     }
 
     /**
@@ -134,13 +122,6 @@ abstract class NextGrammarUnitImpl : NextGrammarUnit {
     }
 }
 
-class GroupUnit(private val groups: Collection<NextGrammarUnit>) : NextGrammarUnit {
-    //TODO 重新设计group unit，以满足在unit而非next上实现group和optional的需求
-    override fun addNext(unit: GrammarUnit) {
-        groups.forEach { it.addNext(unit) }
-    }
-}
-
 class EndUnit : GrammarUnit
 
 class StartUnit : NextGrammarUnitImpl()
@@ -153,4 +134,4 @@ class SymbolUnit(val symbol: String) : MorphemeUnit<Symbol>()
 
 class SequenceUnit : MorphemeUnit<CharSequence>()
 
-class NodeUnit(val nodeName: String) : NextGrammarUnitImpl()
+class NodeUnit<T : Enum<T>>(val nodeName: T) : NextGrammarUnitImpl()
