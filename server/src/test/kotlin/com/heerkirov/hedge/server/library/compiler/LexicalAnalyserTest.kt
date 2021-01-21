@@ -9,182 +9,257 @@ import kotlin.test.assertEquals
 
 class LexicalAnalyserTest {
     @Test
-    fun testString() {
+    fun testSpace() {
         val analyzer = LexicalAnalyzer()
         //空串
         assertEquals(AnalysisResult(emptyList()), analyzer.parse(""))
-        //一个单字符串
-        assertEquals(AnalysisResult(listOf(
-            LexicalItem(CharSequence(CharSequenceType.RESTRICTED, "meta"), 0, 4)
-        )), analyzer.parse("meta"))
-        //一个空格
-        assertEquals(AnalysisResult(listOf(
-            LexicalItem(Space, 0, 1)
-        )), analyzer.parse(" "))
-        //几个空格分隔的串
-        assertEquals(AnalysisResult(listOf(
-            LexicalItem(CharSequence(CharSequenceType.RESTRICTED, "a"), 0, 1),
-            LexicalItem(Space, 1, 2),
-            LexicalItem(CharSequence(CharSequenceType.RESTRICTED, "b"), 2, 3),
-            LexicalItem(Space, 3, 4),
-            LexicalItem(CharSequence(CharSequenceType.RESTRICTED, "c"), 4, 5),
-        )), analyzer.parse("a b c"))
-        //没有分隔的三种无限字符串
-        assertEquals(AnalysisResult(listOf(
-            LexicalItem(CharSequence(CharSequenceType.APOSTROPHE, "aa"), 0, 4),
-            LexicalItem(CharSequence(CharSequenceType.DOUBLE_QUOTES, "bb"), 4, 8),
-            LexicalItem(CharSequence(CharSequenceType.BACKTICKS, "cc"), 8 ,12),
-        )), analyzer.parse("""'aa'"bb"`cc`"""))
-        //不写无限串的结束符，直到EOF，收到警告
-        assertEquals(AnalysisResult(listOf(
-            LexicalItem(CharSequence(CharSequenceType.BACKTICKS, "arf"), 0, 4)
-        ), warnings = listOf<LexicalError>(
-            ExpectQuoteButEOF('`', 4)
-        )), analyzer.parse("""`arf"""))
+        //测试各种空格
+        assertEquals(AnalysisResult(listOf(spaceLexical(0, 1))), analyzer.parse(" "))
+        assertEquals(AnalysisResult(listOf(spaceLexical(0, 1))), analyzer.parse("\n"))
+        assertEquals(AnalysisResult(listOf(spaceLexical(0, 1))), analyzer.parse("\r"))
+        assertEquals(AnalysisResult(listOf(spaceLexical(0, 1))), analyzer.parse("\t"))
+        assertEquals(AnalysisResult(listOf(spaceLexical(0, 2))), analyzer.parse("\n\r"))
+        assertEquals(AnalysisResult(listOf(spaceLexical(0, 3))), analyzer.parse("\n \r"))
+        assertEquals(AnalysisResult(listOf(spaceLexical(0, 3))), analyzer.parse(" \n "))
+        assertEquals(AnalysisResult(listOf(spaceLexical(0, 4))), analyzer.parse(" \n\r\t"))
     }
 
     @Test
-    fun testEscape() {
+    fun testAllSymbolTypes() {
         val analyzer = LexicalAnalyzer()
-        //在三种无限串中间测试的转义符号
+        //对全符号表做一个单字符识别，保证每个单字符的识别类型是正确的
+        assertEquals(AnalysisResult(listOf(symbolLexical("~", 0))), analyzer.parse("~"))
+        assertEquals(AnalysisResult(listOf(stringLexical(CharSequenceType.BACKTICKS, "", 0, 1)), warnings = listOf<LexicalError>(ExpectQuoteButEOF('`', 1))),
+            analyzer.parse("`"))
+        assertEquals(AnalysisResult(emptyList(), warnings = listOf<LexicalError>(UselessSymbol('!', 0))),
+            analyzer.parse("!"))
+        assertEquals(AnalysisResult(listOf(symbolLexical("@", 0))), analyzer.parse("@"))
+        assertEquals(AnalysisResult(listOf(symbolLexical("#", 0))), analyzer.parse("#"))
+        assertEquals(AnalysisResult(listOf(symbolLexical("$", 0))), analyzer.parse("$"))
+        assertEquals(AnalysisResult(emptyList(), warnings = listOf<LexicalError>(UselessSymbol('%', 0))),
+            analyzer.parse("%"))
+        assertEquals(AnalysisResult(listOf(symbolLexical("^", 0))), analyzer.parse("^"))
+        assertEquals(AnalysisResult(listOf(symbolLexical("&", 0))), analyzer.parse("&"))
+        assertEquals(AnalysisResult(listOf(stringLexical(CharSequenceType.RESTRICTED, "*", 0, 1))), analyzer.parse("*"))
+        assertEquals(AnalysisResult(listOf(symbolLexical("(", 0))), analyzer.parse("("))
+        assertEquals(AnalysisResult(listOf(symbolLexical(")", 0))), analyzer.parse(")"))
+        assertEquals(AnalysisResult(listOf(symbolLexical("-", 0))), analyzer.parse("-"))
+        assertEquals(AnalysisResult(emptyList(), warnings = listOf<LexicalError>(UselessSymbol('=', 0))),
+            analyzer.parse("="))
+        assertEquals(AnalysisResult(listOf(stringLexical(CharSequenceType.RESTRICTED, "_", 0, 1))), analyzer.parse("_"))
+        assertEquals(AnalysisResult(listOf(symbolLexical("+", 0))), analyzer.parse("+"))
+        assertEquals(AnalysisResult(listOf(symbolLexical("[", 0))), analyzer.parse("["))
+        assertEquals(AnalysisResult(listOf(symbolLexical("]", 0))), analyzer.parse("]"))
+        assertEquals(AnalysisResult(listOf(symbolLexical("{", 0))), analyzer.parse("{"))
+        assertEquals(AnalysisResult(listOf(symbolLexical("}", 0))), analyzer.parse("}"))
+        assertEquals(AnalysisResult(emptyList(), warnings = listOf<LexicalError>(UselessSymbol(';', 0))),
+            analyzer.parse(";"))
+        assertEquals(AnalysisResult(listOf(symbolLexical(":", 0))), analyzer.parse(":"))
+        assertEquals(AnalysisResult(listOf(stringLexical(CharSequenceType.APOSTROPHE, "", 0, 1)), warnings = listOf<LexicalError>(ExpectQuoteButEOF('\'', 1))),
+            analyzer.parse("'"))
+        assertEquals(AnalysisResult(listOf(stringLexical(CharSequenceType.DOUBLE_QUOTES, "", 0, 1)), warnings = listOf<LexicalError>(ExpectQuoteButEOF('"', 1))),
+            analyzer.parse("\""))
+        assertEquals(AnalysisResult(listOf(symbolLexical(",", 0))), analyzer.parse(","))
+        assertEquals(AnalysisResult(listOf(symbolLexical(".", 0))), analyzer.parse("."))
+        assertEquals(AnalysisResult(listOf(symbolLexical("/", 0))), analyzer.parse("/"))
+        assertEquals(AnalysisResult(emptyList(), warnings = listOf<LexicalError>(UselessSymbol('\\', 0))),
+            analyzer.parse("\\"))
+        assertEquals(AnalysisResult(listOf(symbolLexical("|", 0))), analyzer.parse("|"))
+        assertEquals(AnalysisResult(listOf(stringLexical(CharSequenceType.RESTRICTED, "?", 0, 1))), analyzer.parse("?"))
+        assertEquals(AnalysisResult(listOf(symbolLexical("<", 0))), analyzer.parse("<"))
+        assertEquals(AnalysisResult(listOf(symbolLexical(">", 0))), analyzer.parse(">"))
+    }
+
+    @Test
+    fun testSymbolTables() {
+        val analyzer = LexicalAnalyzer()
+        //测试符号表中的所有1位符号及其连写
         assertEquals(AnalysisResult(listOf(
-            LexicalItem(CharSequence(CharSequenceType.APOSTROPHE, "a'\"`\\\n\r\tb"), 0, 18),
-            LexicalItem(Space, 18, 19),
-            LexicalItem(CharSequence(CharSequenceType.DOUBLE_QUOTES, "a'\"`\\\n\r\tb"), 19, 37),
-            LexicalItem(Space, 37, 38),
-            LexicalItem(CharSequence(CharSequenceType.BACKTICKS, "a'\"`\\\n\r\tb"), 38, 56),
-            LexicalItem(Space, 56, 57),
-        )), analyzer.parse("""'a\'\"\`\\\n\r\tb' "a\'\"\`\\\n\r\tb" `a\'\"\`\\\n\r\tb` """))
-        //在转义符号后接EOF，引发警告
+            symbolLexical(":", 0),
+            symbolLexical(">", 1),
+            symbolLexical("<", 2),
+            symbolLexical("~", 3),
+            symbolLexical("|", 4),
+            symbolLexical("/", 5),
+            symbolLexical("&", 6),
+            symbolLexical("-", 7),
+            symbolLexical("+", 8),
+            symbolLexical("@", 9),
+            symbolLexical("#", 10),
+            symbolLexical("$", 11),
+            symbolLexical("^", 12),
+            symbolLexical(".", 13),
+            symbolLexical(",", 14),
+            symbolLexical("[", 15),
+            symbolLexical("]", 16),
+            symbolLexical("(", 17),
+            symbolLexical(")", 18),
+            symbolLexical("{", 19),
+            symbolLexical("}", 20),
+        )), analyzer.parse(":><~|/&-+@#$^.,[](){}"))
+        //测试符号表中的所有2位符号及其连写
         assertEquals(AnalysisResult(listOf(
-            LexicalItem(CharSequence(CharSequenceType.BACKTICKS, "12CU"), 0, 6)
+            symbolLexical(">=", 0),
+            symbolLexical("<=", 2),
+            symbolLexical("~+", 4),
+            symbolLexical("~-", 6),
+        )), analyzer.parse(">=<=~+~-"))
+    }
+
+    @Test
+    fun testString() {
+        val analyzer = LexicalAnalyzer()
+        //测试无限字符串
+        assertEquals(AnalysisResult(listOf(stringLexical(CharSequenceType.APOSTROPHE, "hello", 0, 7))), analyzer.parse("'hello'"))
+        assertEquals(AnalysisResult(listOf(stringLexical(CharSequenceType.DOUBLE_QUOTES, "こんにちは", 0, 7))), analyzer.parse("\"こんにちは\""))
+        assertEquals(AnalysisResult(listOf(stringLexical(CharSequenceType.BACKTICKS, "你好", 0, 4))), analyzer.parse("`你好`"))
+        //测试无限字符串中间插入其他类型的字符串符号
+        assertEquals(AnalysisResult(listOf(stringLexical(CharSequenceType.APOSTROPHE, "a\"b", 0, 5))), analyzer.parse("'a\"b'"))
+        assertEquals(AnalysisResult(listOf(stringLexical(CharSequenceType.DOUBLE_QUOTES, "a`b", 0, 5))), analyzer.parse("\"a`b\""))
+        assertEquals(AnalysisResult(listOf(stringLexical(CharSequenceType.BACKTICKS, "a'b", 0, 5))), analyzer.parse("`a'b`"))
+        //测试连续编写的无限字符串
+        assertEquals(AnalysisResult(listOf(
+            stringLexical(CharSequenceType.APOSTROPHE, "a", 0, 3),
+            stringLexical(CharSequenceType.DOUBLE_QUOTES, "b", 3, 6),
+            stringLexical(CharSequenceType.BACKTICKS, "c", 6, 9),
+            spaceLexical(9, 10),
+            stringLexical(CharSequenceType.APOSTROPHE, "d", 10, 13),
+            spaceLexical(13, 14),
+            stringLexical(CharSequenceType.DOUBLE_QUOTES, "e", 14, 17),
+            spaceLexical(17, 18),
+            stringLexical(CharSequenceType.BACKTICKS, "f", 18, 21),
+        )), analyzer.parse("""'a'"b"`c` 'd' "e" `f`"""))
+        //测试不写字符串结束符
+        assertEquals(AnalysisResult(listOf(stringLexical(CharSequenceType.APOSTROPHE, "hello", 0, 6)), warnings = listOf<LexicalError>(ExpectQuoteButEOF('\'', 6))),
+            analyzer.parse("'hello"))
+        assertEquals(AnalysisResult(listOf(stringLexical(CharSequenceType.DOUBLE_QUOTES, "hello", 0, 6)), warnings = listOf<LexicalError>(ExpectQuoteButEOF('"', 6))),
+            analyzer.parse("\"hello"))
+        assertEquals(AnalysisResult(listOf(stringLexical(CharSequenceType.BACKTICKS, "hello", 0, 6)), warnings = listOf<LexicalError>(ExpectQuoteButEOF('`', 6))),
+            analyzer.parse("`hello"))
+        //测试只写字符串结束符。这实际上变成了一个有限字符串+一个无终结的无限字符串的形式
+        assertEquals(AnalysisResult(listOf(
+            stringLexical(CharSequenceType.RESTRICTED, "hello", 0, 5),
+            stringLexical(CharSequenceType.APOSTROPHE, "", 5, 6),
+        ), warnings = listOf<LexicalError>(ExpectQuoteButEOF('\'', 6))),
+            analyzer.parse("hello'"))
+        assertEquals(AnalysisResult(listOf(
+            stringLexical(CharSequenceType.RESTRICTED, "hello", 0, 5),
+            stringLexical(CharSequenceType.DOUBLE_QUOTES, "", 5, 6),
+        ), warnings = listOf<LexicalError>(ExpectQuoteButEOF('"', 6))),
+            analyzer.parse("hello\""))
+        assertEquals(AnalysisResult(listOf(
+            stringLexical(CharSequenceType.RESTRICTED, "hello", 0, 5),
+            stringLexical(CharSequenceType.BACKTICKS, "", 5, 6),
+        ), warnings = listOf<LexicalError>(ExpectQuoteButEOF('`', 6))),
+            analyzer.parse("hello`"))
+    }
+
+    @Test
+    fun testStringEscape() {
+        val analyzer = LexicalAnalyzer()
+        //测试无限字符串的转义
+        assertEquals(AnalysisResult(listOf(stringLexical(CharSequenceType.APOSTROPHE, "a'\"`\\\n\r\tb", 0, 18))), analyzer.parse("""'a\'\"\`\\\n\r\tb'"""))
+        assertEquals(AnalysisResult(listOf(stringLexical(CharSequenceType.DOUBLE_QUOTES, "a'\"`\\\n\r\tb", 0, 18))), analyzer.parse(""""a\'\"\`\\\n\r\tb""""))
+        assertEquals(AnalysisResult(listOf(stringLexical(CharSequenceType.BACKTICKS, "a'\"`\\\n\r\tb", 0, 18))), analyzer.parse("""`a\'\"\`\\\n\r\tb`"""))
+        //测试转义普通字符
+        assertEquals(AnalysisResult(listOf(
+            stringLexical(CharSequenceType.APOSTROPHE, "?1c", 0, 8)
         ), warnings = listOf<LexicalError>(
-            ExpectEscapedCharacterButEOF(6)
-        )), analyzer.parse("""`12CU\"""))
-        //在转义符号后接普通符号，引发警告
+            NormalCharacterEscaped('?', 2),
+            NormalCharacterEscaped('1', 4),
+            NormalCharacterEscaped('c', 6),
+        )), analyzer.parse("""'\?\1\c'"""))
+        //测试转义字符后接EOF
         assertEquals(AnalysisResult(listOf(
-            LexicalItem(CharSequence(CharSequenceType.APOSTROPHE, "????1c"), 0, 11)
+            LexicalItem(CharSequence(CharSequenceType.BACKTICKS, ""), 0, 2)
         ), warnings = listOf<LexicalError>(
-            NormalCharacterEscaped('?', 5),
-            NormalCharacterEscaped('1', 7),
-            NormalCharacterEscaped('c', 9),
-        )), analyzer.parse("""'???\?\1\c'"""))
+            ExpectEscapedCharacterButEOF(2)
+        )), analyzer.parse("""`\"""))
     }
 
     @Test
     fun testRestrictedString() {
         val analyzer = LexicalAnalyzer()
-        //受限字符串中间的字符串符号
+        //测试单个普通受限字符串
+        assertEquals(AnalysisResult(listOf(stringLexical(CharSequenceType.RESTRICTED, "abc", 0, 3))), analyzer.parse("""abc"""))
+        assertEquals(AnalysisResult(listOf(stringLexical(CharSequenceType.RESTRICTED, "123", 0, 3))), analyzer.parse("""123"""))
+        assertEquals(AnalysisResult(listOf(stringLexical(CharSequenceType.RESTRICTED, "你好", 0, 2))), analyzer.parse("""你好"""))
+        assertEquals(AnalysisResult(listOf(stringLexical(CharSequenceType.RESTRICTED, "こんにちは", 0, 5))), analyzer.parse("""こんにちは"""))
+        //测试空格分割的受限字符串
         assertEquals(AnalysisResult(listOf(
-            LexicalItem(CharSequence(CharSequenceType.RESTRICTED, "a'b"), 0, 3),
-            LexicalItem(Space, 3, 4),
-            LexicalItem(CharSequence(CharSequenceType.RESTRICTED, "c\"d"), 4, 7),
-            LexicalItem(Space, 7, 8),
-            LexicalItem(CharSequence(CharSequenceType.RESTRICTED, "e`f"), 8, 11),
-        )), analyzer.parse("""a'b c"d e`f"""))
-        //受限字符串中间的转义符号。并不会转义，而是原样输出
-        assertEquals(AnalysisResult(listOf(
-            LexicalItem(CharSequence(CharSequenceType.RESTRICTED, "a\\nb"), 0, 4)
-        )), analyzer.parse("""a\nb"""))
-        //受限字符串中可以使用的符号。这些符号原本就没有特殊含义
-        assertEquals(AnalysisResult(listOf(
-            LexicalItem(CharSequence(CharSequenceType.RESTRICTED, "%"), 0, 1),
-            LexicalItem(Space, 1, 2),
-            LexicalItem(CharSequence(CharSequenceType.RESTRICTED, "*"), 2, 3),
-            LexicalItem(Space, 3, 4),
-            LexicalItem(CharSequence(CharSequenceType.RESTRICTED, "/"), 4, 5),
-            LexicalItem(Space, 5, 6),
-            LexicalItem(CharSequence(CharSequenceType.RESTRICTED, "_"), 6, 7),
-            LexicalItem(Space, 7, 8),
-            LexicalItem(CharSequence(CharSequenceType.RESTRICTED, "?"), 8, 9),
-            LexicalItem(Space, 9, 10),
-            LexicalItem(CharSequence(CharSequenceType.RESTRICTED, ";"), 10, 11),
-        )), analyzer.parse("""% * / _ ? ;"""))
-        //受限字符串中可以使用的符号。这些符号是符号表中的符号，但是可以在非开头使用。后一项例证了它们不作为开头时，各自解析为符号。=比较特殊，因为它没有对应的单字符符号
-        assertEquals(AnalysisResult(listOf(
-            LexicalItem(CharSequence(CharSequenceType.RESTRICTED, "1=@#$^!"), 0, 7),
-            LexicalItem(Space, 7, 9),
-            LexicalItem(Symbol.of("@"), 9, 10),
-            LexicalItem(Symbol.of("#"), 10, 11),
-            LexicalItem(Symbol.of("$"), 11, 12),
-            LexicalItem(Symbol.of("^"), 12, 13),
-            LexicalItem(Symbol.of("!"), 13, 14),
-            LexicalItem(CharSequence(CharSequenceType.RESTRICTED, "="), 14, 15),
-        )), analyzer.parse("""1=@#$^!  @#$^!="""))
+            stringLexical(CharSequenceType.RESTRICTED, "abc", 0, 3),
+            spaceLexical(3, 4),
+            stringLexical(CharSequenceType.RESTRICTED, "你好", 4, 6),
+            spaceLexical(6, 7),
+            stringLexical(CharSequenceType.RESTRICTED, "こんにちは", 7, 12),
+        )), analyzer.parse("""abc 你好 こんにちは"""))
+        //测试受限字符串中间可接受的符号
+        assertEquals(AnalysisResult(listOf(stringLexical(CharSequenceType.RESTRICTED, "_?*+-!", 0, 6))), analyzer.parse("""_?*+-!"""))
+        //测试受限字符串中间不可接受的符号
+        assertEquals(AnalysisResult(listOf(stringLexical(CharSequenceType.RESTRICTED, "_", 0, 1), symbolLexical("~", 1))),
+            analyzer.parse("""_~"""))
+        assertEquals(AnalysisResult(listOf(stringLexical(CharSequenceType.RESTRICTED, "_", 0, 1), stringLexical(CharSequenceType.BACKTICKS, "", 1, 2)),
+            warnings = listOf<LexicalError>(ExpectQuoteButEOF('`', 2))),
+            analyzer.parse("""_`"""))
+        assertEquals(AnalysisResult(listOf(stringLexical(CharSequenceType.RESTRICTED, "_", 0, 1), symbolLexical("@", 1))),
+            analyzer.parse("""_@"""))
+        assertEquals(AnalysisResult(listOf(stringLexical(CharSequenceType.RESTRICTED, "_", 0, 1), symbolLexical("#", 1))),
+            analyzer.parse("""_#"""))
+        assertEquals(AnalysisResult(listOf(stringLexical(CharSequenceType.RESTRICTED, "_", 0, 1), symbolLexical("$", 1))),
+            analyzer.parse("""_$"""))
+        assertEquals(AnalysisResult(listOf(stringLexical(CharSequenceType.RESTRICTED, "_", 0, 1)), warnings = listOf<LexicalError>(UselessSymbol('%', 1))),
+            analyzer.parse("""_%"""))
+        assertEquals(AnalysisResult(listOf(stringLexical(CharSequenceType.RESTRICTED, "_", 0, 1), symbolLexical("^", 1))),
+            analyzer.parse("""_^"""))
+        assertEquals(AnalysisResult(listOf(stringLexical(CharSequenceType.RESTRICTED, "_", 0, 1), symbolLexical("&", 1))),
+            analyzer.parse("""_&"""))
+        assertEquals(AnalysisResult(listOf(stringLexical(CharSequenceType.RESTRICTED, "_", 0, 1), symbolLexical("(", 1))),
+            analyzer.parse("""_("""))
+        assertEquals(AnalysisResult(listOf(stringLexical(CharSequenceType.RESTRICTED, "_", 0, 1), symbolLexical(")", 1))),
+            analyzer.parse("""_)"""))
+        assertEquals(AnalysisResult(listOf(stringLexical(CharSequenceType.RESTRICTED, "_", 0, 1)), warnings = listOf<LexicalError>(UselessSymbol('=', 1))),
+            analyzer.parse("""_="""))
+        assertEquals(AnalysisResult(listOf(stringLexical(CharSequenceType.RESTRICTED, "_", 0, 1), symbolLexical("[", 1))),
+            analyzer.parse("""_["""))
+        assertEquals(AnalysisResult(listOf(stringLexical(CharSequenceType.RESTRICTED, "_", 0, 1), symbolLexical("]", 1))),
+            analyzer.parse("""_]"""))
+        assertEquals(AnalysisResult(listOf(stringLexical(CharSequenceType.RESTRICTED, "_", 0, 1), symbolLexical("{", 1))),
+            analyzer.parse("""_{"""))
+        assertEquals(AnalysisResult(listOf(stringLexical(CharSequenceType.RESTRICTED, "_", 0, 1), symbolLexical("}", 1))),
+            analyzer.parse("""_}"""))
+        assertEquals(AnalysisResult(listOf(stringLexical(CharSequenceType.RESTRICTED, "_", 0, 1), symbolLexical("|", 1))),
+            analyzer.parse("""_|"""))
+        assertEquals(AnalysisResult(listOf(stringLexical(CharSequenceType.RESTRICTED, "_", 0, 1)), warnings = listOf<LexicalError>(UselessSymbol('\\', 1))),
+            analyzer.parse("""_\"""))
+        assertEquals(AnalysisResult(listOf(stringLexical(CharSequenceType.RESTRICTED, "_", 0, 1)), warnings = listOf<LexicalError>(UselessSymbol(';', 1))),
+            analyzer.parse("""_;"""))
+        assertEquals(AnalysisResult(listOf(stringLexical(CharSequenceType.RESTRICTED, "_", 0, 1), symbolLexical(":", 1))),
+            analyzer.parse("""_:"""))
+        assertEquals(AnalysisResult(listOf(stringLexical(CharSequenceType.RESTRICTED, "_", 0, 1), stringLexical(CharSequenceType.APOSTROPHE, "", 1, 2)),
+            warnings = listOf<LexicalError>(ExpectQuoteButEOF('\'', 2))),
+            analyzer.parse("""_'"""))
+        assertEquals(AnalysisResult(listOf(stringLexical(CharSequenceType.RESTRICTED, "_", 0, 1), stringLexical(CharSequenceType.DOUBLE_QUOTES, "", 1, 2)),
+            warnings = listOf<LexicalError>(ExpectQuoteButEOF('"', 2))),
+            analyzer.parse("""_""""))
+        assertEquals(AnalysisResult(listOf(stringLexical(CharSequenceType.RESTRICTED, "_", 0, 1), symbolLexical(",", 1))),
+            analyzer.parse("""_,"""))
+        assertEquals(AnalysisResult(listOf(stringLexical(CharSequenceType.RESTRICTED, "_", 0, 1), symbolLexical(".", 1))),
+            analyzer.parse("""_."""))
+        assertEquals(AnalysisResult(listOf(stringLexical(CharSequenceType.RESTRICTED, "_", 0, 1), symbolLexical("<", 1))),
+            analyzer.parse("""_<"""))
+        assertEquals(AnalysisResult(listOf(stringLexical(CharSequenceType.RESTRICTED, "_", 0, 1), symbolLexical(">", 1))),
+            analyzer.parse("""_>"""))
+        assertEquals(AnalysisResult(listOf(stringLexical(CharSequenceType.RESTRICTED, "_", 0, 1), symbolLexical("/", 1))),
+            analyzer.parse("""_/"""))
+        assertEquals(AnalysisResult(listOf(stringLexical(CharSequenceType.RESTRICTED, "_", 0, 1), spaceLexical(1, 2))),
+            analyzer.parse("""_ """))
+        assertEquals(AnalysisResult(listOf(stringLexical(CharSequenceType.RESTRICTED, "_", 0, 1), spaceLexical(1, 2))),
+            analyzer.parse("_\n"))
     }
 
-    @Test
-    fun testStringAndSymbol() {
-        val analyzer = LexicalAnalyzer()
-        //与符号和非符号的混排
-        assertEquals(AnalysisResult(listOf(
-            LexicalItem(CharSequence(CharSequenceType.RESTRICTED, "a?"), 0, 2),
-            LexicalItem(Symbol.of("|"), 2, 3),
-            LexicalItem(CharSequence(CharSequenceType.BACKTICKS, "b"), 3, 6),
-            LexicalItem(Symbol.of("&"), 6, 7),
-            LexicalItem(Symbol.of("-"), 7, 8),
-            LexicalItem(Symbol.of("^"), 8, 9),
-            LexicalItem(CharSequence(CharSequenceType.APOSTROPHE, "cd"), 9, 13),
-            LexicalItem(Symbol.of("."), 13, 14),
-            LexicalItem(CharSequence(CharSequenceType.RESTRICTED, "e"), 14, 15),
-            LexicalItem(Space, 15, 16),
-            LexicalItem(Symbol.of("["), 16, 17),
-            LexicalItem(Symbol.of("#"), 17, 18),
-            LexicalItem(CharSequence(CharSequenceType.RESTRICTED, "*f*"), 18, 21),
-            LexicalItem(Symbol.of("]"), 21, 22),
-        )), analyzer.parse("a?|`b`&-^'cd'.e [#*f*]"))
-    }
+    private fun spaceLexical(beginIndex: Int, endIndex: Int) = LexicalItem(Space, beginIndex, endIndex)
 
-    @Test
-    fun testSymbol() {
-        val analyzer = LexicalAnalyzer()
-        //测试所有1位符号
-        assertEquals(AnalysisResult(listOf(
-            LexicalItem(Space, 0, 1),
-            LexicalItem(Symbol.of("|"), 1, 2),
-            LexicalItem(Symbol.of("&"), 2, 3),
-            LexicalItem(Symbol.of("+"), 3, 4),
-            LexicalItem(Symbol.of("-"), 4, 5),
-            LexicalItem(Symbol.of(">"), 5, 6),
-            LexicalItem(Symbol.of("<"), 6, 7),
-            LexicalItem(Symbol.of(":"), 7, 8),
-            LexicalItem(Symbol.of("~"), 8, 9),
-            LexicalItem(Symbol.of("["), 9, 10),
-            LexicalItem(Symbol.of("]"), 10, 11),
-            LexicalItem(Symbol.of("{"), 11, 12),
-            LexicalItem(Symbol.of("}"), 12, 13),
-            LexicalItem(Symbol.of("("), 13, 14),
-            LexicalItem(Symbol.of(")"), 14, 15),
-            LexicalItem(Symbol.of("@"), 15, 16),
-            LexicalItem(Symbol.of("#"), 16, 17),
-            LexicalItem(Symbol.of("$"), 17, 18),
-            LexicalItem(Symbol.of("^"), 18, 19),
-            LexicalItem(Symbol.of("!"), 19, 20),
-            LexicalItem(Symbol.of("."), 20, 21),
-            LexicalItem(Symbol.of(","), 21, 22),
-        )), analyzer.parse(" |&+-><:~[]{}()@#$^!.,"))
-        //测试所有2位符号
-        assertEquals(AnalysisResult(listOf(
-            LexicalItem(Symbol.of("++"), 0, 2),
-            LexicalItem(Symbol.of("--"), 2, 4),
-            LexicalItem(Symbol.of(">="), 4, 6),
-            LexicalItem(Symbol.of("<="), 6, 8),
-        )), analyzer.parse("++-->=<="))
-        //测试2位符号和1位符号混排
-        assertEquals(AnalysisResult(listOf(
-            LexicalItem(Symbol.of("++"), 0, 2),
-            LexicalItem(Symbol.of("+"), 2, 3),
-            LexicalItem(Space, 3, 4),
-            LexicalItem(Symbol.of("--"), 4, 6),
-            LexicalItem(Symbol.of("-"), 6, 7),
-            LexicalItem(Space, 7, 8),
-            LexicalItem(Symbol.of("<"), 8, 9),
-            LexicalItem(Space, 9, 10),
-            LexicalItem(CharSequence(CharSequenceType.RESTRICTED, "="), 10, 11),
-            LexicalItem(Space, 11, 12),
-            LexicalItem(Symbol.of(">"), 12, 13),
-            LexicalItem(Space, 13, 14),
-            LexicalItem(CharSequence(CharSequenceType.RESTRICTED, "="), 14, 15),
-        )), analyzer.parse("+++ --- < = > ="))
-    }
+    private fun symbolLexical(symbol: String, beginIndex: Int) = LexicalItem(Symbol.of(symbol), beginIndex, beginIndex + symbol.length)
+
+    private fun stringLexical(type: CharSequenceType, value: String, beginIndex: Int, endIndex: Int) = LexicalItem(CharSequence(type, value), beginIndex, endIndex)
 }

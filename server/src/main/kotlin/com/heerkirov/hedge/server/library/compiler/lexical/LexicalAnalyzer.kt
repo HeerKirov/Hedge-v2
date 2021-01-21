@@ -14,101 +14,117 @@ class LexicalAnalyzer {
      * 返回的列表除词素外，还包括每个词素的出身位置，以及生成该词素的原始字符串，便于进行错误回溯。
      */
     fun parse(queryLanguage: String): AnalysisResult<List<LexicalItem>, LexicalError> {
-        val collector = ErrorCollector<LexicalError>()
+        val parser = Parser(queryLanguage)
         val result = LinkedList<LexicalItem>()
         var index = 0
         while (index < queryLanguage.length) {
-            val (morpheme, endIndex) = analyseSpace(queryLanguage, index)
-                ?: analyseSymbol(queryLanguage, index)
-                ?: analyseString(queryLanguage, index, collector)
-                ?: analyseRestrictedString(queryLanguage, index)
-            result.add(LexicalItem(morpheme, index, endIndex))
-            index = endIndex
+            val morpheme = parser.analyseSpace(index) ?: parser.analyseSymbol(index) ?: parser.analyseString(index) ?: parser.analyseRestrictedString(index) ?: parser.analyseElse(index)
+            if(morpheme != null) result.add(LexicalItem(morpheme, index, parser.endIndex))
+            index = parser.endIndex
         }
-        return AnalysisResult(result, collector.warnings, collector.errors)
+        return AnalysisResult(result, parser.collector.warnings, parser.collector.errors)
     }
 
-    private fun analyseSpace(text: String, beginIndex: Int): ParseItem? {
-        if(text[beginIndex] in spaceSymbols) {
-            for(i in (beginIndex + 1) until text.length) {
-                if(text[i] !in spaceSymbols) {
-                    return ParseItem(Space, i)
-                }
-            }
-            return ParseItem(Space, text.length)
-        }
-        return null
-    }
+    private class Parser(private val text: String) {
+        val collector = ErrorCollector<LexicalError>()
+        var endIndex: Int = 0
 
-    private fun analyseSymbol(text: String, beginIndex: Int): ParseItem? {
-        //符号的判断较为简单，因为符号只有1、2两种长度，且2长度的符号开头一定是1长度的符号
-        //当取得的符号位于doubleSymbol映射表时，验证下一位符号是否存在，以及是否属于映射表
-        val char = text[beginIndex]
-        if (char in singleSymbols) {
-            if(beginIndex + 1 < text.length) {
-                val d = doubleSymbolsMap[char]
-                if(d != null && text[beginIndex + 1] in d) {
-                    return ParseItem(Symbol.of(text.substring(beginIndex, beginIndex + 2)), beginIndex + 2)
-                }
-            }
-            return ParseItem(Symbol.of(char.toString()), beginIndex + 1)
-        }
-        return null
-    }
-
-    private fun analyseString(text: String, beginIndex: Int, collector: ErrorCollector<LexicalError>): ParseItem? {
-        val quote = text[beginIndex]
-        if(quote in stringSymbols) {
-            //遇到一个字符串开始符号，视作一个无限字符串的开始。
-            val builder = StringBuilder()
-
-            var index = beginIndex + 1
-            while(index < text.length) {
-                when (val char = text[index]) {
-                    quote -> {
-                        //遇到匹配的字符串结束符号，结束这段字符串
-                        return ParseItem(CharSequence(stringSymbols[quote]!!, builder.toString()), index + 1)
+        fun analyseSpace(beginIndex: Int): Morpheme? {
+            if(text[beginIndex] in spaceSymbols) {
+                for(i in (beginIndex + 1) until text.length) {
+                    if(text[i] !in spaceSymbols) {
+                        return Space withEndIndex { i }
                     }
-                    '\\' -> {
-                        //遇到转义符号
-                        if(++index >= text.length) {
-                            //WARNING: 转义符号后接EOF，错误的符号预期
-                            collector.warning(ExpectEscapedCharacterButEOF(index))
-                            return ParseItem(CharSequence(stringSymbols[quote]!!, builder.toString()), index)
-                        }
-                        val originChar = text[index]
-                        val escapeChar = escapeSymbols[originChar]
-                        if(escapeChar == null) {
-                            //WARNING: 转义了一个普通字符
-                            collector.warning(NormalCharacterEscaped(originChar, index))
-                            builder.append(originChar)
-                        }else{
-                            builder.append(escapeChar)
-                        }
-                    }
-                    else -> builder.append(char)
                 }
-                index += 1
+                return Space withEndIndex { text.length }
             }
-            //WARNING: 遇到了EOF，而没有遇到字符串终结符，错误的符号预期
-            collector.warning(ExpectQuoteButEOF(quote, text.length))
-            return ParseItem(CharSequence(stringSymbols[quote]!!, builder.toString()), text.length)
+            return null
         }
-        return null
-    }
 
-    private fun analyseRestrictedString(text: String, beginIndex: Int): ParseItem {
-        for(index in beginIndex until text.length) {
-            val char = text[index]
-            if(char in spaceSymbols || char in restrictedSymbols) {
-                //遇到空格、受限符号表时，有限字符串结束
-                return ParseItem(CharSequence(CharSequenceType.RESTRICTED, text.substring(beginIndex, index)), index)
+        fun analyseSymbol(beginIndex: Int): Morpheme? {
+            //符号的判断较为简单，因为符号只有1、2两种长度，且2长度的符号开头一定是1长度的符号
+            //当取得的符号位于doubleSymbol映射表时，验证下一位符号是否存在，以及是否属于映射表
+            val char = text[beginIndex]
+            if (char in singleSymbols) {
+                if(beginIndex + 1 < text.length) {
+                    val d = doubleSymbolsSuffix[char]
+                    if(d != null && text[beginIndex + 1] in d) {
+                        return Symbol.of(text.substring(beginIndex, beginIndex + 2)) withEndIndex { beginIndex + 2 }
+                    }
+                }
+                return Symbol.of(char.toString()) withEndIndex { beginIndex + 1 }
             }
-            //其他任何符号，包括字符串符号、转义符号，都被视作受限字符串的合法的一部分
+            return null
         }
-        //遇到EOF，有限字符串结束
-        return ParseItem(CharSequence(CharSequenceType.RESTRICTED, text.substring(beginIndex)), text.length)
-    }
 
-    private data class ParseItem(val morpheme: Morpheme, val endIndex: Int)
+        fun analyseString(beginIndex: Int): Morpheme? {
+            val quote = text[beginIndex]
+            if(quote in stringBoundSymbols) {
+                //遇到一个字符串开始符号，视作一个无限字符串的开始。
+                val builder = StringBuilder()
+
+                var index = beginIndex + 1
+                while(index < text.length) {
+                    when (val char = text[index]) {
+                        quote -> {
+                            //遇到匹配的字符串结束符号，结束这段字符串
+                            return CharSequence(stringBoundSymbols[quote]!!, builder.toString()) withEndIndex { index + 1 }
+                        }
+                        '\\' -> {
+                            //遇到转义符号
+                            if(++index >= text.length) {
+                                //WARNING: 转义符号后接EOF，错误的符号预期
+                                collector.warning(ExpectEscapedCharacterButEOF(index))
+                                return CharSequence(stringBoundSymbols[quote]!!, builder.toString()) withEndIndex { index }
+                            }
+                            val originChar = text[index]
+                            val escapeChar = stringEscapeSymbols[originChar]
+                            if(escapeChar == null) {
+                                //WARNING: 转义了一个普通字符
+                                collector.warning(NormalCharacterEscaped(originChar, index))
+                                builder.append(originChar)
+                            }else{
+                                builder.append(escapeChar)
+                            }
+                        }
+                        else -> builder.append(char)
+                    }
+                    index += 1
+                }
+                //WARNING: 遇到了EOF，而没有遇到字符串终结符，错误的符号预期
+                collector.warning(ExpectQuoteButEOF(quote, text.length))
+                return CharSequence(stringBoundSymbols[quote]!!, builder.toString()) withEndIndex { text.length }
+            }
+            return null
+        }
+
+        fun analyseRestrictedString(beginIndex: Int): Morpheme? {
+            if(text[beginIndex] !in restrictedDisableStartSymbols) {
+                //受限字符串的进入判定是数字字母、unicode、可用开始符号。由于unicode字符不好判断，就反过来判断只要不在禁用符号表即可
+                for(index in beginIndex until text.length) {
+                    val char = text[index]
+                    if(char in spaceSymbols || char in restrictedDisableSymbols) {
+                        //遇到空格或禁止在受限字符串使用的符号时，有限字符串结束
+                        return CharSequence(CharSequenceType.RESTRICTED, text.substring(beginIndex, index)) withEndIndex { index }
+                    }
+                    //除此之外的其他符号包括数字字母和受限字符串可用的符号
+                }
+                //遇到EOF，有限字符串结束
+                return CharSequence(CharSequenceType.RESTRICTED, text.substring(beginIndex)) withEndIndex { text.length }
+            }
+            return null
+        }
+
+        fun analyseElse(beginIndex: Int): Nothing? {
+            //其他情况则是遇到了一个节外生枝的字符，这个字符不属于符号表，也不能用在有限字符串，因此提出一个警告
+            collector.warning(UselessSymbol(text[beginIndex], beginIndex))
+            endIndex = beginIndex + 1
+            return null
+        }
+
+        private inline infix fun Morpheme.withEndIndex(call: () -> Int): Morpheme {
+            this@Parser.endIndex = call()
+            return this
+        }
+    }
 }

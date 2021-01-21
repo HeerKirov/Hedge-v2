@@ -17,3 +17,8 @@ class ExpectQuoteButEOF(quote: Char, pos: Int) : LexicalError(1002, "Expecting q
  * 希望在转义字符后遇到一个符号用于转义，但是却遇到了字符串末尾。转义符号丢失。
  */
 class ExpectEscapedCharacterButEOF(pos: Int) : LexicalError(1003, "Expecting an escaped character but actually EOF", range(pos - 1, pos))
+
+/**
+ * 遇到了意料之外的符号，此符号在词法中没有任何作用，因此将被忽略掉。
+ */
+class UselessSymbol(symbol: Char, pos: Int): LexicalError(1004, "Useless symbol $symbol", range(pos))
