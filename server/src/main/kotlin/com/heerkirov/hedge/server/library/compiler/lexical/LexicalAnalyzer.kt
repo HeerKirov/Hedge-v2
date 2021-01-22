@@ -3,18 +3,19 @@ package com.heerkirov.hedge.server.library.compiler.lexical
 import com.heerkirov.hedge.server.library.compiler.utils.AnalysisResult
 import com.heerkirov.hedge.server.library.compiler.utils.ErrorCollector
 import com.heerkirov.hedge.server.library.compiler.utils.LexicalError
+import com.heerkirov.hedge.server.utils.runIf
 import java.util.*
 
 /**
  * 词法分析器。执行Query语句 -> 词素列表的步骤。
  */
-class LexicalAnalyzer {
+object LexicalAnalyzer {
     /**
      * 执行词法分析。
      * 返回的列表除词素外，还包括每个词素的出身位置，以及生成该词素的原始字符串，便于进行错误回溯。
      */
-    fun parse(queryLanguage: String): AnalysisResult<List<LexicalItem>, LexicalError> {
-        val parser = Parser(queryLanguage)
+    fun parse(queryLanguage: String, options: LexicalOptions? = null): AnalysisResult<List<LexicalItem>, LexicalError> {
+        val parser = Parser(queryLanguage, options ?: emptyOptions)
         val result = LinkedList<LexicalItem>()
         var index = 0
         while (index < queryLanguage.length) {
@@ -25,7 +26,7 @@ class LexicalAnalyzer {
         return AnalysisResult(result, parser.collector.warnings, parser.collector.errors)
     }
 
-    private class Parser(private val text: String) {
+    private class Parser(private val text: String, private val options: LexicalOptions) {
         val collector = ErrorCollector<LexicalError>()
         var endIndex: Int = 0
 
@@ -53,49 +54,67 @@ class LexicalAnalyzer {
                     }
                 }
                 return Symbol.of(char.toString()) withEndIndex { beginIndex + 1 }
+            }else if(options.chineseSymbolReflect && char in chineseSingleSymbols) {
+                //在开启中文字符转换后，验证char是否是规定中的全角字符
+                if(beginIndex + 1 < text.length) {
+                    val reflectChar = chineseSingleSymbols[char]!!
+                    //全角字符的2长度符号的开头可能是中文字符，但第二个字符并不是，因此仍然沿用原先的2字符映射表
+                    val d = doubleSymbolsSuffix[reflectChar]
+                    if(d != null && text[beginIndex + 1] in d) {
+                        return Symbol.of("$reflectChar${text[beginIndex + 1]}") withEndIndex { beginIndex + 2 }
+                    }
+                }
+                return Symbol.of(chineseSingleSymbols[char]!!.toString()) withEndIndex { beginIndex + 1 }
             }
             return null
         }
 
         fun analyseString(beginIndex: Int): Morpheme? {
             val quote = text[beginIndex]
+            //遇到一个字符串开始符号时，视作一个无限字符串的开始。
+            val type: CharSequenceType
+            val quoteEnd: Char
             if(quote in stringBoundSymbols) {
-                //遇到一个字符串开始符号，视作一个无限字符串的开始。
-                val builder = StringBuilder()
+                type = stringBoundSymbols[quote]!!
+                quoteEnd = quote
+            }else if(options.chineseSymbolReflect && quote in chineseStringBoundSymbols) {
+                type = chineseStringBoundSymbols[quote]!!
+                quoteEnd = chineseStringEndSymbols[quote]!!
+            }else return null
 
-                var index = beginIndex + 1
-                while(index < text.length) {
-                    when (val char = text[index]) {
-                        quote -> {
-                            //遇到匹配的字符串结束符号，结束这段字符串
-                            return CharSequence(stringBoundSymbols[quote]!!, builder.toString()) withEndIndex { index + 1 }
-                        }
-                        '\\' -> {
-                            //遇到转义符号
-                            if(++index >= text.length) {
-                                //WARNING: 转义符号后接EOF，错误的符号预期
-                                collector.warning(ExpectEscapedCharacterButEOF(index))
-                                return CharSequence(stringBoundSymbols[quote]!!, builder.toString()) withEndIndex { index }
-                            }
-                            val originChar = text[index]
-                            val escapeChar = stringEscapeSymbols[originChar]
-                            if(escapeChar == null) {
-                                //WARNING: 转义了一个普通字符
-                                collector.warning(NormalCharacterEscaped(originChar, index))
-                                builder.append(originChar)
-                            }else{
-                                builder.append(escapeChar)
-                            }
-                        }
-                        else -> builder.append(char)
+            val builder = StringBuilder()
+
+            var index = beginIndex + 1
+            while(index < text.length) {
+                when (val char = text[index]) {
+                    quoteEnd -> {
+                        //遇到匹配的字符串结束符号，结束这段字符串
+                        return CharSequence(type, builder.toString()) withEndIndex { index + 1 }
                     }
-                    index += 1
+                    '\\' -> {
+                        //遇到转义符号
+                        if(++index >= text.length) {
+                            //WARNING: 转义符号后接EOF，错误的符号预期
+                            collector.warning(ExpectEscapedCharacterButEOF(index))
+                            return CharSequence(type, builder.toString()) withEndIndex { index }
+                        }
+                        val originChar = text[index]
+                        val escapeChar = stringEscapeSymbols[originChar]
+                        if(escapeChar == null) {
+                            //WARNING: 转义了一个普通字符
+                            collector.warning(NormalCharacterEscaped(originChar, index))
+                            builder.append(originChar)
+                        }else{
+                            builder.append(escapeChar)
+                        }
+                    }
+                    else -> builder.append(char)
                 }
-                //WARNING: 遇到了EOF，而没有遇到字符串终结符，错误的符号预期
-                collector.warning(ExpectQuoteButEOF(quote, text.length))
-                return CharSequence(stringBoundSymbols[quote]!!, builder.toString()) withEndIndex { text.length }
+                index += 1
             }
-            return null
+            //WARNING: 遇到了EOF，而没有遇到字符串终结符，错误的符号预期
+            collector.warning(ExpectQuoteButEOF(quote, text.length))
+            return CharSequence(type, builder.toString()) withEndIndex { text.length }
         }
 
         fun analyseRestrictedString(beginIndex: Int): Morpheme? {
@@ -105,12 +124,12 @@ class LexicalAnalyzer {
                     val char = text[index]
                     if(char in spaceSymbols || char in restrictedDisableSymbols) {
                         //遇到空格或禁止在受限字符串使用的符号时，有限字符串结束
-                        return CharSequence(CharSequenceType.RESTRICTED, text.substring(beginIndex, index)) withEndIndex { index }
+                        return CharSequence(CharSequenceType.RESTRICTED, text.substring(beginIndex, index).runIf(options.translateUnderscoreToSpace) { replace('_', ' ') }) withEndIndex { index }
                     }
                     //除此之外的其他符号包括数字字母和受限字符串可用的符号
                 }
                 //遇到EOF，有限字符串结束
-                return CharSequence(CharSequenceType.RESTRICTED, text.substring(beginIndex)) withEndIndex { text.length }
+                return CharSequence(CharSequenceType.RESTRICTED, text.substring(beginIndex).runIf(options.translateUnderscoreToSpace) { replace('_', ' ') }) withEndIndex { text.length }
             }
             return null
         }
@@ -127,4 +146,6 @@ class LexicalAnalyzer {
             return this
         }
     }
+
+    private val emptyOptions = LexicalOptions()
 }
