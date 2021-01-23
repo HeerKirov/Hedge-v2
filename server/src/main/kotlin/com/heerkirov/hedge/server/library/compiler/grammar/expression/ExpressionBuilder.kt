@@ -1,4 +1,4 @@
-package com.heerkirov.hedge.server.library.compiler.grammar
+package com.heerkirov.hedge.server.library.compiler.grammar.expression
 
 import com.heerkirov.hedge.server.library.compiler.lexical.Morpheme
 import com.heerkirov.hedge.server.library.compiler.lexical.Symbol
@@ -52,4 +52,8 @@ data class NonTerminalItem<T : Enum<T>>(val productionKey: T) : ExpressionItem<T
 
 data class SymbolItem<T : Enum<T>>(val symbol: String) : TerminalItem<T, Symbol>
 
-class SequenceItem<T : Enum<T>> : TerminalItem<T, CharSequence>
+class SequenceItem<T : Enum<T>> : TerminalItem<T, CharSequence> {
+    override fun equals(other: Any?): Boolean = other === this || other is SequenceItem<*>
+
+    override fun hashCode(): Int = javaClass.hashCode()
+}
