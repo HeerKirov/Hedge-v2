@@ -29,9 +29,9 @@ class ExpressionsBuilder<T : Enum<T>> {
      */
     infix fun T.to(items: List<Any>) {
         expressions.add(Expression(this, items.map {
-            when (it) {
-                is String -> SymbolItem(it)
-                is Enum<*> -> {
+            when {
+                it is String -> SymbolItem(it)
+                it is Enum<*> -> {
                     @Suppress("UNCHECKED_CAST")
                     NonTerminalItem(it as T)
                 }
@@ -57,3 +57,20 @@ class SequenceItem<T : Enum<T>> : TerminalItem<T, CharSequence> {
 
     override fun hashCode(): Int = javaClass.hashCode()
 }
+
+class EOFItem<T : Enum<T>> : TerminalItem<T, Morpheme>  {
+    override fun equals(other: Any?): Boolean = other === this || other is EOFItem<*>
+
+    override fun hashCode(): Int = javaClass.hashCode()
+}
+
+class EmptyItem<T : Enum<T>> : TerminalItem<T, Morpheme> {
+    override fun equals(other: Any?): Boolean = other === this || other is EOFItem<*>
+
+    override fun hashCode(): Int = javaClass.hashCode()
+}
+
+//TODO 类图设计重构
+//     目前的类设计，syntax和expression的构造类耦合。
+//     在产生式构造器体系中被迫加入了与产生式构造无关的内容，比如增广文法的S'开始符号、FOLLOW和状态机中的EOF符号、FIRST中的∑符号
+//     后续的变化目标是将这两者的类剥离，不再耦合，也避免无关内容的渗透。
