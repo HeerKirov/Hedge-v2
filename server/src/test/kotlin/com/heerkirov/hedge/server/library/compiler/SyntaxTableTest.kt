@@ -1,11 +1,7 @@
 package com.heerkirov.hedge.server.library.compiler
 
-import com.heerkirov.hedge.server.library.compiler.grammar.expression.NonTerminalItem
-import com.heerkirov.hedge.server.library.compiler.grammar.expression.SequenceItem
-import com.heerkirov.hedge.server.library.compiler.grammar.expression.SymbolItem
-import com.heerkirov.hedge.server.library.compiler.grammar.syntax.FamilyBuilder
-import com.heerkirov.hedge.server.library.compiler.grammar.syntax.SyntaxExpression
-import com.heerkirov.hedge.server.library.compiler.grammar.syntax.SyntaxItem
+import com.heerkirov.hedge.server.library.compiler.grammar.expression.*
+import com.heerkirov.hedge.server.library.compiler.grammar.syntax.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

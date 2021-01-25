@@ -59,8 +59,8 @@ enum class Prod {
 
 val prodExpressions = grammarExpression<Prod> {
     Prod.SEQUENCE to listOf(Prod.SEQUENCE_ITEM)
-    Prod.SEQUENCE to listOf(Prod.SEQUENCE_ITEM, Prod.SEQUENCE)
-    Prod.SEQUENCE to listOf(Prod.SEQUENCE_ITEM, "&", Prod.SEQUENCE)
+    Prod.SEQUENCE to listOf(Prod.SEQUENCE, Prod.SEQUENCE_ITEM)
+    Prod.SEQUENCE to listOf(Prod.SEQUENCE, "&", Prod.SEQUENCE_ITEM)
 
     Prod.SEQUENCE_ITEM to listOf(Prod.SEQUENCE_BODY)
     Prod.SEQUENCE_ITEM to listOf("^", Prod.SEQUENCE_BODY)
@@ -70,7 +70,7 @@ val prodExpressions = grammarExpression<Prod> {
     Prod.SEQUENCE_BODY to listOf(Prod.ANNOTATION)
 
     Prod.ELEMENT to listOf(Prod.ELEMENT_ITEM)
-    Prod.ELEMENT to listOf(Prod.ELEMENT_ITEM, Prod.ELEMENT_PREFIX)
+    Prod.ELEMENT to listOf(Prod.ELEMENT_PREFIX, Prod.ELEMENT_ITEM)
 
     Prod.ANNOTATION to listOf("[", Prod.ANNOTATION_ITEM, "]")
     Prod.ANNOTATION to listOf("[", Prod.ANNOTATION_PREFIX, Prod.ANNOTATION_ITEM, "]")
@@ -102,8 +102,12 @@ val prodExpressions = grammarExpression<Prod> {
     Prod.ANNOTATION_SECONDARY_PREFIX_3 to listOf("#", "@")
 
     Prod.ANNOTATION_ITEM to listOf(string)
-    Prod.ANNOTATION_ITEM to listOf(string, "|", Prod.ANNOTATION_ITEM)
-    Prod.ANNOTATION_ITEM to listOf(string, "/", Prod.ANNOTATION_ITEM)
+    Prod.ANNOTATION_ITEM to listOf(Prod.ANNOTATION_ITEM, "|", string)
+    Prod.ANNOTATION_ITEM to listOf(Prod.ANNOTATION_ITEM, "/", string)
+
+    Prod.ELEMENT_ITEM to listOf(Prod.SFP)
+    Prod.ELEMENT_ITEM to listOf(Prod.ELEMENT_ITEM, "|", Prod.SFP)
+    Prod.ELEMENT_ITEM to listOf(Prod.ELEMENT_ITEM, "/", Prod.SFP)
 
     Prod.SFP to listOf(Prod.SUBJECT)
     Prod.SFP to listOf(Prod.SUBJECT, Prod.UNARY_FAMILY)
@@ -127,12 +131,12 @@ val prodExpressions = grammarExpression<Prod> {
     Prod.PREDICATIVE to listOf(Prod.SORT_LIST)
 
     Prod.STRING to listOf(string)
-    Prod.STRING to listOf(string, ".", Prod.STRING)
+    Prod.STRING to listOf(Prod.STRING, ".", string)
 
     Prod.COLLECTION to listOf("{", Prod.COLLECTION_ITEM, "}")
 
     Prod.COLLECTION_ITEM to listOf(string)
-    Prod.COLLECTION_ITEM to listOf(string, ",", Prod.COLLECTION_ITEM)
+    Prod.COLLECTION_ITEM to listOf(Prod.COLLECTION_ITEM, ",", string)
 
     Prod.RANGE to listOf(Prod.RANGE_BEGIN_SYMBOL, string, ",", string, Prod.RANGE_END_SYMBOL)
 
@@ -143,7 +147,7 @@ val prodExpressions = grammarExpression<Prod> {
     Prod.RANGE_END_SYMBOL to listOf(")")
 
     Prod.SORT_LIST to listOf(Prod.ORDERED_SORT_ITEM)
-    Prod.SORT_LIST to listOf(Prod.ORDERED_SORT_ITEM, ",", Prod.SORT_LIST)
+    Prod.SORT_LIST to listOf(Prod.SORT_LIST, ",", Prod.ORDERED_SORT_ITEM)
 
     Prod.ORDERED_SORT_ITEM to listOf(Prod.SORT_ITEM)
     Prod.ORDERED_SORT_ITEM to listOf("-", Prod.SORT_ITEM)

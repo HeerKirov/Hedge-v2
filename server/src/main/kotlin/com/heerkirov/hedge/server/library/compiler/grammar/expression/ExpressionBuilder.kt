@@ -56,18 +56,24 @@ class SequenceItem<T : Enum<T>> : TerminalItem<T, CharSequence> {
     override fun equals(other: Any?): Boolean = other === this || other is SequenceItem<*>
 
     override fun hashCode(): Int = javaClass.hashCode()
+
+    override fun toString(): String = "SequenceItem"
 }
 
 class EOFItem<T : Enum<T>> : TerminalItem<T, Morpheme>  {
     override fun equals(other: Any?): Boolean = other === this || other is EOFItem<*>
 
     override fun hashCode(): Int = javaClass.hashCode()
+
+    override fun toString(): String = "EOFItem"
 }
 
 class EmptyItem<T : Enum<T>> : TerminalItem<T, Morpheme> {
-    override fun equals(other: Any?): Boolean = other === this || other is EOFItem<*>
+    override fun equals(other: Any?): Boolean = other === this || other is EmptyItem<*>
 
     override fun hashCode(): Int = javaClass.hashCode()
+
+    override fun toString(): String = "EmptyItem"
 }
 
 //TODO 类图设计重构

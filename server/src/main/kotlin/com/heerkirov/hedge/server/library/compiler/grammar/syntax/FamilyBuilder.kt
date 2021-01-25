@@ -2,6 +2,7 @@ package com.heerkirov.hedge.server.library.compiler.grammar.syntax
 
 import com.heerkirov.hedge.server.library.compiler.grammar.expression.ExpressionItem
 import com.heerkirov.hedge.server.library.compiler.grammar.expression.NonTerminalItem
+import java.lang.RuntimeException
 
 /**
  * 项集族的分析构造器。
@@ -62,12 +63,12 @@ class FamilyBuilder<T : Enum<T>>(private val expressions: List<SyntaxExpression<
                 .filterIsInstance<NonTerminalItem<T>>()
                 .map { it.productionKey }
             //根据这些非终结符，从产生式列表取出对应的所有产生式。过滤出所有在闭包中还不存在的项
-            val expandedExpressions = keys.asSequence().map { expressionKeyMap[it]!! }.flatten().map {
-                SyntaxItem(
-                    it,
-                    0
-                )
-            }.filter { it !in closureItemSet }.toSet()
+            val expandedExpressions = keys.asSequence()
+                .map { expressionKeyMap[it] ?: throw NullPointerException("$it is not exist in expression definitions.") }
+                .flatten()
+                .map { SyntaxItem(it, 0) }
+                .filter { it !in closureItemSet }
+                .toSet()
             //如果扩展列表为空，表示闭包的迭代结束。否则加入闭包
             if(expandedExpressions.isEmpty()) {
                 return closureItemSet
@@ -92,9 +93,17 @@ class FamilyBuilder<T : Enum<T>>(private val expressions: List<SyntaxExpression<
 private typealias SyntaxItemSet<T> = Set<SyntaxItem<T>>
 
 /**
- * 项集族(状态机)中的一个项集(状态)。它包括项集，除此之外还包括了状态编号、goto目标等信息。
+ * 项集族(状态机)中的一个项集(状态)。它包括项集，除此之外还包括了状态编号、状态所代表的非终结符、goto目标等信息。
  */
 class SyntaxItemState<T : Enum<T>>(val index: Int, val set: SyntaxItemSet<T>, val goto: Map<ExpressionItem<T>, Int>) {
+    val item: ExpressionItem<T>?
+
+    init {
+        val items = set.asSequence().filter { it.next > 0 }.map { it.expression.sequence[it.next - 1] }.toSet()
+        if(items.size > 1) throw RuntimeException("State $index has ${items.size} keys: $items.")
+        this.item = items.firstOrNull()
+    }
+
     override fun equals(other: Any?): Boolean = other === this || other is SyntaxItemState<*> && other.index == index && other.set == set && other.goto == goto
 
     override fun hashCode(): Int {

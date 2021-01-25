@@ -30,8 +30,12 @@ object SyntaxTableBuilder {
 
         fun setAction(state: Int, key: TerminalItem<T, *>, value: Command) {
             val map = action.computeIfAbsent(state) { HashMap() }
-            if(key in map) throw RuntimeException("Conflict command in ($state, ACTION[$key]), new value is $value but ${map[key]} exists.")
-            map[key] = value
+            if(key in map) {
+                //发生词法分析表冲突时，基本上是那个设计上的冲突点了。此时默认沿用更早的一项规约行为
+                println("Conflict command in ($state, ACTION[$key]), new command is [$value] but [${map[key]}] exists.")
+            }else{
+                map[key] = value
+            }
         }
         fun setGoto(state: Int, nonTerminalSymbol: T, gotoState: Int) {
             goto.computeIfAbsent(state) { HashMap() }[nonTerminalSymbol] = gotoState
@@ -58,7 +62,7 @@ object SyntaxTableBuilder {
             if(state.set.any { it.expression.isRoot() && it.isAtEnd() }) setAction(state.index, EOFItem(), Command(CommandType.ACCEPT, 0))
         }
 
-        return SyntaxTable(states.size, action, goto)
+        return SyntaxTable(states.size, action, goto, states.map { it.index to it.item }.toMap())
     }
 
     /**
@@ -72,6 +76,7 @@ object SyntaxTableBuilder {
         val rootKey = (expressions.first { it.isRoot() }.sequence.first() as NonTerminalItem<T>).productionKey
         //把EOF放入开始符号的FOLLOW集合中
         val eof = EOFItem<T>()
+        val emptyItem = EmptyItem<T>()
         follows[rootKey] = mutableSetOf(eof)
 
         while (true) {
@@ -93,9 +98,9 @@ object SyntaxTableBuilder {
                         }else{
                             //非终结符的FIRST从集合取；终结符的FIRST只包含它自身
                             val firstN = if(nextItem is NonTerminalItem<*>) firstSets[nextItem.productionKey]!! else setOf(nextItem as TerminalItem<T, *>)
-                            if(eof in firstN) {
+                            if(emptyItem in firstN) {
                                 follows[expression.key]?.let { addToSet(itemKey, it) }
-                                addToSet(itemKey, firstN - eof)
+                                addToSet(itemKey, firstN - emptyItem)
                             }else{
                                 addToSet(itemKey, firstN)
                             }
@@ -131,7 +136,13 @@ object SyntaxTableBuilder {
                         //从第一个文法符号Y1开始，将FIRST(Y1)的内容都加入FIRST(KEY)
                         val firstY = if(expressionItem is NonTerminalItem<*>) {
                             //如果Y是终结符，那么从sets取FIRST集合。如果取不到，认为还没有遍历，因此暂时跳过当前产生式
-                            sets[expressionItem.productionKey] ?: break
+                            val firstY = sets[expressionItem.productionKey]
+                            if(firstY == null) {
+                                breaks = true
+                                break
+                            }else{
+                                firstY
+                            }
                         }else{
                             //如果Y是终结符，那么FIRST(Y)仅包含它自身
                             setOf(expressionItem as TerminalItem<T, *>)
@@ -169,11 +180,13 @@ enum class CommandType {
     SHIFT, REDUCE, ERROR, ACCEPT
 }
 
-class SyntaxTable<T : Enum<T>> internal constructor(stateCount: Int, action: Map<Int, Map<TerminalItem<T, *>, Command>>, goto: Map<Int, Map<T, Int>>) {
+class SyntaxTable<T : Enum<T>>
+internal constructor(stateCount: Int, action: Map<Int, Map<TerminalItem<T, *>, Command>>, goto: Map<Int, Map<T, Int>>, items: Map<Int, ExpressionItem<T>?>) {
     private val terminals: Map<TerminalItem<T, *>, Int>
     private val nonTerminals: Map<T, Int>
     private val actionTable: List<List<Command?>>
     private val gotoTable: List<List<Int?>>
+    private val items: List<ExpressionItem<T>?>
 
     init {
         //提取action中所有的终结符，将它们排列一下，并给出编号
@@ -193,6 +206,9 @@ class SyntaxTable<T : Enum<T>> internal constructor(stateCount: Int, action: Map
         }
         this.terminals = terminals.toMap()
         this.nonTerminals = nonTerminals.toMap()
+        this.items = (0 until stateCount).map { i ->
+            items[i]
+        }
     }
 
     override fun toString(): String {
@@ -203,17 +219,30 @@ class SyntaxTable<T : Enum<T>> internal constructor(stateCount: Int, action: Map
         val headAction = actionList.map {
             when(it) {
                 is SymbolItem -> it.symbol
-                is EOFItem -> "$"
-                is SequenceItem -> "s"
+                is EOFItem -> "∑"
+                is SequenceItem -> "str"
                 else -> it.toString()
             }
         }.joinToString(" ") { String.format("%-3s", it) }
         val headGoto = gotoList.map { it.name }.joinToString(" ") { String.format("%-2s", it ) }
-        val head = "st | $headAction | $headGoto"
+
+        val itemStrings = items.map {
+            when(it) {
+                is SymbolItem -> it.symbol
+                is EOFItem -> "∑"
+                is SequenceItem -> "str"
+                is NonTerminalItem -> it.productionKey.toString()
+                else -> it.toString()
+            }
+        }
+        val maxItemStringLength = itemStrings.map { it.length }.maxOrNull()!!
+
+        val head = String.format("%-${maxItemStringLength}s | st | %s | %s", "items", headAction, headGoto)
+
         val body = actionTable.zip(gotoTable).mapIndexed { i, (action, goto) ->
             val actionString = actionList.map { terminals[it]!! }.map { action[it] }.joinToString(" ") { it?.toString() ?: "   " }
             val gotoString = gotoList.map { nonTerminals[it]!! }.map { goto[it] }.joinToString(" ") { it?.let { String.format("%-2d", it) } ?: "  " }
-            String.format("%-2d | %s | %s", i, actionString, gotoString)
+            String.format("%-${maxItemStringLength}s | %-2d | %s | %s", itemStrings[i], i, actionString, gotoString)
         }.joinToString("\n")
 
         return "$head\n$body"
