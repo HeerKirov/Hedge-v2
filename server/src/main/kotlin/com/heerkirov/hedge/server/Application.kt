@@ -2,7 +2,8 @@ package com.heerkirov.hedge.server
 
 import com.heerkirov.hedge.server.application.ApplicationOptions
 import com.heerkirov.hedge.server.application.runApplication
-import com.heerkirov.hedge.server.library.compiler.grammar.prodExpressions
+import com.heerkirov.hedge.server.library.compiler.grammar.definintion.printSyntaxTable
+import com.heerkirov.hedge.server.library.compiler.grammar.definintion.readSyntaxExpression
 import com.heerkirov.hedge.server.library.compiler.grammar.syntax.SyntaxTableBuilder
 import com.heerkirov.hedge.server.utils.Parameters
 import kotlin.system.exitProcess
@@ -27,7 +28,17 @@ fun main(args: Array<String>) {
 }
 
 fun testCompiler() {
-    val table = SyntaxTableBuilder.parse(prodExpressions)
-    println(table.toString())
+    val testExpressions = """
+        E -> E + T
+        E -> T
+        T -> T * F
+        T -> F
+        F -> ( E )
+        F -> id
+    """.trimIndent()
+    val syntaxExpressions = readSyntaxExpression(testExpressions)
+    val syntaxTable = SyntaxTableBuilder.parse(syntaxExpressions)
+    println(printSyntaxTable(syntaxTable))
+
     exitProcess(0)
 }
