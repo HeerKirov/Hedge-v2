@@ -2,10 +2,10 @@ package com.heerkirov.hedge.server
 
 import com.heerkirov.hedge.server.application.ApplicationOptions
 import com.heerkirov.hedge.server.application.runApplication
-import com.heerkirov.hedge.server.library.compiler.grammar.definintion.printSyntaxTable
-import com.heerkirov.hedge.server.library.compiler.grammar.definintion.readSyntaxExpression
-import com.heerkirov.hedge.server.library.compiler.grammar.syntax.SyntaxTableBuilder
+import com.heerkirov.hedge.server.library.compiler.grammar.GrammarAnalyzer
+import com.heerkirov.hedge.server.library.compiler.lexical.LexicalAnalyzer
 import com.heerkirov.hedge.server.utils.Parameters
+import org.slf4j.LoggerFactory
 import kotlin.system.exitProcess
 
 fun main(args: Array<String>) {
@@ -28,17 +28,12 @@ fun main(args: Array<String>) {
 }
 
 fun testCompiler() {
-    val testExpressions = """
-        E -> E + T
-        E -> T
-        T -> T * F
-        T -> F
-        F -> ( E )
-        F -> id
-    """.trimIndent()
-    val syntaxExpressions = readSyntaxExpression(testExpressions)
-    val syntaxTable = SyntaxTableBuilder.parse(syntaxExpressions)
-    println(printSyntaxTable(syntaxTable))
-
+    val log = LoggerFactory.getLogger("testCompiler")
+    val lexicalResult = LexicalAnalyzer.parse("order:+^id,-p id:{1, 2, 3?}|description: 'hello' -f [@#fav|like][updating] @a.b|'c'.`d` rating:[A, D)|B~+|A~D|rating>=E")
+    lexicalResult.warnings.forEach { log.warn(it.toString()) }
+    lexicalResult.errors.forEach { log.error(it.toString()) }
+    if(lexicalResult.result != null) {
+        GrammarAnalyzer.parse(lexicalResult.result)
+    }
     exitProcess(0)
 }

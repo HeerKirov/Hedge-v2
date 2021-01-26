@@ -2,9 +2,12 @@ package com.heerkirov.hedge.server.library.compiler
 
 import com.heerkirov.hedge.server.library.compiler.grammar.definintion.KeyNotation
 import com.heerkirov.hedge.server.library.compiler.grammar.definintion.SyntaxNotation
+import com.heerkirov.hedge.server.library.compiler.grammar.definintion.printSyntaxTable
+import com.heerkirov.hedge.server.library.compiler.grammar.definintion.readSyntaxExpression
 import com.heerkirov.hedge.server.library.compiler.grammar.syntax.ExpandExpression
 import com.heerkirov.hedge.server.library.compiler.grammar.syntax.SyntaxFamilyBuilder
 import com.heerkirov.hedge.server.library.compiler.grammar.syntax.SyntaxItem
+import com.heerkirov.hedge.server.library.compiler.grammar.syntax.SyntaxTableBuilder
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -104,5 +107,34 @@ class SyntaxTableTest {
             SyntaxItem(expressions[1], 1),
             SyntaxItem(expressions[2], 1),
         ), SyntaxNotation.of("+")))
+    }
+
+    @Test
+    fun testSyntaxTable() {
+        val testExpressions = """
+            E -> E + T
+            E -> T
+            T -> T * F
+            T -> F
+            F -> ( E )
+            F -> id
+        """.trimIndent()
+        val syntaxExpressions = readSyntaxExpression(testExpressions)
+        val syntaxTable = SyntaxTableBuilder.parse(syntaxExpressions)
+        assertEquals("""
+            6  (   )   *   +   id  ∑   E  F  T 
+            0  s4  _   _   _   s5  _   1  3  2 
+            1  _   _   _   s6  _   acc _  _  _ 
+            2  _   r2  s7  r2  _   r2  _  _  _ 
+            3  _   r4  r4  r4  _   r4  _  _  _ 
+            4  s4  _   _   _   s5  _   8  3  2 
+            5  _   r6  r6  r6  _   r6  _  _  _ 
+            6  s4  _   _   _   s5  _   _  3  9 
+            7  s4  _   _   _   s5  _   _  10 _ 
+            8  _   s11 _   s6  _   _   _  _  _ 
+            9  _   r1  s7  r1  _   r1  _  _  _ 
+            10 _   r3  r3  r3  _   r3  _  _  _ 
+            11 _   r5  r5  r5  _   r5  _  _  _ 
+        """.trimIndent(), printSyntaxTable(syntaxTable))
     }
 }

@@ -22,4 +22,6 @@ class ExpandExpression(val index: Int, private val _key: KeyNotation?, val seque
 /**
  * EOF输入终结符号。
  */
-object EOFNotation : TerminalNotation
+object EOFNotation : TerminalNotation {
+    override fun toString() = "∑"
+}

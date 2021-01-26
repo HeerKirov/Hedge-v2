@@ -1,11 +1,14 @@
 package com.heerkirov.hedge.server.library.compiler.grammar.syntax
 
 import com.heerkirov.hedge.server.library.compiler.grammar.definintion.*
+import org.slf4j.LoggerFactory
 
 /**
  * 执行将文法产生式编译为语法分析表的过程。
  */
 object SyntaxTableBuilder {
+    private val log = LoggerFactory.getLogger(SyntaxTableBuilder::class.java)
+
     /**
      * 给出一组文法产生式。构造一张语法分析表。
      */
@@ -37,7 +40,7 @@ object SyntaxTableBuilder {
             val map = action.computeIfAbsent(state) { HashMap() }
             if(key in map) {
                 //发生词法分析表冲突时，基本上是那个设计上的冲突点了。此时默认沿用更早的一项规约行为
-                println("Conflict command in ($state, ACTION[$key]), new command is [$value] but [${map[key]}] exists.")
+                log.warn("Conflict command in ($state, ACTION[$key]), new command is [$value] but [${map[key]}] exists.")
             }else{
                 map[key] = value
             }
@@ -75,9 +78,9 @@ object SyntaxTableBuilder {
      */
     private fun createSyntaxTable(statusCount: Int, action: Map<Int, Map<TerminalNotation, Action>>, goto: Map<Int, Map<String, Int>>): SyntaxTable {
         //提取action中所有的终结符，将它们排列一下，并给出编号
-        val actionNotations = action.values.asSequence().map { it.keys }.flatten().toSet().mapIndexed { i, item -> item to i }
+        val actionNotations = action.values.asSequence().map { it.keys }.flatten().toSet().sortedBy { if(it is SyntaxNotation) it.symbol else "∑" }.mapIndexed { i, item -> item to i }
         //提取goto中的所有非终结符
-        val gotoNotations = goto.values.asSequence().map { it.keys }.flatten().toSet().mapIndexed { i, item -> item to i }
+        val gotoNotations = goto.values.asSequence().map { it.keys }.flatten().toSet().sorted().mapIndexed { i, item -> item to i }
         val actionTable = (0 until statusCount).map { i ->
             actionNotations.map { (terminal, _) ->
                 action[i]!![terminal]

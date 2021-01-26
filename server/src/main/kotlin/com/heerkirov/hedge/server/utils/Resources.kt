@@ -8,7 +8,7 @@ object Resources {
     private val filesCaches: MutableMap<String, String> = ConcurrentHashMap()
 
     fun getResourceAsText(path: String): String {
-        val resource = this.javaClass.getResource(path)!!
+        val resource = this.javaClass.getResource("/$path")!!
         return resourceCaches[path] ?: resource.readText().also {
             resourceCaches[path] = it
         }

@@ -30,19 +30,27 @@ class SyntaxTable(internal val actionTable: Array<Array<Action?>>,
  */
 sealed class Action
 
-data class Shift(val status: Int) : Action()
+data class Shift(val status: Int) : Action() {
+    override fun toString() = "Shift($status)"
+}
 
-data class Reduce(val syntaxExpressionIndex: Int) : Action()
+data class Reduce(val syntaxExpressionIndex: Int) : Action() {
+    override fun toString() = "Reduce($syntaxExpressionIndex)"
+}
 
-data class Error(val code: Int) : Action()
+data class Error(val code: Int) : Action() {
+    override fun toString() = "Error($code)"
+}
 
-object Accept : Action()
+object Accept : Action() {
+    override fun toString() = "Accept"
+}
 
 /**
  * 读取并生成语法分析表的定义。
  */
 fun readSyntaxTable(text: String): SyntaxTable {
-    val lines = text.split("\n").apply { if(isEmpty()) throw RuntimeException("Text of syntax table is empty.") }.map { it.split(" ") }
+    val lines = text.split("\n").apply { if(isEmpty()) throw RuntimeException("Text of syntax table is empty.") }.map { it.split(Regex("\\s+")) }
 
     val head = lines.first().apply { if(isEmpty()) throw RuntimeException("Table head is empty.") }
     val terminalNum = head.first().toInt()
@@ -78,9 +86,9 @@ fun printSyntaxTable(table: SyntaxTable): String {
     val actionTable = table.actionTable.map { row ->
         row.map { action ->
             if(action == null) "_" else when (action) {
-                is Shift -> action.status.toString()
-                is Reduce -> action.syntaxExpressionIndex.toString()
-                is Error -> action.code.toString()
+                is Shift -> "s${action.status}"
+                is Reduce -> "r${action.syntaxExpressionIndex}"
+                is Error -> "e${action.code}"
                 is Accept -> "acc"
             }
         }

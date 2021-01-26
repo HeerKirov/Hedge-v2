@@ -32,6 +32,8 @@ class KeyNotation private constructor(val key: String) : Notation {
     override fun equals(other: Any?) = other === this || (other is KeyNotation && other.key == key)
 
     override fun hashCode() = key.hashCode()
+
+    override fun toString() = key
 }
 
 /**
@@ -49,6 +51,8 @@ class SyntaxNotation private constructor(val symbol: String) : TerminalNotation 
     override fun equals(other: Any?) = other === this || (other is SyntaxNotation && other.symbol == symbol)
 
     override fun hashCode() = symbol.hashCode()
+
+    override fun toString() = symbol
 }
 
 /**
@@ -57,7 +61,7 @@ class SyntaxNotation private constructor(val symbol: String) : TerminalNotation 
  */
 fun readSyntaxExpression(text: String): List<SyntaxExpression> {
     val lines = text.split("\n")
-        .asSequence().filter { it.isNotBlank() }.map { it.split(" ") }
+        .asSequence().filter { it.isNotBlank() }.map { it.split(Regex("\\s+")) }
         .map {
             if(it.size < 2 || it[1] != "->") throw RuntimeException("Expression [${it.joinToString(" ")}] is incorrect.")
             it[0] to it.subList(2, it.size)

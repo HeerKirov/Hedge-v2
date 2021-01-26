@@ -62,7 +62,7 @@ class WebAccessor(private val appdata: AppDataDriver, private val frontendPath: 
     private fun index(ctx: Context) {
         when {
             isAccess -> ctx.html(Resources.getFileAsText("$frontendPath/${Filename.FRONTEND_INDEX}"))
-            isResourceExists -> ctx.html(Resources.getResourceAsText("/forbidden.html"))
+            isResourceExists -> ctx.html(Resources.getResourceAsText("forbidden.html"))
             else -> ctx.status(404).html("<b>No frontend resource found in $frontendPath.</b>")
         }
     }
