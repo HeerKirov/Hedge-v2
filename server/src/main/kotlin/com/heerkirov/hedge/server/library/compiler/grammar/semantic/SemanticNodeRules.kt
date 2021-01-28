@@ -29,15 +29,15 @@ class SemanticNodeRules {
     ])
     fun eval5And6(symbol: Symbol, body: SequenceBody): SequenceItem {
         return when (symbol.value) {
-            "-" -> SequenceItem(minus = true, source = false, body, body.beginIndex, body.endIndex)
-            "^" -> SequenceItem(minus = false, source = true, body, body.beginIndex, body.endIndex)
+            "-" -> SequenceItem(minus = true, source = false, body, symbol.beginIndex, body.endIndex)
+            "^" -> SequenceItem(minus = false, source = true, body, symbol.beginIndex, body.endIndex)
             else -> throw RuntimeException("Unexpected symbol ${symbol.value}.")
         }
     }
 
-    @ForExpression("SEQUENCE_ITEM -> - ^ SEQUENCE_BODY", args = [2])
-    fun eval7(body: SequenceBody): SequenceItem {
-        return SequenceItem(minus = true, source = true, body, body.beginIndex, body.endIndex)
+    @ForExpression("SEQUENCE_ITEM -> - ^ SEQUENCE_BODY", args = [0, 2])
+    fun eval7(symbol: Symbol, body: SequenceBody): SequenceItem {
+        return SequenceItem(minus = true, source = true, body, symbol.beginIndex, body.endIndex)
     }
 
     @ForExpressions([
@@ -58,13 +58,13 @@ class SemanticNodeRules {
         return Element(symbol, items.toList(), symbol.beginIndex, items.endIndex)
     }
 
-    @ForExpression("ANNOTATION -> [ ANNOTATION_ITEM ]", args = [1])
-    fun eval12(items: MutList<Str>): Annotation {
-        return Annotation(emptyList(), items.toList(), items.beginIndex, items.endIndex)
+    @ForExpression("ANNOTATION -> [ ANNOTATION_ITEM ]")
+    fun eval12(begin: Symbol, items: MutList<Str>, end: Symbol): Annotation {
+        return Annotation(emptyList(), items.toList(), begin.beginIndex, end.endIndex)
     }
 
-    @ForExpression("ANNOTATION -> [ ANNOTATION_PREFIX ANNOTATION_ITEM ]", args = [2, 3], injectErrorCollector = true)
-    fun eval13(symbols: MutList<Symbol>, items: MutList<Str>, collector: ErrorCollector<GrammarError<*>>): Annotation {
+    @ForExpression("ANNOTATION -> [ ANNOTATION_PREFIX ANNOTATION_ITEM ]", injectErrorCollector = true)
+    fun eval13(begin: Symbol, symbols: MutList<Symbol>, items: MutList<Str>, end: Symbol , collector: ErrorCollector<GrammarError<*>>): Annotation {
         val symbolList = ArrayList<Symbol>(3)
         for (symbol in symbols.items) {
             if(symbolList.any { it.value == symbol.value }) {
@@ -73,7 +73,7 @@ class SemanticNodeRules {
                 symbolList.add(symbol)
             }
         }
-        return Annotation(symbolList, items.toList(), symbols.beginIndex, items.endIndex)
+        return Annotation(symbolList, items.toList(), begin.beginIndex, end.endIndex)
     }
 
     @ForExpressions([

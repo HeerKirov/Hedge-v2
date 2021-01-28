@@ -47,8 +47,22 @@ abstract class SLRParser(private val syntaxExpressions: Map<Int, SyntaxExpressio
             before(stack, readIndex, lexicalList, action)
             if(action == null) {
                 //错误：调用错误例程
-                //TODO 还未处理错误例程
                 error(lexical, syntaxTable.getExpected(s))
+                //接下来将清空状态栈，不断丢弃符号，直到检索到一个符号可以被移入，或者直到EOF
+                stack.apply { clear() }.apply { add(0) }
+                var resumed = false
+                while (true) {
+                    readIndex += 1
+                    if(readIndex >= lexicalList.size) {
+                        break
+                    }
+                    val resumeAction = syntaxTable.getAction(0, morphemeToNotation(lexicalList[readIndex].morpheme))
+                    if(resumeAction != null && resumeAction is Shift) {
+                        resumed = true
+                        break
+                    }
+                }
+                if(!resumed) break
             }else when (action) {
                 is Shift -> {
                     //移入：将SHIFT(status)的状态移入栈中，并使读取的符号后推1
@@ -66,7 +80,6 @@ abstract class SLRParser(private val syntaxExpressions: Map<Int, SyntaxExpressio
                 }
                 is Accept -> {
                     //接受：语法分析完成
-                    accept()
                     break
                 }
             }
@@ -108,11 +121,6 @@ abstract class SLRParser(private val syntaxExpressions: Map<Int, SyntaxExpressio
      * @param reduceException 用于规约的产生式
      */
     protected open fun reduce(reduceException: SyntaxExpression) {}
-
-    /**
-     * 接受accept信号。
-     */
-    protected open fun accept() {}
 
     /**
      * 发生语法错误，遭遇了不可能遇到的文法符号。

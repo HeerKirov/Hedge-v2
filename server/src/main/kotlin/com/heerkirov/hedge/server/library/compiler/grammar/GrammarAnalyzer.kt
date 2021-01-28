@@ -62,11 +62,14 @@ object GrammarAnalyzer {
         }
 
         override fun error(actualLexical: LexicalItem, expected: List<String>) {
-            if(actualLexical.morpheme is LexicalSymbol && actualLexical.morpheme.symbol == "∑") {
+            val error = if(actualLexical.morpheme is LexicalSymbol && actualLexical.morpheme.symbol == "∑") {
                 UnexpectedEOF(expected, actualLexical.beginIndex)
             }else{
                 UnexpectedToken(morphemeToNotation(actualLexical.morpheme), expected, actualLexical.beginIndex)
             }
+            collector.error(error)
+            //发生错误时，与SLR分析器行为保持一致，清空栈区
+            stack.clear()
         }
 
         fun getResult(): SemanticRoot {

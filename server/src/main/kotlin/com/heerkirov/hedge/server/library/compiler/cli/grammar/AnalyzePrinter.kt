@@ -47,4 +47,9 @@ class AnalyzePrinter(syntaxExpressions: List<SyntaxExpression>, syntaxTable: Syn
         reduceException.sequence.indices.forEach { _ -> symbolStack.pop() }
         symbolStack.push(reduceException.key.key)
     }
+
+    override fun error(actualLexical: LexicalItem, expected: List<String>) {
+        //发生错误时，与SLR分析器行为保持一致，清空栈区
+        symbolStack.clear()
+    }
 }
