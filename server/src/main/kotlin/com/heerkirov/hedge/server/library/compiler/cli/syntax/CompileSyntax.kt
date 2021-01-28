@@ -1,7 +1,9 @@
-package com.heerkirov.hedge.server.library.compiler.grammar.syntax
+package com.heerkirov.hedge.server.library.compiler.cli.syntax
 
 import com.heerkirov.hedge.server.library.compiler.grammar.definintion.printSyntaxTable
 import com.heerkirov.hedge.server.library.compiler.grammar.definintion.readSyntaxExpression
+import com.heerkirov.hedge.server.library.compiler.grammar.syntax.SyntaxTableBuilder
+import com.heerkirov.hedge.server.utils.Fs
 import com.heerkirov.hedge.server.utils.Resources
 
 /**
@@ -11,5 +13,5 @@ fun main() {
     val expressionDefinition = Resources.getResourceAsText("syntax/syntax.txt")
     val syntaxExpression = readSyntaxExpression(expressionDefinition)
     val syntaxTable = SyntaxTableBuilder.parse(syntaxExpression)
-    println(printSyntaxTable(syntaxTable))
+    Fs.writeText("src/main/resources/syntax/syntax-table.txt", printSyntaxTable(syntaxTable))
 }

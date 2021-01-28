@@ -5,7 +5,7 @@ import java.util.*
 /**
  * 专门的error收集器，方便收集错误和警告。
  */
-class ErrorCollector<E : CompileError> {
+class ErrorCollector<E : CompileError<*>> {
     private var warningList: MutableList<E>? = null
     private var errorList: MutableList<E>? = null
 

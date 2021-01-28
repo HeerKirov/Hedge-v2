@@ -6,8 +6,10 @@ import kotlin.math.max
 
 class SyntaxTable(internal val actionTable: Array<Array<Action?>>,
                   internal val gotoTable: Array<Array<Int?>>,
-                  internal val actionMap: Map<String, Int>,
-                  internal val gotoMap: Map<String, Int>) {
+                  private val actionMap: Map<String, Int>,
+                  private val gotoMap: Map<String, Int>) {
+    private val reflectActionMap by lazy { actionMap.asSequence().map { (k, v) -> v to k }.toMap() }
+
     val statusCount: Int get() = actionTable.size
 
     val actionNotations: Set<String> get() = actionMap.keys
@@ -22,6 +24,14 @@ class SyntaxTable(internal val actionTable: Array<Array<Action?>>,
     fun getGoto(status: Int, nonTerminalNotation: String): Int? {
         val i = gotoMap[nonTerminalNotation] ?: throw RuntimeException("Goto $nonTerminalNotation is not exist.")
         return gotoTable[status][i]
+    }
+
+    fun getExpected(status: Int): List<String> {
+        return actionTable[status].asSequence()
+            .mapIndexed { i, action -> i to action }
+            .filter { (_, action) -> action != null }
+            .map { (i, _) -> reflectActionMap[i]!! }
+            .toList()
     }
 }
 
@@ -38,10 +48,6 @@ data class Reduce(val syntaxExpressionIndex: Int) : Action() {
     override fun toString() = "Reduce($syntaxExpressionIndex)"
 }
 
-data class Error(val code: Int) : Action() {
-    override fun toString() = "Error($code)"
-}
-
 object Accept : Action() {
     override fun toString() = "Accept"
 }
@@ -50,7 +56,10 @@ object Accept : Action() {
  * 读取并生成语法分析表的定义。
  */
 fun readSyntaxTable(text: String): SyntaxTable {
-    val lines = text.split("\n").apply { if(isEmpty()) throw RuntimeException("Text of syntax table is empty.") }.map { it.split(Regex("\\s+")) }
+    val lines = text.split("\n")
+        .filter { it.isNotBlank() }
+        .apply { if(isEmpty()) throw RuntimeException("Text of syntax table is empty.") }
+        .map { it.split(Regex("\\s+")).filter { i -> i.isNotBlank() } }
 
     val head = lines.first().apply { if(isEmpty()) throw RuntimeException("Table head is empty.") }
     val terminalNum = head.first().toInt()
@@ -64,7 +73,6 @@ fun readSyntaxTable(text: String): SyntaxTable {
                 it == "acc" -> Accept
                 it.startsWith("s") -> Shift(it.substring(1).toInt())
                 it.startsWith("r") -> Reduce(it.substring(1).toInt())
-                it.startsWith("e") -> Error(it.substring(1).toInt())
                 else -> throw RuntimeException("Unknown action '$it'.")
             }
         }.toTypedArray()
@@ -88,7 +96,6 @@ fun printSyntaxTable(table: SyntaxTable): String {
             if(action == null) "_" else when (action) {
                 is Shift -> "s${action.status}"
                 is Reduce -> "r${action.syntaxExpressionIndex}"
-                is Error -> "e${action.code}"
                 is Accept -> "acc"
             }
         }

@@ -29,7 +29,7 @@ fun main(args: Array<String>) {
 
 fun testCompiler() {
     val log = LoggerFactory.getLogger("testCompiler")
-    val lexicalResult = LexicalAnalyzer.parse("order:+^id,-p id:{1, 2, 3?}|description: 'hello' -f [@#fav|like][updating] @a.b|'c'.`d` rating:[A, D)|B~+|A~D|rating>=E")
+    val lexicalResult = LexicalAnalyzer.parse("order:+^id,-p id:{1, 2, 3?}|description: 'hello' [@#fav|like] @a.b|'c'.`d` rating:[A, D)|B~+|A~D|rating>=E")
     lexicalResult.warnings.forEach { log.warn(it.toString()) }
     lexicalResult.errors.forEach { log.error(it.toString()) }
     if(lexicalResult.result != null) {

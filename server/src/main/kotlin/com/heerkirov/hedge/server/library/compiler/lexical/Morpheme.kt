@@ -55,7 +55,7 @@ class CharSequence(val type: CharSequenceType, val value: String) : Morpheme() {
 
     override fun toString(): String {
         val char = stringBoundSymbolsReflect[type] ?: ""
-        return "(str[$char]$value)"
+        return "str[$char]$value"
     }
 }
 

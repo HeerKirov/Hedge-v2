@@ -3,9 +3,9 @@ package com.heerkirov.hedge.server.library.compiler.utils
 /**
  * 编译错误。
  */
-abstract class CompileError(val code: Int, val message: String, val happenPosition: IndexRange) {
+abstract class CompileError<INFO : Any>(val code: Int, val message: String, val happenPosition: IndexRange, val info: INFO? = null) {
     override fun equals(other: Any?): Boolean {
-        return other === this || (other is CompileError && other.code == this.code && other.message == this.message && other.happenPosition == this.happenPosition)
+        return other === this || (other is CompileError<*> && other.code == this.code && other.message == this.message && other.happenPosition == this.happenPosition)
     }
 
     override fun hashCode(): Int {
@@ -23,10 +23,10 @@ abstract class CompileError(val code: Int, val message: String, val happenPositi
 /**
  * 词法分析错误。词法分析系列的code范围为1000~1999。
  */
-abstract class LexicalError(code: Int, message: String, happenPositionIndex: IndexRange) : CompileError(code, message, happenPositionIndex)
+abstract class LexicalError<INFO : Any>(code: Int, message: String, happenPositionIndex: IndexRange, info: INFO? = null) : CompileError<INFO>(code, message, happenPositionIndex, info)
 
 /**
  * 语法分析错误。语法分析系列的code范围为2000~2999。
  */
-abstract class GrammarError(code: Int, message: String, happenPositionIndex: IndexRange) : CompileError(code, message, happenPositionIndex)
+abstract class GrammarError<INFO : Any>(code: Int, message: String, happenPositionIndex: IndexRange, info: INFO? = null) : CompileError<INFO>(code, message, happenPositionIndex, info)
 

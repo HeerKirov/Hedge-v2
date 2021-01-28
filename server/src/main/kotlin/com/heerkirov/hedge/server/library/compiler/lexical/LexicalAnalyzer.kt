@@ -14,7 +14,7 @@ object LexicalAnalyzer {
      * 执行词法分析。
      * 返回的列表除词素外，还包括每个词素的出身位置，以及生成该词素的原始字符串，便于进行错误回溯。
      */
-    fun parse(queryLanguage: String, options: LexicalOptions? = null): AnalysisResult<List<LexicalItem>, LexicalError> {
+    fun parse(queryLanguage: String, options: LexicalOptions? = null): AnalysisResult<List<LexicalItem>, LexicalError<*>> {
         val parser = Parser(queryLanguage, options ?: emptyOptions)
         val result = LinkedList<LexicalItem>()
         var index = 0
@@ -27,7 +27,7 @@ object LexicalAnalyzer {
     }
 
     private class Parser(private val text: String, private val options: LexicalOptions) {
-        val collector = ErrorCollector<LexicalError>()
+        val collector = ErrorCollector<LexicalError<*>>()
         var endIndex: Int = 0
 
         fun analyseSpace(beginIndex: Int): Morpheme? {
