@@ -1,5 +1,7 @@
 package com.heerkirov.hedge.server.library.compiler.semantic
 
+import com.heerkirov.hedge.server.library.compiler.semantic.dialect.FilterFieldDefinition
+
 /**
  * 查询计划实例。
  */
@@ -7,21 +9,21 @@ class QueryPlan(
     /**
      * 排序计划。
      */
-    val orders: OrderList,
+    val orders: Orders,
     /**
      * 筛选过滤器。
      */
-    val filters: Filter,
+    val filters: IntersectFilters,
     /**
      * 连接过滤器。
      */
-    val joins: JoinFilterList
+    val joins: JoinFilters
 )
 
 /**
  * 排序列表。其中的排序项有序排布，并指定名称和方向，因此可以翻译为排序指令。
  */
-typealias OrderList = List<Order>
+typealias Orders = List<Order>
 
 /**
  * 一个排序项。记录排序项的名字和它的方向。
@@ -31,65 +33,99 @@ data class Order(val value: String, private val desc: Boolean) {
     fun isAscending() = !desc
 }
 
-/**
- * 筛选过滤器。
- */
-interface Filter
+typealias IntersectFilters = List<UnionFilters>
+
+data class UnionFilters(private val filters: Collection<Filter<out FilterValue>>, val exclude: Boolean) : Collection<Filter<out FilterValue>> by filters
 
 /**
- * 承担集合运算功能的过滤器。
+ * 过滤器项。每一条过滤器项代表一个关系判别表达式子项。它包含一项属性定义，然后由实现确定关系类型和关系目标值。
  */
-interface LogicOperationFilter : Filter
-
-/**
- * 交集过滤器。
- */
-class IntersectFilter(private val items: Collection<Filter>) : LogicOperationFilter, Collection<Filter> by items
-
-/**
- * 并集过滤器。
- */
-class UnionFilter(private val items: Collection<Filter>) : LogicOperationFilter, Collection<Filter> by items
-
-/**
- * 补集过滤器。
- */
-class NotFilter(val value: Filter) : LogicOperationFilter
-
-/**
- * 承担关系计算功能的过滤器。
- */
-interface RelationOperationFilter<V : Any> : Filter {
+interface Filter<V : FilterValue> {
     /**
-     * 关系表达式左侧的项名。
+     * 过滤器指向的属性定义。属性定义的泛型参数已经锁定了它能启用的关系类型和目标值类型。
      */
-    val key: String
+    val field: FilterFieldDefinition<V>
 }
 
 /**
- * 等价关系。
- * @param V 值的类型。只会有Int, Long, String, LocalDate几种可能。
+ * 等价过滤器。此属性必须与目标值完全相等。目标值可给出多个，满足任一即达成判定条件。
  */
-class EqualFilter<V : Any>(override val key: String, val value: V) : RelationOperationFilter<V>
+class NewEqualFilter<V : EquableValue>(override val field: FilterFieldDefinition<V>, val values: Collection<V>) : Filter<V>
 
 /**
- * 匹配关系。
- * @param value sql匹配字符串类型的匹配值。
+ * 匹配过滤器。此属性必须与目标值按匹配规则模糊匹配。目标值可给出多个，满足任一即达成判定条件。
  */
-class MatchFilter(override val key: String, val value: String) : RelationOperationFilter<String>
+class NewMatchFilter<V : MatchableValue>(override val field: FilterFieldDefinition<V>, val values: Collection<V>) : Filter<V>
 
 /**
- * 比较关系。
- * @param V 值的类型。只会有Int, Long, LocalDate几种可能。
+ * 范围比较过滤器。此属性必须满足给定的begin to end的上下界范围。include参数决定是否包含上下界。
  */
-class CompareFilter<V : Comparable<V>>(override val key: String, val comparison: Comparison, val value: V) : RelationOperationFilter<V> {
-    enum class Comparison { GREATER_THAN, GREATER_THAN_EQUAL, LESS_THAN, LESS_THAN_EQUAL }
-}
+class NewRangeFilter<V : ComparableValue>(override val field: FilterFieldDefinition<V>, val begin: V?, val end: V?, val includeBegin: Boolean, val includeEnd: Boolean) : Filter<V>
+
+/**
+ * 标记过滤器。此属性是布尔属性，没有目标值。
+ */
+class FlagFilter(override val field: FilterFieldDefinition<FilterNothingValue>) : Filter<FilterNothingValue>
+
+/**
+ * filter的目标值。
+ */
+interface FilterValue
+
+/**
+ * 可匹配的目标值类型。
+ */
+interface MatchableValue : FilterValue
+
+/**
+ * 可进行等价判定的目标值类型。
+ */
+interface EquableValue : FilterValue
+
+/**
+ * 可进行范围比较的目标值类型。
+ */
+interface ComparableValue : EquableValue
+
+/**
+ * 数字类型：可等价判断或区间比较。
+ */
+interface FilterNumberValue : FilterValue, EquableValue, ComparableValue
+
+/**
+ * 匹配数字类型：在数字类型的基础上，追加可进行匹配判断。
+ */
+interface FilterPatternNumberValue : FilterNumberValue, MatchableValue
+
+/**
+ * 日期类型：可等价判断或区间比较。
+ */
+interface FilterDateValue : FilterValue, EquableValue, ComparableValue
+
+/**
+ * 文件大小类型：可等价判断或区间比较。
+ */
+interface FilterSizeValue : FilterValue, EquableValue, ComparableValue
+
+/**
+ * 字符串类型：可等价判断或匹配判断。
+ */
+interface FilterStringValue : FilterValue, EquableValue, MatchableValue
+
+/**
+ * 枚举类型：可等价判断。
+ */
+interface FilterEnumValue : FilterValue, EquableValue
+
+/**
+ * Nothing类型：只能用作布尔值。
+ */
+interface FilterNothingValue : FilterValue
 
 /**
  * 连接过滤器的列表，相当于合取范式。
  */
-typealias JoinFilterList = List<JoinFilter<*>>
+typealias JoinFilters = List<JoinFilter<*>>
 
 /**
  * 连接过滤器。连接过滤是标准的合取范式，每个连接过滤器都是一个合取项。
@@ -99,68 +135,102 @@ interface JoinFilter<V : Any> {
      * 过滤器的子项。彼此之间通过或计算连接。
      */
     val items: List<V>
+}
+
+/**
+ * 实现为注解的连接过滤器。注解过滤器的每一个子项都是一个简单的String。它可以指定多个连接目标类型。
+ */
+class AnnotationJoinFilter(override val items: List<MetaPartial>, val metaType: Set<MetaType>, val exclude: Boolean) : JoinFilter<MetaPartial> {
     /**
-     * 排除项。
+     * 连接过滤器中的连接目标类型。
      */
-    val exclude: Boolean
+    enum class MetaType {
+        AT, POUND, DOLLAR
+    }
 }
 
 /**
- * 连接过滤器中的前缀符号。
+ * 实现为父级meta tag的过滤器。它很特殊，尽管实际实现的时候它是参与where运算的，但它需要预查询，因此放到了这里。
  */
-enum class JoinPrefixSymbol {
-    AT, POUND, DOLLAR
-}
+class ParentJoinFilter(override val items: List<MetaPartial>) : JoinFilter<MetaPartial>
 
 /**
- * 实现为注解的连接过滤器。注解过滤器的每一个子项都是一个简单的String。它的类型前缀是个集合。
+ * 实现为meta tag的连接过滤器。它是一个抽象类，并应对三种不同的meta tag有各自的实现。当前层级是对tag的实现。它在topic的基础上扩展了序列化成员。
+ * @param noType 此过滤器没有标记类型，因此类型可能从tag开始向下扩展搜索。
  */
-class AnnotationJoinFilter(override val items: List<MetaTagValue>, val prefix: Set<JoinPrefixSymbol>, override val exclude: Boolean) : JoinFilter<MetaTagValue>
+abstract class TagJoinFilter<M : MetaValue>(val noType: Boolean, val exclude: Boolean) : JoinFilter<M>
 
 /**
- * 实现为标签的连接过滤器。标签过滤器的子项类型更为复杂，因此使用一个新类型表示。它的类型前缀是个可选值。
+ * 实现为meta tag的连接过滤器。它是一个抽象类，并应对三种不同的meta tag有各自的实现。当前层级是对topic的实现。它在author的基础上扩展了多级地址。
  */
-class MetaTagJoinFilter(override val items: List<String>, val prefix: JoinPrefixSymbol?, override val exclude: Boolean) : JoinFilter<String>
+abstract class TopicJoinFilter<M : SimpleMetaValue>(noType: Boolean, exclude: Boolean) : TagJoinFilter<M>(noType, exclude)
+
+/**
+ * 实现为meta tag的连接过滤器。它是一个抽象类，并应对三种不同的meta tag有各自的实现。当前层级是对author的实现。它只有单级地址。
+ */
+abstract class AuthorJoinFilter(noType: Boolean, exclude: Boolean) : TopicJoinFilter<SingleMetaValue>(noType, exclude)
+
+/**
+ * tag的实现。
+ */
+class TagJoinFilterImpl(override val items: List<MetaValue>, noType: Boolean, exclude: Boolean) : TagJoinFilter<MetaValue>(noType, exclude)
+
+/**
+ * topic的实现。
+ */
+class TopicJoinFilterImpl(override val items: List<SimpleMetaValue>, noType: Boolean, exclude: Boolean) : TopicJoinFilter<SimpleMetaValue>(noType, exclude)
+
+/**
+ * author的实现。
+ */
+class AuthorJoinFilterImpl(override val items: List<SingleMetaValue>, noType: Boolean, exclude: Boolean) : AuthorJoinFilter(noType, exclude)
 
 /**
  * 一个在连接过滤器中的meta tag的表示值。
  */
-sealed class MetaTagValue(val tag: MetaTagAddress)
+sealed class MetaValue
 
 /**
  * 表示单一的meta tag值。
  */
-class SimpleMetaTag(tag: MetaTagAddress) : MetaTagValue(tag)
+open class SimpleMetaValue(val value: MetaAddress) : MetaValue()
+
+/**
+ * 表示单一的meta tag值，且只有单段地址段。
+ */
+class SingleMetaValue(value: MetaPartial) : SimpleMetaValue(listOf(value)) {
+    val singleValue: MetaPartial get() = value.first()
+}
 
 /**
  * 表示从一个序列化组meta tag下选择的限定值。
  */
-open class SequentialMetaTag(tag: MetaTagAddress) : MetaTagValue(tag)
-
-/**
- * 从一个集合中选择序列化子项。
- */
-class SequentialMetaTagCollection(tag: MetaTagAddress, val values: Set<PartialMetaTag>) : SequentialMetaTag(tag)
-
-/**
- * 从一个区间范围选择序列化子项。其begin和end都是可选的。
- */
-class SequentialMetaTagRange(tag: MetaTagAddress, val begin: PartialMetaTag?, val end: PartialMetaTag?, val includeBegin: Boolean, val includeEnd: Boolean) : SequentialMetaTag(tag)
+open class SequentialMetaValue(val tag: MetaAddress) : MetaValue()
 
 /**
  * 表示从一个序列化组员(不指定序列化组)衍生的序列化限定值。
  */
-open class SequentialItemMetaTag(tag: MetaTagAddress) : MetaTagValue(tag)
+open class SequentialItemMetaValue(val tag: MetaAddress) : MetaValue()
+
+/**
+ * 从一个集合中选择序列化子项。
+ */
+class SequentialMetaValueCollection(tag: MetaAddress, val values: Set<MetaPartial>) : SequentialMetaValue(tag)
+
+/**
+ * 从一个区间范围选择序列化子项。其begin和end都是可选的。
+ */
+class SequentialMetaValueRange(tag: MetaAddress, val begin: MetaPartial?, val end: MetaPartial?, val includeBegin: Boolean, val includeEnd: Boolean) : SequentialMetaValue(tag)
 
 /**
  * 从一个序列化组员到另一个组员，begin和end都包括。
  */
-class SequentialItemMetaTagToOther(tag: MetaTagAddress, val otherTag: PartialMetaTag) : SequentialItemMetaTag(tag)
+class SequentialItemMetaValueToOther(tag: MetaAddress, val otherTag: MetaPartial) : SequentialItemMetaValue(tag)
 
 /**
  * 从一个序列化组员到指定的方向。
  */
-class SequentialItemMetaTagToDirection(tag: MetaTagAddress, private val desc: Boolean) : SequentialItemMetaTag(tag) {
+class SequentialItemMetaValueToDirection(tag: MetaAddress, private val desc: Boolean) : SequentialItemMetaValue(tag) {
     fun isDescending() = desc
     fun isAscending() = !desc
 }
@@ -168,11 +238,11 @@ class SequentialItemMetaTagToDirection(tag: MetaTagAddress, private val desc: Bo
 /**
  * 用地址表示的meta tag。
  */
-typealias MetaTagAddress = List<PartialMetaTag>
+typealias MetaAddress = List<MetaPartial>
 
 /**
  * 表示一个meta tag的值，或meta tag地址中的一段。
  * @param value 字面值
  * @param precise 是否是精准匹配的字面值
  */
-data class PartialMetaTag(val value: String, val precise: Boolean)
+data class MetaPartial(val value: String, val precise: Boolean)
