@@ -5,11 +5,10 @@ import com.heerkirov.hedge.server.library.compiler.grammar.GrammarAnalyzer
 import com.heerkirov.hedge.server.library.compiler.grammar.UnexpectedToken
 import com.heerkirov.hedge.server.library.compiler.grammar.semantic.*
 import com.heerkirov.hedge.server.library.compiler.grammar.semantic.Annotation
-import com.heerkirov.hedge.server.library.compiler.grammar.semantic.Collection
+import com.heerkirov.hedge.server.library.compiler.grammar.semantic.Col
 import com.heerkirov.hedge.server.library.compiler.lexical.LexicalAnalyzer
 import com.heerkirov.hedge.server.library.compiler.utils.AnalysisResult
 import com.heerkirov.hedge.server.library.compiler.utils.GrammarError
-import kotlin.math.exp
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -611,7 +610,7 @@ class GrammarAnalyzerTest {
 
     private fun strListOf(beginIndex: Int, endIndex: Int, vararg items: Str) = StrListImpl(items.toMutableList(), beginIndex, endIndex)
 
-    private fun collectionOf(beginIndex: Int, endIndex: Int, vararg items: Str) = Collection(items.toList(), beginIndex, endIndex)
+    private fun collectionOf(beginIndex: Int, endIndex: Int, vararg items: Str) = Col(items.toList(), beginIndex, endIndex)
 
     private fun rangeOf(beginIndex: Int, endIndex: Int, from: Str, to: Str, includeFrom: Boolean = false, includeTo: Boolean = false) = Range(from, to, includeFrom, includeTo, beginIndex, endIndex)
 

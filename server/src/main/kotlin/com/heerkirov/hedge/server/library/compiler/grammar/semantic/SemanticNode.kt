@@ -93,7 +93,7 @@ data class StrListImpl(override val items: MutableList<Str>, override val beginI
  * 集合。
  * @param items 集合的项，通过(,)连接。
  */
-data class Collection(val items: List<Str>, override val beginIndex: Int, override val endIndex: Int) : Predicative
+data class Col(val items: List<Str>, override val beginIndex: Int, override val endIndex: Int) : Predicative
 
 /**
  * 区间。

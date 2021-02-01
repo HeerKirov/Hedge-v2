@@ -51,7 +51,10 @@ compileJava {
         options.compilerArgs = ['--module-path', classpath.asPath]
     }
 }
-compileKotlin { kotlinOptions.jvmTarget = javaVersion }
+compileKotlin {
+    kotlinOptions.jvmTarget = javaVersion
+    kotlinOptions.freeCompilerArgs = ["-Xinline-classes"] //启用inline class实验特性
+}
 compileTestKotlin { kotlinOptions.jvmTarget = javaVersion }
 
 compileKotlin.destinationDir = compileJava.destinationDir

@@ -1,126 +1,5 @@
-package com.heerkirov.hedge.server.library.compiler.semantic
+package com.heerkirov.hedge.server.library.compiler.semantic.plan
 
-import com.heerkirov.hedge.server.library.compiler.semantic.dialect.FilterFieldDefinition
-
-/**
- * 查询计划实例。
- */
-class QueryPlan(
-    /**
-     * 排序计划。
-     */
-    val orders: Orders,
-    /**
-     * 筛选过滤器。
-     */
-    val filters: IntersectFilters,
-    /**
-     * 连接过滤器。
-     */
-    val joins: JoinFilters
-)
-
-/**
- * 排序列表。其中的排序项有序排布，并指定名称和方向，因此可以翻译为排序指令。
- */
-typealias Orders = List<Order>
-
-/**
- * 一个排序项。记录排序项的名字和它的方向。
- */
-data class Order(val value: String, private val desc: Boolean) {
-    fun isDescending() = desc
-    fun isAscending() = !desc
-}
-
-typealias IntersectFilters = List<UnionFilters>
-
-data class UnionFilters(private val filters: Collection<Filter<out FilterValue>>, val exclude: Boolean) : Collection<Filter<out FilterValue>> by filters
-
-/**
- * 过滤器项。每一条过滤器项代表一个关系判别表达式子项。它包含一项属性定义，然后由实现确定关系类型和关系目标值。
- */
-interface Filter<V : FilterValue> {
-    /**
-     * 过滤器指向的属性定义。属性定义的泛型参数已经锁定了它能启用的关系类型和目标值类型。
-     */
-    val field: FilterFieldDefinition<V>
-}
-
-/**
- * 等价过滤器。此属性必须与目标值完全相等。目标值可给出多个，满足任一即达成判定条件。
- */
-class NewEqualFilter<V : EquableValue>(override val field: FilterFieldDefinition<V>, val values: Collection<V>) : Filter<V>
-
-/**
- * 匹配过滤器。此属性必须与目标值按匹配规则模糊匹配。目标值可给出多个，满足任一即达成判定条件。
- */
-class NewMatchFilter<V : MatchableValue>(override val field: FilterFieldDefinition<V>, val values: Collection<V>) : Filter<V>
-
-/**
- * 范围比较过滤器。此属性必须满足给定的begin to end的上下界范围。include参数决定是否包含上下界。
- */
-class NewRangeFilter<V : ComparableValue>(override val field: FilterFieldDefinition<V>, val begin: V?, val end: V?, val includeBegin: Boolean, val includeEnd: Boolean) : Filter<V>
-
-/**
- * 标记过滤器。此属性是布尔属性，没有目标值。
- */
-class FlagFilter(override val field: FilterFieldDefinition<FilterNothingValue>) : Filter<FilterNothingValue>
-
-/**
- * filter的目标值。
- */
-interface FilterValue
-
-/**
- * 可匹配的目标值类型。
- */
-interface MatchableValue : FilterValue
-
-/**
- * 可进行等价判定的目标值类型。
- */
-interface EquableValue : FilterValue
-
-/**
- * 可进行范围比较的目标值类型。
- */
-interface ComparableValue : EquableValue
-
-/**
- * 数字类型：可等价判断或区间比较。
- */
-interface FilterNumberValue : FilterValue, EquableValue, ComparableValue
-
-/**
- * 匹配数字类型：在数字类型的基础上，追加可进行匹配判断。
- */
-interface FilterPatternNumberValue : FilterNumberValue, MatchableValue
-
-/**
- * 日期类型：可等价判断或区间比较。
- */
-interface FilterDateValue : FilterValue, EquableValue, ComparableValue
-
-/**
- * 文件大小类型：可等价判断或区间比较。
- */
-interface FilterSizeValue : FilterValue, EquableValue, ComparableValue
-
-/**
- * 字符串类型：可等价判断或匹配判断。
- */
-interface FilterStringValue : FilterValue, EquableValue, MatchableValue
-
-/**
- * 枚举类型：可等价判断。
- */
-interface FilterEnumValue : FilterValue, EquableValue
-
-/**
- * Nothing类型：只能用作布尔值。
- */
-interface FilterNothingValue : FilterValue
 
 /**
  * 连接过滤器的列表，相当于合取范式。
@@ -148,11 +27,6 @@ class AnnotationJoinFilter(override val items: List<MetaPartial>, val metaType: 
         AT, POUND, DOLLAR
     }
 }
-
-/**
- * 实现为父级meta tag的过滤器。它很特殊，尽管实际实现的时候它是参与where运算的，但它需要预查询，因此放到了这里。
- */
-class ParentJoinFilter(override val items: List<MetaPartial>) : JoinFilter<MetaPartial>
 
 /**
  * 实现为meta tag的连接过滤器。它是一个抽象类，并应对三种不同的meta tag有各自的实现。当前层级是对tag的实现。它在topic的基础上扩展了序列化成员。
@@ -184,6 +58,7 @@ class TopicJoinFilterImpl(override val items: List<SimpleMetaValue>, noType: Boo
  * author的实现。
  */
 class AuthorJoinFilterImpl(override val items: List<SingleMetaValue>, noType: Boolean, exclude: Boolean) : AuthorJoinFilter(noType, exclude)
+
 
 /**
  * 一个在连接过滤器中的meta tag的表示值。
@@ -234,6 +109,7 @@ class SequentialItemMetaValueToDirection(tag: MetaAddress, private val desc: Boo
     fun isDescending() = desc
     fun isAscending() = !desc
 }
+
 
 /**
  * 用地址表示的meta tag。

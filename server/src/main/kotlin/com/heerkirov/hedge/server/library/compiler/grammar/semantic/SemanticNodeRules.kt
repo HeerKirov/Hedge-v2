@@ -177,13 +177,13 @@ class SemanticNodeRules {
 
 
     @ForExpression("COLLECTION -> { }")
-    fun eval43(begin: Symbol, end: Symbol): Collection {
-        return Collection(emptyList(), begin.beginIndex, end.endIndex)
+    fun eval43(begin: Symbol, end: Symbol): Col {
+        return Col(emptyList(), begin.beginIndex, end.endIndex)
     }
 
     @ForExpression("COLLECTION -> { COLLECTION_ITEM }")
-    fun eval44(begin: Symbol, mutList: MutList<Str>, end: Symbol): Collection {
-        return Collection(mutList.toList(), begin.beginIndex, end.endIndex)
+    fun eval44(begin: Symbol, mutList: MutList<Str>, end: Symbol): Col {
+        return Col(mutList.toList(), begin.beginIndex, end.endIndex)
     }
 
     @ForExpression("COLLECTION_ITEM -> str")

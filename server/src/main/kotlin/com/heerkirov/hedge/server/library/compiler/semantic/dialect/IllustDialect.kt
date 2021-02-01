@@ -1,29 +1,43 @@
 package com.heerkirov.hedge.server.library.compiler.semantic.dialect
 
-object IllustDialect : QueryDialect {
-    override val order = orderListOf(
-        orderItemOf("id", "id"),
-        orderItemOf("score", "score", "s"),
-        orderItemOf("ordinal", "ordinal", "ord"),
-        orderItemOf("partition", "partition", "pt"),
-        orderItemOf("create-time", "create-time", "create", "ct"),
-        orderItemOf("update-time", "update-time", "update", "ut"),
-        orderItemOf("source-id", "^id", "source-id"),
-        orderItemOf("source-from", "^from", "source-from")
-    )
+import com.heerkirov.hedge.server.library.compiler.semantic.framework.*
 
-    val favorite = flagField("favorite")
-    val id = patternNumberField("id")
-    val score = numberField("score")
+object IllustDialect : QueryDialect<IllustDialect.IllustOrderItem> {
+    override val order = orderListOf<IllustOrderItem> {
+        item(IllustOrderItem.ID, "id")
+        item(IllustOrderItem.SCORE, "score", "s")
+        item(IllustOrderItem.ORDINAL, "ordinal", "ord")
+        item(IllustOrderItem.PARTITION, "partition", "pt")
+        item(IllustOrderItem.CREATE_TIME, "create-time", "create", "ct")
+        item(IllustOrderItem.UPDATE_TIME, "update-time", "update", "ut")
+        item(IllustOrderItem.SOURCE_ID, "^id", "source-id")
+        item(IllustOrderItem.SOURCE_FROM, "^from", "source-from")
+    }
+
+    val favorite = flagField("favorite", "favorite", "f")
+    val id = patternNumberField("id", "id")
+    val score = numberField("score", "score")
     val partition = dateField("partition", "partition", "pt")
     val ordinal = dateField("ordinal", "ordinal", "ord")
     val createTime = dateField("create-time", "create", "create-time", "ct")
     val updateTime = dateField("update-time", "update", "update-time", "ut")
-    val description = stringField("description", "description", "desc")
+    val description = patternStringField("description", "description", "desc")
     val extension = stringField("extension", "extension", "ext")
     val filesize = sizeField("filesize", "filesize", "size")
     val sourceId = patternNumberField("source-id", "^id", "source-id")
     val sourceFrom = stringField("source-from", "^from", "source-from")
-    val sourceDescription = stringField("source-description", "^description", "^desc", "source-description", "source-desc")
-    val analyseStatus = enumField("analyse-status", "analyse-status", "analyse")
+    val sourceDescription = patternStringField("source-description", "^description", "^desc", "source-description", "source-desc")
+    val sourceTag: Any = TODO("从element转换的field")
+    val analyseStatus = enumField<AnalyseStatus>("analyse-status", "analyse-status", "analyse")
+    val tagme = enumField<Tagme>("tagme", "tagme")
+
+    enum class IllustOrderItem {
+        ID, SCORE, ORDINAL, PARTITION, CREATE_TIME, UPDATE_TIME, SOURCE_ID, SOURCE_FROM
+    }
+    enum class AnalyseStatus {
+        NO, ANALYZED, ERROR, MANUAL, NOT_FOUND
+    }
+    enum class Tagme {
+        TAG, AUTHOR, TOPIC, SOURCE
+    }
 }
