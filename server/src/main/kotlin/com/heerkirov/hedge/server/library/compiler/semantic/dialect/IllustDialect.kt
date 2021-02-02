@@ -13,6 +13,7 @@ object IllustDialect : QueryDialect<IllustDialect.IllustOrderItem> {
         item(IllustOrderItem.SOURCE_ID, "^id", "source-id")
         item(IllustOrderItem.SOURCE_FROM, "^from", "source-from")
     }
+    //TODO element转Tag/SourceTag/Annotation
 
     val favorite = flagField("favorite", "favorite", "f")
     val id = patternNumberField("id", "id")
@@ -27,9 +28,18 @@ object IllustDialect : QueryDialect<IllustDialect.IllustOrderItem> {
     val sourceId = patternNumberField("source-id", "^id", "source-id")
     val sourceFrom = stringField("source-from", "^from", "source-from")
     val sourceDescription = patternStringField("source-description", "^description", "^desc", "source-description", "source-desc")
-    val sourceTag: Any = TODO("从element转换的field")
-    val analyseStatus = enumField<AnalyseStatus>("analyse-status", "analyse-status", "analyse")
-    val tagme = enumField<Tagme>("tagme", "tagme")
+    val analyseStatus = enumField<AnalyseStatus>("analyse-status", "analyse-status", "analyse") {
+        item(AnalyseStatus.NO, "no", "none")
+        item(AnalyseStatus.ANALYZED, "analyzed", "yes", "done")
+        item(AnalyseStatus.ERROR, "error", "err")
+        item(AnalyseStatus.MANUAL, "manual")
+        item(AnalyseStatus.NOT_FOUND, "not-found", "404")
+    }
+    val tagme = enumField<Tagme>("tagme", "tagme") {
+        for (value in Tagme.values()) {
+            item(value, value.name)
+        }
+    }
 
     enum class IllustOrderItem {
         ID, SCORE, ORDINAL, PARTITION, CREATE_TIME, UPDATE_TIME, SOURCE_ID, SOURCE_FROM

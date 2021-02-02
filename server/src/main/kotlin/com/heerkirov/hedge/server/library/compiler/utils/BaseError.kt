@@ -30,3 +30,7 @@ abstract class LexicalError<INFO : Any>(code: Int, message: String, happenPositi
  */
 abstract class GrammarError<INFO : Any>(code: Int, message: String, happenPositionIndex: IndexRange, info: INFO? = null) : CompileError<INFO>(code, message, happenPositionIndex, info)
 
+/**
+ * 语义分析错误。语义分析系列的code范围为3000~3999。
+ */
+abstract class SemanticError<INFO : Any>(code: Int, message: String, happenPositionIndex: IndexRange, info: INFO? = null) : CompileError<INFO>(code, message, happenPositionIndex, info)

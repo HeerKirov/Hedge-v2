@@ -1,17 +1,18 @@
 package com.heerkirov.hedge.server.library.compiler.semantic.framework
 
 import com.heerkirov.hedge.server.library.compiler.grammar.semantic.Annotation
-import com.heerkirov.hedge.server.library.compiler.grammar.semantic.Element
+import com.heerkirov.hedge.server.library.compiler.grammar.semantic.Element as SemanticElement
 import com.heerkirov.hedge.server.library.compiler.grammar.semantic.Family
 import com.heerkirov.hedge.server.library.compiler.grammar.semantic.Predicative
+import com.heerkirov.hedge.server.library.compiler.grammar.semantic.StrList
 import com.heerkirov.hedge.server.library.compiler.semantic.plan.Filter
 import com.heerkirov.hedge.server.library.compiler.semantic.plan.FilterValue
-import com.heerkirov.hedge.server.library.compiler.semantic.plan.JoinFilter
+import com.heerkirov.hedge.server.library.compiler.semantic.plan.Element
 import com.heerkirov.hedge.server.library.compiler.semantic.plan.UnionFilters
 
 
 /**
- * 此filter/join从一个关键字指示的特定项生成。
+ * 此filter/element从一个关键字指示的特定项生成。
  */
 interface GeneratedByIdentify<R : Any> {
     /**
@@ -22,7 +23,7 @@ interface GeneratedByIdentify<R : Any> {
     /**
      * 从此关键字指示的SFP生成结果。
      */
-    fun generate(name: String, family: Family?, predicative: Predicative?): R
+    fun generate(subject: StrList, family: Family?, predicative: Predicative?): R
 
     /**
      * 同一个合取式中存在多个相同关键字的结果时，调用此方法尝试合并。
@@ -31,7 +32,7 @@ interface GeneratedByIdentify<R : Any> {
 }
 
 /**
- * 此filter/join从一个普通元素生成。
+ * 此filter/element从一个普通元素生成。
  */
 interface GeneratedByElement<R : Any> {
     /**
@@ -41,17 +42,13 @@ interface GeneratedByElement<R : Any> {
     /**
      * 从一整个元素构造结果。
      */
-    fun generate(element: Element, minus: Boolean): R
+    fun generate(element: SemanticElement, minus: Boolean): R
 }
 
 /**
- * 此join从一个注解元素生成。
+ * 此element从一个注解元素生成。
  */
 interface GeneratedByAnnotation<R : Any> {
-    /**
-     * 此生成器对sourceFlag标记的元素是否接受。true表示接受没有sourceFlag标记的项，false表示接受有sourceFlag标记的项。
-     */
-    val forSourceFlag: Boolean
     /**
      * 从一整个注解构造结果。
      */
@@ -62,26 +59,28 @@ interface GeneratedByAnnotation<R : Any> {
  * 扩展从关键字指示的项生成，生成多个项。
  */
 interface GeneratedSequenceByIdentify<R : Any> : GeneratedByIdentify<R> {
-    override fun generate(name: String, family: Family?, predicative: Predicative?): R = throw UnsupportedOperationException()
+    override fun generate(subject: StrList, family: Family?, predicative: Predicative?): R = throw UnsupportedOperationException()
 
     /**
      * 从此关键字指示的SFP生成多个结果。
      */
-    fun generateSeq(name: String, family: Family?, predicative: Predicative?): Sequence<R>
+    fun generateSeq(subject: StrList, family: Family?, predicative: Predicative?): Sequence<R>
 }
 
 
 /**
- * filter的目标属性定义。
+ * 过滤器的目标属性定义。
  */
 interface FilterFieldDefinition<V : FilterValue> {
     val key: String
 }
 
 /**
- * join的生成器定义。
+ * 连接元素的生成器定义。
  */
-interface JoinFieldDefinition
+interface ElementFieldDefinition {
+    val itemName: String
+}
 
 
 /**
@@ -95,13 +94,11 @@ abstract class FilterFieldByIdentify<V : FilterValue> : FilterFieldDefinition<V>
 abstract class FilterFieldByElement<V : FilterValue> : FilterFieldDefinition<V>, GeneratedByElement<UnionFilters>
 
 /**
- * 用普通元素生成JoinFilter。
+ * 用普通元素生成JoinElement。
  */
-abstract class JoinFieldByElement : JoinFieldDefinition, GeneratedByElement<JoinFilter<*>>
+abstract class ElementFieldByElement : ElementFieldDefinition, GeneratedByElement<Element<*>>
 
 /**
- * 用注解元素生成JoinFilter。
+ * 用注解元素生成JoinElement。
  */
-abstract class JoinFieldByAnnotation : JoinFieldDefinition, GeneratedByAnnotation<JoinFilter<*>>
-
-
+abstract class ElementFieldByAnnotation : ElementFieldDefinition, GeneratedByAnnotation<Element<*>>

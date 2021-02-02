@@ -9,16 +9,20 @@ object TopicDialect : QueryDialect<TopicDialect.AuthorOrderItem> {
         item(AuthorOrderItem.CREATE_TIME, "create-time", "create", "ct")
         item(AuthorOrderItem.UPDATE_TIME, "update-time", "update", "ut")
     }
+    //TODO element转name
 
     val favorite = flagField("favorite", "favorite", "f")
     val parent = patternStringField("parent", "parent")
-    val type = enumField<Type>("type", "type")
+    val type = enumField<Type>("type", "type") {
+        for (value in Type.values()) {
+            item(value, value.name)
+        }
+    }
     val score = numberField("score", "score")
     val imageCount = numberField("image-count", "count", "image-count")
     val createTime = dateField("create-time", "create", "create-time", "ct")
     val updateTime = dateField("update-time", "update", "update-time", "ut")
     val description = patternStringField("description", "description", "desc")
-    val title: Any = TODO("从element转换的field")
 
     enum class AuthorOrderItem {
         SCORE, IMAGE_COUNT, CREATE_TIME, UPDATE_TIME

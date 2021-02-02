@@ -1,65 +1,84 @@
 package com.heerkirov.hedge.server.library.compiler.semantic.framework
 
+import com.heerkirov.hedge.server.library.compiler.grammar.semantic.Str
+import com.heerkirov.hedge.server.library.compiler.semantic.EnumTypeCastError
+import com.heerkirov.hedge.server.library.compiler.semantic.TypeCastError
 import com.heerkirov.hedge.server.library.compiler.semantic.plan.*
+import com.heerkirov.hedge.server.library.compiler.semantic.utils.AliasDefinition
+import com.heerkirov.hedge.server.library.compiler.semantic.utils.semanticError
 import java.util.regex.Pattern
+import kotlin.reflect.KClass
 
 /**
  * str类型到filterValue的转换器。
  */
-interface StrTypeParser<R : FilterValue> {
-    fun parse(str: String): R
+interface StrTypeParser<R> {
+    fun parse(str: Str): R
 }
 
+/**
+ * 字符串转换器。
+ * 实际上没有转换。
+ */
 object StringParser : StrTypeParser<FilterStringValue> {
-    override fun parse(str: String) = FilterStringValueImpl(str)
+    override fun parse(str: Str) = FilterStringValueImpl(str.value)
 }
 
-class EnumParser<E : Enum<E>>(private val values: Array<E>) : StrTypeParser<FilterEnumValue<E>> {
-    override fun parse(str: String): FilterEnumValue<E> {
-        for (value in values) {
-            if(value.name.equals(str, ignoreCase = true)) {
-                return FilterEnumValueImpl(value)
-            }
-        }
-        TODO("ERROR: 无法转换为此enum类型的值")
+/**
+ * 枚举转换器。
+ * 无视大小写对枚举值做配对。配对使用枚举值的alias属性。
+ */
+class EnumParser<E : Enum<E>>(clazz: KClass<E>, enumAlias: List<AliasDefinition<E, String>>) : StrTypeParser<FilterEnumValue<E>> {
+    private val expected = enumAlias.flatMap { it.alias }.map { it.toLowerCase() }
+    private val valueMap = enumAlias.asSequence().flatMap { (k, v) -> v.asSequence().map { it.toLowerCase() to k } }.toMap()
+    private val typeName = clazz.simpleName!!
+
+    override fun parse(str: Str): FilterEnumValue<E> {
+        val value = valueMap[str.value] ?: semanticError(EnumTypeCastError(str.value, typeName, expected, str.beginIndex, str.endIndex))
+        return FilterEnumValueImpl(value)
     }
 }
 
+/**
+ * 数值转换器。
+ * 将值直接转换为Int，未能成功转换时视为非法值。
+ */
 object NumberParser : StrTypeParser<FilterNumberValue> {
-    override fun parse(str: String): FilterNumberValue {
-        val i = str.toIntOrNull() ?: TODO("ERROR: 无法转换为number类型的值")
+    override fun parse(str: Str): FilterNumberValue {
+        val i = str.value.toLongOrNull() ?: semanticError(TypeCastError(str.value, TypeCastError.Type.NUMBER, str.beginIndex, str.endIndex))
         return FilterNumberValueImpl(i)
     }
 }
 
+/**
+ * 文件大小类型转换器。
+ * 它识别"{数值}{单位}"这个格式的文件大小表示。
+ * 数值只能是自然数。单位可选有：B KB MB GB TB KiB MiB GiB TiB。无视大小写。*B使用1000进制，*iB使用1024进制。*B系列单位可省略B。
+ */
 object SizeParser : StrTypeParser<FilterSizeValue> {
     private val pattern = Pattern.compile("""(\d+)([a-zA-Z]+)""")
     private val units = mapOf(
         "b" to 1L,
         "kb" to 1000L,
+        "k" to 1000L,
         "mb" to 1000L * 1000,
+        "m" to 1000L * 1000,
         "gb" to 1000L * 1000 * 1000,
+        "g" to 1000L * 1000 * 1000,
         "tb" to 1000L * 1000 * 1000 * 1000,
+        "t" to 1000L * 1000 * 1000 * 1000,
         "kib" to 1024L,
         "mib" to 1024L * 1024,
         "gib" to 1024L * 1024 * 1024,
         "tib" to 1024L * 1024 * 1024 * 1024
     )
 
-    override fun parse(str: String): FilterSizeValue {
-        val match = pattern.matcher(str)
+    override fun parse(str: Str): FilterSizeValue {
+        val match = pattern.matcher(str.value)
         if(match.find()) {
-            val size = match.group(1).toLongOrNull() ?: TODO("ERROR: 无法转换为size类型的值")
-            val unit = units[match.group(2).toLowerCase()] ?: TODO("ERROR: 不是合法的size类型单位")
+            val size = match.group(1).toLongOrNull() ?: semanticError(TypeCastError(str.value, TypeCastError.Type.SIZE, str.beginIndex, str.endIndex))
+            val unit = units[match.group(2).toLowerCase()] ?: semanticError(TypeCastError(str.value, TypeCastError.Type.SIZE, str.beginIndex, str.endIndex))
             return FilterSizeValueImpl(size * unit)
-        }else TODO("ERROR: 无法转换为size类型的值")
+        }else semanticError(TypeCastError(str.value, TypeCastError.Type.SIZE, str.beginIndex, str.endIndex))
     }
 }
-
-object DateParser : StrTypeParser<FilterDateValue> {
-    override fun parse(str: String): FilterDateValue {
-        TODO("设计问题：这个parser的设计满足不了复杂类型的解析")
-        // NumberPattern和Date这种类型，并不满足于解析为单一值，是有可能解析成区间的
-    }
-}
-

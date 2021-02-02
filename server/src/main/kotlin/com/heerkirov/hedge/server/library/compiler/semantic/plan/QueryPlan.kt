@@ -5,15 +5,15 @@ package com.heerkirov.hedge.server.library.compiler.semantic.plan
  */
 class QueryPlan(
     /**
-     * 排序计划。
+     * 排序计划。由order关键字导出的排序指令。
      */
     val orders: Orders,
     /**
-     * 筛选过滤器。
+     * 过滤器。由特定关键字导出的过滤指令。
      */
     val filters: IntersectFilters,
     /**
-     * 连接过滤器。
+     * 连接元素项。不由关键字导出的元素集合，包括标签、注解等。
      */
-    val joins: JoinFilters
+    val elements: Elements
 )

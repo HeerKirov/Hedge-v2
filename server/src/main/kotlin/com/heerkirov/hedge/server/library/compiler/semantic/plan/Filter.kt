@@ -75,8 +75,8 @@ interface ComparableValue<T : Comparable<T>> : FilterValue {
 /**
  * 数字类型：可等价判断或区间比较。
  */
-interface FilterNumberValue : FilterValue, EquableValue<Int>, ComparableValue<Int> {
-    val value: Int
+interface FilterNumberValue : FilterValue, EquableValue<Long>, ComparableValue<Long> {
+    val value: Long
     override val compareValue get() = value
     override val equalValue get() = value
 }
@@ -84,7 +84,7 @@ interface FilterNumberValue : FilterValue, EquableValue<Int>, ComparableValue<In
 /**
  * 匹配数字类型：在数字类型的基础上，追加可进行匹配判断。其实现是string类型。
  */
-interface FilterPatternNumberValue : FilterValue, EquableValue<Int>, ComparableValue<Int>, MatchableValue<String> {
+interface FilterPatternNumberValue : FilterValue, EquableValue<Long>, ComparableValue<Long>, MatchableValue<String> {
     fun isPattern(): Boolean
 }
 
@@ -131,7 +131,7 @@ interface FilterNothingValue : FilterValue
 
 inline class FilterStringValueImpl(override val value: String) : FilterStringValue
 
-inline class FilterNumberValueImpl(override val value: Int) : FilterNumberValue
+inline class FilterNumberValueImpl(override val value: Long) : FilterNumberValue
 
 inline class FilterDateValueImpl(override val value: LocalDate) : FilterDateValue
 
@@ -140,10 +140,10 @@ inline class FilterSizeValueImpl(override val value: Long) : FilterSizeValue
 class FilterEnumValueImpl<T : Enum<T>>(override val value: T) : FilterEnumValue<T>
 
 class FilterPatternNumberValueImpl : FilterPatternNumberValue {
-    private val number: Int?
+    private val number: Long?
     private val pattern: String?
 
-    constructor(number: Int) {
+    constructor(number: Long) {
         this.number = number
         this.pattern = null
     }
