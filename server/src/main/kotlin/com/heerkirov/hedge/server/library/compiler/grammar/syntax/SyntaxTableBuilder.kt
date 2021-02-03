@@ -2,6 +2,8 @@ package com.heerkirov.hedge.server.library.compiler.grammar.syntax
 
 import com.heerkirov.hedge.server.library.compiler.grammar.definintion.*
 import org.slf4j.LoggerFactory
+import java.util.*
+import kotlin.collections.HashMap
 
 /**
  * 执行将文法产生式编译为语法分析表的过程。

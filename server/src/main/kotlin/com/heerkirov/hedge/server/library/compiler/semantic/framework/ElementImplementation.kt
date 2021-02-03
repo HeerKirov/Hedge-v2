@@ -11,7 +11,7 @@ import com.heerkirov.hedge.server.library.compiler.grammar.semantic.Element as S
 /**
  * 从element生成meta tag的生成器。被使用在illust/album中。
  */
-class MetaTagElementField : ElementFieldByElement() {
+object MetaTagElementField : ElementFieldByElement() {
     override val itemName = "meta-tag"
     override val forSourceFlag = false
 
@@ -156,7 +156,7 @@ class MetaTagElementField : ElementFieldByElement() {
 /**
  * 从annotation生成annotation的生成器。被使用在illust/album/topic/author中。
  */
-class AnnotationElementField : ElementFieldByAnnotation() {
+object AnnotationElementField : ElementFieldByAnnotation() {
     override val itemName = "annotation"
 
     override fun generate(annotation: Annotation, minus: Boolean): AnnotationElement {
@@ -185,7 +185,7 @@ class AnnotationElementField : ElementFieldByAnnotation() {
 /**
  * 从^element生成source tag的生成器。被使用在illust中。
  */
-class SourceTagElementField : ElementFieldByElement() {
+object SourceTagElementField : ElementFieldByElement() {
     override val itemName = "source-tag"
     override val forSourceFlag = true
 
@@ -209,7 +209,7 @@ class SourceTagElementField : ElementFieldByElement() {
 /**
  * 从element生成name filter的生成器。被使用在topic/author/annotation中。
  */
-class NameFilterElementField : ElementFieldByElement() {
+object NameFilterElementField : ElementFieldByElement() {
     override val itemName = "name"
     override val forSourceFlag = false
 

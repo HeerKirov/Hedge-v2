@@ -5,10 +5,7 @@ import com.heerkirov.hedge.server.library.compiler.grammar.semantic.Element as S
 import com.heerkirov.hedge.server.library.compiler.grammar.semantic.Family
 import com.heerkirov.hedge.server.library.compiler.grammar.semantic.Predicative
 import com.heerkirov.hedge.server.library.compiler.grammar.semantic.StrList
-import com.heerkirov.hedge.server.library.compiler.semantic.plan.Filter
-import com.heerkirov.hedge.server.library.compiler.semantic.plan.FilterValue
-import com.heerkirov.hedge.server.library.compiler.semantic.plan.Element
-import com.heerkirov.hedge.server.library.compiler.semantic.plan.UnionFilters
+import com.heerkirov.hedge.server.library.compiler.semantic.plan.*
 
 
 /**
@@ -82,16 +79,16 @@ interface ElementFieldDefinition {
     val itemName: String
 }
 
+/**
+ * 排序列表的生成器定义。
+ */
+interface OrderFieldDefinition<E : Enum<E>>
+
 
 /**
  * 从关键字指示的项生成Filter。
  */
 abstract class FilterFieldByIdentify<V : FilterValue> : FilterFieldDefinition<V>, GeneratedByIdentify<Filter<V>>
-
-/**
- * 用普通元素项生成Filter。
- */
-abstract class FilterFieldByElement<V : FilterValue> : FilterFieldDefinition<V>, GeneratedByElement<UnionFilters>
 
 /**
  * 用普通元素生成JoinElement。
@@ -102,3 +99,10 @@ abstract class ElementFieldByElement : ElementFieldDefinition, GeneratedByElemen
  * 用注解元素生成JoinElement。
  */
 abstract class ElementFieldByAnnotation : ElementFieldDefinition, GeneratedByAnnotation<Element<*>>
+
+/**
+ * 从关键字指示的项生成Filter。
+ */
+abstract class OrderFieldByIdentify<E : Enum<E>> : OrderFieldDefinition<E>, GeneratedByIdentify<Orders> {
+    override val alias: Array<out String> = arrayOf("order")
+}

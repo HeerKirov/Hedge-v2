@@ -9,7 +9,7 @@ object TopicDialect : QueryDialect<TopicDialect.AuthorOrderItem> {
         item(AuthorOrderItem.CREATE_TIME, "create-time", "create", "ct")
         item(AuthorOrderItem.UPDATE_TIME, "update-time", "update", "ut")
     }
-    //TODO element转name
+    override val elements: Array<out ElementFieldDefinition> = arrayOf(NameFilterElementField)
 
     val favorite = flagField("favorite", "favorite", "f")
     val parent = patternStringField("parent", "parent")

@@ -13,7 +13,7 @@ object IllustDialect : QueryDialect<IllustDialect.IllustOrderItem> {
         item(IllustOrderItem.SOURCE_ID, "^id", "source-id")
         item(IllustOrderItem.SOURCE_FROM, "^from", "source-from")
     }
-    //TODO element转Tag/SourceTag/Annotation
+    override val elements: Array<out ElementFieldDefinition> = arrayOf(MetaTagElementField, AnnotationElementField, SourceTagElementField)
 
     val favorite = flagField("favorite", "favorite", "f")
     val id = patternNumberField("id", "id")

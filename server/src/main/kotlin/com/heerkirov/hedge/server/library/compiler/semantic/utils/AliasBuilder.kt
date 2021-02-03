@@ -16,7 +16,7 @@ class AliasBuilder<T, A>(private val list: MutableList<AliasDefinition<T, A>>, p
  */
 data class Alias(val name: String, val sourceFlag: Boolean = false) {
     override fun toString(): String {
-        return (if(sourceFlag) "^" else "") + name
+        return aliasToString(name, sourceFlag)
     }
 }
 
@@ -39,4 +39,12 @@ inline fun <T, A> buildAlias(noinline mapper: (String) -> A, block: AliasBuilder
  */
 inline fun <T> buildAlias(block: AliasBuilder<T, String>.() -> Unit): List<AliasDefinition<T, String>> {
     return buildAlias({ it }, block)
+}
+
+/**
+ * 将别名定义打印为字符串显示。
+ */
+@Suppress("NOTHING_TO_INLINE")
+inline fun aliasToString(name: String, sourceFlag: Boolean): String {
+    return (if(sourceFlag) "^" else "") + name
 }

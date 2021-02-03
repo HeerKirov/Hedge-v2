@@ -48,12 +48,12 @@ class UnsupportedFilterRelationSymbol(filterName: String, symbol: String, beginI
 /**
  * 值不能写成meta tag地址段的形式(a.b.c)，只能是一项string。[begin, end)应标记地址段strList。
  */
-class ValueCannotBeAddress(beginIndex: Int, endIndex: Int) : SemanticError<Nothing>(3006, "Value cannot be a tag address.", range(beginIndex, endIndex), null)
+class ValueCannotBeAddress(beginIndex: Int, endIndex: Int) : SemanticError<Nothing>(3006, "Value cannot be a tag address.", range(beginIndex, endIndex))
 
 /**
  * 值在比较运算或区间中不能写成模糊匹配项。[begin, end)应标记值。
  */
-class ValueCannotBePatternInComparison(beginIndex: Int, endIndex: Int) : SemanticError<Nothing>(3007, "Value in comparison relation or range cannot be pattern.", range(beginIndex, endIndex), null)
+class ValueCannotBePatternInComparison(beginIndex: Int, endIndex: Int) : SemanticError<Nothing>(3007, "Value in comparison relation or range cannot be pattern.", range(beginIndex, endIndex))
 
 /**
  * 类型转换错误：str无法转换为目标类型的值。[begin, end)应标记值。
@@ -97,4 +97,21 @@ class UnsupportedElementValueType(itemName: String, valueType: ValueType, beginI
  */
 class UnsupportedElementValueTypeOfRelation(itemName: String, valueType: ValueType, symbol: String, beginIndex: Int, endIndex: Int) : SemanticError<UnsupportedElementValueTypeOfRelation.SelfFilterInfo>(3014, "Element of $itemName: type $valueType is unsupported in relation '$symbol'.", range(beginIndex, endIndex), SelfFilterInfo(itemName, valueType, symbol)) {
     class SelfFilterInfo(filterName: String, val valueType: ValueType, val symbol: String) : FilterInfo(filterName)
+}
+
+/**
+ * 排序项目需要有关系和值。[begin, end)应标记关键字的subject。
+ */
+class OrderValueRequired(beginIndex: Int, endIndex: Int) : SemanticError<Nothing>(3015, "Order: relation and value is required.", range(beginIndex, endIndex))
+
+/**
+ * 排序项目的关系和值必须是:排序列表。[begin, end)应标记项目的sfp。
+ */
+class OrderValueMustBeSortList(beginIndex: Int, endIndex: Int) : SemanticError<Nothing>(3016, "Order: relation and value must be sort list.", range(beginIndex, endIndex))
+
+/**
+ * 值不是正确的排序列表项。[begin, end)应标记项目的sfp。
+ */
+class InvalidOrderItem(invalidItem: String, expected: List<String>, beginIndex: Int, endIndex: Int) : SemanticError<InvalidOrderItem.Info>(3017, "Order: item '$invalidItem' is invalid. Expected $expected.", range(beginIndex, endIndex), Info(invalidItem, expected)) {
+    class Info(val value: String, val expected: List<String>)
 }

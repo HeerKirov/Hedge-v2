@@ -7,7 +7,7 @@ object AnnotationDialect : QueryDialect<AnnotationDialect.AnnotationOrderItem> {
         item(AnnotationOrderItem.CREATE_TIME, "create-time", "create", "ct")
         item(AnnotationOrderItem.UPDATE_TIME, "update-time", "update", "ut")
     }
-    //TODO element转name
+    override val elements: Array<out ElementFieldDefinition> = arrayOf(NameFilterElementField)
 
     val canBeExported = flagField("can-be-exported", "can-be-exported", "exported")
     val createTime = dateField("create-time", "create", "create-time", "ct")

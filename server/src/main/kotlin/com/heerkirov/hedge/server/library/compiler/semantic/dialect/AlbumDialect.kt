@@ -10,7 +10,7 @@ object AlbumDialect : QueryDialect<AlbumDialect.AlbumOrderItem> {
         item(AlbumOrderItem.CREATE_TIME, "create-time", "create", "ct")
         item(AlbumOrderItem.UPDATE_TIME, "update-time", "update", "ut")
     }
-    //TODO element转Tag/Annotation
+    override val elements: Array<out ElementFieldDefinition> = arrayOf(MetaTagElementField, AnnotationElementField)
 
     val favorite = flagField("favorite", "favorite", "f")
     val id = patternNumberField("id", "id")
