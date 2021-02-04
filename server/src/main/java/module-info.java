@@ -31,4 +31,5 @@ module com.heerkirov.hedge.server {
     opens com.heerkirov.hedge.server.form;
     opens com.heerkirov.hedge.server.exceptions;
     opens com.heerkirov.hedge.server.utils.types;
+    exports com.heerkirov.hedge.server.library.compiler.grammar.semantic to kotlin.reflect;
 }

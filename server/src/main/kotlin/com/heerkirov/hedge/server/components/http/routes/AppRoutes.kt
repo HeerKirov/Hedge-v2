@@ -71,13 +71,13 @@ class AppRoutes(private val lifetime: Lifetime, private val appdata: AppDataDriv
         this.lifetime.signal(form.interval)
     }
 
-    private data class InitForm(val dbPath: String)
+    data class InitForm(val dbPath: String)
 
-    private data class SignalForm(val interval: Long)
+    data class SignalForm(val interval: Long)
 
-    private data class OptionalSignalForm(val interval: Long?)
+    data class OptionalSignalForm(val interval: Long?)
 
-    private data class AddResponse(val id: String)
+    data class AddResponse(val id: String)
 
-    private data class HealthResponse(val status: LoadStatus)
+    data class HealthResponse(val status: LoadStatus)
 }
