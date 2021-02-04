@@ -9,7 +9,7 @@ export function getNodePlatform(): Platform {
 }
 
 export async function promiseAll(...promises: Promise<void>[]): Promise<void> {
-    for (let promise of promises) {
+    for (const promise of promises) {
         await promise
     }
 }

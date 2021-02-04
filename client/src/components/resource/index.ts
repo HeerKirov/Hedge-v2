@@ -84,6 +84,7 @@ export interface ResourceManagerOptions {
 export function createResourceManager(options: ResourceManagerOptions): ResourceManager {
     if(options.debug && !options.debug.serverFromResource) {
         //禁用资源管理
+        console.log("[ResourceManager] Resource manager is disabled because of develop mode.")
         return createForbiddenResourceManager()
     }else{
         //在生产环境或调试模式启用资源管理
