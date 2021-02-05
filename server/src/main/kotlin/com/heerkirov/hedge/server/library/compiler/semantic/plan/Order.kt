@@ -12,4 +12,8 @@ typealias Orders = List<Order<*>>
 data class Order<T : Enum<T>>(val value: T, private val desc: Boolean) {
     fun isDescending() = desc
     fun isAscending() = !desc
+
+    override fun toString(): String {
+        return "${if(desc) "-" else "+"}$value"
+    }
 }

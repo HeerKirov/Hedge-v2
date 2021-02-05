@@ -221,6 +221,89 @@ class ComplexComparableField<V>(override val key: String, override val alias: Ar
 }
 
 /**
+ * 专门用于处理number pattern类型的解析器。
+ */
+class NumberPatternField(override val key: String, override val alias: Array<out String>) : FilterFieldByIdentify<FilterPatternNumberValue>(), GeneratedSequenceByIdentify<Filter<FilterPatternNumberValue>> {
+    override fun generateSeq(subject: StrList, family: Family?, predicative: Predicative?): Sequence<Filter<FilterPatternNumberValue>> {
+        if(family == null || predicative == null) semanticError(FilterValueRequired(key, subject.beginIndex, subject.endIndex))
+
+        return when (family.value) {
+            ":" -> when(predicative) {
+                is StrList -> processStrList(predicative)
+                is Col -> processCol(predicative)
+                is Range -> processRange(predicative)
+                is SortList -> semanticError(UnsupportedFilterValueType(key, ValueType.SORT_LIST, predicative.beginIndex, predicative.endIndex))
+                else -> throw RuntimeException("Unsupported predicative ${predicative::class.simpleName}.")
+            }
+            ">", "<", ">=", "<=" -> when(predicative) {
+                is StrList -> processStrListForCompare(predicative, family.value)
+                is SortList -> semanticError(UnsupportedFilterValueType(key, ValueType.SORT_LIST, predicative.beginIndex, predicative.endIndex))
+                is Col -> semanticError(UnsupportedFilterValueTypeOfRelation(key, ValueType.COLLECTION, family.value, predicative.beginIndex, predicative.endIndex))
+                is Range -> semanticError(UnsupportedFilterValueTypeOfRelation(key, ValueType.RANGE, family.value, predicative.beginIndex, predicative.endIndex))
+                else -> throw RuntimeException("Unsupported predicative ${predicative::class.simpleName}.")
+            }
+            "~", "~+", "~-" -> semanticError(UnsupportedFilterRelationSymbol(key, family.value, family.beginIndex, family.endIndex))
+            else -> throw RuntimeException("Unsupported family symbol '${family.value}'.")
+        }
+    }
+
+    private fun processStrList(strList: StrList): Sequence<Filter<FilterPatternNumberValue>> {
+        if(strList.items.size > 1) semanticError(ValueCannotBeAddress(strList.beginIndex, strList.endIndex))
+        return sequenceOf(when (val result = PatternNumberParser.parse(strList.items.first())) {
+            is StrComplexValue<*> -> {
+                val value = (result as StrComplexValue<FilterPatternNumberValue>).value
+                if(value.isPattern()) MatchFilter(this, listOf(value))
+                else EqualFilter(this, listOf(value))
+            }
+            is StrComplexRange<*> -> {
+                val range = result as StrComplexRange<FilterPatternNumberValue>
+                RangeFilter(this, range.begin, range.end, includeBegin = true, includeEnd = false)
+            }
+        })
+    }
+
+    private fun processStrListForCompare(strList: StrList, symbol: String): Sequence<Filter<FilterPatternNumberValue>> {
+        if(strList.items.size > 1) semanticError(ValueCannotBeAddress(strList.beginIndex, strList.endIndex))
+        val filterValue = parseRangeFilterValue(strList.items.first())
+        if(filterValue.isPattern()) semanticError(ValueCannotBePatternInComparison(strList.beginIndex, strList.endIndex))
+        val filter = when (symbol) {
+            ">" -> RangeFilter(this, filterValue, null, includeBegin = false, includeEnd = false)
+            ">=" -> RangeFilter(this, filterValue, null, includeBegin = true, includeEnd = false)
+            "<" -> RangeFilter(this, null, filterValue, includeBegin = false, includeEnd = false)
+            "<=" -> RangeFilter(this, null, filterValue, includeBegin = false, includeEnd = true)
+            else -> throw RuntimeException("Unsupported family symbol '${symbol}'.")
+        }
+        return sequenceOf(filter)
+    }
+
+    private fun processCol(col: Col): Sequence<Filter<FilterPatternNumberValue>> {
+        val results = col.items.asSequence().map { PatternNumberParser.parse(it) }.toList()
+        return results.filterIsInstance<StrComplexValue<FilterPatternNumberValue>>().map { it.value }.let {
+            val (matchItems, equalItems) = it.partition { v -> v.isPattern() }
+            sequence {
+                if(equalItems.isNotEmpty()) yield(EqualFilter(this@NumberPatternField, equalItems))
+                if(matchItems.isNotEmpty()) yield(MatchFilter(this@NumberPatternField, matchItems))
+            }
+        } + results.filterIsInstance<StrComplexRange<FilterPatternNumberValue>>().map { RangeFilter(this, it.begin, it.end, includeBegin = true, includeEnd = false) }.asSequence()
+    }
+
+    private fun processRange(range: Range): Sequence<Filter<FilterPatternNumberValue>> {
+        val beginValue = parseRangeFilterValue(range.from)
+        val endValue = parseRangeFilterValue(range.to)
+        return sequenceOf(RangeFilter(this, beginValue, endValue, includeBegin = range.includeFrom, includeEnd = range.includeTo))
+    }
+
+    private fun parseRangeFilterValue(str: Str): FilterPatternNumberValue {
+        return when (val result = PatternNumberParser.parse(str)) {
+            is StrComplexRange<*> -> semanticError(ValueCannotBePatternInComparison(str.beginIndex, str.endIndex))
+            is StrComplexValue<*> -> (result as StrComplexValue<FilterPatternNumberValue>).value.also {
+                if(it.isPattern()) semanticError(ValueCannotBePatternInComparison(str.beginIndex, str.endIndex))
+            }
+        }
+    }
+}
+
+/**
  * 数值型关键字项。
  */
 fun numberField(key: String, vararg alias: String): FilterFieldDefinition<FilterNumberValue> = ComparableField(key, alias, NumberParser)
@@ -228,7 +311,7 @@ fun numberField(key: String, vararg alias: String): FilterFieldDefinition<Filter
 /**
  * 数值且可匹配的关键字项。
  */
-fun patternNumberField(key: String, vararg alias: String): FilterFieldDefinition<FilterPatternNumberValue> = ComplexComparableField(key, alias, PatternNumberParser)
+fun patternNumberField(key: String, vararg alias: String): FilterFieldDefinition<FilterPatternNumberValue> = NumberPatternField(key, alias)
 
 /**
  * 日期型关键字项。

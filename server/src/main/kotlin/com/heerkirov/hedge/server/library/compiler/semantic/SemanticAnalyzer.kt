@@ -8,6 +8,7 @@ import com.heerkirov.hedge.server.library.compiler.semantic.framework.*
 import com.heerkirov.hedge.server.library.compiler.semantic.plan.*
 import com.heerkirov.hedge.server.library.compiler.semantic.utils.ThrowsSemanticError
 import com.heerkirov.hedge.server.library.compiler.semantic.utils.aliasToString
+import com.heerkirov.hedge.server.library.compiler.semantic.utils.semanticError
 import com.heerkirov.hedge.server.library.compiler.utils.AnalysisResult
 import com.heerkirov.hedge.server.library.compiler.utils.ErrorCollector
 import com.heerkirov.hedge.server.library.compiler.utils.SemanticError
@@ -18,13 +19,12 @@ import kotlin.reflect.full.memberProperties
  * 语义分析。执行语义树 -> 查询计划的步骤。
  */
 object SemanticAnalyzer {
-    private val dialects = arrayOf(IllustDialect, AlbumDialect, TopicDialect, AuthorDialect, AnnotationDialect).map { it::class to DialectStructure(it) }.toMap()
-    private val allIdentifies = emptySet<String>()
+    private val dialects = arrayOf(IllustDialect, AlbumDialect, AuthorAndTopicDialect, AnnotationDialect).map { it::class to DialectStructure(it) }.toMap()
 
     /**
      * 执行语义分析。
      */
-    fun parse(root: SemanticRoot, dialectClazz: KClass<QueryDialect<*>>): AnalysisResult<QueryPlan, SemanticError<*>> {
+    fun parse(root: SemanticRoot, dialectClazz: KClass<out QueryDialect<*>>): AnalysisResult<QueryPlan, SemanticError<*>> {
         val dialect = dialects[dialectClazz] ?: throw RuntimeException("Unregister dialect ${dialectClazz.simpleName}.")
         val collector = ErrorCollector<SemanticError<*>>()
         val elements = mutableListOf<Element<*>>()
@@ -36,15 +36,22 @@ object SemanticAnalyzer {
             when (sequenceItem.body) {
                 is SemanticElement -> {
                     //构造一个列表，列表的每一项标记对应索引的item是否是关键字项目
-                    val whetherIsIdentifies = sequenceItem.body.items.map { whetherIsIdentifyAndMapToAlias(it.subject, sequenceItem.body.prefix, sequenceItem.source) }
+                    val whetherIsIdentifies = try {
+                        sequenceItem.body.items.map { whetherIsIdentifyAndMapToAlias(dialect, it.subject, sequenceItem.body.prefix, sequenceItem.source) }
+                    }catch (e: ThrowsSemanticError) {
+                        e.errors.forEach { collector.error(it) }
+                        continue
+                    }
                     when {
                         whetherIsIdentifies.all { it != null } -> {
                             //所有的项都是关键字项目，进入关键字处理流程
-                            if(whetherIsIdentifies.any { it == "order" }) {
+                            if(dialect.orderGenerator != null && whetherIsIdentifies.any { it == "order" }) {
                                 //存在order项，进入order处理流程
-                                if(whetherIsIdentifies.size != 1) TODO("ERROR: order项不能与其他项使用或连接")
-                                if(sequenceItem.minus) TODO("ERROR: order项不能被排除")
-                                if(sequenceItem.source) TODO("ERROR: order项不能带有源标记")
+                                //order项不能标记为-, 或被or(|)连接
+                                if(whetherIsIdentifies.size != 1 || sequenceItem.minus) {
+                                    collector.error(OrderIsIndependent(sequenceItem.beginIndex, sequenceItem.endIndex))
+                                    continue
+                                }
                                 val (subject, family, predicative) = sequenceItem.body.items.first()
                                 try {
                                     val result = dialect.orderGenerator.generate(subject as StrList, family, predicative)
@@ -55,8 +62,8 @@ object SemanticAnalyzer {
                             }else{
                                 //否则按普通关键字项目处理
                                 val subFilters = mutableListOf<Filter<*>>()
-                                whetherIsIdentifies.zip(sequenceItem.body.items).forEachIndexed { index, (alias, sfp) ->
-                                    val generator = dialect.identifyGenerators[alias] ?: TODO("ERROR: 当前方言不支持此关键字alias")
+                                whetherIsIdentifies.zip(sequenceItem.body.items).forEach { (alias, sfp) ->
+                                    val generator = dialect.identifyGenerators[alias] ?: throw RuntimeException("Generator of $alias is not found in map.")
                                     val (subject, family, predicative) = sfp
                                     try {
                                         if(generator is GeneratedSequenceByIdentify<*>) {
@@ -71,7 +78,10 @@ object SemanticAnalyzer {
                                         e.errors.forEach { collector.error(it) }
                                     }
                                 }
-                                val finalSubFilters = subFilters.groupBy { it.field }.map { (field, filters) -> if(filters.size > 1 && field is GeneratedByIdentify<*>) @Suppress("UNCHECKED_CAST") (field as GeneratedByIdentify<Filter<*>>).merge(filters) else filters }.flatten()
+                                val finalSubFilters = subFilters
+                                    .groupBy { it.field }
+                                    .map { (field, filters) -> if(filters.size > 1 && field is GeneratedByIdentify<*>) @Suppress("UNCHECKED_CAST") (field as GeneratedByIdentify<Filter<*>>).merge(filters) else filters }
+                                    .flatten()
                                 filters.add(UnionFilters(finalSubFilters, sequenceItem.minus))
                             }
                         }
@@ -85,12 +95,15 @@ object SemanticAnalyzer {
                                 e.errors.forEach { collector.error(it) }
                             }
                         }
-                        else -> TODO("ERROR: 不允许在一个合取项中混写关键字项目和元素")
+                        else -> collector.error(IdentifiesAndElementsCannotBeMixed(sequenceItem.body.beginIndex, sequenceItem.body.endIndex))
                     }
                 }
                 is SemanticAnnotation -> {
                     //项是注解元素
-                    if(sequenceItem.source) TODO("annotation不能带有源标记")
+                    if(sequenceItem.source) {
+                        collector.error(AnnotationCannotHaveSourceFlag(sequenceItem.beginIndex, sequenceItem.endIndex))
+                        continue
+                    }
                     try {
                         val result = dialect.annotationElementGenerator.generate(sequenceItem.body, sequenceItem.minus)
                         elements.add(result)
@@ -106,13 +119,24 @@ object SemanticAnalyzer {
 
     /**
      * 根据目标Subject判断目标SFP是否符合一个关键字项目的定义。如果是，返回这个关键字的alias，否则返回null。
+     * 如果一个项没有类型前缀(@#$)，地址长度为1，使用受限字符串书写，且位于关键字列表，就初步将其判定为关键字项目。
+     * 随后校对此项的source(^)符号。
      */
-    private fun whetherIsIdentifyAndMapToAlias(subject: Subject, prefix: Symbol?, sourceFlag: Boolean): String? {
+    private fun whetherIsIdentifyAndMapToAlias(dialect: DialectStructure<*>, subject: Subject, prefix: Symbol?, sourceFlag: Boolean): String? {
         if(subject !is StrList) throw RuntimeException("Unsupported subject type ${subject::class.simpleName}.")
         if(prefix == null && subject.items.size == 1 && subject.items.first().type == Str.Type.RESTRICTED) {
-            val alias = aliasToString(subject.items.first().value, sourceFlag).toLowerCase()
-            if(alias == "order" || alias in allIdentifies) {
-                //只要在全部关键字列表中发现此项，就判定为关键字。后面遇到不是当前方言的关键字时，会抛错误。
+            val aliasName = subject.items.first().value.toLowerCase()
+            if (aliasName == "order") {
+                //发现order项
+                if(sourceFlag) semanticError(ThisIdentifyCannotHaveSourceFlag(aliasName, subject.beginIndex, subject.endIndex))
+                return "order"
+            }else if(aliasName in dialect.identifies) {
+                //在关键字列表中发现此项，就判定为关键字。
+                val alias = aliasToString(aliasName, sourceFlag)
+                if(alias !in dialect.identifyGenerators.keys) {
+                    if(sourceFlag) semanticError(ThisIdentifyCannotHaveSourceFlag(aliasName, subject.beginIndex, subject.endIndex))
+                    else semanticError(ThisIdentifyMustHaveSourceFlag(aliasName, subject.beginIndex, subject.endIndex))
+                }
                 return alias
             }
         }
@@ -126,41 +150,38 @@ object SemanticAnalyzer {
         /**
          * 此方言对元素的生成方案。
          */
-        val elementGenerator: ElementFieldByElement
+        val elementGenerator: ElementFieldByElement = dialect.elements.asSequence().filterIsInstance<ElementFieldByElement>().filterNot { it.forSourceFlag }.firstOrNull() ?: DefaultElementField
 
         /**
          * 此方言对source标记的元素的生成方案。
          */
-        val sourceElementGenerator: ElementFieldByElement
+        val sourceElementGenerator: ElementFieldByElement = dialect.elements.asSequence().filterIsInstance<ElementFieldByElement>().filter { it.forSourceFlag }.firstOrNull() ?: DefaultSourceElementField
 
         /**
          * 此方言对annotation类型元素的生成方案。
          */
-        val annotationElementGenerator: ElementFieldByAnnotation
+        val annotationElementGenerator: ElementFieldByAnnotation = dialect.elements.asSequence().filterIsInstance<ElementFieldByAnnotation>().firstOrNull() ?: DefaultAnnotationElementField
 
         /**
-         * 此方言对identify的生成方案。
+         * 此方言对identify的生成方案。key是toString后的alias，value是生成器。
          */
-        val identifyGenerators: Map<String, FilterFieldByIdentify<*>>
+        val identifyGenerators: Map<String, FilterFieldByIdentify<*>> = dialect::class.memberProperties.asSequence()
+            .filter { it.name != "order" && it.name != "elements" }
+            .filter { !it.returnType.isMarkedNullable && it.returnType.classifier == FilterFieldDefinition::class }
+            .map { it.call(dialect) as FilterFieldDefinition<*> }
+            .map { it.cast<FilterFieldDefinition<*>, FilterFieldByIdentify<*>>() }
+            .flatMap { it.alias.asSequence().map { alias -> alias.toLowerCase() to it } }
+            .toMap()
+
+        /**
+         * 此方言的基本关键字，是alias不包括sourceFlag的name部分。
+         */
+        val identifies = identifyGenerators.keys.asSequence().map { if(it.startsWith("^")) it.substring(1) else it }.toSet()
 
         /**
          * 此方言对order的生成方案。
          */
-        val orderGenerator: OrderFieldByIdentify<O>
-
-        init {
-            this.orderGenerator = dialect.order.cast()
-            this.elementGenerator = dialect.elements.asSequence().filterIsInstance<ElementFieldByElement>().firstOrNull() ?: DefaultElementField
-            this.sourceElementGenerator = dialect.elements.asSequence().filterIsInstance<ElementFieldByElement>().firstOrNull() ?: DefaultSourceElementField
-            this.annotationElementGenerator = dialect.elements.asSequence().filterIsInstance<ElementFieldByAnnotation>().firstOrNull() ?: DefaultAnnotationElementField
-            this.identifyGenerators = dialect::class.memberProperties.asSequence()
-                .filter { it.name != "order" && it.name != "elements" }
-                .filter { !it.returnType.isMarkedNullable && it.returnType.classifier == FilterFieldDefinition::class }
-                .map { it.call(dialect) as FilterFieldDefinition<*> }
-                .map { it.cast<FilterFieldDefinition<*>, FilterFieldByIdentify<*>>() }
-                .flatMap { it.alias.asSequence().map { alias -> alias.toLowerCase() to it } }
-                .toMap()
-        }
+        val orderGenerator: OrderFieldByIdentify<O>? = dialect.order?.cast()
 
         private inline fun <T : Any, reified R : T> T.cast(): R {
             return if(this is R) this else throw ClassCastException("${this::class.simpleName} cannot be cast to ${R::class.simpleName}.")
@@ -173,7 +194,7 @@ object SemanticAnalyzer {
     object DefaultElementField : ElementFieldByElement() {
         override val itemName = "unknown"
         override val forSourceFlag = false
-        override fun generate(element: SemanticElement, minus: Boolean) = TODO("ERROR: 不支持使用元素定义")
+        override fun generate(element: SemanticElement, minus: Boolean) = semanticError(UnsupportedSemanticStructure(UnsupportedSemanticStructure.SemanticType.ELEMENT, element.beginIndex, element.endIndex))
     }
 
     /**
@@ -182,7 +203,7 @@ object SemanticAnalyzer {
     object DefaultSourceElementField : ElementFieldByElement() {
         override val itemName = "unknown"
         override val forSourceFlag = false
-        override fun generate(element: SemanticElement, minus: Boolean) = TODO("ERROR: 不支持使用source符号的元素定义")
+        override fun generate(element: SemanticElement, minus: Boolean) = semanticError(UnsupportedSemanticStructure(UnsupportedSemanticStructure.SemanticType.ELEMENT_WITH_SOURCE, element.beginIndex, element.endIndex))
     }
 
     /**
@@ -190,6 +211,6 @@ object SemanticAnalyzer {
      */
     object DefaultAnnotationElementField : ElementFieldByAnnotation() {
         override val itemName = "unknown"
-        override fun generate(annotation: SemanticAnnotation, minus: Boolean) = TODO("ERROR: 不支持使用注解元素定义")
+        override fun generate(annotation: SemanticAnnotation, minus: Boolean) = semanticError(UnsupportedSemanticStructure(UnsupportedSemanticStructure.SemanticType.ANNOTATION, annotation.beginIndex, annotation.endIndex))
     }
 }

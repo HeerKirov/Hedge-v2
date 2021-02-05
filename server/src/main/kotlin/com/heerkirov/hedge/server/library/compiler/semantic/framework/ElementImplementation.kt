@@ -84,7 +84,7 @@ object MetaTagElementField : ElementFieldByElement() {
      */
     private fun mapIsFamily(metaAddress: MetaAddress, predicative: Predicative): MetaValue {
         return when (predicative) {
-            is StrList -> SequentialMetaValueOfCollection(metaAddress, Collections.singleton(mapStrListInPredicative(predicative)))
+            is StrList -> SequentialMetaValueOfCollection(metaAddress, listOf(mapStrListInPredicative(predicative)))
             is Range -> {
                 val begin = mapStrToMetaString(predicative.from)
                 val end = mapStrToMetaString(predicative.to)
@@ -154,7 +154,7 @@ object MetaTagElementField : ElementFieldByElement() {
 }
 
 /**
- * 从annotation生成annotation的生成器。被使用在illust/album/topic/author中。
+ * 从annotation生成annotation的生成器。被使用在illust/album中。
  */
 object AnnotationElementField : ElementFieldByAnnotation() {
     override val itemName = "annotation"
@@ -207,7 +207,7 @@ object SourceTagElementField : ElementFieldByElement() {
 }
 
 /**
- * 从element生成name filter的生成器。被使用在topic/author/annotation中。
+ * 从element生成name filter的生成器。被使用在author&topic/annotation中。
  */
 object NameFilterElementField : ElementFieldByElement() {
     override val itemName = "name"
@@ -227,5 +227,25 @@ object NameFilterElementField : ElementFieldByElement() {
         if(sfp.subject !is StrList) throw RuntimeException("Unsupported subject type ${sfp.subject::class.simpleName}.")
         if(sfp.subject.items.size > 1) semanticError(ValueCannotBeAddress(sfp.subject.beginIndex, sfp.subject.endIndex))
         return MetaString(sfp.subject.items.first().value, sfp.subject.items.first().type == Str.Type.BACKTICKS)
+    }
+}
+
+/**
+ * 从annotation生成annotation的生成器。被使用在author&topic中。
+ */
+object MetaAnnotationElementField : ElementFieldByAnnotation() {
+    override val itemName = "annotation"
+
+    override fun generate(annotation: Annotation, minus: Boolean): AnnotationElement {
+        if(annotation.prefixes.isNotEmpty()) semanticError(ElementPrefixNotRequired(itemName, annotation.beginIndex, annotation.endIndex))
+        val items = annotation.items.map(::mapStrToMetaString)
+        return AnnotationElement(items, emptySet(), minus)
+    }
+
+    /**
+     * 将单个字符串转换为一个MetaString。
+     */
+    private fun mapStrToMetaString(str: Str): MetaString {
+        return MetaString(str.value, str.type == Str.Type.BACKTICKS)
     }
 }

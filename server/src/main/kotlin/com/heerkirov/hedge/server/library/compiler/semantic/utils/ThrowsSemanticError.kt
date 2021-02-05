@@ -10,5 +10,3 @@ class ThrowsSemanticError(val errors: Array<out SemanticError<*>>) : Exception("
 fun semanticError(vararg error: SemanticError<*>): Nothing {
     throw ThrowsSemanticError(error)
 }
-
-//TODO 提出更好的生成错误的方法。通过异常传递错误的方式只能传递error，无法传递warning。

@@ -17,9 +17,9 @@ import com.heerkirov.hedge.server.library.compiler.semantic.utils.*
  */
 class OrderDefinition<T : Enum<T>>(items: List<AliasDefinition<T, Alias>>) : OrderFieldByIdentify<T>() {
     /**
-     * 默认负向排序。
+     * 默认正向排序。
      */
-    private val defaultDesc = true
+    private val defaultDesc = false
     /**
      * 期望值列表。
      */

@@ -56,7 +56,7 @@ object NumberParser : StrTypeParser<FilterNumberValue> {
  * 数值只能是自然数。单位可选有：B KB MB GB TB KiB MiB GiB TiB。无视大小写。*B使用1000进制，*iB使用1024进制。*B系列单位可省略B。
  */
 object SizeParser : StrTypeParser<FilterSizeValue> {
-    private val pattern = Pattern.compile("""(\d+)([a-zA-Z]+)""")
+    private val pattern = Pattern.compile("""^(\d+)([a-zA-Z]+)$""")
     private val units = mapOf(
         "b" to 1L,
         "kb" to 1000L,

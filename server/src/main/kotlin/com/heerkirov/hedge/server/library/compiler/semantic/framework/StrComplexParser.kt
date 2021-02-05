@@ -81,11 +81,11 @@ object DateParser : StrComplexParser<FilterDateValue> {
  * 其他出现匹配符号时，将其翻译为匹配字符串(直接输出)。
  */
 object PatternNumberParser : StrComplexParser<FilterPatternNumberValue> {
-    private val pattern = Pattern.compile("""[\d?*]+""")
-    private val rangePattern = Pattern.compile("""(\d+)(\?+)""")
+    private val pattern = Pattern.compile("""^[\d?*]+$""")
+    private val rangePattern = Pattern.compile("""^(\d+)(\?+)$""")
 
     override fun parse(str: Str): StrComplexResult<FilterPatternNumberValue> {
-        return if(pattern.matcher(str.value).find()) {
+        return if(pattern.matcher(str.value).find() && str.value.indexOfAny(charArrayOf('*', '?')) >= 0) {
             val matcher = rangePattern.matcher(str.value)
             if(matcher.find()) {
                 val prefixValue = matcher.group(1).toLongOrNull() ?: semanticError(TypeCastError(str.value, TypeCastError.Type.NUMBER, str.beginIndex, str.endIndex))

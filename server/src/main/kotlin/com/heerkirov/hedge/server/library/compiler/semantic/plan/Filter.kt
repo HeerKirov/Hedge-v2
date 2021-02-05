@@ -12,7 +12,7 @@ typealias IntersectFilters = List<UnionFilters>
  * 内层的过滤器合取项。
  * @param exclude 排除项。
  */
-data class UnionFilters(private val filters: Collection<Filter<out FilterValue>>, val exclude: Boolean) : Collection<Filter<out FilterValue>> by filters
+data class UnionFilters(private val filters: Collection<Filter<out FilterValue>>, val exclude: Boolean = false) : Collection<Filter<out FilterValue>> by filters
 
 /**
  * 过滤器项。每一条过滤器项代表一个关系判别表达式子项。它包含一项属性定义，然后由实现确定关系类型和关系目标值。
@@ -27,22 +27,22 @@ interface Filter<V : FilterValue> {
 /**
  * 等价过滤器。此属性必须与目标值完全相等。目标值可给出多个，满足任一即达成判定条件。
  */
-class EqualFilter<V : EquableValue<*>>(override val field: FilterFieldDefinition<V>, val values: Collection<V>) : Filter<V>
+data class EqualFilter<V : EquableValue<*>>(override val field: FilterFieldDefinition<V>, val values: Collection<V>) : Filter<V>
 
 /**
  * 匹配过滤器。此属性必须与目标值按匹配规则模糊匹配。目标值可给出多个，满足任一即达成判定条件。
  */
-class MatchFilter<V : MatchableValue<*>>(override val field: FilterFieldDefinition<V>, val values: Collection<V>) : Filter<V>
+data class MatchFilter<V : MatchableValue<*>>(override val field: FilterFieldDefinition<V>, val values: Collection<V>) : Filter<V>
 
 /**
  * 范围比较过滤器。此属性必须满足给定的begin to end的上下界范围。include参数决定是否包含上下界。
  */
-class RangeFilter<V : ComparableValue<*>>(override val field: FilterFieldDefinition<V>, val begin: V?, val end: V?, val includeBegin: Boolean, val includeEnd: Boolean) : Filter<V>
+data class RangeFilter<V : ComparableValue<*>>(override val field: FilterFieldDefinition<V>, val begin: V?, val end: V?, val includeBegin: Boolean, val includeEnd: Boolean) : Filter<V>
 
 /**
  * 标记过滤器。此属性是布尔属性，没有目标值。
  */
-class FlagFilter(override val field: FilterFieldDefinition<FilterNothingValue>) : Filter<FilterNothingValue>
+data class FlagFilter(override val field: FilterFieldDefinition<FilterNothingValue>) : Filter<FilterNothingValue>
 
 
 /**
@@ -137,7 +137,7 @@ inline class FilterDateValueImpl(override val value: LocalDate) : FilterDateValu
 
 inline class FilterSizeValueImpl(override val value: Long) : FilterSizeValue
 
-class FilterEnumValueImpl<T : Enum<T>>(override val value: T) : FilterEnumValue<T>
+data class FilterEnumValueImpl<T : Enum<T>>(override val value: T) : FilterEnumValue<T>
 
 class FilterPatternNumberValueImpl : FilterPatternNumberValue {
     private val number: Long?
@@ -159,4 +159,16 @@ class FilterPatternNumberValueImpl : FilterPatternNumberValue {
     override val compareValue get() = number ?: throw ClassCastException("Pattern value cannot be as comparable.")
 
     override val matchValue get() = pattern ?: throw ClassCastException("Number value cannot be as matchable.")
+
+    override fun equals(other: Any?): Boolean {
+        return other === this || (other is FilterPatternNumberValueImpl && other.number == number && other.pattern == pattern)
+    }
+
+    override fun hashCode(): Int {
+        return (number?.hashCode() ?: 0) * 31 + (pattern?.hashCode() ?: 0)
+    }
+
+    override fun toString(): String {
+        return "FilterPatternNumberValueImpl(value=${if(isPattern()) pattern else number})"
+    }
 }
