@@ -1,7 +1,7 @@
 import { createApp } from "vue"
+import { createService } from '@/functions/service'
 import App from '@/views/App'
 import router from '@/routers'
-import { createService } from './functions/service'
 import '@/styles'
 
 const service = createService()

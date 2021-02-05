@@ -1,5 +1,5 @@
 import { inject, InjectionKey, readonly } from "vue"
-import { IPCService, Platform } from "../adapter-ipc/definition"
+import { ClientPlatform, IPCService } from "../adapter-ipc/definition"
 
 export function useAppInfoInjection(clientMode: boolean, ipc: IPCService): AppInfo {
     if(clientMode) {
@@ -10,8 +10,6 @@ export function useAppInfoInjection(clientMode: boolean, ipc: IPCService): AppIn
             clientMode: false,
             platform: "web",
             debugMode: false,
-            userDataPath: "",
-            channel: "",
             canPromptTouchID: false
         })
     }
@@ -24,13 +22,22 @@ export function useAppInfo(): Readonly<AppInfo> {
     return inject(AppInfoInjection)!
 }
 
-export interface AppInfo {
-    clientMode: boolean
-    platform: Platform
+export type AppInfo = AppInfoInClient|AppInfoInWeb
+
+export interface AppInfoInClient {
+    clientMode: true
+    platform: ClientPlatform
     debugMode: boolean
     userDataPath: string
     channel: string
     canPromptTouchID: boolean
+}
+
+export interface AppInfoInWeb {
+    clientMode: false
+    platform: "web"
+    debugMode: boolean
+    canPromptTouchID: false
 }
 
 export const AppInfoInjection: InjectionKey<Readonly<AppInfo>> = Symbol()

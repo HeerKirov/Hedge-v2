@@ -54,7 +54,7 @@ export interface AppLoginForm {
 }
 
 export interface AppEnvResponse {
-    platform: Platform
+    platform: ClientPlatform
     debugMode: boolean
     userDataPath: string
     channel: string
@@ -130,7 +130,8 @@ export interface StorageSetForm {
 
 //== enum ==
 
-export type Platform = "win32" | "darwin" | "linux" | "web"
+export type ClientPlatform = "win32" | "darwin" | "linux"
+export type Platform = ClientPlatform | "web"
 
 //前端的enum移除了unknown的定义，是因为在前端之前这些状态必定已经初始化完成。
 
