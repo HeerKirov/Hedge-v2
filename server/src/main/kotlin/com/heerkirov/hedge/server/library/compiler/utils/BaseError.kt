@@ -34,3 +34,8 @@ abstract class GrammarError<INFO : Any>(code: Int, message: String, happenPositi
  * 语义分析错误。语义分析系列的code范围为3000~3999。
  */
 abstract class SemanticError<INFO : Any>(code: Int, message: String, happenPositionIndex: IndexRange, info: INFO? = null) : CompileError<INFO>(code, message, happenPositionIndex, info)
+
+/**
+ * 执行计划翻译错误。制导翻译系列的code范围为4000~4999。
+ */
+abstract class TranslatorError<INFO : Any>(code: Int, message: String, happenPositionIndex: IndexRange, info: INFO? = null) : CompileError<INFO>(code, message, happenPositionIndex, info)

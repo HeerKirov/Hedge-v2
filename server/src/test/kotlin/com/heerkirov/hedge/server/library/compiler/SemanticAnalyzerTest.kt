@@ -616,6 +616,41 @@ class SemanticAnalyzerTest {
         )), parse("id>=8", IllustDialect::class))
     }
 
+    @Test
+    fun testPerformance() {
+        //预热
+        parseAndTestPerformance("""hello""", IllustDialect::class)
+        //高复杂度
+        parseAndTestPerformance("""[@#fav|like][updating] -$'rather'.`than`.x rating:[A, C)|D~E|G~+|rating>=G ext:{jpg, jpeg} ^id:4396???? order:+partition,-^id""", IllustDialect::class)
+        //中复杂度
+        parseAndTestPerformance("""[@#fav|like][updating] -$'rather'.`than`.x ^id:4396???? order:+partition,-^id""", IllustDialect::class)
+        //低复杂度
+        parseAndTestPerformance("""[updating] $'rather' order:+partition""", IllustDialect::class)
+    }
+
+    private fun parseAndTestPerformance(text: String, dialect: KClass<out QueryDialect<*>>) {
+        val t1 = System.currentTimeMillis()
+        val (lexicalResult) = LexicalAnalyzer.parse(text)
+        if(lexicalResult == null) {
+            throw RuntimeException("lexical error.")
+        }
+        val t2 = System.currentTimeMillis()
+        println("lexical time cost = ${t2 - t1}ms")
+        val (grammarResult) = GrammarAnalyzer.parse(lexicalResult)
+        if(grammarResult == null) {
+            throw RuntimeException("grammar error.")
+        }
+        val t3 = System.currentTimeMillis()
+        println("grammar time cost = ${t3 - t2}ms")
+        val (semanticResult) = SemanticAnalyzer.parse(grammarResult, IllustDialect::class)
+        if(semanticResult == null) {
+            throw RuntimeException("semantic error.")
+        }
+        val t4 = System.currentTimeMillis()
+        println("semantic time cost = ${t4 - t3}ms")
+        println("sum time cost = ${t4 - t1}ms")
+    }
+
     private fun parse(text: String, dialect: KClass<out QueryDialect<*>>): AnalysisResult<QueryPlan, SemanticError<*>> {
         val (lexicalResult) = LexicalAnalyzer.parse(text)
         if(lexicalResult == null) {

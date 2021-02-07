@@ -78,11 +78,7 @@ object SemanticAnalyzer {
                                         e.errors.forEach { collector.error(it) }
                                     }
                                 }
-                                val finalSubFilters = subFilters
-                                    .groupBy { it.field }
-                                    .map { (field, filters) -> if(filters.size > 1 && field is GeneratedByIdentify<*>) @Suppress("UNCHECKED_CAST") (field as GeneratedByIdentify<Filter<*>>).merge(filters) else filters }
-                                    .flatten()
-                                filters.add(UnionFilters(finalSubFilters, sequenceItem.minus))
+                                filters.add(UnionFilters(subFilters, sequenceItem.minus))
                             }
                         }
                         whetherIsIdentifies.all { it == null } -> {

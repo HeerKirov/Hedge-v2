@@ -21,11 +21,6 @@ interface GeneratedByIdentify<R : Any> {
      * 从此关键字指示的SFP生成结果。
      */
     fun generate(subject: StrList, family: Family?, predicative: Predicative?): R
-
-    /**
-     * 同一个合取式中存在多个相同关键字的结果时，调用此方法尝试合并。
-     */
-    fun merge(group: List<R>): List<R> = group
 }
 
 /**
