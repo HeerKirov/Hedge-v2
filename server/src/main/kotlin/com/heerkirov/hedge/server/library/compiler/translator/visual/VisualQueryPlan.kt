@@ -2,7 +2,8 @@ package com.heerkirov.hedge.server.library.compiler.translator.visual
 
 data class VisualQueryPlan(
     val orders: List<String>,
-    val elements: List<Element<*>>
+    val elements: List<Element<*>>,
+    val filters: List<FilterItem>
 )
 
 
@@ -27,13 +28,13 @@ data class FilterRange<V : Any>(val begin: V?, val end: V?, val includeBegin: Bo
 }
 
 
-data class Element<V>(val type: String, val intersectItems: List<ElementItem<V>>)
+data class Element<V : ElementValue>(val type: String, val intersectItems: List<ElementItem<V>>)
 
-data class ElementItem<V>(val exclude: Boolean, val unionItems: List<V>)
+data class ElementItem<V : ElementValue>(val exclude: Boolean, val unionItems: List<V>)
 
 interface ElementValue
 
-data class ElementName(val value: String, val precise: Boolean) : ElementValue
+data class ElementString(val value: String, val precise: Boolean) : ElementValue
 
 interface ElementMeta : ElementValue {
     val type: String
@@ -53,6 +54,8 @@ data class ElementAuthor(override val id: Int, override val name: String) : Elem
     override val type: String get() = "author"
 }
 
-data class ElementTag(override val id: Int, override val name: String, val isAddr: Boolean, val color: String?) : ElementMeta {
+data class ElementTag(override val id: Int, override val name: String, val isAddr: Boolean, val color: String?, val isVirtual: Boolean, val realTags: List<RealTag>?) : ElementMeta {
     override val type: String get() = "tag"
+
+    data class RealTag(val id: Int, val name: String, val isAddr: Boolean)
 }
