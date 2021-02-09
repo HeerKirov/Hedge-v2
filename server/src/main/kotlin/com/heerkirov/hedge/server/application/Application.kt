@@ -38,6 +38,9 @@ fun runApplication(options: ApplicationOptions) {
             val relationManager = RelationManager(repo)
             val sourceManager = SourceManager(repo)
 
+            val queryManager = QueryManager(repo)
+            val queryService = QueryService(queryManager)
+
             val thumbnailGenerator = define { ThumbnailGeneratorImpl(appdata, repo) }
             val fileManager = FileManager(appdata, repo)
             val importMetaManager = ImportMetaManager(repo)
@@ -86,7 +89,8 @@ fun runApplication(options: ApplicationOptions) {
                 authorService,
                 topicService,
                 settingImportService,
-                settingSourceSiteService
+                settingSourceSiteService,
+                queryService
             )
         }
 

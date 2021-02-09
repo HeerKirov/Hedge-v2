@@ -76,13 +76,8 @@ object Translator {
      * 处理一个AnnotationElement的翻译。
      */
     private fun mapAnnotationElement(element: AnnotationElement, queryer: Queryer, collector: ErrorCollector<TranslatorError<*>>): List<ElementAnnotation> {
-        val result = element.items.flatMap {
-            if(it.value.isBlank()) {
-                collector.warning(BlankElement())
-                emptyList()
-            } else queryer.findAnnotation(it, collector)
-        }
-        if(result.isEmpty()) collector.warning(ElementMatchesNone())
+        val result = element.items.flatMap { queryer.findAnnotation(it, element.metaType, collector) }
+        if(result.isEmpty()) collector.warning(ElementMatchesNone(element.items.map { it.revertToQueryString() }))
         return result
     }
 
@@ -94,7 +89,9 @@ object Translator {
             //未标记类型时，按tag->topic->author的顺序，依次进行搜索。由于整个合取项的类型统一，一旦某种类型找到了至少1个结果，就从这个类型返回
             val result = ArrayList<ElementMeta>(element.items.size)
 
-            for (item in element.items) { result.addAll(queryer.findTag(item, collector)) }
+            for (item in element.items) {
+                result.addAll(queryer.findTag(item, collector))
+            }
             if(result.isEmpty() && element is TopicElement<*>) {
                 for (item in element.items) { result.addAll(queryer.findTopic(item, collector)) }
                 if(result.isEmpty() && element is AuthorElement) {
@@ -102,7 +99,7 @@ object Translator {
                 }
             }
 
-            if(result.isEmpty()) collector.warning(ElementMatchesNone())
+            if(result.isEmpty()) collector.warning(ElementMatchesNone(element.items.map { it.revertToQueryString() }))
             return result
         }else {
             val result = when (element) {
@@ -110,7 +107,7 @@ object Translator {
                 is TopicElement<*> -> element.items.flatMap { queryer.findTopic(it, collector) }
                 else -> element.items.flatMap { queryer.findTag(it, collector) }
             }
-            if(result.isEmpty()) collector.warning(ElementMatchesNone())
+            if(result.isEmpty()) collector.warning(ElementMatchesNone(element.items.map { it.revertToQueryString() }))
             return result
         }
     }

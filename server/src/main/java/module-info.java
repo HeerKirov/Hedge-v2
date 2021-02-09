@@ -31,5 +31,12 @@ module com.heerkirov.hedge.server {
     opens com.heerkirov.hedge.server.form;
     opens com.heerkirov.hedge.server.exceptions;
     opens com.heerkirov.hedge.server.utils.types;
+    exports com.heerkirov.hedge.server.library.compiler.translator.visual to com.fasterxml.jackson.databind;
+    exports com.heerkirov.hedge.server.library.compiler.lexical to com.fasterxml.jackson.databind;
+    exports com.heerkirov.hedge.server.library.compiler.grammar to com.fasterxml.jackson.databind;
+    exports com.heerkirov.hedge.server.library.compiler.semantic to com.fasterxml.jackson.databind;
+    exports com.heerkirov.hedge.server.library.compiler.translator to com.fasterxml.jackson.databind;
+    exports com.heerkirov.hedge.server.library.compiler.utils to com.fasterxml.jackson.databind;
     exports com.heerkirov.hedge.server.library.compiler.grammar.semantic to kotlin.reflect;
+    exports com.heerkirov.hedge.server.library.compiler.semantic.dialect to kotlin.reflect;
 }

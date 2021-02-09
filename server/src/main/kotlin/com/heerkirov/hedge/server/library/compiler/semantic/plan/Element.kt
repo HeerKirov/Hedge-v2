@@ -20,6 +20,12 @@ interface Element<V : Any> {
     val exclude: Boolean
 }
 
+/**
+ * 此元素可以一定程度上还原为查询语句中的文本表述。
+ */
+interface Revertible {
+    fun revertToQueryString(): String
+}
 
 /**
  * 实现为名称的连接元素。
@@ -114,7 +120,7 @@ class AuthorElementImpl(override val items: List<SingleMetaValue>, noType: Boole
 /**
  * 一个在连接元素中的meta tag的表示值。
  */
-sealed class MetaValue
+sealed class MetaValue : Revertible
 
 /**
  * 表示单一的meta tag值。
@@ -126,6 +132,10 @@ open class SimpleMetaValue(val value: MetaAddress) : MetaValue() {
 
     override fun hashCode(): Int {
         return value.hashCode()
+    }
+
+    override fun revertToQueryString(): String {
+        return value.joinToString(".") { it.revertToQueryString() }
     }
 }
 
@@ -143,6 +153,10 @@ class SingleMetaValue(value: MetaAddress) : SimpleMetaValue(value) {
 
     override fun hashCode(): Int {
         return singleValue.hashCode()
+    }
+
+    override fun revertToQueryString(): String {
+        return singleValue.revertToQueryString()
     }
 }
 
@@ -163,17 +177,39 @@ abstract class SequentialItemMetaValue : MetaValue() {
 /**
  * 从一个集合中选择序列化子项。
  */
-data class SequentialMetaValueOfCollection(override val tag: MetaAddress, val values: Collection<MetaString>) : SequentialMetaValue()
+data class SequentialMetaValueOfCollection(override val tag: MetaAddress, val values: Collection<MetaString>) : SequentialMetaValue() {
+    override fun revertToQueryString(): String {
+        return tag.joinToString(".") { it.revertToQueryString() } + ":" + if(values.size == 1) {
+            values.first().revertToQueryString()
+        }else{
+            "{${values.joinToString(",") { it.revertToQueryString() }}}"
+        }
+    }
+}
 
 /**
  * 从一个区间范围选择序列化子项。其begin和end都是可选的。
  */
-data class SequentialMetaValueOfRange(override val tag: MetaAddress, val begin: MetaString?, val end: MetaString?, val includeBegin: Boolean, val includeEnd: Boolean) : SequentialMetaValue()
+data class SequentialMetaValueOfRange(override val tag: MetaAddress, val begin: MetaString?, val end: MetaString?, val includeBegin: Boolean, val includeEnd: Boolean) : SequentialMetaValue() {
+    override fun revertToQueryString(): String {
+        return tag.joinToString(".") { it.revertToQueryString() } + if(end == null) {
+            (if(includeBegin) ">=" else ">") + begin!!.revertToQueryString()
+        }else if(begin == null) {
+            (if(includeEnd) "<=" else "<") + end.revertToQueryString()
+        }else{
+            ":[${begin.revertToQueryString()},${end.revertToQueryString()}]"
+        }
+    }
+}
 
 /**
  * 从一个序列化组员到另一个组员，begin和end都包括。
  */
-data class SequentialItemMetaValueToOther(override val tag: MetaAddress, val otherTag: MetaString) : SequentialItemMetaValue()
+data class SequentialItemMetaValueToOther(override val tag: MetaAddress, val otherTag: MetaString) : SequentialItemMetaValue() {
+    override fun revertToQueryString(): String {
+        return tag.joinToString(".") { it.revertToQueryString() } + "~" + otherTag.revertToQueryString()
+    }
+}
 
 /**
  * 从一个序列化组员到指定的方向。
@@ -181,6 +217,9 @@ data class SequentialItemMetaValueToOther(override val tag: MetaAddress, val oth
 data class SequentialItemMetaValueToDirection(override val tag: MetaAddress, private val desc: Boolean) : SequentialItemMetaValue() {
     fun isDescending() = desc
     fun isAscending() = !desc
+    override fun revertToQueryString(): String {
+        return tag.joinToString(".") { it.revertToQueryString() } + "~" + if(desc) "-" else "+"
+    }
 }
 
 
@@ -194,4 +233,8 @@ typealias MetaAddress = List<MetaString>
  * @param value 字面值
  * @param precise 是否是精准匹配的字面值
  */
-data class MetaString(val value: String, val precise: Boolean = false)
+data class MetaString(val value: String, val precise: Boolean = false) : Revertible {
+    override fun revertToQueryString(): String {
+        return if(precise) "`$value`" else value
+    }
+}

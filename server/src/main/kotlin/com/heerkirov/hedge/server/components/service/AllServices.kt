@@ -14,6 +14,7 @@ interface AllServices : Component {
     val topic: TopicService
     val settingImport: SettingImportService
     val settingSource: SettingSourceService
+    val queryService: QueryService
 }
 
 class AllServicesImpl(
@@ -27,5 +28,6 @@ class AllServicesImpl(
     override val author: AuthorService,
     override val topic: TopicService,
     override val settingImport: SettingImportService,
-    override val settingSource: SettingSourceService
+    override val settingSource: SettingSourceService,
+    override val queryService: QueryService
 ) : AllServices

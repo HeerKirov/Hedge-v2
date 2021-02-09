@@ -1,9 +1,6 @@
 package com.heerkirov.hedge.server.library.compiler.translator
 
-import com.heerkirov.hedge.server.library.compiler.semantic.plan.MetaString
-import com.heerkirov.hedge.server.library.compiler.semantic.plan.MetaValue
-import com.heerkirov.hedge.server.library.compiler.semantic.plan.SimpleMetaValue
-import com.heerkirov.hedge.server.library.compiler.semantic.plan.SingleMetaValue
+import com.heerkirov.hedge.server.library.compiler.semantic.plan.*
 import com.heerkirov.hedge.server.library.compiler.translator.visual.ElementAnnotation
 import com.heerkirov.hedge.server.library.compiler.translator.visual.ElementAuthor
 import com.heerkirov.hedge.server.library.compiler.translator.visual.ElementTag
@@ -21,5 +18,5 @@ interface Queryer {
 
     fun findAuthor(metaValue: SingleMetaValue, collector: ErrorCollector<TranslatorError<*>>): List<ElementAuthor>
 
-    fun findAnnotation(metaString: MetaString, collector: ErrorCollector<TranslatorError<*>>): List<ElementAnnotation>
+    fun findAnnotation(metaString: MetaString, metaType: Set<AnnotationElement.MetaType>, collector: ErrorCollector<TranslatorError<*>>): List<ElementAnnotation>
 }
