@@ -1,14 +1,11 @@
 package com.heerkirov.hedge.server.library.compiler.translator
 
 import com.heerkirov.hedge.server.library.compiler.semantic.plan.*
-import com.heerkirov.hedge.server.library.compiler.translator.executor.Executor
 import com.heerkirov.hedge.server.library.compiler.translator.visual.*
 import com.heerkirov.hedge.server.library.compiler.translator.visual.Element
-import com.heerkirov.hedge.server.library.compiler.translator.visual.FilterValue
 import com.heerkirov.hedge.server.library.compiler.utils.AnalysisResult
 import com.heerkirov.hedge.server.library.compiler.utils.ErrorCollector
 import com.heerkirov.hedge.server.library.compiler.utils.TranslatorError
-import java.util.*
 import kotlin.collections.ArrayList
 
 /**
@@ -19,7 +16,7 @@ object Translator {
      * 执行翻译。
      * @param queryPlan 输入参数，查询计划。
      */
-    fun parse(queryPlan: QueryPlan, queryer: Queryer): AnalysisResult<VisualQueryPlan, TranslatorError<*>> {
+    fun parse(queryPlan: QueryPlan, queryer: Queryer, options: TranslatorOptions? = null): AnalysisResult<VisualQueryPlan, TranslatorError<*>> {
         val collector = ErrorCollector<TranslatorError<*>>()
 
         val visualOrderList = ArrayList<String>(queryPlan.orders.size)
@@ -45,6 +42,7 @@ object Translator {
         }
 
         //翻译element部分
+        var joinDepth = 0
         queryPlan.elements.groupBy {
             when (it) {
                 is NameElement -> "name"
@@ -58,12 +56,13 @@ object Translator {
                 ElementItem(element.exclude, when (element) {
                     is NameElement -> element.items.map { ElementString(it.value, it.precise) }
                     is SourceTagElement -> element.items.map { ElementString(it.value, it.precise) }
-                    is AnnotationElement -> mapAnnotationElement(element, queryer, collector)
-                    is TagElement -> mapTagElement(element, queryer, collector)
+                    is AnnotationElement -> mapAnnotationElement(element, queryer, collector, options).also { joinDepth += 1 }
+                    is TagElement -> mapTagElement(element, queryer, collector, options).also { joinDepth += 1 }
                     else -> throw RuntimeException("Unsupported element type $type.")
                 })
             })
         }
+        if(options != null && joinDepth >= options.warningLimitOfIntersectItems) collector.warning(NumberOfIntersectItemExceed(options.warningLimitOfIntersectItems))
 
         return if(collector.hasErrors) {
             AnalysisResult(null, warnings = collector.warnings, errors = collector.errors)
@@ -75,17 +74,18 @@ object Translator {
     /**
      * 处理一个AnnotationElement的翻译。
      */
-    private fun mapAnnotationElement(element: AnnotationElement, queryer: Queryer, collector: ErrorCollector<TranslatorError<*>>): List<ElementAnnotation> {
+    private fun mapAnnotationElement(element: AnnotationElement, queryer: Queryer, collector: ErrorCollector<TranslatorError<*>>, options: TranslatorOptions?): List<ElementAnnotation> {
         val result = element.items.flatMap { queryer.findAnnotation(it, element.metaType, collector) }
         if(result.isEmpty()) collector.warning(ElementMatchesNone(element.items.map { it.revertToQueryString() }))
+        else if(options!= null && result.size >= options.warningLimitOfUnionItems) collector.warning(NumberOfUnionItemExceed(element.items.map { it.revertToQueryString() }, options.warningLimitOfUnionItems))
         return result
     }
 
     /**
      * 处理一个TagElement的翻译。
      */
-    private fun mapTagElement(element: TagElement<*>, queryer: Queryer, collector: ErrorCollector<TranslatorError<*>>): List<ElementMeta> {
-        if(element.noType) {
+    private fun mapTagElement(element: TagElement<*>, queryer: Queryer, collector: ErrorCollector<TranslatorError<*>>, options: TranslatorOptions?): List<ElementMeta> {
+        return (if(element.noType) {
             //未标记类型时，按tag->topic->author的顺序，依次进行搜索。由于整个合取项的类型统一，一旦某种类型找到了至少1个结果，就从这个类型返回
             val result = ArrayList<ElementMeta>(element.items.size)
 
@@ -99,16 +99,15 @@ object Translator {
                 }
             }
 
+            result
+        }else when (element) {
+            //标记了类型时，按author->topic->tag的顺序，确定实际的类型是什么，然后根据单一类型确定查询结果
+            is AuthorElement -> element.items.flatMap { queryer.findAuthor(it, collector) }
+            is TopicElement<*> -> element.items.flatMap { queryer.findTopic(it, collector) }
+            else -> element.items.flatMap { queryer.findTag(it, collector) }
+        }).also { result ->
             if(result.isEmpty()) collector.warning(ElementMatchesNone(element.items.map { it.revertToQueryString() }))
-            return result
-        }else {
-            val result = when (element) {
-                is AuthorElement -> element.items.flatMap { queryer.findAuthor(it, collector) }
-                is TopicElement<*> -> element.items.flatMap { queryer.findTopic(it, collector) }
-                else -> element.items.flatMap { queryer.findTag(it, collector) }
-            }
-            if(result.isEmpty()) collector.warning(ElementMatchesNone(element.items.map { it.revertToQueryString() }))
-            return result
+            else if(options!= null && result.size >= options.warningLimitOfUnionItems) collector.warning(NumberOfUnionItemExceed(element.items.map { it.revertToQueryString() }, options.warningLimitOfUnionItems))
         }
     }
 

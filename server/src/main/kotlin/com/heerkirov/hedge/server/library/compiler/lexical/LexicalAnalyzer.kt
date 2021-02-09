@@ -147,5 +147,5 @@ object LexicalAnalyzer {
         }
     }
 
-    private val emptyOptions = LexicalOptions()
+    private val emptyOptions = LexicalOptionsImpl()
 }

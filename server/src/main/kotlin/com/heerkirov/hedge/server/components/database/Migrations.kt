@@ -14,6 +14,13 @@ object MetadataMigrationStrategy : JsonObjectStrategy<Metadata>(Metadata::class)
                 scoreDescriptions = emptyList(),
                 autoCleanTagme = true
             ),
+            query = QueryOption(
+                chineseSymbolReflect = false,
+                translateUnderscoreToSpace = false,
+                queryLimitOfQueryItems = 20,
+                warningLimitOfUnionItems = 20,
+                warningLimitOfIntersectItems = 8
+            ),
             source = SourceOption(
                 sites = mutableListOf()
             ),

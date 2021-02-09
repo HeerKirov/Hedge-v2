@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 
 data class Metadata(
     val meta: MetaOption,
+    val query: QueryOption,
     val source: SourceOption,
     val import: ImportOption,
     val spider: SpiderOption
@@ -26,6 +27,29 @@ data class MetaOption(
 ) {
     data class ScoreDescription(val word: String, val content: String)
 }
+
+data class QueryOption(
+    /**
+     * 识别并转换HQL中的中文字符。
+     */
+    var chineseSymbolReflect: Boolean,
+    /**
+     * 将有限字符串中的下划线转义为空格。
+     */
+    var translateUnderscoreToSpace: Boolean,
+    /**
+     * 在元素向实体转换的查询过程中，每一个元素查询的结果的数量上限。此参数防止一个值在预查询中匹配了过多数量的结果。
+     */
+    var queryLimitOfQueryItems: Int,
+    /**
+     * 每一个元素合取项中，结果数量的警告阈值。此参数对过多的连接查询子项提出警告。
+     */
+    var warningLimitOfUnionItems: Int,
+    /**
+     * 合取项的总数的警告阈值。此参数对过多的连接查询层数提出警告。
+     */
+    var warningLimitOfIntersectItems: Int,
+)
 
 /**
  * 与原始数据相关的选项。

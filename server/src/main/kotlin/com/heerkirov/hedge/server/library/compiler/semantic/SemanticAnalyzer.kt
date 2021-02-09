@@ -30,6 +30,7 @@ object SemanticAnalyzer {
         val elements = mutableListOf<Element<*>>()
         val filters = mutableListOf<UnionFilters>()
         val orders = mutableListOf<Order<*>>()
+        val orderKeySet = mutableSetOf<Enum<*>>()
         //遍历整个root
         for (sequenceItem in root.items) {
             //每个sequenceItem是一个合取项
@@ -55,7 +56,14 @@ object SemanticAnalyzer {
                                 val (subject, family, predicative) = sequenceItem.body.items.first()
                                 try {
                                     val result = dialect.orderGenerator.generate(subject as StrList, family, predicative)
-                                    orders.addAll(result)
+                                    for (order in result) {
+                                        if(order.value in orderKeySet) {
+                                            collector.warning(DuplicatedOrderItem(order.value.name, sequenceItem.body.beginIndex, sequenceItem.body.endIndex))
+                                        }else{
+                                            orders.add(order)
+                                            orderKeySet.add(order.value)
+                                        }
+                                    }
                                 }catch (e: ThrowsSemanticError) {
                                     e.errors.forEach { collector.error(it) }
                                 }

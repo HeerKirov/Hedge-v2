@@ -253,7 +253,7 @@ class LexicalAnalyserTest {
 
     @Test
     fun testTranslateUnderscoreToSpace() {
-        val options = LexicalOptions(translateUnderscoreToSpace = true)
+        val options = LexicalOptionsImpl(translateUnderscoreToSpace = true)
         //测试将有限字符串中的下划线转义为空格
         assertEquals(AnalysisResult(listOf(stringLexical(CharSequenceType.RESTRICTED, " ", 0, 1))), LexicalAnalyzer.parse("_", options))
         assertEquals(AnalysisResult(listOf(stringLexical(CharSequenceType.RESTRICTED, "a ", 0, 2))), LexicalAnalyzer.parse("a_", options))
@@ -264,7 +264,7 @@ class LexicalAnalyserTest {
 
     @Test
     fun testChineseSymbols() {
-        val options = LexicalOptions(chineseSymbolReflect = true)
+        val options = LexicalOptionsImpl(chineseSymbolReflect = true)
         //测试处理中文符号
         assertEquals(AnalysisResult(listOf(
             symbolLexical(":", 0),
