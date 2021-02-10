@@ -1,4 +1,4 @@
-package com.heerkirov.hedge.server.components.manager
+package com.heerkirov.hedge.server.components.manager.query
 
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.dao.meta.Annotations
@@ -60,7 +60,6 @@ class QueryManager(private val data: DataRepository) {
 
     enum class Dialect { ILLUST, ALBUM, AUTHOR_AND_TOPIC, ANNOTATION }
 
-    //TODO topic & author & tag & annotation 的 updateTime / createTime
     //TODO 将matches none的错误信息下放到这里，并且变成针对一个项的none警告，这样可以提示用户到底哪个项产生了0匹配
     //TODO 设计缓存数据结构，尽力缓存一切可能缓存的东西
     //TODO 当使用match时，otherName也要参与匹配

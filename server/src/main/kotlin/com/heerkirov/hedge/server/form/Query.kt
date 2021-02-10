@@ -1,6 +1,6 @@
 package com.heerkirov.hedge.server.form
 
-import com.heerkirov.hedge.server.components.manager.QueryManager
+import com.heerkirov.hedge.server.components.manager.query.QueryManager
 import com.heerkirov.hedge.server.library.compiler.translator.visual.VisualQueryPlan
 import com.heerkirov.hedge.server.library.compiler.utils.CompileError
 

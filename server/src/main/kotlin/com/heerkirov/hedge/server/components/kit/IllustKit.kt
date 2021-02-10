@@ -11,6 +11,7 @@ import com.heerkirov.hedge.server.exceptions.ParamRequired
 import com.heerkirov.hedge.server.exceptions.ResourceNotExist
 import com.heerkirov.hedge.server.model.illust.Illust
 import com.heerkirov.hedge.server.model.meta.Annotation
+import com.heerkirov.hedge.server.utils.DateTime
 import com.heerkirov.hedge.server.utils.ktorm.asSequence
 import com.heerkirov.hedge.server.utils.ktorm.firstOrNull
 import com.heerkirov.hedge.server.utils.types.Opt
@@ -143,6 +144,7 @@ class IllustKit(private val data: DataRepository,
      * 使用目标的所有relations，拷贝一份赋给当前项，统一设定为exported。
      */
     fun copyAllMetaFromParent(thisId: Int, fromId: Int) {
+        val now = DateTime.now()
         fun <R : EntityMetaRelationTable<*>, T : MetaTag<*>> copyOneMeta(tagRelations: R, metaTag: T) {
             val ids = data.db.from(tagRelations).select(tagRelations.metaId()).where { tagRelations.entityId() eq fromId }.map { it[tagRelations.metaId()]!! }
             data.db.batchInsert(tagRelations) {
@@ -158,6 +160,7 @@ class IllustKit(private val data: DataRepository,
             data.db.update(metaTag) {
                 where { it.metaId() inList ids }
                 set(it.cachedCount(), it.cachedCount() plus 1)
+                set(it.updateTime(), now)
             }
         }
         fun copyAnnotation() {

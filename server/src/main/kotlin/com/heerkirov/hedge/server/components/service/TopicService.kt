@@ -8,9 +8,11 @@ import com.heerkirov.hedge.server.components.kit.TopicKit
 import com.heerkirov.hedge.server.dao.album.AlbumTopicRelations
 import com.heerkirov.hedge.server.dao.illust.IllustTopicRelations
 import com.heerkirov.hedge.server.dao.illust.Illusts
+import com.heerkirov.hedge.server.dao.meta.Authors
 import com.heerkirov.hedge.server.dao.meta.TopicAnnotationRelations
 import com.heerkirov.hedge.server.dao.meta.Topics
 import com.heerkirov.hedge.server.model.illust.Illust
+import com.heerkirov.hedge.server.utils.DateTime
 import com.heerkirov.hedge.server.utils.ktorm.OrderTranslator
 import com.heerkirov.hedge.server.utils.ktorm.first
 import com.heerkirov.hedge.server.utils.ktorm.orderBy
@@ -28,6 +30,8 @@ class TopicService(private val data: DataRepository, private val kit: TopicKit) 
         "name" to Topics.name
         "score" to Topics.exportedScore nulls last
         "count" to Topics.cachedCount nulls last
+        "createTime" to Topics.createTime
+        "updateTime" to Topics.updateTime
     }
 
     fun list(filter: TopicFilter): ListResult<TopicRes> {
@@ -51,6 +55,8 @@ class TopicService(private val data: DataRepository, private val kit: TopicKit) 
 
             val annotations = kit.validateAnnotations(form.annotations, form.type)
 
+            val createTime = DateTime.now()
+
             val id = data.db.insertAndGenerateKey(Topics) {
                 set(it.name, name)
                 set(it.otherNames, otherNames)
@@ -63,6 +69,8 @@ class TopicService(private val data: DataRepository, private val kit: TopicKit) 
                 set(it.exportedScore, form.score ?: 0)
                 set(it.cachedCount, 0)
                 set(it.cachedAnnotations, annotations)
+                set(it.createTime, createTime)
+                set(it.updateTime, createTime)
             } as Int
 
             kit.processAnnotations(id, annotations.asSequence().map { it.id }.toSet(), creating = true)

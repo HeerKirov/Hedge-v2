@@ -98,7 +98,10 @@ CREATE TABLE meta_db.tag(
     links           TEXT DEFAULT NULL,          -- 链接到其他标签::json<number[]>，填写tagId列表，在应用此标签的同时导出链接的标签
     examples		TEXT DEFAULT NULL,          -- 标签的样例image列表::json<number[]>，填写id列表，NULL表示无
     exported_score  INTEGER DEFAULT NULL,       -- [导出]根据其关联的image导出的统计分数
-    cached_count 	INTEGER NOT NULL DEFAULT 0  -- [冗余]此标签关联的图片数量
+    cached_count 	INTEGER NOT NULL DEFAULT 0, -- [冗余]此标签关联的图片数量
+
+    create_time 	TIMESTAMP NOT NULL,         -- 此标签初次建立的时间
+    update_time 	TIMESTAMP NOT NULL          -- 对标签的关联image项进行更新的时间
 );
 
 -- 作者 标签
@@ -114,7 +117,10 @@ CREATE TABLE meta_db.author(
 
     exported_score  INTEGER DEFAULT NULL,           -- 根据评分或其关联的image导出的统计分数
     cached_count 	INTEGER NOT NULL DEFAULT 0,     -- [冗余]此标签关联的图片数量
-    cached_annotations 	TEXT DEFAULT NULL           -- [冗余]此标签的注解的缓存，用于显示::json<string[]>
+    cached_annotations 	TEXT DEFAULT NULL,          -- [冗余]此标签的注解的缓存，用于显示::json<string[]>
+
+    create_time 	TIMESTAMP NOT NULL,             -- 此标签初次建立的时间
+    update_time 	TIMESTAMP NOT NULL              -- 对标签的关联image项进行更新的时间
 );
 CREATE INDEX meta_db.author_filter_index ON author(type, favorite);
 
@@ -132,7 +138,10 @@ CREATE TABLE meta_db.topic(
 
     exported_score  INTEGER DEFAULT NULL,           -- [导出]根据评分或其关联的image导出的统计分数
     cached_count 	INTEGER NOT NULL DEFAULT 0,     -- [冗余]此标签关联的图片数量
-    cached_annotations 	TEXT DEFAULT NULL           -- [冗余]此标签的注解的缓存，用于显示::json<string[]>
+    cached_annotations 	TEXT DEFAULT NULL,          -- [冗余]此标签的注解的缓存，用于显示::json<string[]>
+
+    create_time 	TIMESTAMP NOT NULL,             -- 此标签初次建立的时间
+    update_time 	TIMESTAMP NOT NULL              -- 对标签的关联image项进行更新的时间
 );
 CREATE INDEX meta_db.topic_filter_index ON topic(type, favorite);
 
@@ -183,7 +192,9 @@ CREATE TABLE meta_db.annotation(
     id                  INTEGER PRIMARY KEY,
     name                TEXT NOT NULL,        -- 注解名称
     can_be_exported     BOOLEAN NOT NULL,     -- 是否为导出注解
-    target              INTEGER NOT NULL      -- 注解的适用范围
+    target              INTEGER NOT NULL,     -- 注解的适用范围
+
+    create_time 	TIMESTAMP NOT NULL        -- 此注解初次建立的时间
 );
 CREATE TABLE meta_db.tag_annotation_relation(
     annotation_id INTEGER NOT NULL,

@@ -1,6 +1,7 @@
 package com.heerkirov.hedge.server.model.meta
 
 import com.heerkirov.hedge.server.utils.Composition
+import java.time.LocalDateTime
 
 /**
  * 注解。
@@ -21,8 +22,11 @@ data class Annotation(val id: Int,
                        * 此注解的适用范围。
                        * 限定此注解只能适用于什么类型的标签。可以分到tag/author/topic大类，或细分到更细的子类。
                        */
-                      val target: AnnotationTarget
-) {
+                      val target: AnnotationTarget,
+                      /**
+                       * 此注解创建的时间。
+                       */
+                      val createTime: LocalDateTime) {
 
     open class AnnotationTarget(value: Int) : Composition<AnnotationTarget>(AnnotationTarget::class, value) {
         object TAG : AnnotationTarget(0b1)

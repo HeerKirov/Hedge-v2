@@ -1,5 +1,7 @@
 package com.heerkirov.hedge.server.model.meta
 
+import java.time.LocalDateTime
+
 /**
  * 作者标签。
  */
@@ -43,7 +45,15 @@ data class Author(val id: Int,
                   /**
                    * [cache field]冗余存储关联的注解。在author列表中会用到，防止N+1查询。
                    */
-                  val cachedAnnotations: List<CachedAnnotation>? = null) {
+                  val cachedAnnotations: List<CachedAnnotation>? = null,
+                  /**
+                   * 此标签创建的时间。
+                   */
+                  val createTime: LocalDateTime,
+                  /**
+                   * 此标签关联的image项上次发生更新的时间。
+                   */
+                  val updateTime: LocalDateTime) {
     enum class Type {
         /**
          * 未知类型。

@@ -14,6 +14,7 @@ import com.heerkirov.hedge.server.components.lifetime.LifetimeImpl
 import com.heerkirov.hedge.server.components.lifetime.LifetimeOptions
 import com.heerkirov.hedge.server.components.manager.*
 import com.heerkirov.hedge.server.components.kit.*
+import com.heerkirov.hedge.server.components.manager.query.QueryManager
 import com.heerkirov.hedge.server.components.service.*
 import com.heerkirov.hedge.server.library.framework.define
 import com.heerkirov.hedge.server.library.framework.framework

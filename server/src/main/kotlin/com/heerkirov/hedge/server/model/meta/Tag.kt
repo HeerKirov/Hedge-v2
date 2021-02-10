@@ -1,5 +1,7 @@
 package com.heerkirov.hedge.server.model.meta
 
+import java.time.LocalDateTime
+
 /**
  * 内容标签。
  */
@@ -53,7 +55,15 @@ data class Tag(val id: Int,
                /**
                 * [cache field]关联的image总数。仅包括image。只有TAG和ADDR会被计数，虚拟地址段是不会计数的。
                 */
-               val cachedCount: Int = 0) {
+               val cachedCount: Int = 0,
+               /**
+                * 此标签创建的时间。
+                */
+               val createTime: LocalDateTime,
+               /**
+                * 此标签关联的image项上次发生更新的时间。
+                */
+               val updateTime: LocalDateTime) {
 
     enum class Type {
         /**

@@ -14,6 +14,7 @@ import com.heerkirov.hedge.server.dao.album.AlbumTagRelations
 import com.heerkirov.hedge.server.dao.illust.IllustTagRelations
 import com.heerkirov.hedge.server.dao.illust.Illusts
 import com.heerkirov.hedge.server.dao.meta.Annotations
+import com.heerkirov.hedge.server.dao.meta.Authors
 import com.heerkirov.hedge.server.dao.meta.TagAnnotationRelations
 import com.heerkirov.hedge.server.dao.meta.Tags
 import com.heerkirov.hedge.server.dao.source.FileRecords
@@ -34,6 +35,8 @@ class TagService(private val data: DataRepository,
         "id" to Tags.id
         "name" to Tags.name
         "ordinal" to Tags.ordinal
+        "createTime" to Tags.createTime
+        "updateTime" to Tags.updateTime
     }
 
     fun list(filter: TagFilter): ListResult<TagRes> {
@@ -108,6 +111,8 @@ class TagService(private val data: DataRepository,
                 }
             }
 
+            val createTime = DateTime.now()
+
             val id = data.db.insertAndGenerateKey(Tags) {
                 set(it.name, name)
                 set(it.otherNames, otherNames)
@@ -121,6 +126,8 @@ class TagService(private val data: DataRepository,
                 set(it.examples, examples)
                 set(it.exportedScore, null)
                 set(it.cachedCount, 0)
+                set(it.createTime, createTime)
+                set(it.updateTime, createTime)
             } as Int
 
             kit.processAnnotations(id, form.annotations, creating = true)

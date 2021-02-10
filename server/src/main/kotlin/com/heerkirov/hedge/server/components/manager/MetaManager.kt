@@ -15,6 +15,7 @@ import com.heerkirov.hedge.server.exceptions.ResourceNotSuitable
 import com.heerkirov.hedge.server.model.meta.Author
 import com.heerkirov.hedge.server.model.meta.Tag
 import com.heerkirov.hedge.server.model.meta.Topic
+import com.heerkirov.hedge.server.utils.DateTime
 import com.heerkirov.hedge.server.utils.ktorm.asSequence
 import com.heerkirov.hedge.server.utils.ktorm.firstOrNull
 import com.heerkirov.hedge.server.utils.runIf
@@ -154,6 +155,8 @@ class MetaManager(private val data: DataRepository) {
     fun <T, R, RA> processMetaTags(thisId: Int, creating: Boolean = false, analyseStatisticCount: Boolean, newTagIds: List<Pair<Int, Boolean>>,
                                    metaTag: T, metaRelations: R, metaAnnotationRelations: RA): Set<Int>
             where T: MetaTag<*>, R: EntityMetaRelationTable<*>, RA: MetaAnnotationRelationTable<*> {
+        val now = DateTime.now()
+
         val tagIds = newTagIds.toMap()
         val oldTagIds = if(creating) emptyMap() else {
             data.db.from(metaRelations).select(metaRelations.metaId(), metaRelations.exported())
@@ -170,6 +173,7 @@ class MetaManager(private val data: DataRepository) {
             data.db.update(metaTag) {
                 where { it.metaId() inList deleteIds }
                 set(it.cachedCount(), it.cachedCount() minus 1)
+                set(it.updateTime(), now)
             }
         }
 
@@ -189,6 +193,7 @@ class MetaManager(private val data: DataRepository) {
             data.db.update(metaTag) {
                 where { it.metaId() inList addIds.keys }
                 set(it.cachedCount(), it.cachedCount() plus 1)
+                set(it.updateTime(), now)
             }
         }
 
@@ -224,6 +229,7 @@ class MetaManager(private val data: DataRepository) {
             data.db.update(metaTag) {
                 where { it.metaId() inList ids }
                 set(it.cachedCount(), it.cachedCount() minus 1)
+                set(it.updateTime(), DateTime.now())
             }
         }else{
             data.db.delete(metaRelations) { condition }

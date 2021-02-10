@@ -30,7 +30,7 @@ data class TagDetailRes(val id: Int, val ordinal: Int, val parentId: Int?,
 data class TagFilter(@Limit val limit: Int,
                      @Offset val offset: Int,
                      @Search val ql: String?,
-                     @Order(options = ["id", "ordinal", "name"])
+                     @Order(options = ["id", "ordinal", "name", "createTime", "updateTime"])
                      val order: List<OrderItem> = listOf(OrderItem("ordinal", desc = false)),
                      val parent: Int? = null,
                      val type: Tag.Type? = null,

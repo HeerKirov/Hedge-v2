@@ -1,6 +1,6 @@
 package com.heerkirov.hedge.server.components.service
 
-import com.heerkirov.hedge.server.components.manager.QueryManager
+import com.heerkirov.hedge.server.components.manager.query.QueryManager
 import com.heerkirov.hedge.server.form.QueryRes
 
 class QueryService(private val queryManager: QueryManager) {

@@ -11,6 +11,7 @@ import com.heerkirov.hedge.server.dao.meta.Authors
 import com.heerkirov.hedge.server.exceptions.NotFound
 import com.heerkirov.hedge.server.form.*
 import com.heerkirov.hedge.server.model.illust.Illust
+import com.heerkirov.hedge.server.utils.DateTime
 import com.heerkirov.hedge.server.utils.ktorm.OrderTranslator
 import com.heerkirov.hedge.server.utils.ktorm.first
 import com.heerkirov.hedge.server.utils.ktorm.orderBy
@@ -27,6 +28,8 @@ class AuthorService(private val data: DataRepository, private val kit: AuthorKit
         "name" to Authors.name
         "score" to Authors.exportedScore nulls last
         "count" to Authors.cachedCount nulls last
+        "createTime" to Authors.createTime
+        "updateTime" to Authors.updateTime
     }
 
     fun list(filter: AuthorFilter): ListResult<AuthorRes> {
@@ -46,6 +49,7 @@ class AuthorService(private val data: DataRepository, private val kit: AuthorKit
             val otherNames = kit.validateOtherNames(form.otherNames)
 
             val annotations = kit.validateAnnotations(form.annotations, form.type)
+            val createTime = DateTime.now()
 
             val id = data.db.insertAndGenerateKey(Authors) {
                 set(it.name, name)
@@ -58,6 +62,8 @@ class AuthorService(private val data: DataRepository, private val kit: AuthorKit
                 set(it.exportedScore, form.score ?: 0)
                 set(it.cachedCount, 0)
                 set(it.cachedAnnotations, annotations)
+                set(it.createTime, createTime)
+                set(it.updateTime, createTime)
             } as Int
 
             kit.processAnnotations(id, annotations.asSequence().map { it.id }.toSet(), creating = true)

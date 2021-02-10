@@ -11,6 +11,7 @@ import com.heerkirov.hedge.server.dao.meta.TagAnnotationRelations
 import com.heerkirov.hedge.server.dao.meta.TopicAnnotationRelations
 import com.heerkirov.hedge.server.exceptions.NotFound
 import com.heerkirov.hedge.server.form.*
+import com.heerkirov.hedge.server.utils.DateTime
 import com.heerkirov.hedge.server.utils.types.anyOpt
 import com.heerkirov.hedge.server.utils.ktorm.compositionContains
 import com.heerkirov.hedge.server.utils.types.ListResult
@@ -32,11 +33,13 @@ class AnnotationService(private val data: DataRepository, private val kit: Annot
 
     fun create(form: AnnotationCreateForm): Int {
         data.db.transaction {
+            val createTime = DateTime.now()
             val name = kit.validateName(form.name)
             return data.db.insertAndGenerateKey(Annotations) {
                 set(it.name, name)
                 set(it.canBeExported, form.canBeExported)
                 set(it.target, form.target)
+                set(it.createTime, createTime)
             } as Int
         }
     }

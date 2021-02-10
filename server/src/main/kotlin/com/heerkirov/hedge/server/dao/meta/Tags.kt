@@ -7,6 +7,7 @@ import com.heerkirov.hedge.server.utils.ktorm.json
 import com.heerkirov.hedge.server.utils.ktorm.unionList
 import me.liuwj.ktorm.dsl.QueryRowSet
 import me.liuwj.ktorm.schema.*
+import java.time.LocalDateTime
 
 object Tags : MetaTag<Tag>("tag", schema = "meta_db") {
     val id = int("id").primaryKey()
@@ -22,9 +23,12 @@ object Tags : MetaTag<Tag>("tag", schema = "meta_db") {
     val examples = json("examples", typeRef<List<Int>>())
     val exportedScore = int("exported_score")
     val cachedCount = int("cached_count")
+    val createTime = datetime("create_time")
+    val updateTime = datetime("update_time")
 
     override fun metaId(): Column<Int> = id
     override fun cachedCount(): Column<Int> = cachedCount
+    override fun updateTime(): Column<LocalDateTime> = updateTime
 
     override fun doCreateEntity(row: QueryRowSet, withReferences: Boolean) = Tag(
         id = row[id]!!,
@@ -40,5 +44,7 @@ object Tags : MetaTag<Tag>("tag", schema = "meta_db") {
         examples = row[examples],
         exportedScore = row[exportedScore],
         cachedCount = row[cachedCount]!!,
+        createTime = row[createTime]!!,
+        updateTime = row[updateTime]!!
     )
 }

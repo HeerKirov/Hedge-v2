@@ -27,7 +27,7 @@ data class TopicDetailRes(val id: Int, val name: String, val parent: Parent?,
 data class TopicFilter(@Limit val limit: Int,
                        @Offset val offset: Int,
                        @Search val ql: String?,
-                       @Order(options = ["id", "name", "score", "count"])
+                       @Order(options = ["id", "name", "score", "count", "createTime", "updateTime"])
                        val order: List<OrderItem> = listOf(OrderItem("id", desc = false)),
                        val type: Topic.Type? = null,
                        val favorite: Boolean? = null,

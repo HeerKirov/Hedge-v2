@@ -7,6 +7,7 @@ import com.heerkirov.hedge.server.utils.ktorm.json
 import com.heerkirov.hedge.server.utils.ktorm.unionList
 import me.liuwj.ktorm.dsl.QueryRowSet
 import me.liuwj.ktorm.schema.*
+import java.time.LocalDateTime
 
 object Authors : MetaTag<Author>("author", schema = "meta_db") {
     val id = int("id").primaryKey()
@@ -20,9 +21,12 @@ object Authors : MetaTag<Author>("author", schema = "meta_db") {
     val exportedScore = int("exported_score")
     val cachedCount = int("cached_count")
     val cachedAnnotations = json("cached_annotations", typeRef<List<Author.CachedAnnotation>>())
+    val createTime = datetime("create_time")
+    val updateTime = datetime("update_time")
 
     override fun metaId(): Column<Int> = id
     override fun cachedCount(): Column<Int> = cachedCount
+    override fun updateTime(): Column<LocalDateTime> = updateTime
 
     override fun doCreateEntity(row: QueryRowSet, withReferences: Boolean) = Author(
         id = row[id]!!,
@@ -35,6 +39,8 @@ object Authors : MetaTag<Author>("author", schema = "meta_db") {
         description = row[description]!!,
         exportedScore = row[exportedScore],
         cachedCount = row[cachedCount]!!,
-        cachedAnnotations = row[cachedAnnotations]
+        cachedAnnotations = row[cachedAnnotations],
+        createTime = row[createTime]!!,
+        updateTime = row[updateTime]!!
     )
 }
