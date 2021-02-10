@@ -24,3 +24,8 @@ class NumberOfUnionItemExceed(items: List<String>, warningLimit: Int) : Translat
  * (warning)元素类的meta tag或annotation查询的合取项的数量达到了警告阈值。这意味着连接查询的层数可能过多，严重拖慢查询速度。
  */
 class NumberOfIntersectItemExceed(warningLimit: Int) : TranslatorError<Int>(4004, "The number of the intersect items exceeds the warning limit $warningLimit.", info = warningLimit)
+
+/**
+ * (warning)进行区间匹配的区间端点没有匹配到任何实现。这将导致区间选择器的范围发生不合期望的溢出。
+ */
+class RangeElementNotFound(item: String) : TranslatorError<String>(4005, "Range element '$item' cannot match any item.", info = item)

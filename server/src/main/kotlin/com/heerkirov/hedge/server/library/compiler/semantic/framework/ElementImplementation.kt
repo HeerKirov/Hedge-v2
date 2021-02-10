@@ -18,28 +18,32 @@ object MetaTagElementField : ElementFieldByElement() {
     override fun generate(element: SemanticElement, minus: Boolean): TagElement<*> {
         //首先将element的各个子项按照最小类原则转换为MetaValue或其子类
         val metaValues = element.items.map(::mapSfpToMetaValue)
+        val metaType = if(element.prefix == null) null else when (element.prefix.value) {
+            "@" -> MetaType.AUTHOR
+            "#" -> MetaType.TOPIC
+            "$" -> MetaType.TAG
+            else -> throw RuntimeException("Unsupported element prefix ${element.prefix.value}.")
+        }
         //然后根据公共最小类决定实例化的类型
         val tagElement = when {
             metaValues.all { it is SingleMetaValue } -> {
                 @Suppress("UNCHECKED_CAST")
-                AuthorElementImpl(metaValues as List<SingleMetaValue>, element.prefix == null, minus)
+                AuthorElementImpl(metaValues as List<SingleMetaValue>, metaType, minus)
             }
             metaValues.all { it is SimpleMetaValue } -> {
                 @Suppress("UNCHECKED_CAST")
-                TopicElementImpl(metaValues as List<SimpleMetaValue>, element.prefix == null, minus)
+                TopicElementImpl(metaValues as List<SimpleMetaValue>, metaType, minus)
             }
-            else -> TagElementImpl(metaValues, element.prefix == null, minus)
+            else -> TagElementImpl(metaValues, metaType, minus)
         }
         //如果指定了prefix，检验实例化类型是否满足prefix的要求
-        if(element.prefix != null) {
-            when (element.prefix.value) {
-                "@" -> if(tagElement !is AuthorElement) semanticError(InvalidMetaTagForThisPrefix("@", element.beginIndex, element.endIndex))
-                "#" -> if(tagElement !is TopicElement) semanticError(InvalidMetaTagForThisPrefix("#", element.beginIndex, element.endIndex))
-                "$" -> {/*tag类型总是会被满足要求*/}
-                else -> throw RuntimeException("Unsupported element prefix ${element.prefix.value}.")
+        if(metaType != null) {
+            when (metaType) {
+                MetaType.AUTHOR -> if(tagElement !is AuthorElement) semanticError(InvalidMetaTagForThisPrefix("@", element.beginIndex, element.endIndex))
+                MetaType.TOPIC -> if(tagElement !is TopicElement) semanticError(InvalidMetaTagForThisPrefix("#", element.beginIndex, element.endIndex))
+                MetaType.TAG -> {/*tag类型总是会被满足要求*/}
             }
         }
-
         return tagElement
     }
 
@@ -165,11 +169,11 @@ object AnnotationElementField : ElementFieldByAnnotation() {
         return AnnotationElement(items, metaType, minus)
     }
 
-    private fun mapPrefixToMetaType(symbol: Symbol): AnnotationElement.MetaType {
+    private fun mapPrefixToMetaType(symbol: Symbol): MetaType {
         return when (symbol.value) {
-            "@" -> AnnotationElement.MetaType.Author
-            "#" -> AnnotationElement.MetaType.Topic
-            "$" -> AnnotationElement.MetaType.Tag
+            "@" -> MetaType.AUTHOR
+            "#" -> MetaType.TOPIC
+            "$" -> MetaType.TAG
             else -> throw RuntimeException("Unsupported annotation prefix ${symbol.value}.")
         }
     }

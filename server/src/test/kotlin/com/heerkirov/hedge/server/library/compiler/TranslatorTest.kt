@@ -49,7 +49,7 @@ class TranslatorTest {
             TODO("Not yet implemented")
         }
 
-        override fun findAnnotation(metaString: MetaString, metaType: Set<AnnotationElement.MetaType>, collector: ErrorCollector<TranslatorError<*>>): List<ElementAnnotation> {
+        override fun findAnnotation(metaString: MetaString, metaType: Set<MetaType>, collector: ErrorCollector<TranslatorError<*>>): List<ElementAnnotation> {
             TODO("Not yet implemented")
         }
     }

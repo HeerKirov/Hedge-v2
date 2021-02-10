@@ -93,21 +93,21 @@ class SemanticAnalyzerTest {
             orders = emptyList(),
             filters = emptyList(),
             elements = listOf(
-                authorElementOf(MetaString("a"), noType = false)
+                authorElementOf(MetaString("a"), metaType = MetaType.AUTHOR)
             )
         )), parse("@a", IllustDialect::class))
         assertEquals(AnalysisResult(QueryPlan(
             orders = emptyList(),
             filters = emptyList(),
             elements = listOf(
-                topicElementOf(listOf(MetaString("a"), MetaString("b")), noType = false)
+                topicElementOf(listOf(MetaString("a"), MetaString("b")), metaType = MetaType.TOPIC)
             )
         )), parse("#a.b", IllustDialect::class))
         assertEquals(AnalysisResult(QueryPlan(
             orders = emptyList(),
             filters = emptyList(),
             elements = listOf(
-                tagElementOf(SequentialMetaValueOfCollection(listOf(MetaString("a")), listOf(MetaString("b"))), noType = false)
+                tagElementOf(SequentialMetaValueOfCollection(listOf(MetaString("a")), listOf(MetaString("b"))), metaType = MetaType.TAG)
             )
         )), parse("${'$'}a:b", IllustDialect::class))
         //测试错误类型标记
@@ -265,21 +265,21 @@ class SemanticAnalyzerTest {
             orders = emptyList(),
             filters = emptyList(),
             elements = listOf(
-                annotationElementOf(MetaString("a"), metaType = setOf(AnnotationElement.MetaType.Author))
+                annotationElementOf(MetaString("a"), metaType = setOf(MetaType.AUTHOR))
             )
         )), parse("[@a]", IllustDialect::class))
         assertEquals(AnalysisResult(QueryPlan(
             orders = emptyList(),
             filters = emptyList(),
             elements = listOf(
-                annotationElementOf(MetaString("a"), metaType = setOf(AnnotationElement.MetaType.Topic, AnnotationElement.MetaType.Tag))
+                annotationElementOf(MetaString("a"), metaType = setOf(MetaType.TOPIC, MetaType.TAG))
             )
         )), parse("[#${'$'}a]", IllustDialect::class))
         assertEquals(AnalysisResult(QueryPlan(
             orders = emptyList(),
             filters = emptyList(),
             elements = listOf(
-                annotationElementOf(MetaString("a"), metaType = setOf(AnnotationElement.MetaType.Author, AnnotationElement.MetaType.Topic, AnnotationElement.MetaType.Tag))
+                annotationElementOf(MetaString("a"), metaType = setOf(MetaType.AUTHOR, MetaType.TOPIC, MetaType.TAG))
             )
         )), parse("[@#${'$'}a]", IllustDialect::class))
         //测试排除和错误的source
@@ -306,7 +306,7 @@ class SemanticAnalyzerTest {
             filters = emptyList(),
             elements = listOf(
                 annotationElementOf(MetaString("a", precise = true), MetaString("b"), metaType = emptySet()),
-                annotationElementOf(MetaString("updating"), metaType = setOf(AnnotationElement.MetaType.Topic))
+                annotationElementOf(MetaString("updating"), metaType = setOf(MetaType.TOPIC))
             )
         )), parse("[`a`|b][#updating]", IllustDialect::class))
         //测试其他方言的注解
@@ -663,13 +663,13 @@ class SemanticAnalyzerTest {
         return SemanticAnalyzer.parse(grammarResult, dialect)
     }
 
-    private fun authorElementOf(vararg items: MetaString, noType: Boolean = true, exclude: Boolean = false) = AuthorElementImpl(items.map { SingleMetaValue(it) }, noType, exclude)
+    private fun authorElementOf(vararg items: MetaString, metaType: MetaType? = null, exclude: Boolean = false) = AuthorElementImpl(items.map { SingleMetaValue(it) }, metaType, exclude)
 
-    private fun topicElementOf(vararg items: MetaAddress, noType: Boolean = true, exclude: Boolean = false) = TopicElementImpl(items.map { SimpleMetaValue(it) }, noType, exclude)
+    private fun topicElementOf(vararg items: MetaAddress, metaType: MetaType? = null, exclude: Boolean = false) = TopicElementImpl(items.map { SimpleMetaValue(it) }, metaType, exclude)
 
-    private fun tagElementOf(vararg items: MetaValue, noType: Boolean = true, exclude: Boolean = false) = TagElementImpl(items.toList(), noType, exclude)
+    private fun tagElementOf(vararg items: MetaValue, metaType: MetaType? = null, exclude: Boolean = false) = TagElementImpl(items.toList(), metaType, exclude)
 
-    private fun annotationElementOf(vararg items: MetaString, metaType: Set<AnnotationElement.MetaType>, exclude: Boolean = false) = AnnotationElement(items.toList(), metaType, exclude)
+    private fun annotationElementOf(vararg items: MetaString, metaType: Set<MetaType>, exclude: Boolean = false) = AnnotationElement(items.toList(), metaType, exclude)
 
     private fun sourceElementOf(vararg items: MetaString, exclude: Boolean = false) = SourceTagElement(items.toList(), exclude)
 

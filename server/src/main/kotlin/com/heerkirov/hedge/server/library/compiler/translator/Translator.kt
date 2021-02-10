@@ -85,7 +85,7 @@ object Translator {
      * 处理一个TagElement的翻译。
      */
     private fun mapTagElement(element: TagElement<*>, queryer: Queryer, collector: ErrorCollector<TranslatorError<*>>, options: TranslatorOptions?): List<ElementMeta> {
-        return (if(element.noType) {
+        return (if(element.metaType == null) {
             //未标记类型时，按tag->topic->author的顺序，依次进行搜索。由于整个合取项的类型统一，一旦某种类型找到了至少1个结果，就从这个类型返回
             val result = ArrayList<ElementMeta>(element.items.size)
 
@@ -100,11 +100,11 @@ object Translator {
             }
 
             result
-        }else when (element) {
+        }else when (element.metaType) {
             //标记了类型时，按author->topic->tag的顺序，确定实际的类型是什么，然后根据单一类型确定查询结果
-            is AuthorElement -> element.items.flatMap { queryer.findAuthor(it, collector) }
-            is TopicElement<*> -> element.items.flatMap { queryer.findTopic(it, collector) }
-            else -> element.items.flatMap { queryer.findTag(it, collector) }
+            MetaType.AUTHOR -> (element as AuthorElement).items.flatMap { queryer.findAuthor(it, collector) }
+            MetaType.TOPIC -> (element as TopicElement<*>).items.flatMap { queryer.findTopic(it, collector) }
+            MetaType.TAG -> element.items.flatMap { queryer.findTag(it, collector) }
         }).also { result ->
             if(result.isEmpty()) collector.warning(ElementMatchesNone(element.items.map { it.revertToQueryString() }))
             else if(options!= null && result.size >= options.warningLimitOfUnionItems) collector.warning(NumberOfUnionItemExceed(element.items.map { it.revertToQueryString() }, options.warningLimitOfUnionItems))

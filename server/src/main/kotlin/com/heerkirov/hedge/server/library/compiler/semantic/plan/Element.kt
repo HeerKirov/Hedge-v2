@@ -28,6 +28,13 @@ interface Revertible {
 }
 
 /**
+ * 连接元素中的连接目标类型。
+ */
+enum class MetaType {
+    TAG, TOPIC, AUTHOR
+}
+
+/**
  * 实现为名称的连接元素。
  */
 data class NameElement(override val items: List<MetaString>, override val exclude: Boolean) : Element<MetaString>
@@ -35,14 +42,7 @@ data class NameElement(override val items: List<MetaString>, override val exclud
 /**
  * 实现为注解的连接元素。注解元素的每一个子项都是一个简单的String。它可以指定多个连接目标类型。
  */
-data class AnnotationElement(override val items: List<MetaString>, val metaType: Set<MetaType>, override val exclude: Boolean) : Element<MetaString> {
-    /**
-     * 连接元素中的连接目标类型。
-     */
-    enum class MetaType {
-        Tag, Topic, Author
-    }
-}
+data class AnnotationElement(override val items: List<MetaString>, val metaType: Set<MetaType>, override val exclude: Boolean) : Element<MetaString>
 
 /**
  * 实现为源标签的连接元素。
@@ -53,66 +53,66 @@ data class SourceTagElement(override val items: List<MetaString>, override val e
  * 实现为meta tag的连接元素。它是一个抽象类，并应对三种不同的meta tag有各自的实现。当前层级是对tag的实现。它在topic的基础上扩展了序列化成员。
  * @param noType 此元素没有标记类型，因此类型可能从tag开始向下扩展搜索。
  */
-abstract class TagElement<M : MetaValue>(val noType: Boolean, override val exclude: Boolean) : Element<M>
+abstract class TagElement<M : MetaValue>(val metaType: MetaType?, override val exclude: Boolean) : Element<M>
 
 /**
  * 实现为meta tag的连接元素。它是一个抽象类，并应对三种不同的meta tag有各自的实现。当前层级是对topic的实现。它在author的基础上扩展了多级地址。
  */
-abstract class TopicElement<M : SimpleMetaValue>(noType: Boolean, exclude: Boolean) : TagElement<M>(noType, exclude)
+abstract class TopicElement<M : SimpleMetaValue>(metaType: MetaType?, exclude: Boolean) : TagElement<M>(metaType, exclude)
 
 /**
  * 实现为meta tag的连接元素。它是一个抽象类，并应对三种不同的meta tag有各自的实现。当前层级是对author的实现。它只有单级地址。
  */
-abstract class AuthorElement(noType: Boolean, exclude: Boolean) : TopicElement<SingleMetaValue>(noType, exclude)
+abstract class AuthorElement(metaType: MetaType?, exclude: Boolean) : TopicElement<SingleMetaValue>(metaType, exclude)
 
 /**
  * tag的实现。
  */
-class TagElementImpl(override val items: List<MetaValue>, noType: Boolean, exclude: Boolean) : TagElement<MetaValue>(noType, exclude) {
+class TagElementImpl(override val items: List<MetaValue>, metaType: MetaType?, exclude: Boolean) : TagElement<MetaValue>(metaType, exclude) {
     override fun equals(other: Any?): Boolean {
-        return other === this || (other is TagElementImpl && other.items == items && other.noType == noType && other.exclude == exclude)
+        return other === this || (other is TagElementImpl && other.items == items && other.metaType == metaType && other.exclude == exclude)
     }
 
     override fun hashCode(): Int {
-        return items.hashCode() * 31 * 31 + noType.hashCode() * 31 + exclude.hashCode() * 31
+        return items.hashCode() * 31 * 31 + metaType.hashCode() * 31 + exclude.hashCode() * 31
     }
 
     override fun toString(): String {
-        return "TagElement(noType=$noType, exclude=$exclude)$items"
+        return "TagElement(type=$metaType, exclude=$exclude)$items"
     }
 }
 
 /**
  * topic的实现。
  */
-class TopicElementImpl(override val items: List<SimpleMetaValue>, noType: Boolean, exclude: Boolean) : TopicElement<SimpleMetaValue>(noType, exclude) {
+class TopicElementImpl(override val items: List<SimpleMetaValue>, metaType: MetaType?, exclude: Boolean) : TopicElement<SimpleMetaValue>(metaType, exclude) {
     override fun equals(other: Any?): Boolean {
-        return other === this || (other is TopicElementImpl && other.items == items && other.noType == noType && other.exclude == exclude)
+        return other === this || (other is TopicElementImpl && other.items == items && other.metaType == metaType && other.exclude == exclude)
     }
 
     override fun hashCode(): Int {
-        return items.hashCode() * 31 * 31 + noType.hashCode() * 31 + exclude.hashCode() * 31
+        return items.hashCode() * 31 * 31 + metaType.hashCode() * 31 + exclude.hashCode() * 31
     }
 
     override fun toString(): String {
-        return "TopicElement(noType=$noType, exclude=$exclude)$items"
+        return "TopicElement(type=$metaType, exclude=$exclude)$items"
     }
 }
 
 /**
  * author的实现。
  */
-class AuthorElementImpl(override val items: List<SingleMetaValue>, noType: Boolean, exclude: Boolean) : AuthorElement(noType, exclude) {
+class AuthorElementImpl(override val items: List<SingleMetaValue>, metaType: MetaType?, exclude: Boolean) : AuthorElement(metaType, exclude) {
     override fun equals(other: Any?): Boolean {
-        return other === this || (other is AuthorElementImpl && other.items == items && other.noType == noType && other.exclude == exclude)
+        return other === this || (other is AuthorElementImpl && other.items == items && other.metaType == metaType && other.exclude == exclude)
     }
 
     override fun hashCode(): Int {
-        return items.hashCode() * 31 * 31 + noType.hashCode() * 31 + exclude.hashCode() * 31
+        return items.hashCode() * 31 * 31 + metaType.hashCode() * 31 + exclude.hashCode() * 31
     }
 
     override fun toString(): String {
-        return "AuthorElement(noType=$noType, exclude=$exclude)$items"
+        return "AuthorElement(type=$metaType, exclude=$exclude)$items"
     }
 }
 

@@ -12,7 +12,7 @@ import com.heerkirov.hedge.server.dao.meta.TopicAnnotationRelations
 import com.heerkirov.hedge.server.exceptions.NotFound
 import com.heerkirov.hedge.server.form.*
 import com.heerkirov.hedge.server.utils.types.anyOpt
-import com.heerkirov.hedge.server.utils.ktorm.contains
+import com.heerkirov.hedge.server.utils.ktorm.compositionContains
 import com.heerkirov.hedge.server.utils.types.ListResult
 import com.heerkirov.hedge.server.utils.types.toListResult
 import me.liuwj.ktorm.dsl.*
@@ -24,7 +24,7 @@ class AnnotationService(private val data: DataRepository, private val kit: Annot
         return data.db.from(Annotations).select()
             .whereWithConditions {
                 if(filter.canBeExported != null) { it += Annotations.canBeExported eq filter.canBeExported }
-                if(filter.target != null) { it += Annotations.target contains filter.target }
+                if(filter.target != null) { it += Annotations.target compositionContains filter.target }
             }
             .limit(filter.offset, filter.limit)
             .toListResult { newAnnotationRes(Annotations.createEntity(it)) }

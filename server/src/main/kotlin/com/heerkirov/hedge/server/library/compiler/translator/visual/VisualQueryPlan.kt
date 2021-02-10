@@ -54,7 +54,7 @@ data class ElementAuthor(override val id: Int, override val name: String) : Elem
     override val type: String get() = "author"
 }
 
-data class ElementTag(override val id: Int, override val name: String, val isAddr: Boolean, val color: String?, val isVirtual: Boolean, val realTags: List<RealTag>?) : ElementMeta {
+data class ElementTag(override val id: Int, override val name: String, val tagType: String, val color: String?, val realTags: List<RealTag>?) : ElementMeta {
     override val type: String get() = "tag"
 
     data class RealTag(val id: Int, val name: String, val isAddr: Boolean)
