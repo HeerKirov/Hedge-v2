@@ -12,7 +12,7 @@ CREATE TABLE illust(
     source_id 		            BIGINT,                             -- 链接的来源网站中的图像代号
     source_part 	            INTEGER,                            -- 链接的来源网站中的二级图像代号，如果此来源没有这个信息，写0
 
-    description			        TEXT NOT NULL DEFAULT '',           -- 简述信息，不存在时记空串
+    description			        TEXT COLLATE NOCASE NOT NULL DEFAULT '',           -- 简述信息，不存在时记空串
     score						INTEGER DEFAULT NULL,               -- 图像的评分。具体含义由setting定义
     favorite				    BOOLEAN NOT NULL DEFAULT FALSE,     -- [only image]喜爱标记
     tagme                       INTEGER NOT NULL,                   -- 标记为tagme{0b1=标签, 0b10=作者, 0b100=主题, 0b1000=有关系项, 0b10000=其他信息}
@@ -36,8 +36,8 @@ CREATE INDEX illust_parent_index ON illust(parent_id);              -- parent的
 -- 画集
 CREATE TABLE album(
     id 				INTEGER PRIMARY KEY,
-    title 			TEXT NOT NULL DEFAULT '',       -- 画集标题，不存在时记空串
-    description 	TEXT NOT NULL DEFAULT '',       -- 画集的简述信息，不存在时记空串
+    title 			TEXT COLLATE NOCASE NOT NULL DEFAULT '',       -- 画集标题，不存在时记空串
+    description 	TEXT COLLATE NOCASE NOT NULL DEFAULT '',       -- 画集的简述信息，不存在时记空串
     score 			INTEGER DEFAULT NULL,           -- 画集的评分。评分的具体含义和范围在setting中配置
     favorite		BOOLEAN NOT NULL DEFAULT FALSE, -- 喜爱标记，会用于收藏展示
 
@@ -59,7 +59,7 @@ CREATE INDEX album_image__index ON album_image_relation(album_id, image_id);
 -- 文件夹
 CREATE TABLE folder(
     id 				INTEGER PRIMARY KEY,
-    title 			TEXT NOT NULL DEFAULT '',   -- 文件夹标题，不存在时记空串
+    title 			TEXT COLLATE NOCASE NOT NULL DEFAULT '',   -- 文件夹标题，不存在时记空串
     query 			TEXT,                       -- 虚拟查询表达式。此项不为NULL时，文件夹为虚拟文件夹
 
     pin             INTEGER,                    -- pin标记及其排序顺位
@@ -88,8 +88,8 @@ CREATE TABLE meta_db.tag(
     id 				INTEGER PRIMARY KEY,
     ordinal 		INTEGER NOT NULL,           -- 排序下标，由系统维护，同一父标签一组从0开始
     parent_id 		INTEGER DEFAULT NULL,       -- 父标签的ID
-    name 			VARCHAR(32) NOT NULL,       -- 标签的名称
-    other_names 	TEXT NOT NULL DEFAULT '',   -- 标签的别名::string("nameA|nameB|nameC")
+    name 			VARCHAR(32) COLLATE NOCASE NOT NULL,       -- 标签的名称
+    other_names 	TEXT COLLATE NOCASE NOT NULL DEFAULT '',   -- 标签的别名::string("nameA|nameB|nameC")
     type 			TINYINT NOT NULL,           -- 标签的类型{0=标签, 1=地址段, 2=虚拟地址段}
     is_group 		TINYINT NOT NULL,           -- 开启组的标记{0=非组, 1=组, 2=强制组, 3=序列化组, 4=强制&序列化组}
 
@@ -104,8 +104,8 @@ CREATE TABLE meta_db.tag(
 -- 作者 标签
 CREATE TABLE meta_db.author(
     id 				INTEGER PRIMARY KEY,
-    name 			TEXT NOT NULL,                  -- 标签的名称
-    other_names     TEXT NOT NULL DEFAULT '',       -- 标签的别名::string("nameA|nameB|nameC")
+    name 			TEXT COLLATE NOCASE NOT NULL,                  -- 标签的名称
+    other_names     TEXT COLLATE NOCASE NOT NULL DEFAULT '',       -- 标签的别名::string("nameA|nameB|nameC")
     type 			TINYINT NOT NULL,               -- 此标签的类型{0=未知, 1=画师, 2=工作室, 3=出版物}
     score			INTEGER DEFAULT NULL,           -- 评分
     favorite		BOOLEAN NOT NULL DEFAULT FALSE, -- 喜爱标记，会用于收藏展示
@@ -121,8 +121,8 @@ CREATE INDEX meta_db.author_filter_index ON author(type, favorite);
 -- 主题 标签
 CREATE TABLE meta_db.topic(
     id 				INTEGER PRIMARY KEY,
-    name 			TEXT NOT NULL,                  -- 标签的名称
-    other_names     TEXT NOT NULL DEFAULT '',       -- 标签的别名::string("nameA|nameB|nameC")
+    name 			TEXT COLLATE NOCASE NOT NULL,                  -- 标签的名称
+    other_names     TEXT COLLATE NOCASE NOT NULL DEFAULT '',       -- 标签的别名::string("nameA|nameB|nameC")
     parent_id 	    INTEGER DEFAULT NULL,           -- 父标签的ID。IP可以以IP/版权方为父；角色可以以作品为父
     type 			TINYINT NOT NULL,               -- 此标签的类型{1=持有IP的版权方, 2=IP(作品), 3=角色}
     score			INTEGER DEFAULT NULL,           -- 评分
