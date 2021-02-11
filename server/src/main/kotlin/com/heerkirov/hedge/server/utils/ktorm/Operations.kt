@@ -22,7 +22,7 @@ inline infix fun <reified T : Composition<T>> ColumnDeclaring<T>.compositionCont
 }
 
 data class EscapeExpression(
-    val left: ScalarExpression<String>,
+    val left: ScalarExpression<*>,
     val argument: ArgumentExpression<String>,
     val escape: ArgumentExpression<String>,
     override val sqlType: SqlType<Boolean> = BooleanSqlType,
@@ -30,6 +30,6 @@ data class EscapeExpression(
     override val extraProperties: Map<String, Any> = emptyMap()
 ) : ScalarExpression<Boolean>()
 
-infix fun ColumnDeclaring<String>.escapeLike(argument: String): ScalarExpression<Boolean> {
+infix fun ColumnDeclaring<*>.escapeLike(argument: String): ScalarExpression<Boolean> {
     return EscapeExpression(asExpression(), ArgumentExpression(argument, VarcharSqlType), ArgumentExpression("\\", VarcharSqlType))
 }

@@ -4,8 +4,8 @@ import com.heerkirov.hedge.server.dao.types.MetaTag
 import com.heerkirov.hedge.server.library.compiler.semantic.plan.MetaString
 import com.heerkirov.hedge.server.library.compiler.semantic.plan.MetaType
 import com.heerkirov.hedge.server.model.meta.Annotation
+import com.heerkirov.hedge.server.utils.ktorm.escapeLike
 import me.liuwj.ktorm.dsl.eq
-import me.liuwj.ktorm.dsl.like
 import me.liuwj.ktorm.dsl.or
 import me.liuwj.ktorm.expression.BinaryExpression
 import java.util.concurrent.ConcurrentHashMap
@@ -19,7 +19,7 @@ internal class MetaQueryerParser {
             metaTag.name eq metaString.value
         }else{
             val value = mapMatchToSqlLike(metaString.value)
-            (metaTag.name like value) or (metaTag.otherNames like value)
+            (metaTag.name escapeLike value) or (metaTag.otherNames escapeLike value)
         }
     }
 

@@ -24,13 +24,21 @@ class WholeElementMatchesNone(items: List<String>) : TranslatorError<List<String
 class RangeElementNotFound(item: String) : TranslatorError<String>(4004, "Range element '$item' cannot match any item.", info = item)
 
 /**
+ * (warning)此项的目标是匹配一个组/序列化组/序列化组成员，但查询得到的结果标签却并不是期望中的类型。这样的话此项会被忽略。
+ */
+class ElementMatchedButNotGroup(item: String, goal: MatchGoal) : TranslatorError<ElementMatchedButNotGroup.Info>(4005, "Element '$item' matched, but result is not a $goal.", info = Info(item, goal)) {
+    data class Info(val item: String, val goal: MatchGoal)
+    enum class MatchGoal { GROUP, SEQUENCE_GROUP, SEQUENCE_GROUP_MEMBER }
+}
+
+/**
  * (warning)元素类的meta tag或annotation查询所对应的项的数量达到了警告阈值。这意味着一个连接查询中的or项目可能过多，拖慢查询速度。
  */
-class NumberOfUnionItemExceed(items: List<String>, warningLimit: Int) : TranslatorError<NumberOfUnionItemExceed.Info>(4005, "The number of the union items exceeds the warning limit $warningLimit.", info = Info(items, warningLimit)) {
+class NumberOfUnionItemExceed(items: List<String>, warningLimit: Int) : TranslatorError<NumberOfUnionItemExceed.Info>(4006, "The number of the union items exceeds the warning limit $warningLimit.", info = Info(items, warningLimit)) {
     data class Info(val items: List<String>, val warningLimit: Int)
 }
 
 /**
  * (warning)元素类的meta tag或annotation查询的合取项的数量达到了警告阈值。这意味着连接查询的层数可能过多，严重拖慢查询速度。
  */
-class NumberOfIntersectItemExceed(warningLimit: Int) : TranslatorError<Int>(4006, "The number of the intersect items exceeds the warning limit $warningLimit.", info = warningLimit)
+class NumberOfIntersectItemExceed(warningLimit: Int) : TranslatorError<Int>(4007, "The number of the intersect items exceeds the warning limit $warningLimit.", info = warningLimit)

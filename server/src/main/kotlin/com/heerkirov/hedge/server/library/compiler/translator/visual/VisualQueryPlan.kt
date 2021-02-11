@@ -1,5 +1,7 @@
 package com.heerkirov.hedge.server.library.compiler.translator.visual
 
+import com.heerkirov.hedge.server.model.meta.Tag
+
 data class VisualQueryPlan(
     val orders: List<String>,
     val elements: List<Element<*>>,
@@ -54,8 +56,8 @@ data class ElementAuthor(override val id: Int, override val name: String) : Elem
     override val type: String get() = "author"
 }
 
-data class ElementTag(override val id: Int, override val name: String, val tagType: String, val color: String?, val realTags: List<RealTag>?) : ElementMeta {
+data class ElementTag(override val id: Int, override val name: String, val tagType: Tag.Type, val color: String?, val realTags: List<RealTag>?) : ElementMeta {
     override val type: String get() = "tag"
 
-    data class RealTag(val id: Int, val name: String, val isAddr: Boolean)
+    data class RealTag(val id: Int, val name: String, val tagType: Tag.Type)
 }

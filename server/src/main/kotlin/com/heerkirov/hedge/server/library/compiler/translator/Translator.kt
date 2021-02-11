@@ -87,19 +87,24 @@ object Translator {
     private fun mapTagElement(element: TagElement<*>, queryer: Queryer, collector: ErrorCollector<TranslatorError<*>>, options: TranslatorOptions?): List<ElementMeta> {
         return (if(element.metaType == null) {
             //未标记类型时，按tag->topic->author的顺序，依次进行搜索。由于整个合取项的类型统一，一旦某种类型找到了至少1个结果，就从这个类型返回
-            val result = ArrayList<ElementMeta>(element.items.size)
-
-            for (item in element.items) {
-                result.addAll(queryer.findTag(item, collector))
-            }
-            if(result.isEmpty() && element is TopicElement<*>) {
-                for (item in element.items) { result.addAll(queryer.findTopic(item, collector)) }
-                if(result.isEmpty() && element is AuthorElement) {
-                    for (item in element.items) { result.addAll(queryer.findAuthor(item, collector)) }
+            val tagCollector = ErrorCollector<TranslatorError<*>>()
+            val tagResult = element.items.flatMap { queryer.findTag(it, tagCollector) }
+            if(tagResult.isNotEmpty() || element !is TopicElement<*>) {
+                collector.collect(tagCollector)
+                tagResult
+            }else{
+                val topicCollector = ErrorCollector<TranslatorError<*>>()
+                val topicResult = element.items.flatMap { queryer.findTopic(it, topicCollector) }
+                if(topicResult.isNotEmpty() || element !is AuthorElement) {
+                    collector.collect(topicCollector)
+                    topicResult
+                }else{
+                    val authorCollector = ErrorCollector<TranslatorError<*>>()
+                    val authorResult = element.items.flatMap { queryer.findAuthor(it, authorCollector) }
+                    collector.collect(authorCollector)
+                    authorResult
                 }
             }
-
-            result
         }else when (element.metaType) {
             //标记了类型时，按author->topic->tag的顺序，确定实际的类型是什么，然后根据单一类型确定查询结果
             MetaType.AUTHOR -> (element as AuthorElement).items.flatMap { queryer.findAuthor(it, collector) }
