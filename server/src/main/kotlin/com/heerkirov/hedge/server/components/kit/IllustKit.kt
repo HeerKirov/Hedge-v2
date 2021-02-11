@@ -13,7 +13,6 @@ import com.heerkirov.hedge.server.model.illust.Illust
 import com.heerkirov.hedge.server.model.meta.Annotation
 import com.heerkirov.hedge.server.utils.DateTime
 import com.heerkirov.hedge.server.utils.ktorm.asSequence
-import com.heerkirov.hedge.server.utils.ktorm.firstOrNull
 import com.heerkirov.hedge.server.utils.types.Opt
 import com.heerkirov.hedge.server.utils.union
 import me.liuwj.ktorm.dsl.*
@@ -158,9 +157,9 @@ class IllustKit(private val data: DataRepository,
             }
             //修改统计计数
             data.db.update(metaTag) {
-                where { it.metaId() inList ids }
-                set(it.cachedCount(), it.cachedCount() plus 1)
-                set(it.updateTime(), now)
+                where { it.id inList ids }
+                set(it.cachedCount, it.cachedCount plus 1)
+                set(it.updateTime, now)
             }
         }
         fun copyAnnotation() {

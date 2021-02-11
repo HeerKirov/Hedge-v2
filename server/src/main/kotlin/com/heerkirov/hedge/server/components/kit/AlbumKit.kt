@@ -29,8 +29,6 @@ class AlbumKit(private val data: DataRepository,
 
     /**
      * 检验给出的tags/topics/authors的正确性，处理导出，并应用其更改。此外，annotations的更改也会被一并导出处理。
-     * @param copyFromParent 当当前对象没有任何meta tag关联时，从parent复制tag，并提供parent的id
-     * @param copyFromChildren 当当前对象没有任何meta tag关联时，从children复制tag
      */
     fun processAllMeta(thisId: Int, newTags: Opt<List<Int>>, newTopics: Opt<List<Int>>, newAuthors: Opt<List<Int>>,
                        creating: Boolean = false) {

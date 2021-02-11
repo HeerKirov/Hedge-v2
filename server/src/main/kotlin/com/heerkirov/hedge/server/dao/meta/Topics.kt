@@ -10,9 +10,9 @@ import me.liuwj.ktorm.schema.*
 import java.time.LocalDateTime
 
 object Topics : MetaTag<Topic>("topic", schema = "meta_db") {
-    val id = int("id").primaryKey()
-    val name = varchar("name")
-    val otherNames = unionList("other_names")
+    override val id = int("id").primaryKey()
+    override val name = varchar("name")
+    override val otherNames = unionList("other_names")
     val parentId = int("parent_id")
     val type = enum("type", typeRef<Topic.Type>())
     val score = int("score")
@@ -20,14 +20,10 @@ object Topics : MetaTag<Topic>("topic", schema = "meta_db") {
     val links = json("links", typeRef<List<Topic.Link>>())
     val description = varchar("description")
     val exportedScore = int("exported_score")
-    val cachedCount = int("cached_count")
+    override val cachedCount = int("cached_count")
     val cachedAnnotations = json("cached_annotations", typeRef<List<Topic.CachedAnnotation>>())
     val createTime = datetime("create_time")
-    val updateTime = datetime("update_time")
-
-    override fun metaId(): Column<Int> = id
-    override fun cachedCount(): Column<Int> = cachedCount
-    override fun updateTime(): Column<LocalDateTime> = updateTime
+    override val updateTime = datetime("update_time")
 
     override fun doCreateEntity(row: QueryRowSet, withReferences: Boolean) = Topic(
         id = row[id]!!,

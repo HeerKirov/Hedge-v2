@@ -29,7 +29,7 @@ import me.liuwj.ktorm.entity.*
 import java.util.regex.Pattern
 
 class QueryManager(private val data: DataRepository) {
-    private val queryer = QueryerImpl()
+    private val queryer = MetaQueryer(data)
     private val options = OptionsImpl()
 
     fun querySchema(text: String, dialect: Dialect): AnalysisResult<VisualQueryPlan, CompileError<*>> {
@@ -61,8 +61,6 @@ class QueryManager(private val data: DataRepository) {
     enum class Dialect { ILLUST, ALBUM, AUTHOR_AND_TOPIC, ANNOTATION }
 
     //TODO 将matches none的错误信息下放到这里，并且变成针对一个项的none警告，这样可以提示用户到底哪个项产生了0匹配
-    //TODO 设计缓存数据结构，尽力缓存一切可能缓存的东西
-    //TODO 当使用match时，otherName也要参与匹配
     private inner class QueryerImpl : Queryer {
         override fun findTag(metaValue: MetaValue, collector: ErrorCollector<TranslatorError<*>>): List<ElementTag> {
             fun matchAddress(tagId: Int?, address: MetaAddress, nextAddr: Int): Boolean {

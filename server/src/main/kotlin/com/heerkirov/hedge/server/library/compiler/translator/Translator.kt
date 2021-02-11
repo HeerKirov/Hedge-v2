@@ -75,10 +75,10 @@ object Translator {
      * 处理一个AnnotationElement的翻译。
      */
     private fun mapAnnotationElement(element: AnnotationElement, queryer: Queryer, collector: ErrorCollector<TranslatorError<*>>, options: TranslatorOptions?): List<ElementAnnotation> {
-        val result = element.items.flatMap { queryer.findAnnotation(it, element.metaType, collector) }
-        if(result.isEmpty()) collector.warning(ElementMatchesNone(element.items.map { it.revertToQueryString() }))
-        else if(options!= null && result.size >= options.warningLimitOfUnionItems) collector.warning(NumberOfUnionItemExceed(element.items.map { it.revertToQueryString() }, options.warningLimitOfUnionItems))
-        return result
+        return element.items.flatMap { queryer.findAnnotation(it, element.metaType, collector) }.also { result ->
+            if(result.isEmpty()) collector.warning(WholeElementMatchesNone(element.items.map { it.revertToQueryString() }))
+            else if(options!= null && result.size >= options.warningLimitOfUnionItems) collector.warning(NumberOfUnionItemExceed(element.items.map { it.revertToQueryString() }, options.warningLimitOfUnionItems))
+        }
     }
 
     /**
@@ -106,7 +106,7 @@ object Translator {
             MetaType.TOPIC -> (element as TopicElement<*>).items.flatMap { queryer.findTopic(it, collector) }
             MetaType.TAG -> element.items.flatMap { queryer.findTag(it, collector) }
         }).also { result ->
-            if(result.isEmpty()) collector.warning(ElementMatchesNone(element.items.map { it.revertToQueryString() }))
+            if(result.isEmpty()) collector.warning(WholeElementMatchesNone(element.items.map { it.revertToQueryString() }))
             else if(options!= null && result.size >= options.warningLimitOfUnionItems) collector.warning(NumberOfUnionItemExceed(element.items.map { it.revertToQueryString() }, options.warningLimitOfUnionItems))
         }
     }

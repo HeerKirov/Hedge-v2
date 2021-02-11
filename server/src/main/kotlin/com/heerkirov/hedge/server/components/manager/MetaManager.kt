@@ -171,9 +171,9 @@ class MetaManager(private val data: DataRepository) {
         }
         if(analyseStatisticCount) {
             data.db.update(metaTag) {
-                where { it.metaId() inList deleteIds }
-                set(it.cachedCount(), it.cachedCount() minus 1)
-                set(it.updateTime(), now)
+                where { it.id inList deleteIds }
+                set(it.cachedCount, it.cachedCount minus 1)
+                set(it.updateTime, now)
             }
         }
 
@@ -191,9 +191,9 @@ class MetaManager(private val data: DataRepository) {
         }
         if(analyseStatisticCount) {
             data.db.update(metaTag) {
-                where { it.metaId() inList addIds.keys }
-                set(it.cachedCount(), it.cachedCount() plus 1)
-                set(it.updateTime(), now)
+                where { it.id inList addIds.keys }
+                set(it.cachedCount, it.cachedCount plus 1)
+                set(it.updateTime, now)
             }
         }
 
@@ -227,9 +227,9 @@ class MetaManager(private val data: DataRepository) {
             data.db.delete(metaRelations) { condition }
             //修改统计计数
             data.db.update(metaTag) {
-                where { it.metaId() inList ids }
-                set(it.cachedCount(), it.cachedCount() minus 1)
-                set(it.updateTime(), DateTime.now())
+                where { it.id inList ids }
+                set(it.cachedCount, it.cachedCount minus 1)
+                set(it.updateTime, DateTime.now())
             }
         }else{
             data.db.delete(metaRelations) { condition }
@@ -241,7 +241,7 @@ class MetaManager(private val data: DataRepository) {
      */
     fun <R : EntityMetaRelationTable<*>, T : MetaTag<M>, M : Any> getNotExportMetaTags(id: Int, metaRelations: R, metaTag: T): List<M> {
         return data.db.from(metaRelations)
-            .innerJoin(metaTag, metaRelations.metaId() eq metaTag.metaId())
+            .innerJoin(metaTag, metaRelations.metaId() eq metaTag.id)
             .select(metaTag.columns)
             .where { (metaRelations.entityId() eq id) and (metaRelations.exported().not()) }
             .map { metaTag.createEntity(it) }
