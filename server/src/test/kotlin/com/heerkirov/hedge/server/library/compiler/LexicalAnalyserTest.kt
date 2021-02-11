@@ -288,6 +288,12 @@ class LexicalAnalyserTest {
             symbolLexical("~+", 4),
             symbolLexical("~-", 6),
         )), LexicalAnalyzer.parse("》=《=～+～-", options))
+        //测试中文符号是否会被处理成字符串
+        assertEquals(AnalysisResult(listOf(
+            stringLexical(CharSequenceType.RESTRICTED, "你好", 0, 2),
+            symbolLexical(":", 2),
+            stringLexical(CharSequenceType.RESTRICTED, "世界", 3, 5)
+        )), LexicalAnalyzer.parse("你好：世界", options))
         //测试处理中文起始符的字符串
         assertEquals(AnalysisResult(listOf(stringLexical(CharSequenceType.APOSTROPHE, "hello", 0, 7))), LexicalAnalyzer.parse("‘hello’", options))
         assertEquals(AnalysisResult(listOf(stringLexical(CharSequenceType.DOUBLE_QUOTES, "こんにちは", 0, 7))), LexicalAnalyzer.parse("“こんにちは”", options))

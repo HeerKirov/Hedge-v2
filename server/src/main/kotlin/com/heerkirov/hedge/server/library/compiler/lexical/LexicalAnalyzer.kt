@@ -122,7 +122,7 @@ object LexicalAnalyzer {
                 //受限字符串的进入判定是数字字母、unicode、可用开始符号。由于unicode字符不好判断，就反过来判断只要不在禁用符号表即可
                 for(index in beginIndex until text.length) {
                     val char = text[index]
-                    if(char in spaceSymbols || char in restrictedDisableSymbols) {
+                    if(char in spaceSymbols || char in restrictedDisableSymbols || (options.chineseSymbolReflect && chineseSingleSymbols[char]?.let { it in restrictedDisableSymbols } == true)) {
                         //遇到空格或禁止在受限字符串使用的符号时，有限字符串结束
                         return CharSequence(CharSequenceType.RESTRICTED, text.substring(beginIndex, index).runIf(options.translateUnderscoreToSpace) { replace('_', ' ') }) withEndIndex { index }
                     }
