@@ -81,6 +81,7 @@ class IllustService(private val data: DataRepository,
                     it.addAll(schema.whereConditions)
                 }
             }
+            .runIf(schema?.distinct == true) { groupBy(Illusts.id) }
             .limit(filter.offset, filter.limit)
             .orderBy(*if(schema != null && schema.orderConditions.isNotEmpty()) {
                 schema.orderConditions.toTypedArray() + orderTranslator.orderFor(filter.order)

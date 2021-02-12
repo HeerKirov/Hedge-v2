@@ -100,7 +100,7 @@ interface FilterByColumn : ExecuteBuilder {
     }
 }
 
-data class ExecutePlan(val whereConditions: List<ColumnDeclaring<Boolean>>, val joinConditions: List<Join>, val orderConditions: List<OrderByExpression>) {
+data class ExecutePlan(val whereConditions: List<ColumnDeclaring<Boolean>>, val joinConditions: List<Join>, val orderConditions: List<OrderByExpression>, val distinct: Boolean) {
     data class Join(val table: BaseTable<*>, val condition: ColumnDeclaring<Boolean>, val left: Boolean = false)
 }
 
@@ -112,6 +112,12 @@ class IllustExecutePlanBuilder(private val db: Database) : ExecutePlanBuilder, O
     //在连接查询中，如果遇到一整层查询的项为空，这一层按逻辑不会产生任何结果匹配，那么相当于结果恒为空。使用这个flag来优化这种情况。
     private var alwaysFalseFlag: Boolean = false
 
+    //根据某些条件，可能需要额外连接数据表。使用flag来存储这种情况。
+    private var joinSourceImage: Boolean = false
+
+    //在连接查询中，如果一层中有复数项，那么需要做去重。
+    private var needDistinct: Boolean = false
+
     //在连接查询中，出现多次连接时需要alias dao，使用count做计数。
     private var joinCount = 0
 
@@ -120,9 +126,6 @@ class IllustExecutePlanBuilder(private val db: Database) : ExecutePlanBuilder, O
     private val excludeTopics: MutableCollection<Int> = mutableSetOf()
     private val excludeAuthors: MutableCollection<Int> = mutableSetOf()
     private val excludeAnnotations: MutableCollection<Int> = mutableSetOf()
-
-    //根据某些条件，可能需要额外连接数据表。使用flag来存储这种情况。
-    private var joinSourceImage: Boolean = false
 
     private val orderDeclareMapping = mapOf(
         IllustDialect.IllustOrderItem.ID to OrderByColumn.ColumnDefinition(Illusts.id),
@@ -194,7 +197,12 @@ class IllustExecutePlanBuilder(private val db: Database) : ExecutePlanBuilder, O
             unionItems.isEmpty() -> alwaysFalseFlag = true
             else -> {
                 val j = IllustTopicRelations.aliased("IR_${++joinCount}")
-                val condition = if(unionItems.size == 1) j.topicId eq unionItems.first().id else j.topicId inList unionItems.map { it.id }
+                val condition = if(unionItems.size == 1) {
+                    j.topicId eq unionItems.first().id
+                }else{
+                    needDistinct = true
+                    j.topicId inList unionItems.map { it.id }
+                }
                 joins.add(ExecutePlan.Join(j, j.illustId eq Illusts.id and condition))
             }
         }
@@ -206,7 +214,12 @@ class IllustExecutePlanBuilder(private val db: Database) : ExecutePlanBuilder, O
             unionItems.isEmpty() -> alwaysFalseFlag = true
             else -> {
                 val j = IllustAuthorRelations.aliased("IR_${++joinCount}")
-                val condition = if(unionItems.size == 1) j.authorId eq unionItems.first().id else j.authorId inList unionItems.map { it.id }
+                val condition = if(unionItems.size == 1) {
+                    j.authorId eq unionItems.first().id
+                }else{
+                    needDistinct = true
+                    j.authorId inList unionItems.map { it.id }
+                }
                 joins.add(ExecutePlan.Join(j, j.illustId eq Illusts.id and condition))
             }
         }
@@ -219,7 +232,12 @@ class IllustExecutePlanBuilder(private val db: Database) : ExecutePlanBuilder, O
             ids.isEmpty() -> alwaysFalseFlag = true
             else -> {
                 val j = IllustTagRelations.aliased("IR_${++joinCount}")
-                val condition = if(ids.size == 1) j.tagId eq ids.first() else j.tagId inList ids
+                val condition = if(ids.size == 1) {
+                    j.tagId eq ids.first()
+                }else{
+                    needDistinct = true
+                    j.tagId inList ids
+                }
                 joins.add(ExecutePlan.Join(j, j.illustId eq Illusts.id and condition))
             }
         }
@@ -231,7 +249,12 @@ class IllustExecutePlanBuilder(private val db: Database) : ExecutePlanBuilder, O
             unionItems.isEmpty() -> alwaysFalseFlag = true
             else -> {
                 val j = IllustAnnotationRelations.aliased("IR_${++joinCount}")
-                val condition = if(unionItems.size == 1) j.annotationId eq unionItems.first().id else j.annotationId inList unionItems.map { it.id }
+                val condition = if(unionItems.size == 1) {
+                    j.annotationId eq unionItems.first().id
+                }else{
+                    needDistinct = true
+                    j.annotationId inList unionItems.map { it.id }
+                }
                 joins.add(ExecutePlan.Join(j, j.illustId eq Illusts.id and condition))
             }
         }
@@ -251,7 +274,7 @@ class IllustExecutePlanBuilder(private val db: Database) : ExecutePlanBuilder, O
 
     override fun build(): ExecutePlan {
         if(alwaysFalseFlag) {
-            return ExecutePlan(listOf(ArgumentExpression(false, BooleanSqlType)), emptyList(), emptyList())
+            return ExecutePlan(listOf(ArgumentExpression(false, BooleanSqlType)), emptyList(), emptyList(), false)
         }
         if(excludeTags.isNotEmpty()) {
             wheres.add(Illusts.id notInList db.from(IllustTagRelations).select(IllustTagRelations.illustId).where {
@@ -276,7 +299,7 @@ class IllustExecutePlanBuilder(private val db: Database) : ExecutePlanBuilder, O
         if(joinSourceImage) {
             joins.add(ExecutePlan.Join(SourceImages, (SourceImages.source eq Illusts.source) and (SourceImages.sourceId eq Illusts.sourceId) and (SourceImages.sourcePart eq Illusts.sourcePart), left = true))
         }
-        return ExecutePlan(wheres, joins, orders)
+        return ExecutePlan(wheres, joins, orders, needDistinct)
     }
 }
 
