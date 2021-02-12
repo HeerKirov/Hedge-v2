@@ -23,7 +23,7 @@ class ThreadController(start: Boolean = false, private val call: () -> Unit) {
     fun start() {
         synchronized(this) {
             if(!isAlive) {
-                this.thread = thread(isDaemon = true, block = this::loop)
+                this.thread = thread(isDaemon = true, block = ::loop)
                 isAlive = true
             }
         }

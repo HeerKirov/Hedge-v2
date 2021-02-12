@@ -1,10 +1,15 @@
 package com.heerkirov.hedge.server.components.service
 
+import com.heerkirov.hedge.server.components.backend.AlbumExporterTask
+import com.heerkirov.hedge.server.components.backend.IllustExporterTask
+import com.heerkirov.hedge.server.components.backend.IllustMetaExporter
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.database.transaction
 import com.heerkirov.hedge.server.components.kit.AuthorKit
 import com.heerkirov.hedge.server.dao.album.AlbumAuthorRelations
+import com.heerkirov.hedge.server.dao.album.AlbumTagRelations
 import com.heerkirov.hedge.server.dao.illust.IllustAuthorRelations
+import com.heerkirov.hedge.server.dao.illust.IllustTagRelations
 import com.heerkirov.hedge.server.dao.illust.Illusts
 import com.heerkirov.hedge.server.dao.meta.AuthorAnnotationRelations
 import com.heerkirov.hedge.server.dao.meta.Authors
@@ -22,7 +27,9 @@ import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.entity.firstOrNull
 import me.liuwj.ktorm.entity.sequenceOf
 
-class AuthorService(private val data: DataRepository, private val kit: AuthorKit) {
+class AuthorService(private val data: DataRepository,
+                    private val kit: AuthorKit,
+                    private val illustMetaExporter: IllustMetaExporter) {
     private val orderTranslator = OrderTranslator {
         "id" to Authors.id
         "name" to Authors.name
@@ -111,6 +118,20 @@ class AuthorService(private val data: DataRepository, private val kit: AuthorKit
             }
 
             newAnnotations.letOpt { annotations -> kit.processAnnotations(id, annotations.asSequence().map { it.id }.toSet()) }
+
+            if(newAnnotations.isPresent) {
+                //发生关系类变化时，将关联的illust/album重导出
+                data.db.from(IllustAuthorRelations)
+                    .select(IllustAuthorRelations.illustId)
+                    .where { IllustAuthorRelations.authorId eq id }
+                    .map { IllustExporterTask(it[IllustAuthorRelations.illustId]!!, exportMeta = true, exportDescription = false, exportFileAndTime = false, exportScore = false) }
+                    .let { illustMetaExporter.appendNewTask(it) }
+                data.db.from(AlbumAuthorRelations)
+                    .select(AlbumAuthorRelations.albumId)
+                    .where { AlbumAuthorRelations.authorId eq id }
+                    .map { AlbumExporterTask(it[AlbumAuthorRelations.albumId]!!, exportMeta = true) }
+                    .let { illustMetaExporter.appendNewTask(it) }
+            }
         }
     }
 

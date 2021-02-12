@@ -7,6 +7,7 @@ import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.database.transaction
 import com.heerkirov.hedge.server.components.kit.IllustKit
 import com.heerkirov.hedge.server.components.manager.*
+import com.heerkirov.hedge.server.components.manager.query.QueryManager
 import com.heerkirov.hedge.server.dao.album.AlbumImageRelations
 import com.heerkirov.hedge.server.dao.album.Albums
 import com.heerkirov.hedge.server.dao.illust.*
@@ -46,6 +47,7 @@ class IllustService(private val data: DataRepository,
                     private val relationManager: RelationManager,
                     private val sourceManager: SourceManager,
                     private val partitionManager: PartitionManager,
+                    private val queryManager: QueryManager,
                     private val illustMetaExporter: IllustMetaExporter) {
     private val orderTranslator = OrderTranslator {
         "id" to Illusts.id
@@ -55,9 +57,13 @@ class IllustService(private val data: DataRepository,
         "score" to Illusts.exportedScore nulls last
     }
 
-    fun list(filter: IllustQueryFilter): QueryResult<IllustRes> {
+    fun list(filter: IllustQueryFilter): ListResult<IllustRes> {
+        val schema = if(filter.query.isNullOrBlank()) null else {
+            queryManager.querySchema(filter.query, QueryManager.Dialect.ILLUST).executePlan ?: return ListResult(0, emptyList())
+        }
         return data.db.from(Illusts)
             .innerJoin(FileRecords, Illusts.fileId eq FileRecords.id)
+            .let { schema?.joinConditions?.fold(it) { acc, join -> if(join.left) acc.leftJoin(join.table, join.condition) else acc.innerJoin(join.table, join.condition) } ?: it }
             .select(Illusts.id, Illusts.type, Illusts.exportedScore, Illusts.favorite, Illusts.tagme, Illusts.orderTime, Illusts.cachedChildrenCount,
                 FileRecords.id, FileRecords.folder, FileRecords.extension, FileRecords.thumbnail)
             .whereWithConditions {
@@ -71,11 +77,17 @@ class IllustService(private val data: DataRepository,
                 if(filter.favorite != null) {
                     it += if(filter.favorite) Illusts.favorite else Illusts.favorite.not()
                 }
-                //TODO 实现QL查询
+                if(schema != null && schema.whereConditions.isNotEmpty()) {
+                    it.addAll(schema.whereConditions)
+                }
             }
             .limit(filter.offset, filter.limit)
-            .orderBy(filter.order, orderTranslator)
-            .toQueryResult(emptyList()) {
+            .orderBy(*if(schema != null && schema.orderConditions.isNotEmpty()) {
+                schema.orderConditions.toTypedArray() + orderTranslator.orderFor(filter.order)
+            }else{
+                orderTranslator.orderFor(filter.order)
+            })
+            .toListResult {
                 val id = it[Illusts.id]!!
                 val type = if(it[Illusts.type]!! == Illust.Type.COLLECTION) Illust.IllustType.COLLECTION else Illust.IllustType.IMAGE
                 val score = it[Illusts.exportedScore]

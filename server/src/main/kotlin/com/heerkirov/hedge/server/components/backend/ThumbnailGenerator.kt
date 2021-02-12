@@ -34,7 +34,7 @@ class ThumbnailGeneratorImpl(private val appdata: AppDataDriver, private val dat
 
     private val queue: MutableList<Int> = LinkedList()
 
-    private val daemonTask = controlledThread(thread = this::daemonThread)
+    private val daemonTask = controlledThread(thread = ::daemonThread)
 
     override val isIdle: Boolean get() = !daemonTask.isAlive
 

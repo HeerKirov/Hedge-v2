@@ -16,12 +16,12 @@ class AnnotationRoutes(private val annotationService: AnnotationService) : Endpo
     override fun handle(javalin: Javalin) {
         javalin.routes {
             path("api/annotations") {
-                get(this::list)
-                post(this::create)
+                get(::list)
+                post(::create)
                 path(":id") {
-                    get(this::get)
-                    patch(this::update)
-                    delete(this::delete)
+                    get(::get)
+                    patch(::update)
+                    delete(::delete)
                 }
             }
         }

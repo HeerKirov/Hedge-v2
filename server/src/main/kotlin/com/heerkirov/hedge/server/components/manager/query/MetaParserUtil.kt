@@ -10,7 +10,7 @@ import me.liuwj.ktorm.dsl.or
 import me.liuwj.ktorm.expression.BinaryExpression
 import java.util.concurrent.ConcurrentHashMap
 
-internal class MetaQueryerParser {
+internal object MetaParserUtil {
     /**
      * 将metaString的值编译为对指定种类metaTag的等价或比较操作。
      */
@@ -55,12 +55,23 @@ internal class MetaQueryerParser {
      */
     fun mapMatchToSqlLike(matchString: String): String {
         return sqlLikeMap.computeIfAbsent(matchString) {
-            val pattern = it
-                .replace(sqlLikeReplaceRegex, """\\$0""")
-                .replace('*', '%')
-                .replace('?', '_')
-            "%$pattern%"
+            escapeSqlLike(escapeSqlSpecial(it))
         }
+    }
+
+    /**
+     * 执行sql like转义，将具有特殊意义的符号转义掉。
+     */
+    fun escapeSqlSpecial(string: String): String {
+        return string.replace(sqlLikeReplaceRegex, """\\$0""")
+
+    }
+
+    /**
+     * 执行sql like转义，将HQL中的查询符号转义到sql like。
+     */
+    fun escapeSqlLike(string: String): String {
+        return '%' + string.replace('*', '%').replace('?', '_') + '%'
     }
 
     /**

@@ -15,35 +15,35 @@ class IllustRoutes(private val illustService: IllustService) : Endpoints {
     override fun handle(javalin: Javalin) {
         javalin.routes {
             path("api/illusts") {
-                get(this::list)
+                get(::list)
                 path("collection") {
-                    post(this::createCollection)
+                    post(::createCollection)
                     path(":id") {
-                        get(this::getCollection)
-                        patch(this::updateCollection)
-                        delete(this::deleteCollection)
+                        get(::getCollection)
+                        patch(::updateCollection)
+                        delete(::deleteCollection)
                         path("related-items") {
-                            get(this::getCollectionRelatedItems)
-                            patch(this::updateCollectionRelatedItems)
+                            get(::getCollectionRelatedItems)
+                            patch(::updateCollectionRelatedItems)
                         }
                         path("images") {
-                            get(this::listCollectionImages)
-                            put(this::updateCollectionImages)
+                            get(::listCollectionImages)
+                            put(::updateCollectionImages)
                         }
                     }
                 }
                 path("image") {
                     path(":id") {
-                        get(this::getImage)
-                        patch(this::updateImage)
-                        delete(this::deleteImage)
+                        get(::getImage)
+                        patch(::updateImage)
+                        delete(::deleteImage)
                         path("origin-data") {
-                            get(this::getImageOriginData)
-                            patch(this::updateImageOriginData)
+                            get(::getImageOriginData)
+                            patch(::updateImageOriginData)
                         }
                         path("related-items") {
-                            get(this::getImageRelatedItems)
-                            patch(this::updateImageRelatedItems)
+                            get(::getImageRelatedItems)
+                            patch(::updateImageRelatedItems)
                         }
                     }
                 }

@@ -15,14 +15,14 @@ class AppRoutes(private val lifetime: Lifetime, private val appdata: AppDataDriv
     override fun handle(javalin: Javalin) {
         javalin.routes {
             path("app") {
-                get("health", this::health)
-                post("init", this::init)
-                post("signal", this::signal)
+                get("health", ::health)
+                post("init", ::init)
+                post("signal", ::signal)
                 path("lifetime") {
-                    post(this::addLifetime)
+                    post(::addLifetime)
                     path(":id") {
-                        put(this::updateLifetime)
-                        delete(this::deleteLifetime)
+                        put(::updateLifetime)
+                        delete(::deleteLifetime)
                     }
                 }
             }

@@ -15,8 +15,8 @@ class PartitionRoutes(private val partitionService: PartitionService) : Endpoint
     override fun handle(javalin: Javalin) {
         javalin.routes {
             path("api/partitions") {
-                get(this::list)
-                get(":date", this::get)
+                get(::list)
+                get(":date", ::get)
             }
         }
     }

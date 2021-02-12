@@ -5,10 +5,14 @@ import com.heerkirov.hedge.server.model.meta.Annotation
 import com.heerkirov.hedge.server.model.illust.IllustAnnotationRelation
 import com.heerkirov.hedge.server.utils.ktorm.composition
 import me.liuwj.ktorm.dsl.QueryRowSet
+import me.liuwj.ktorm.schema.BaseTable
 import me.liuwj.ktorm.schema.Column
 import me.liuwj.ktorm.schema.int
 
-object IllustAnnotationRelations : EntityAnnotationRelationTable<IllustAnnotationRelation>("illust_annotation_relation") {
+open class IllustAnnotationRelations(alias: String?) : EntityAnnotationRelationTable<IllustAnnotationRelation>("illust_annotation_relation", alias = alias) {
+    companion object : IllustAnnotationRelations(null)
+    override fun aliased(alias: String) = IllustAnnotationRelations(alias)
+
     val illustId = int("illust_id")
     val annotationId = int("annotation_id")
     val exportedFrom = composition<Annotation.ExportedFrom>("exported_from")

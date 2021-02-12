@@ -23,7 +23,7 @@ import java.util.concurrent.ConcurrentHashMap
 import kotlin.collections.ArrayList
 
 class MetaQueryer(private val data: DataRepository) : Queryer {
-    private val parser = MetaQueryerParser()
+    private val parser = MetaParserUtil
     private val queryLimit get() = data.metadata.query.queryLimitOfQueryItems
 
     override fun findTag(metaValue: MetaValue, collector: ErrorCollector<TranslatorError<*>>): List<ElementTag> {

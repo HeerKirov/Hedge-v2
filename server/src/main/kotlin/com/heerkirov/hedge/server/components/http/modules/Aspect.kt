@@ -16,8 +16,8 @@ class Aspect(private val appdata: AppDataDriver) : Endpoints {
     private var loaded: Boolean = false
 
     override fun handle(javalin: Javalin) {
-        javalin.before("/web", this::aspectByInit)
-            .before("/api", this::aspectByInit)
+        javalin.before("/web", ::aspectByInit)
+            .before("/api", ::aspectByInit)
     }
 
     private fun aspectByInit(ctx: Context) {

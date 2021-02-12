@@ -13,15 +13,15 @@ class TagRoutes(private val tagService: TagService) : Endpoints {
     override fun handle(javalin: Javalin) {
         javalin.routes {
             path("api/tags") {
-                get(this::list)
-                post(this::create)
-                get("tree", this::tree)
+                get(::list)
+                post(::create)
+                get("tree", ::tree)
                 path(":id") {
-                    get(this::get)
-                    patch(this::update)
-                    delete(this::delete)
-                    post("duplicate", this::duplicate)
-                    post("merge", this::merge)
+                    get(::get)
+                    patch(::update)
+                    delete(::delete)
+                    post("duplicate", ::duplicate)
+                    post("merge", ::merge)
                 }
             }
         }

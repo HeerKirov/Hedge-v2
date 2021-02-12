@@ -11,7 +11,6 @@ import com.heerkirov.hedge.server.library.compiler.semantic.dialect.AuthorAndTop
 import com.heerkirov.hedge.server.library.compiler.semantic.dialect.IllustDialect
 import com.heerkirov.hedge.server.library.compiler.translator.*
 import com.heerkirov.hedge.server.library.compiler.translator.visual.*
-import com.heerkirov.hedge.server.library.compiler.utils.AnalysisResult
 import com.heerkirov.hedge.server.library.compiler.utils.CompileError
 import java.util.concurrent.ConcurrentHashMap
 
@@ -19,17 +18,17 @@ class QueryManager(private val data: DataRepository) {
     private val queryer = MetaQueryer(data)
     private val options = OptionsImpl()
 
-    private val executePlanCache = ConcurrentHashMap<DialectAndText, AnalysisResult<VisualQueryPlan, CompileError<*>>>()
+    private val executePlanCache = ConcurrentHashMap<DialectAndText, QuerySchema>()
 
-    fun querySchema(text: String, dialect: Dialect): AnalysisResult<VisualQueryPlan, CompileError<*>> {
+    fun querySchema(text: String, dialect: Dialect): QuerySchema {
         return executePlanCache.computeIfAbsent(DialectAndText(dialect, text)) { key ->
             val lexicalResult = LexicalAnalyzer.parse(key.text, options)
             if(lexicalResult.result == null) {
-                return@computeIfAbsent AnalysisResult(null, warnings = lexicalResult.warnings, errors = lexicalResult.errors)
+                return@computeIfAbsent QuerySchema(null, null, warnings = lexicalResult.warnings, errors = lexicalResult.errors)
             }
             val grammarResult = GrammarAnalyzer.parse(lexicalResult.result)
             if(grammarResult.result == null) {
-                return@computeIfAbsent AnalysisResult(null, warnings = lexicalResult.warnings + grammarResult.warnings, errors = grammarResult.errors)
+                return@computeIfAbsent QuerySchema(null, null, warnings = lexicalResult.warnings + grammarResult.warnings, errors = grammarResult.errors)
             }
             val semanticResult = SemanticAnalyzer.parse(grammarResult.result, when (key.dialect) {
                 Dialect.ILLUST -> IllustDialect::class
@@ -38,11 +37,19 @@ class QueryManager(private val data: DataRepository) {
                 Dialect.ANNOTATION -> AnnotationDialect::class
             })
             if(semanticResult.result == null) {
-                return@computeIfAbsent AnalysisResult(null, warnings = unionList(lexicalResult.warnings, grammarResult.warnings, semanticResult.warnings), errors = grammarResult.errors)
+                return@computeIfAbsent QuerySchema(null, null, warnings = unionList(lexicalResult.warnings, grammarResult.warnings, semanticResult.warnings), errors = grammarResult.errors)
             }
-            val translatorResult = Translator.parse(semanticResult.result, queryer, options)
+            val builder = when (key.dialect) {
+                Dialect.ILLUST -> IllustExecutePlanBuilder(data.db)
+                else -> TODO("Not yet implemented")
+            }
+            val translatorResult = Translator.parse(semanticResult.result, queryer, builder, options)
 
-            AnalysisResult(translatorResult.result, warnings = unionList(lexicalResult.warnings, grammarResult.warnings, semanticResult.warnings, translatorResult.warnings), errors = translatorResult.errors)
+            if(translatorResult.result == null) {
+                QuerySchema(null, null, warnings = unionList(lexicalResult.warnings, grammarResult.warnings, semanticResult.warnings, translatorResult.warnings), errors = translatorResult.errors)
+            }else{
+                QuerySchema(translatorResult.result, builder.build(), warnings = unionList(lexicalResult.warnings, grammarResult.warnings, semanticResult.warnings, translatorResult.warnings), errors = emptyList())
+            }
         }
     }
 
@@ -57,6 +64,8 @@ class QueryManager(private val data: DataRepository) {
     enum class Dialect { ILLUST, ALBUM, AUTHOR_AND_TOPIC, ANNOTATION }
 
     private data class DialectAndText(val dialect: Dialect, val text: String)
+
+    data class QuerySchema(val visualQueryPlan: VisualQueryPlan?, val executePlan: ExecutePlan?, val warnings: List<CompileError<*>>, val errors: List<CompileError<*>>)
 
     private inner class OptionsImpl : LexicalOptions, TranslatorOptions {
         private var _translateUnderscoreToSpace: Boolean? = null

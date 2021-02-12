@@ -13,12 +13,12 @@ class TopicRoutes(private val topicService: TopicService) : Endpoints {
     override fun handle(javalin: Javalin) {
         javalin.routes {
             path("api/topics") {
-                get(this::list)
-                post(this::create)
+                get(::list)
+                post(::create)
                 path(":id") {
-                    get(this::get)
-                    patch(this::update)
-                    delete(this::delete)
+                    get(::get)
+                    patch(::update)
+                    delete(::delete)
                 }
             }
         }

@@ -14,23 +14,23 @@ class FolderRoutes(private val folderService: FolderService) : Endpoints {
     override fun handle(javalin: Javalin) {
         javalin.routes {
             path("api/folders") {
-                get(this::list)
-                post(this::create)
+                get(::list)
+                post(::create)
                 path("pin") {
-                    get(this::pinList)
+                    get(::pinList)
                     path(":id") {
-                        put(this::pinUpdate)
-                        delete(this::pinDelete)
+                        put(::pinUpdate)
+                        delete(::pinDelete)
                     }
                 }
                 path(":id") {
-                    get(this::get)
-                    patch(this::update)
-                    delete(this::delete)
+                    get(::get)
+                    patch(::update)
+                    delete(::delete)
                     path("images") {
-                        get(this::listImages)
-                        put(this::updateImages)
-                        patch(this::partialUpdateImages)
+                        get(::listImages)
+                        put(::updateImages)
+                        patch(::partialUpdateImages)
                     }
                 }
             }

@@ -18,7 +18,7 @@ class AutoCloseableComponent<T : Closeable>(private val timeout: Long, private v
         synchronized(this) {
             if(obj == null) {
                 obj = newObject()
-                thread(isDaemon = true, block = this::daemonTimer)
+                thread(isDaemon = true, block = ::daemonTimer)
             }
             timeoutAt = System.currentTimeMillis() + timeout
 
@@ -31,7 +31,7 @@ class AutoCloseableComponent<T : Closeable>(private val timeout: Long, private v
             if(obj == null) {
                 obj = newObject()
                 timeoutAt = System.currentTimeMillis() + timeout
-                thread(isDaemon = true, block = this::daemonTimer)
+                thread(isDaemon = true, block = ::daemonTimer)
             }else{
                 obj!!.close()
                 obj = newObject()

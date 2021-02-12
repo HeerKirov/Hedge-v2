@@ -6,7 +6,6 @@ import com.heerkirov.hedge.server.library.compiler.translator.visual.Element
 import com.heerkirov.hedge.server.library.compiler.utils.AnalysisResult
 import com.heerkirov.hedge.server.library.compiler.utils.ErrorCollector
 import com.heerkirov.hedge.server.library.compiler.utils.TranslatorError
-import kotlin.collections.ArrayList
 
 /**
  * 执行计划翻译器。执行查询计划 -> 执行计划 & 可视化查询计划的过程。
@@ -15,19 +14,20 @@ object Translator {
     /**
      * 执行翻译。
      * @param queryPlan 输入参数，查询计划。
+     * @param queryer 执行预查询和中间代换。
+     * @param executeBuilder 构建伴生的执行计划。
+     * @param options 翻译器选项。
      */
-    fun parse(queryPlan: QueryPlan, queryer: Queryer, options: TranslatorOptions? = null): AnalysisResult<VisualQueryPlan, TranslatorError<*>> {
+    fun parse(queryPlan: QueryPlan, queryer: Queryer, executeBuilder: ExecuteBuilder, options: TranslatorOptions? = null): AnalysisResult<VisualQueryPlan, TranslatorError<*>> {
         val collector = ErrorCollector<TranslatorError<*>>()
 
-        val visualOrderList = ArrayList<String>(queryPlan.orders.size)
-        val visualFilters = ArrayList<FilterItem>(queryPlan.filters.size)
-        val visualElements = ArrayList<Element<*>>()
-
         //翻译order部分
-        queryPlan.orders.mapTo(visualOrderList, ::mapOrderItem)
+        val visualOrderList = queryPlan.orders.map(::mapOrderItem)
+        executeBuilder.mapOrders(queryPlan.orders)
 
         //翻译filter部分
-        queryPlan.filters.mapTo(visualFilters) { unionFilters ->
+        val visualFilters = queryPlan.filters.map { unionFilters ->
+            executeBuilder.mapFilter(unionFilters, unionFilters.exclude)
             FilterItem(exclude = unionFilters.exclude, fields = unionFilters.groupBy { it.field }.map { (field, filters) ->
                 FilterOfOneField(field.key, filters.flatMap { filter ->
                     when (filter) {
@@ -43,7 +43,7 @@ object Translator {
 
         //翻译element部分
         var joinDepth = 0
-        queryPlan.elements.groupBy {
+        val visualElements = queryPlan.elements.groupBy {
             when (it) {
                 is NameElement -> "name"
                 is AnnotationElement -> "annotation"
@@ -51,13 +51,22 @@ object Translator {
                 is SourceTagElement -> "source-tag"
                 else -> throw RuntimeException("Unsupported element type ${it::class.simpleName}.")
             }
-        }.mapTo(visualElements) { (type, elements) ->
+        }.map { (type, elements) ->
             Element(type, elements.map { element ->
                 ElementItem(element.exclude, when (element) {
-                    is NameElement -> element.items.map { ElementString(it.value, it.precise) }
-                    is SourceTagElement -> element.items.map { ElementString(it.value, it.precise) }
-                    is AnnotationElement -> mapAnnotationElement(element, queryer, collector, options).also { joinDepth += 1 }
-                    is TagElement -> mapTagElement(element, queryer, collector, options).also { joinDepth += 1 }
+                    is NameElement -> element.items.map { ElementString(it.value, it.precise) }.also { executeBuilder.mapNameElement(it, element.exclude) }
+                    is SourceTagElement -> element.items.map { ElementString(it.value, it.precise) }.also { executeBuilder.mapSourceTagElement(it, element.exclude) }
+                    is AnnotationElement -> mapAnnotationElement(element, queryer, collector, options).also { joinDepth += 1 }.also { executeBuilder.mapAnnotationElement(it, element.exclude) }
+                    is TagElement -> {
+                        val (r, t) = mapTagElement(element, queryer, collector, options)
+                        @Suppress("UNCHECKED_CAST")
+                        when(t) {
+                            "tag" -> executeBuilder.mapTagElement(r as List<ElementTag>, element.exclude)
+                            "author" -> executeBuilder.mapAuthorElement(r as List<ElementAuthor>, element.exclude)
+                            "topic" -> executeBuilder.mapTopicElement(r as List<ElementTopic>, element.exclude)
+                        }
+                        r.also { joinDepth += 1 }
+                    }
                     else -> throw RuntimeException("Unsupported element type $type.")
                 })
             })
@@ -84,33 +93,33 @@ object Translator {
     /**
      * 处理一个TagElement的翻译。
      */
-    private fun mapTagElement(element: TagElement<*>, queryer: Queryer, collector: ErrorCollector<TranslatorError<*>>, options: TranslatorOptions?): List<ElementMeta> {
+    private fun mapTagElement(element: TagElement<*>, queryer: Queryer, collector: ErrorCollector<TranslatorError<*>>, options: TranslatorOptions?): Pair<List<ElementMeta>, String> {
         return (if(element.metaType == null) {
             //未标记类型时，按tag->topic->author的顺序，依次进行搜索。由于整个合取项的类型统一，一旦某种类型找到了至少1个结果，就从这个类型返回
             val tagCollector = ErrorCollector<TranslatorError<*>>()
             val tagResult = element.items.flatMap { queryer.findTag(it, tagCollector) }
             if(tagResult.isNotEmpty() || element !is TopicElement<*>) {
                 collector.collect(tagCollector)
-                tagResult
+                tagResult to "tag"
             }else{
                 val topicCollector = ErrorCollector<TranslatorError<*>>()
                 val topicResult = element.items.flatMap { queryer.findTopic(it, topicCollector) }
                 if(topicResult.isNotEmpty() || element !is AuthorElement) {
                     collector.collect(topicCollector)
-                    topicResult
+                    topicResult to "topic"
                 }else{
                     val authorCollector = ErrorCollector<TranslatorError<*>>()
                     val authorResult = element.items.flatMap { queryer.findAuthor(it, authorCollector) }
                     collector.collect(authorCollector)
-                    authorResult
+                    authorResult to "author"
                 }
             }
         }else when (element.metaType) {
             //标记了类型时，按author->topic->tag的顺序，确定实际的类型是什么，然后根据单一类型确定查询结果
-            MetaType.AUTHOR -> (element as AuthorElement).items.flatMap { queryer.findAuthor(it, collector) }
-            MetaType.TOPIC -> (element as TopicElement<*>).items.flatMap { queryer.findTopic(it, collector) }
-            MetaType.TAG -> element.items.flatMap { queryer.findTag(it, collector) }
-        }).also { result ->
+            MetaType.AUTHOR -> (element as AuthorElement).items.flatMap { queryer.findAuthor(it, collector) } to "author"
+            MetaType.TOPIC -> (element as TopicElement<*>).items.flatMap { queryer.findTopic(it, collector) } to "topic"
+            MetaType.TAG -> element.items.flatMap { queryer.findTag(it, collector) } to "tag"
+        }).also { (result, _) ->
             if(result.isEmpty()) collector.warning(WholeElementMatchesNone(element.items.map { it.revertToQueryString() }))
             else if(options!= null && result.size >= options.warningLimitOfUnionItems) collector.warning(NumberOfUnionItemExceed(element.items.map { it.revertToQueryString() }, options.warningLimitOfUnionItems))
         }
@@ -122,6 +131,4 @@ object Translator {
     private fun mapOrderItem(order: Order<*>): String {
         return "${if(order.isAscending()) "+" else "-"}${order.value}"
     }
-
-    data class TranslatorResult<T : Any>(val visualQueryPlan: VisualQueryPlan, val executorPlan: T)
 }

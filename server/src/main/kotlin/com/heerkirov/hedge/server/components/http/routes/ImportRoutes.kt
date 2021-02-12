@@ -14,16 +14,16 @@ class ImportRoutes(private val importService: ImportService) : Endpoints {
     override fun handle(javalin: Javalin) {
         javalin.routes {
             path("api/imports") {
-                get(this::list)
-                post("import", this::import)
-                post("upload", this::upload)
-                post("analyse-meta", this::analyseMeta)
-                post("batch-update", this::batchUpdate)
-                post("save", this::save)
+                get(::list)
+                post("import", ::import)
+                post("upload", ::upload)
+                post("analyse-meta", ::analyseMeta)
+                post("batch-update", ::batchUpdate)
+                post("save", ::save)
                 path(":id") {
-                    get(this::get)
-                    patch(this::update)
-                    delete(this::delete)
+                    get(::get)
+                    patch(::update)
+                    delete(::delete)
                 }
             }
         }

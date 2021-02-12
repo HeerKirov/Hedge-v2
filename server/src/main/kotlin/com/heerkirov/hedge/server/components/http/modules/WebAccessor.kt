@@ -50,11 +50,11 @@ class WebAccessor(private val appdata: AppDataDriver, private val frontendPath: 
 
     override fun handle(javalin: Javalin) {
         javalin.routes {
-            get("/", this::index)
+            get("/", ::index)
             path("web") {
-                get("access", this::webAccess)
-                post("login", this::webLogin)
-                post("verify-token", this::webVerifyToken)
+                get("access", ::webAccess)
+                post("login", ::webLogin)
+                post("verify-token", ::webVerifyToken)
             }
         }
     }

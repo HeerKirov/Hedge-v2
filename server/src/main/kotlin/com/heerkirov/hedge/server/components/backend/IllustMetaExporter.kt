@@ -85,7 +85,7 @@ class IllustMetaExporterImpl(private val data: DataRepository,
     private val taskCount = AtomicInteger(0)
     private val totalTaskCount = AtomicInteger(0)
 
-    private val daemonTask = controlledThread(thread = this::daemonThread)
+    private val daemonTask = controlledThread(thread = ::daemonThread)
 
     override val isIdle: Boolean get() = taskCount.get() <= 0
 

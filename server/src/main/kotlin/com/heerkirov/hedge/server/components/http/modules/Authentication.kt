@@ -16,9 +16,9 @@ class Authentication(private val baseToken: String, private val webAccessor: Web
     private val prefixBearer = "bearer "
 
     override fun handle(javalin: Javalin) {
-        javalin.before("/api/*", this::authenticate)
-            .before("/app/*", this::authenticateOnlyForClient)
-            .before("/api/imports/import", this::authenticateOnlyForClient)
+        javalin.before("/api/*", ::authenticate)
+            .before("/app/*", ::authenticateOnlyForClient)
+            .before("/api/imports/import", ::authenticateOnlyForClient)
     }
 
     private fun authenticate(ctx: Context) {

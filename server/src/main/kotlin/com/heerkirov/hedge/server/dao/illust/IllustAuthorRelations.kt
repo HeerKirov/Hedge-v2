@@ -3,11 +3,15 @@ package com.heerkirov.hedge.server.dao.illust
 import com.heerkirov.hedge.server.dao.types.EntityMetaRelationTable
 import com.heerkirov.hedge.server.model.illust.IllustAuthorRelation
 import me.liuwj.ktorm.dsl.QueryRowSet
+import me.liuwj.ktorm.schema.BaseTable
 import me.liuwj.ktorm.schema.Column
 import me.liuwj.ktorm.schema.boolean
 import me.liuwj.ktorm.schema.int
 
-object IllustAuthorRelations : EntityMetaRelationTable<IllustAuthorRelation>("illust_author_relation") {
+open class IllustAuthorRelations(alias: String?) : EntityMetaRelationTable<IllustAuthorRelation>("illust_author_relation", alias = alias) {
+    companion object : IllustAuthorRelations(null)
+    override fun aliased(alias: String) = IllustAuthorRelations(alias)
+
     val illustId = int("illust_id")
     val authorId = int("author_id")
     val isExported = boolean("is_exported")

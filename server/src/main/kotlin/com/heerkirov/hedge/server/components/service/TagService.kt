@@ -302,7 +302,8 @@ class TagService(private val data: DataRepository,
 
             if ((newLinks.isPresent && newLinks.value != record.links) ||
                 (form.type.isPresent && form.type.value != record.type) ||
-                (newParentId.isPresent && newParentId.value != record.parentId)) {
+                (newParentId.isPresent && newParentId.value != record.parentId) ||
+                form.annotations.isPresent) {
                     //发生关系类变化时，将关联的illust/album重导出
                     data.db.from(IllustTagRelations)
                         .select(IllustTagRelations.illustId)

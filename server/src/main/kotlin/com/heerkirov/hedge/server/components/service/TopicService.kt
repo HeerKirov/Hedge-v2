@@ -1,11 +1,16 @@
 package com.heerkirov.hedge.server.components.service
 
+import com.heerkirov.hedge.server.components.backend.AlbumExporterTask
+import com.heerkirov.hedge.server.components.backend.IllustExporterTask
+import com.heerkirov.hedge.server.components.backend.IllustMetaExporter
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.database.transaction
 import com.heerkirov.hedge.server.exceptions.NotFound
 import com.heerkirov.hedge.server.form.*
 import com.heerkirov.hedge.server.components.kit.TopicKit
+import com.heerkirov.hedge.server.dao.album.AlbumAuthorRelations
 import com.heerkirov.hedge.server.dao.album.AlbumTopicRelations
+import com.heerkirov.hedge.server.dao.illust.IllustAuthorRelations
 import com.heerkirov.hedge.server.dao.illust.IllustTopicRelations
 import com.heerkirov.hedge.server.dao.illust.Illusts
 import com.heerkirov.hedge.server.dao.meta.Authors
@@ -24,7 +29,7 @@ import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.entity.firstOrNull
 import me.liuwj.ktorm.entity.sequenceOf
 
-class TopicService(private val data: DataRepository, private val kit: TopicKit) {
+class TopicService(private val data: DataRepository, private val kit: TopicKit, private val illustMetaExporter: IllustMetaExporter) {
     private val orderTranslator = OrderTranslator {
         "id" to Topics.id
         "name" to Topics.name
@@ -130,6 +135,20 @@ class TopicService(private val data: DataRepository, private val kit: TopicKit) 
 
 
             newAnnotations.letOpt { annotations -> kit.processAnnotations(id, annotations.asSequence().map { it.id }.toSet()) }
+
+            if(newAnnotations.isPresent || (newParentId.isPresent && newParentId.value != record.parentId)) {
+                //发生关系类变化时，将关联的illust/album重导出
+                data.db.from(IllustTopicRelations)
+                    .select(IllustTopicRelations.illustId)
+                    .where { IllustTopicRelations.topicId eq id }
+                    .map { IllustExporterTask(it[IllustTopicRelations.illustId]!!, exportMeta = true, exportDescription = false, exportFileAndTime = false, exportScore = false) }
+                    .let { illustMetaExporter.appendNewTask(it) }
+                data.db.from(AlbumTopicRelations)
+                    .select(AlbumTopicRelations.albumId)
+                    .where { AlbumTopicRelations.topicId eq id }
+                    .map { AlbumExporterTask(it[AlbumTopicRelations.albumId]!!, exportMeta = true) }
+                    .let { illustMetaExporter.appendNewTask(it) }
+            }
         }
     }
 
