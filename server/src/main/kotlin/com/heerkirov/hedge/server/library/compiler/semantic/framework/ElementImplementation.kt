@@ -5,7 +5,6 @@ import com.heerkirov.hedge.server.library.compiler.grammar.semantic.Annotation
 import com.heerkirov.hedge.server.library.compiler.semantic.*
 import com.heerkirov.hedge.server.library.compiler.semantic.plan.*
 import com.heerkirov.hedge.server.library.compiler.semantic.utils.semanticError
-import java.util.*
 import com.heerkirov.hedge.server.library.compiler.grammar.semantic.Element as SemanticElement
 
 /**
@@ -217,10 +216,10 @@ object NameFilterElementField : ElementFieldByElement() {
     override val itemName = "name"
     override val forSourceFlag = false
 
-    override fun generate(element: SemanticElement, minus: Boolean): NameElement {
+    override fun generate(element: SemanticElement, minus: Boolean): NameElementForMeta {
         if(element.prefix != null) semanticError(ElementPrefixNotRequired(itemName, element.beginIndex, element.endIndex))
         val items = element.items.map(::mapSfpToMetaValue)
-        return NameElement(items, minus)
+        return NameElementForMeta(items, minus)
     }
 
     /**
@@ -240,10 +239,10 @@ object NameFilterElementField : ElementFieldByElement() {
 object MetaAnnotationElementField : ElementFieldByAnnotation() {
     override val itemName = "annotation"
 
-    override fun generate(annotation: Annotation, minus: Boolean): AnnotationElement {
+    override fun generate(annotation: Annotation, minus: Boolean): AnnotationElementForMeta {
         if(annotation.prefixes.isNotEmpty()) semanticError(ElementPrefixNotRequired(itemName, annotation.beginIndex, annotation.endIndex))
         val items = annotation.items.map(::mapStrToMetaString)
-        return AnnotationElement(items, emptySet(), minus)
+        return AnnotationElementForMeta(items, minus)
     }
 
     /**

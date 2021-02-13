@@ -32,13 +32,18 @@ class ElementMatchedButNotGroup(item: String, goal: MatchGoal) : TranslatorError
 }
 
 /**
+ * (warning)此注解的匹配结果是不能被导出的，因此在illust/album查询中无法引用此注解。此项会被忽略。
+ */
+class ElementCannotBeExported(item: String) : TranslatorError<String>(4006, "Annotation '$item' cannot be exported, so it cannot be used in illust/album query.", info = item)
+
+/**
  * (warning)元素类的meta tag或annotation查询所对应的项的数量达到了警告阈值。这意味着一个连接查询中的or项目可能过多，拖慢查询速度。
  */
-class NumberOfUnionItemExceed(items: List<String>, warningLimit: Int) : TranslatorError<NumberOfUnionItemExceed.Info>(4006, "The number of the union items exceeds the warning limit $warningLimit.", info = Info(items, warningLimit)) {
+class NumberOfUnionItemExceed(items: List<String>, warningLimit: Int) : TranslatorError<NumberOfUnionItemExceed.Info>(4007, "The number of the union items exceeds the warning limit $warningLimit.", info = Info(items, warningLimit)) {
     data class Info(val items: List<String>, val warningLimit: Int)
 }
 
 /**
  * (warning)元素类的meta tag或annotation查询的合取项的数量达到了警告阈值。这意味着连接查询的层数可能过多，严重拖慢查询速度。
  */
-class NumberOfIntersectItemExceed(warningLimit: Int) : TranslatorError<Int>(4007, "The number of the intersect items exceeds the warning limit $warningLimit.", info = warningLimit)
+class NumberOfIntersectItemExceed(warningLimit: Int) : TranslatorError<Int>(4008, "The number of the intersect items exceeds the warning limit $warningLimit.", info = warningLimit)

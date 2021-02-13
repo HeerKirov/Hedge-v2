@@ -314,7 +314,7 @@ class SemanticAnalyzerTest {
             orders = emptyList(),
             filters = emptyList(),
             elements = listOf(
-                annotationElementOf(MetaString("a"), metaType = emptySet())
+                metaAnnotationElementOf(MetaString("a"))
             )
         )), parse("[a]", AuthorAndTopicDialect::class))
         assertEquals(AnalysisResult<QueryPlan, SemanticError<*>>(null, errors = listOf(
@@ -671,7 +671,9 @@ class SemanticAnalyzerTest {
 
     private fun annotationElementOf(vararg items: MetaString, metaType: Set<MetaType>, exclude: Boolean = false) = AnnotationElement(items.toList(), metaType, exclude)
 
+    private fun metaAnnotationElementOf(vararg items: MetaString, exclude: Boolean = false) = AnnotationElementForMeta(items.toList(), exclude)
+
     private fun sourceElementOf(vararg items: MetaString, exclude: Boolean = false) = SourceTagElement(items.toList(), exclude)
 
-    private fun nameElementOf(vararg items: MetaString, exclude: Boolean = false) = NameElement(items.toList(), exclude)
+    private fun nameElementOf(vararg items: MetaString, exclude: Boolean = false) = NameElementForMeta(items.toList(), exclude)
 }

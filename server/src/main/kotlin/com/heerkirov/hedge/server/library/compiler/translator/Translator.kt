@@ -45,8 +45,8 @@ object Translator {
         var joinDepth = 0
         val visualElements = queryPlan.elements.groupBy {
             when (it) {
-                is NameElement -> "name"
-                is AnnotationElement -> "annotation"
+                is NameElementForMeta -> "name"
+                is AnnotationElement, is AnnotationElementForMeta -> "annotation"
                 is TagElement -> "meta-tag"
                 is SourceTagElement -> "source-tag"
                 else -> throw RuntimeException("Unsupported element type ${it::class.simpleName}.")
@@ -54,9 +54,10 @@ object Translator {
         }.map { (type, elements) ->
             Element(type, elements.map { element ->
                 ElementItem(element.exclude, when (element) {
-                    is NameElement -> element.items.map { ElementString(it.value, it.precise) }.also { executeBuilder.mapNameElement(it, element.exclude) }
+                    is NameElementForMeta -> element.items.map { ElementString(it.value, it.precise) }.also { executeBuilder.mapNameElement(it, element.exclude) }
                     is SourceTagElement -> element.items.map { ElementString(it.value, it.precise) }.also { executeBuilder.mapSourceTagElement(it, element.exclude) }
                     is AnnotationElement -> mapAnnotationElement(element, queryer, collector, options).also { joinDepth += 1 }.also { executeBuilder.mapAnnotationElement(it, element.exclude) }
+                    is AnnotationElementForMeta -> mapAnnotationElementForMeta(element, queryer, collector, options).also { joinDepth += 1 }.also { executeBuilder.mapAnnotationElement(it, element.exclude) }
                     is TagElement -> {
                         val (r, t) = mapTagElement(element, queryer, collector, options)
                         @Suppress("UNCHECKED_CAST")
@@ -84,7 +85,17 @@ object Translator {
      * 处理一个AnnotationElement的翻译。
      */
     private fun mapAnnotationElement(element: AnnotationElement, queryer: Queryer, collector: ErrorCollector<TranslatorError<*>>, options: TranslatorOptions?): List<ElementAnnotation> {
-        return element.items.flatMap { queryer.findAnnotation(it, element.metaType, collector) }.also { result ->
+        return element.items.flatMap { queryer.findAnnotation(it, element.metaType, false, collector) }.also { result ->
+            if(result.isEmpty()) collector.warning(WholeElementMatchesNone(element.items.map { it.revertToQueryString() }))
+            else if(options!= null && result.size >= options.warningLimitOfUnionItems) collector.warning(NumberOfUnionItemExceed(element.items.map { it.revertToQueryString() }, options.warningLimitOfUnionItems))
+        }
+    }
+
+    /**
+     * 处理一个AnnotationElementForMeta的翻译。
+     */
+    private fun mapAnnotationElementForMeta(element: AnnotationElementForMeta, queryer: Queryer, collector: ErrorCollector<TranslatorError<*>>, options: TranslatorOptions?): List<ElementAnnotation> {
+        return element.items.flatMap { queryer.findAnnotation(it, emptySet(), true, collector) }.also { result ->
             if(result.isEmpty()) collector.warning(WholeElementMatchesNone(element.items.map { it.revertToQueryString() }))
             else if(options!= null && result.size >= options.warningLimitOfUnionItems) collector.warning(NumberOfUnionItemExceed(element.items.map { it.revertToQueryString() }, options.warningLimitOfUnionItems))
         }

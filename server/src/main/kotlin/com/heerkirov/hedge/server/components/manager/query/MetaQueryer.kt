@@ -13,6 +13,7 @@ import com.heerkirov.hedge.server.library.compiler.translator.visual.ElementTag
 import com.heerkirov.hedge.server.library.compiler.translator.visual.ElementTopic
 import com.heerkirov.hedge.server.library.compiler.utils.ErrorCollector
 import com.heerkirov.hedge.server.library.compiler.utils.TranslatorError
+import com.heerkirov.hedge.server.model.meta.Annotation
 import com.heerkirov.hedge.server.model.meta.Tag
 import com.heerkirov.hedge.server.utils.ktorm.compositionContains
 import com.heerkirov.hedge.server.utils.ktorm.first
@@ -348,14 +349,14 @@ class MetaQueryer(private val data: DataRepository) : Queryer {
         }
     }
 
-    override fun findAnnotation(metaString: MetaString, metaType: Set<MetaType>, collector: ErrorCollector<TranslatorError<*>>): List<ElementAnnotation> {
+    override fun findAnnotation(metaString: MetaString, metaType: Set<MetaType>, isForMeta: Boolean, collector: ErrorCollector<TranslatorError<*>>): List<ElementAnnotation> {
         if(metaString.value.isBlank()) {
             //元素内容为空时抛出空警告并直接返回
             collector.warning(BlankElement())
             return emptyList()
         }
         return annotationCacheMap.computeIfAbsent(annotationKeyOf(metaString, metaType)) {
-            data.db.from(Annotations).select(Annotations.id, Annotations.name)
+            data.db.from(Annotations).select()
                 .whereWithConditions {
                     it += if(metaString.precise) {
                         Annotations.name eq metaString.value
@@ -367,11 +368,24 @@ class MetaQueryer(private val data: DataRepository) : Queryer {
                     }
                 }
                 .limit(0, queryLimit)
-                .map { ElementAnnotation(it[Annotations.id]!!, it[Annotations.name]!!) }
-        }.also {
-            if(it.isEmpty()) {
+                .map { Annotations.createEntity(it) }
+        }.let { annotations ->
+            if(annotations.isEmpty()) {
                 //查询结果为空时抛出无匹配警告
                 collector.warning(ElementMatchesNone(metaString.revertToQueryString()))
+                emptyList()
+            }else if(!isForMeta) {
+                val result = annotations.filter { it.canBeExported }.map { ElementAnnotation(it.id, it.name) }
+                if(result.isEmpty()) {
+                    //如果canBeExported的结果为空，那么提出警告
+                    collector.warning(ElementCannotBeExported(metaString.revertToQueryString()))
+                    emptyList()
+                }else{
+                    result
+                }
+            }else{
+                //区分forMeta时的情况。当forMeta时，不需要canBeExported检查，可以直接输出
+                annotations.map { ElementAnnotation(it.id, it.name) }
             }
         }
     }
@@ -389,7 +403,7 @@ class MetaQueryer(private val data: DataRepository) : Queryer {
     /**
      * 缓存annotation查询的最终结果。
      */
-    private val annotationCacheMap = ConcurrentHashMap<AnnotationCacheKey, List<ElementAnnotation>>()
+    private val annotationCacheMap = ConcurrentHashMap<AnnotationCacheKey, List<Annotation>>()
 
     /**
      * 在parent溯源中缓存每一个遇到的topic。
