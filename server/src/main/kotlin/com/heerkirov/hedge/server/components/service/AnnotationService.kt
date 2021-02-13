@@ -35,6 +35,7 @@ class AnnotationService(private val data: DataRepository, private val kit: Annot
                 }
             }
             .limit(filter.offset, filter.limit)
+            .orderBy(Annotations.createTime.desc())
             .toListResult { newAnnotationRes(Annotations.createEntity(it)) }
     }
 

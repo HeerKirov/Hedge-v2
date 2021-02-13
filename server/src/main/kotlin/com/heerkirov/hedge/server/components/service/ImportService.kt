@@ -10,9 +10,6 @@ import com.heerkirov.hedge.server.dao.source.ImportImages
 import com.heerkirov.hedge.server.form.*
 import com.heerkirov.hedge.server.exceptions.*
 import com.heerkirov.hedge.server.model.illust.Illust
-import com.heerkirov.hedge.server.model.source.FileRecord
-import com.heerkirov.hedge.server.tools.getFilepath
-import com.heerkirov.hedge.server.tools.getThumbnailFilepath
 import com.heerkirov.hedge.server.tools.takeAllFilepath
 import com.heerkirov.hedge.server.utils.DateTime.parseDateTime
 import com.heerkirov.hedge.server.utils.DateTime.toMillisecond
@@ -51,7 +48,7 @@ class ImportService(private val data: DataRepository,
         return data.db.from(ImportImages)
             .innerJoin(FileRecords, FileRecords.id eq ImportImages.fileId)
             .select(ImportImages.id, FileRecords.id, FileRecords.folder, FileRecords.extension, FileRecords.thumbnail)
-            .orderBy(filter.order, orderTranslator)
+            .orderBy(orderTranslator, filter.order)
             .limit(filter.offset, filter.limit)
             .toListResult {
                 val (file, thumbnailFile) = takeAllFilepath(it)

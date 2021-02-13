@@ -20,10 +20,7 @@ import com.heerkirov.hedge.server.utils.ktorm.OrderTranslator
 import com.heerkirov.hedge.server.utils.ktorm.first
 import com.heerkirov.hedge.server.utils.ktorm.orderBy
 import com.heerkirov.hedge.server.utils.runIf
-import com.heerkirov.hedge.server.utils.types.ListResult
-import com.heerkirov.hedge.server.utils.types.anyOpt
-import com.heerkirov.hedge.server.utils.types.toListResult
-import com.heerkirov.hedge.server.utils.types.undefined
+import com.heerkirov.hedge.server.utils.types.*
 import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.entity.firstOrNull
 import me.liuwj.ktorm.entity.sequenceOf
@@ -57,7 +54,7 @@ class TopicService(private val data: DataRepository,
                 }
             }
             .runIf(schema?.distinct == true) { groupBy(Topics.id) }
-            .orderBy(filter.order, orderTranslator)
+            .orderBy(orderTranslator, filter.order, default = ascendingOrderItem("id"))
             .limit(filter.offset, filter.limit)
             .toListResult { newTopicRes(Topics.createEntity(it)) }
     }

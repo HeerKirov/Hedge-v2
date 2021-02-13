@@ -23,6 +23,7 @@ import com.heerkirov.hedge.server.utils.ktorm.orderBy
 import com.heerkirov.hedge.server.utils.runIf
 import com.heerkirov.hedge.server.utils.types.ListResult
 import com.heerkirov.hedge.server.utils.types.anyOpt
+import com.heerkirov.hedge.server.utils.types.descendingOrderItem
 import com.heerkirov.hedge.server.utils.types.toListResult
 import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.entity.count
@@ -60,7 +61,7 @@ class FolderService(private val data: DataRepository,
                 }
             }
             .limit(filter.offset, filter.limit)
-            .orderBy(filter.order, orderTranslator)
+            .orderBy(orderTranslator, filter.order)
             .toListResult {
                 val id = it[Folders.id]!!
                 val title = it[Folders.title]!!
@@ -246,7 +247,7 @@ class FolderService(private val data: DataRepository,
                 FileRecords.id, FileRecords.folder, FileRecords.extension, FileRecords.thumbnail)
             .where { FolderImageRelations.folderId eq id }
             .limit(filter.offset, filter.limit)
-            .orderBy(filter.order, imagesOrderTranslator)
+            .orderBy(imagesOrderTranslator, filter.order)
             .toListResult {
                 val ordinal = it[FolderImageRelations.ordinal]!!
                 val itemId = it[Illusts.id]!!
@@ -275,9 +276,7 @@ class FolderService(private val data: DataRepository,
             }
             .runIf(schema?.distinct == true) { groupBy(Illusts.id) }
             .limit(filter.offset, filter.limit)
-            .runIf(schema != null && schema.orderConditions.isNotEmpty()) {
-                orderBy(*schema!!.orderConditions.toTypedArray())
-            }
+            .orderBy(imagesOrderTranslator, null, schema?.orderConditions, default = descendingOrderItem("orderTime"))
             .toListResult {
                 val itemId = it[Illusts.id]!!
                 val score = it[Illusts.exportedScore]

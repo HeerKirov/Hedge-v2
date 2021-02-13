@@ -3,7 +3,6 @@ package com.heerkirov.hedge.server.components.service
 import com.heerkirov.hedge.server.components.backend.AlbumExporterTask
 import com.heerkirov.hedge.server.components.backend.IllustExporterTask
 import com.heerkirov.hedge.server.components.backend.IllustMetaExporter
-import com.heerkirov.hedge.server.components.backend.MetaExporterTask
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.database.transaction
 import com.heerkirov.hedge.server.exceptions.*
@@ -15,7 +14,6 @@ import com.heerkirov.hedge.server.dao.album.AlbumTagRelations
 import com.heerkirov.hedge.server.dao.illust.IllustTagRelations
 import com.heerkirov.hedge.server.dao.illust.Illusts
 import com.heerkirov.hedge.server.dao.meta.Annotations
-import com.heerkirov.hedge.server.dao.meta.Authors
 import com.heerkirov.hedge.server.dao.meta.TagAnnotationRelations
 import com.heerkirov.hedge.server.dao.meta.Tags
 import com.heerkirov.hedge.server.dao.source.FileRecords
@@ -48,7 +46,7 @@ class TagService(private val data: DataRepository,
                 if(filter.type != null) { it += Tags.type eq filter.type }
                 if(filter.group != null) { it += if(filter.group) Tags.isGroup notEq Tag.IsGroup.NO else Tags.isGroup eq Tag.IsGroup.NO }
             }
-            .orderBy(filter.order, orderTranslator)
+            .orderBy(orderTranslator, filter.order, default = ascendingOrderItem("ordinal"))
             .limit(filter.offset, filter.limit)
             .toListResult {
                 newTagRes(Tags.createEntity(it))

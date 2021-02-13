@@ -22,6 +22,7 @@ import com.heerkirov.hedge.server.utils.DateTime
 import com.heerkirov.hedge.server.utils.DateTime.parseDateTime
 import com.heerkirov.hedge.server.utils.ktorm.OrderTranslator
 import com.heerkirov.hedge.server.utils.ktorm.firstOrNull
+import com.heerkirov.hedge.server.utils.ktorm.orderBy
 import com.heerkirov.hedge.server.utils.runIf
 import com.heerkirov.hedge.server.utils.types.*
 import me.liuwj.ktorm.dsl.*
@@ -58,11 +59,7 @@ class AlbumService(private val data: DataRepository,
             }
             .runIf(schema?.distinct == true) { groupBy(Albums.id) }
             .limit(filter.offset, filter.limit)
-            .orderBy(*if(schema != null && schema.orderConditions.isNotEmpty()) {
-                schema.orderConditions.toTypedArray() + orderTranslator.orderFor(filter.order)
-            }else{
-                orderTranslator.orderFor(filter.order)
-            })
+            .orderBy(orderTranslator, filter.order, schema?.orderConditions, default = descendingOrderItem("createTime"))
             .toListResult {
                 val id = it[Albums.id]!!
                 val title = it[Albums.title]!!

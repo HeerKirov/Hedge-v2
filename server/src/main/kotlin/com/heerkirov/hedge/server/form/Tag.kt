@@ -31,7 +31,7 @@ data class TagFilter(@Limit val limit: Int,
                      @Offset val offset: Int,
                      @Search val search: String?,
                      @Order(options = ["id", "ordinal", "name", "createTime", "updateTime"])
-                     val order: List<OrderItem> = listOf(OrderItem("ordinal", desc = false)),
+                     val order: List<OrderItem>? = null,
                      val parent: Int? = null,
                      val type: Tag.Type? = null,
                      val group: Boolean? = null)

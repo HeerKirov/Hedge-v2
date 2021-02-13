@@ -22,7 +22,7 @@ data class AuthorFilter(@Limit val limit: Int,
                         @Offset val offset: Int,
                         @Search val query: String?,
                         @Order(options = ["id", "name", "score", "count", "createTime", "updateTime"])
-                        val order: List<OrderItem> = listOf(OrderItem("id", desc = false)),
+                        val order: List<OrderItem>? = null,
                         val type: Author.Type? = null,
                         val favorite: Boolean? = null)
 

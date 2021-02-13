@@ -83,11 +83,7 @@ class IllustService(private val data: DataRepository,
             }
             .runIf(schema?.distinct == true) { groupBy(Illusts.id) }
             .limit(filter.offset, filter.limit)
-            .orderBy(*if(schema != null && schema.orderConditions.isNotEmpty()) {
-                schema.orderConditions.toTypedArray() + orderTranslator.orderFor(filter.order)
-            }else{
-                orderTranslator.orderFor(filter.order)
-            })
+            .orderBy(orderTranslator, filter.order, schema?.orderConditions, default = descendingOrderItem("orderTime"))
             .toListResult {
                 val id = it[Illusts.id]!!
                 val type = if(it[Illusts.type]!! == Illust.Type.COLLECTION) Illust.IllustType.COLLECTION else Illust.IllustType.IMAGE

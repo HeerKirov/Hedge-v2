@@ -33,3 +33,9 @@ class OrderItem {
     override fun equals(other: Any?) = other === this || other is OrderItem && other.name == this.name && other.desc == this.desc
     override fun hashCode() = Objects.hash(name, desc)
 }
+
+@Suppress("NOTHING_TO_INLINE")
+inline fun ascendingOrderItem(name: String) = OrderItem(name, desc = false)
+
+@Suppress("NOTHING_TO_INLINE")
+inline fun descendingOrderItem(name: String) = OrderItem(name, desc = true)

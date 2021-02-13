@@ -40,7 +40,7 @@ data class IllustQueryFilter(@Limit val limit: Int,
                              @Offset val offset: Int,
                              @Search val query: String?,
                              @Order(options = ["id", "score", "orderTime", "createTime", "updateTime"])
-                             val order: List<OrderItem> = listOf(OrderItem("orderTime", desc = false)),
+                             val order: List<OrderItem>? = null,
                              val type: Illust.IllustType,
                              val partition: LocalDate? = null,
                              val favorite: Boolean? = null)
