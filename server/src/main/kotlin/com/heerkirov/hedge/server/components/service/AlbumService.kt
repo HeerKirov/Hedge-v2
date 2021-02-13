@@ -4,6 +4,7 @@ import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.database.transaction
 import com.heerkirov.hedge.server.components.kit.AlbumKit
 import com.heerkirov.hedge.server.components.manager.AlbumManager
+import com.heerkirov.hedge.server.components.manager.query.QueryManager
 import com.heerkirov.hedge.server.dao.album.*
 import com.heerkirov.hedge.server.dao.illust.Illusts
 import com.heerkirov.hedge.server.dao.meta.Authors
@@ -21,7 +22,7 @@ import com.heerkirov.hedge.server.utils.DateTime
 import com.heerkirov.hedge.server.utils.DateTime.parseDateTime
 import com.heerkirov.hedge.server.utils.ktorm.OrderTranslator
 import com.heerkirov.hedge.server.utils.ktorm.firstOrNull
-import com.heerkirov.hedge.server.utils.ktorm.orderBy
+import com.heerkirov.hedge.server.utils.runIf
 import com.heerkirov.hedge.server.utils.types.*
 import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.entity.firstOrNull
@@ -29,7 +30,8 @@ import me.liuwj.ktorm.entity.sequenceOf
 
 class AlbumService(private val data: DataRepository,
                    private val kit: AlbumKit,
-                   private val albumManager: AlbumManager) {
+                   private val albumManager: AlbumManager,
+                   private val queryManager: QueryManager) {
     private val orderTranslator = OrderTranslator {
         "id" to Albums.id
         "createTime" to Albums.createTime
@@ -37,20 +39,31 @@ class AlbumService(private val data: DataRepository,
         "score" to Albums.score nulls last
     }
 
-    fun list(filter: AlbumQueryFilter): QueryResult<AlbumRes> {
+    fun list(filter: AlbumQueryFilter): ListResult<AlbumRes> {
+        val schema = if(filter.query.isNullOrBlank()) null else {
+            queryManager.querySchema(filter.query, QueryManager.Dialect.ALBUM).executePlan ?: return ListResult(0, emptyList())
+        }
         return data.db.from(Albums)
             .leftJoin(FileRecords, Albums.fileId eq FileRecords.id)
+            .let { schema?.joinConditions?.fold(it) { acc, join -> if(join.left) acc.leftJoin(join.table, join.condition) else acc.innerJoin(join.table, join.condition) } ?: it }
             .select(Albums.id, Albums.title, Albums.cachedCount, Albums.score, Albums.favorite, Albums.createTime, Albums.updateTime,
                 FileRecords.thumbnail, FileRecords.folder, FileRecords.id, FileRecords.extension)
             .whereWithConditions {
                 if(filter.favorite != null) {
                     it += if(filter.favorite) Albums.favorite else Albums.favorite.not()
                 }
-                //TODO 实现QL查询
+                if(schema != null && schema.whereConditions.isNotEmpty()) {
+                    it.addAll(schema.whereConditions)
+                }
             }
+            .runIf(schema?.distinct == true) { groupBy(Albums.id) }
             .limit(filter.offset, filter.limit)
-            .orderBy(filter.order, orderTranslator)
-            .toQueryResult(emptyList()) {
+            .orderBy(*if(schema != null && schema.orderConditions.isNotEmpty()) {
+                schema.orderConditions.toTypedArray() + orderTranslator.orderFor(filter.order)
+            }else{
+                orderTranslator.orderFor(filter.order)
+            })
+            .toListResult {
                 val id = it[Albums.id]!!
                 val title = it[Albums.title]!!
                 val imageCount = it[Albums.cachedCount]!!

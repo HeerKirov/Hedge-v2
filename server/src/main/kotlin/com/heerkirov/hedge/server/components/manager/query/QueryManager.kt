@@ -36,7 +36,7 @@ class QueryManager(private val data: DataRepository) {
             val semanticResult = SemanticAnalyzer.parse(grammarResult.result, when (key.dialect) {
                 Dialect.ILLUST -> IllustDialect::class
                 Dialect.ALBUM -> AlbumDialect::class
-                Dialect.AUTHOR_AND_TOPIC -> AuthorAndTopicDialect::class
+                Dialect.AUTHOR, Dialect.TOPIC -> AuthorAndTopicDialect::class
                 Dialect.ANNOTATION -> AnnotationDialect::class
             })
             if(semanticResult.result == null) {
@@ -44,7 +44,10 @@ class QueryManager(private val data: DataRepository) {
             }
             val builder = when (key.dialect) {
                 Dialect.ILLUST -> IllustExecutePlanBuilder(data.db)
-                else -> TODO("Not yet implemented")
+                Dialect.ALBUM -> AlbumExecutePlanBuilder(data.db)
+                Dialect.AUTHOR -> AuthorExecutePlanBuilder(data.db)
+                Dialect.TOPIC -> TopicExecutePlanBuilder(data.db)
+                Dialect.ANNOTATION -> AnnotationExecutePlanBuilder()
             }
             val translatorResult = Translator.parse(semanticResult.result, queryer, builder, options)
 
@@ -65,7 +68,7 @@ class QueryManager(private val data: DataRepository) {
         queryer.flushCacheOf(cacheType)
     }
 
-    enum class Dialect { ILLUST, ALBUM, AUTHOR_AND_TOPIC, ANNOTATION }
+    enum class Dialect { ILLUST, ALBUM, AUTHOR, TOPIC, ANNOTATION }
 
     enum class CacheType { TAG, TOPIC, AUTHOR, ANNOTATION }
 

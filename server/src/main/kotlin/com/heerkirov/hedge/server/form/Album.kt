@@ -3,6 +3,7 @@ package com.heerkirov.hedge.server.form
 import com.heerkirov.hedge.server.library.form.Limit
 import com.heerkirov.hedge.server.library.form.Offset
 import com.heerkirov.hedge.server.library.form.Order
+import com.heerkirov.hedge.server.library.form.Search
 import com.heerkirov.hedge.server.model.album.Album
 import com.heerkirov.hedge.server.model.album.AlbumImageRelation
 import com.heerkirov.hedge.server.model.illust.Illust
@@ -36,10 +37,10 @@ data class AlbumSubtitleRes(override val ordinal: Int, override val type: AlbumI
 
 data class AlbumQueryFilter(@Limit val limit: Int,
                             @Offset val offset: Int,
+                            @Search val query: String?,
                             @Order(options = ["id", "score", "createTime", "updateTime"])
                             val order: List<OrderItem> = listOf(OrderItem("createTime", desc = false)),
-                            val favorite: Boolean? = null,
-                            val query: String? = null)
+                            val favorite: Boolean? = null)
 
 data class AlbumCreateForm(val title: String? = null,
                            val description: String? = null,

@@ -64,7 +64,6 @@ internal object MetaParserUtil {
      */
     fun escapeSqlSpecial(string: String): String {
         return string.replace(sqlLikeReplaceRegex, """\\$0""")
-
     }
 
     /**

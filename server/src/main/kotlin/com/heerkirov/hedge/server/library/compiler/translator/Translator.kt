@@ -23,7 +23,7 @@ object Translator {
 
         //翻译order部分
         val visualOrderList = queryPlan.orders.map(::mapOrderItem)
-        executeBuilder.mapOrders(queryPlan.orders)
+        if(queryPlan.orders.isNotEmpty()) executeBuilder.mapOrders(queryPlan.orders)
 
         //翻译filter部分
         val visualFilters = queryPlan.filters.map { unionFilters ->

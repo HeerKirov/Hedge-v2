@@ -3,10 +3,14 @@ package com.heerkirov.hedge.server.dao.meta
 import com.heerkirov.hedge.server.dao.types.MetaAnnotationRelationTable
 import com.heerkirov.hedge.server.model.meta.TopicAnnotationRelation
 import me.liuwj.ktorm.dsl.QueryRowSet
+import me.liuwj.ktorm.schema.BaseTable
 import me.liuwj.ktorm.schema.Column
 import me.liuwj.ktorm.schema.int
 
-object TopicAnnotationRelations : MetaAnnotationRelationTable<TopicAnnotationRelation>("topic_annotation_relation", schema = "meta_db") {
+open class TopicAnnotationRelations(alias: String?) : MetaAnnotationRelationTable<TopicAnnotationRelation>("topic_annotation_relation", schema = "meta_db") {
+    companion object : TopicAnnotationRelations(null)
+    override fun aliased(alias: String) = TopicAnnotationRelations(alias)
+
     val topicId = int("topic_id")
     val annotationId = int("annotation_id")
 

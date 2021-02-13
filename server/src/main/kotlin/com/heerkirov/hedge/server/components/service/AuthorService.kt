@@ -19,6 +19,7 @@ import com.heerkirov.hedge.server.utils.DateTime
 import com.heerkirov.hedge.server.utils.ktorm.OrderTranslator
 import com.heerkirov.hedge.server.utils.ktorm.first
 import com.heerkirov.hedge.server.utils.ktorm.orderBy
+import com.heerkirov.hedge.server.utils.runIf
 import com.heerkirov.hedge.server.utils.types.ListResult
 import com.heerkirov.hedge.server.utils.types.anyOpt
 import com.heerkirov.hedge.server.utils.types.toListResult
@@ -40,11 +41,20 @@ class AuthorService(private val data: DataRepository,
     }
 
     fun list(filter: AuthorFilter): ListResult<AuthorRes> {
-        return data.db.from(Authors).select()
+        val schema = if(filter.query.isNullOrBlank()) null else {
+            queryManager.querySchema(filter.query, QueryManager.Dialect.AUTHOR).executePlan ?: return ListResult(0, emptyList())
+        }
+        return data.db.from(Authors)
+            .let { schema?.joinConditions?.fold(it) { acc, join -> if(join.left) acc.leftJoin(join.table, join.condition) else acc.innerJoin(join.table, join.condition) } ?: it }
+            .select()
             .whereWithConditions {
                 if(filter.favorite != null) { it += Authors.favorite eq filter.favorite }
                 if(filter.type != null) { it += Authors.type eq filter.type }
+                if(schema != null && schema.whereConditions.isNotEmpty()) {
+                    it.addAll(schema.whereConditions)
+                }
             }
+            .runIf(schema?.distinct == true) { groupBy(Authors.id) }
             .orderBy(filter.order, orderTranslator)
             .limit(filter.offset, filter.limit)
             .toListResult { newAuthorRes(Authors.createEntity(it)) }

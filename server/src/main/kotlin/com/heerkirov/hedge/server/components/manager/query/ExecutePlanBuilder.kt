@@ -1,8 +1,11 @@
 package com.heerkirov.hedge.server.components.manager.query
 
+import com.heerkirov.hedge.server.dao.album.*
 import com.heerkirov.hedge.server.dao.illust.*
+import com.heerkirov.hedge.server.dao.meta.*
 import com.heerkirov.hedge.server.dao.source.FileRecords
 import com.heerkirov.hedge.server.dao.source.SourceImages
+import com.heerkirov.hedge.server.library.compiler.semantic.dialect.AlbumDialect
 import com.heerkirov.hedge.server.library.compiler.semantic.dialect.IllustDialect
 import com.heerkirov.hedge.server.library.compiler.semantic.framework.FilterFieldDefinition
 import com.heerkirov.hedge.server.library.compiler.semantic.plan.*
@@ -196,12 +199,6 @@ class IllustExecutePlanBuilder(private val db: Database) : ExecutePlanBuilder, O
                 IllustDialect.AnalyseStatus.MANUAL -> SourceImage.AnalyseStatus.MANUAL
                 IllustDialect.AnalyseStatus.NOT_FOUND -> SourceImage.AnalyseStatus.NOT_FOUND
             }
-            IllustDialect.tagme -> when (value as IllustDialect.Tagme) {
-                IllustDialect.Tagme.AUTHOR -> Illust.Tagme.AUTHOR
-                IllustDialect.Tagme.TOPIC -> Illust.Tagme.TOPIC
-                IllustDialect.Tagme.TAG -> Illust.Tagme.TAG
-                IllustDialect.Tagme.SOURCE -> Illust.Tagme.SOURCE
-            }
             else -> value
         }
     }
@@ -343,3 +340,306 @@ class IllustExecutePlanBuilder(private val db: Database) : ExecutePlanBuilder, O
     }
 }
 
+class AlbumExecutePlanBuilder(private val db: Database) : ExecutePlanBuilder, OrderByColumn<AlbumDialect.AlbumOrderItem>, FilterByColumn {
+    private val orders: MutableList<OrderByExpression> = ArrayList()
+    private val wheres: MutableList<ColumnDeclaring<Boolean>> = ArrayList()
+    private val joins: MutableList<ExecutePlan.Join> = ArrayList()
+
+    //在连接查询中，如果遇到一整层查询的项为空，这一层按逻辑不会产生任何结果匹配，那么相当于结果恒为空。使用这个flag来优化这种情况。
+    private var alwaysFalseFlag: Boolean = false
+
+    //在连接查询中，如果一层中有复数项，那么需要做去重。
+    private var needDistinct: Boolean = false
+
+    //在连接查询中，出现多次连接时需要alias dao，使用count做计数。
+    private var joinCount = 0
+
+    //在exclude连接查询中，具有相同类型的连接会被联合成同一个where nested查询来实现，在这里存储这个信息。
+    private val excludeTags: MutableCollection<Int> = mutableSetOf()
+    private val excludeTopics: MutableCollection<Int> = mutableSetOf()
+    private val excludeAuthors: MutableCollection<Int> = mutableSetOf()
+    private val excludeAnnotations: MutableCollection<Int> = mutableSetOf()
+
+    private val orderDeclareMapping = mapOf(
+        AlbumDialect.AlbumOrderItem.ID to OrderByColumn.ColumnDefinition(Albums.id),
+        AlbumDialect.AlbumOrderItem.SCORE to OrderByColumn.ColumnDefinition(Albums.score, nullsLast = true),
+        AlbumDialect.AlbumOrderItem.IMAGE_COUNT to OrderByColumn.ColumnDefinition(Albums.cachedCount),
+        AlbumDialect.AlbumOrderItem.CREATE_TIME to OrderByColumn.ColumnDefinition(Albums.createTime),
+        AlbumDialect.AlbumOrderItem.UPDATE_TIME to OrderByColumn.ColumnDefinition(Albums.updateTime),
+    )
+
+    private val filterDeclareMapping = mapOf(
+        AlbumDialect.id to Albums.id,
+        AlbumDialect.favorite to Albums.favorite,
+        AlbumDialect.score to Albums.score,
+        AlbumDialect.imageCount to Albums.cachedCount,
+        AlbumDialect.createTime to Albums.createTime,
+        AlbumDialect.updateTime to Albums.updateTime,
+        AlbumDialect.title to Albums.title,
+        AlbumDialect.description to Albums.description,
+    )
+
+    override fun getOrderDeclareMapping(order: AlbumDialect.AlbumOrderItem): OrderByColumn.ColumnDefinition {
+        return orderDeclareMapping[order]!!
+    }
+
+    override fun getFilterDeclareMapping(field: FilterFieldDefinition<*>): Column<*> {
+        return filterDeclareMapping[field]!!
+    }
+
+    override fun setOrders(orders: List<OrderByExpression>) {
+        this.orders.addAll(orders)
+    }
+
+    override fun addWhereCondition(whereCondition: ColumnDeclaring<Boolean>) {
+        wheres.add(whereCondition)
+    }
+
+    override fun mapFilterSpecial(field: FilterFieldDefinition<*>, value: Any): Any {
+        return when (field) {
+            AlbumDialect.createTime, AlbumDialect.updateTime -> LocalDateTime.of(value as LocalDate, LocalTime.MIN)
+            else -> value
+        }
+    }
+
+    override fun mapTopicElement(unionItems: List<ElementTopic>, exclude: Boolean) {
+        when {
+            exclude -> excludeTopics.addAll(unionItems.map { it.id })
+            unionItems.isEmpty() -> alwaysFalseFlag = true
+            else -> {
+                val j = AlbumTopicRelations.aliased("AR_${++joinCount}")
+                val condition = if(unionItems.size == 1) {
+                    j.topicId eq unionItems.first().id
+                }else{
+                    needDistinct = true
+                    j.topicId inList unionItems.map { it.id }
+                }
+                joins.add(ExecutePlan.Join(j, j.albumId eq Albums.id and condition))
+            }
+        }
+    }
+
+    override fun mapAuthorElement(unionItems: List<ElementAuthor>, exclude: Boolean) {
+        when {
+            exclude -> excludeAuthors.addAll(unionItems.map { it.id })
+            unionItems.isEmpty() -> alwaysFalseFlag = true
+            else -> {
+                val j = AlbumAuthorRelations.aliased("AR_${++joinCount}")
+                val condition = if(unionItems.size == 1) {
+                    j.authorId eq unionItems.first().id
+                }else{
+                    needDistinct = true
+                    j.authorId inList unionItems.map { it.id }
+                }
+                joins.add(ExecutePlan.Join(j, j.albumId eq Albums.id and condition))
+            }
+        }
+    }
+
+    override fun mapTagElement(unionItems: List<ElementTag>, exclude: Boolean) {
+        val ids = unionItems.flatMap { if(it.tagType == Tag.Type.VIRTUAL_ADDR && it.realTags != null) it.realTags.map { t -> t.id } else listOf(it.id) }
+        when {
+            exclude -> excludeTags.addAll(ids)
+            ids.isEmpty() -> alwaysFalseFlag = true
+            else -> {
+                val j = AlbumTagRelations.aliased("IR_${++joinCount}")
+                val condition = if(ids.size == 1) {
+                    j.tagId eq ids.first()
+                }else{
+                    needDistinct = true
+                    j.tagId inList ids
+                }
+                joins.add(ExecutePlan.Join(j, j.albumId eq Albums.id and condition))
+            }
+        }
+    }
+
+    override fun mapAnnotationElement(unionItems: List<ElementAnnotation>, exclude: Boolean, exportedFromAuthor: Boolean, exportedFromTopic: Boolean, exportedFromTag: Boolean) {
+        when {
+            exclude -> excludeAnnotations.addAll(unionItems.map { it.id })
+            unionItems.isEmpty() -> alwaysFalseFlag = true
+            else -> {
+                val j = AlbumAnnotationRelations.aliased("AR_${++joinCount}")
+                val condition = if(unionItems.size == 1) {
+                    j.annotationId eq unionItems.first().id
+                }else{
+                    needDistinct = true
+                    j.annotationId inList unionItems.map { it.id }
+                }.letIf(exportedFromAuthor || exportedFromTopic || exportedFromTag && !(exportedFromAuthor && exportedFromTopic && exportedFromTag)) {
+                    var exportedFrom: Annotation.ExportedFrom = Annotation.ExportedFrom.empty
+                    if(exportedFromAuthor) exportedFrom += Annotation.ExportedFrom.AUTHOR
+                    if(exportedFromTopic) exportedFrom += Annotation.ExportedFrom.TOPIC
+                    if(exportedFromTag) exportedFrom += Annotation.ExportedFrom.TAG
+                    it and (j.exportedFrom compositionAny exportedFrom)
+                }
+
+                joins.add(ExecutePlan.Join(j, j.albumId eq Albums.id and condition))
+            }
+        }
+    }
+
+    override fun build(): ExecutePlan {
+        if(alwaysFalseFlag) {
+            return ExecutePlan(listOf(ArgumentExpression(false, BooleanSqlType)), emptyList(), emptyList(), false)
+        }
+        if(excludeTags.isNotEmpty()) {
+            wheres.add(Albums.id notInList db.from(AlbumTagRelations).select(AlbumTagRelations.albumId).where {
+                if(excludeTags.size == 1) AlbumTagRelations.tagId eq excludeTags.first() else AlbumTagRelations.tagId inList excludeTags
+            })
+        }
+        if(excludeTopics.isNotEmpty()) {
+            wheres.add(Albums.id notInList db.from(AlbumTopicRelations).select(AlbumTopicRelations.albumId).where {
+                if(excludeTopics.size == 1) AlbumTopicRelations.topicId eq excludeTopics.first() else AlbumTopicRelations.topicId inList excludeTopics
+            })
+        }
+        if(excludeAuthors.isNotEmpty()) {
+            wheres.add(Albums.id notInList db.from(AlbumAuthorRelations).select(AlbumAuthorRelations.albumId).where {
+                if(excludeAuthors.size == 1) AlbumAuthorRelations.authorId eq excludeAuthors.first() else AlbumAuthorRelations.authorId inList excludeAuthors
+            })
+        }
+        if(excludeAnnotations.isNotEmpty()) {
+            wheres.add(Albums.id notInList db.from(AlbumAnnotationRelations).select(AlbumAnnotationRelations.albumId).where {
+                if(excludeAnnotations.size == 1) AlbumAnnotationRelations.annotationId eq excludeAnnotations.first() else AlbumAnnotationRelations.annotationId inList excludeAnnotations
+            })
+        }
+        return ExecutePlan(wheres, joins, orders, needDistinct)
+    }
+}
+
+class AuthorExecutePlanBuilder(private val db: Database) : ExecutePlanBuilder {
+    private val wheres: MutableList<ColumnDeclaring<Boolean>> = ArrayList()
+    private val joins: MutableList<ExecutePlan.Join> = ArrayList()
+
+    //在连接查询中，如果遇到一整层查询的项为空，这一层按逻辑不会产生任何结果匹配，那么相当于结果恒为空。使用这个flag来优化这种情况。
+    private var alwaysFalseFlag: Boolean = false
+
+    //在连接查询中，如果一层中有复数项，那么需要做去重。
+    private var needDistinct: Boolean = false
+
+    //在连接查询中，出现多次连接时需要alias dao，使用count做计数。
+    private var joinCount = 0
+
+    //在exclude连接查询中，具有相同类型的连接会被联合成同一个where nested查询来实现，在这里存储这个信息。
+    private val excludeAnnotations: MutableCollection<Int> = mutableSetOf()
+
+    override fun mapNameElement(unionItems: List<ElementString>, exclude: Boolean) {
+        wheres.add(unionItems.map {
+            if(it.precise) {
+                Authors.name eq it.value
+            }else{
+                Authors.name like MetaParserUtil.mapMatchToSqlLike(it.value)
+            }
+        }.reduce { a, b -> a or b }.let {
+            if(exclude) it.not() else it
+        })
+    }
+
+    override fun mapAnnotationElement(unionItems: List<ElementAnnotation>, exclude: Boolean, exportedFromAuthor: Boolean, exportedFromTopic: Boolean, exportedFromTag: Boolean) {
+        when {
+            exclude -> excludeAnnotations.addAll(unionItems.map { it.id })
+            unionItems.isEmpty() -> alwaysFalseFlag = true
+            else -> {
+                val j = AuthorAnnotationRelations.aliased("IR_${++joinCount}")
+                val condition = if(unionItems.size == 1) {
+                    j.annotationId eq unionItems.first().id
+                }else{
+                    needDistinct = true
+                    j.annotationId inList unionItems.map { it.id }
+                }
+
+                joins.add(ExecutePlan.Join(j, j.authorId eq Authors.id and condition))
+            }
+        }
+    }
+
+    override fun build(): ExecutePlan {
+        if(alwaysFalseFlag) {
+            return ExecutePlan(listOf(ArgumentExpression(false, BooleanSqlType)), emptyList(), emptyList(), false)
+        }
+        if(excludeAnnotations.isNotEmpty()) {
+            wheres.add(Authors.id notInList db.from(AuthorAnnotationRelations).select(AuthorAnnotationRelations.authorId).where {
+                if(excludeAnnotations.size == 1) AuthorAnnotationRelations.annotationId eq excludeAnnotations.first() else AuthorAnnotationRelations.annotationId inList excludeAnnotations
+            })
+        }
+        return ExecutePlan(wheres, joins, emptyList(), needDistinct)
+    }
+}
+
+class TopicExecutePlanBuilder(private val db: Database) : ExecutePlanBuilder {
+    private val wheres: MutableList<ColumnDeclaring<Boolean>> = ArrayList()
+    private val joins: MutableList<ExecutePlan.Join> = ArrayList()
+
+    //在连接查询中，如果遇到一整层查询的项为空，这一层按逻辑不会产生任何结果匹配，那么相当于结果恒为空。使用这个flag来优化这种情况。
+    private var alwaysFalseFlag: Boolean = false
+
+    //在连接查询中，如果一层中有复数项，那么需要做去重。
+    private var needDistinct: Boolean = false
+
+    //在连接查询中，出现多次连接时需要alias dao，使用count做计数。
+    private var joinCount = 0
+
+    //在exclude连接查询中，具有相同类型的连接会被联合成同一个where nested查询来实现，在这里存储这个信息。
+    private val excludeAnnotations: MutableCollection<Int> = mutableSetOf()
+
+    override fun mapNameElement(unionItems: List<ElementString>, exclude: Boolean) {
+        wheres.add(unionItems.map {
+            if(it.precise) {
+                Topics.name eq it.value
+            }else{
+                Topics.name like MetaParserUtil.mapMatchToSqlLike(it.value)
+            }
+        }.reduce { a, b -> a or b }.let {
+            if(exclude) it.not() else it
+        })
+    }
+
+    override fun mapAnnotationElement(unionItems: List<ElementAnnotation>, exclude: Boolean, exportedFromAuthor: Boolean, exportedFromTopic: Boolean, exportedFromTag: Boolean) {
+        when {
+            exclude -> excludeAnnotations.addAll(unionItems.map { it.id })
+            unionItems.isEmpty() -> alwaysFalseFlag = true
+            else -> {
+                val j = TopicAnnotationRelations.aliased("IR_${++joinCount}")
+                val condition = if(unionItems.size == 1) {
+                    j.annotationId eq unionItems.first().id
+                }else{
+                    needDistinct = true
+                    j.annotationId inList unionItems.map { it.id }
+                }
+
+                joins.add(ExecutePlan.Join(j, j.topicId eq Topics.id and condition))
+            }
+        }
+    }
+
+    override fun build(): ExecutePlan {
+        if(alwaysFalseFlag) {
+            return ExecutePlan(listOf(ArgumentExpression(false, BooleanSqlType)), emptyList(), emptyList(), false)
+        }
+        if(excludeAnnotations.isNotEmpty()) {
+            wheres.add(Topics.id notInList db.from(TopicAnnotationRelations).select(TopicAnnotationRelations.topicId).where {
+                if(excludeAnnotations.size == 1) TopicAnnotationRelations.annotationId eq excludeAnnotations.first() else TopicAnnotationRelations.annotationId inList excludeAnnotations
+            })
+        }
+        return ExecutePlan(wheres, joins, emptyList(), needDistinct)
+    }
+}
+
+class AnnotationExecutePlanBuilder : ExecutePlanBuilder {
+    private val wheres: MutableList<ColumnDeclaring<Boolean>> = ArrayList()
+
+    override fun mapNameElement(unionItems: List<ElementString>, exclude: Boolean) {
+        wheres.add(unionItems.map {
+            if(it.precise) {
+                Annotations.name eq it.value
+            }else{
+                Annotations.name like MetaParserUtil.mapMatchToSqlLike(it.value)
+            }
+        }.reduce { a, b -> a or b }.let {
+            if(exclude) it.not() else it
+        })
+    }
+
+    override fun build(): ExecutePlan {
+        return ExecutePlan(wheres, emptyList(), emptyList(), false)
+    }
+}

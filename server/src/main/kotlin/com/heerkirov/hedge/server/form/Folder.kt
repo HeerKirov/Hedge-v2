@@ -19,7 +19,7 @@ data class FolderDetailRes(val id: Int, val title: String,
 
 data class FolderPinRes(val id: Int, val title: String, val isVirtualFolder: Boolean)
 
-data class FolderImageRes(val ordinal: Int, val id: Int, val file: String, val thumbnailFile: String?,
+data class FolderImageRes(val ordinal: Int?, val id: Int, val file: String, val thumbnailFile: String?,
                           val score: Int?, val favorite: Boolean, val tagme: Illust.Tagme,
                           val orderTime: LocalDateTime)
 

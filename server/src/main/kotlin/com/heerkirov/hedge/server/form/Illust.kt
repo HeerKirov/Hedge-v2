@@ -3,6 +3,7 @@ package com.heerkirov.hedge.server.form
 import com.heerkirov.hedge.server.library.form.Limit
 import com.heerkirov.hedge.server.library.form.Offset
 import com.heerkirov.hedge.server.library.form.Order
+import com.heerkirov.hedge.server.library.form.Search
 import com.heerkirov.hedge.server.model.illust.Illust
 import com.heerkirov.hedge.server.model.source.SourceImage
 import com.heerkirov.hedge.server.utils.types.Opt
@@ -37,12 +38,12 @@ data class IllustImageOriginRes(val source: String?, val sourceTitle: String?, v
 
 data class IllustQueryFilter(@Limit val limit: Int,
                              @Offset val offset: Int,
+                             @Search val query: String?,
                              @Order(options = ["id", "score", "orderTime", "createTime", "updateTime"])
                              val order: List<OrderItem> = listOf(OrderItem("orderTime", desc = false)),
                              val type: Illust.IllustType,
                              val partition: LocalDate? = null,
-                             val favorite: Boolean? = null,
-                             val query: String? = null)
+                             val favorite: Boolean? = null)
 
 data class IllustCollectionCreateForm(val images: List<Int>,
                                       val description: String? = null,

@@ -4,6 +4,7 @@ import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.database.transaction
 import com.heerkirov.hedge.server.components.kit.FolderKit
 import com.heerkirov.hedge.server.components.manager.FolderManager
+import com.heerkirov.hedge.server.components.manager.query.QueryManager
 import com.heerkirov.hedge.server.dao.collection.FolderImageRelations
 import com.heerkirov.hedge.server.dao.collection.Folders
 import com.heerkirov.hedge.server.dao.illust.Illusts
@@ -19,6 +20,7 @@ import com.heerkirov.hedge.server.utils.DateTime.parseDateTime
 import com.heerkirov.hedge.server.utils.ktorm.OrderTranslator
 import com.heerkirov.hedge.server.utils.ktorm.firstOrNull
 import com.heerkirov.hedge.server.utils.ktorm.orderBy
+import com.heerkirov.hedge.server.utils.runIf
 import com.heerkirov.hedge.server.utils.types.ListResult
 import com.heerkirov.hedge.server.utils.types.anyOpt
 import com.heerkirov.hedge.server.utils.types.toListResult
@@ -29,7 +31,8 @@ import me.liuwj.ktorm.entity.sequenceOf
 
 class FolderService(private val data: DataRepository,
                     private val kit: FolderKit,
-                    private val folderManager: FolderManager) {
+                    private val folderManager: FolderManager,
+                    private val queryManager: QueryManager) {
     private val orderTranslator = OrderTranslator {
         "id" to Folders.id
         "title" to Folders.title
@@ -257,6 +260,32 @@ class FolderService(private val data: DataRepository,
     }
 
     private fun getVirtualQueryResult(query: String, filter: FolderImagesFilter): ListResult<FolderImageRes> {
-        TODO("QL is not supported yet.")
+        //在虚拟文件夹查询中，filter只有limit, offset参数生效。
+        val schema = if(query.isBlank()) null else {
+            queryManager.querySchema(query, QueryManager.Dialect.ILLUST).executePlan ?: return ListResult(0, emptyList())
+        }
+        return data.db.from(Illusts)
+            .innerJoin(FileRecords, Illusts.fileId eq FileRecords.id)
+            .let { schema?.joinConditions?.fold(it) { acc, join -> if(join.left) acc.leftJoin(join.table, join.condition) else acc.innerJoin(join.table, join.condition) } ?: it }
+            .select(Illusts.id, Illusts.exportedScore, Illusts.favorite, Illusts.tagme, Illusts.orderTime, FileRecords.id, FileRecords.folder, FileRecords.extension, FileRecords.thumbnail)
+            .whereWithConditions {
+                if(schema != null && schema.whereConditions.isNotEmpty()) {
+                    it.addAll(schema.whereConditions)
+                }
+            }
+            .runIf(schema?.distinct == true) { groupBy(Illusts.id) }
+            .limit(filter.offset, filter.limit)
+            .runIf(schema != null && schema.orderConditions.isNotEmpty()) {
+                orderBy(*schema!!.orderConditions.toTypedArray())
+            }
+            .toListResult {
+                val itemId = it[Illusts.id]!!
+                val score = it[Illusts.exportedScore]
+                val favorite = it[Illusts.favorite]!!
+                val tagme = it[Illusts.tagme]!!
+                val orderTime = it[Illusts.orderTime]!!.parseDateTime()
+                val (file, thumbnailFile) = takeAllFilepath(it)
+                FolderImageRes(null, itemId, file, thumbnailFile, score, favorite, tagme, orderTime)
+            }
     }
 }

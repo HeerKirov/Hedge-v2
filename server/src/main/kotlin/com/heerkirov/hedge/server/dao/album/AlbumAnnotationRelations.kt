@@ -5,10 +5,14 @@ import com.heerkirov.hedge.server.model.album.AlbumAnnotationRelation
 import com.heerkirov.hedge.server.model.meta.Annotation
 import com.heerkirov.hedge.server.utils.ktorm.composition
 import me.liuwj.ktorm.dsl.QueryRowSet
+import me.liuwj.ktorm.schema.BaseTable
 import me.liuwj.ktorm.schema.Column
 import me.liuwj.ktorm.schema.int
 
-object AlbumAnnotationRelations : EntityAnnotationRelationTable<AlbumAnnotationRelation>("album_annotation_relation") {
+open class AlbumAnnotationRelations(alias: String?) : EntityAnnotationRelationTable<AlbumAnnotationRelation>("album_annotation_relation") {
+    companion object : AlbumAnnotationRelations(null)
+    override fun aliased(alias: String) = AlbumAnnotationRelations(alias)
+
     val albumId = int("album_id")
     val annotationId = int("annotation_id")
     val exportedFrom = composition<Annotation.ExportedFrom>("exported_from")
