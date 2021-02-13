@@ -11,7 +11,7 @@ import com.heerkirov.hedge.server.library.compiler.semantic.utils.semanticError
  * 对关键字项进行标准解析的field。处理等价和集合运算。使用组合解析器指定对str的解析策略。
  */
 class EquableField<V>(override val key: String, override val alias: Array<out String>, private val strTypeParser: StrTypeParser<V>) : FilterFieldByIdentify<V>() where V: EquableValue<*> {
-    override fun generate(subject: StrList, family: Family?, predicative: Predicative?): EqualFilter<V> {
+    override fun generate(subject: StrList, family: Family?, predicative: Predicative?): EqualFilter<V>? {
         if(family == null || predicative == null) semanticError(FilterValueRequired(key, subject.beginIndex, subject.endIndex))
 
         return when (family.value) {
@@ -33,7 +33,11 @@ class EquableField<V>(override val key: String, override val alias: Array<out St
         return EqualFilter(this, listOf(filterValue))
     }
 
-    private fun processCol(col: Col): EqualFilter<V> {
+    private fun processCol(col: Col): EqualFilter<V>? {
+        if(col.items.isEmpty()) {
+            //如果集合内没有项，就丢弃filter
+            return null
+        }
         val filterValues = col.items.asSequence().map { strTypeParser.parse(it) }.toList()
         return EqualFilter(this, filterValues)
     }
@@ -43,7 +47,7 @@ class EquableField<V>(override val key: String, override val alias: Array<out St
  * 对关键字项进行标准解析的field。处理等价和集合运算，以及区间和比较运算。使用组合解析器指定对str的解析策略。
  */
 class ComparableField<V>(override val key: String, override val alias: Array<out String>, private val strTypeParser: StrTypeParser<V>) : FilterFieldByIdentify<V>() where V: ComparableValue<*>, V: EquableValue<*> {
-    override fun generate(subject: StrList, family: Family?, predicative: Predicative?): Filter<V> {
+    override fun generate(subject: StrList, family: Family?, predicative: Predicative?): Filter<V>? {
         if(family == null || predicative == null) semanticError(FilterValueRequired(key, subject.beginIndex, subject.endIndex))
 
         return when (family.value) {
@@ -84,7 +88,11 @@ class ComparableField<V>(override val key: String, override val alias: Array<out
         }
     }
 
-    private fun processCol(col: Col): EqualFilter<V> {
+    private fun processCol(col: Col): EqualFilter<V>? {
+        if(col.items.isEmpty()) {
+            //如果集合内没有项，就丢弃filter
+            return null
+        }
         val filterValues = col.items.asSequence().map { strTypeParser.parse(it) }.toList()
         return EqualFilter(this, filterValues)
     }
@@ -127,6 +135,10 @@ class MatchableField<V>(override val key: String, override val alias: Array<out 
     }
 
     private fun processCol(col: Col): Sequence<Filter<V>> {
+        if(col.items.isEmpty()) {
+            //如果集合内没有项，就丢弃filter
+            return emptySequence()
+        }
         val (precise, match) = col.items.asSequence().map { Pair(it.type == Str.Type.BACKTICKS, strTypeParser.parse(it)) }.partition { (precise, _) -> precise }
         val equalFilter = if(precise.isNotEmpty()) EqualFilter(this, precise.map { (_, s) -> s }) else null
         val matchFilter = if(match.isNotEmpty()) MatchFilter(this, match.map { (_, s) -> s }) else null
@@ -201,6 +213,10 @@ class ComplexComparableField<V>(override val key: String, override val alias: Ar
     }
 
     private fun processCol(col: Col): Sequence<Filter<V>> {
+        if(col.items.isEmpty()) {
+            //如果集合内没有项，就丢弃filter
+            return emptySequence()
+        }
         val results = col.items.asSequence().map { strComplexParser.parse(it) }.toList()
         return  results.filterIsInstance<StrComplexValue<V>>().map { it.value }.let { sequenceOf(EqualFilter(this, it)) } +
                 results.filterIsInstance<StrComplexRange<V>>().map { RangeFilter(this, it.begin, it.end, includeBegin = true, includeEnd = false) }.asSequence()
@@ -277,6 +293,10 @@ class NumberPatternField(override val key: String, override val alias: Array<out
     }
 
     private fun processCol(col: Col): Sequence<Filter<FilterPatternNumberValue>> {
+        if(col.items.isEmpty()) {
+            //如果集合内没有项，就丢弃filter
+            return emptySequence()
+        }
         val results = col.items.asSequence().map { PatternNumberParser.parse(it) }.toList()
         return results.filterIsInstance<StrComplexValue<FilterPatternNumberValue>>().map { it.value }.let {
             val (matchItems, equalItems) = it.partition { v -> v.isPattern() }
@@ -300,6 +320,47 @@ class NumberPatternField(override val key: String, override val alias: Array<out
                 if(it.isPattern()) semanticError(ValueCannotBePatternInComparison(str.beginIndex, str.endIndex))
             }
         }
+    }
+}
+
+/**
+ * 处理等价和集合运算，专门适用于composition类型。
+ */
+class CompositionField<V>(override val key: String, override val alias: Array<out String>, private val strTypeParser: StrTypeParser<V>) : FilterFieldByIdentify<V>() where V: EquableValue<*> {
+    override fun generate(subject: StrList, family: Family?, predicative: Predicative?): CompositionFilter<V>? {
+        if(family == null && predicative == null) {
+            //可以忽略关系和值，从而只获得一个空集合
+            return CompositionFilter(this, emptyList())
+        }else if(family == null || predicative == null) {
+            semanticError(FilterValueRequired(key, subject.beginIndex, predicative?.endIndex ?: family?.endIndex ?: subject.endIndex))
+        }
+
+        return when (family.value) {
+            ":" -> when(predicative) {
+                is StrList -> processStrList(predicative)
+                is Col -> processCol(predicative)
+                is Range -> semanticError(UnsupportedFilterValueType(key, ValueType.RANGE, predicative.beginIndex, predicative.endIndex))
+                is SortList -> semanticError(UnsupportedFilterValueType(key, ValueType.SORT_LIST, predicative.beginIndex, predicative.endIndex))
+                else -> throw RuntimeException("Unsupported predicative ${predicative::class.simpleName}.")
+            }
+            ">", "<", ">=", "<=", "~", "~+", "~-" -> semanticError(UnsupportedFilterRelationSymbol(key, family.value, family.beginIndex, family.endIndex))
+            else -> throw RuntimeException("Unsupported family symbol '${family.value}'.")
+        }
+    }
+
+    private fun processStrList(strList: StrList): CompositionFilter<V> {
+        if(strList.items.size > 1) semanticError(ValueCannotBeAddress(strList.beginIndex, strList.endIndex))
+        val filterValue = strTypeParser.parse(strList.items.first())
+        return CompositionFilter(this, listOf(filterValue))
+    }
+
+    private fun processCol(col: Col): CompositionFilter<V>? {
+        if(col.items.isEmpty()) {
+            //如果集合内没有项，就丢弃filter
+            return null
+        }
+        val filterValues = col.items.asSequence().map { strTypeParser.parse(it) }.toList()
+        return CompositionFilter(this, filterValues)
     }
 }
 
@@ -342,3 +403,8 @@ fun flagField(key: String, vararg alias: String): FilterFieldDefinition<FilterNo
  * 枚举型关键字项。
  */
 inline fun <reified E : Enum<E>> enumField(key: String, vararg alias: String, block: AliasBuilder<E, String>.() -> Unit): FilterFieldDefinition<FilterEnumValue<E>> = EquableField(key, alias, EnumParser(E::class, buildAlias(block)))
+
+/**
+ * 枚举型composition关键字项。
+ */
+inline fun <reified E : Enum<E>> compositionField(key: String, vararg alias: String, block: AliasBuilder<E, String>.() -> Unit): FilterFieldDefinition<FilterEnumValue<E>> = CompositionField(key, alias, EnumParser(E::class, buildAlias(block)))

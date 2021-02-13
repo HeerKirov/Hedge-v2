@@ -32,6 +32,7 @@ object Translator {
                 FilterOfOneField(field.key, filters.flatMap { filter ->
                     when (filter) {
                         is EqualFilter -> (filter as EqualFilter<*>).values.map { FilterEqual(it.equalValue) }
+                        is CompositionFilter -> (filter as CompositionFilter<*>).values.map { FilterEqual(it.equalValue) }
                         is MatchFilter -> (filter as MatchFilter<*>).values.map { FilterMatch(it.matchValue) }
                         is RangeFilter -> (filter as RangeFilter<*>).let { listOf(FilterRange(it.begin?.compareValue, it.end?.compareValue, it.includeBegin, it.includeEnd)) }
                         is FlagFilter -> emptyList()

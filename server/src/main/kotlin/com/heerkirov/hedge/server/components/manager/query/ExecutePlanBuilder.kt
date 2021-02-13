@@ -9,13 +9,13 @@ import com.heerkirov.hedge.server.library.compiler.semantic.plan.*
 import com.heerkirov.hedge.server.library.compiler.semantic.plan.FilterValue
 import com.heerkirov.hedge.server.library.compiler.translator.ExecuteBuilder
 import com.heerkirov.hedge.server.library.compiler.translator.visual.*
+import com.heerkirov.hedge.server.model.illust.Illust
 import com.heerkirov.hedge.server.model.meta.Annotation
 import com.heerkirov.hedge.server.model.meta.Tag
 import com.heerkirov.hedge.server.model.source.SourceImage
+import com.heerkirov.hedge.server.utils.*
 import com.heerkirov.hedge.server.utils.ktorm.compositionAny
 import com.heerkirov.hedge.server.utils.ktorm.escapeLike
-import com.heerkirov.hedge.server.utils.letIf
-import com.heerkirov.hedge.server.utils.toJSONString
 import me.liuwj.ktorm.database.Database
 import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.expression.ArgumentExpression
@@ -63,43 +63,50 @@ interface FilterByColumn : ExecuteBuilder {
 
     fun mapFilterSpecial(field: FilterFieldDefinition<*>, value: Any): Any
 
+    fun mapCompositionFilterSpecial(field: FilterFieldDefinition<*>, column: Column<*>, values: Collection<Any>): ColumnDeclaring<Boolean> {
+        throw RuntimeException("Implemented composition field ${field.key}.")
+    }
+
     override fun mapFilter(unionItems: Collection<Filter<out FilterValue>>, exclude: Boolean) {
-        addWhereCondition(unionItems.map { filter ->
-            val column = getFilterDeclareMapping(filter.field)
-            @Suppress("UNCHECKED_CAST")
-            when (filter) {
-                is EqualFilter<*> -> if(filter.values.size == 1) {
-                    (column as Column<Any>) eq mapFilterSpecial(filter.field, filter.values.first().equalValue)
-                } else {
-                    (column as Column<Any>) inList filter.values.map { mapFilterSpecial(filter.field, it.equalValue) }
-                }
-                is MatchFilter<*> -> filter.values.map { column escapeLike MetaParserUtil.mapMatchToSqlLike(mapFilterSpecial(filter.field, it.matchValue) as String) }.reduce { a, b -> a or b }
-                is RangeFilter<*> -> {
-                    val conditions = ArrayList<ScalarExpression<Boolean>>(2)
-                    if(filter.begin != null) {
-                        conditions.add(if(filter.includeBegin) {
-                            (column as Column<Comparable<Any>>) greaterEq mapFilterSpecial(filter.field, filter.begin.compareValue) as Comparable<Any>
-                        }else{
-                            (column as Column<Comparable<Any>>) greater mapFilterSpecial(filter.field, filter.begin.compareValue) as Comparable<Any>
-                        })
+        if(unionItems.isNotEmpty()) {
+            addWhereCondition(unionItems.map { filter ->
+                val column = getFilterDeclareMapping(filter.field)
+                @Suppress("UNCHECKED_CAST")
+                when (filter) {
+                    is EqualFilter<*> -> if (filter.values.size == 1) {
+                        (column as Column<Any>) eq mapFilterSpecial(filter.field, filter.values.first().equalValue)
+                    } else {
+                        (column as Column<Any>) inList filter.values.map { mapFilterSpecial(filter.field, it.equalValue) }
                     }
-                    if(filter.end != null) {
-                        conditions.add(if(filter.includeEnd) {
-                            (column as Column<Comparable<Any>>) lessEq mapFilterSpecial(filter.field, filter.end.compareValue) as Comparable<Any>
-                        }else{
-                            (column as Column<Comparable<Any>>) less mapFilterSpecial(filter.field, filter.end.compareValue) as Comparable<Any>
-                        })
+                    is MatchFilter<*> -> filter.values.map { column escapeLike MetaParserUtil.mapMatchToSqlLike(mapFilterSpecial(filter.field, it.matchValue) as String) }.reduce { a, b -> a or b }
+                    is RangeFilter<*> -> {
+                        val conditions = ArrayList<ScalarExpression<Boolean>>(2)
+                        if (filter.begin != null) {
+                            conditions.add(if (filter.includeBegin) {
+                                (column as Column<Comparable<Any>>) greaterEq mapFilterSpecial(filter.field, filter.begin.compareValue) as Comparable<Any>
+                            } else {
+                                (column as Column<Comparable<Any>>) greater mapFilterSpecial(filter.field, filter.begin.compareValue) as Comparable<Any>
+                            })
+                        }
+                        if (filter.end != null) {
+                            conditions.add(if (filter.includeEnd) {
+                                (column as Column<Comparable<Any>>) lessEq mapFilterSpecial(filter.field, filter.end.compareValue) as Comparable<Any>
+                            } else {
+                                (column as Column<Comparable<Any>>) less mapFilterSpecial(filter.field, filter.end.compareValue) as Comparable<Any>
+                            })
+                        }
+                        conditions.reduce { a, b -> a and b }
                     }
-                    conditions.reduce { a, b -> a and b }
+                    is CompositionFilter<*> -> mapCompositionFilterSpecial(filter.field, column, filter.values.map { it.equalValue })
+                    is FlagFilter -> {
+                        (column as Column<Boolean>).asExpression()
+                    }
+                    else -> throw RuntimeException("Unsupported filter type ${filter::class.simpleName}.")
                 }
-                is FlagFilter -> {
-                    (column as Column<Boolean>).asExpression()
-                }
-                else -> throw RuntimeException("Unsupported filter type ${filter::class.simpleName}.")
-            }
-        }.reduce { a, b -> a or b }.let {
-            if(exclude) it.not() else it
-        })
+            }.reduce { a, b -> a or b }.let {
+                if (exclude) it.not() else it
+            })
+        }
     }
 }
 
@@ -189,8 +196,31 @@ class IllustExecutePlanBuilder(private val db: Database) : ExecutePlanBuilder, O
                 IllustDialect.AnalyseStatus.MANUAL -> SourceImage.AnalyseStatus.MANUAL
                 IllustDialect.AnalyseStatus.NOT_FOUND -> SourceImage.AnalyseStatus.NOT_FOUND
             }
-            IllustDialect.tagme -> TODO("tagme filter更为特殊，其转换写法特别，且现有语义不满足需要，需要重新设计。")
+            IllustDialect.tagme -> when (value as IllustDialect.Tagme) {
+                IllustDialect.Tagme.AUTHOR -> Illust.Tagme.AUTHOR
+                IllustDialect.Tagme.TOPIC -> Illust.Tagme.TOPIC
+                IllustDialect.Tagme.TAG -> Illust.Tagme.TAG
+                IllustDialect.Tagme.SOURCE -> Illust.Tagme.SOURCE
+            }
             else -> value
+        }
+    }
+
+    override fun mapCompositionFilterSpecial(field: FilterFieldDefinition<*>, column: Column<*>, values: Collection<Any>): ColumnDeclaring<Boolean> {
+        return when (field) {
+            IllustDialect.tagme -> {
+                val tagme = if(values.isEmpty()) Illust.Tagme.baseElements.union() else values.map {
+                    when (it as IllustDialect.Tagme) {
+                        IllustDialect.Tagme.AUTHOR -> Illust.Tagme.AUTHOR
+                        IllustDialect.Tagme.TOPIC -> Illust.Tagme.TOPIC
+                        IllustDialect.Tagme.TAG -> Illust.Tagme.TAG
+                        IllustDialect.Tagme.SOURCE -> Illust.Tagme.SOURCE
+                    }
+                }.union()
+                @Suppress("UNCHECKED_CAST")
+                (column as Column<Illust.Tagme>) compositionAny tagme
+            }
+            else -> super.mapCompositionFilterSpecial(field, column, values)
         }
     }
 

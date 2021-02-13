@@ -35,7 +35,7 @@ object IllustDialect : QueryDialect<IllustDialect.IllustOrderItem> {
         item(AnalyseStatus.MANUAL, "manual")
         item(AnalyseStatus.NOT_FOUND, "not-found", "404")
     }
-    val tagme = enumField<Tagme>("tagme", "tagme") {
+    val tagme = compositionField<Tagme>("tagme", "tagme") {
         for (value in Tagme.values()) {
             item(value, value.name)
         }

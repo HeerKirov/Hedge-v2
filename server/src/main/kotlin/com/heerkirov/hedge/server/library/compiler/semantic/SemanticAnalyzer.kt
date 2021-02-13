@@ -56,12 +56,14 @@ object SemanticAnalyzer {
                                 val (subject, family, predicative) = sequenceItem.body.items.first()
                                 try {
                                     val result = dialect.orderGenerator.generate(subject as StrList, family, predicative)
-                                    for (order in result) {
-                                        if(order.value in orderKeySet) {
-                                            collector.warning(DuplicatedOrderItem(order.value.name, sequenceItem.body.beginIndex, sequenceItem.body.endIndex))
-                                        }else{
-                                            orders.add(order)
-                                            orderKeySet.add(order.value)
+                                    if(result != null) {
+                                        for (order in result) {
+                                            if(order.value in orderKeySet) {
+                                                collector.warning(DuplicatedOrderItem(order.value.name, sequenceItem.body.beginIndex, sequenceItem.body.endIndex))
+                                            }else{
+                                                orders.add(order)
+                                                orderKeySet.add(order.value)
+                                            }
                                         }
                                     }
                                 }catch (e: ThrowsSemanticError) {
@@ -80,13 +82,14 @@ object SemanticAnalyzer {
                                             subFilters.addAll(results)
                                         }else{
                                             val result = generator.generate(subject as StrList, family, predicative)
-                                            subFilters.add(result)
+                                            if(result != null) subFilters.add(result)
                                         }
                                     }catch (e: ThrowsSemanticError) {
                                         e.errors.forEach { collector.error(it) }
                                     }
                                 }
-                                filters.add(UnionFilters(subFilters, sequenceItem.minus))
+                                //因为filter结果数量不固定，因此有可能拿到空的subFilters。根据优化，此时应当忽略这个合取项
+                                if(subFilters.isNotEmpty()) filters.add(UnionFilters(subFilters, sequenceItem.minus))
                             }
                         }
                         whetherIsIdentifies.all { it == null } -> {

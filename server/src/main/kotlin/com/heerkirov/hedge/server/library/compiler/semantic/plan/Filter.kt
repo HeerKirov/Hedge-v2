@@ -25,12 +25,17 @@ interface Filter<V : FilterValue> {
 }
 
 /**
- * 等价过滤器。此属性必须与目标值完全相等。目标值可给出多个，满足任一即达成判定条件。
+ * composition类型过滤器。此属性专为组合类型准备，其values允许为0、1或多个。
+ */
+data class CompositionFilter<V : EquableValue<*>>(override val field: FilterFieldDefinition<V>, val values: Collection<V>) : Filter<V>
+
+/**
+ * 等价过滤器。此属性必须与目标值完全相等。目标值可给出1或多个，满足任一即达成判定条件。
  */
 data class EqualFilter<V : EquableValue<*>>(override val field: FilterFieldDefinition<V>, val values: Collection<V>) : Filter<V>
 
 /**
- * 匹配过滤器。此属性必须与目标值按匹配规则模糊匹配。目标值可给出多个，满足任一即达成判定条件。
+ * 匹配过滤器。此属性必须与目标值按匹配规则模糊匹配。目标值可给出1或多个，满足任一即达成判定条件。
  */
 data class MatchFilter<V : MatchableValue<*>>(override val field: FilterFieldDefinition<V>, val values: Collection<V>) : Filter<V>
 

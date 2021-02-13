@@ -601,6 +601,22 @@ class SemanticAnalyzerTest {
         )), parse("id:{124, 28?}", IllustDialect::class))
         assertEquals(AnalysisResult(QueryPlan(
             orders = emptyList(),
+            filters = emptyList(),
+            elements = emptyList()
+        )), parse("desc:{}", IllustDialect::class))
+        assertEquals(AnalysisResult(QueryPlan(
+            orders = emptyList(),
+            filters = listOf(UnionFilters(listOf(EqualFilter(IllustDialect.id, listOf(FilterPatternNumberValueImpl(1), FilterPatternNumberValueImpl(2)))))),
+            elements = emptyList()
+        )), parse("desc:{}|id:{1,2}", IllustDialect::class))
+        assertEquals(AnalysisResult(QueryPlan(
+            orders = emptyList(),
+            filters = listOf(UnionFilters(listOf(MatchFilter(IllustDialect.description, listOf(FilterStringValueImpl("a"), FilterStringValueImpl("b"), FilterStringValueImpl("c")))))),
+            elements = emptyList()
+        )), parse("desc:{a, b, c}|desc:{}", IllustDialect::class))
+        //区间类型
+        assertEquals(AnalysisResult(QueryPlan(
+            orders = emptyList(),
             filters = listOf(UnionFilters(listOf(
                 RangeFilter(IllustDialect.id, FilterPatternNumberValueImpl(5), FilterPatternNumberValueImpl(10), includeBegin = true, includeEnd = true)
             ))),
@@ -642,7 +658,7 @@ class SemanticAnalyzerTest {
         }
         val t3 = System.currentTimeMillis()
         println("grammar time cost = ${t3 - t2}ms")
-        val (semanticResult) = SemanticAnalyzer.parse(grammarResult, IllustDialect::class)
+        val (semanticResult) = SemanticAnalyzer.parse(grammarResult, dialect)
         if(semanticResult == null) {
             throw RuntimeException("semantic error.")
         }

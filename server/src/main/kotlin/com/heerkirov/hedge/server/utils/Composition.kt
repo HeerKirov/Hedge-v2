@@ -77,8 +77,7 @@ class CompositionGenerator<T : Composition<T>>(clazz: KClass<T>) {
         private fun <T : Composition<T>> getParentClassWithCompanion(clazz: KClass<T>): KClass<T> {
             return if(clazz.companionObject != null) clazz else {
                 @Suppress("UNCHECKED_CAST")
-                clazz.superclasses.firstOrNull { it.companionObject != null } as? KClass<T>
-                    ?: throw ReflectiveOperationException("Type '${clazz}' or its super type not have companion object.")
+                clazz.superclasses.firstOrNull { it.companionObject != null } as? KClass<T> ?: throw ReflectiveOperationException("Type '${clazz}' or its super type not have companion object.")
             }
         }
     }

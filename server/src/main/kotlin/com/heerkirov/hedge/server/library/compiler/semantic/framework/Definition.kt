@@ -18,9 +18,9 @@ interface GeneratedByIdentify<R : Any> {
     val alias: Array<out String>
 
     /**
-     * 从此关键字指示的SFP生成结果。
+     * 从此关键字指示的SFP生成结果。结果为null时，表示丢弃此结果。
      */
-    fun generate(subject: StrList, family: Family?, predicative: Predicative?): R
+    fun generate(subject: StrList, family: Family?, predicative: Predicative?): R?
 }
 
 /**
