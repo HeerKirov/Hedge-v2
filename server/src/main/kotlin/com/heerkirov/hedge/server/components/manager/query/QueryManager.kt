@@ -40,7 +40,7 @@ class QueryManager(private val data: DataRepository) {
                 Dialect.ANNOTATION -> AnnotationDialect::class
             })
             if(semanticResult.result == null) {
-                return@computeIfAbsent QuerySchema(null, null, warnings = MetaParserUtil.unionList(lexicalResult.warnings, grammarResult.warnings, semanticResult.warnings), errors = grammarResult.errors)
+                return@computeIfAbsent QuerySchema(null, null, warnings = MetaParserUtil.unionList(lexicalResult.warnings, grammarResult.warnings, semanticResult.warnings), errors = semanticResult.errors)
             }
             val builder = when (key.dialect) {
                 Dialect.ILLUST -> IllustExecutePlanBuilder(data.db)

@@ -90,7 +90,7 @@ interface FilterByColumn : ExecuteBuilder {
                             (column as Column<Comparable<Any>>) less mapFilterSpecial(filter.field, filter.end.compareValue) as Comparable<Any>
                         })
                     }
-                    conditions.reduce { a, b -> a or b }
+                    conditions.reduce { a, b -> a and b }
                 }
                 is FlagFilter -> {
                     (column as Column<Boolean>).asExpression()
@@ -153,8 +153,8 @@ class IllustExecutePlanBuilder(private val db: Database) : ExecutePlanBuilder, O
         IllustDialect.extension to FileRecords.extension,
         IllustDialect.filesize to FileRecords.size,
         IllustDialect.analyseStatus to SourceImages.analyseStatus,
-        IllustDialect.sourceId to SourceImages.sourceId,
-        IllustDialect.sourceFrom to SourceImages.source,
+        IllustDialect.sourceId to Illusts.sourceId,
+        IllustDialect.sourceFrom to Illusts.source,
         IllustDialect.sourceDescription to SourceImages.description,
         IllustDialect.tagme to Illusts.tagme
     )
@@ -164,7 +164,7 @@ class IllustExecutePlanBuilder(private val db: Database) : ExecutePlanBuilder, O
     }
 
     override fun getFilterDeclareMapping(field: FilterFieldDefinition<*>): Column<*> {
-        if(field == IllustDialect.sourceId || field == IllustDialect.sourceFrom || field == IllustDialect.sourceDescription) {
+        if(field == IllustDialect.analyseStatus || field == IllustDialect.sourceDescription) {
             joinSourceImage = true
         }
         return filterDeclareMapping[field]!!
