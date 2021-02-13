@@ -20,6 +20,9 @@ class QueryManager(private val data: DataRepository) {
 
     private val executePlanCache = ConcurrentHashMap<DialectAndText, QuerySchema>()
 
+    /**
+     * 在指定的方言下编译查询语句。获得此语句结果的可视化查询计划、执行计划、错误和警告。
+     */
     fun querySchema(text: String, dialect: Dialect): QuerySchema {
         return executePlanCache.computeIfAbsent(DialectAndText(dialect, text)) { key ->
             val lexicalResult = LexicalAnalyzer.parse(key.text, options)
@@ -37,7 +40,7 @@ class QueryManager(private val data: DataRepository) {
                 Dialect.ANNOTATION -> AnnotationDialect::class
             })
             if(semanticResult.result == null) {
-                return@computeIfAbsent QuerySchema(null, null, warnings = unionList(lexicalResult.warnings, grammarResult.warnings, semanticResult.warnings), errors = grammarResult.errors)
+                return@computeIfAbsent QuerySchema(null, null, warnings = MetaParserUtil.unionList(lexicalResult.warnings, grammarResult.warnings, semanticResult.warnings), errors = grammarResult.errors)
             }
             val builder = when (key.dialect) {
                 Dialect.ILLUST -> IllustExecutePlanBuilder(data.db)
@@ -46,26 +49,29 @@ class QueryManager(private val data: DataRepository) {
             val translatorResult = Translator.parse(semanticResult.result, queryer, builder, options)
 
             if(translatorResult.result == null) {
-                QuerySchema(null, null, warnings = unionList(lexicalResult.warnings, grammarResult.warnings, semanticResult.warnings, translatorResult.warnings), errors = translatorResult.errors)
+                QuerySchema(null, null, warnings = MetaParserUtil.unionList(lexicalResult.warnings, grammarResult.warnings, semanticResult.warnings, translatorResult.warnings), errors = translatorResult.errors)
             }else{
-                QuerySchema(translatorResult.result, builder.build(), warnings = unionList(lexicalResult.warnings, grammarResult.warnings, semanticResult.warnings, translatorResult.warnings), errors = emptyList())
+                QuerySchema(translatorResult.result, builder.build(), warnings = MetaParserUtil.unionList(lexicalResult.warnings, grammarResult.warnings, semanticResult.warnings, translatorResult.warnings), errors = emptyList())
             }
         }
     }
 
-    private fun <T> unionList(vararg list: List<T>): List<T> {
-        val result = ArrayList<T>(list.sumBy { it.size })
-        for (i in list) {
-            result.addAll(i)
-        }
-        return result
+    /**
+     * 冲刷缓存。因为管理器会尽可能缓存编译结果，在元数据发生变化时若不冲刷缓存，会造成查询结果不准确。
+     * @param cacheType 发生变化的实体类型。
+     */
+    fun flushCacheOf(cacheType: CacheType) {
+        executePlanCache.clear()
+        queryer.flushCacheOf(cacheType)
     }
 
     enum class Dialect { ILLUST, ALBUM, AUTHOR_AND_TOPIC, ANNOTATION }
 
-    private data class DialectAndText(val dialect: Dialect, val text: String)
+    enum class CacheType { TAG, TOPIC, AUTHOR, ANNOTATION }
 
     data class QuerySchema(val visualQueryPlan: VisualQueryPlan?, val executePlan: ExecutePlan?, val warnings: List<CompileError<*>>, val errors: List<CompileError<*>>)
+
+    private data class DialectAndText(val dialect: Dialect, val text: String)
 
     private inner class OptionsImpl : LexicalOptions, TranslatorOptions {
         private var _translateUnderscoreToSpace: Boolean? = null

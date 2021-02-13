@@ -10,6 +10,7 @@ import com.heerkirov.hedge.server.exceptions.*
 import com.heerkirov.hedge.server.form.*
 import com.heerkirov.hedge.server.components.manager.FileManager
 import com.heerkirov.hedge.server.components.kit.TagKit
+import com.heerkirov.hedge.server.components.manager.query.QueryManager
 import com.heerkirov.hedge.server.dao.album.AlbumTagRelations
 import com.heerkirov.hedge.server.dao.illust.IllustTagRelations
 import com.heerkirov.hedge.server.dao.illust.Illusts
@@ -30,6 +31,7 @@ import me.liuwj.ktorm.entity.*
 class TagService(private val data: DataRepository,
                  private val kit: TagKit,
                  private val fileManager: FileManager,
+                 private val queryManager: QueryManager,
                  private val illustMetaExporter: IllustMetaExporter) {
     private val orderTranslator = OrderTranslator {
         "id" to Tags.id
@@ -315,6 +317,8 @@ class TagService(private val data: DataRepository,
                         .where { AlbumTagRelations.tagId eq id }
                         .map { AlbumExporterTask(it[AlbumTagRelations.albumId]!!, exportMeta = true) }
                         .let { illustMetaExporter.appendNewTask(it) }
+
+                    queryManager.flushCacheOf(QueryManager.CacheType.TAG)
             }
         }
     }
@@ -346,6 +350,8 @@ class TagService(private val data: DataRepository,
                 .map { AlbumExporterTask(it[AlbumTagRelations.albumId]!!, exportMeta = true) }
                 .let { illustMetaExporter.appendNewTask(it) }
             recursionDelete(id)
+
+            queryManager.flushCacheOf(QueryManager.CacheType.TAG)
         }
     }
 }

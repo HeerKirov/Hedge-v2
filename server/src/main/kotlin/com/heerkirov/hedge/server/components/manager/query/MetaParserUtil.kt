@@ -88,6 +88,17 @@ internal object MetaParserUtil {
         }
     }
 
+    /**
+     * 串联列表。
+     */
+    fun <T> unionList(vararg list: List<T>): List<T> {
+        val result = ArrayList<T>(list.sumBy { it.size })
+        for (i in list) {
+            result.addAll(i)
+        }
+        return result
+    }
+
     private val sqlLikeMap = ConcurrentHashMap<String, String>()
     private val regexPatternMap = ConcurrentHashMap<String, Regex>()
 

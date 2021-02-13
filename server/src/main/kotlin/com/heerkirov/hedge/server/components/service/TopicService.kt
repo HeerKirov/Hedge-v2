@@ -8,12 +8,10 @@ import com.heerkirov.hedge.server.components.database.transaction
 import com.heerkirov.hedge.server.exceptions.NotFound
 import com.heerkirov.hedge.server.form.*
 import com.heerkirov.hedge.server.components.kit.TopicKit
-import com.heerkirov.hedge.server.dao.album.AlbumAuthorRelations
+import com.heerkirov.hedge.server.components.manager.query.QueryManager
 import com.heerkirov.hedge.server.dao.album.AlbumTopicRelations
-import com.heerkirov.hedge.server.dao.illust.IllustAuthorRelations
 import com.heerkirov.hedge.server.dao.illust.IllustTopicRelations
 import com.heerkirov.hedge.server.dao.illust.Illusts
-import com.heerkirov.hedge.server.dao.meta.Authors
 import com.heerkirov.hedge.server.dao.meta.TopicAnnotationRelations
 import com.heerkirov.hedge.server.dao.meta.Topics
 import com.heerkirov.hedge.server.model.illust.Illust
@@ -29,7 +27,10 @@ import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.entity.firstOrNull
 import me.liuwj.ktorm.entity.sequenceOf
 
-class TopicService(private val data: DataRepository, private val kit: TopicKit, private val illustMetaExporter: IllustMetaExporter) {
+class TopicService(private val data: DataRepository,
+                   private val kit: TopicKit,
+                   private val queryManager: QueryManager,
+                   private val illustMetaExporter: IllustMetaExporter) {
     private val orderTranslator = OrderTranslator {
         "id" to Topics.id
         "name" to Topics.name
@@ -148,6 +149,8 @@ class TopicService(private val data: DataRepository, private val kit: TopicKit, 
                     .where { AlbumTopicRelations.topicId eq id }
                     .map { AlbumExporterTask(it[AlbumTopicRelations.albumId]!!, exportMeta = true) }
                     .let { illustMetaExporter.appendNewTask(it) }
+
+                queryManager.flushCacheOf(QueryManager.CacheType.TOPIC)
             }
         }
     }
@@ -165,6 +168,8 @@ class TopicService(private val data: DataRepository, private val kit: TopicKit, 
                 where { it.parentId eq id }
                 set(it.parentId, null)
             }
+
+            queryManager.flushCacheOf(QueryManager.CacheType.TOPIC)
         }
     }
 }

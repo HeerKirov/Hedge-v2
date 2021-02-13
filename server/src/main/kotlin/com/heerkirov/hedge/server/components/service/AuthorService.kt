@@ -6,10 +6,9 @@ import com.heerkirov.hedge.server.components.backend.IllustMetaExporter
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.database.transaction
 import com.heerkirov.hedge.server.components.kit.AuthorKit
+import com.heerkirov.hedge.server.components.manager.query.QueryManager
 import com.heerkirov.hedge.server.dao.album.AlbumAuthorRelations
-import com.heerkirov.hedge.server.dao.album.AlbumTagRelations
 import com.heerkirov.hedge.server.dao.illust.IllustAuthorRelations
-import com.heerkirov.hedge.server.dao.illust.IllustTagRelations
 import com.heerkirov.hedge.server.dao.illust.Illusts
 import com.heerkirov.hedge.server.dao.meta.AuthorAnnotationRelations
 import com.heerkirov.hedge.server.dao.meta.Authors
@@ -29,6 +28,7 @@ import me.liuwj.ktorm.entity.sequenceOf
 
 class AuthorService(private val data: DataRepository,
                     private val kit: AuthorKit,
+                    private val queryManager: QueryManager,
                     private val illustMetaExporter: IllustMetaExporter) {
     private val orderTranslator = OrderTranslator {
         "id" to Authors.id
@@ -131,6 +131,8 @@ class AuthorService(private val data: DataRepository,
                     .where { AlbumAuthorRelations.authorId eq id }
                     .map { AlbumExporterTask(it[AlbumAuthorRelations.albumId]!!, exportMeta = true) }
                     .let { illustMetaExporter.appendNewTask(it) }
+
+                queryManager.flushCacheOf(QueryManager.CacheType.AUTHOR)
             }
         }
     }
@@ -143,6 +145,8 @@ class AuthorService(private val data: DataRepository,
             data.db.delete(IllustAuthorRelations) { it.authorId eq id }
             data.db.delete(AlbumAuthorRelations) { it.authorId eq id }
             data.db.delete(AuthorAnnotationRelations) { it.authorId eq id }
+
+            queryManager.flushCacheOf(QueryManager.CacheType.AUTHOR)
         }
     }
 }

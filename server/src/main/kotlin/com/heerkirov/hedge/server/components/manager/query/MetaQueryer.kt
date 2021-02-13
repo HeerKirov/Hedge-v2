@@ -390,6 +390,26 @@ class MetaQueryer(private val data: DataRepository) : Queryer {
         }
     }
 
+    internal fun flushCacheOf(cacheType: QueryManager.CacheType) {
+        when (cacheType) {
+            QueryManager.CacheType.AUTHOR -> {
+                authorCacheMap.clear()
+            }
+            QueryManager.CacheType.TOPIC -> {
+                topicCacheMap.clear()
+                topicItemsPool.clear()
+            }
+            QueryManager.CacheType.TAG -> {
+                tagItemsPool.clear()
+                tagChildrenPool.clear()
+                tagByStringPool.clear()
+            }
+            QueryManager.CacheType.ANNOTATION -> {
+                annotationCacheMap.clear()
+            }
+        }
+    }
+
     /**
      * 缓存topic查询的最终结果。
      */
@@ -429,7 +449,9 @@ class MetaQueryer(private val data: DataRepository) : Queryer {
         val name: String
         val otherNames: List<String>
     }
+
     private data class TopicItem(val id: Int, override val name: String, override val otherNames: List<String>, val parentId: Int?) : ItemInterface
+
     private data class TagItem(val id: Int, override val name: String, override val otherNames: List<String>, val parentId: Int?, val type: Tag.Type, val isGroup: Tag.IsGroup, val color: String?) : ItemInterface
 
     private data class AnnotationCacheKey(val precise: Boolean, val value: String, val isAuthorType: Boolean, val isTopicType: Boolean, val isTagType: Boolean)

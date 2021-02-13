@@ -3,6 +3,7 @@ package com.heerkirov.hedge.server.components.service
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.database.transaction
 import com.heerkirov.hedge.server.components.kit.AnnotationKit
+import com.heerkirov.hedge.server.components.manager.query.QueryManager
 import com.heerkirov.hedge.server.dao.album.AlbumAnnotationRelations
 import com.heerkirov.hedge.server.dao.illust.IllustAnnotationRelations
 import com.heerkirov.hedge.server.dao.meta.Annotations
@@ -20,7 +21,7 @@ import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.entity.firstOrNull
 import me.liuwj.ktorm.entity.sequenceOf
 
-class AnnotationService(private val data: DataRepository, private val kit: AnnotationKit) {
+class AnnotationService(private val data: DataRepository, private val kit: AnnotationKit, private val queryManager: QueryManager) {
     fun list(filter: AnnotationFilter): ListResult<AnnotationRes> {
         return data.db.from(Annotations).select()
             .whereWithConditions {
@@ -63,6 +64,8 @@ class AnnotationService(private val data: DataRepository, private val kit: Annot
                     form.canBeExported.applyOpt { set(it.canBeExported, this) }
                     form.target.applyOpt { set(it.target, this) }
                 }
+
+                queryManager.flushCacheOf(QueryManager.CacheType.AUTHOR)
             }
         }
     }
@@ -79,6 +82,8 @@ class AnnotationService(private val data: DataRepository, private val kit: Annot
             kit.updateAnnotationCacheForDelete(id)
             data.db.delete(AuthorAnnotationRelations) { it.annotationId eq id }
             data.db.delete(TopicAnnotationRelations) { it.annotationId eq id }
+
+            queryManager.flushCacheOf(QueryManager.CacheType.AUTHOR)
         }
     }
 }
