@@ -53,23 +53,31 @@ object Translator {
             }
         }.map { (type, elements) ->
             Element(type, elements.map { element ->
-                ElementItem(element.exclude, when (element) {
-                    is NameElementForMeta -> element.items.map { ElementString(it.value, it.precise) }.also { executeBuilder.mapNameElement(it, element.exclude) }
-                    is SourceTagElement -> element.items.map { ElementString(it.value, it.precise) }.also { executeBuilder.mapSourceTagElement(it, element.exclude) }
-                    is AnnotationElement -> mapAnnotationElement(element, queryer, collector, options).also { joinDepth += 1 }.also { executeBuilder.mapAnnotationElement(it, element.exclude) }
-                    is AnnotationElementForMeta -> mapAnnotationElementForMeta(element, queryer, collector, options).also { joinDepth += 1 }.also { executeBuilder.mapAnnotationElement(it, element.exclude) }
-                    is TagElement -> {
-                        val (r, t) = mapTagElement(element, queryer, collector, options)
-                        @Suppress("UNCHECKED_CAST")
-                        when(t) {
-                            "tag" -> executeBuilder.mapTagElement(r as List<ElementTag>, element.exclude)
-                            "author" -> executeBuilder.mapAuthorElement(r as List<ElementAuthor>, element.exclude)
-                            "topic" -> executeBuilder.mapTopicElement(r as List<ElementTopic>, element.exclude)
+                if(element is AnnotationElement) {
+                    val items = mapAnnotationElement(element, queryer, collector, options).also { joinDepth += 1 }
+                    val exportedFromAuthor = MetaType.AUTHOR in element.metaType
+                    val exportedFromTopic = MetaType.TOPIC in element.metaType
+                    val exportedFromTag = MetaType.TAG in element.metaType
+                    executeBuilder.mapAnnotationElement(items, element.exclude, exportedFromAuthor = exportedFromAuthor, exportedFromTopic = exportedFromTopic, exportedFromTag = exportedFromTag)
+                    ElementItemForAnnotation(element.exclude, items, exportedFromAuthor = exportedFromAuthor, exportedFromTopic = exportedFromTopic, exportedFromTag = exportedFromTag)
+                }else{
+                    ElementItem(element.exclude, when (element) {
+                        is NameElementForMeta -> element.items.map { ElementString(it.value, it.precise) }.also { executeBuilder.mapNameElement(it, element.exclude) }
+                        is SourceTagElement -> element.items.map { ElementString(it.value, it.precise) }.also { executeBuilder.mapSourceTagElement(it, element.exclude) }
+                        is AnnotationElementForMeta -> mapAnnotationElementForMeta(element, queryer, collector, options).also { joinDepth += 1 }.also { executeBuilder.mapAnnotationElement(it, element.exclude, exportedFromAuthor = false, exportedFromTopic = false, exportedFromTag = false) }
+                        is TagElement -> {
+                            val (r, t) = mapTagElement(element, queryer, collector, options)
+                            @Suppress("UNCHECKED_CAST")
+                            when(t) {
+                                "tag" -> executeBuilder.mapTagElement(r as List<ElementTag>, element.exclude)
+                                "author" -> executeBuilder.mapAuthorElement(r as List<ElementAuthor>, element.exclude)
+                                "topic" -> executeBuilder.mapTopicElement(r as List<ElementTopic>, element.exclude)
+                            }
+                            r.also { joinDepth += 1 }
                         }
-                        r.also { joinDepth += 1 }
-                    }
-                    else -> throw RuntimeException("Unsupported element type $type.")
-                })
+                        else -> throw RuntimeException("Unsupported element type $type.")
+                    })
+                }
             })
         }
         if(options != null && joinDepth >= options.warningLimitOfIntersectItems) collector.warning(NumberOfIntersectItemExceed(options.warningLimitOfIntersectItems))

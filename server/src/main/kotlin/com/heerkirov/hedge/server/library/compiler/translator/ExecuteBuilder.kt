@@ -25,7 +25,7 @@ interface ExecuteBuilder {
         throw UnsupportedOperationException("Unsupported element type 'source-tag'.")
     }
 
-    fun mapAnnotationElement(unionItems: List<ElementAnnotation>, exclude: Boolean) {
+    fun mapAnnotationElement(unionItems: List<ElementAnnotation>, exclude: Boolean, exportedFromAuthor: Boolean, exportedFromTopic: Boolean, exportedFromTag: Boolean) {
         throw UnsupportedOperationException("Unsupported element type 'annotation'.")
     }
 

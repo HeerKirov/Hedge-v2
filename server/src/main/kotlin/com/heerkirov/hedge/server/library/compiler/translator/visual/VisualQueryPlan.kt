@@ -32,7 +32,37 @@ data class FilterRange<V : Any>(val begin: V?, val end: V?, val includeBegin: Bo
 
 data class Element<V : ElementValue>(val type: String, val intersectItems: List<ElementItem<V>>)
 
-data class ElementItem<V : ElementValue>(val exclude: Boolean, val unionItems: List<V>)
+open class ElementItem<V : ElementValue>(val exclude: Boolean, val unionItems: List<V>) {
+    override fun equals(other: Any?): Boolean {
+        return other === this || (other is ElementItem<*> && other.exclude == exclude && other.unionItems == unionItems)
+    }
+
+    override fun hashCode(): Int {
+        return exclude.hashCode() * 31 + unionItems.hashCode()
+    }
+
+    override fun toString(): String {
+        return "ElementItem(exclude=$exclude, unionItems=$unionItems)"
+    }
+}
+
+class ElementItemForAnnotation(exclude: Boolean, unionItems: List<ElementAnnotation>, val exportedFromAuthor: Boolean, val exportedFromTopic: Boolean, val exportedFromTag: Boolean) : ElementItem<ElementAnnotation>(exclude, unionItems) {
+    override fun equals(other: Any?): Boolean {
+        return other === this || (other is ElementItemForAnnotation && other.exclude == exclude && other.unionItems == unionItems && other.exportedFromAuthor == exportedFromAuthor && other.exportedFromTag == exportedFromTag && other.exportedFromTopic == exportedFromTopic)
+    }
+
+    override fun hashCode(): Int {
+        var result = super.hashCode()
+        result = 31 * result + exportedFromAuthor.hashCode()
+        result = 31 * result + exportedFromTopic.hashCode()
+        result = 31 * result + exportedFromTag.hashCode()
+        return result
+    }
+
+    override fun toString(): String {
+        return "ElementItem(exclude=$exclude, unionItems=$unionItems, exportedFrom[author=$exportedFromAuthor, topic=$exportedFromTopic, tag=$exportedFromTag])"
+    }
+}
 
 interface ElementValue
 

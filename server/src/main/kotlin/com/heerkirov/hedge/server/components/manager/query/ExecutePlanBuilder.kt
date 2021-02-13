@@ -9,9 +9,12 @@ import com.heerkirov.hedge.server.library.compiler.semantic.plan.*
 import com.heerkirov.hedge.server.library.compiler.semantic.plan.FilterValue
 import com.heerkirov.hedge.server.library.compiler.translator.ExecuteBuilder
 import com.heerkirov.hedge.server.library.compiler.translator.visual.*
+import com.heerkirov.hedge.server.model.meta.Annotation
 import com.heerkirov.hedge.server.model.meta.Tag
 import com.heerkirov.hedge.server.model.source.SourceImage
+import com.heerkirov.hedge.server.utils.ktorm.compositionAny
 import com.heerkirov.hedge.server.utils.ktorm.escapeLike
+import com.heerkirov.hedge.server.utils.letIf
 import com.heerkirov.hedge.server.utils.toJSONString
 import me.liuwj.ktorm.database.Database
 import me.liuwj.ktorm.dsl.*
@@ -243,7 +246,7 @@ class IllustExecutePlanBuilder(private val db: Database) : ExecutePlanBuilder, O
         }
     }
 
-    override fun mapAnnotationElement(unionItems: List<ElementAnnotation>, exclude: Boolean) {
+    override fun mapAnnotationElement(unionItems: List<ElementAnnotation>, exclude: Boolean, exportedFromAuthor: Boolean, exportedFromTopic: Boolean, exportedFromTag: Boolean) {
         when {
             exclude -> excludeAnnotations.addAll(unionItems.map { it.id })
             unionItems.isEmpty() -> alwaysFalseFlag = true
@@ -254,7 +257,14 @@ class IllustExecutePlanBuilder(private val db: Database) : ExecutePlanBuilder, O
                 }else{
                     needDistinct = true
                     j.annotationId inList unionItems.map { it.id }
+                }.letIf(exportedFromAuthor || exportedFromTopic || exportedFromTag && !(exportedFromAuthor && exportedFromTopic && exportedFromTag)) {
+                    var exportedFrom: Annotation.ExportedFrom = Annotation.ExportedFrom.empty
+                    if(exportedFromAuthor) exportedFrom += Annotation.ExportedFrom.AUTHOR
+                    if(exportedFromTopic) exportedFrom += Annotation.ExportedFrom.TOPIC
+                    if(exportedFromTag) exportedFrom += Annotation.ExportedFrom.TAG
+                    it and (j.exportedFrom compositionAny exportedFrom)
                 }
+
                 joins.add(ExecutePlan.Join(j, j.illustId eq Illusts.id and condition))
             }
         }

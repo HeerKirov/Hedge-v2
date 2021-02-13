@@ -15,7 +15,6 @@ import com.heerkirov.hedge.server.library.compiler.utils.ErrorCollector
 import com.heerkirov.hedge.server.library.compiler.utils.TranslatorError
 import com.heerkirov.hedge.server.model.meta.Annotation
 import com.heerkirov.hedge.server.model.meta.Tag
-import com.heerkirov.hedge.server.utils.ktorm.compositionContains
 import com.heerkirov.hedge.server.utils.ktorm.first
 import com.heerkirov.hedge.server.utils.runIf
 import me.liuwj.ktorm.dsl.*
@@ -363,9 +362,7 @@ class MetaQueryer(private val data: DataRepository) : Queryer {
                     } else {
                         Annotations.name like parser.mapMatchToSqlLike(metaString.value)
                     }
-                    if(metaType.isNotEmpty()) {
-                        it += Annotations.target compositionContains parser.mapMetaTypeToTarget(metaType)
-                    }
+                    //移除了在注解查询阶段对注解前缀类型的过滤。一是这个步骤在实现阶段有实现保证，这里顶多优化；二是提前过滤会引起疑惑，显得有注解莫名其妙没查询到
                 }
                 .limit(0, queryLimit)
                 .map { Annotations.createEntity(it) }
@@ -454,9 +451,9 @@ class MetaQueryer(private val data: DataRepository) : Queryer {
 
     private data class TagItem(val id: Int, override val name: String, override val otherNames: List<String>, val parentId: Int?, val type: Tag.Type, val isGroup: Tag.IsGroup, val color: String?) : ItemInterface
 
-    private data class AnnotationCacheKey(val precise: Boolean, val value: String, val isAuthorType: Boolean, val isTopicType: Boolean, val isTagType: Boolean)
+    private data class AnnotationCacheKey(val precise: Boolean, val value: String, val exportedFromAuthor: Boolean, val exportedFromTopic: Boolean, val exportedFromTag: Boolean)
 
     private fun annotationKeyOf(metaString: MetaString, metaType: Set<MetaType>): AnnotationCacheKey {
-        return AnnotationCacheKey(metaString.precise, metaString.value, isAuthorType = MetaType.AUTHOR in metaType, isTopicType = MetaType.TOPIC in metaType, isTagType = MetaType.TAG in metaType)
+        return AnnotationCacheKey(metaString.precise, metaString.value, exportedFromAuthor = MetaType.AUTHOR in metaType, exportedFromTopic = MetaType.TOPIC in metaType, exportedFromTag = MetaType.TAG in metaType)
     }
 }
