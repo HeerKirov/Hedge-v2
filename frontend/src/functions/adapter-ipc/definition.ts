@@ -5,26 +5,26 @@ export interface IPCService {
     app: {
         env(): AppEnvResponse
         status(): AppStatusResponse
-        init(form: AppInitForm): Promise<AppLoginResponse>
+        init(form: AppInitForm): Promise<ActionResponse>
         login(form: AppLoginForm): Promise<AppLoginResponse>
         loginByTouchID(): Promise<AppLoginResponse>
     }
     resource: {
         server: {
             status(): ResourceStatusResponse
-            update(): Promise<void>
+            update(): Promise<ActionResponse>
         }
         cli: {
             status(): ResourceStatusResponse
-            update(): Promise<void>
+            update(): Promise<ActionResponse>
         }
     }
     server: {
         status(): ServerStatusResponse
         env(): Promise<ServerEnvResponse>
-        open(): Promise<ServerStatusResponse>
-        close(): Promise<ServerStatusResponse>
-        init(form: ServerInitForm): Promise<void>
+        open(): Promise<ActionResponse>
+        close(): Promise<ActionResponse>
+        init(form: ServerInitForm): Promise<ActionResponse>
     }
     setting: {
         auth: {
@@ -36,10 +36,6 @@ export interface IPCService {
             setDefault(form: SettingChannelForm): Promise<void>
             change(form: SettingChannelForm): void
         }
-    }
-    storage: {
-        get(form: StorageGetForm): Promise<any>
-        set(form: StorageSetForm): Promise<void>
     }
 }
 
@@ -117,15 +113,11 @@ export interface SettingChannelListResponse {
     channels: string[]
 }
 
-//== storage ==
+//== action ==
 
-export interface StorageGetForm {
-    key: string
-}
-
-export interface StorageSetForm {
-    key: string
-    content: any
+export interface ActionResponse {
+    ok: boolean
+    errorMessage?: string
 }
 
 //== enum ==

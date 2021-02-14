@@ -3,8 +3,8 @@ import { spawn } from "child_process"
 import axios, { AxiosRequestConfig } from "axios"
 import { DATA_FILE, RESOURCE_FILE } from "../../definitions/file"
 import { ServerConnectionInfo, ServerPID, ServerStatus } from "./model"
-import { readFile } from "../../utils/fs"
 import { Future, schedule, sleep } from "../../utils/process"
+import { readFile } from "../../utils/fs"
 
 export { ServerStatus }
 
@@ -78,6 +78,7 @@ interface ServerManagerOptions {
 
 export function createServerManager(options: ServerManagerOptions): ServerManager {
     if(options.debug?.serverFromURL) {
+        console.log(`[ServerManager] Server manager is in proxy mode. URL is '${options.debug.serverFromURL}'.`)
         return createProxyServerManager(options)
     }else{
         return createStdServerManager(options)
@@ -137,14 +138,14 @@ function createStdServerManager(options: ServerManagerOptions): ServerManager {
      * 等待，直到server可用。如果等待时间过长，会抛出一个异常。
      */
     async function waitForReady(): Promise<ServerConnectionInfo> {
-        for(let i = 0; i < 30; ++i) {
-            await sleep(i <= 1 ? 250 : 1000)
+        for(let i = 0; i < 60; ++i) {
+            await sleep(250)
             const result = await checkForAvailable(serverPIDPath)
             if(result != null) {
                 return result
             }
         }
-        throw new Error("Waiting for server starting over 30s.")
+        throw new Error("Waiting for server starting over 15s.")
     }
 
     /**

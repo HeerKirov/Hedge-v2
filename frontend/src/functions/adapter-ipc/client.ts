@@ -29,6 +29,17 @@ export interface RemoteClientAdapter {
          * @return 如果选择了项并确认，返回选择项的文件地址；否则返回null
          */
         openDialog(options: OpenDialogOptions): Promise<string[] | null>
+        /**
+         * 弹出一个消息框。
+         * @param options
+         */
+        showMessage(options: MessageOptions): Promise<number>
+        /**
+         * 弹出一个专用于错误抛出的消息框。
+         * @param title
+         * @param message
+         */
+        showError(title: string, message: string): void
     }
 }
 
@@ -45,6 +56,15 @@ export interface OpenDialogOptions {
     defaultPath?: string
     filters?: {name: string, extensions: string[]}[]
     properties?: ("openFile" | "openDirectory" | "multiSelections" | "createDirectory"/*macOS*/)[]
+}
+
+interface MessageOptions {
+    type: "none"|"info"|"error"|"question"
+    buttons?: string[]
+    defaultButtonId?: number
+    title?: string
+    message: string
+    detail?: string
 }
 
 type IpcInvoke = <T, R>(channel: string, form?: T) => Promise<R>
@@ -66,7 +86,9 @@ function createEmptyRemoteClientAdapter(): RemoteClientAdapter {
             createPopup: forbidden
         },
         dialog: {
-            openDialog: forbidden
+            openDialog: forbidden,
+            showMessage: forbidden,
+            showError: forbidden
         }
     }
 }

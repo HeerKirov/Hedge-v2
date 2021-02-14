@@ -24,8 +24,6 @@ export function registerIpcTransformer(service: Service) {
     ipcHandle("/setting/channel/list", service.setting.channel.list)
     ipcHandle("/setting/channel/set-default", service.setting.channel.setDefault)
     ipcHandleSync("/setting/channel/change", service.setting.channel.change)
-    ipcHandle("/storage/get", service.storage.get)
-    ipcHandle("/storage/set", service.storage.set)
 }
 
 function ipcHandle<T, R>(channel: string, invoke: (f: T) => Promise<R>) {

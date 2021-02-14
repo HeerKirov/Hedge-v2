@@ -4,7 +4,7 @@ import { BasicComponentInjection } from './install'
 
 /** 提供app resource的管理接入。 */
 export function useAppResource(): AppResource {
-    const { clientMode, ipc } = inject(BasicComponentInjection)!
+    const { clientMode, ipc, remote } = inject(BasicComponentInjection)!
 
     if(!clientMode) {
         return {
@@ -20,7 +20,12 @@ export function useAppResource(): AppResource {
     //client已在一个ipc channel中实现对全部种类资源的状态检查和更新，不需要前端再处理。
     const needUpdate = ipcServerStatus === ResourceStatus.NEED_UPDATE || ipcServerStatus === ResourceStatus.NOT_INIT
     const update = async () => {
-        await ipc.resource.server.update()
+        const result = await ipc.resource.server.update()
+        if(result.ok) {
+            return true
+        }
+        await remote.dialog.showMessage({ type: "error", title: "Error", message: result.errorMessage! })
+        return false
     }
 
     return {
@@ -38,7 +43,7 @@ export interface AppResource {
         /** 查看资源是否需要升级。这也是个不变值，也是因为它的应用场景不需要响应，也无法响应。 */
         needUpdate: boolean
         /** 对资源进行升级。 */
-        update(): Promise<void>
+        update(): Promise<boolean>
     },
     /** 对cli的专门管理。 */
     cli: {}

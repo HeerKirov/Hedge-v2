@@ -75,6 +75,7 @@ export function createWindowManager(state: StateManager, options: WindowManagerO
     }
 
     function load() {
+        //在load之前，禁止通过任何方式打开窗口，防止在loaded之前的意外的前端加载。
         ready = true
     }
 

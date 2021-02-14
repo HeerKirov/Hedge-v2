@@ -13,7 +13,7 @@ export default defineComponent({
         }
 
         return () => <div class={style.sideBar}>
-            <div class="title-bar absolute left-top w-100"></div>
+            <div class="title-bar absolute left-top w-100"/>
             <button class={[style.collapseButton, "no-drag", "button", "is-light", "is-small"]} onClick={collapseSideBar}><span class="icon"><i class="fa fa-lg fa-bars"/></span></button>
             <div class={style.content}>
                 {slots.default?.()}

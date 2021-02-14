@@ -34,6 +34,17 @@ interface RemoteClientAdapter {
          * @return 如果选择了项并确认，返回选择项的文件地址；否则返回null
          */
         openDialog(options: OpenDialogOptions): Promise<string[] | null>
+        /**
+         * 弹出一个消息框。
+         * @param options
+         */
+        showMessage(options: MessageOptions): Promise<number>
+        /**
+         * 弹出一个专用于错误抛出的消息框。
+         * @param title
+         * @param message
+         */
+        showError(title: string, message: string): void
     }
 }
 
@@ -50,6 +61,15 @@ interface OpenDialogOptions {
     defaultPath?: string
     filters?: {name: string, extensions: string[]}[]
     properties?: ("openFile" | "openDirectory" | "multiSelections" | "createDirectory"/*macOS*/)[]
+}
+
+interface MessageOptions {
+    type: "none"|"info"|"error"|"question"
+    buttons?: string[]
+    defaultButtonId?: number
+    title?: string
+    message: string
+    detail?: string
 }
 
 function createRemoteClientAdapter(): RemoteClientAdapter {
@@ -76,8 +96,15 @@ function createRemoteClientAdapter(): RemoteClientAdapter {
         },
         dialog: {
             async openDialog(options: OpenDialogOptions): Promise<string[] | null> {
-                const result = await remote.dialog.showOpenDialog(options)
+                const result = await remote.dialog.showOpenDialog(window, options)
                 return result.canceled || result.filePaths.length <= 0 ? null : result.filePaths
+            },
+            async showMessage(options: MessageOptions): Promise<number> {
+                const result = await remote.dialog.showMessageBox(window, options)
+                return result.response
+            },
+            showError(title: string, message: string) {
+                remote.dialog.showErrorBox(title, message)
             }
         }
     }

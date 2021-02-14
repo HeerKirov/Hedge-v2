@@ -7,14 +7,13 @@ import { StateManager } from "../state"
 import { Bucket } from "../bucket"
 import { Channel } from "../channel"
 import {
+    ActionResponse,
     AppInitForm,
     AppLoginForm,
     ServerInitForm,
     Service,
     SettingAuthForm,
-    SettingChannelForm,
-    StorageGetForm,
-    StorageSetForm
+    SettingChannelForm
 } from "./index"
 
 export interface ServiceOptions {
@@ -36,15 +35,23 @@ export function createService(appdata: AppDataDriver, resource: ResourceManager,
                     canPromptTouchID: systemPreferences.canPromptTouchID()
                 }
             },
-            async init(form: AppInitForm) {
+            async init(form: AppInitForm): Promise<ActionResponse> {
                 if(appdata.status() != AppDataStatus.NOT_INIT) {
-                    return {ok: false}
+                    return {ok: false, errorCode: "ALREADY_INIT"}
                 }
-                await appdata.init()
+                try {
+                    await appdata.init()
 
-                await appdata.saveAppData(d => {
-                    d.loginOption.password = form.password
-                })
+                    await appdata.saveAppData(d => {
+                        d.loginOption.password = form.password
+                    })
+                }catch (e) {
+                    if(e instanceof Error) {
+                        return {ok: false, errorCode: "INIT_ERROR", errorMessage: e.message}
+                    }else{
+                        return {ok: false, errorCode: "INIT_ERROR", errorMessage: e}
+                    }
+                }
 
                 state.login(form.password ?? undefined)
 
@@ -68,36 +75,80 @@ export function createService(appdata: AppDataDriver, resource: ResourceManager,
                 status() {
                     return {status: resource.getCliStatus()}
                 },
-                async update() {
-                    await resource.updateCli()
+                async update(): Promise<ActionResponse> {
+                    try {
+                        await resource.updateCli()
+                    }catch (e) {
+                        if(e instanceof Error) {
+                            return {ok: false, errorCode: "UPDATE_ERROR", errorMessage: e.message}
+                        }else{
+                            return {ok: false, errorCode: "UPDATE_ERROR", errorMessage: e}
+                        }
+                    }
+                    return {ok: true}
                 }
             },
             server: {
                 status() {
                     return {status: resource.status()}
                 },
-                async update() {
-                    await resource.update()
+                async update(): Promise<ActionResponse> {
+                    try {
+                        await resource.update()
+                    }catch (e) {
+                        if(e instanceof Error) {
+                            return {ok: false, errorCode: "UPDATE_ERROR", errorMessage: e.message}
+                        }else{
+                            return {ok: false, errorCode: "UPDATE_ERROR", errorMessage: e}
+                        }
+                    }
+                    return {ok: true}
                 }
             }
         },
         server: {
-            async close() {
-                await server.closeConnection()
-                return {status: server.status()}
-            },
             async env() {
                 return server.connectionInfo()!
             },
-            async open() {
-                await server.startConnection()
-                return {status: server.status()}
+            async open(): Promise<ActionResponse> {
+                try {
+                    await server.startConnection()
+                }catch (e) {
+                    if(e instanceof Error) {
+                        return {ok: false, errorCode: "SERVER_ERROR", errorMessage: e.message}
+                    }else{
+                        return {ok: false, errorCode: "SERVER_ERROR", errorMessage: e}
+                    }
+                }
+                return {ok: true}
+            },
+            async close(): Promise<ActionResponse> {
+                try {
+                    await server.closeConnection()
+                }catch (e) {
+                    if(e instanceof Error) {
+                        return {ok: false, errorCode: "SERVER_ERROR", errorMessage: e.message}
+                    }else{
+                        return {ok: false, errorCode: "SERVER_ERROR", errorMessage: e}
+                    }
+                }
+                return {ok: true}
             },
             status() {
                 return {status: server.status()}
             },
-            async init(form: ServerInitForm) {
-                await server.initializeRemoteServer(form.dbPath)
+            async init(form: ServerInitForm): Promise<ActionResponse> {
+                try {
+                    await server.initializeRemoteServer(form.dbPath)
+                }catch (e) {
+                    if(e instanceof Error) {
+                        return {ok: false, errorCode: "SERVER_ERROR", errorMessage: e.message}
+                    }else{
+                        return {ok: false, errorCode: "SERVER_ERROR", errorMessage: e}
+                    }
+                }
+                return {ok: true}
+
             }
         },
         setting: {
@@ -126,15 +177,6 @@ export function createService(appdata: AppDataDriver, resource: ResourceManager,
                     await channel.setDefaultChannel(form.channel)
                 }
             }
-        },
-        storage: {
-            async get(form: StorageGetForm) {
-                return bucket.storage(form.key).read()
-            },
-            async set(form: StorageSetForm) {
-                bucket.storage(form.key).write(form.content)
-            }
         }
-
     }
 }

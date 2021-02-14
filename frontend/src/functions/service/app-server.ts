@@ -4,7 +4,7 @@ import { BasicComponentInjection } from './install'
 
 /** 提供对server的连接管理的控制接入。 */
 export function useAppServer(): AppServer {
-    const { clientMode, ipc } = inject(BasicComponentInjection)!
+    const { clientMode, ipc, remote } = inject(BasicComponentInjection)!
 
     if(!clientMode) {
         return {
@@ -19,16 +19,29 @@ export function useAppServer(): AppServer {
 
     const connect = async () => {
         const res = await ipc.server.open()
-        status.value = res.status === ServerStatus.OPEN
+        status.value = res.ok
+        if(!res.ok) {
+            await remote.dialog.showMessage({ type: "error", title: "Error", message: res.errorMessage! })
+            return false
+        }
+        return true
     }
     
     const disconnect = async () => {
         const res = await ipc.server.close()
-        status.value = res.status === ServerStatus.OPEN
+        status.value = res.ok
+        if(!res.ok) {
+            await remote.dialog.showMessage({ type: "error", title: "Error", message: res.errorMessage! })
+        }
     }
 
     const initializeDatabase = async (dbPath: string) => {
-        await ipc.server.init({dbPath})
+        const res = await ipc.server.init({dbPath})
+        if(!res.ok) {
+            await remote.dialog.showMessage({ type: "error", title: "Error", message: res.errorMessage! })
+            return false
+        }
+        return true
     }
 
     return {
@@ -41,7 +54,7 @@ export function useAppServer(): AppServer {
 
 export interface AppServer {
     status: Readonly<Ref<boolean>>
-    connect(): Promise<void>
+    connect(): Promise<boolean>
     disconnect(): Promise<void>
-    initializeDatabase(dbPath: string): Promise<void>
+    initializeDatabase(dbPath: string): Promise<boolean>
 }

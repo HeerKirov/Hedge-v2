@@ -13,7 +13,7 @@ export default defineComponent({
             每个种类的subitem数量有上限，多了之后挤走旧的。
             日历默认就显示最近的几个时间项。
         */
-        return () => <aside class={[style.sideBarMenu, "h-menu"]}>
+        return () => <aside class={[style.sideBarMenu, "v-menu"]}>
             <ScopeComponent name="图库">
                 <StdItemComponent name="图库" icon="th" routeName="HedgeIndex"/>
                 <StdItemComponent name="搜索" icon="search" routeName="HedgeImage"/>

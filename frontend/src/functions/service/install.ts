@@ -14,7 +14,7 @@ export function createService() {
     const api = createAPIService(httpInstance)
 
     const appInfo = useAppInfoInjection(clientMode, ipc)
-    const appState = useAppStateInjection(clientMode, ipc, api, httpInstance, appInfo)
+    const appState = useAppStateInjection(clientMode, remote, ipc, api, httpInstance, appInfo)
     const fullscreen = useFullscreenInjection(clientMode, remote)
 
     const endTime = new Date().getTime()

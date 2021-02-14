@@ -1,4 +1,4 @@
-import { app } from "electron"
+import { app, dialog } from "electron"
 import { promiseAll, getNodePlatform, Platform } from "../utils/process"
 import { createWindowManager, WindowManager } from "./window-manager"
 import { createAppDataDriver } from "../components/appdata"
@@ -104,6 +104,12 @@ export async function createApplication(options?: AppOptions) {
 }
 
 function registerAppEvents(windowManager: WindowManager, serverManager: ServerManager, platform: Platform) {
+    app.on('activate', () => {
+        if (windowManager.getAllWindows().length === 0) {
+            windowManager.createWindow()
+        }
+    })
+
     app.on('window-all-closed', () => {
         if (platform !== 'darwin') {
             app.quit()
@@ -114,12 +120,6 @@ function registerAppEvents(windowManager: WindowManager, serverManager: ServerMa
         //此事件实际上将同步完成，在同步执行完成后app就已经退出，等不到异步返回
         if(serverManager.status() == ServerStatus.OPEN) {
             serverManager.closeConnection().finally(() => {})
-        }
-    })
-
-    app.on('activate', () => {
-        if (windowManager.getAllWindows().length === 0) {
-            windowManager.createWindow()
         }
     })
 }

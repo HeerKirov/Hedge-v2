@@ -41,9 +41,5 @@ export function createIPCService(): IPCService {
                 change: invokeSync("/setting/channel/change")
             }
         },
-        storage: {
-            get: invoke("/storage/get"),
-            set: invoke("/storage/set")
-        }
     }
 }

@@ -16,7 +16,7 @@ export default defineComponent({
             <div class="title-bar absolute left-top w-100"></div>
             <div class={style.content}>
                 <p class="is-size-5 mt-2 ml-1">向导</p>
-                <aside class="h-menu mt-2">
+                <aside class="v-menu mt-2">
                     {settings.map(scope => <>
                         <span class="menu-label">{scope.label}</span>
                         <ul class="menu-list">

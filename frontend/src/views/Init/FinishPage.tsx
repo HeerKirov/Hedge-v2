@@ -20,17 +20,24 @@ export default defineComponent({
         const next = () => { router.push({name: "HedgeIndex"}) }
 
         onMounted(async () => {
-            status.value = "data"
-            await appState.initializeApp(context.password.hasPassword ? context.password.value : null)
+            if(appInfo.clientMode) {
+                status.value = "data"
+                const initializeAppOk = await appState.initializeApp(context.password.hasPassword ? context.password.value : null)
+                if(!initializeAppOk) return
 
-            status.value = "resource"
-            await appResource.main.update()
+                status.value = "resource"
+                await appResource.main.update()
 
-            status.value = "starting"
-            await appServer.connect()
+                status.value = "starting"
+                const connectOk = await appServer.connect()
+                if(!connectOk) return
 
-            status.value = "server"
-            await appServer.initializeDatabase(context.db.custom ? context.db.customFolderPath : `${appInfo.userDataPath}/appdata/channel/${appInfo.channel}/database/${context.db.folderInAppData}`)
+                status.value = "server"
+                const initializeDatabaseOk = await appServer.initializeDatabase(context.db.custom ? context.db.customFolderPath : `${appInfo.userDataPath}/appdata/channel/${appInfo.channel}/database/${context.db.folderInAppData}`)
+                if(!initializeDatabaseOk) return
+            }else{
+                console.error("Initialize can only be executed in client.")
+            }
 
             status.value = "finished"
         })
