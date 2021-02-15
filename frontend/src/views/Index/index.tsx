@@ -17,7 +17,7 @@ export default defineComponent({
             if(appState.status.value === "NOT_INIT") {
                 console.log("appdata is not_init")
                 //如果处于未初始化的状态，直接跳转到init
-                router.push({name: "Init"})
+                await router.push({name: "Init"})
                 return
             }
             if(appResource.main.needUpdate) {
@@ -30,7 +30,7 @@ export default defineComponent({
             if(appState.status.value !== "LOGIN") {
                 console.log("/index app is not login")
                 //如果处于未登录的状态，跳转到login
-                router.push({name: "Login"})
+                await router.push({name: "Login"})
                 return
             }
             if(!appServer.status.value) {
@@ -41,7 +41,7 @@ export default defineComponent({
                 loading.value = "loading"
             }
             //以上流程结束 & 条件满足后，跳转到hedge
-            router.push({name: "HedgeIndex"})
+            await router.push({name: "MainIndex"})
         })
 
         return () => <div>
@@ -64,8 +64,8 @@ const Loading = defineComponent({
     },
     setup(props) {
         return () => <div class="fixed center has-text-centered">
-            <span class="icon"><i class="fa fa-3x fa-code-branch"/></span>
-            <p class="mt-4">{loadingMessage[props.type]}</p>
+            <i class="fa fa-3x fa-code-branch"/>
+            <p class="mt-4 is-size-medium">{loadingMessage[props.type]}</p>
             <ProgressFlag class="mt-2"/>
         </div>
     }

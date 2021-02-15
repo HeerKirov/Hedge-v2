@@ -33,27 +33,27 @@ export default defineComponent({
         }
 
         return () => <>
-            <h2 class="is-size-5 mb-2">设置口令</h2>
+            <h2 class="is-size-4 mb-2">设置口令</h2>
             <p>设定登录口令，每次打开App之前都会进行验证，阻止不希望的访问。</p>
             {hasPassword.value ? <>
-                <div class="field mt-2">
+                <div class="mt-2">
                     <label class="label">输入口令</label>
-                    <div class="control"><Input class={{"is-small": true, "is-danger": !!passwordErrorMessage.value}} type="password" value={password.value} onUpdateValue={v => password.value = v}/></div>
+                    <Input class={{"is-small": true, "is-danger": !!passwordErrorMessage.value}} type="password" value={password.value} onUpdateValue={v => password.value = v}/>
                     {passwordErrorMessage.value && <p class="help is-danger">{passwordErrorMessage.value}</p>}
                 </div>
-                <div class="field">
+                <div>
                     <label class="label">确认口令</label>
-                    <div class="control"><Input class={{"is-small": true, "is-danger": !!checkPasswordErrorMessage.value}} type="password" value={checkPassword.value} onUpdateValue={v => checkPassword.value = v}/></div>
+                    <Input class={{"is-small": true, "is-danger": !!checkPasswordErrorMessage.value}} type="password" value={checkPassword.value} onUpdateValue={v => checkPassword.value = v}/>
                     {checkPasswordErrorMessage.value && <p class="help is-danger">{checkPasswordErrorMessage.value}</p>}
                 </div>
-                <p class="is-size-7"><a onClick={() => hasPassword.value = false}>不设置口令</a></p>
+                <p class="is-size-std"><a onClick={() => hasPassword.value = false}>不设置口令</a></p>
             </> : <>
-                <p class="is-size-7 mt-4">您选择了不设置口令。App打开时不会进行验证，允许任何访问。</p>
-                <p class="is-size-7 mt-4"><a onClick={() => hasPassword.value = true}>设置口令</a></p>
+                <p class="is-size-std mt-4">您选择了不设置口令。App打开时不会进行验证，允许任何访问。</p>
+                <p class="is-size-std mt-4"><a onClick={() => hasPassword.value = true}>设置口令</a></p>
             </>
             }
             <div class={style.bottom}>
-                <button class="button is-link absolute right-bottom" onClick={next}>下一步<i class="fa fa-arrow-right ml-2"/></button>
+                <button class="button is-medium is-link absolute right-bottom" onClick={next}>下一步<i class="fa fa-arrow-right ml-2"/></button>
             </div>
         </>
     }

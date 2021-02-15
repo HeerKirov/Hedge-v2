@@ -1,0 +1,22 @@
+@import "../base/size"
+
+//文本尺寸
+@each $name, $size in $font-size-map
+  .is-size-#{$name}
+    font-size: $size
+@each $name, $size in $font-size-name
+  .is-size-#{$name}
+    font-size: $size
+
+.has-text-centered
+  text-align: center
+.has-text-right
+  text-align: right
+
+//文本不换行功能
+.no-wrap
+  white-space: nowrap
+  &.overflow-ellipsis
+    overflow: hidden
+    text-overflow: ellipsis
+

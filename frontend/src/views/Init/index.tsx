@@ -1,4 +1,4 @@
-import { defineComponent, provide, Ref, ref } from "vue"
+import { defineComponent, provide } from "vue"
 import { InitContextInjection, useInitContext } from "./inject"
 import WelcomePage from "./WelcomePage"
 import PasswordPage from "./PasswordPage"
@@ -19,7 +19,7 @@ export default defineComponent({
             const CurrentPage = pages[context.page.num.value]
 
             return <div class={style.root}>
-                <div class="title-bar has-text-centered">
+                <div class="title-bar has-text-centered is-size-large">
                     <span>HEDGE</span>
                 </div>
                 <div class={[style.dialog, "fixed", "center", "box"]}>

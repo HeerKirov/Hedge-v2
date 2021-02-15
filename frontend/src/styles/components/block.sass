@@ -1,0 +1,27 @@
+@import "../base/color"
+@import "../base/size"
+
+
+.block
+  padding: 1.25rem 2rem 1.25rem 1rem
+  border-radius: $radius-size-std
+  position: relative
+  background-color: $light
+
+  a:not(.button):not(.dropdown-item)
+    color: currentColor
+    text-decoration: underline
+  strong
+    color: currentColor
+  @each $name, $pair in $colors
+    $color: nth($pair, 1)
+    $color-invert: nth($pair, 2)
+    &.is-#{$name}
+      background-color: $color
+      color: $color-invert
+      @if length($pair) >= 4
+        $color-light: nth($pair, 3)
+        $color-dark: nth($pair, 4)
+        &.is-light
+          background-color: $color-light
+          color: $color-dark

@@ -41,32 +41,27 @@ export default defineComponent({
         }
 
         return () => <>
-            <h2 class="is-size-5 mb-2">创建数据库</h2> 
+            <h2 class="is-size-4 mb-2">创建数据库</h2>
             <p>Hedge以数据库为单位管理资料。第一个数据库默认将存放在App数据目录下。</p>
             {isCustom.value ? <>
                 <p class="mt-4 is-size-7">已选择在自定义的位置保存数据库。请指定一个文件夹作为数据库的存储文件夹。</p>
-                <div class="field is-grouped mt-5">
-                    <p class="control is-expanded">
-                        <Input class="is-small" value={customFolderPath.value} onUpdateValue={v => customFolderPath.value = v}/>
-                    </p>
-                    <p class="control">
-                        <button class="button is-small is-info" onClick={selectCustomPath}><i class="fa fa-folder-open mr-1"/>选择文件夹…</button>
-                    </p>
-                    {errorMessage.value && <p class="helper is-danger">{errorMessage.value}</p>}
+                <div class="group mt-5">
+                    <Input class="fullwidth" value={customFolderPath.value} onUpdateValue={v => customFolderPath.value = v}/>
+                    <button class="button is-info" onClick={selectCustomPath}><i class="fa fa-folder-open mr-1"/>选择文件夹…</button>
                 </div>
+                {errorMessage.value && <p class="helper is-danger">{errorMessage.value}</p>}
                 <div class="is-size-7"><a onClick={() => isCustom.value = false}>在默认位置保存数据库</a></div>
             </> : <>
-                    <div class="field mt-2">
+                    <div class="mt-2">
                         <label class="label">数据库名称</label>
-                        <Input class={{"is-small": true, "is-danger": !!errorMessage.value}} value={folderInAppData.value} onUpdateValue={v => folderInAppData.value = v}/>
+                        <Input class={{"is-danger": !!errorMessage.value}} value={folderInAppData.value} onUpdateValue={v => folderInAppData.value = v}/>
                         {errorMessage.value && <p class="helper is-danger">{errorMessage.value}</p>}
                     </div>
-                    {/* TODO 添加dialog */}
                     <p class="is-size-7"><a onClick={() => isCustom.value = true}>在自定义位置保存数据库</a></p>
             </>}
             <div class={style.bottom}>
-                <button class="button is-link is-light absolute left-bottom" onClick={context.page.prev}><i class="fa fa-arrow-left mr-2"/>上一步</button>
-                <button class="button is-link absolute right-bottom" onClick={next}>下一步<i class="fa fa-arrow-right ml-2"/></button>
+                <button class="button is-medium is-link is-light absolute left-bottom" onClick={context.page.prev}><i class="fa fa-arrow-left mr-2"/>上一步</button>
+                <button class="button is-medium is-link absolute right-bottom" onClick={next}>下一步<i class="fa fa-arrow-right ml-2"/></button>
             </div>
         </>
     }

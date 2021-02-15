@@ -15,9 +15,9 @@ export default defineComponent({
 
         const context = inject(InitContextInjection)!
 
-        const status = ref<"loading" | "data" | "resource" | "starting" | "server" | "finished">("loading")
+        const status = ref<"loading" | "data" | "resource" | "starting" | "server" | "finished">("finished")
 
-        const next = () => { router.push({name: "HedgeIndex"}) }
+        const next = () => router.push({name: "MainIndex"})
 
         onMounted(async () => {
             if(appInfo.clientMode) {
@@ -43,13 +43,13 @@ export default defineComponent({
         })
 
         return () => status.value === "finished"? <>
-            <h2 class="is-size-5 mb-2">完成</h2> 
+            <h2 class="is-size-4 mb-2">完成</h2>
             <div class="has-text-centered absolute center">
                 <i class="fa fa-3x fa-check mb-4"/>
                 <div>初始化已完成。点击继续开始使用。</div>
             </div>
             <div class={style.bottom}>
-                <button class="button is-link absolute right-bottom" onClick={next}>继续<i class="fa fa-hand-peace ml-2"/></button>
+                <button class="button is-medium is-link absolute right-bottom" onClick={next}>继续<i class="fa fa-hand-peace ml-2"/></button>
             </div>
         </> : <div class="has-text-centered absolute center">
             <span class="icon"><i class="fa fa-3x fa-code-branch"/></span>

@@ -1,8 +1,11 @@
+@import '@/styles/base/size.sass';
+
 .root {
+    font-size: $font-size-medium;
     //对话框区域
     > .dialog {
-        height: 500px;
-        width: 425px;
+        height: 31.25rem;
+        width: 25rem;
         //底部按钮区域
         > .bottom {
             position: absolute;

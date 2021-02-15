@@ -4,6 +4,7 @@
 a
   text-decoration: none
   color: $link
+  cursor: pointer
   &:hover
     color: toLightenColor($link, 10%)
 
@@ -29,13 +30,13 @@ button
   outline: none
 
 .button
-  font-size: $font-size-std
+  font-size: $font-size-7
   height: $height-std
   padding: 0 1rem
   border-radius: $radius-size-std
   background-color: $side-grey
 
-  $button-size-map: ("small" ($font-size-small, $height-small, 0.8rem), "medium" ($font-size-medium, $height-medium, 1.15rem))
+  $button-size-map: ("small" ($font-size-8, $height-small, 0.8rem), "medium" ($font-size-6, $height-medium, 1.15rem))
 
   &:hover
     background-color: toDarkenColor($side-grey, 5%)
@@ -85,13 +86,8 @@ button
           background-color: $color-light
           color: $color-dark
           &:hover
-            background-color: toDarkenColor($color-light, 5%)
+            background-color: toDarkenColor($color-light, 2.5%)
             color: $color-dark
           &:active
-            background-color: toDarkenColor($color-light, 7.5%)
+            background-color: toDarkenColor($color-light, 5%)
             color: $color-dark
-
-.buttons
-  > .button
-    margin-right: $spacing-2
-    margin-bottom: $spacing-2

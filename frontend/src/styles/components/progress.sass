@@ -1,0 +1,49 @@
+@import "../base/size"
+@import "../base/color"
+
+.progress
+  border-radius: $radius-size-circle
+  border: none
+  display: block
+  overflow: hidden
+  height: $font-size-large
+  width: 100%
+  padding: 0
+
+  $width-map: ("8" 8rem, "9" 9rem, "10" 10rem, "11" 11rem)
+
+  @each $name, $pair in $colors
+    $color: nth($pair, 1)
+    &.is-#{$name}
+      &::-webkit-progress-value
+        background-color: $color
+      &:indeterminate
+        background-image: linear-gradient(to right, $color 30%, $light 30%)
+  &:indeterminate
+    animation-duration: 1.5s
+    animation-iteration-count: infinite
+    animation-name: moveIndeterminate
+    animation-timing-function: linear
+    background-color: $light
+    background-image: linear-gradient(to right, $black 30%, $light 30%)
+    background-position: top left
+    background-repeat: no-repeat
+    background-size: 150% 150%
+    &::-webkit-progress-bar
+      background-color: transparent
+    &::-moz-progress-bar
+      background-color: transparent
+    &::-ms-fill
+      animation-name: none
+  @each $name, $size in $font-size-name
+    &.is-#{$name}
+      height: $size
+  @each $name, $size in $width-map
+    &.is-width-#{$name}
+      width: $size
+
+@keyframes moveIndeterminate
+  from
+    background-position: 200% 0
+  to
+    background-position: -200% 0

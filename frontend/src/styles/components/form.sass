@@ -1,0 +1,18 @@
+@import "../base/size"
+@import "../base/color"
+
+.help
+  display: block
+  margin-top: $spacing-1
+  font-size: $font-size-7
+  @each $name, $pair in $colors
+    $color: nth($pair, 1)
+    &.is-#{$name}
+      color: $color
+
+.label
+  color: $black
+  display: block
+  font-weight: 700
+  &:not(:last-child)
+    margin-bottom: $spacing-1

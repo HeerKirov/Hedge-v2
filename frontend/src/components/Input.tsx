@@ -1,4 +1,4 @@
-import { defineComponent, ref, toRef, watch } from "vue"
+import { defineComponent, onMounted, ref, toRef, watch } from "vue"
 
 export default defineComponent({
     props: {
@@ -9,6 +9,10 @@ export default defineComponent({
         },
         placeholder: String,
         refreshOnInput: {
+            type: Boolean,
+            default: false
+        },
+        focusOnMounted: {
             type: Boolean,
             default: false
         }
@@ -25,9 +29,20 @@ export default defineComponent({
             emit('updateValue', value.value)
         }
 
-        return () => {
-            const events = {[props.refreshOnInput ? "onInput" : "onChange"]: onUpdate}
-            return <input class="input" type={type.value} value={value.value} {...events} placeholder={props.placeholder}/>
+        if(props.focusOnMounted) {
+            const dom = ref<HTMLInputElement>()
+
+            onMounted(() => dom.value?.focus())
+
+            return () => {
+                const events = {[props.refreshOnInput ? "onInput" : "onChange"]: onUpdate}
+                return <input ref={dom} class="input" type={type.value} value={value.value} {...events} placeholder={props.placeholder}/>
+            }
+        }else{
+            return () => {
+                const events = {[props.refreshOnInput ? "onInput" : "onChange"]: onUpdate}
+                return <input class="input" type={type.value} value={value.value} {...events} placeholder={props.placeholder}/>
+            }
         }
     }
 })

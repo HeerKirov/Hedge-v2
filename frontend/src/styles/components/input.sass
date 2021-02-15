@@ -12,19 +12,35 @@ input
   text-align: start
   justify-content: flex-start
   -webkit-rtl-ordering: logical
+  box-sizing: border-box
   outline: none
 
 .input
   align-items: center
   display: inline-flex
-  font-size: $font-size-std
+  font-size: $font-size-7
   line-height: 1.2
-  padding: calc(0.5rem - 1px) calc(0.75rem - 1px)
+  height: $height-std
+  padding: 0 calc(0.6rem - 1px)
   border: 1px solid $dark-side-grey
   border-radius: $radius-size-std
 
+  $input-size-map: ("small" ($font-size-8, $height-small), "medium" ($font-size-6, $height-medium))
+
   &:focus
-    border-width: 2px
+    box-shadow: 0 0 3px $dark-side-grey
   &.fullwidth
     max-width: 100%
     width: 100%
+  @each $name, $pair in $input-size-map
+    $font-size: nth($pair, 1)
+    $height: nth($pair, 2)
+    &.is-#{$name}
+      font-size: $font-size
+      height: $height
+  @each $name, $pair in $colors
+    $color: nth($pair, 1)
+    &.is-#{$name}
+      border-color: $color
+      &:focus
+        box-shadow: 0 0 2px $color

@@ -1,4 +1,4 @@
-import { defineComponent, inject, ref } from "vue"
+import { defineComponent, inject } from "vue"
 import { InitContextInjection } from "./inject"
 import style from "./style.module.scss"
 
@@ -7,12 +7,12 @@ export default defineComponent({
         const context = inject(InitContextInjection)!
 
         return () => <>
-            <h2 class="is-size-5 mb-2">完成</h2>
+            <h2 class="is-size-4 mb-2">完成</h2>
             <p>必要的配置已选择。</p>
-            <div class="notification py-2 px-3 mt-2 mb-1">
+            <div class="block py-2 px-3 mt-2 mb-1">
                 口令: {context.password.hasPassword ? "已使用口令" : "未使用口令"}
             </div>
-            <div class="notification py-2 px-3 mb-3">
+            <div class="block py-2 px-3 mb-3">
                 数据库: {context.db.custom ? <code>{context.db.customFolderPath}</code> : context.db.folderInAppData}
             </div>
             <p>接下来将:</p>
@@ -20,8 +20,8 @@ export default defineComponent({
             <p>2. 部署App核心服务资源。这会稍微多花一点时间。</p>
             
             <div class={style.bottom}>
-                <button class="button is-link is-light absolute left-bottom" onClick={context.page.prev}><i class="fa fa-arrow-left mr-2"/>上一步</button>
-                <button class="button is-link absolute right-bottom" onClick={context.page.next}>确认<i class="fa fa-arrow-right ml-2"/></button>
+                <button class="button is-medium is-link is-light absolute left-bottom" onClick={context.page.prev}><i class="fa fa-arrow-left mr-2"/>上一步</button>
+                <button class="button is-medium is-link absolute right-bottom" onClick={context.page.next}>确认<i class="fa fa-arrow-right ml-2"/></button>
             </div>
         </>
     }
