@@ -1,6 +1,5 @@
-@import "../variable"
-@import "../base/color.scss"
-@import "../base/size"
+@import "../base/color.sass"
+@import "../base/size.sass"
 
 a
   text-decoration: none
@@ -34,15 +33,14 @@ button
   height: $height-std
   padding: 0 1rem
   border-radius: $radius-size-std
-  color: $font-color-std
-  background-color: $background-color-side
+  background-color: $side-grey
 
   $button-size-map: ("small" ($font-size-small, $height-small, 0.8rem), "medium" ($font-size-medium, $height-medium, 1.15rem))
 
   &:hover
-    background-color: toDarkenColor($background-color-side, 5%)
+    background-color: toDarkenColor($side-grey, 5%)
   &:active
-    background-color: toDarkenColor($background-color-side, 7.5%)
+    background-color: toDarkenColor($side-grey, 7.5%)
   &.icon
     width: $height-std
     padding: 0

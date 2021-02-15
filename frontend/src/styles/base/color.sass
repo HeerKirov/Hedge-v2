@@ -1,0 +1,60 @@
+@import 'functions.sass'
+/**
+ * 原色的基本定义。
+ */
+
+$white: hsl(0, 0%, 100%)
+$black: hsl(0, 0%, 4%)
+$light: hsl(0, 0%, 96%)
+$dark: hsl(0, 0%, 21%)
+$primary: hsl(171, 100%, 41%)
+$success: hsl(153, 53%, 53%)
+$info: hsl(207, 61%, 53%)
+$link: hsl(229, 53%, 53%)
+$warning: hsl(44, 100%, 77%)
+$danger: hsl(348, 86%, 61%)
+$orange: hsl(14, 100%, 53%)
+$purple: hsl(271, 100%, 71%)
+$pink: #FA7C91
+$brown: #757763
+$side-grey: #e9e9e9
+$dark-side-grey: #dedede
+
+$light-invert: findColorInvert($light)
+$dark-invert: findColorInvert($dark)
+$side-grey-invert: findColorInvert($side-grey)
+$dark-side-grey-invert: findColorInvert($dark-side-grey)
+$primary-invert: findColorInvert($primary)
+$success-invert: findColorInvert($success)
+$info-invert: findColorInvert($info)
+$link-invert: findColorInvert($link)
+$warning-invert: findColorInvert($warning)
+$danger-invert: findColorInvert($danger)
+$orange-invert: findColorInvert($orange)
+$purple-invert: findColorInvert($purple)
+$pink-invert: findColorInvert($pink)
+$brown-invert: findColorInvert($brown)
+
+$primary-light: findLightColor($primary)
+$success-light: findLightColor($success)
+$info-light: findLightColor($info)
+$link-light: findLightColor($link)
+$warning-light: findLightColor($warning)
+$danger-light: findLightColor($danger)
+$orange-light: findLightColor($orange)
+$purple-light: findLightColor($purple)
+$pink-light: findLightColor($pink)
+$brown-light: findLightColor($brown)
+
+$primary-dark: findDarkColor($primary)
+$success-dark: findDarkColor($success)
+$info-dark: findDarkColor($info)
+$link-dark: findDarkColor($link)
+$warning-dark: findDarkColor($warning)
+$danger-dark: findDarkColor($danger)
+$orange-dark: findDarkColor($orange)
+$purple-dark: findDarkColor($purple)
+$pink-dark: findDarkColor($pink)
+$brown-dark: findDarkColor($brown)
+
+$colors: ("white" ($white, $black), "black" ($black, $white), "light" ($light, $light-invert), "dark" ($dark, $dark-invert), "side-grey" ($side-grey, $side-grey-invert), "dark-side-grey" ($dark-side-grey, $dark-side-grey-invert), "primary" ($primary, $primary-invert, $primary-light, $primary-dark), "link" ($link, $link-invert, $link-light, $link-dark), "info" ($info, $info-invert, $info-light, $info-dark), "success" ($success, $success-invert, $success-light, $success-dark), "warning" ($warning, $warning-invert, $warning-light, $warning-dark), "danger" ($danger, $danger-invert, $danger-light, $danger-dark), "purple" ($purple, $purple-invert, $purple-light, $purple-dark), "pink" ($pink, $pink-invert, $pink-light, $pink-dark), "brown" ($brown, $brown-invert, $brown-light, $brown-dark))
