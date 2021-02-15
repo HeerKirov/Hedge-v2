@@ -20,9 +20,9 @@ export default defineComponent({
             </div>
             <div class={style.buttons}>
                 {slots.bottom?.() ?? <div class="buttons">
-                    <button class="button is-small is-light mb-0 mr-1"><span class="icon"><i class="fa fa-cog"/></span></button>
-                    <button class="button is-small is-light mb-0 mr-1"><span class="icon"><i class="fa fa-question-circle"/></span></button>
-                    <button class="button is-small is-light mb-0 mr-0"><span class="icon mr-1"><i class="fa fa-clipboard"/></span>777</button>
+                    <button class="button is-small is-light mb-0 mr-1 radius-large"><span class="icon"><i class="fa fa-cog"/></span></button>
+                    <button class="button is-small is-light mb-0 mr-1 radius-large"><span class="icon"><i class="fa fa-question-circle"/></span></button>
+                    <button class="button is-small is-light mb-0 mr-0 radius-large"><span class="icon mr-1"><i class="fa fa-clipboard"/></span>777</button>
                     {/*剪贴板会在存在内容时浮现出来，并提示内容数量。点击剪贴板按钮会弹出一个modal浏览剪贴板内的项目内容，并且可以简单编辑内容列表，比如移除一些项 */}
                 </div>}
             </div>

@@ -1,0 +1,30 @@
+@import "../variable"
+@import "../base/size"
+
+input
+  -webkit-writing-mode: horizontal-tb !important
+  text-rendering: auto
+  letter-spacing: normal
+  word-spacing: normal
+  text-transform: none
+  text-indent: 0
+  text-shadow: none
+  text-align: start
+  justify-content: flex-start
+  -webkit-rtl-ordering: logical
+  outline: none
+
+.input
+  align-items: center
+  display: inline-flex
+  font-size: $font-size-std
+  line-height: 1.2
+  padding: calc(0.5rem - 1px) calc(0.75rem - 1px)
+  border: 1px solid $border-color-side
+  border-radius: $radius-size-std
+
+  &:focus
+    border-width: 2px
+  &.fullwidth
+    max-width: 100%
+    width: 100%

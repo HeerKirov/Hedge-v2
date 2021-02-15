@@ -21,7 +21,7 @@ export default defineComponent({
             <div class="middle">
                 <div class="field is-grouped">
                     <p class="control mr-2">
-                        <button class="button no-drag is-small rounded-50" onClick={changeQueryInCollection}>
+                        <button class="button no-drag is-small radius-circle" onClick={changeQueryInCollection}>
                             <span class="icon"><i class={`fa fa-lg fa-${queryInCollection.value ? "images" : "file-image"}`}/></span>
                         </button>
                     </p>

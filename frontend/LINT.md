@@ -91,7 +91,7 @@ components/
 工具样式则以更松耦合的样式提供工具styles。它们使用普通的`SCSS`导入解决方案，全局可用。  
 工具样式有这么几类：
 * 外部框架的UI样式，`bulma`和`font-awesome`。这些样式奠定基本的视觉效果。
-* 全局覆盖的样式，`App.scss`，它提供应用程序需要全局覆盖的样式。
+* 全局覆盖的样式，`App.sass`，它提供应用程序需要全局覆盖的样式。
 * 全局变量，`variable.scss`，它提供应用程序需要全局统一的导入变量。
 * 全局模板，`template.scss`，它提供应用程序经常需要复用的样式表。
 * 工具类，将一些style编写为原子类，提供组合实现。
@@ -105,18 +105,19 @@ components/
 ```
 styles/
     index.ts        -- 公共import文件
-    bulma/          -- bulma相关的外部导入样式
-        bulma.scss          -- 有选择地导入bulma样式
-        color.scss          -- 自定义的bulma颜色样式
+    base/           -- 定义全局变量和函数等
+        functions.sass      -- 工具函数
+        color.scss          -- 全局颜色定义表
+        size.scss           -- 全局尺寸定义表
     components/     -- 自定义的组件样式
         ...                 -- 每个文件定义一个组件样式
+    layouts/        -- 自定义的布局样式
+        ...                 -- 每个文件定义一种布局
     utils/          -- 自定义的工具样式
-        format.scss         -- 文本和显示格式相关的样式
         layout.scss         -- 元素布局相关的样式
         display.scss        -- 元素外观和显示相关的样式
-    template.scss   -- 全局模板定义
     variable.scss   -- App相关的全局的变量定义
-    App.scss        -- App的全局样式
+    App.sass        -- App相关的全局工具样式
 ```
 #### components
 这里定义一些具有组件特征的样式，类似bulma的组件，这些样式应用给元素后表现出某些强烈的功能和布局特征，而不具有工具和微调性。  

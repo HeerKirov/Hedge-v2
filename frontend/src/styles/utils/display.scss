@@ -1,7 +1,22 @@
-.rounded-50 {
-    border-radius: 50% !important;
+/**
+ * 与元素显示效果相关的CSS原子类。
+ */
+
+//圆角大小
+.radius-circle { border-radius: 50% !important }
+
+//透明度
+.opacity-80 { opacity: 80% }
+
+//文本不换行功能
+.no-wrap {
+  white-space: nowrap;
+
+  &.overflow-ellipsis {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 }
 
-.opacity-80 {
-    opacity: 80%;
-}
+//@deprecated 废弃这个原子类
+.line-height-24 { line-height: 24px; }

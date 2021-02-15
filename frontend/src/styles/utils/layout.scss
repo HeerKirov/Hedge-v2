@@ -1,10 +1,17 @@
+/**
+ * 与元素布局相关的CSS原子类。
+ */
 
+//全局绝对布局
+//@deprecated 样式设计需要更新。现在的设计较为原始
 .fixed {
     position: fixed !important;
     &.center { left: 50%; top: 50%; transform: translate(-50%, -50%); }
     &.top { top: 0; left: 50%; transform: translateX(-50%); }
 }
 
+//相对布局
+//@deprecated
 .absolute {
     position: absolute !important;
     &.top { top: 0; }

@@ -1,0 +1,99 @@
+@import "../variable"
+@import "../base/color.scss"
+@import "../base/size"
+
+a
+  text-decoration: none
+  color: $link
+  &:hover
+    color: toLightenColor($link, 10%)
+
+button
+  appearance: auto
+  -webkit-writing-mode: horizontal-tb !important
+  border-style: outset
+  border-image: initial
+  border-color: transparent
+  border-width: 0
+  word-spacing: normal
+  letter-spacing: normal
+  text-rendering: auto
+  text-transform: none
+  text-indent: 0
+  text-shadow: none
+  text-align: center
+  justify-content: center
+  white-space: nowrap
+  align-items: flex-start
+  display: inline-block
+  box-sizing: border-box
+  outline: none
+
+.button
+  font-size: $font-size-std
+  height: $height-std
+  padding: 0 1rem
+  border-radius: $radius-size-std
+  color: $font-color-std
+  background-color: $background-color-side
+
+  $button-size-map: ("small" ($font-size-small, $height-small, 0.8rem), "medium" ($font-size-medium, $height-medium, 1.15rem))
+
+  &:hover
+    background-color: toDarkenColor($background-color-side, 5%)
+  &:active
+    background-color: toDarkenColor($background-color-side, 7.5%)
+  &.icon
+    width: $height-std
+    padding: 0
+  @each $name, $radius-size in $radius-size-map
+    &.radius-#{$name}
+      border-radius: $radius-size
+  &.no-radius-left
+    border-top-left-radius: 0
+    border-bottom-left-radius: 0
+  &.no-radius-right
+    border-top-right-radius: 0
+    border-bottom-right-radius: 0
+  @each $name, $pair in $button-size-map
+    $font-size: nth($pair, 1)
+    $height: nth($pair, 2)
+    $px: nth($pair, 3)
+    &.is-#{$name}
+      font-size: $font-size
+      height: $height
+      padding: 0 #{$px}
+      &.icon
+        width: $height
+  @each $name, $pair in $colors
+    $color: nth($pair, 1)
+    $color-invert: nth($pair, 2)
+    &.is-#{$name}
+      background-color: $color
+      color: $color-invert
+      &:hover
+        background-color: toDarkenColor($color, 5%)
+        color: $color-invert
+      &:active
+        background-color: toDarkenColor($color, 7.5%)
+        color: $color-invert
+      &[disabled]
+        background-color: $color
+        box-shadow: none
+      @if length($pair) >= 4
+        $color-light: nth($pair, 3)
+        $color-dark: nth($pair, 4)
+        &.is-light
+          background-color: $color-light
+          color: $color-dark
+          &:hover
+            background-color: toDarkenColor($color-light, 5%)
+            color: $color-dark
+          &:active
+            background-color: toDarkenColor($color-light, 7.5%)
+            color: $color-dark
+
+.buttons
+  > .button
+    margin-right: $spacing-2
+    margin-bottom: $spacing-2

@@ -1,7 +1,7 @@
 @import '@/styles/variable.scss';
 
 .root {
-    .content {
+    .setting-content {
         height: 100%;
         > .scroll-content {
             max-height: 100%;
@@ -12,14 +12,14 @@
 }
 
 .side-bar {
-    background-color: $dark-side-background-color;
-    border-right: solid 1px $dark-side-border-color;
+    background-color: $background-color-side-dark;
+    border-right: solid 1px $border-color-side-dark;
     position: absolute;
     left: 0; top: 0; height: 100%; width: 100%;
 
     //侧边栏主要内容区域的menu
     > .content {
-        padding: $small-title-bar-height 0.75rem 0.75rem 0.75rem;
+        padding: $title-bar-height-small 0.75rem 0.75rem 0.75rem;
         overflow-y: auto;
         height: 100%;
     }

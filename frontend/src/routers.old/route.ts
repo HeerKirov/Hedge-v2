@@ -4,7 +4,7 @@ export default <RouteRecordRaw[]>[
     {
         name: 'Index',
         path: '/',
-        component: () => import('@/views/NotFound'),
+        component: () => import('@/views.old/Index'),
         meta: {
             title: "Hedge"
         }
@@ -12,7 +12,7 @@ export default <RouteRecordRaw[]>[
     {
         name: 'Init',
         path: '/init',
-        component: () => import('@/views/NotFound'),
+        component: () => import('@/views.old/Init'),
         meta: {
             title: "Hedge初始化向导"
         }
@@ -20,7 +20,7 @@ export default <RouteRecordRaw[]>[
     {
         name: 'Login',
         path: '/login',
-        component: () => import('@/views/NotFound'),
+        component: () => import('@/views.old/Login'),
         meta: {
             title: "Hedge"
         }
