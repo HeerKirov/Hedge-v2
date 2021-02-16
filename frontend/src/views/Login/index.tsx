@@ -55,7 +55,7 @@ export default defineComponent({
                 :
                     <div class="group">
                         <Input class={{"has-text-centered": true, "is-danger": passwordWrong.value}} type="password" focusOnMounted={true} refreshOnInput={true} value={password.value} onUpdateValue={v => password.value = v} onKeydown={enter}/>
-                        <button class="icon button is-success" onClick={doLogin}><span class="icon"><i class="fa fa-check"/></span></button>
+                        <button class="square button is-success" onClick={doLogin}><span class="icon"><i class="fa fa-check"/></span></button>
                     </div>
                 }
             </div>

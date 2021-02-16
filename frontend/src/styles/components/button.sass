@@ -35,14 +35,16 @@ button
   padding: 0 1rem
   border-radius: $radius-size-std
   background-color: $side-grey
+  vertical-align: top
+  line-height: 1.2
 
-  $button-size-map: ("small" ($font-size-8, $height-small, 0.8rem), "medium" ($font-size-6, $height-medium, 1.15rem))
+  $button-size-map: ("small" ($font-size-8, $height-small, 0.8rem), "medium" ($font-size-6, $height-medium, 1.1rem))
 
   &:hover
     background-color: toDarkenColor($side-grey, 5%)
   &:active
     background-color: toDarkenColor($side-grey, 7.5%)
-  &.icon
+  &.square
     width: $height-std
     padding: 0
   @each $name, $radius-size in $radius-size-map
@@ -62,7 +64,7 @@ button
       font-size: $font-size
       height: $height
       padding: 0 #{$px}
-      &.icon
+      &.square
         width: $height
   @each $name, $pair in $colors
     $color: nth($pair, 1)

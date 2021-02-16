@@ -49,7 +49,7 @@ export default defineComponent({
                 <div>初始化已完成。点击继续开始使用。</div>
             </div>
             <div class={style.bottom}>
-                <button class="button is-medium is-link absolute right-bottom" onClick={next}>继续<i class="fa fa-hand-peace ml-2"/></button>
+                <button class="button is-medium is-link absolute right-bottom" onClick={next}>继续<span class="icon"><i class="fa fa-check"/></span></button>
             </div>
         </> : <div class="has-text-centered absolute center">
             <span class="icon"><i class="fa fa-3x fa-code-branch"/></span>

@@ -1,0 +1,16 @@
+@import "../base/size"
+
+//图标
+.icon
+  align-items: center
+  //对font awesome的修正
+  > .fa-lg
+    vertical-align: -0.1em
+
+.button
+  .icon:first-child:not(:last-child)
+    margin-left: -0.15rem
+    margin-right: $spacing-1
+  .icon:last-child:not(:first-child)
+    margin-left: $spacing-1
+    margin-right: -0.15rem

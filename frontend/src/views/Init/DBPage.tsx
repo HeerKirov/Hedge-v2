@@ -60,8 +60,8 @@ export default defineComponent({
                     <p class="is-size-7"><a onClick={() => isCustom.value = true}>在自定义位置保存数据库</a></p>
             </>}
             <div class={style.bottom}>
-                <button class="button is-medium is-link is-light absolute left-bottom" onClick={context.page.prev}><i class="fa fa-arrow-left mr-2"/>上一步</button>
-                <button class="button is-medium is-link absolute right-bottom" onClick={next}>下一步<i class="fa fa-arrow-right ml-2"/></button>
+                <button class="button is-medium is-link is-light absolute left-bottom" onClick={context.page.prev}><span class="icon"><i class="fa fa-arrow-left"/></span><span>上一步</span></button>
+                <button class="button is-medium is-link absolute right-bottom" onClick={next}><span>下一步</span><span class="icon"><i class="fa fa-arrow-right"/></span></button>
             </div>
         </>
     }

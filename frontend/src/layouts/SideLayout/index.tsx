@@ -1,8 +1,18 @@
-import { defineComponent, inject, InjectionKey, KeepAlive, onUnmounted, ref, Ref, Transition } from "vue"
+import { defineComponent, inject, InjectionKey, onUnmounted, ref, Ref } from "vue"
 import style from "./style.module.scss"
+import SideBar from "./SideBar"
+import TopBar from "./TopBar"
 
+export { SideBar, TopBar }
+
+/**
+ * 控制sideLayout的侧边栏开关。是可选的依赖属性，如果该属性不存在，就会在sideLayout内维护此属性。
+ */
 export const sideBarSwitchInjection: InjectionKey<Ref<boolean>> = Symbol()
 
+/**
+ * 控制sideLayout的侧边栏当前宽度。是可选的依赖属性，如果该属性不存在，就会在sideLayout内维护此属性。
+ */
 export const sideBarWidthInjection: InjectionKey<Ref<number>> = Symbol()
 
 /**

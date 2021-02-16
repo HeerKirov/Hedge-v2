@@ -20,8 +20,8 @@ export default defineComponent({
             <p>2. 部署App核心服务资源。这会稍微多花一点时间。</p>
             
             <div class={style.bottom}>
-                <button class="button is-medium is-link is-light absolute left-bottom" onClick={context.page.prev}><i class="fa fa-arrow-left mr-2"/>上一步</button>
-                <button class="button is-medium is-link absolute right-bottom" onClick={context.page.next}>确认<i class="fa fa-arrow-right ml-2"/></button>
+                <button class="button is-medium is-link is-light absolute left-bottom" onClick={context.page.prev}><span class="icon"><i class="fa fa-arrow-left"/></span><span>上一步</span></button>
+                <button class="button is-medium is-link absolute right-bottom" onClick={context.page.next}><span>确认</span><span class="icon"><i class="fa fa-arrow-right"/></span></button>
             </div>
         </>
     }
