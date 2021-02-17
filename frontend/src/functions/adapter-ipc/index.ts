@@ -1,12 +1,21 @@
 import { clientMode, createRemoteClientAdapter } from "./client"
-import { createIPCService } from "./impl"
+import { createIpcService } from "./impl"
 import type { RemoteClientAdapter } from "./client"
-import type { IPCService } from "./definition"
+import type { IpcService } from "./definition"
 
 export { 
     clientMode, 
-    IPCService,
-    RemoteClientAdapter,
-    createRemoteClientAdapter, 
-    createIPCService
+    IpcService,
+    RemoteClientAdapter
+}
+
+let remoteClient: RemoteClientAdapter|undefined = undefined
+let ipcService: IpcService|undefined = undefined
+
+export function getRemoteClient(): RemoteClientAdapter {
+    return remoteClient || (remoteClient = createRemoteClientAdapter())
+}
+
+export function getIpcService(): IpcService {
+    return ipcService || (ipcService = createIpcService())
 }

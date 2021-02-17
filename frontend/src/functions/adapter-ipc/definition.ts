@@ -1,7 +1,7 @@
 /**
  * client ipc暴露的方法组。
  */
-export interface IPCService {
+export interface IpcService {
     app: {
         env(): AppEnvResponse
         status(): AppStatusResponse
@@ -36,6 +36,11 @@ export interface IPCService {
             setDefault(form: SettingChannelForm): Promise<void>
             change(form: SettingChannelForm): void
         }
+    }
+    window: {
+        openNewWindow(form?: NewWindowForm): Promise<void>
+        openSetting(): Promise<void>
+        openGuide(): Promise<void>
     }
 }
 
@@ -111,6 +116,13 @@ export interface SettingAuthResponse {
 
 export interface SettingChannelListResponse {
     channels: string[]
+}
+
+//== window ==
+
+export interface NewWindowForm {
+    routeName?: string
+    routeParam?: string
 }
 
 //== action ==

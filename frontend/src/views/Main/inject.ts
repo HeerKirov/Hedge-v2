@@ -1,4 +1,4 @@
-import { InjectionKey, reactive, readonly, ref } from "vue"
+import { InjectionKey, reactive, readonly } from "vue"
 import { useRoute } from "vue-router"
 
 export const SideBarContextInjection: InjectionKey<SideBarContext> = Symbol()

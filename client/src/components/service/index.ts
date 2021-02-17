@@ -45,6 +45,11 @@ export interface Service {
             change(form: SettingChannelForm): void
         }
     }
+    window: {
+        openNewWindow(form?: NewWindowForm): Promise<void>
+        openSetting(): Promise<void>
+        openGuide(): Promise<void>
+    }
 }
 
 //== app ==
@@ -110,6 +115,13 @@ export interface SettingAuthResponse {
 
 export interface SettingChannelListResponse {
     channels: string[]
+}
+
+//== window ==
+
+export interface NewWindowForm {
+    routeName?: string
+    routeParam?: string
 }
 
 //== action ==

@@ -3,12 +3,12 @@ import { RouterView } from "vue-router"
 import SideLayout from "@/layouts/SideLayout"
 import SideBar from "../SideBar"
 import SideBarContent from "./SideBarContent"
-import { SideBarContextInjection, useSideBarContext } from "./inject"
+import { SideBarContextInjection, useSideBarContextInjection } from "./inject"
 import style from "./style.module.scss"
 
 export default defineComponent({
     setup() {
-        provide(SideBarContextInjection, useSideBarContext())
+        provide(SideBarContextInjection, useSideBarContextInjection())
 
         return () => <div class={style.root}>
             <SideLayout v-slots={{side: () => <SideBar><SideBarContent/></SideBar>}}>

@@ -1,10 +1,10 @@
 import { ipcInvoke, ipcInvokeSync } from "./client"
-import { IPCService } from "./definition"
+import { IpcService } from "./definition"
 
 const invoke = <T, R>(channel: string) => (form?: T): Promise<R> => ipcInvoke(channel, form)
 const invokeSync = <T, R>(channel: string) => (form?: T): R => ipcInvokeSync(channel, form)
 
-export function createIPCService(): IPCService {
+export function createIpcService(): IpcService {
     return {
         app: {
             env: invokeSync("/app/env"),
@@ -41,5 +41,10 @@ export function createIPCService(): IPCService {
                 change: invokeSync("/setting/channel/change")
             }
         },
+        window: {
+            openNewWindow: invoke("/window/new-window"),
+            openSetting: invoke("/window/open-setting"),
+            openGuide: invoke("/window/open-guide")
+        }
     }
 }

@@ -12,24 +12,21 @@ export default defineComponent({
 
         const routeName = toRef(route, 'name')
 
-        return () => <div class={style.sideBar}>
-            <div class="title-bar absolute left-top w-100"></div>
-            <div class={style.content}>
-                <p class="is-size-5 mt-2 ml-1">设置</p>
-                <aside class="v-menu mt-2">
-                    {settings.map(scope => <>
-                        <span class="menu-label">{scope.label}</span>
-                        <ul class="menu-list">
-                            {scope.list.map(item => <li>
-                                <a class={{"is-active": routeName.value === item.route}} onClick={() => router.push({name: item.route})}>
-                                    <span class="icon"><i class={`fa fa-${item.icon}`}/></span>{item.name}
-                                </a>
-                            </li>)}
-                        </ul>
-                    </>)}
-                </aside>
-            </div>
-        </div>
+        return () => <>
+            <p class="is-size-4">设置</p>
+            <aside class="menu deep">
+                {settings.map(scope => <>
+                    <span class="menu-label">{scope.label}</span>
+                    <ul class="menu-list">
+                        {scope.list.map(item => <li>
+                            <a class={{"is-active": routeName.value === item.route}} onClick={() => router.push({name: item.route})}>
+                                <span class="icon"><i class={`fa fa-${item.icon}`}/></span><span>{item.name}</span>
+                            </a>
+                        </li>)}
+                    </ul>
+                </>)}
+            </aside>
+        </>
     }
 })
 

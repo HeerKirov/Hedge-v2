@@ -1,17 +1,17 @@
 import { inject, InjectionKey, readonly, ref, Ref } from "vue"
-import { AppDataStatus, IPCService } from "../adapter-ipc/definition"
+import { AppDataStatus, IpcService } from "../adapter-ipc/definition"
 import { APIService, HttpInstance } from "../adapter-http"
 import { RemoteClientAdapter } from "../adapter-ipc"
 import { AppInfo } from "./app-info"
 import { useLocalStorage } from "./storage"
 
-export function useAppStateInjection(clientMode: boolean, remote: RemoteClientAdapter, ipc: IPCService, api: APIService, httpInstance: HttpInstance, appInfo: AppInfo): AppState {
+export function useAppStateInjection(clientMode: boolean, remote: RemoteClientAdapter, ipc: IpcService, api: APIService, httpInstance: HttpInstance, appInfo: AppInfo): AppState {
     return clientMode 
         ? useAppStateInClientMode(ipc, remote, appInfo)
         : useAppStateInWebMode(api, httpInstance, appInfo)
 }
 
-function useAppStateInClientMode(ipc: IPCService, remote: RemoteClientAdapter, appInfo: AppInfo): AppState {
+function useAppStateInClientMode(ipc: IpcService, remote: RemoteClientAdapter, appInfo: AppInfo): AppState {
     const ipcStatus = ipc.app.status()
 
     const canPromptTouchID: boolean = appInfo.canPromptTouchID && ipcStatus.status == AppDataStatus.LOADED && ipc.setting.auth.get().touchID

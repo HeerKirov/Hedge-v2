@@ -6,10 +6,11 @@ import { ServerManager } from "../server"
 import { StateManager } from "../state"
 import { Bucket } from "../bucket"
 import { Channel } from "../channel"
+import { WindowManager } from "../../application/window-manager"
 import {
     ActionResponse,
     AppInitForm,
-    AppLoginForm,
+    AppLoginForm, NewWindowForm,
     ServerInitForm,
     Service,
     SettingAuthForm,
@@ -23,7 +24,7 @@ export interface ServiceOptions {
     channel: string
 }
 
-export function createService(appdata: AppDataDriver, resource: ResourceManager, server: ServerManager, bucket: Bucket, state: StateManager, channel: Channel, options: ServiceOptions): Service {
+export function createService(appdata: AppDataDriver, resource: ResourceManager, server: ServerManager, bucket: Bucket, state: StateManager, window: WindowManager, channel: Channel, options: ServiceOptions): Service {
     return {
         app: {
             env() {
@@ -176,6 +177,17 @@ export function createService(appdata: AppDataDriver, resource: ResourceManager,
                 async setDefault(form: SettingChannelForm) {
                     await channel.setDefaultChannel(form.channel)
                 }
+            }
+        },
+        window: {
+            async openNewWindow(form?: NewWindowForm): Promise<void> {
+                window.createWindow(form?.routeName, form?.routeParam)
+            },
+            async openSetting(): Promise<void> {
+                window.openSettingWindow()
+            },
+            async openGuide(): Promise<void> {
+                window.openGuideWindow()
             }
         }
     }

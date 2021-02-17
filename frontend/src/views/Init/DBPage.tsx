@@ -1,8 +1,8 @@
 import { defineComponent, inject, ref, Ref } from "vue"
+import { dialogManager } from '@/functions/service'
 import { InitContextInjection } from "./inject"
 import Input from "@/components/Input"
 import style from "./style.module.scss"
-import { useOpenDialog } from '@/functions/service'
 
 export default defineComponent({
     setup() {
@@ -14,11 +14,8 @@ export default defineComponent({
 
         const errorMessage = ref<string>()
 
-        const dialog = useOpenDialog({
-            properties: ["openDirectory", "createDirectory"]
-        })
         const selectCustomPath = async () => {
-            const res = await dialog.open()
+            const res = await dialogManager.openDialog({properties: ["openDirectory", "createDirectory"]})
             if(res) {
                 customFolderPath.value = res[0]
             }

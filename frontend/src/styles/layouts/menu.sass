@@ -1,0 +1,65 @@
+@import "../base/size"
+@import "../base/color"
+@import "../base/functions"
+
+//纵向菜单布局，拥有分组标题和二级菜单
+.menu
+    .menu-label
+        color: $side-grey-invert
+        font-size: $font-size-std
+        letter-spacing: 0.1em
+        margin-top: $spacing-2
+        > a
+            color: inherit
+        &:not(:last-child)
+            margin-bottom: $spacing-2
+    > ul.menu-list
+        line-height: 1.25
+        list-style: none
+        a
+            cursor: default
+            border-radius: $radius-size-std
+            display: block
+            white-space: nowrap
+            overflow: hidden
+            text-overflow: ellipsis
+            > span.icon
+                display: inline-block
+                width: 1rem
+                margin-right: 0.5rem
+        > li
+            > a
+                padding: 0.5rem 0.75rem
+                font-size: 0.8rem
+            > ul
+                list-style: none
+                border-left: solid 1px #d1d1d1
+                margin: 0.25rem 0.5rem 0.75rem 1rem
+                padding-left: 0.5rem
+                > li > a
+                    padding: 0.4rem 0.75rem
+                    font-size: 0.75rem
+.menu:not(.deep)
+    a
+        &:not(.is-active)
+            background-color: $side-grey
+            color: $light-invert
+            &:hover
+                background-color: toDarkenColor($side-grey, 5%)
+        &.is-active
+            background-color: $link
+            color: $white
+            &:hover
+                background-color: toLightenColor($link, 2.5%)
+.menu.deep
+    a
+        &:not(.is-active)
+            background-color: $dark-side-grey
+            color: $light-invert
+            &:hover
+                background-color: toDarkenColor($dark-side-grey, 5%)
+        &.is-active
+            background-color: $link
+            color: $white
+            &:hover
+                background-color: toLightenColor($link, 2.5%)

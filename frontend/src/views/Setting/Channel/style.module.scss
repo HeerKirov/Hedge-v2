@@ -2,7 +2,7 @@
     .channel-item {
         display: flex;
 
-        >:global(.notification) {
+        >:global(.block) {
             padding: 0.5rem 0.75rem;
             margin-bottom: 0.5rem;
             width: 400px;

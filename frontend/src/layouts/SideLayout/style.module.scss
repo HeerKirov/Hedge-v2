@@ -32,14 +32,15 @@
     /*侧边栏的底栏按钮高度*/
     $bottom-buttons-height: 40px;
 
-    background-color: $background-color-side;
-    border-right: solid 1px $border-color-side;
-    //TODO 阴影效果需要再调整
-    //box-shadow: inset -1px 0 0.75rem rgba(10, 10, 10, 0.1);
-    box-shadow: inset -0.6rem 0px 0.5rem -0.5rem rgba(128, 128, 128, 0.1);
     position: absolute;
     left: 0; top: 0; height: 100%; width: 100%;
-
+    background-color: $background-color-side;
+    border-right: solid 1px $border-color-side;
+    box-shadow: inset -0.6rem 0px 0.5rem -0.5rem rgba(128, 128, 128, 0.1);
+    &.deep-color {
+        background-color: $background-color-side-dark;
+        border-right-color: $border-color-side-dark;
+    }
     //侧边栏顶的折叠按钮
     > .collapse-button {
         position: absolute;
@@ -64,7 +65,9 @@
         padding: 5px 0 5px 5px;
         width: 100%;
         box-sizing: border-box;
-        overflow: visible;
+        overflow-x: hidden;
+        overflow-y: hidden;
+        white-space: nowrap;
         height: $bottom-buttons-height;
         border-top: solid 1px $border-color-side;
     }

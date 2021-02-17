@@ -16,11 +16,7 @@ export interface WindowManager {
     /**
      * 创建一个承载一般业务的普通窗口。
      */
-    createWindow(): BrowserWindow | null
-    /**
-     * 创建一个轮播图片专用的窗口。
-     */
-    createDisplayWindow(/*content*/): BrowserWindow | null
+    createWindow(routeName?: string, routeParam?: any): BrowserWindow | null
     /**
      * 打开guide窗口。
      */
@@ -79,7 +75,7 @@ export function createWindowManager(state: StateManager, options: WindowManagerO
         ready = true
     }
 
-    function createWindow(): BrowserWindow | null {
+    function createWindow(routeName?: string, routeParam?: any): BrowserWindow | null {
         if(!ready || !state.isLogin()) {
             //在未登录时，只允许开启一个主要窗口。开启第二窗口只会去唤醒已有窗口。
             for (let window of getAllWindows()) {
@@ -89,14 +85,12 @@ export function createWindowManager(state: StateManager, options: WindowManagerO
                 }
             }
         }
-        return newBrowserWindow("")
-    }
-
-    function createDisplayWindow(/*content*/): BrowserWindow | null {
-        if(!ready || !state.isLogin()) {
-            return null
+        if(routeName) {
+            const param = routeParam ? `&param=${encodeURIComponent(JSON.stringify(routeParam))}` : ''
+            const hashURL = `?route=${encodeURIComponent(routeName)}${param}`
+            return newBrowserWindow(hashURL)
         }
-        return newBrowserWindow("display")
+        return newBrowserWindow("")
     }
 
     function openSettingWindow(): BrowserWindow | null {
@@ -104,7 +98,7 @@ export function createWindowManager(state: StateManager, options: WindowManagerO
             return null
         }
         if(settingWindow == null) {
-            settingWindow = newBrowserWindow('setting', {titleBarStyle: "hidden", width: 960, height: 640, fullscreenable: false})
+            settingWindow = newBrowserWindow('setting', {titleBarStyle: "hidden", width: 820, height: 640, fullscreenable: false})
             settingWindow.on("closed", () => {
                 settingWindow = null
             })
@@ -136,7 +130,6 @@ export function createWindowManager(state: StateManager, options: WindowManagerO
     return {
         load,
         createWindow,
-        createDisplayWindow,
         openGuideWindow,
         openSettingWindow,
         getAllWindows

@@ -1,7 +1,7 @@
 import { inject, InjectionKey, readonly } from "vue"
-import { ClientPlatform, IPCService } from "../adapter-ipc/definition"
+import { ClientPlatform, IpcService } from "../adapter-ipc/definition"
 
-export function useAppInfoInjection(clientMode: boolean, ipc: IPCService): AppInfo {
+export function useAppInfoInjection(clientMode: boolean, ipc: IpcService): AppInfo {
     if(clientMode) {
         const env = ipc.app.env()
         return readonly({...env, clientMode: true})

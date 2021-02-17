@@ -63,7 +63,8 @@ button
     &.is-#{$name}
       font-size: $font-size
       height: $height
-      padding: 0 #{$px}
+      &:not(.square)
+        padding: 0 #{$px}
       &.square
         width: $height
   @each $name, $pair in $colors

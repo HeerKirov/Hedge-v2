@@ -4,7 +4,7 @@ export default <RouteRecordRaw[]>[
     {
         name: 'Setting',
         path: '/setting',
-        component: () => import('@/views.old/Setting'),
+        component: () => import('@/views/Setting'),
         meta: {
             title: "Hedge设置"
         },
@@ -17,32 +17,32 @@ export default <RouteRecordRaw[]>[
             {
                 name: 'SettingAppSecurity',
                 path: 'app/security',
-                component: () => import('@/views.old/Setting/ViewAppSecurity')
+                component: () => import('@/views/Setting/AppSecurity')
             },
             {
                 name: 'SettingWebAccess',
                 path: 'app/web-access',
-                component: () => import('@/views.old/Setting/ViewWebAccess')
+                component: () => import('@/views/Setting/WebAccess')
             },
             {
                 name: 'SettingBackup',
                 path: 'app/backup',
-                component: () => import('@/views.old/Setting/ViewBackup')
+                component: () => import('@/views/Setting/Backup')
             },
             {
                 name: 'SettingServer',
                 path: 'advanced/server',
-                component: () => import('@/views.old/Setting/ViewServer')
+                component: () => import('@/views/Setting/Server')
             },
             {
                 name: 'SettingCli',
                 path: 'advanced/cli',
-                component: () => import('@/views.old/Setting/ViewCli')
+                component: () => import('@/views/Setting/Cli')
             },
             {
                 name: 'SettingChannel',
                 path: 'advanced/channel',
-                component: () => import('@/views.old/Setting/ViewChannel')
+                component: () => import('@/views/Setting/Channel')
             }
         ]
     }

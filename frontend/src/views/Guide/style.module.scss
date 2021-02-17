@@ -1,0 +1,13 @@
+@import "@/styles/variable.sass";
+
+.root {
+    .content {
+        height: 100%;
+        > .scroll-content {
+            max-height: calc(100% - #{$title-bar-height-small});
+            overflow-y: auto;
+            //TODO container效果
+            padding: 4rem 2rem 2rem 2rem;
+        }
+    }
+}

@@ -1,15 +1,15 @@
 import { App, InjectionKey } from "vue"
 import { APIService, createAPIService, createHttpInstance } from "@/functions/adapter-http"
-import { clientMode, createIPCService, createRemoteClientAdapter, IPCService, RemoteClientAdapter } from "@/functions/adapter-ipc"
+import { clientMode, getIpcService, getRemoteClient, IpcService, RemoteClientAdapter } from "@/functions/adapter-ipc"
 import { AppInfoInjection, useAppInfoInjection } from "./app-info"
 import { AppStateInjection, useAppStateInjection } from "./app-state"
 import { FullscreenInjection, useFullscreenInjection } from "./fullscreen"
 
-export function createService() {
+function createService() {
     const beginTime = new Date().getTime()
 
-    const remote = createRemoteClientAdapter()
-    const ipc = createIPCService()
+    const remote = getRemoteClient()
+    const ipc = getIpcService()
     const httpInstance = createHttpInstance()
     const api = createAPIService(httpInstance)
 
@@ -33,8 +33,10 @@ export function createService() {
 interface BasicComponent {
     clientMode: boolean, 
     remote: RemoteClientAdapter, 
-    ipc: IPCService, 
+    ipc: IpcService,
     api: APIService
 }
 
-export const BasicComponentInjection: InjectionKey<BasicComponent> = Symbol()
+const BasicComponentInjection: InjectionKey<BasicComponent> = Symbol()
+
+export { createService, BasicComponentInjection, clientMode }
