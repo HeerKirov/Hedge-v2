@@ -1,7 +1,7 @@
 import { BrowserWindow, dialog } from "electron"
 
 export interface MessageOptions {
-    type: "none"|"info"|"error"|"question"
+    type: "none" | "info" | "error" | "question"
     buttons?: string[]
     defaultButtonId?: number
     title?: string

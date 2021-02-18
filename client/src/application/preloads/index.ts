@@ -20,13 +20,13 @@ interface RemoteClientAdapter {
          * @param fullscreen
          */
         setFullscreen(fullscreen: boolean): void
-    },
+    }
     menu: {
         /**
          * 创建一个弹出菜单的调用。给出菜单模板，返回一个函数，调用此函数以弹出此菜单。
          */
         createPopup(items: MenuTemplate[]): () => void
-    },
+    }
     dialog: {
         /**
          * 打开一个对话框用于打开文件或文件夹。

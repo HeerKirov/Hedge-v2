@@ -1,12 +1,14 @@
 import { systemPreferences } from "electron"
 import { Platform } from "../../utils/process"
 import { AppDataDriver, AppDataStatus } from "../appdata"
+import { NativeTheme } from "../appdata/model"
 import { ResourceManager } from "../resource"
 import { ServerManager } from "../server"
 import { StateManager } from "../state"
 import { Bucket } from "../bucket"
 import { Channel } from "../channel"
 import { WindowManager } from "../../application/window-manager"
+import { ThemeManager } from "../../application/theme-manager"
 import {
     ActionResponse,
     AppInitForm,
@@ -24,7 +26,7 @@ export interface ServiceOptions {
     channel: string
 }
 
-export function createService(appdata: AppDataDriver, resource: ResourceManager, server: ServerManager, bucket: Bucket, state: StateManager, window: WindowManager, channel: Channel, options: ServiceOptions): Service {
+export function createService(appdata: AppDataDriver, resource: ResourceManager, server: ServerManager, bucket: Bucket, state: StateManager, window: WindowManager, themeManager: ThemeManager, channel: Channel, options: ServiceOptions): Service {
     return {
         app: {
             env() {
@@ -153,6 +155,14 @@ export function createService(appdata: AppDataDriver, resource: ResourceManager,
             }
         },
         setting: {
+            appearance: {
+                getTheme(): NativeTheme {
+                    return themeManager.getTheme()
+                },
+                setTheme(value: NativeTheme): Promise<void> {
+                    return themeManager.setTheme(value)
+                }
+            },
             auth: {
                 get() {
                     return appdata.getAppData().loginOption
@@ -161,6 +171,7 @@ export function createService(appdata: AppDataDriver, resource: ResourceManager,
                     const data = await appdata.saveAppData(data => {
                         if(form.password !== undefined) data.loginOption.password = form.password
                         if(form.touchID !== undefined) data.loginOption.touchID = form.touchID
+                        if(form.fastboot !== undefined) data.loginOption.fastboot = form.fastboot
                     })
                     return data.loginOption
                 }

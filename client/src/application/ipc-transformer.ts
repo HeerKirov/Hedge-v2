@@ -19,6 +19,8 @@ export function registerIpcTransformer(service: Service) {
     ipcHandle("/server/open", service.server.open)
     ipcHandle("/server/close", service.server.close)
     ipcHandle("/server/init", service.server.init)
+    ipcHandleSync("/setting/appearance/theme/get", service.setting.appearance.getTheme)
+    ipcHandle("/setting/appearance/theme/set", service.setting.appearance.setTheme)
     ipcHandleSync("/setting/auth/get", service.setting.auth.get)
     ipcHandle("/setting/auth/set", service.setting.auth.set)
     ipcHandle("/setting/channel/list", service.setting.channel.list)

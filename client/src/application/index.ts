@@ -1,4 +1,4 @@
-import { app, dialog } from "electron"
+import { app } from "electron"
 import { promiseAll, getNodePlatform, Platform } from "../utils/process"
 import { createWindowManager, WindowManager } from "./window-manager"
 import { createAppDataDriver } from "../components/appdata"
@@ -11,6 +11,7 @@ import { createService } from "../components/service"
 import { registerIpcTransformer } from "./ipc-transformer"
 import { registerAppMenu } from "./menu"
 import { registerDockMenu } from "./dock"
+import { createThemeManager } from "./theme-manager";
 
 /**
  * app的启动参数。
@@ -81,18 +82,16 @@ export async function createApplication(options?: AppOptions) {
 
     const windowManager = createWindowManager(stateManager, {platform, debug: options?.debug && {frontendFromFolder: options.debug.frontendFromFolder, frontendFromURL: options.debug.frontendFromURL}})
 
-    const service = createService(appDataDriver, resourceManager, serverManager, bucket, stateManager, channelManager, {debugMode, userDataPath, platform, channel})
+    const themeManager = createThemeManager(appDataDriver)
+
+    const service = createService(appDataDriver, resourceManager, serverManager, bucket, stateManager, windowManager, themeManager, channelManager, {debugMode, userDataPath, platform, channel})
 
     registerIpcTransformer(service)
 
     registerAppEvents(windowManager, serverManager, platform)
 
-    await promiseAll(
-        appDataDriver.load(),
-        stateManager.load(),
-        resourceManager.load(),
-        app.whenReady()
-    )
+    await promiseAll(appDataDriver.load(), resourceManager.load(), app.whenReady())
+    await promiseAll(stateManager.load(), themeManager.load())
 
     windowManager.load()
 

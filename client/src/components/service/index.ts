@@ -1,6 +1,7 @@
 import { ServerConnectionInfo, ServerStatus } from "../server/model"
 import { ResourceStatus } from "../resource"
 import { AppDataStatus } from "../appdata"
+import { NativeTheme } from "../appdata/model"
 import { Platform } from "../../utils/process"
 
 export { createService } from "./impl"
@@ -35,6 +36,10 @@ export interface Service {
         init(form: ServerInitForm): Promise<ActionResponse>
     }
     setting: {
+        appearance: {
+            getTheme(): NativeTheme
+            setTheme(value: NativeTheme): Promise<void>
+        }
         auth: {
             get(): SettingAuthResponse
             set(form: SettingAuthForm): Promise<SettingAuthResponse>
@@ -102,6 +107,7 @@ export interface ServerEnvResponse extends ServerConnectionInfo {}
 export interface SettingAuthForm {
     password?: string | null
     touchID?: boolean
+    fastboot?: boolean
 }
 
 export interface SettingChannelForm {
