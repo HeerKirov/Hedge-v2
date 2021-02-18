@@ -94,11 +94,11 @@ class WebAccessor(private val appdata: AppDataDriver, private val frontendPath: 
         ctx.json(TokenResponse(ok = form.token in tokens))
     }
 
-    private data class LoginForm(val password: String)
+    data class LoginForm(val password: String)
 
-    private data class TokenForm(val token: String)
+    data class TokenForm(val token: String)
 
-    private data class AccessResponse(val access: Boolean, val needPassword: Boolean)
+    data class AccessResponse(val access: Boolean, val needPassword: Boolean)
 
-    private data class TokenResponse(val ok: Boolean)
+    data class TokenResponse(val ok: Boolean)
 }

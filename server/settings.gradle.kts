@@ -1,0 +1,1 @@
+rootProject.name = "hedge-v2-server"
