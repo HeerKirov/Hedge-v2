@@ -1,0 +1,42 @@
+@import "../base/color.scss"
+@import "../base/size"
+
+.tag
+  align-items: center
+  justify-content: center
+  display: inline-flex
+  white-space: nowrap
+  background-color: $light
+  color: $light-invert
+  font-size: $font-size-small
+  line-height: 1.5
+  border-radius: 2px
+  height: 2em
+  padding-left: 0.75em
+  padding-right: 0.75em
+  &.is-normal
+    font-size: $font-size-small
+  &.is-medium
+    font-size: $font-size-medium
+  &.is-large
+    font-size: $font-size-large
+
+  &a:hover
+    background-color: toLightenColor($light, 2.5%)
+  @each $name, $pair in $colors
+    $color: nth($pair, 1)
+    $color-invert: nth($pair, 2)
+    &.is-#{$name}
+      background-color: $color
+      color: $color-invert
+      &a:hover
+        background-color: toLightenColor($color, 2.5%)
+      @if length($pair) >= 4
+        $color-light: nth($pair, 3)
+        $color-dark: nth($pair, 4)
+        &.is-light
+          background-color: $color-light
+          color: $color-dark
+          &a:hover
+            background-color: toLightenColor($color-light, 2.5%)
+

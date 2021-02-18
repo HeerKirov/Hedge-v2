@@ -1,5 +1,5 @@
-import { getRemoteClient, getIpcService } from "@/functions/adapter-ipc"
-import { clientMode, OpenDialogOptions } from "../adapter-ipc/client"
+import { computed, ref } from "vue"
+import { getRemoteClient, getIpcService, NativeTheme, clientMode, OpenDialogOptions } from "@/functions/adapter-ipc"
 
 export const dialogManager = clientMode ? {
     async openDialog(options: OpenDialogOptions): Promise<string[] | null> {
@@ -29,11 +29,27 @@ export const windowManager = clientMode ? {
         window.open(url)
     },
     openSetting() {
-        const url = `${window.location.protocol}//${window.location.host}/#/setting`
-        window.open(url)
+        console.warn("Cannot access setting page from web.")
     },
     openGuide() {
         const url = `${window.location.protocol}//${window.location.host}/#/guide`
         window.open(url)
+    }
+}
+
+export function useNativeTheme() {
+    if(clientMode) {
+        let nativeTheme = ref<NativeTheme>()
+
+        return computed<NativeTheme>({
+            get() {
+                return nativeTheme.value || (nativeTheme.value = getIpcService().setting.appearance.getTheme())
+            },
+            set(value) {
+                getIpcService().setting.appearance.setTheme(nativeTheme.value = value).catch(e => console.error(e))
+            }
+        })
+    }else{
+        return computed<NativeTheme>(() => "system")
     }
 }

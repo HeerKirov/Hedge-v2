@@ -1,5 +1,6 @@
 @import "../base/size"
-@import "../base/color"
+@import "../base/color.scss"
+@import "../base/functions"
 
 article,
 aside,
@@ -11,9 +12,10 @@ section
   display: block
 
 code
-  background-color: $light
+  color: darken($danger, 15%)
   font-weight: normal
-  padding: 0.25em 0.25em 0.25em 0
+  padding-right: 0.25em
+  padding-left: 0.25em
 
 span
   font-style: inherit

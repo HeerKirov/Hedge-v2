@@ -6,7 +6,7 @@ export default defineComponent({
         const channels: Ref<string[]> = ref(["inside", "other"])
         const selected: Ref<number | null> = ref(null)
         const onClick = (index: number) => () => {
-            selected.value = index
+            selected.value = selected.value !== index ? index : null
         }
 
         return () => <div class={style.root}>
@@ -19,7 +19,7 @@ export default defineComponent({
                 <p class="mt-1">3. 通过命令行直接启动App，并使用<code>--channel {'{CHANNEL_NAME}'}</code>参数启动。</p>
                 <p class="mt-4"><i class="fa fa-circle mr-1"/>默认频道: <code>default</code></p>
             </div>
-            <p class="mt-2 mb-3">其他频道</p>
+            <p class="mt-3 mb-3">频道列表</p>
             {channels.value.map((channel, index) => <div key={channel} class={style.channelItem}>
                 <div class={{"block": true, "is-light": true, "is-info": index === selected.value}} onClick={onClick(index)}>
                     {channel}

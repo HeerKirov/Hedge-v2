@@ -10,10 +10,10 @@ export default defineComponent({
         secondaryMode: {type: Boolean, default: false}
     },
     setup(props, { slots }) {
-        const sideBarSwitch = inject(sideBarSwitchInjection)!
-        const collapseSideBar = () => {
+        const sideBarSwitch = inject(sideBarSwitchInjection, null)
+        const collapseSideBar = sideBarSwitch ? () => {
             sideBarSwitch.value = false
-        }
+        } : () => {}
 
         return () => <div class={{[style.sideBar]: true, [style.deepColor]: props.secondaryMode}}>
             <div class={`${props.secondaryMode ? "small-title-bar" : "title-bar"} absolute left-top w-100`}/>

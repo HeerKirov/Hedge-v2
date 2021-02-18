@@ -1,12 +1,16 @@
-@import "../base/color.sass"
+@import "../base/color.scss"
 @import "../base/size.sass"
 
 a
   text-decoration: none
-  color: $link
   cursor: pointer
+  color: $link
+  @media (prefers-color-scheme: dark)
+    color: toLightenColor($info, 10%)
   &:hover
     color: toLightenColor($link, 10%)
+    @media (prefers-color-scheme: dark)
+      color: toLightenColor($info, 20%)
 
 button
   appearance: auto
@@ -34,16 +38,23 @@ button
   height: $height-std
   padding: 0 1rem
   border-radius: $radius-size-std
-  background-color: $side-grey
   vertical-align: top
   line-height: 1.2
 
   $button-size-map: ("small" ($font-size-8, $height-small, 0.8rem), "medium" ($font-size-6, $height-medium, 1.1rem))
 
+  background-color: $lightgrey
   &:hover
-    background-color: toDarkenColor($side-grey, 5%)
+    background-color: toDarkenColor($lightgrey, 5%)
   &:active
-    background-color: toDarkenColor($side-grey, 7.5%)
+    background-color: toDarkenColor($lightgrey, 7.5%)
+  @media (prefers-color-scheme: dark)
+    background-color: $light-dark
+    color: $white
+    &:hover
+      background-color: toLightenColor($light-dark, 5%)
+    &:active
+      background-color: toLightenColor($light-dark, 7.5%)
   &.square
     width: $height-std
     padding: 0
@@ -80,7 +91,8 @@ button
         background-color: toDarkenColor($color, 7.5%)
         color: $color-invert
       &[disabled]
-        background-color: $color
+        background-color: toLightenColor($color, 5%)
+        color: toLightenColor($color-invert, 5%)
         box-shadow: none
       @if length($pair) >= 4
         $color-light: nth($pair, 3)
@@ -94,3 +106,38 @@ button
           &:active
             background-color: toDarkenColor($color-light, 5%)
             color: $color-dark
+          &[disabled]
+            background-color: toLightenColor($color-light, 5%)
+            color: toLightenColor($color-dark, 5%)
+  @media (prefers-color-scheme: dark)
+    @each $name, $pair in $colors-dark-mode
+      $color: nth($pair, 1)
+      $color-invert: nth($pair, 2)
+      &.is-#{$name}
+        background-color: $color
+        color: $color-invert
+        &:hover
+          background-color: toLightenColor($color, 5%)
+          color: $color-invert
+        &:active
+          background-color: toLightenColor($color, 7.5%)
+          color: $color-invert
+        &[disabled]
+          background-color: toLightenColor($color, 5%)
+          color: toLightenColor($color-invert, 5%)
+          box-shadow: none
+        @if length($pair) >= 4
+          $color-light: nth($pair, 3)
+          $color-dark: nth($pair, 4)
+          &.is-light
+            background-color: $color-light
+            color: $color-dark
+            &:hover
+              background-color: toLightenColor($color-light, 2.5%)
+              color: $color-dark
+            &:active
+              background-color: toLightenColor($color-light, 5%)
+              color: $color-dark
+            &[disabled]
+              background-color: toDarkenColor($color-light, 5%)
+              color: toDarkenColor($color-dark, 5%)

@@ -1,5 +1,5 @@
 @import "../base/size"
-@import "../base/color"
+@import "../base/color.scss"
 
 input
   -webkit-writing-mode: horizontal-tb !important
@@ -22,13 +22,17 @@ input
   line-height: 1.2
   height: $height-std
   padding: 0 calc(0.6rem - 1px)
-  border: 1px solid $dark-side-grey
+  border: 1px solid $dark-lightgrey
   border-radius: $radius-size-std
+  @media (prefers-color-scheme: dark)
+    background-color: $light-dark
+    color: $white
+    border-color: $more-light-dark
 
   $input-size-map: ("small" ($font-size-8, $height-small), "medium" ($font-size-6, $height-medium))
 
   &:focus
-    box-shadow: 0 0 3px $dark-side-grey
+    box-shadow: 0 0 3px $dark-lightgrey
   &.fullwidth
     max-width: 100%
     width: 100%
@@ -38,9 +42,17 @@ input
     &.is-#{$name}
       font-size: $font-size
       height: $height
-  @each $name, $pair in $colors
-    $color: nth($pair, 1)
-    &.is-#{$name}
-      border-color: $color
-      &:focus
-        box-shadow: 0 0 2px $color
+  @media (prefers-color-scheme: light)
+    @each $name, $pair in $colors
+      $color: nth($pair, 1)
+      &.is-#{$name}
+        border-color: $color
+        &:focus
+          box-shadow: 0 0 2px $color
+  @media (prefers-color-scheme: dark)
+    @each $name, $pair in $colors-dark-mode
+      $color: nth($pair, 1)
+      &.is-#{$name}
+        border-color: $color
+        &:focus
+          box-shadow: 0 0 2px $color

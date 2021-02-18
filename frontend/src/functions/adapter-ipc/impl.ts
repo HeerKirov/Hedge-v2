@@ -31,6 +31,10 @@ export function createIpcService(): IpcService {
             init: invoke("/server/init"),
         },
         setting: {
+            appearance: {
+                getTheme: invokeSync("/setting/appearance/theme/get"),
+                setTheme: invoke("/setting/appearance/theme/set")
+            },
             auth: {
                 get: invokeSync("/setting/auth/get"),
                 set: invoke("/setting/auth/set")

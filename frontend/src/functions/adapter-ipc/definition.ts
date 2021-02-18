@@ -27,6 +27,10 @@ export interface IpcService {
         init(form: ServerInitForm): Promise<ActionResponse>
     }
     setting: {
+        appearance: {
+            getTheme(): NativeTheme
+            setTheme(value: NativeTheme): Promise<void>
+        }
         auth: {
             get(): SettingAuthResponse
             set(form: SettingAuthForm): Promise<SettingAuthResponse>
@@ -103,6 +107,7 @@ export interface ServerEnvResponse {
 export interface SettingAuthForm {
     password?: string | null
     touchID?: boolean
+    fastboot?: boolean
 }
 
 export interface SettingChannelForm {
@@ -136,6 +141,7 @@ export interface ActionResponse {
 
 export type ClientPlatform = "win32" | "darwin" | "linux"
 export type Platform = ClientPlatform | "web"
+export type NativeTheme = "system" | "light" | "dark"
 
 //前端的enum移除了unknown的定义，是因为在前端之前这些状态必定已经初始化完成。
 

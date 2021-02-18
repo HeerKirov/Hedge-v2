@@ -1,4 +1,4 @@
-@import "../base/color"
+@import "../base/color.scss"
 @import "../base/size"
 
 
@@ -7,6 +7,10 @@
   border-radius: $radius-size-std
   position: relative
   background-color: $light
+  color: $font-black
+  @media (prefers-color-scheme: dark)
+    background-color: $more-dark
+    color: $light
 
   a:not(.button):not(.dropdown-item)
     color: currentColor
@@ -25,3 +29,16 @@
         &.is-light
           background-color: $color-light
           color: $color-dark
+  @media (prefers-color-scheme: dark)
+    @each $name, $pair in $colors-dark-mode
+      $color: nth($pair, 1)
+      $color-invert: nth($pair, 2)
+      &.is-#{$name}
+        background-color: $color
+        color: $color-invert
+        @if length($pair) >= 4
+          $color-light: nth($pair, 3)
+          $color-dark: nth($pair, 4)
+          &.is-light
+            background-color: $color-light
+            color: $color-dark

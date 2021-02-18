@@ -1,4 +1,6 @@
 import { defineComponent, provide } from "vue"
+import { clientMode } from "@/functions/service"
+import NotFoundNotification from "@/layouts/NotFoundNotification"
 import { InitContextInjection, useInitContext } from "./inject"
 import WelcomePage from "./WelcomePage"
 import PasswordPage from "./PasswordPage"
@@ -9,23 +11,27 @@ import style from "./style.module.scss"
 
 export default defineComponent({
     setup() {
-        const context = useInitContext(0)
+        if(clientMode) {
+            const context = useInitContext(0)
 
-        provide(InitContextInjection, context)
+            provide(InitContextInjection, context)
 
-        const pages = [WelcomePage, PasswordPage, DBPage, ReadyPage, FinishPage]
+            const pages = [WelcomePage, PasswordPage, DBPage, ReadyPage, FinishPage]
 
-        return () => {
-            const CurrentPage = pages[context.page.num.value]
+            return () => {
+                const CurrentPage = pages[context.page.num.value]
 
-            return <div class={style.root}>
-                <div class="title-bar has-text-centered is-size-large">
-                    <span>HEDGE</span>
+                return <div class={style.root}>
+                    <div class="title-bar has-text-centered is-size-large">
+                        <span>HEDGE</span>
+                    </div>
+                    <div class={[style.dialog, "fixed", "center", "box"]}>
+                        <CurrentPage/>
+                    </div>
                 </div>
-                <div class={[style.dialog, "fixed", "center", "box"]}>
-                    <CurrentPage/>
-                </div>
-            </div>
+            }
+        }else{
+            return () => <NotFoundNotification/>
         }
     }
 })

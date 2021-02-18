@@ -21,7 +21,7 @@ export default defineComponent({
                 <p class="is-size-7 mt-2">核心服务未在运行，且没有报告任何错误信息。</p>
                 <button class="button is-small mt-2 is-light is-danger"><i class="fa fa-door-open mr-1"/>尝试重启核心服务</button>
             </div>
-            <p class="mt-2 mb-3">核心服务选项</p>
+            <p class="mt-3 mb-3">核心服务选项</p>
             <div class="block">
                 <p>建议的端口</p>
                 <div class="field mt-2">
@@ -34,6 +34,12 @@ export default defineComponent({
                     <p class="has-text-grey">在指定的范围中搜索可用的端口。</p>
                     <p class="has-text-danger">无效的端口参数。请使用<code>,</code>和<code>-</code>等描述简单的端口或端口范围。</p>
                 </div>
+            </div>
+            <div class="mt-4">
+                <label class="checkbox">
+                    <input type="checkbox"/>快速启动
+                </label>
+                <p class="is-size-7 has-text-grey">在登录通过之前就启动核心服务，以加快启动速度。</p>
             </div>
         </div>
     }

@@ -1,4 +1,5 @@
 @import "../base/size"
+@import "../base/color.scss"
 
 //文本尺寸
 @each $name, $size in $font-size-map
@@ -7,6 +8,17 @@
 @each $name, $size in $font-size-name
   .is-size-#{$name}
     font-size: $size
+
+//文本颜色
+@each $name, $pair in $colors
+  $color: nth($pair, 1)
+  .has-text-#{$name}
+    color: $color
+@media (prefers-color-scheme: dark)
+  @each $name, $pair in $colors-dark-mode
+    $color: nth($pair, 1)
+    .has-text-#{$name}
+      color: $color
 
 .has-text-centered
   text-align: center

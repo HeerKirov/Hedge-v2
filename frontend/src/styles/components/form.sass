@@ -1,5 +1,5 @@
 @import "../base/size"
-@import "../base/color"
+@import "../base/color.scss"
 
 .help
   display: block
@@ -9,6 +9,11 @@
     $color: nth($pair, 1)
     &.is-#{$name}
       color: $color
+  @media (prefers-color-scheme: dark)
+    @each $name, $pair in $colors-dark-mode
+      $color: nth($pair, 1)
+      &.is-#{$name}
+        color: $color
 
 .label
   color: $black
@@ -16,3 +21,14 @@
   font-weight: 700
   &:not(:last-child)
     margin-bottom: $spacing-1
+
+.checkbox
+  cursor: pointer
+  display: inline-block
+  line-height: 1
+  position: relative
+  font-size: $font-size-medium
+  input[type=checkbox]
+    cursor: pointer
+    vertical-align: bottom
+    margin: 0 0.25em 0.05em 0

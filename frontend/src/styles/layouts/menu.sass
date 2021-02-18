@@ -1,15 +1,17 @@
 @import "../base/size"
-@import "../base/color"
+@import "../base/color.scss"
 @import "../base/functions"
 
 //纵向菜单布局，拥有分组标题和二级菜单
 .menu
     .menu-label
-        color: $side-grey-invert
         font-size: $font-size-std
         letter-spacing: 0.1em
         margin-top: $spacing-2
-        > a
+        color: $side-grey-invert
+        @media (prefers-color-scheme: dark)
+            color: $dark-lightgrey
+        a
             color: inherit
         &:not(:last-child)
             margin-bottom: $spacing-2
@@ -39,25 +41,35 @@
                 > li > a
                     padding: 0.4rem 0.75rem
                     font-size: 0.75rem
-.menu:not(.deep)
+.menu:not(.deep) > ul.menu-list
     a
         &:not(.is-active)
-            background-color: $side-grey
+            background-color: $lightgrey
             color: $light-invert
             &:hover
-                background-color: toDarkenColor($side-grey, 5%)
+                background-color: toDarkenColor($lightgrey, 5%)
+            @media (prefers-color-scheme: dark)
+                background-color: $light-dark
+                color: $white
+                &:hover
+                    background-color: toLightenColor($light-dark, 5%)
         &.is-active
             background-color: $link
             color: $white
             &:hover
                 background-color: toLightenColor($link, 2.5%)
-.menu.deep
-    a
+.menu.deep > ul.menu-list
+    a:not(.menu-label)
         &:not(.is-active)
-            background-color: $dark-side-grey
+            background-color: $dark-lightgrey
             color: $light-invert
             &:hover
-                background-color: toDarkenColor($dark-side-grey, 5%)
+                background-color: toDarkenColor($dark-lightgrey, 5%)
+            @media (prefers-color-scheme: dark)
+                background-color: $more-light-dark
+                color: $white
+                &:hover
+                    background-color: toLightenColor($more-light-dark, 5%)
         &.is-active
             background-color: $link
             color: $white

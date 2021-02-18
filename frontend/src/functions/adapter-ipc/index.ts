@@ -1,12 +1,15 @@
 import { clientMode, createRemoteClientAdapter } from "./client"
 import { createIpcService } from "./impl"
-import type { RemoteClientAdapter } from "./client"
-import type { IpcService } from "./definition"
+import type { RemoteClientAdapter, OpenDialogOptions, MenuTemplate } from "./client"
+import type { IpcService, NativeTheme } from "./definition"
 
 export { 
     clientMode, 
     IpcService,
-    RemoteClientAdapter
+    RemoteClientAdapter,
+    OpenDialogOptions,
+    NativeTheme,
+    MenuTemplate
 }
 
 let remoteClient: RemoteClientAdapter|undefined = undefined

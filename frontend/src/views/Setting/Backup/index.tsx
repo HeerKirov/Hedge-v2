@@ -13,23 +13,19 @@ export default defineComponent({
                 <button class="button mt-4 is-white"><i class="fa fa-sync mr-2"/>开始备份</button>
                 <button class="button mt-4 ml-1 is-white"><i class="fa fa-redo mr-2"/>从备份还原</button>
             </div>
-            <p class="mt-2 mb-3">备份与还原选项</p>
-            <div class="field">
-                <label class="checkbox">
-                    <input type="checkbox" class="mr-1"/>启用备份
-                </label>
-                <p class="is-size-8 has-text-grey">启用备份，并指定一个备份目标文件夹。</p>
-            </div>
+            <p class="mt-3 mb-3">备份与还原选项</p>
+            <label class="checkbox">
+                <input type="checkbox"/>启用备份
+            </label>
+            <p class="is-size-8 has-text-grey">启用备份，并指定一个备份目标文件夹。</p>
             <div class="group">
                 <Input class="is-small"/>
                 <button class="button is-small is-info"><i class="fa fa-folder-open mr-1"/>选择文件夹…</button>
             </div>
-            <div class="field">
-                <label class="checkbox">
-                    <input type="checkbox" class="mr-1"/>自动备份
-                </label>
-                <p class="is-size-8 has-text-grey">在闲时，自动将最新的更改备份到目标文件夹。</p>
-            </div>
+            <label class="checkbox">
+                <input type="checkbox"/>自动备份
+            </label>
+            <p class="is-size-8 has-text-grey">在闲时，自动将最新的更改备份到目标文件夹。</p>
         </div>
     }
 })

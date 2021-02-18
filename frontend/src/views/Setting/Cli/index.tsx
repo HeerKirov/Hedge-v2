@@ -2,7 +2,6 @@ import { defineComponent } from "vue"
 
 export default defineComponent({
     setup() {
-        //TODO code style
         return () => <div>
             <div class="block">
                 <p class="is-size-6"><i class="fa fa-terminal mr-1"/>命令行工具: 已部署</p>

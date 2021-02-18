@@ -20,6 +20,11 @@ export default <RouteRecordRaw[]>[
                 component: () => import('@/views/Setting/AppSecurity')
             },
             {
+                name: 'SettingAppearance',
+                path: 'app/appearance',
+                component: () => import('@/views/Setting/Appearance')
+            },
+            {
                 name: 'SettingWebAccess',
                 path: 'app/web-access',
                 component: () => import('@/views/Setting/WebAccess')

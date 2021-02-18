@@ -16,7 +16,7 @@ export default defineComponent({
             <p class="is-size-4">设置</p>
             <aside class="menu deep">
                 {settings.map(scope => <>
-                    <span class="menu-label">{scope.label}</span>
+                    <p class="menu-label">{scope.label}</p>
                     <ul class="menu-list">
                         {scope.list.map(item => <li>
                             <a class={{"is-active": routeName.value === item.route}} onClick={() => router.push({name: item.route})}>
@@ -45,7 +45,8 @@ const settings: SettingScope[] = [
     {
         label: "应用程序",
         list: [
-            {route: "SettingAppSecurity", name: "安全与认证", icon: "key"},
+            {route: "SettingAppSecurity", name: "认证", icon: "key"},
+            {route: "SettingAppearance", name: "外观", icon: "cloud-sun"},
             {route: "SettingWebAccess", name: "局域网访问", icon: "network-wired"},
             {route: "SettingBackup", name: "备份与还原", icon: "sync-alt"}
         ]

@@ -6,8 +6,23 @@
         > .scroll-content {
             max-height: calc(100% - #{$title-bar-height-small});
             overflow-y: auto;
-            //TODO container效果
+            position: relative;
             padding: 4rem 2rem 2rem 2rem;
+            margin: 0 auto;
+            background-color: #757763;
+            width: auto;
+            max-width: 1024px;
+            @media screen and (max-width: 1440px) {
+                max-width: 760px;
+            }
+            @media screen and (max-width: 1120px) {
+                max-width: 640px;
+            }
+            @media screen and (max-width: 720px) {
+                max-width: 480px;
+            }
         }
+
+
     }
 }
