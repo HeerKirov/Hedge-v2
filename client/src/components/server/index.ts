@@ -152,15 +152,17 @@ function createStdServerManager(options: ServerManagerOptions): ServerManager {
      * 尝试启动并创建心跳任务。
      */
     async function startConnection(): Promise<ServerConnectionInfo> {
-        const serverPID = await readFile<ServerPID>(serverPIDPath)
-        if(serverPID == null) {
-            callSpawn()
+        if(status != ServerStatus.OPEN) {
+            const serverPID = await readFile<ServerPID>(serverPIDPath)
+            if (serverPID == null) {
+                callSpawn()
+            }
+            status = ServerStatus.OPEN
         }
 
-        status = ServerStatus.OPEN
         connectionInfo = await waitForReady()
 
-        {
+        if(lifetimeId == null) {
             const res = await request({url: `${connectionInfo!.url}/app/lifetime`, method: "post", headers: {'Authorization': `Bearer ${connectionInfo!.token}`}, data: {interval: 1000 * 120}})
             if(res.ok) {
                 lifetimeId = (<{id: string}>res.data).id
@@ -169,12 +171,19 @@ function createStdServerManager(options: ServerManagerOptions): ServerManager {
             }
         }
 
-        scheduleFuture = schedule(1000 * 40, async () => {
-            const res = await request({url: `${connectionInfo!.url}/app/lifetime/${lifetimeId!}`, method: "put", headers: {'Authorization': `Bearer ${connectionInfo!.token}`}, data: {}})
-            if(!res.ok) {
-                console.error(`Error occurred in heart to server: ${res.message}`)
-            }
-        })
+        if(scheduleFuture == null) {
+            scheduleFuture = schedule(1000 * 40, async () => {
+                const res = await request({
+                    url: `${connectionInfo!.url}/app/lifetime/${lifetimeId!}`,
+                    method: "put",
+                    headers: { 'Authorization': `Bearer ${connectionInfo!.token}` },
+                    data: {}
+                })
+                if (!res.ok) {
+                    console.error(`Error occurred in heart to server: ${res.message}`)
+                }
+            })
+        }
 
         return connectionInfo
     }
@@ -188,7 +197,7 @@ function createStdServerManager(options: ServerManagerOptions): ServerManager {
             scheduleFuture = null
         }
 
-        {
+        if(lifetimeId != null) {
             const res = await request({url: `${connectionInfo!.url}/app/lifetime/${lifetimeId!}`, method: "delete", headers: {'Authorization': `Bearer ${connectionInfo!.token}`}})
             if(!res.ok) {
                 console.error(`Error occurred in deleting heart from server: ${res.message}`)

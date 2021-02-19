@@ -1,7 +1,7 @@
 import * as path from "path"
 import { BrowserWindow, BrowserWindowConstructorOptions } from "electron"
 import { Platform } from "../utils/process"
-import { StateManager } from "../components/state"
+import { AppState, StateManager } from "../components/state"
 import { APP_FILE, RESOURCE_FILE } from "../definitions/file"
 
 /**
@@ -76,7 +76,7 @@ export function createWindowManager(state: StateManager, options: WindowManagerO
     }
 
     function createWindow(routeName?: string, routeParam?: any): BrowserWindow | null {
-        if(!ready || !state.isLogin()) {
+        if(!ready || state.state() !== AppState.LOADED) {
             //在未登录时，只允许开启一个主要窗口。开启第二窗口只会去唤醒已有窗口。
             for (let window of getAllWindows()) {
                 if(window != guideWindow && window != settingWindow) {
@@ -94,7 +94,7 @@ export function createWindowManager(state: StateManager, options: WindowManagerO
     }
 
     function openSettingWindow(): BrowserWindow | null {
-        if(!ready || !state.isLogin()) {
+        if(!ready || state.state() !== AppState.LOADED) {
             return null
         }
         if(settingWindow == null) {

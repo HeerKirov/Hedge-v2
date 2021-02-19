@@ -1,6 +1,6 @@
-import { ServerConnectionInfo, ServerStatus } from "../server/model"
+import { ServerConnectionInfo } from "../server/model"
 import { ResourceStatus } from "../resource"
-import { AppDataStatus } from "../appdata"
+import { InitConfig, AppState, InitState } from "../state"
 import { NativeTheme } from "../appdata/model"
 import { Platform } from "../../utils/process"
 
@@ -12,127 +12,73 @@ export { createService } from "./impl"
  */
 export interface Service {
     app: {
-        env(): AppEnvResponse
-        status(): AppStatusResponse
-        init(form: AppInitForm): Promise<ActionResponse>
-        login(form: AppLoginForm): Promise<AppLoginResponse>
-        loginByTouchID(): Promise<AppLoginResponse>
-    }
-    resource: {
-        server: {
-            status(): ResourceStatusResponse
-            update(): Promise<ActionResponse>
-        }
-        cli: {
-            status(): ResourceStatusResponse
-            update(): Promise<ActionResponse>
-        }
-    }
-    server: {
-        status(): ServerStatusResponse
-        env(): Promise<ServerEnvResponse>
-        open(): Promise<ActionResponse>
-        close(): Promise<ActionResponse>
-        init(form: ServerInitForm): Promise<ActionResponse>
-    }
-    setting: {
-        appearance: {
-            getTheme(): NativeTheme
-            setTheme(value: NativeTheme): Promise<void>
-        }
-        auth: {
-            get(): SettingAuthResponse
-            set(form: SettingAuthForm): Promise<SettingAuthResponse>
-        }
-        channel: {
-            list(): Promise<SettingChannelListResponse>
-            setDefault(form: SettingChannelForm): Promise<void>
-            change(form: SettingChannelForm): void
-        }
+        env(): AppEnv
+        init(form: InitConfig): Promise<void>
+        login(password: string): Promise<boolean>
+        loginByTouchID(): Promise<boolean>
+        onStateChanged(event: (state: AppState) => void): void
+        onInitStateChanged(event: (state: InitState) => void): void
     }
     window: {
-        openNewWindow(form?: NewWindowForm): Promise<void>
+        openNewWindow(form?: NewWindowOptions): Promise<void>
         openSetting(): Promise<void>
         openGuide(): Promise<void>
+    }
+    cli: {
+        status(): Promise<ResourceStatus>
+        update(): Promise<ActionResult>
+    }
+    appearance: {
+        get(): Promise<AppearanceSetting>
+        set(value: AppearanceSetting): Promise<void>
+    }
+    auth: {
+        get(): Promise<AuthSetting>
+        set(value: AuthSetting): Promise<void>
+    }
+    channel: {
+        list(): Promise<string[]>
+        setDefault(channel: string): Promise<void>
+        change(channel: string): void
     }
 }
 
 //== app ==
 
-export interface AppInitForm {
-    password: string | null
-}
-
-export interface AppLoginForm {
-    password: string
-}
-
-export interface AppEnvResponse {
+export interface AppEnv {
     platform: Platform
     debugMode: boolean
     userDataPath: string
     channel: string
     canPromptTouchID: boolean
+    appState: AppState
+    connection: ServerConnectionInfo | null
 }
 
-export interface AppStatusResponse {
-    status: AppDataStatus
-    isLogin: boolean
+//== appearance ==
+
+export interface AppearanceSetting {
+    theme: NativeTheme
 }
 
-export interface AppLoginResponse {
-    ok: boolean
-}
+//== auth ==
 
-//== resource ==
-
-export interface ResourceStatusResponse {
-    status: ResourceStatus
-}
-
-//== server ==
-
-export interface ServerInitForm {
-    dbPath: string
-}
-
-export interface ServerStatusResponse {
-    status: ServerStatus
-}
-
-export interface ServerEnvResponse extends ServerConnectionInfo {}
-
-//== setting ==
-
-export interface SettingAuthForm {
-    password?: string | null
-    touchID?: boolean
-    fastboot?: boolean
-}
-
-export interface SettingChannelForm {
-    channel: string
-}
-
-export interface SettingAuthResponse {
+export interface AuthSetting {
     password: string | null
     touchID: boolean
-}
-
-export interface SettingChannelListResponse {
-    channels: string[]
+    fastboot: boolean
 }
 
 //== window ==
 
-export interface NewWindowForm {
+export interface NewWindowOptions {
     routeName?: string
     routeParam?: string
 }
 
 //== action ==
 
-export interface ActionResponse {
+export interface ActionResult {
     ok: boolean
     errorCode?: string
     errorMessage?: string

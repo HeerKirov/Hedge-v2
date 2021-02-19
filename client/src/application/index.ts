@@ -68,37 +68,35 @@ export async function createApplication(options?: AppOptions) {
     const userDataPath = options?.debug?.localDataPath ?? app.getPath("userData")
 
     const channelManager = await createChannel({userDataPath, defaultChannel: "default", manualChannel: options?.channel})
-    const channel = channelManager.currentChannel()
 
-    const appDataDriver = createAppDataDriver({userDataPath, channel, debugMode})
-
-    const stateManager = createStateManager(appDataDriver)
+    const appDataDriver = createAppDataDriver({userDataPath, debugMode, channel: channelManager.currentChannel()})
 
     const resourceManager = createResourceManager({userDataPath, appPath, debug: options?.debug && {frontendFromFolder: options.debug.frontendFromFolder, serverFromResource: options.debug.serverFromResource}})
 
-    const bucket = createBucket({userDataPath, channel})
+    const bucket = createBucket({userDataPath, channel: channelManager.currentChannel()})
 
-    const serverManager = createServerManager({userDataPath, channel, debug: options?.debug && {serverFromURL: options.debug.serverFromURL, serverFromFolder: options.debug.serverFromFolder, frontendFromFolder: options.debug.frontendFromFolder}})
+    const serverManager = createServerManager({userDataPath, channel: channelManager.currentChannel(), debug: options?.debug && {serverFromURL: options.debug.serverFromURL, serverFromFolder: options.debug.serverFromFolder, frontendFromFolder: options.debug.frontendFromFolder}})
+
+    const stateManager = createStateManager(appDataDriver, resourceManager, serverManager)
 
     const windowManager = createWindowManager(stateManager, {platform, debug: options?.debug && {frontendFromFolder: options.debug.frontendFromFolder, frontendFromURL: options.debug.frontendFromURL}})
 
     const themeManager = createThemeManager(appDataDriver)
 
-    const service = createService(appDataDriver, resourceManager, serverManager, bucket, stateManager, windowManager, themeManager, channelManager, {debugMode, userDataPath, platform, channel})
+    const service = createService(appDataDriver, channelManager, resourceManager, serverManager, bucket, stateManager, windowManager, themeManager, {debugMode, userDataPath, platform, channel: channelManager.currentChannel()})
 
     registerIpcTransformer(service)
-
     registerAppEvents(windowManager, serverManager, platform)
 
     await promiseAll(appDataDriver.load(), resourceManager.load(), app.whenReady())
-    await promiseAll(stateManager.load(), themeManager.load())
+    await themeManager.load()
 
-    windowManager.load()
+    stateManager.load()
 
     registerAppMenu(windowManager, {debugMode, platform})
-
     registerDockMenu(windowManager)
 
+    windowManager.load()
     windowManager.createWindow()
 }
 
