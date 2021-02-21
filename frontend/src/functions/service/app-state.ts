@@ -89,8 +89,10 @@ function useAppStateInClientMode(ipc: IpcService, appEnv: AppEnv, httpClientConf
     const login = async (password: string) => {
         const res = await ipc.app.login(password)
         if(res) {
-            //tips: 根据异步模型，login返回时，state的changed事件并未送达，因此应该在login之后手动维护state至一个不稳定态
-            state.value = State.LOADING
+            //tips: 根据异步模型，login返回时，state的changed事件可能并未送达，因此应该在login之后手动维护state至一个不稳定态
+            if(state.value == State.NOT_LOGIN) {
+                state.value = State.LOADING
+            }
             return true
         }
         return false
@@ -98,7 +100,9 @@ function useAppStateInClientMode(ipc: IpcService, appEnv: AppEnv, httpClientConf
     const loginByTouchID = async () => {
         const res = canPromptTouchID && await ipc.app.loginByTouchID()
         if(res) {
-            state.value = State.LOADING
+            if(state.value == State.NOT_LOGIN) {
+                state.value = State.LOADING
+            }
             return true
         }
         return false

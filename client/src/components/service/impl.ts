@@ -1,6 +1,6 @@
 import { systemPreferences } from "electron"
 import { Platform } from "../../utils/process"
-import { AppDataDriver } from "../appdata"
+import { AppDataDriver, AppDataStatus } from "../appdata"
 import { ResourceManager } from "../resource"
 import { ServerManager } from "../server"
 import { InitConfig, StateManager } from "../state"
@@ -25,7 +25,7 @@ export function createService(appdata: AppDataDriver, channel: Channel, resource
                     debugMode: options.debugMode,
                     userDataPath: options.userDataPath,
                     channel: options.channel,
-                    canPromptTouchID: appdata.getAppData().loginOption.touchID && systemPreferences.canPromptTouchID(),
+                    canPromptTouchID: appdata.status() === AppDataStatus.LOADED && appdata.getAppData().loginOption.touchID && systemPreferences.canPromptTouchID(),
                     appState: state.state(),
                     connection: server.connectionInfo()
                 }

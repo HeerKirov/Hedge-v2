@@ -128,8 +128,12 @@ export function createStateManager(appdata: AppDataDriver, resource: ResourceMan
 
     async function asyncLogin() {
         if(appdata.getAppData().loginOption.fastboot) {
-            //fastboot模式下，将状态切换至loading resource模式，其他的什么也不做
-            setState(State.LOADING_SERVER)
+            //fastboot模式下，检查是否存在server的连接信息
+            if(server.connectionInfo() != null) {
+                setState(State.LOADED)
+            }else{
+                setState(State.LOADING_SERVER)
+            }
         }else{
             //非fastboot模式下，启动server
             setState(State.LOADING_SERVER)

@@ -1,5 +1,5 @@
 import * as path from "path"
-import { BrowserWindow, BrowserWindowConstructorOptions } from "electron"
+import { BrowserWindow, BrowserWindowConstructorOptions, nativeTheme } from "electron"
 import { Platform } from "../utils/process"
 import { State, StateManager } from "../components/state"
 import { APP_FILE, RESOURCE_FILE } from "../definitions/file"
@@ -57,6 +57,7 @@ export function createWindowManager(state: StateManager, options: WindowManagerO
                 enableRemoteModule: true,
                 preload: path.join(__dirname, 'preloads/index.js')
             },
+            backgroundColor: nativeTheme.shouldUseDarkColors ? "#212121" : "#FFFFFF",
             ...configure
         })
 

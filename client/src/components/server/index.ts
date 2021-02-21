@@ -188,11 +188,13 @@ function createStdServerManager(options: ServerManagerOptions): ServerManager {
                     url: `${connectionInfo!.url}/app/lifetime/${lifetimeId!}`,
                     method: "put",
                     headers: { 'Authorization': `Bearer ${connectionInfo!.token}` },
-                    data: {}
+                    data: { interval: 1000 * 60 }
                 })
                 if (!res.ok) {
                     console.error(`Error occurred in heart to server: ${res.message}`)
                 }
+                //TODO 稳定性处理：检测心跳过程的错误，并发起报告。如果连接断开，需要能通知到。
+                //      有关错误通知，针对init、load、server过程中的错误，需要仔细设计。
             })
         }
 
