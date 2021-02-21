@@ -5,7 +5,6 @@ import { InitContextInjection, useInitContext } from "./inject"
 import WelcomePage from "./WelcomePage"
 import PasswordPage from "./PasswordPage"
 import DBPage from './DBPage'
-import ReadyPage from './ReadyPage'
 import FinishPage from './FinishPage'
 import style from "./style.module.scss"
 
@@ -16,7 +15,7 @@ export default defineComponent({
 
             provide(InitContextInjection, context)
 
-            const pages = [WelcomePage, PasswordPage, DBPage, ReadyPage, FinishPage]
+            const pages = [WelcomePage, PasswordPage, DBPage, FinishPage]
 
             return () => {
                 const CurrentPage = pages[context.page.num.value]

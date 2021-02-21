@@ -1,14 +1,16 @@
 import { defineComponent, onMounted, ref } from "vue"
 import { useRouter } from "vue-router"
-import { useAppState } from "@/functions/service"
+import { State } from "@/functions/adapter-ipc"
+import { useAppInfo, useAppState } from "@/functions/service"
 import Input from "@/components/Input"
 
 export default defineComponent({
     setup() {
         const router = useRouter()
+        const appInfo = useAppInfo()
         const appState = useAppState()
 
-        const useTouchId = ref(appState.canPromptTouchID)
+        const useTouchId = ref(appInfo.canPromptTouchID)
 
         const password = ref("")
         const passwordWrong = ref(false)
@@ -32,6 +34,9 @@ export default defineComponent({
         }
 
         onMounted(async () => {
+            if(appState.state.value !== State.NOT_LOGIN) {
+                await router.push({name: "Index"})
+            }
             if(useTouchId.value) {
                 const res = await appState.loginByTouchID()
                 if(res) {

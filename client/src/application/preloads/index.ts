@@ -128,10 +128,7 @@ function ipcInvokeSync<T, R>(channel: string, form?: T): R {
  * 对接ipcRenderer。
  */
 function ipcOn<T>(channel: string, event: (arg?: T) => void) {
-    ipcRenderer.on(channel, (_, args) => {
-        console.log(`[IPC] receive ${channel} : ${args}`)
-        event(args)
-    })
+    ipcRenderer.on(channel, (_, args) => event(args))
 }
 
 (() => {

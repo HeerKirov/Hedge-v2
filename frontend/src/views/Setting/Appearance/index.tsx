@@ -1,19 +1,24 @@
 import { defineComponent } from "vue"
-import { useNativeTheme } from "@/functions/service"
+import { useAppearance } from "@/functions/service"
 import { NativeTheme } from "@/functions/adapter-ipc"
 
 export default defineComponent({
     setup() {
-        const theme = useNativeTheme()
+        const appearance = useAppearance()
 
-        const onClick = (value: NativeTheme) => () => theme.value = value
+        const onClick = (value: NativeTheme) => () => {
+            if(appearance.value) {
+                appearance.value.theme = value
+            }
+        }
 
-        return () => <div>
+        return () => appearance.value === undefined ? <div/> : <div>
             <p class="mb-1 is-size-medium">外观选项</p>
-            <div class="mt-4">
-                {buttons.map(([name, title, icon, style]) => <button onClick={onClick(name)} class={`button ${theme.value === name ? "is-info" : ""} ${style}`}>
+            <p class="mt-4">主题</p>
+            <div class="mt-2">
+                {buttons.map(([name, title, icon, style]) => <button onClick={onClick(name)} class={`button ${appearance.value?.theme === name ? "is-info" : ""} ${style}`}>
                     <span class="icon"><i class={`fa fa-${icon}`}/></span>
-                    {theme.value === name && <span>{title}</span>}
+                    {appearance.value?.theme === name && <span>{title}</span>}
                 </button>)}
             </div>
         </div>

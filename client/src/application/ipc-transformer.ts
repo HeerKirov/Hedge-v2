@@ -1,4 +1,4 @@
-import { ipcMain } from "electron"
+import { ipcMain, BrowserWindow } from "electron"
 import { Service } from "../components/service"
 
 /**
@@ -47,7 +47,8 @@ function ipcHandleSync<T, R>(channel: string, invoke: (f: T) => R) {
  */
 function ipcEvent<T>(channel: string, on: (event: (f: T) => void) => void) {
     on(args => {
-        console.log(`[IPC] emit to ${channel} : ${args}`)
-        ipcMain.emit(channel, args)
+        for (let window of BrowserWindow.getAllWindows()) {
+            window.webContents.send(channel, args)
+        }
     })
 }

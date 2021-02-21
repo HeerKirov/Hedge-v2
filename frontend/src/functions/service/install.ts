@@ -1,42 +1,32 @@
-import { App, InjectionKey } from "vue"
-import { APIService, createAPIService, createHttpInstance } from "@/functions/adapter-http"
-import { clientMode, getIpcService, getRemoteClient, IpcService, RemoteClientAdapter } from "@/functions/adapter-ipc"
-import { AppInfoInjection, useAppInfoInjection } from "./app-info"
-import { AppStateInjection, useAppStateInjection } from "./app-state"
-import { FullscreenInjection, useFullscreenInjection } from "./fullscreen"
+import { inject, InjectionKey, provide, reactive } from "vue"
+import { ApiClient, createApiClient, createHttpClient } from "@/functions/adapter-http"
+import { clientMode, remote, ipc } from "@/functions/adapter-ipc"
+import { AppInfoInjection, AppStateInjection, useAppStateInjection } from "./app-state"
+import { FullscreenInjection, useFullscreenInjection } from "./app-fullscreen"
+import { performanceTimer } from "@/utils/performance-timer"
 
-function createService() {
-    const beginTime = new Date().getTime()
+function installAppService() {
+    const timer = performanceTimer()
 
-    const remote = getRemoteClient()
-    const ipc = getIpcService()
-    const httpInstance = createHttpInstance()
-    const api = createAPIService(httpInstance)
+    const baseUrl = process.env.NODE_ENV === 'development' ? <string>process.env.VUE_APP_BASE_URL : undefined
 
-    const appInfo = useAppInfoInjection(clientMode, ipc)
-    const appState = useAppStateInjection(clientMode, remote, ipc, api, httpInstance, appInfo)
+    const httpClientConfig = reactive({baseUrl, token: undefined})
+    const api = createApiClient(createHttpClient(httpClientConfig))
     const fullscreen = useFullscreenInjection(clientMode, remote)
+    const { appInfo, appState } = useAppStateInjection(clientMode, ipc, api, httpClientConfig)
 
-    const endTime = new Date().getTime()
-    console.log(`/install service cost = ${endTime - beginTime}ms.`)
+    timer.logTotal("install service")
 
-    return {
-        install(app: App) {
-            app.provide(BasicComponentInjection, {clientMode, remote, ipc, api})
-            app.provide(AppInfoInjection, appInfo)
-            app.provide(AppStateInjection, appState)
-            app.provide(FullscreenInjection, fullscreen)
-        }
-    }
+    provide(AppInfoInjection, appInfo)
+    provide(AppStateInjection, appState)
+    provide(FullscreenInjection, fullscreen)
+    provide(ApiClientInjection, api)
 }
 
-interface BasicComponent {
-    clientMode: boolean, 
-    remote: RemoteClientAdapter, 
-    ipc: IpcService,
-    api: APIService
+const ApiClientInjection: InjectionKey<ApiClient> = Symbol()
+
+function useApiClient(): ApiClient {
+    return inject(ApiClientInjection)!
 }
 
-const BasicComponentInjection: InjectionKey<BasicComponent> = Symbol()
-
-export { createService, BasicComponentInjection, clientMode }
+export { clientMode, installAppService, useApiClient }

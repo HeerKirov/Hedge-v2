@@ -1,54 +1,48 @@
-import { ipcInvoke, ipcInvokeSync } from "./client"
-import { IpcService } from "./definition"
+import { ipcInvoke, ipcInvokeSync, ipcOn } from "./client"
+import { IpcService } from "./ipc"
+import { createEmitter, Emitter } from "@/utils/emitter"
 
 const invoke = <T, R>(channel: string) => (form?: T): Promise<R> => ipcInvoke(channel, form)
 const invokeSync = <T, R>(channel: string) => (form?: T): R => ipcInvokeSync(channel, form)
+const on = <T>(channel: string): Emitter<T> => {
+    const emitter = createEmitter<T>()
+    ipcOn(channel, emitter.emit)
+    return emitter
+}
 
-export function createIpcService(): IpcService {
+function createIpcService(): IpcService {
     return {
         app: {
             env: invokeSync("/app/env"),
-            status: invokeSync("/app/status"),
             init: invoke("/app/init"),
             login: invoke("/app/login"),
-            loginByTouchID: invoke("/app/login-by-touch-id")
-        },
-        resource: {
-            server: {
-                status: invokeSync("/resource/server/status"),
-                update: invoke("/resource/server/update")
-            },
-            cli: {
-                status: invokeSync("/resource/cli/status"),
-                update: invoke("/resource/cli/update")
-            }
-        },
-        server: {
-            status: invokeSync("/server/status"),
-            env: invoke("/server/env"),
-            open: invoke("/server/open"),
-            close: invoke("/server/close"),
-            init: invoke("/server/init"),
-        },
-        setting: {
-            appearance: {
-                getTheme: invokeSync("/setting/appearance/theme/get"),
-                setTheme: invoke("/setting/appearance/theme/set")
-            },
-            auth: {
-                get: invokeSync("/setting/auth/get"),
-                set: invoke("/setting/auth/set")
-            },
-            channel: {
-                list: invoke("/setting/channel/list"),
-                setDefault: invoke("/setting/channel/set-default"),
-                change: invokeSync("/setting/channel/change")
-            }
+            loginByTouchID: invoke("/app/login-by-touch-id"),
+            stateChangedEvent: on("/app/state/changed"),
+            initChangedEvent: on("/app/init/changed")
         },
         window: {
             openNewWindow: invoke("/window/new-window"),
             openSetting: invoke("/window/open-setting"),
             openGuide: invoke("/window/open-guide")
+        },
+        cli: {
+            status: invoke("/cli/status"),
+            update: invoke("/cli/update")
+        },
+        appearance: {
+            get: invoke("/appearance/get"),
+            set: invoke("/appearance/set")
+        },
+        auth: {
+            get: invoke("/auth/get"),
+            set: invoke("/auth/set")
+        },
+        channel: {
+            list: invoke("/channel/list"),
+            setDefault: invoke("/channel/set-default"),
+            change: invokeSync("/channel/change")
         }
     }
 }
+
+export const ipc: IpcService = createIpcService()

@@ -1,24 +1,22 @@
-import { clientMode, createRemoteClientAdapter } from "./client"
-import { createIpcService } from "./impl"
-import type { RemoteClientAdapter, OpenDialogOptions, MenuTemplate } from "./client"
-import type { IpcService, NativeTheme } from "./definition"
+import { clientMode, remote } from "./client"
+import { ipc } from "./impl"
+import { ResourceStatus, State, InitState } from "./ipc"
+import type { RemoteClientAdapter, OpenDialogOptions, MenuTemplate, MessageOptions } from "./client"
+import type { IpcService, NativeTheme, AppearanceSetting, InitConfig } from "./ipc"
 
 export { 
-    clientMode, 
+    clientMode,
+    remote,
+    ipc,
     IpcService,
     RemoteClientAdapter,
     OpenDialogOptions,
+    MenuTemplate,
+    MessageOptions,
+    AppearanceSetting,
     NativeTheme,
-    MenuTemplate
-}
-
-let remoteClient: RemoteClientAdapter|undefined = undefined
-let ipcService: IpcService|undefined = undefined
-
-export function getRemoteClient(): RemoteClientAdapter {
-    return remoteClient || (remoteClient = createRemoteClientAdapter())
-}
-
-export function getIpcService(): IpcService {
-    return ipcService || (ipcService = createIpcService())
+    State,
+    InitState,
+    InitConfig,
+    ResourceStatus
 }

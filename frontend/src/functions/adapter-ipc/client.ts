@@ -58,8 +58,8 @@ export interface OpenDialogOptions {
     properties?: ("openFile" | "openDirectory" | "multiSelections" | "createDirectory"/*macOS*/)[]
 }
 
-interface MessageOptions {
-    type: "none"|"info"|"error"|"question"
+export interface MessageOptions {
+    type: "none" | "info" | "error" | "question"
     buttons?: string[]
     defaultButtonId?: number
     title?: string
@@ -70,6 +70,8 @@ interface MessageOptions {
 type IpcInvoke = <T, R>(channel: string, form?: T) => Promise<R>
 
 type IpcInvokeSync = <T, R>(channel: string, form?: T) => R
+
+type IpcOn = <T>(channel: string, event: (form: T) => void) => void
 
 function forbidden (): any {
     throw new Error("Cannot call IPC in web.")
@@ -95,8 +97,10 @@ function createEmptyRemoteClientAdapter(): RemoteClientAdapter {
 
 export const clientMode: boolean = !!window['clientMode']
 
-export const createRemoteClientAdapter: () => RemoteClientAdapter = clientMode ? window['createRemoteClientAdapter'] : createEmptyRemoteClientAdapter
-
 export const ipcInvoke: IpcInvoke = clientMode ? window['ipcInvoke'] : forbidden
 
 export const ipcInvokeSync: IpcInvokeSync = clientMode ? window['ipcInvokeSync'] : forbidden
+
+export const ipcOn: IpcOn = clientMode ? window['ipcOn'] : forbidden
+
+export const remote: RemoteClientAdapter = clientMode ? window['createRemoteClientAdapter']() : createEmptyRemoteClientAdapter()

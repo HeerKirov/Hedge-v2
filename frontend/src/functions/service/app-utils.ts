@@ -1,9 +1,8 @@
-import { computed, ref } from "vue"
-import { getRemoteClient, getIpcService, NativeTheme, clientMode, OpenDialogOptions } from "@/functions/adapter-ipc"
+import { remote, ipc, clientMode, OpenDialogOptions } from "@/functions/adapter-ipc"
 
 export const dialogManager = clientMode ? {
     async openDialog(options: OpenDialogOptions): Promise<string[] | null> {
-        return await getRemoteClient().dialog.openDialog(options)
+        return await remote.dialog.openDialog(options)
     }
 } : {
     async openDialog(options: OpenDialogOptions): Promise<string[] | null> {
@@ -13,13 +12,13 @@ export const dialogManager = clientMode ? {
 
 export const windowManager = clientMode ? {
     newWindow(route?: string, param?: any) {
-        getIpcService().window.openNewWindow({routeName: route, routeParam: param}).finally(() => {})
+        ipc.window.openNewWindow({routeName: route, routeParam: param}).finally(() => {})
     },
     openSetting() {
-        getIpcService().window.openSetting().finally(() => {})
+        ipc.window.openSetting().finally(() => {})
     },
     openGuide() {
-        getIpcService().window.openGuide().finally(() => {})
+        ipc.window.openGuide().finally(() => {})
     }
 } : {
     newWindow(route?: string, param?: any) {
@@ -34,22 +33,5 @@ export const windowManager = clientMode ? {
     openGuide() {
         const url = `${window.location.protocol}//${window.location.host}/#/guide`
         window.open(url)
-    }
-}
-
-export function useNativeTheme() {
-    if(clientMode) {
-        let nativeTheme = ref<NativeTheme>()
-
-        return computed<NativeTheme>({
-            get() {
-                return nativeTheme.value || (nativeTheme.value = getIpcService().setting.appearance.getTheme())
-            },
-            set(value) {
-                getIpcService().setting.appearance.setTheme(nativeTheme.value = value).catch(e => console.error(e))
-            }
-        })
-    }else{
-        return computed<NativeTheme>(() => "system")
     }
 }

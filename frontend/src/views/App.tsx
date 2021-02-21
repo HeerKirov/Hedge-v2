@@ -1,10 +1,12 @@
 import { defineComponent } from "vue"
 import { RouterView } from "vue-router"
-import { watchDocumentTitle } from "@/functions/document/title"
+import { installTitleWatcher } from "@/functions/document/title"
+import { installAppService } from "@/functions/service"
 
 export default defineComponent({
     setup() {
-        watchDocumentTitle()
+        installTitleWatcher()
+        installAppService()
 
         return () => <RouterView/>
     }

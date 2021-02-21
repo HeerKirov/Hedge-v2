@@ -1,68 +1,127 @@
 import { inject, InjectionKey, readonly, ref, Ref } from "vue"
-import { AppDataStatus, IpcService } from "../adapter-ipc/definition"
-import { APIService, HttpInstance } from "../adapter-http"
-import { RemoteClientAdapter } from "../adapter-ipc"
-import { AppInfo } from "./app-info"
-import { useLocalStorage } from "./storage"
+import { AppEnv, ClientPlatform, IpcService, State } from "../adapter-ipc/ipc"
+import { ApiClient, HttpClientConfig } from "../adapter-http"
+import { useLocalStorage } from "./app-storage"
 
-export function useAppStateInjection(clientMode: boolean, remote: RemoteClientAdapter, ipc: IpcService, api: APIService, httpInstance: HttpInstance, appInfo: AppInfo): AppState {
-    return clientMode 
-        ? useAppStateInClientMode(ipc, remote, appInfo)
-        : useAppStateInWebMode(api, httpInstance, appInfo)
+
+/**
+ * 使用app平台的基础数据，提供平台相关的环境数据。这些数据恒定不变。
+ */
+export function useAppInfo(): Readonly<AppInfo> {
+    return inject(AppInfoInjection)!
 }
 
-function useAppStateInClientMode(ipc: IpcService, remote: RemoteClientAdapter, appInfo: AppInfo): AppState {
-    const ipcStatus = ipc.app.status()
+/**
+ * 提供app基础状态管理。基础状态指app的初始化状态和登录状态。对于web，只有登录状态。
+ * */
+export function useAppState(): AppState {
+    return inject(AppStateInjection)!
+}
 
-    const canPromptTouchID: boolean = appInfo.canPromptTouchID && ipcStatus.status == AppDataStatus.LOADED && ipc.setting.auth.get().touchID
-    const status: Ref<AppStateStatus> = ref(ipcStatus.status == AppDataStatus.NOT_INIT ? "NOT_INIT" : ipcStatus.isLogin ? "LOGIN" : "NOT_LOGIN")
+export interface AppState {
+    /**
+     * App的状态。null表示状态还未初始化，这只会发生在web端。
+     * */
+    state: Readonly<Ref<State | null>>
+    /**
+     * 在未登录的情况下，验证密码，并将登录状态设置为已登录。
+     * */
+    login(password: string): Promise<boolean>
+    /**
+     * 在未登录的情况下，验证touchID，并将登录状态设置为已登录。
+     * */
+    loginByTouchID(): Promise<boolean>
+}
 
-    const initializeApp = async (password: string | null) => {
-        const res = await ipc.app.init({password})
-        if(res.ok) {
-            status.value = "LOGIN"
-            return true
-        }
-        await remote.dialog.showMessage({ type: "error", title: "Error", message: res.errorMessage! })
-        return false
+export type AppInfo = AppInfoInClient | AppInfoInWeb
+
+export interface AppInfoInClient {
+    clientMode: true
+    platform: ClientPlatform
+    channel: string
+    userDataPath: string
+    debugMode: boolean
+    canPromptTouchID: boolean
+}
+
+export interface AppInfoInWeb {
+    clientMode: false
+    platform: "web"
+    debugMode: false
+    canPromptTouchID: false
+}
+
+export const AppInfoInjection: InjectionKey<Readonly<AppInfo>> = Symbol()
+export const AppStateInjection: InjectionKey<AppState> = Symbol()
+
+
+export function useAppStateInjection(clientMode: boolean, ipc: IpcService, api: ApiClient, httpClientConfig: HttpClientConfig) {
+    if(clientMode) {
+        const env = ipc.app.env()
+        const appInfo = getAppInfoInClient(env)
+        const appState = useAppStateInClientMode(ipc, env, httpClientConfig)
+
+        return {appInfo, appState}
+    }else{
+        const appInfo = getAppInfoInWeb()
+        const appState = useAppStateInWebMode(api, httpClientConfig)
+
+        return {appInfo, appState}
     }
+}
+
+function useAppStateInClientMode(ipc: IpcService, appEnv: AppEnv, httpClientConfig: HttpClientConfig): AppState {
+    const canPromptTouchID = appEnv.canPromptTouchID
+
+    const state: Ref<State> = ref(appEnv.appState)
+
+    ipc.app.stateChangedEvent.addEventListener(newState => {
+        if(newState === State.LOADED) {
+            const connectionInfo = ipc.app.env().connection
+            if(connectionInfo != null) {
+                httpClientConfig.baseUrl = connectionInfo.url
+                httpClientConfig.token = connectionInfo.token
+            }
+        }
+        state.value = newState
+    })
+
     const login = async (password: string) => {
-        const res = await ipc.app.login({password})
-        if(res.ok) {
-            status.value = "LOGIN"
+        const res = await ipc.app.login(password)
+        if(res) {
+            //tips: 根据异步模型，login返回时，state的changed事件并未送达，因此应该在login之后手动维护state至一个不稳定态
+            state.value = State.LOADING
             return true
         }
         return false
     }
     const loginByTouchID = async () => {
-        if(!canPromptTouchID) return false
-        const res = await ipc.app.loginByTouchID()
-        if(res.ok) {
-            status.value = "LOGIN"
+        const res = canPromptTouchID && await ipc.app.loginByTouchID()
+        if(res) {
+            state.value = State.LOADING
             return true
         }
         return false
     }
 
     return {
-        status: readonly(status),
-        canPromptTouchID,
-        initializeApp,
+        state: readonly(state),
         login,
         loginByTouchID
     }
 }
 
-function useAppStateInWebMode(api: APIService, httpInstance: HttpInstance, appInfo: AppInfo): AppState {
-    const ls = useLocalStorage<{token: string}>("web-access", appInfo)
+function useAppStateInWebMode(api: ApiClient, httpClientConfig: HttpClientConfig): AppState {
+    const ls = useLocalStorage<{token: string}>("web-access", {clientMode: false, canPromptTouchID: false, debugMode: false, platform: "web"})
 
-    const status: Ref<AppStateStatus> = ref("UNKNOWN")
+    const state: Ref<State | null> = ref(null)
 
     const login = async (password: string) => {
         const res = await api.web.login({password})
         if(res.ok) {
-            httpInstance.setToken(res.data.token)
+            httpClientConfig.token = res.data.token
             ls.value = {token: res.data.token}
+            state.value = State.LOADED
             return true
         }else if(res.status && res.code === "PASSWORD_WRONG") {
             return false
@@ -72,7 +131,7 @@ function useAppStateInWebMode(api: APIService, httpInstance: HttpInstance, appIn
         }
     }
 
-    async function loadStatus() {
+    async function load() {
         const webAccess = await api.web.access()
         if(!webAccess.ok) {
             if(webAccess.status) {
@@ -85,7 +144,7 @@ function useAppStateInWebMode(api: APIService, httpInstance: HttpInstance, appIn
             console.error("Web access is disabled.")
             return
         }else if(!webAccess.data.needPassword) {
-            status.value = "LOGIN"
+            state.value = State.LOADED
             return
         }
         if(ls.value != null) {
@@ -94,47 +153,40 @@ function useAppStateInWebMode(api: APIService, httpInstance: HttpInstance, appIn
                 console.error(verify.message)
                 return
             }else if(verify.data.ok) {
-                httpInstance.setToken(ls.value.token)
-                status.value = "LOGIN"
+                httpClientConfig.token = ls.value.token
+                state.value = State.LOADED
             }else{
                 ls.value = null
             }
         }
-        status.value = "NOT_LOGIN"
+        state.value = State.NOT_LOGIN
     }
 
-    loadStatus().catch(console.error)
+    load().catch(console.error)
 
     return {
-        status: readonly(status),
-        canPromptTouchID: false,
-        async initializeApp() { return true },
+        state: readonly(state),
         async loginByTouchID() { return false },
         login
     }
 }
 
-/** 提供app基础状态管理。基础状态指app的初始化状态和登录状态。对于web，只有登录状态。 */
-export function useAppState(): AppState {
-    return inject(AppStateInjection)!
+function getAppInfoInClient(env: AppEnv): AppInfo {
+    return {
+        clientMode: true,
+        platform: env.platform,
+        channel: env.channel,
+        userDataPath: env.userDataPath,
+        debugMode: env.debugMode,
+        canPromptTouchID: env.canPromptTouchID
+    }
 }
 
-export interface AppState {
-    /** App的状态，包括未初始化、未登录和已登录。此外当状态未完全加载时，值是unknown。 */
-    status: Readonly<Ref<AppStateStatus>>
-    /** 检查是否应该使用touchID登录。它综合了touchID启用标记和偏好设置给出最终结果。
-     *  可以发现它是个固定值，不会更新，因为没有setting变更的通知，不过这不影响它的使用场景。
-     *  为什么不会影响？因为检查是否需要登录的时刻总是新建页面并跳转到login的时刻。在这之前，必不可能存在对设置项的更改。
-     * */
-    canPromptTouchID: boolean
-    /** 初始化AppData。 */
-    initializeApp(password: string | null): Promise<boolean>
-    /** 在未登录的情况下，验证密码，并将登录状态设置为已登录。 */
-    login(password: string): Promise<boolean>
-    /** 在未登录的情况下，验证touchID，并将登录状态设置为已登录。 */
-    loginByTouchID(): Promise<boolean>
+function getAppInfoInWeb(): AppInfo {
+    return {
+        clientMode: false,
+        platform: "web",
+        debugMode: false,
+        canPromptTouchID: false
+    }
 }
-
-export type AppStateStatus = "NOT_INIT" | "NOT_LOGIN" | "LOGIN" | "UNKNOWN"
-
-export const AppStateInjection: InjectionKey<AppState> = Symbol()

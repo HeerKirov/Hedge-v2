@@ -10,7 +10,7 @@ export default defineComponent({
     setup() {
         const router = useRouter()
 
-        const mainList = arrays.newArray<ListItem>(31, i => ({name: `2020-10-${i + 1}`, title: `2020年10月${i + 1}日`, count: i * 100, anchor: i == 0 ? "2020-10" : undefined}))
+        const mainList = arrays.newArray<ListItem>(31, i => ({name: `2020-10-${i + 1}`, title: `2020年10月${i + 1}日`, count: i * 100, anchor: i === 0 ? "2020-10" : undefined}))
         const monthList = arrays.newArray<ListItem>(12, i => ({name: `2020-${i + 1}`, title: `2020年${i + 1}月`, count: i * 300}))
 
         const mainAnchor = ref<string | undefined>(undefined)

@@ -1,6 +1,7 @@
+import { computed } from "vue"
 import axios, { Method } from "axios"
 
-export interface HttpInstance {
+export interface HttpClient {
     /**
      * 发送一个请求到server。
      */
@@ -29,40 +30,27 @@ export interface HttpInstance {
      * 创建不带任何参数的柯里化请求。
      */
     createRequest: <R>(url: string, method?: Method) => () => Promise<Response<R>>
-    /**
-     * 获得token。
-     */
-    getToken(): string | undefined
-    /**
-     * 设置token。
-     */
-    setToken(token: string | undefined): void
-    /**
-     * 获得baseURL。
-     */
-    getBaseURL(): string | undefined
-    /**
-     * 设定baseURL。
-     */
-    setBaseURL(baseURL: string | undefined): void
 }
 
-export function createHttpInstance(): HttpInstance {
+export interface HttpClientConfig {
+    baseUrl?: string
+    token?: string
+}
+
+export function createHttpClient(config: Readonly<HttpClientConfig>): HttpClient {
     const instance = axios.create()
 
-    let baseURL: string | undefined = undefined
-    let token: string | undefined = undefined
-    let headers = token ? {'Authorization': `Bearer ${token}`} : undefined
+    const headers = computed(() => config.token && {'Authorization': `Bearer ${config.token}`})
 
     function request<R>(config: RequestConfig): Promise<Response<R>> {
         return new Promise(resolve => {
             instance.request({
-                baseURL: config.baseURL,
+                baseURL: config.baseUrl,
                 url: config.url,
                 method: config.method,
                 params: config.query,
                 data: config.data,
-                headers
+                headers: headers.value
             })
             .then(res => resolve({
                 ok: true,
@@ -91,30 +79,17 @@ export function createHttpInstance(): HttpInstance {
 
     return {
         request,
-        createPathQueryRequest: <P, Q, R>(url: (path: P) => string, method?: Method) => (path: P, query: Q) => request<R>({baseURL, url: url(path), method, query}),
-        createPathDataRequest: <P, T, R>(url: (path: P) => string, method?: Method) => (path: P, data: T) => request<R>({baseURL, url: url(path), method, data}),
-        createPathRequest: <P, R>(url: (path: P) => string, method?: Method) => (path: P) => request<R>({baseURL, url: url(path), method}),
-        createQueryRequest: <Q, R>(url: string, method?: Method) => (query: Q) => request<R>({baseURL, url, method, query}),
-        createDataRequest: <T, R>(url: string, method?: Method) => (data: T) => request<R>({baseURL, url, method, data}),
-        createRequest: <R>(url: string, method?: Method) => () => request<R>({baseURL, url, method}),
-        getToken() {
-            return token
-        },
-        setToken(newToken: string | undefined) {
-            token = newToken
-            headers = token ? {'Authorization': `Bearer ${token}`} : undefined
-        },
-        getBaseURL() {
-            return baseURL
-        },
-        setBaseURL(newBaseURL: string | undefined) {
-            baseURL = newBaseURL
-        }
+        createPathQueryRequest: <P, Q, R>(url: (path: P) => string, method?: Method) => (path: P, query: Q) => request<R>({baseUrl: config.baseUrl, url: url(path), method, query}),
+        createPathDataRequest: <P, T, R>(url: (path: P) => string, method?: Method) => (path: P, data: T) => request<R>({baseUrl: config.baseUrl, url: url(path), method, data}),
+        createPathRequest: <P, R>(url: (path: P) => string, method?: Method) => (path: P) => request<R>({baseUrl: config.baseUrl, url: url(path), method}),
+        createQueryRequest: <Q, R>(url: string, method?: Method) => (query: Q) => request<R>({baseUrl: config.baseUrl, url, method, query}),
+        createDataRequest: <T, R>(url: string, method?: Method) => (data: T) => request<R>({baseUrl: config.baseUrl, url, method, data}),
+        createRequest: <R>(url: string, method?: Method) => () => request<R>({baseUrl: config.baseUrl, url, method})
     }
 }
 
 interface RequestConfig {
-    baseURL?: string
+    baseUrl?: string
     url: string
     method?: Method
     query?: {[name: string]: any}

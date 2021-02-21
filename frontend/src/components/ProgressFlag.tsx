@@ -1,7 +1,16 @@
-import { defineComponent } from "vue"
+import { defineComponent, onMounted, ref } from "vue"
 
 export default defineComponent({
-    setup() {
-        return () => <progress class={["progress", "is-small", "is-info", "is-width-8"]} max="100"/>
+    props: {
+        showDelay: Number
+    },
+    setup(props) {
+        const visible = ref(true)
+
+        if(props.showDelay) {
+            visible.value = false
+            onMounted(() => setTimeout(() => visible.value = true, props.showDelay))
+        }
+        return () => <progress class={{"progress": true, "is-small": true, "is-info": true, "is-width-8": true, "is-hidden": !visible.value}} max="100"/>
     }
 })

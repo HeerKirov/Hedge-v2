@@ -1,12 +1,12 @@
-import { HttpInstance, Response } from "../server"
+import { HttpClient, Response } from "../server"
 
-export interface WebService {
+export interface WebEndpoint {
     access(): Promise<Response<AccessResponse>>
     login(form: LoginForm): Promise<Response<TokenForm>>
     tokenVerify(form: TokenForm): Promise<Response<TokenResponse>>
 }
 
-export function createWebService(http: HttpInstance): WebService {
+export function createWebEndpoint(http: HttpClient): WebEndpoint {
     return {
         access: http.createRequest<AccessResponse>("/web/access"),
         login: http.createDataRequest<LoginForm, TokenForm>("/web/login", "POST"),

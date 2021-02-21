@@ -1,15 +1,15 @@
-import type { HttpInstance } from "./server"
-import { createHttpInstance } from "./server"
-import { createWebService, WebService } from "./impl/web"
+import type { HttpClient, HttpClientConfig } from "./server"
+import { createHttpClient } from "./server"
+import { createWebEndpoint, WebEndpoint } from "./impl/web"
 
-export { HttpInstance, createHttpInstance }
+export { HttpClient, HttpClientConfig, createHttpClient }
 
-export interface APIService {
-    web: WebService
+export interface ApiClient {
+    web: WebEndpoint
 }
 
-export function createAPIService(httpInstance: HttpInstance): APIService {
+export function createApiClient(httpInstance: HttpClient): ApiClient {
     return {
-        web: createWebService(httpInstance)
+        web: createWebEndpoint(httpInstance)
     }
 }
