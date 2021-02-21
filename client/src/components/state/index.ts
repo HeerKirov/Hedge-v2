@@ -22,7 +22,7 @@ export interface StateManager {
     /**
      * 查看当前state状态。
      */
-    state(): AppState
+    state(): State
 
     /**
      * 使用密码登录。
@@ -42,7 +42,7 @@ export interface StateManager {
      * 注册一个事件，该事件在state发生改变时触发。
      * @param event
      */
-    onStateChanged(event: (state: AppState) => void): void
+    onStateChanged(event: (state: State) => void): void
 
     /**
      * 注册一个事件，该事件在init过程中发送初始化过程变化。
@@ -51,7 +51,7 @@ export interface StateManager {
     onInitChanged(event: (state: InitState, err?: string) => void): void
 }
 
-export enum AppState {
+export enum State {
     NOT_INIT = "NOT_INIT",  //(稳定态)app未初始化
     LOADING = "LOADING",                    //(瞬间态)加载中，还不知道要做什么
     LOADING_RESOURCE = "LOADING_RESOURCE",  //加载中，正在处理资源升级
@@ -61,6 +61,7 @@ export enum AppState {
 }
 
 export enum InitState {
+    INITIALIZING = "INITIALIZING",
     INITIALIZING_APPDATA = "INITIALIZING_APPDATA",
     INITIALIZING_RESOURCE = "INITIALIZING_RESOURCE",
     INITIALIZING_SERVER = "INITIALIZING_SERVER",
@@ -75,12 +76,12 @@ export interface InitConfig {
 }
 
 export function createStateManager(appdata: AppDataDriver, resource: ResourceManager, server: ServerManager): StateManager {
-    const stateChangedEvents: ((state: AppState) => void)[] = []
+    const stateChangedEvents: ((state: State) => void)[] = []
     const initChangedEvents: ((state: InitState) => void)[] = []
 
-    let state: AppState = AppState.NOT_INIT
+    let state: State = State.NOT_INIT
 
-    function setState(newState: AppState) {
+    function setState(newState: State) {
         state = newState
         for (let event of stateChangedEvents) {
             event(newState)
@@ -97,44 +98,44 @@ export function createStateManager(appdata: AppDataDriver, resource: ResourceMan
         //TODO 捕获和处理load过程中的错误
         if(resource.status() == ResourceStatus.NEED_UPDATE) {
             //resource需要升级
-            setState(AppState.LOADING_RESOURCE)
+            setState(State.LOADING_RESOURCE)
             await resource.update()
         }
         if(appdata.getAppData().loginOption.password == null) {
             //没有密码
 
             //启动server
-            setState(AppState.LOADING_SERVER)
+            setState(State.LOADING_SERVER)
             await server.startConnection()
 
-            setState(AppState.LOADED)
+            setState(State.LOADED)
         }else{
             if(appdata.getAppData().loginOption.fastboot) {
                 //fastboot模式下，server启动在login检查之前，且前启动过程没有状态信息
                 server.startConnection().then(() => {
                     //启动完成后，检查state
-                    if(state == AppState.LOADING_SERVER) {
+                    if(state == State.LOADING_SERVER) {
                         //如果是loading server的状态，说明已经登录，且正在等待启动完成
-                        setState(AppState.LOADED)
+                        setState(State.LOADED)
                     }
                     //否则认为还没有登录，什么也不做
                 })
             }
 
-            setState(AppState.NOT_LOGIN)
+            setState(State.NOT_LOGIN)
         }
     }
 
     async function asyncLogin() {
         if(appdata.getAppData().loginOption.fastboot) {
             //fastboot模式下，将状态切换至loading resource模式，其他的什么也不做
-            setState(AppState.LOADING_SERVER)
+            setState(State.LOADING_SERVER)
         }else{
             //非fastboot模式下，启动server
-            setState(AppState.LOADING_SERVER)
+            setState(State.LOADING_SERVER)
             await server.startConnection()
 
-            setState(AppState.LOADED)
+            setState(State.LOADED)
         }
     }
 
@@ -153,19 +154,19 @@ export function createStateManager(appdata: AppDataDriver, resource: ResourceMan
         setInitState(InitState.INITIALIZING_SERVER_DATABASE)
         await server.initializeRemoteServer(config.dbPath)
 
-        setState(AppState.LOADED)
+        setState(State.LOADED)
         setInitState(InitState.FINISH)
     }
 
     return {
         load() {
             if(appdata.status() == AppDataStatus.LOADED) {
-                setState(AppState.LOADING)
+                setState(State.LOADING)
                 asyncLoad().catch(e => console.error(e))
             }
         },
         init(config: InitConfig) {
-            if(state == AppState.NOT_INIT) {
+            if(state == State.NOT_INIT) {
                 asyncInit(config).catch(e => console.error(e))
             }
         },
@@ -173,7 +174,7 @@ export function createStateManager(appdata: AppDataDriver, resource: ResourceMan
             return state
         },
         login(password?: string): boolean {
-            if(state == AppState.NOT_LOGIN) {
+            if(state == State.NOT_LOGIN) {
                 const truePassword = appdata.getAppData().loginOption.password
                 if(truePassword == null || password === truePassword) {
                     asyncLogin().catch(e => console.error(e))
@@ -183,7 +184,7 @@ export function createStateManager(appdata: AppDataDriver, resource: ResourceMan
             return false
         },
         async loginByTouchID(): Promise<boolean> {
-            if(state == AppState.NOT_LOGIN && systemPreferences.canPromptTouchID()) {
+            if(state == State.NOT_LOGIN && systemPreferences.canPromptTouchID()) {
                 try {
                     await systemPreferences.promptTouchID("登录")
                 }catch (e) {
@@ -195,7 +196,7 @@ export function createStateManager(appdata: AppDataDriver, resource: ResourceMan
                 return false
             }
         },
-        onStateChanged(event: (state: AppState) => void) {
+        onStateChanged(event: (state: State) => void) {
             stateChangedEvents.push(event)
         },
         onInitChanged(event: (state: InitState, err?: string) => void) {

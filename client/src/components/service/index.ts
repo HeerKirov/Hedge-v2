@@ -1,6 +1,6 @@
 import { ServerConnectionInfo } from "../server/model"
 import { ResourceStatus } from "../resource"
-import { InitConfig, AppState, InitState } from "../state"
+import { InitConfig, State, InitState } from "../state"
 import { NativeTheme } from "../appdata/model"
 import { Platform } from "../../utils/process"
 
@@ -16,7 +16,7 @@ export interface Service {
         init(form: InitConfig): Promise<void>
         login(password: string): Promise<boolean>
         loginByTouchID(): Promise<boolean>
-        onStateChanged(event: (state: AppState) => void): void
+        onStateChanged(event: (state: State) => void): void
         onInitStateChanged(event: (state: InitState) => void): void
     }
     window: {
@@ -51,7 +51,7 @@ export interface AppEnv {
     userDataPath: string
     channel: string
     canPromptTouchID: boolean
-    appState: AppState
+    appState: State
     connection: ServerConnectionInfo | null
 }
 

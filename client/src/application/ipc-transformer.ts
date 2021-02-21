@@ -46,5 +46,8 @@ function ipcHandleSync<T, R>(channel: string, invoke: (f: T) => R) {
  * 从客户端主动发送的ipc通信。
  */
 function ipcEvent<T>(channel: string, on: (event: (f: T) => void) => void) {
-    on(args => ipcMain.emit(channel, args))
+    on(args => {
+        console.log(`[IPC] emit to ${channel} : ${args}`)
+        ipcMain.emit(channel, args)
+    })
 }

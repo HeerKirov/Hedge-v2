@@ -43,6 +43,11 @@ export interface ServerManager {
      * @return 指示是否成功初始化。如果初始化过，执行此方法会失败并返回false。
      */
     initializeRemoteServer(dbPath: string): Promise<boolean>
+
+    /**
+     * 注册一个事件，该事件在connection info发生变化时触发。
+     */
+    onConnectionChanged(event: (info: ServerConnectionInfo | null) => void): void
 }
 
 /**
@@ -101,7 +106,8 @@ function createProxyServerManager(options: ServerManagerOptions): ServerManager 
         async closeConnection(): Promise<void> {},
         async initializeRemoteServer(): Promise<boolean> {
             return true
-        }
+        },
+        onConnectionChanged() {}
     }
 }
 
@@ -112,6 +118,8 @@ function createStdServerManager(options: ServerManagerOptions): ServerManager {
         : path.join(options.userDataPath, DATA_FILE.RESOURCE.SERVER_FOLDER, RESOURCE_FILE.SERVER.BIN)
     const serverPIDPath = path.join(options.userDataPath, DATA_FILE.APPDATA.CHANNEL_FOLDER(options.channel), DATA_FILE.APPDATA.CHANNEL.SERVER_PID)
     const serverLogPath = path.join(options.userDataPath, DATA_FILE.APPDATA.CHANNEL_FOLDER(options.channel), DATA_FILE.APPDATA.CHANNEL.SERVER_LOG)
+
+    const events: ((info: ServerConnectionInfo | null) => void)[] = []
 
     let status: ServerStatus = ServerStatus.UNKNOWN
     let connectionInfo: ServerConnectionInfo | null = null
@@ -161,6 +169,9 @@ function createStdServerManager(options: ServerManagerOptions): ServerManager {
         }
 
         connectionInfo = await waitForReady()
+        for (let event of events) {
+            event(connectionInfo)
+        }
 
         if(lifetimeId == null) {
             const res = await request({url: `${connectionInfo!.url}/app/lifetime`, method: "post", headers: {'Authorization': `Bearer ${connectionInfo!.token}`}, data: {interval: 1000 * 120}})
@@ -205,6 +216,11 @@ function createStdServerManager(options: ServerManagerOptions): ServerManager {
             lifetimeId = null
         }
 
+        connectionInfo = null
+        for (let event of events) {
+            event(null)
+        }
+
         status = ServerStatus.CLOSE
     }
 
@@ -235,6 +251,9 @@ function createStdServerManager(options: ServerManagerOptions): ServerManager {
         },
         connectionInfo(): ServerConnectionInfo | null {
             return connectionInfo
+        },
+        onConnectionChanged(event: (info: ServerConnectionInfo | null) => void) {
+            events.push(event)
         }
     }
 }

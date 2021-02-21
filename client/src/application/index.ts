@@ -6,7 +6,6 @@ import { createStateManager } from "../components/state"
 import { createChannel } from "../components/channel"
 import { createResourceManager } from "../components/resource"
 import { createServerManager, ServerManager, ServerStatus } from "../components/server"
-import { createBucket } from "../components/bucket"
 import { createService } from "../components/service"
 import { registerIpcTransformer } from "./ipc-transformer"
 import { registerAppMenu } from "./menu"
@@ -73,8 +72,6 @@ export async function createApplication(options?: AppOptions) {
 
     const resourceManager = createResourceManager({userDataPath, appPath, debug: options?.debug && {frontendFromFolder: options.debug.frontendFromFolder, serverFromResource: options.debug.serverFromResource}})
 
-    const bucket = createBucket({userDataPath, channel: channelManager.currentChannel()})
-
     const serverManager = createServerManager({userDataPath, channel: channelManager.currentChannel(), debug: options?.debug && {serverFromURL: options.debug.serverFromURL, serverFromFolder: options.debug.serverFromFolder, frontendFromFolder: options.debug.frontendFromFolder}})
 
     const stateManager = createStateManager(appDataDriver, resourceManager, serverManager)
@@ -83,10 +80,10 @@ export async function createApplication(options?: AppOptions) {
 
     const themeManager = createThemeManager(appDataDriver)
 
-    const service = createService(appDataDriver, channelManager, resourceManager, serverManager, bucket, stateManager, windowManager, themeManager, {debugMode, userDataPath, platform, channel: channelManager.currentChannel()})
+    const service = createService(appDataDriver, channelManager, resourceManager, serverManager, stateManager, windowManager, themeManager, {debugMode, userDataPath, platform, channel: channelManager.currentChannel()})
 
-    registerIpcTransformer(service)
     registerAppEvents(windowManager, serverManager, platform)
+    registerIpcTransformer(service)
 
     await promiseAll(appDataDriver.load(), resourceManager.load(), app.whenReady())
     await themeManager.load()

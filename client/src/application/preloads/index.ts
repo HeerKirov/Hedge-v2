@@ -124,10 +124,21 @@ function ipcInvokeSync<T, R>(channel: string, form?: T): R {
     return ipcRenderer.sendSync(channel, form)
 }
 
+/**
+ * 对接ipcRenderer。
+ */
+function ipcOn<T>(channel: string, event: (arg?: T) => void) {
+    ipcRenderer.on(channel, (_, args) => {
+        console.log(`[IPC] receive ${channel} : ${args}`)
+        event(args)
+    })
+}
+
 (() => {
     const w = window as any
     w["clientMode"] = true
     w["ipcInvoke"] = ipcInvoke
     w["ipcInvokeSync"] = ipcInvokeSync
+    w["ipcOn"] = ipcOn
     w["createRemoteClientAdapter"] = createRemoteClientAdapter
 })()

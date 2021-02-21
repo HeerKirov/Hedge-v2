@@ -4,7 +4,6 @@ import { AppDataDriver } from "../appdata"
 import { ResourceManager } from "../resource"
 import { ServerManager } from "../server"
 import { InitConfig, StateManager } from "../state"
-import { Bucket } from "../bucket"
 import { Channel } from "../channel"
 import { WindowManager } from "../../application/window-manager"
 import { ThemeManager } from "../../application/theme-manager"
@@ -17,7 +16,7 @@ export interface ServiceOptions {
     channel: string
 }
 
-export function createService(appdata: AppDataDriver, channel: Channel, resource: ResourceManager, server: ServerManager, bucket: Bucket, state: StateManager, window: WindowManager, themeManager: ThemeManager, options: ServiceOptions): Service {
+export function createService(appdata: AppDataDriver, channel: Channel, resource: ResourceManager, server: ServerManager, state: StateManager, window: WindowManager, themeManager: ThemeManager, options: ServiceOptions): Service {
     return {
         app: {
             env() {
@@ -26,7 +25,7 @@ export function createService(appdata: AppDataDriver, channel: Channel, resource
                     debugMode: options.debugMode,
                     userDataPath: options.userDataPath,
                     channel: options.channel,
-                    canPromptTouchID: systemPreferences.canPromptTouchID(),
+                    canPromptTouchID: appdata.getAppData().loginOption.touchID && systemPreferences.canPromptTouchID(),
                     appState: state.state(),
                     connection: server.connectionInfo()
                 }
