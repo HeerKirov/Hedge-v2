@@ -1,5 +1,8 @@
 package com.heerkirov.hedge.server.utils
 
+import java.net.InetSocketAddress
+import java.net.Socket
+
 object Net {
     /**
      * 解析一段port范围。
@@ -33,6 +36,22 @@ object Net {
             for(i in begin .. 65535 step step) {
                 yield(i)
             }
+        }
+    }
+
+    /**
+     * 判断端口是否可用。
+     */
+    fun isPortAvailable(port: Int): Boolean {
+        fun bind(host: String, port: Int) {
+            Socket().use { it.bind(InetSocketAddress(host, port)) }
+        }
+
+        return try {
+            bind("0.0.0.0", port)
+            true
+        }catch (e: Exception) {
+            false
         }
     }
 }

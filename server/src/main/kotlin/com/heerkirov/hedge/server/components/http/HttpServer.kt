@@ -73,7 +73,11 @@ class HttpServerImpl(private val allServices: AllServices,
         val errorHandler = ErrorHandler()
 
         server = Javalin
-            .create { web.configure(it) }
+            .create {
+                //TODO 测试在client模式下能否不跨域访问。如果能的话，就把CORS访问控制在debug mode。
+                it.enableCorsForAllOrigins()
+                web.configure(it)
+            }
             .handle(aspect, authentication, web, errorHandler)
             .handle(AppRoutes(lifetime, appdata))
             .handle(SettingRoutes(allServices.settingImport, allServices.settingSource))
@@ -116,17 +120,15 @@ class HttpServerImpl(private val allServices: AllServices,
             ?: if(appdata.status == LoadStatus.LOADED) { appdata.data.service.port }else{ null }?.let { Net.analyzePort(it) }
             ?: Net.generatePort(options.defaultPort)
 
-        for (port in ports) {
-            try {
-                this.start(port)
-                this@HttpServerImpl.port = port
-                health.save(port = port, token = token)
-                return this
-            }catch (e: BindException) {
-                log.warn("Binding port $port failed: ${e.message}")
-            }
+        val port = ports.firstOrNull { Net.isPortAvailable(it) } ?: throw BindException("Server starting failed because no port is available.")
+        try {
+            this.start(port)
+            this@HttpServerImpl.port = port
+            health.save(port = port, token = token)
+            return this
+        }catch (e: BindException) {
+            throw BindException("Binding port $port failed: ${e.message}")
         }
-        throw BindException("Server starting failed because no port is available.")
     }
 }
 
