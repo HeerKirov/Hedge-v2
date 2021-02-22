@@ -39,4 +39,20 @@
           color: $color-dark
           &a:hover
             background-color: toLightenColor($color-light, 2.5%)
-
+  @media (prefers-color-scheme: dark)
+    @each $name, $pair in $colors-dark-mode
+      $color: nth($pair, 1)
+      $color-invert: nth($pair, 2)
+      &.is-#{$name}
+        background-color: $color
+        color: $color-invert
+        &a:hover
+          background-color: toDarkenColor($color, 2.5%)
+        @if length($pair) >= 4
+          $color-light: nth($pair, 3)
+          $color-dark: nth($pair, 4)
+          &.is-light
+            background-color: $color-light
+            color: $color-dark
+            &a:hover
+              background-color: toDarkenColor($color-light, 2.5%)

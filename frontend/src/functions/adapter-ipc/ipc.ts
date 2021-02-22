@@ -31,6 +31,7 @@ export interface IpcService {
     }
     channel: {
         list(): Promise<string[]>
+        getDefault(): Promise<string>
         setDefault(channel: string): Promise<void>
         change(channel: string): void
     }

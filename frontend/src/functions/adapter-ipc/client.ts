@@ -101,6 +101,6 @@ export const ipcInvoke: IpcInvoke = clientMode ? window['ipcInvoke'] : forbidden
 
 export const ipcInvokeSync: IpcInvokeSync = clientMode ? window['ipcInvokeSync'] : forbidden
 
-export const ipcOn: IpcOn = clientMode ? window['ipcOn'] : forbidden
+export const ipcOn: IpcOn = clientMode ? window['ipcOn'] : () => {}
 
 export const remote: RemoteClientAdapter = clientMode ? window['createRemoteClientAdapter']() : createEmptyRemoteClientAdapter()

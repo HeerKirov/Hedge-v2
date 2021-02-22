@@ -17,7 +17,8 @@
 
 .label
   color: $black
-  //TODO dark mode 需要反色
+  @media (prefers-color-scheme: dark)
+    color: $white
   display: block
   font-weight: 700
   &:not(:last-child)

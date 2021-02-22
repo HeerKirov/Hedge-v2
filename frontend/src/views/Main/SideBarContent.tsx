@@ -136,7 +136,6 @@ const SubItemFolders = defineComponent({
 
         const currentItemKey = ref<string>()
         const items: Ref<{key: string, title: string, virtual?: boolean}[]> = ref([
-            //TODO 更改策略。对于文件夹，仍采取pin+临时二级菜单的格式。为此需要更加复杂和业务化的组件构造。
             //mock data，实际数据从server拉取folder列表
             {key: "1", title: "文件夹A"},
             {key: "2", title: "文件夹B", virtual: true}
@@ -152,9 +151,7 @@ const SubItemFolders = defineComponent({
             }
         })
 
-        const onClick = (key: string) => () => {
-            router.push({name: props.routeName, params: {[props.paramKey]: key}})
-        }
+        const onClick = (key: string) => () => router.push({name: props.routeName, params: {[props.paramKey]: key}})
 
         return () => <>
             <li>

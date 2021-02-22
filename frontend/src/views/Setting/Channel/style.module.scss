@@ -1,12 +1,30 @@
+@import "@/styles/base/color.scss";
+
 .root {
     .channel-item {
         display: flex;
 
-        >:global(.block) {
-            padding: 0.5rem 0.75rem;
+        > :global(.block) {
+            padding: 0.5rem 1rem;
             margin-bottom: 0.5rem;
-            width: 20rem;
             cursor: pointer;
+            width: 640px;
+            @media screen and (max-width: 720px) {
+                width: 100%;
+            }
+            > .default-buttons {
+                color: $grey;
+                margin-top: 1rem;
+                margin-bottom: 0.25rem;
+                float: right;
+            }
+            > .buttons {
+                margin-top: 0.5rem;
+                float: right;
+                > :not(:last-child) {
+                    margin-right: 0.5rem;
+                }
+            }
         }
     }
 }

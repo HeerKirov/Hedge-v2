@@ -1,11 +1,11 @@
-import { defineComponent, onMounted, ref, toRef, watch } from "vue"
+import { defineComponent, onMounted, PropType, ref, toRef, watch } from "vue"
 
 export default defineComponent({
     props: {
         value: String,
         type: {
-            type: String,
-            default: 'text'
+            type: null as any as PropType<"text" | "password">,
+            default: "text"
         },
         placeholder: String,
         refreshOnInput: {

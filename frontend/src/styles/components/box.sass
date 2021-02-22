@@ -2,10 +2,14 @@
 @import "../base/color.scss"
 
 $box-shadow: 0 0.5em 1em -0.125em rgba($black, 0.1), 0 0px 0 1px rgba($black, 0.02) !default
+$box-shadow-dark-mode: 0 0.5em 1em -0.125em rgba($white, 0.1), 0 0px 0 1px rgba($white, 0.02) !default
 
 .box
   border-radius: $radius-size-large
-  box-shadow: $box-shadow
+
   display: block
   padding: 1.25rem
-  //TODO dark mode下的阴影太难看清，需要反色
+  @media (prefers-color-scheme: light)
+    box-shadow: $box-shadow
+  @media (prefers-color-scheme: dark)
+    box-shadow: $box-shadow-dark-mode

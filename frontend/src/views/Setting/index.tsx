@@ -1,5 +1,5 @@
 import { defineComponent } from "vue"
-import { RouterView, useRoute, useRouter } from "vue-router"
+import { RouterView } from "vue-router"
 import { clientMode } from "@/functions/service"
 import NotFoundNotification from "@/layouts/NotFoundNotification"
 import SideLayout, { SideBar } from "@/layouts/SideLayout"
