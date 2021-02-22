@@ -35,11 +35,12 @@ export function existsFile(path: string): Promise<boolean> {
 
 export async function readdir(dir: string): Promise<string[]> {
     return new Promise((resolve, reject) => {
-        nodeFs.readdir(dir, (e, files) => {
+        nodeFs.readdir(dir, {withFileTypes: true}, (e, files) => {
             if(e) {
                 reject(e)
             }else{
-                resolve(files)
+                const directories = files.filter(file => file.isDirectory()).map(file => file.name)
+                resolve(directories)
             }
         })
     })

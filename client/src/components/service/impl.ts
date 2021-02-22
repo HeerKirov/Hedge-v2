@@ -91,6 +91,7 @@ export function createService(appdata: AppDataDriver, channel: Channel, resource
         channel: {
             change: channel.restartWithChannel,
             list: channel.getChannelList,
+            getDefault: channel.getDefaultChannel,
             setDefault: channel.setDefaultChannel
         }
     }

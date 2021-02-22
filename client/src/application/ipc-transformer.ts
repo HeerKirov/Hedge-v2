@@ -19,6 +19,7 @@ export function registerIpcTransformer(service: Service) {
     ipcHandle("/auth/get", service.auth.get)
     ipcHandle("/auth/set", service.auth.set)
     ipcHandle("/channel/list", service.channel.list)
+    ipcHandle("/channel/get-default", service.channel.getDefault)
     ipcHandle("/channel/set-default", service.channel.setDefault)
     ipcHandleSync("/channel/change", service.channel.change)
 

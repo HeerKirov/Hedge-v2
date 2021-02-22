@@ -8,6 +8,7 @@ import { DATA_FILE } from "../../definitions/file"
 export interface Channel {
     currentChannel(): string
     getChannelList(): Promise<string[]>
+    getDefaultChannel(): Promise<string>
     setDefaultChannel(channel: string): Promise<void>
     restartWithChannel(channel: string): void
 }
@@ -34,6 +35,10 @@ export async function createChannel(options: ChannelOptions): Promise<Channel> {
         return await readdir(channelFolderPath)
     }
 
+    async function getDefaultChannel(): Promise<string> {
+        return await getDefaultChannelFromConfiguration() ?? options.defaultChannel
+    }
+
     async function setDefaultChannel(channel: string): Promise<void> {
         await writeFile<ClientConfiguration>(clientConfigPath, {defaultChannel: channel})
     }
@@ -49,6 +54,7 @@ export async function createChannel(options: ChannelOptions): Promise<Channel> {
             return channel
         },
         getChannelList,
+        getDefaultChannel,
         setDefaultChannel,
         restartWithChannel
     }
