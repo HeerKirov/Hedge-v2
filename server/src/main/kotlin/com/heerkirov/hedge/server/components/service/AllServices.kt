@@ -12,6 +12,7 @@ interface AllServices : Component {
     val annotation: AnnotationService
     val author: AuthorService
     val topic: TopicService
+    val settingAppdata: SettingAppdataService
     val settingImport: SettingImportService
     val settingSource: SettingSourceService
     val queryService: QueryService
@@ -27,6 +28,7 @@ class AllServicesImpl(
     override val annotation: AnnotationService,
     override val author: AuthorService,
     override val topic: TopicService,
+    override val settingAppdata: SettingAppdataService,
     override val settingImport: SettingImportService,
     override val settingSource: SettingSourceService,
     override val queryService: QueryService

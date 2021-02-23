@@ -76,6 +76,8 @@ fun runApplication(options: ApplicationOptions) {
             val authorService = AuthorService(repo, authorKit, queryManager, illustMetaExporter)
             val topicService = TopicService(repo, topicKit, queryManager, illustMetaExporter)
             val importService = ImportService(repo, fileManager, importManager, illustManager, sourceManager, importMetaManager, thumbnailGenerator)
+
+            val settingAppdataService = SettingAppdataService(appdata)
             val settingImportService = SettingImportService(repo)
             val settingSourceSiteService = SettingSourceService(repo)
 
@@ -89,6 +91,7 @@ fun runApplication(options: ApplicationOptions) {
                 annotationService,
                 authorService,
                 topicService,
+                settingAppdataService,
                 settingImportService,
                 settingSourceSiteService,
                 queryService

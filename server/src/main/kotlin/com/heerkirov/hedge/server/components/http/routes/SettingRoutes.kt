@@ -1,20 +1,39 @@
 package com.heerkirov.hedge.server.components.http.routes
 
+import com.heerkirov.hedge.server.components.appdata.ServiceOption
 import com.heerkirov.hedge.server.components.http.Endpoints
+import com.heerkirov.hedge.server.components.service.SettingAppdataService
 import com.heerkirov.hedge.server.components.service.SettingImportService
 import com.heerkirov.hedge.server.library.form.bodyAsForm
 import com.heerkirov.hedge.server.components.service.SettingSourceService
-import com.heerkirov.hedge.server.form.ImportOptionUpdateForm
-import com.heerkirov.hedge.server.form.SiteCreateForm
-import com.heerkirov.hedge.server.form.SiteUpdateForm
+import com.heerkirov.hedge.server.form.*
 import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder.*
 import io.javalin.http.Context
 
-class SettingRoutes(settingImportService: SettingImportService, settingSourceService: SettingSourceService) : Endpoints {
+class SettingRoutes(settingImportService: SettingImportService,
+                    settingSourceService: SettingSourceService,
+                    settingAppdataService: SettingAppdataService) : Endpoints {
     override fun handle(javalin: Javalin) {
         javalin.routes {
             path("api/setting") {
+                path("web") {
+                    get(web::get)
+                    patch(web::update)
+                }
+                path("service") {
+                    get(service::get)
+                    patch(service::update)
+                }
+                path("backup") {
+                    get(backup::get)
+                    patch(backup::update)
+                    post("sync", ::notImplemented)
+                }
+                path("proxy") {
+                    get(proxy::get)
+                    patch(proxy::update)
+                }
                 path("import") {
                     get(import::get)
                     patch(import::update)
@@ -30,12 +49,72 @@ class SettingRoutes(settingImportService: SettingImportService, settingSourceSer
                         }
                     }
                 }
+                path("file") {
+                    get(::notImplemented)
+                    patch(::notImplemented)
+                }
+                path("spider") {
+                    get(::notImplemented)
+                    patch(::notImplemented)
+                }
             }
         }
     }
 
     private val import = Import(settingImportService)
     private val site = Site(settingSourceService)
+    private val web = Web(settingAppdataService)
+    private val service = Service(settingAppdataService)
+    private val backup = Backup(settingAppdataService)
+    private val proxy = Proxy(settingAppdataService)
+
+    private fun notImplemented(ctx: Context) {
+        throw NotImplementedError()
+    }
+
+    private class Web(private val service: SettingAppdataService) {
+        fun get(ctx: Context) {
+            ctx.json(service.getWeb())
+        }
+
+        fun update(ctx: Context) {
+            val form = ctx.bodyAsForm<WebOptionUpdateForm>()
+            service.updateWeb(form)
+        }
+    }
+
+    private class Service(private val service: SettingAppdataService) {
+        fun get(ctx: Context) {
+            ctx.json(service.getService())
+        }
+
+        fun update(ctx: Context) {
+            val form = ctx.bodyAsForm<ServiceOption>()
+            service.updateService(form)
+        }
+    }
+
+    private class Backup(private val service: SettingAppdataService) {
+        fun get(ctx: Context) {
+            ctx.json(service.getBackup())
+        }
+
+        fun update(ctx: Context) {
+            val form = ctx.bodyAsForm<BackupOptionUpdateForm>()
+            service.updateBackup(form)
+        }
+    }
+
+    private class Proxy(private val service: SettingAppdataService) {
+        fun get(ctx: Context) {
+            ctx.json(service.getProxy())
+        }
+
+        fun update(ctx: Context) {
+            val form = ctx.bodyAsForm<ProxyOptionUpdateForm>()
+            service.updateProxy(form)
+        }
+    }
 
     private class Import(private val service: SettingImportService) {
         fun get(ctx: Context) {

@@ -22,3 +22,14 @@ data class ImportOptionUpdateForm(val autoAnalyseMeta: Opt<Boolean>,
                                   @Range(min = 0 - 86400000, max = 86400000) val setPartitionTimeDelay: Opt<Long>,
                                   val sourceAnalyseRules: Opt<List<ImportOption.SourceAnalyseRule>>,
                                   val systemDownloadHistoryPath: Opt<String?>)
+
+data class WebOptionUpdateForm(val autoWebAccess: Opt<Boolean>,
+                               val permanent: Opt<Boolean>,
+                               val password: Opt<String?>)
+
+data class ProxyOptionUpdateForm(val socks5Proxy: Opt<String?>,
+                                 val httpProxy: Opt<String?>)
+
+
+data class BackupOptionUpdateForm(val path: Opt<String?>,
+                                  val autoBackup: Opt<Boolean>)

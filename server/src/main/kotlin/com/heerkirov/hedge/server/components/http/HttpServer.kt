@@ -74,13 +74,12 @@ class HttpServerImpl(private val allServices: AllServices,
 
         server = Javalin
             .create {
-                //TODO 测试在client模式下能否不跨域访问。如果能的话，就把CORS访问控制在debug mode。
                 it.enableCorsForAllOrigins()
                 web.configure(it)
             }
             .handle(aspect, authentication, web, errorHandler)
             .handle(AppRoutes(lifetime, appdata))
-            .handle(SettingRoutes(allServices.settingImport, allServices.settingSource))
+            .handle(SettingRoutes(allServices.settingImport, allServices.settingSource, allServices.settingAppdata))
             .handle(QueryRoutes(allServices.queryService))
             .handle(IllustRoutes(allServices.illust))
             .handle(AlbumRoutes(allServices.album))

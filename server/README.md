@@ -1,12 +1,12 @@
 # Hedge v2 Server
-这是App的后台服务子项目。后台服务项目承载绝大多数业务逻辑，并静默地在后台运行，为客户端和命令行工具提供一致的业务。
+这是App的后台服务子项目。后台服务提供应用程序业务逻辑，静默地在后台运行，为客户端和命令行工具提供一致的服务。
 
 ## Technology Stack
-* `java >= 11`
-* `kotlin`
-* `javalin`
-* `ktorm`
-* `sqlite3`
+* `Java >= 11`
+* `Kotlin`
+* `Javalin`
+* `Ktorm`
+* `SQLite3`
 
 ## Development & Debug
 ### Deploy
