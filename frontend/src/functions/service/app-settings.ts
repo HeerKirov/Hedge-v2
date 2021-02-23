@@ -1,5 +1,6 @@
 import { onMounted, ref, watch, toRaw, computed } from "vue"
 import { AppearanceSetting, clientMode, ipc, ResourceStatus, AuthSetting } from "@/functions/adapter-ipc"
+import { useNotification } from "@/functions/notification"
 import { useAppInfo } from "@/functions/service/app-state"
 
 export function useAuthSetting() {
@@ -24,6 +25,8 @@ export function useCliController() {
     if(!clientMode) {
         throw new Error("Cannot access appearance in web.")
     }
+    const notification = useNotification()
+
     const status = ref<ResourceStatus>(ResourceStatus.LATEST)
 
     const update = async () => {
@@ -34,6 +37,7 @@ export function useCliController() {
                 status.value = ResourceStatus.LATEST
             }else{
                 status.value = ResourceStatus.NOT_INIT
+                notification.notify("CLI部署失败", "danger", res.errorMessage)
                 console.error(res.errorMessage)
             }
         }
@@ -103,5 +107,5 @@ export function useChannelSetting() {
         await ipc.channel.setDefault(channel)
     }
 
-    return {channels, currentChannel, defaultChannel, setDefaultChannel}
+    return {channels, currentChannel, defaultChannel, setDefaultChannel, restart: ipc.channel.change}
 }

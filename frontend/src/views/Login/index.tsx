@@ -52,17 +52,13 @@ export default defineComponent({
                 <span>HEDGE</span>
             </div>
             <div class="fixed center has-text-centered">
-                {useTouchId.value ?     
-                    <div>
-                        <i class="fa fa-3x fa-fingerprint mb-4"/>
-                        <div class="is-size-medium">正在通过touch ID认证</div>
-                    </div>
-                :
-                    <div class="group">
-                        <Input class={{"has-text-centered": true, "is-danger": passwordWrong.value}} type="password" focusOnMounted={true} refreshOnInput={true} value={password.value} onUpdateValue={v => password.value = v} onKeydown={enter}/>
-                        <button class="square button is-success" onClick={doLogin}><span class="icon"><i class="fa fa-check"/></span></button>
-                    </div>
-                }
+                {useTouchId.value ? <div>
+                    <i class="fa fa-3x fa-fingerprint mb-4"/>
+                    <div class="is-size-medium">正在通过touch ID认证</div>
+                </div> : <div class="group">
+                    <Input class={{"has-text-centered": true, "is-danger": passwordWrong.value}} type="password" focusOnMounted={true} refreshOnInput={true} value={password.value} onUpdateValue={v => password.value = v} onKeydown={enter}/>
+                    <button class="square button is-success" onClick={doLogin}><span class="icon"><i class="fa fa-check"/></span></button>
+                </div>}
             </div>
         </div>
     }

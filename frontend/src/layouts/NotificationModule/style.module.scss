@@ -1,0 +1,21 @@
+
+.root {
+  z-index: 100;
+  position: fixed;
+  right: 0;
+  top: 0;
+  width: 18rem;
+  margin-top: 40px;
+  margin-right: 1rem;
+  max-height: calc(100% - 40px);
+
+  .item {
+    padding: 1rem 0.8rem;
+    margin-bottom: 0.5rem;
+
+    > .close-button {
+      margin-top: -0.3rem;
+      float: right;
+    }
+  }
+}

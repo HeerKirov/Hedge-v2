@@ -6,11 +6,11 @@ import { Emitter } from "@/utils/emitter"
 export interface IpcService {
     app: {
         env(): AppEnv
-        init(form: InitConfig): Promise<void>
-        login(password: string): Promise<boolean>
-        loginByTouchID(): Promise<boolean>
+        init(form: InitConfig): Promise<InitStateRes>
+        login(password: string): Promise<LoginRes>
+        loginByTouchID(): Promise<LoginRes>
         stateChangedEvent: Emitter<State>
-        initChangedEvent: Emitter<InitState>
+        initChangedEvent: Emitter<InitStateRes>
     }
     window: {
         openNewWindow(form?: NewWindowOptions): Promise<void>
@@ -47,6 +47,17 @@ export interface AppEnv {
     canPromptTouchID: boolean
     appState: State
     connection: ServerConnectionInfo | null
+}
+
+export interface InitStateRes {
+    state: InitState
+    errorCode?: string
+    errorMessage?: string
+}
+
+export interface LoginRes {
+    ok: boolean
+    state?: State
 }
 
 //== appearance ==

@@ -11,6 +11,8 @@
   @media (prefers-color-scheme: dark)
     background-color: $more-dark
     color: $light
+  &.has-border
+    border: solid 1px $font-black
 
   a:not(.button):not(.dropdown-item)
     color: currentColor
@@ -23,12 +25,16 @@
     &.is-#{$name}
       background-color: $color
       color: $color-invert
+      &.has-border
+        border-color: $color-invert
       @if length($pair) >= 4
         $color-light: nth($pair, 3)
         $color-dark: nth($pair, 4)
         &.is-light
           background-color: $color-light
           color: $color-dark
+          &.has-border
+            border-color: $color-dark
   @media (prefers-color-scheme: dark)
     @each $name, $pair in $colors-dark-mode
       $color: nth($pair, 1)
@@ -36,9 +42,13 @@
       &.is-#{$name}
         background-color: $color
         color: $color-invert
+        &.has-border
+          border-color: $color-invert
         @if length($pair) >= 4
           $color-light: nth($pair, 3)
           $color-dark: nth($pair, 4)
           &.is-light
             background-color: $color-light
             color: $color-dark
+            &.has-border
+              border-color: $color-dark

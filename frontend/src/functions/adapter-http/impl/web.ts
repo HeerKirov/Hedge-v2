@@ -1,4 +1,4 @@
-import { HttpClient, Response } from "../server"
+import { HttpInstance, Response } from "../server"
 
 export interface WebEndpoint {
     access(): Promise<Response<AccessResponse>>
@@ -6,11 +6,11 @@ export interface WebEndpoint {
     tokenVerify(form: TokenForm): Promise<Response<TokenResponse>>
 }
 
-export function createWebEndpoint(http: HttpClient): WebEndpoint {
+export function createWebEndpoint(http: HttpInstance): WebEndpoint {
     return {
-        access: http.createRequest<AccessResponse>("/web/access"),
-        login: http.createDataRequest<LoginForm, TokenForm>("/web/login", "POST"),
-        tokenVerify: http.createDataRequest<TokenForm, TokenResponse>("/web/token-verify", "POST")
+        access: http.createRequest("/web/access"),
+        login: http.createDataRequest("/web/login", "POST"),
+        tokenVerify: http.createDataRequest("/web/token-verify", "POST")
     }
 }
 

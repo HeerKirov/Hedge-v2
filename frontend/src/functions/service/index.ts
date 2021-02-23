@@ -1,4 +1,4 @@
-export { clientMode, installAppService, useApiClient } from "./install"
+export { clientMode, installAppService, useHttpClient } from "./install"
 export { useAppInfo, useAppState } from "./app-state"
 export { useInitController } from "./app-init"
 export { useFullscreen } from "./app-fullscreen"

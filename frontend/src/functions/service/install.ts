@@ -1,5 +1,5 @@
 import { inject, InjectionKey, provide, reactive } from "vue"
-import { ApiClient, createApiClient, createHttpClient } from "@/functions/adapter-http"
+import { HttpClient, createHttpClient, createHttpInstance } from "@/functions/adapter-http"
 import { clientMode, remote, ipc } from "@/functions/adapter-ipc"
 import { AppInfoInjection, AppStateInjection, useAppStateInjection } from "./app-state"
 import { FullscreenInjection, useFullscreenInjection } from "./app-fullscreen"
@@ -11,7 +11,7 @@ function installAppService() {
     const baseUrl = process.env.NODE_ENV === 'development' ? <string>process.env.VUE_APP_BASE_URL : undefined
 
     const httpClientConfig = reactive({baseUrl, token: undefined})
-    const api = createApiClient(createHttpClient(httpClientConfig))
+    const api = createHttpClient(createHttpInstance(httpClientConfig))
     const fullscreen = useFullscreenInjection(clientMode, remote)
     const { appInfo, appState } = useAppStateInjection(clientMode, ipc, api, httpClientConfig)
 
@@ -20,13 +20,13 @@ function installAppService() {
     provide(AppInfoInjection, appInfo)
     provide(AppStateInjection, appState)
     provide(FullscreenInjection, fullscreen)
-    provide(ApiClientInjection, api)
+    provide(HttpClientInjection, api)
 }
 
-const ApiClientInjection: InjectionKey<ApiClient> = Symbol()
+const HttpClientInjection: InjectionKey<HttpClient> = Symbol()
 
-function useApiClient(): ApiClient {
-    return inject(ApiClientInjection)!
+function useHttpClient(): HttpClient {
+    return inject(HttpClientInjection)!
 }
 
-export { clientMode, installAppService, useApiClient }
+export { clientMode, installAppService, useHttpClient }

@@ -11,12 +11,12 @@ export default defineComponent({
         const router = useRouter()
         const appInfo = useAppInfo()
         const context = inject(InitContextInjection)!
-        const { state, initializeApp } = useInitController()
+        const { state, initializeApp, error } = useInitController()
 
         const finish = () => router.push({name: "MainIndex"})
-        const initialize = () => {
+        const initialize = async () => {
             if(appInfo.clientMode) {
-                initializeApp({password: context.password.value, dbPath: `${appInfo.userDataPath}/appdata/channel/${appInfo.channel}/database/${context.db.folderInAppData}`})
+                await initializeApp({password: context.password.value, dbPath: `${appInfo.userDataPath}/appdata/channel/${appInfo.channel}/database/${context.db.folderInAppData}`})
             }
         }
 
@@ -48,8 +48,8 @@ export default defineComponent({
             </div>
         </> : state.value === InitState.ERROR ? <>
             <h2 class="is-size-4 mb-2">错误</h2>
-            <p>初始化过程失败。</p>
-            {/* TODO 错误信息 */}
+            <p>初始化过程失败。{errorTitle[error.errorCode!] ?? error.errorCode ?? "Unknown Error"}</p>
+            {error.errorMessage && <pre><code>{error.errorMessage}</code></pre>}
             <div class={style.bottom}>
                 <button class="button is-medium is-link is-light absolute left-bottom" onClick={context.page.prev}><span class="icon"><i class="fa fa-arrow-left"/></span><span>上一步</span></button>
             </div>
@@ -66,4 +66,13 @@ const loadingMessage = {
     [InitState.INITIALIZING_RESOURCE]: "正在部署资源……",
     [InitState.INITIALIZING_SERVER]: "正在启动服务……",
     [InitState.INITIALIZING_SERVER_DATABASE]: "正在构建数据库……"
+}
+
+const errorTitle = {
+    "ALREADY_INIT": "App已经是初始化状态。中间可能发生了状态错误。",
+    "APPDATA_INIT_ERROR": "构建App的基本数据进行初始化时发生错误。",
+    "RESOURCE_UPDATE_ERROR": "部署资源时发生错误。",
+    "SERVER_INIT_ERROR": "核心服务初始化错误。",
+    "SERVER_DISCONNECTED": "无法建立与核心服务的连接。",
+    "UNSPECIFIED_ERROR": "发生了预料之外的内部错误。"
 }

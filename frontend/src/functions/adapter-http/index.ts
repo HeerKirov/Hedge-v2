@@ -1,15 +1,18 @@
-import type { HttpClient, HttpClientConfig } from "./server"
-import { createHttpClient } from "./server"
+import type { HttpInstance, HttpInstanceConfig, Response } from "./server"
+import { createHttpInstance } from "./server"
 import { createWebEndpoint, WebEndpoint } from "./impl/web"
+import { createSettingWebEndpoint, SettingWebEndpoint } from "./impl/setting-web"
 
-export { HttpClient, HttpClientConfig, createHttpClient }
+export { HttpInstance, HttpInstanceConfig, Response, createHttpInstance }
 
-export interface ApiClient {
+export interface HttpClient {
     web: WebEndpoint
+    settingWeb: SettingWebEndpoint
 }
 
-export function createApiClient(httpInstance: HttpClient): ApiClient {
+export function createHttpClient(http: HttpInstance): HttpClient {
     return {
-        web: createWebEndpoint(httpInstance)
+        web: createWebEndpoint(http),
+        settingWeb: createSettingWebEndpoint(http)
     }
 }

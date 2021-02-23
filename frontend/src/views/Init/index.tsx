@@ -1,6 +1,6 @@
 import { defineComponent, provide } from "vue"
 import { clientMode } from "@/functions/service"
-import NotFoundNotification from "@/layouts/NotFoundNotification"
+import NotFoundNotification from "@/layouts/ForbiddenNotification"
 import { InitContextInjection, useInitContext } from "./inject"
 import WelcomePage from "./WelcomePage"
 import PasswordPage from "./PasswordPage"
@@ -30,7 +30,7 @@ export default defineComponent({
                 </div>
             }
         }else{
-            return () => <NotFoundNotification/>
+            return () => <NotFoundNotification reason="FORBIDDEN_IN_WEB"/>
         }
     }
 })

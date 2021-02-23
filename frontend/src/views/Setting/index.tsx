@@ -1,7 +1,7 @@
 import { defineComponent } from "vue"
 import { RouterView } from "vue-router"
 import { clientMode } from "@/functions/service"
-import NotFoundNotification from "@/layouts/NotFoundNotification"
+import NotFoundNotification from "@/layouts/ForbiddenNotification"
 import SideLayout, { SideBar } from "@/layouts/SideLayout"
 import SideBarContent from "./SideBarContent"
 import style from "./style.module.scss"
@@ -30,7 +30,7 @@ export default defineComponent({
                 </div>
             }
         }else{
-            return () => <NotFoundNotification/>
+            return () => <NotFoundNotification reason="FORBIDDEN_IN_WEB"/>
         }
     }
 })

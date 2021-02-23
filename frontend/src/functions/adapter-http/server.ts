@@ -1,7 +1,7 @@
 import { computed } from "vue"
 import axios, { Method } from "axios"
 
-export interface HttpClient {
+export interface HttpInstance {
     /**
      * 发送一个请求到server。
      */
@@ -32,12 +32,12 @@ export interface HttpClient {
     createRequest: <R>(url: string, method?: Method) => () => Promise<Response<R>>
 }
 
-export interface HttpClientConfig {
+export interface HttpInstanceConfig {
     baseUrl?: string
     token?: string
 }
 
-export function createHttpClient(config: Readonly<HttpClientConfig>): HttpClient {
+export function createHttpInstance(config: Readonly<HttpInstanceConfig>): HttpInstance {
     const instance = axios.create()
 
     const headers = computed(() => config.token && {'Authorization': `Bearer ${config.token}`})
@@ -64,7 +64,8 @@ export function createHttpClient(config: Readonly<HttpClientConfig>): HttpClient
                         ok: false,
                         status: reason.response.status,
                         code: data.code,
-                        message: data.message
+                        message: data.message,
+                        info: data.info
                     })
                 }else{
                     resolve({
@@ -109,6 +110,7 @@ interface ResponseError {
     status: number
     code: string
     message: string | null
+    info: any
 }
 
 interface ResponseConnectionError {

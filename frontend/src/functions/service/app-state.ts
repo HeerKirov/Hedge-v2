@@ -1,6 +1,6 @@
 import { inject, InjectionKey, readonly, ref, Ref } from "vue"
 import { AppEnv, ClientPlatform, IpcService, State } from "../adapter-ipc/ipc"
-import { ApiClient, HttpClientConfig } from "../adapter-http"
+import { HttpClient, HttpInstanceConfig } from "../adapter-http"
 import { useLocalStorage } from "./app-storage"
 
 
@@ -55,7 +55,7 @@ export const AppInfoInjection: InjectionKey<Readonly<AppInfo>> = Symbol()
 export const AppStateInjection: InjectionKey<AppState> = Symbol()
 
 
-export function useAppStateInjection(clientMode: boolean, ipc: IpcService, api: ApiClient, httpClientConfig: HttpClientConfig) {
+export function useAppStateInjection(clientMode: boolean, ipc: IpcService, api: HttpClient, httpClientConfig: HttpInstanceConfig) {
     if(clientMode) {
         const env = ipc.app.env()
         const appInfo = getAppInfoInClient(env)
@@ -70,7 +70,7 @@ export function useAppStateInjection(clientMode: boolean, ipc: IpcService, api: 
     }
 }
 
-function useAppStateInClientMode(ipc: IpcService, appEnv: AppEnv, httpClientConfig: HttpClientConfig): AppState {
+function useAppStateInClientMode(ipc: IpcService, appEnv: AppEnv, httpClientConfig: HttpInstanceConfig): AppState {
     const canPromptTouchID = appEnv.canPromptTouchID
 
     const state: Ref<State> = ref(appEnv.appState)
@@ -88,22 +88,24 @@ function useAppStateInClientMode(ipc: IpcService, appEnv: AppEnv, httpClientConf
 
     const login = async (password: string) => {
         const res = await ipc.app.login(password)
-        if(res) {
-            //tips: 根据异步模型，login返回时，state的changed事件可能并未送达，因此应该在login之后手动维护state至一个不稳定态
+        if(res.ok) {
+            //根据异步模型，login返回时同时返回立即更改的state
             if(state.value == State.NOT_LOGIN) {
-                state.value = State.LOADING
+                state.value = res.state!
             }
             return true
         }
         return false
     }
     const loginByTouchID = async () => {
-        const res = canPromptTouchID && await ipc.app.loginByTouchID()
-        if(res) {
-            if(state.value == State.NOT_LOGIN) {
-                state.value = State.LOADING
+        if(canPromptTouchID) {
+            const res = await ipc.app.loginByTouchID()
+            if(res.ok) {
+                if(state.value == State.NOT_LOGIN) {
+                    state.value = res.state!
+                }
+                return true
             }
-            return true
         }
         return false
     }
@@ -115,7 +117,7 @@ function useAppStateInClientMode(ipc: IpcService, appEnv: AppEnv, httpClientConf
     }
 }
 
-function useAppStateInWebMode(api: ApiClient, httpClientConfig: HttpClientConfig): AppState {
+function useAppStateInWebMode(api: HttpClient, httpClientConfig: HttpInstanceConfig): AppState {
     const ls = useLocalStorage<{token: string}>("web-access", {clientMode: false, canPromptTouchID: false, debugMode: false, platform: "web"})
 
     const state: Ref<State | null> = ref(null)
