@@ -13,11 +13,11 @@ export { createService } from "./impl"
 export interface Service {
     app: {
         env(): AppEnv
-        init(form: InitConfig): Promise<void>
-        login(password: string): Promise<boolean>
-        loginByTouchID(): Promise<boolean>
+        init(form: InitConfig): Promise<InitStateRes>
+        login(password: string): Promise<LoginRes>
+        loginByTouchID(): Promise<LoginRes>
         onStateChanged(event: (state: State) => void): void
-        onInitStateChanged(event: (state: InitState) => void): void
+        onInitStateChanged(event: (state: InitStateRes) => void): void
     }
     window: {
         openNewWindow(form?: NewWindowOptions): Promise<void>
@@ -54,6 +54,17 @@ export interface AppEnv {
     canPromptTouchID: boolean
     appState: State
     connection: ServerConnectionInfo | null
+}
+
+export interface InitStateRes {
+    state: InitState
+    errorCode?: string
+    errorMessage?: string
+}
+
+export interface LoginRes {
+    ok: boolean
+    state?: State
 }
 
 //== appearance ==

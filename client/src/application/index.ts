@@ -10,7 +10,8 @@ import { createService } from "../components/service"
 import { registerIpcTransformer } from "./ipc-transformer"
 import { registerAppMenu } from "./menu"
 import { registerDockMenu } from "./dock"
-import { createThemeManager } from "./theme-manager";
+import { createThemeManager } from "./theme-manager"
+import { panic } from "../exceptions"
 
 /**
  * app的启动参数。
@@ -66,35 +67,39 @@ export async function createApplication(options?: AppOptions) {
     const appPath = app.getAppPath()
     const userDataPath = options?.debug?.localDataPath ?? app.getPath("userData")
 
-    const channelManager = await createChannel({userDataPath, defaultChannel: "default", manualChannel: options?.channel})
+    try {
+        const channelManager = await createChannel({userDataPath, defaultChannel: "default", manualChannel: options?.channel})
 
-    const appDataDriver = createAppDataDriver({userDataPath, debugMode, channel: channelManager.currentChannel()})
+        const appDataDriver = createAppDataDriver({userDataPath, debugMode, channel: channelManager.currentChannel()})
 
-    const resourceManager = createResourceManager({userDataPath, appPath, debug: options?.debug && {frontendFromFolder: options.debug.frontendFromFolder, serverFromResource: options.debug.serverFromResource}})
+        const resourceManager = createResourceManager({userDataPath, appPath, debug: options?.debug && {frontendFromFolder: options.debug.frontendFromFolder, serverFromResource: options.debug.serverFromResource}})
 
-    const serverManager = createServerManager({userDataPath, channel: channelManager.currentChannel(), debug: options?.debug && {serverFromURL: options.debug.serverFromURL, serverFromFolder: options.debug.serverFromFolder, frontendFromFolder: options.debug.frontendFromFolder}})
+        const serverManager = createServerManager({userDataPath, channel: channelManager.currentChannel(), debug: options?.debug && {serverFromURL: options.debug.serverFromURL, serverFromFolder: options.debug.serverFromFolder, frontendFromFolder: options.debug.frontendFromFolder}})
 
-    const stateManager = createStateManager(appDataDriver, resourceManager, serverManager)
+        const stateManager = createStateManager(appDataDriver, resourceManager, serverManager, {debugMode})
 
-    const windowManager = createWindowManager(stateManager, {platform, debug: options?.debug && {frontendFromFolder: options.debug.frontendFromFolder, frontendFromURL: options.debug.frontendFromURL}})
+        const windowManager = createWindowManager(stateManager, {platform, debug: options?.debug && {frontendFromFolder: options.debug.frontendFromFolder, frontendFromURL: options.debug.frontendFromURL}})
 
-    const themeManager = createThemeManager(appDataDriver)
+        const themeManager = createThemeManager(appDataDriver)
 
-    const service = createService(appDataDriver, channelManager, resourceManager, serverManager, stateManager, windowManager, themeManager, {debugMode, userDataPath, platform, channel: channelManager.currentChannel()})
+        const service = createService(appDataDriver, channelManager, resourceManager, serverManager, stateManager, windowManager, themeManager, {debugMode, userDataPath, platform, channel: channelManager.currentChannel()})
 
-    registerAppEvents(windowManager, serverManager, platform)
-    registerIpcTransformer(service)
+        registerAppEvents(windowManager, serverManager, platform)
+        registerIpcTransformer(service)
 
-    await promiseAll(appDataDriver.load(), resourceManager.load(), app.whenReady())
-    await themeManager.load()
+        await promiseAll(appDataDriver.load(), resourceManager.load(), app.whenReady())
+        await themeManager.load()
 
-    stateManager.load()
+        stateManager.load()
 
-    registerAppMenu(windowManager, {debugMode, platform})
-    registerDockMenu(windowManager)
+        registerAppMenu(windowManager, {debugMode, platform})
+        registerDockMenu(windowManager)
 
-    windowManager.load()
-    windowManager.createWindow()
+        windowManager.load()
+        windowManager.createWindow()
+    } catch (e) {
+        panic(e, debugMode)
+    }
 }
 
 function registerAppEvents(windowManager: WindowManager, serverManager: ServerManager, platform: Platform) {

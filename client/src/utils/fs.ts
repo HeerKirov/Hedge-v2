@@ -1,4 +1,4 @@
-import nodeFs, { Mode } from "fs"
+import nodeFs, { Dirent, Mode } from "fs"
 import unzipper from "unzipper"
 import { spawn } from "child_process"
 
@@ -33,14 +33,13 @@ export function existsFile(path: string): Promise<boolean> {
     return new Promise((resolve => nodeFs.access(path, (e) => resolve(!e))))
 }
 
-export async function readdir(dir: string): Promise<string[]> {
+export async function readdir(dir: string): Promise<Dirent[]> {
     return new Promise((resolve, reject) => {
         nodeFs.readdir(dir, {withFileTypes: true}, (e, files) => {
             if(e) {
                 reject(e)
             }else{
-                const directories = files.filter(file => file.isDirectory()).map(file => file.name)
-                resolve(directories)
+                resolve(files)
             }
         })
     })

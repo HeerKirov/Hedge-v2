@@ -1,13 +1,22 @@
 import { systemPreferences } from "electron"
 import { Platform } from "../../utils/process"
+import { ClientException } from "../../exceptions"
 import { AppDataDriver, AppDataStatus } from "../appdata"
 import { ResourceManager } from "../resource"
 import { ServerManager } from "../server"
-import { InitConfig, StateManager } from "../state"
 import { Channel } from "../channel"
+import { InitConfig, InitState, StateManager } from "../state"
 import { WindowManager } from "../../application/window-manager"
 import { ThemeManager } from "../../application/theme-manager"
-import { ActionResult, AppearanceSetting, AuthSetting, NewWindowOptions, Service } from "./index"
+import {
+    ActionResult,
+    AppearanceSetting,
+    AuthSetting,
+    InitStateRes,
+    LoginRes,
+    NewWindowOptions,
+    Service
+} from "./index"
 
 export interface ServiceOptions {
     platform: Platform
@@ -30,15 +39,23 @@ export function createService(appdata: AppDataDriver, channel: Channel, resource
                     connection: server.connectionInfo()
                 }
             },
-            async init(config: InitConfig) {
-                state.init(config)
+            async init(config: InitConfig): Promise<InitStateRes> {
+                try {
+                    const initState = await state.init(config)
+                    return {state: initState}
+                }catch (e) {
+                    const { errorCode, errorMessage } = catchException(e)
+                    return {state: InitState.ERROR, errorCode, errorMessage}
+                }
             },
-            async login(password: string): Promise<boolean> {
+            async login(password: string): Promise<LoginRes> {
                 return state.login(password)
             },
             loginByTouchID: state.loginByTouchID,
             onStateChanged: state.onStateChanged,
-            onInitStateChanged: state.onInitChanged
+            onInitStateChanged(e) {
+                state.onInitChanged((state, errorCode, errorMessage) => e({state, errorCode, errorMessage}))
+            }
         },
         window: {
             async openNewWindow(form?: NewWindowOptions): Promise<void> {
@@ -58,14 +75,10 @@ export function createService(appdata: AppDataDriver, channel: Channel, resource
             async update(): Promise<ActionResult> {
                 try {
                     await resource.updateCli()
+                    return {ok: true}
                 }catch (e) {
-                    if(e instanceof Error) {
-                        return {ok: false, errorCode: "UPDATE_ERROR", errorMessage: e.message}
-                    }else{
-                        return {ok: false, errorCode: "UPDATE_ERROR", errorMessage: e}
-                    }
+                    return catchException(e)
                 }
-                return {ok: true}
             }
         },
         appearance: {
@@ -94,5 +107,21 @@ export function createService(appdata: AppDataDriver, channel: Channel, resource
             getDefault: channel.getDefaultChannel,
             setDefault: channel.setDefaultChannel
         }
+    }
+}
+
+function catchException(e: any): ActionResult {
+    if(e instanceof ClientException) {
+        return {ok: false, errorCode: e.code, errorMessage: getErrorMessage(e.e)}
+    }else{
+        return {ok: false, errorCode: "UNSPECIFIED_ERROR", errorMessage: getErrorMessage(e)}
+    }
+}
+
+function getErrorMessage(e: any): string {
+    if(e instanceof Error) {
+        return e.message
+    }else{
+        return e?.toString() ?? ""
     }
 }

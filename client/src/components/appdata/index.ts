@@ -1,6 +1,7 @@
 import path from "path"
 import { mkdir, readFile, writeFile } from "../../utils/fs"
 import { DATA_FILE } from "../../definitions/file"
+import { ClientException } from "../../exceptions"
 import { AppData, defaultValue } from "./model"
 import { migrate } from "./migrations"
 
@@ -66,36 +67,44 @@ export function createAppDataDriver(options: AppDataDriverOptions): AppDataDrive
     let appData: AppData | null = null
 
     async function load() {
-        const data = await readFile<AppData>(clientDataPath)
-        if(data != null) {
-            status = AppDataStatus.LOADING
+        try {
+            const data = await readFile<AppData>(clientDataPath)
+            if(data != null) {
+                status = AppDataStatus.LOADING
 
-            const { appData: newAppData, changed } = await migrate({appData: data})
-            if(changed) {
-                await writeFile(clientDataPath, newAppData)
+                const { appData: newAppData, changed } = await migrate({appData: data})
+                if(changed) {
+                    await writeFile(clientDataPath, newAppData)
+                }
+                appData = newAppData
+
+                status = AppDataStatus.LOADED
+                console.log("[AppDataDriver] App data is loaded.")
+            }else{
+                status = AppDataStatus.NOT_INIT
+                console.log("[AppDataDriver] App data is not init.")
             }
-            appData = newAppData
-
-            status = AppDataStatus.LOADED
-            console.log("[AppDataDriver] App data is loaded.")
-        }else{
-            status = AppDataStatus.NOT_INIT
-            console.log("[AppDataDriver] App data is not init.")
+        }catch (e) {
+            throw new ClientException("APPDATA_LOAD_ERROR", e)
         }
     }
 
     async function init() {
         if(status != AppDataStatus.NOT_INIT) {
-            throw new Error("Appdata status must be NOT_INIT.")
+            throw new ClientException("ALREADY_INIT")
         }
         status = AppDataStatus.LOADING
 
-        await mkdir(channelPath)
-        await writeFile(clientDataPath, appData = defaultValue())
+        try {
+            await mkdir(channelPath)
+            await writeFile(clientDataPath, appData = defaultValue())
 
-        const { appData: newAppData, changed } = await migrate({appData})
-        if(changed) {
-            await writeFile(clientDataPath, appData = newAppData)
+            const { appData: newAppData, changed } = await migrate({appData})
+            if(changed) {
+                await writeFile(clientDataPath, appData = newAppData)
+            }
+        }catch (e) {
+            throw new ClientException("APPDATA_INIT_ERROR", e)
         }
 
         status = AppDataStatus.LOADED

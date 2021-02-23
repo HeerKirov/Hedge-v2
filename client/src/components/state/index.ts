@@ -2,6 +2,7 @@ import { systemPreferences } from "electron"
 import { AppDataDriver, AppDataStatus } from "../appdata"
 import { ResourceManager, ResourceStatus } from "../resource"
 import { ServerManager } from "../server"
+import { ClientException, panic } from "../../exceptions"
 
 /**
  * 对客户端app的状态进行管理。处理从加载到登录的一系列状态。
@@ -14,10 +15,10 @@ export interface StateManager {
     load(): void
 
     /**
-     * 执行初始化。该方法没有返回，需要通过init change event获得初始化过程变化。
+     * 执行初始化。该方法没有回执，需要通过init change event获得初始化过程变化。
      * 只能在NOT_INIT状态下调用，否则调用是无效的。
      */
-    init(config: InitConfig): void
+    init(config: InitConfig): Promise<InitState>
 
     /**
      * 查看当前state状态。
@@ -29,14 +30,14 @@ export interface StateManager {
      * 只能在NOT_LOGIN状态下调用，否则总是返回false。
      * @param password
      */
-    login(password?: string): boolean
+    login(password?: string): {ok: boolean, state?: State}
 
     /**
      * 使用touchID登录。
      * 只能在NOT_LOGIN状态下调用，否则总是返回false。
      * 只能在touchID可用时调用，否则总是返回false。
      */
-    loginByTouchID(): Promise<boolean>
+    loginByTouchID(): Promise<{ok: boolean, state?: State}>
 
     /**
      * 注册一个事件，该事件在state发生改变时触发。
@@ -48,7 +49,7 @@ export interface StateManager {
      * 注册一个事件，该事件在init过程中发送初始化过程变化。
      * @param event
      */
-    onInitChanged(event: (state: InitState, err?: string) => void): void
+    onInitChanged(event: (state: InitState, errorCode?: string, errorMessage?: string) => void): void
 }
 
 export enum State {
@@ -75,9 +76,13 @@ export interface InitConfig {
     dbPath: string
 }
 
-export function createStateManager(appdata: AppDataDriver, resource: ResourceManager, server: ServerManager): StateManager {
+export interface StateManagerOptions {
+    debugMode: boolean
+}
+
+export function createStateManager(appdata: AppDataDriver, resource: ResourceManager, server: ServerManager, options: StateManagerOptions): StateManager {
     const stateChangedEvents: ((state: State) => void)[] = []
-    const initChangedEvents: ((state: InitState) => void)[] = []
+    const initChangedEvents: ((state: InitState, errorCode?: string, errorMessage?: string) => void)[] = []
 
     let state: State = State.NOT_INIT
 
@@ -88,14 +93,13 @@ export function createStateManager(appdata: AppDataDriver, resource: ResourceMan
         }
     }
 
-    function setInitState(newState: InitState) {
+    function setInitState(newState: InitState, errorCode?: string, errorMessage?: string) {
         for (let event of initChangedEvents) {
-            event(newState)
+            event(newState, errorCode, errorMessage)
         }
     }
 
     async function asyncLoad() {
-        //TODO 捕获和处理load过程中的错误
         if(resource.status() == ResourceStatus.NEED_UPDATE) {
             //resource需要升级
             setState(State.LOADING_RESOURCE)
@@ -126,25 +130,29 @@ export function createStateManager(appdata: AppDataDriver, resource: ResourceMan
         }
     }
 
-    async function asyncLogin() {
+    function asyncLogin(): State {
         if(appdata.getAppData().loginOption.fastboot) {
             //fastboot模式下，检查是否存在server的连接信息
             if(server.connectionInfo() != null) {
-                setState(State.LOADED)
+                return state = State.LOADED
             }else{
-                setState(State.LOADING_SERVER)
+                return state = State.LOADING_SERVER
             }
         }else{
             //非fastboot模式下，启动server
-            setState(State.LOADING_SERVER)
-            await server.startConnection()
-
-            setState(State.LOADED)
+            try {
+                return state = State.LOADING_SERVER
+            } finally {
+                async function connect() {
+                    await server.startConnection()
+                    setState(State.LOADED)
+                }
+                connect().catch(e => panic(e, options.debugMode))
+            }
         }
     }
 
     async function asyncInit(config: InitConfig) {
-        //TODO 细化init过程中的错误
         setInitState(InitState.INITIALIZING_APPDATA)
         await appdata.init()
         await appdata.saveAppData(d => d.loginOption.password = config.password)
@@ -166,44 +174,47 @@ export function createStateManager(appdata: AppDataDriver, resource: ResourceMan
         load() {
             if(appdata.status() == AppDataStatus.LOADED) {
                 setState(State.LOADING)
-                asyncLoad().catch(e => console.error(e))
+                asyncLoad().catch(e => panic(e, options.debugMode))
             }
         },
-        init(config: InitConfig) {
+        async init(config: InitConfig): Promise<InitState> {
             if(state == State.NOT_INIT) {
                 asyncInit(config).catch(e => console.error(e))
+                return InitState.INITIALIZING
+            }else{
+                throw new ClientException("ALREADY_INIT")
             }
         },
         state() {
             return state
         },
-        login(password?: string): boolean {
+        login(password?: string): {ok: boolean, state?: State} {
             if(state == State.NOT_LOGIN) {
                 const truePassword = appdata.getAppData().loginOption.password
                 if(truePassword == null || password === truePassword) {
-                    asyncLogin().catch(e => console.error(e))
-                    return true
+                    const state = asyncLogin()
+                    return { ok: true, state }
                 }
             }
-            return false
+            return { ok: false }
         },
-        async loginByTouchID(): Promise<boolean> {
+        async loginByTouchID(): Promise<{ok: boolean, state?: State}> {
             if(state == State.NOT_LOGIN && systemPreferences.canPromptTouchID()) {
                 try {
-                    await systemPreferences.promptTouchID("登录")
+                    await systemPreferences.promptTouchID("进行登录认证")
                 }catch (e) {
-                    return false
+                    return { ok: false }
                 }
-                asyncLogin().catch(e => console.error(e))
-                return true
+                const state = asyncLogin()
+                return { ok: true, state }
             }else{
-                return false
+                return { ok: false }
             }
         },
         onStateChanged(event: (state: State) => void) {
             stateChangedEvents.push(event)
         },
-        onInitChanged(event: (state: InitState, err?: string) => void) {
+        onInitChanged(event: (state: InitState, errorCode?: string, errorMessage?: string) => void) {
             initChangedEvents.push(event)
         }
     }

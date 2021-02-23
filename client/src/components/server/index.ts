@@ -2,9 +2,10 @@ import path from "path"
 import { spawn } from "child_process"
 import axios, { AxiosRequestConfig } from "axios"
 import { DATA_FILE, RESOURCE_FILE } from "../../definitions/file"
-import { ServerConnectionInfo, ServerPID, ServerStatus } from "./model"
 import { Future, schedule, sleep } from "../../utils/process"
 import { readFile } from "../../utils/fs"
+import { ClientException, panic } from "../../exceptions"
+import { ServerConnectionInfo, ServerPID, ServerStatus } from "./model"
 
 export { ServerStatus }
 
@@ -153,7 +154,7 @@ function createStdServerManager(options: ServerManagerOptions): ServerManager {
                 return result
             }
         }
-        throw new Error("Waiting for server starting over 15s.")
+        throw new ClientException("SERVER_WAITING_TIMEOUT")
     }
 
     /**
@@ -161,9 +162,13 @@ function createStdServerManager(options: ServerManagerOptions): ServerManager {
      */
     async function startConnection(): Promise<ServerConnectionInfo> {
         if(status != ServerStatus.OPEN) {
-            const serverPID = await readFile<ServerPID>(serverPIDPath)
-            if (serverPID == null) {
-                callSpawn()
+            try {
+                const serverPID = await readFile<ServerPID>(serverPIDPath)
+                if (serverPID == null) {
+                    callSpawn()
+                }
+            }catch (e) {
+                throw new ClientException("SERVER_EXEC_ERROR", e)
             }
             status = ServerStatus.OPEN
         }
@@ -178,7 +183,7 @@ function createStdServerManager(options: ServerManagerOptions): ServerManager {
             if(res.ok) {
                 lifetimeId = (<{id: string}>res.data).id
             }else{
-                throw new Error(`Error occurred in creating heart in server: ${res.message}`)
+                throw new ClientException("SERVER_REGISTER_ERROR", `Error occurred while creating heart in server: ${res.message}`)
             }
         }
 
@@ -191,10 +196,12 @@ function createStdServerManager(options: ServerManagerOptions): ServerManager {
                     data: { interval: 1000 * 60 }
                 })
                 if (!res.ok) {
-                    console.error(`Error occurred in heart to server: ${res.message}`)
+                    if(res.status) {
+                        console.warn(`Error occurred in heart to server: ${res.message}`)
+                    }else{
+                        panic(new ClientException("SERVER_DISCONNECTED", `Error occurred in heart to server: ${res.message}`), debugMode)
+                    }
                 }
-                //TODO 稳定性处理：检测心跳过程的错误，并发起报告。如果连接断开，需要能通知到。
-                //      有关错误通知，针对init、load、server过程中的错误，需要仔细设计。
             })
         }
 
@@ -237,10 +244,10 @@ function createStdServerManager(options: ServerManagerOptions): ServerManager {
             if(res.code === "REJECT") {
                 return false
             }else{
-                throw new Error(`Initialization error [${res.code}]: ${res.message}`)
+                throw new ClientException("SERVER_INIT_ERROR", `Initialization error [${res.code}]: ${res.message}`)
             }
         }else{
-            throw new Error(`Error occurred while initializing server: ${res.message}`)
+            throw new ClientException("SERVER_INIT_ERROR", `Error occurred while initializing server: ${res.message}`)
         }
     }
 
@@ -270,9 +277,9 @@ async function checkForHealth(url: string, token: string): Promise<boolean> {
     if(res.ok) {
         return true
     }else if(res.status) {
-        throw new Error(`Unexpected status ${res.status} in health check: ${res.message}`)
+        throw new ClientException("SERVER_WAITING_EXIT", `Unexpected status ${res.status} in health check: ${res.message}`)
     }else{
-        return false
+        throw new ClientException("SERVER_WAITING_EXIT", `Disconnected server in health check: ${res.message}`)
     }
 }
 

@@ -109,4 +109,4 @@ function installCli(target) {
     //to be completed
 }
 
-module.exports = {build}
+module.exports = { build }

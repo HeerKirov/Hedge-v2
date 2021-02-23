@@ -3,6 +3,7 @@ import { arrays } from "../../utils/types"
 import { cpR, unzip, rename, chmod, rmdir, readFile, writeFile } from "../../utils/fs"
 import { DATA_FILE, APP_FILE, RESOURCE_FILE } from "../../definitions/file"
 import { Version, VersionLock, VersionStatus, VersionStatusSet } from "./model"
+import { ClientException } from "../../exceptions"
 
 /**
  * 记录系统中资源组件的最新版本号。必须更新此记录值至最新，才能正确触发版本更新。
@@ -114,52 +115,64 @@ function createProductionResourceManager(options: ResourceManagerOptions): Resou
     const version: VersionStatusSet = {}
 
     async function load() {
-        const versionLock = await readFile<VersionLock>(versionLockPath)
-        if(versionLock == null) {
-            status = ResourceStatus.NOT_INIT
-            cliStatus = ResourceStatus.NOT_INIT
-        }else{
-            version.server = createVersionStatus(versionLock.server, VERSION.server)
-            version.frontend = createVersionStatus(versionLock.frontend, VERSION.frontend)
-            version.cli = versionLock.cli && createVersionStatus(versionLock.cli, VERSION.cli)
-            if(version.server.latestVersion || version.frontend.latestVersion || version.cli?.latestVersion) {
-                status = ResourceStatus.NEED_UPDATE
+        try {
+            const versionLock = await readFile<VersionLock>(versionLockPath)
+            if(versionLock == null) {
+                status = ResourceStatus.NOT_INIT
+                cliStatus = ResourceStatus.NOT_INIT
             }else{
-                status = ResourceStatus.LATEST
+                version.server = createVersionStatus(versionLock.server, VERSION.server)
+                version.frontend = createVersionStatus(versionLock.frontend, VERSION.frontend)
+                version.cli = versionLock.cli && createVersionStatus(versionLock.cli, VERSION.cli)
+                if(version.server.latestVersion || version.frontend.latestVersion || version.cli?.latestVersion) {
+                    status = ResourceStatus.NEED_UPDATE
+                }else{
+                    status = ResourceStatus.LATEST
+                }
+                if(version.cli?.latestVersion) {
+                    cliStatus = ResourceStatus.NEED_UPDATE
+                }else{
+                    cliStatus = ResourceStatus.LATEST
+                }
             }
-            if(version.cli?.latestVersion) {
-                cliStatus = ResourceStatus.NEED_UPDATE
-            }else{
-                cliStatus = ResourceStatus.LATEST
-            }
+        }catch (e) {
+            throw new ClientException("RESOURCE_LOAD_ERROR", e)
         }
     }
 
     async function update() {
-        if(status == ResourceStatus.NOT_INIT || status == ResourceStatus.NEED_UPDATE || cliStatus == ResourceStatus.NEED_UPDATE) {
-            if(cliStatus == ResourceStatus.NEED_UPDATE) {
-                cliStatus = ResourceStatus.UPDATING
-                await updatePartCli()
-                cliStatus = ResourceStatus.LATEST
-            }
-            if(status == ResourceStatus.NOT_INIT || status == ResourceStatus.NEED_UPDATE) {
-                status = ResourceStatus.UPDATING
-                if(version.server == undefined || version.server.latestVersion != undefined) {
-                    await updatePartServer()
+        try {
+            if(status == ResourceStatus.NOT_INIT || status == ResourceStatus.NEED_UPDATE || cliStatus == ResourceStatus.NEED_UPDATE) {
+                if(cliStatus == ResourceStatus.NEED_UPDATE) {
+                    cliStatus = ResourceStatus.UPDATING
+                    await updatePartCli()
+                    cliStatus = ResourceStatus.LATEST
                 }
-                await updatePartFrontend()
-                status = ResourceStatus.LATEST
+                if(status == ResourceStatus.NOT_INIT || status == ResourceStatus.NEED_UPDATE) {
+                    status = ResourceStatus.UPDATING
+                    if(version.server == undefined || version.server.latestVersion != undefined) {
+                        await updatePartServer()
+                    }
+                    await updatePartFrontend()
+                    status = ResourceStatus.LATEST
+                }
+                await save()
             }
-            await save()
+        }catch (e) {
+            throw new ClientException("RESOURCE_UPDATE_ERROR", e)
         }
     }
 
     async function updateCli() {
-        if(cliStatus == ResourceStatus.NOT_INIT || cliStatus == ResourceStatus.NEED_UPDATE) {
-            cliStatus = ResourceStatus.UPDATING
-            await updatePartCli()
-            cliStatus = ResourceStatus.LATEST
-            await save()
+        try {
+            if(cliStatus == ResourceStatus.NOT_INIT || cliStatus == ResourceStatus.NEED_UPDATE) {
+                cliStatus = ResourceStatus.UPDATING
+                await updatePartCli()
+                cliStatus = ResourceStatus.LATEST
+                await save()
+            }
+        }catch (e) {
+            throw new ClientException("RESOURCE_UPDATE_ERROR", e)
         }
     }
 

@@ -1,10 +1,10 @@
 # Hedge v2 Client
-这是App的客户端子项目。它是主要的对用户交互方式。承载后台服务启动管理、前端对接、app基本数据管理功能。
+这是App的客户端子项目。它是主要的对用户交互入口，提供了全部主要功能，并对其他子项目进行组织。
 
 ## Technology Stack
-* `node >= 14.14.0`
-* `electron`
-* `typescript`
+* `Node >= 15.8.0`
+* `Electron`
+* `TypeScript`
 
 ## Development & Debug
 ### Deploy
@@ -28,7 +28,7 @@ tsc     # 编译更新源代码
 cp debug.args.sh debug.args.local.sh
 npm run debug
 ```
-复制一份`debug.args.sh`作为开发模式启动参数。执行debug script以开发模式启动。随后，编辑`debug.args.local.sh`文件以调整启动参数。
+复制一份`debug.args.sh`作为开发模式启动参数。执行debug script以开发模式启动。编辑`debug.args.local.sh`文件以调整启动参数。
 ```sh
 --debug-mode    # 在调试模式启动，启用devtool。指定此参数，下列其他参数才有效。
 --local-data-path   # 指定一个文件夹作为开发模式数据文件夹。

@@ -1,6 +1,7 @@
 import { app } from "electron"
 import {readdir, readFile, writeFile} from "../../utils/fs"
 import { DATA_FILE } from "../../definitions/file"
+import { ClientException } from "../../exceptions"
 /**
  * 信道和启动参数管理器。它没有初始化函数，但构造函数异步，初始化在所有组件之前，因为需要依赖此组件获得channel属性。
  */
@@ -27,12 +28,20 @@ export async function createChannel(options: ChannelOptions): Promise<Channel> {
     const channel = options.manualChannel ?? await getDefaultChannelFromConfiguration() ?? options.defaultChannel
 
     async function getDefaultChannelFromConfiguration() {
-        const configuration = await readFile<ClientConfiguration>(clientConfigPath)
-        return configuration?.defaultChannel
+        try {
+            const configuration = await readFile<ClientConfiguration>(clientConfigPath)
+            return configuration?.defaultChannel
+        }catch (e) {
+            throw new ClientException("CHANNEL_READ_ERROR", e)
+        }
     }
 
     async function getChannelList(): Promise<string[]> {
-        return await readdir(channelFolderPath)
+        try {
+            return (await readdir(channelFolderPath)).filter(file => file.isDirectory()).map(file => file.name)
+        }catch (e) {
+            throw new ClientException("CHANNEL_READ_ERROR", e)
+        }
     }
 
     async function getDefaultChannel(): Promise<string> {

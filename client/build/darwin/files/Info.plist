@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>BuildMachineOSBuild</key>
-	<string>18E226</string>
+	<string>19F101</string>
 	<key>CFBundleDisplayName</key>
 	<string>Hedge v2</string>
 	<key>CFBundleExecutable</key>
@@ -25,19 +25,21 @@
 	<key>DTCompiler</key>
 	<string>com.apple.compilers.llvm.clang.1_0</string>
 	<key>DTSDKBuild</key>
-	<string>10.15</string>
+	<string>11.0</string>
 	<key>DTSDKName</key>
-	<string>macosx10.15</string>
+	<string>macosx11.0</string>
 	<key>DTXcode</key>
-	<string>1110</string>
+	<string>1220</string>
 	<key>DTXcodeBuild</key>
-	<string>11A1027</string>
+	<string>12B45b</string>
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.developer-tools</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>10.10.0</string>
-	<key>LSRequiresNativeExecution</key>
-	<true/>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>This app needs access to Bluetooth</string>
+	<key>NSBluetoothPeripheralUsageDescription</key>
+	<string>This app needs access to Bluetooth</string>
 	<key>NSCameraUsageDescription</key>
 	<string>This app needs access to the camera</string>
 	<key>NSHighResolutionCapable</key>
