@@ -75,6 +75,11 @@ function useAppStateInClientMode(ipc: IpcService, appEnv: AppEnv, httpClientConf
 
     const state: Ref<State> = ref(appEnv.appState)
 
+    if(appEnv.connection != null) {
+        httpClientConfig.baseUrl = appEnv.connection.url
+        httpClientConfig.token = appEnv.connection.token
+    }
+
     ipc.app.stateChangedEvent.addEventListener(newState => {
         if(newState === State.LOADED) {
             const connectionInfo = ipc.app.env().connection
@@ -129,10 +134,9 @@ function useAppStateInWebMode(api: HttpClient, httpClientConfig: HttpInstanceCon
             ls.value = {token: res.data.token}
             state.value = State.LOADED
             return true
-        }else if(res.status && res.code === "PASSWORD_WRONG") {
+        }else if(res.exception && res.exception.code === "PASSWORD_WRONG") {
             return false
         }else{
-            console.error(res.message)
             return false
         }
     }
@@ -140,8 +144,8 @@ function useAppStateInWebMode(api: HttpClient, httpClientConfig: HttpInstanceCon
     async function load() {
         const webAccess = await api.web.access()
         if(!webAccess.ok) {
-            if(webAccess.status) {
-                console.error(`Error ${webAccess.status}: ${console.error(webAccess.message)}`)
+            if(webAccess.exception) {
+                console.error(`Error ${webAccess.exception.status} ${webAccess.exception.code}: ${console.error(webAccess.exception.message)}`)
             }else{
                 console.error("Web server connection error.")
             }
@@ -154,9 +158,9 @@ function useAppStateInWebMode(api: HttpClient, httpClientConfig: HttpInstanceCon
             return
         }
         if(ls.value != null) {
-            const verify = await api.web.tokenVerify({token: ls.value.token})
+            const verify = await api.web.verifyToken({token: ls.value.token})
             if(!verify.ok) {
-                console.error(verify.message)
+                console.error(verify.exception?.message)
                 return
             }else if(verify.data.ok) {
                 httpClientConfig.token = ls.value.token

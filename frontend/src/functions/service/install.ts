@@ -1,26 +1,38 @@
-import { inject, InjectionKey, provide, reactive } from "vue"
-import { HttpClient, createHttpClient, createHttpInstance } from "@/functions/adapter-http"
+import { InjectionKey, inject, provide, reactive } from "vue"
+import { HttpClient, HttpInstanceConfig, createHttpClient, createHttpInstance } from "@/functions/adapter-http"
 import { clientMode, remote, ipc } from "@/functions/adapter-ipc"
-import { AppInfoInjection, AppStateInjection, useAppStateInjection } from "./app-state"
+import { AppInfo, AppState, AppInfoInjection, AppStateInjection, useAppStateInjection } from "./app-state"
 import { FullscreenInjection, useFullscreenInjection } from "./app-fullscreen"
 import { performanceTimer } from "@/utils/performance-timer"
+import { useErrorHandler } from "@/functions/service/error-handler";
 
-function installAppService() {
+interface AppServiceOptions {
+    handleError(title: string, message: string)
+}
+
+function installAppService(options: AppServiceOptions): {appInfo: AppInfo, appState: AppState, httpClient: HttpClient} {
     const timer = performanceTimer()
 
     const baseUrl = process.env.NODE_ENV === 'development' ? <string>process.env.VUE_APP_BASE_URL : undefined
 
-    const httpClientConfig = reactive({baseUrl, token: undefined})
-    const api = createHttpClient(createHttpInstance(httpClientConfig))
+    const errorHandler = useErrorHandler(options.handleError)
+    const httpClientConfig = reactive<HttpInstanceConfig>({
+        baseUrl,
+        token: undefined,
+        handleError: errorHandler.processHttpClientError
+    })
+    const httpClient = createHttpClient(createHttpInstance(httpClientConfig))
+    const { appInfo, appState } = useAppStateInjection(clientMode, ipc, httpClient, httpClientConfig)
     const fullscreen = useFullscreenInjection(clientMode, remote)
-    const { appInfo, appState } = useAppStateInjection(clientMode, ipc, api, httpClientConfig)
 
     timer.logTotal("install service")
 
     provide(AppInfoInjection, appInfo)
     provide(AppStateInjection, appState)
     provide(FullscreenInjection, fullscreen)
-    provide(HttpClientInjection, api)
+    provide(HttpClientInjection, httpClient)
+
+    return { appInfo, appState, httpClient }
 }
 
 const HttpClientInjection: InjectionKey<HttpClient> = Symbol()

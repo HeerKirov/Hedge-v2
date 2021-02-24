@@ -41,6 +41,13 @@ export interface RemoteClientAdapter {
          */
         showError(title: string, message: string): void
     }
+    shell: {
+        /**
+         * 使用系统指定的程序打开协议。
+         * @param url
+         */
+        openExternal(url: string): void
+    }
 }
 
 export interface MenuTemplate {
@@ -91,6 +98,9 @@ function createEmptyRemoteClientAdapter(): RemoteClientAdapter {
             openDialog: forbidden,
             showMessage: forbidden,
             showError: forbidden
+        },
+        shell: {
+            openExternal: forbidden
         }
     }
 }

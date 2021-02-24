@@ -7,8 +7,8 @@ export interface SettingWebEndpoint {
 
 export function createSettingWebEndpoint(http: HttpInstance): SettingWebEndpoint {
     return {
-        get: http.createRequest("/setting/web"),
-        update: http.createDataRequest("/setting/web", "PATCH")
+        get: http.createRequest("/api/setting/web"),
+        update: http.createDataRequest("/api/setting/web", "PATCH")
     }
 }
 
@@ -16,10 +16,12 @@ export interface SettingWeb {
     autoWebAccess: boolean
     permanent: boolean
     password: string | null
+    access: boolean
 }
 
 export interface SettingWebUpdateForm {
     autoWebAccess?: boolean
     permanent?: boolean
     password?: string | null
+    access?: boolean
 }

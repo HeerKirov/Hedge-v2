@@ -19,7 +19,7 @@ export default defineComponent({
                 default() { return <SideBarContent/> },
                 bottom() {
                     return <div>
-                        {clientMode && <button class="button is-lightgrey mr-1 radius-large" onClick={windowManager.openSetting}><span class="icon"><i class="fa fa-cog"/></span></button>}
+                        <button disabled={!clientMode} class="button is-lightgrey mr-1 radius-large" onClick={windowManager.openSetting}><span class="icon"><i class="fa fa-cog"/></span></button>
                         <button class="button is-lightgrey mr-1 radius-large" onClick={windowManager.openGuide}><span class="icon"><i class="fa fa-question-circle"/></span></button>
                         {/*TODO 完成clipboard组件*/}
                         <button class="button is-lightgrey mr-1 radius-large"><span class="icon"><i class="fa fa-clipboard"/></span><span>777</span></button>

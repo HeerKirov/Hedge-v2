@@ -9,6 +9,8 @@ export function registerIpcTransformer(service: Service) {
     ipcHandle("/app/init", service.app.init)
     ipcHandle("/app/login", service.app.login)
     ipcHandle("/app/login-by-touch-id", service.app.loginByTouchID)
+    ipcHandle("/server/server-info", service.server.serverInfo)
+    ipcHandle("/server/web-access-urls", service.server.webAccessUrls)
     ipcHandle("/window/new-window", service.window.openNewWindow)
     ipcHandle("/window/open-setting", service.window.openSetting)
     ipcHandle("/window/open-guide", service.window.openGuide)

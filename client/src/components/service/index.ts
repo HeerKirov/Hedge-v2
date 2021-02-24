@@ -19,6 +19,10 @@ export interface Service {
         onStateChanged(event: (state: State) => void): void
         onInitStateChanged(event: (state: InitStateRes) => void): void
     }
+    server: {
+        serverInfo(): Promise<ServerInfo>
+        webAccessUrls(): Promise<string[]>
+    }
     window: {
         openNewWindow(form?: NewWindowOptions): Promise<void>
         openSetting(): Promise<void>
@@ -65,6 +69,17 @@ export interface InitStateRes {
 export interface LoginRes {
     ok: boolean
     state?: State
+}
+
+//== server ==
+
+export type ServerInfo = {
+    running: false
+} | {
+    running: true
+    pid: number
+    port: number
+    startTime: number
 }
 
 //== appearance ==

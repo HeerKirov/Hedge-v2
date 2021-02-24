@@ -4,6 +4,7 @@ export type NotificationType = "success" | "warning" | "danger" | "info" | "plai
 
 export interface NotificationManager {
     notify(title: string, type: NotificationType, content: string | string[] | undefined): void
+    handleError(title: string, message: string): void
 }
 
 interface NotificationConsumer extends NotificationManager {
@@ -17,7 +18,7 @@ interface Notification {
     content: string[]
 }
 
-export function installNotificationManager() {
+export function installNotificationManager(): NotificationConsumer {
     let seq = 0
 
     const notifications = reactive<Notification[]>([])
@@ -25,11 +26,13 @@ export function installNotificationManager() {
     const notify = (title: string, type: NotificationType, content: string | string[] | undefined) => {
         notifications.push({uniqueKey: seq++, title, type, content: typeof content === "string" ? [content] : content ?? []})
     }
+    const handleError = (title: string, message: string) => notify(title, "danger", message)
 
-    provide(notificationInjection, {
-        notifications,
-        notify
-    })
+    const notificationConsumer = { notifications, notify, handleError }
+
+    provide(notificationInjection, notificationConsumer)
+
+    return notificationConsumer
 }
 
 export function useNotification(): NotificationManager {

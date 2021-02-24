@@ -92,7 +92,7 @@ export function createServerManager(options: ServerManagerOptions): ServerManage
 }
 
 function createProxyServerManager(options: ServerManagerOptions): ServerManager {
-    const info = {pid: 0, url: options.debug!.serverFromURL!!, token: "dev"}
+    const info = {pid: 0, url: options.debug!.serverFromURL!!, token: "dev", startTime: new Date().getTime()}
 
     return {
         async startConnection(): Promise<ServerConnectionInfo> {
@@ -292,11 +292,10 @@ async function checkForAvailable(pidPath: string): Promise<ServerConnectionInfo 
     const serverPID = await readFile<ServerPID>(pidPath)
     if(serverPID != null) {
         if(serverPID.port != null && serverPID.token != null) {
-            const pid = serverPID.pid
-            const url = `http://127.0.0.1:${serverPID.port}`
-            const token = serverPID.token
+            const { pid, port, token, startTime } = serverPID
+            const url = `http://127.0.0.1:${port}`
             if(await checkForHealth(url, token)) {
-                return {pid, url, token}
+                return {pid, url, token, startTime}
             }
         }
     }

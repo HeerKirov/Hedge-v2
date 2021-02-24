@@ -1,4 +1,4 @@
-import { onMounted, ref, watch, toRaw, computed } from "vue"
+import { onMounted, ref, watch, toRaw, computed, onUnmounted, readonly } from "vue"
 import { AppearanceSetting, clientMode, ipc, ResourceStatus, AuthSetting } from "@/functions/adapter-ipc"
 import { useNotification } from "@/functions/notification"
 import { useAppInfo } from "@/functions/service/app-state"
@@ -69,21 +69,52 @@ export function useAppearance() {
 }
 
 export function useServerInfo() {
-    if(!clientMode) {
-        throw new Error("Cannot access server in web.")
-    }
-    const connection = ipc.app.env().connection
-    if(connection != null) {
-        return {
-            running: true,
-            pid: connection.pid!,
-            url: connection.url!
+    const info = ref<{running: false} | {running: true, pid: number, port: number, runningTime: string}>()
+
+    let timeId: number | null = null
+    let startTime: number = 0
+
+    onMounted(async () => {
+        const serverInfo = await ipc.server.serverInfo()
+        if(serverInfo.running) {
+            startTime = serverInfo.startTime
+            info.value = {
+                running: true,
+                pid: serverInfo.pid,
+                port: serverInfo.port,
+                runningTime: formatInterval(new Date().getTime() - startTime)
+            }
+
+            timeId = setInterval(() => {
+                if(info.value?.running) {
+                    info.value!.runningTime = formatInterval(new Date().getTime() - startTime)
+                }
+            }, 1000)
+        }else{
+            info.value = {running: false}
         }
-    }else{
-        return {
-            running: false
+    })
+
+    onUnmounted(() => {
+        if(timeId != null) {
+            clearInterval(timeId)
         }
+    })
+
+    function formatInterval(interval: number): string {
+        const secInterval = Math.floor(interval / 1000)
+        const sec = secInterval % 60
+        const min = (secInterval - sec) % 3600 / 60
+        const hour = Math.floor(secInterval / 3600)
+
+        function dbl(i: number): string | number {
+            return i >= 10 ? i : `0${i}`
+        }
+
+        return `${dbl(hour)}:${dbl(min)}:${dbl(sec)}`
     }
+
+    return readonly(info)
 }
 
 export function useChannelSetting() {

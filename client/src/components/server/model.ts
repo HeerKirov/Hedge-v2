@@ -2,6 +2,7 @@ export interface ServerPID {
     pid: number
     port?: number
     token?: string
+    startTime: number
 }
 
 export enum ServerStatus {
@@ -14,4 +15,5 @@ export interface ServerConnectionInfo {
     pid: number
     url: string
     token: string
+    startTime: number
 }

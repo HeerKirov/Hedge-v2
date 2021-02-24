@@ -114,7 +114,7 @@ class HttpServerImpl(private val allServices: AllServices,
      * @throws BindException 如果所有的端口绑定都失败，那么抛出异常，告知framework发生了致命错误。
      */
     private fun Javalin.bind(): Javalin {
-        val ports = options.forcePort?.let { sequenceOf(it) }
+        val ports = options.forcePort?.let { listOf(it) }
             ?: if(appdata.status == LoadStatus.LOADED) { appdata.data.service.port }else{ null }?.let { Net.analyzePort(it) }
             ?: Net.generatePort(options.defaultPort)
 

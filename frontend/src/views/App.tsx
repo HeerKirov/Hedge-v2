@@ -1,4 +1,4 @@
-import { defineComponent } from "vue"
+import { computed, defineComponent } from "vue"
 import { RouterView } from "vue-router"
 import { installTitleWatcher } from "@/functions/document/title"
 import { installAppService } from "@/functions/service"
@@ -8,12 +8,14 @@ import NotificationModule from "@/layouts/NotificationModule"
 export default defineComponent({
     setup() {
         installTitleWatcher()
-        installNotificationManager()
-        installAppService()
+        const notification = installNotificationManager()
+        const { appState } = installAppService({ handleError: notification.handleError })
+
+        const initialized = computed(() => appState.state != null)
 
         return () => <>
             <NotificationModule/>
-            <RouterView/>
+            {initialized.value && <RouterView/>}
         </>
     }
 })

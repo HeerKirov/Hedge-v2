@@ -1,7 +1,6 @@
 package com.heerkirov.hedge.server.components.health
 
 import com.heerkirov.hedge.server.library.framework.Component
-import com.heerkirov.hedge.server.library.framework.FrameworkContext
 import com.heerkirov.hedge.server.definitions.Filename
 import com.heerkirov.hedge.server.utils.Fs
 import org.slf4j.Logger
@@ -23,7 +22,7 @@ class HealthOptions(
     val userDataPath: String
 )
 
-class HealthImpl(private val context: FrameworkContext, options: HealthOptions) : Health {
+class HealthImpl(options: HealthOptions) : Health {
     private val log: Logger = LoggerFactory.getLogger(HealthImpl::class.java)
 
     private val channelPath = "${options.userDataPath}/${Filename.CHANNEL}/${options.channel}"
@@ -36,7 +35,7 @@ class HealthImpl(private val context: FrameworkContext, options: HealthOptions) 
 
     init {
         checkCurrentProcess()
-        model = ServerPID(pid, null, null, null)
+        model = ServerPID(pid, null, null, System.currentTimeMillis())
         save()
         initialized = true
     }

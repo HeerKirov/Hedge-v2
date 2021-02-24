@@ -84,15 +84,14 @@ button
     &.is-#{$name}
       background-color: $color
       color: $color-invert
-      &:hover
+      &:hover:not([disabled])
         background-color: toDarkenColor($color, 5%)
         color: $color-invert
-      &:active
+      &:active:not([disabled])
         background-color: toDarkenColor($color, 7.5%)
         color: $color-invert
       &[disabled]
-        background-color: toLightenColor($color, 5%)
-        color: toLightenColor($color-invert, 5%)
+        color: toLightenColor($color-invert, 10%)
         box-shadow: none
       @if length($pair) >= 4
         $color-light: nth($pair, 3)
@@ -100,15 +99,14 @@ button
         &.is-light
           background-color: $color-light
           color: $color-dark
-          &:hover
+          &:hover:not([disabled])
             background-color: toDarkenColor($color-light, 2.5%)
             color: $color-dark
-          &:active
+          &:active:not([disabled])
             background-color: toDarkenColor($color-light, 5%)
             color: $color-dark
           &[disabled]
-            background-color: toLightenColor($color-light, 5%)
-            color: toLightenColor($color-dark, 5%)
+            color: toLightenColor($color-dark, 10%)
   @media (prefers-color-scheme: dark)
     @each $name, $pair in $colors-dark-mode
       $color: nth($pair, 1)
@@ -116,15 +114,14 @@ button
       &.is-#{$name}
         background-color: $color
         color: $color-invert
-        &:hover
+        &:hover:not([disabled])
           background-color: toLightenColor($color, 5%)
           color: $color-invert
-        &:active
+        &:active:not([disabled])
           background-color: toLightenColor($color, 7.5%)
           color: $color-invert
         &[disabled]
-          background-color: toLightenColor($color, 5%)
-          color: toLightenColor($color-invert, 5%)
+          color: toDarkenColor($color-invert, 25%)
           box-shadow: none
         @if length($pair) >= 4
           $color-light: nth($pair, 3)
@@ -132,12 +129,11 @@ button
           &.is-light
             background-color: $color-light
             color: $color-dark
-            &:hover
+            &:hover:not([disabled])
               background-color: toLightenColor($color-light, 2.5%)
               color: $color-dark
-            &:active
+            &:active:not([disabled])
               background-color: toLightenColor($color-light, 5%)
               color: $color-dark
             &[disabled]
-              background-color: toDarkenColor($color-light, 5%)
-              color: toDarkenColor($color-dark, 5%)
+              color: toDarkenColor($color-dark, 25%)

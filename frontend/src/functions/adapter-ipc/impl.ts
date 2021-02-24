@@ -20,6 +20,10 @@ function createIpcService(): IpcService {
             stateChangedEvent: on("/app/state/changed"),
             initChangedEvent: on("/app/init/changed")
         },
+        server: {
+            serverInfo: invoke("/server/server-info"),
+            webAccessUrls: invoke("/server/web-access-urls")
+        },
         window: {
             openNewWindow: invoke("/window/new-window"),
             openSetting: invoke("/window/open-setting"),

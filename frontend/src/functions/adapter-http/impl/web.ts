@@ -3,14 +3,14 @@ import { HttpInstance, Response } from "../server"
 export interface WebEndpoint {
     access(): Promise<Response<AccessResponse>>
     login(form: LoginForm): Promise<Response<TokenForm>>
-    tokenVerify(form: TokenForm): Promise<Response<TokenResponse>>
+    verifyToken(form: TokenForm): Promise<Response<TokenResponse>>
 }
 
 export function createWebEndpoint(http: HttpInstance): WebEndpoint {
     return {
         access: http.createRequest("/web/access"),
         login: http.createDataRequest("/web/login", "POST"),
-        tokenVerify: http.createDataRequest("/web/token-verify", "POST")
+        verifyToken: http.createDataRequest("/web/verify-token", "POST")
     }
 }
 

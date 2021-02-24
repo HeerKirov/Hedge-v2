@@ -12,6 +12,10 @@ export interface IpcService {
         stateChangedEvent: Emitter<State>
         initChangedEvent: Emitter<InitStateRes>
     }
+    server: {
+        serverInfo(): Promise<ServerInfo>
+        webAccessUrls(): Promise<string[]>
+    }
     window: {
         openNewWindow(form?: NewWindowOptions): Promise<void>
         openSetting(): Promise<void>
@@ -58,6 +62,17 @@ export interface InitStateRes {
 export interface LoginRes {
     ok: boolean
     state?: State
+}
+
+//== server ==
+
+export type ServerInfo = {
+    running: false
+} | {
+    running: true
+    pid: number
+    port: number
+    startTime: number
 }
 
 //== appearance ==

@@ -1,5 +1,7 @@
+import * as url from "url"
 import { systemPreferences } from "electron"
 import { Platform } from "../../utils/process"
+import { getIPAddress } from "../../utils/net"
 import { ClientException } from "../../exceptions"
 import { AppDataDriver, AppDataStatus } from "../appdata"
 import { ResourceManager } from "../resource"
@@ -15,6 +17,7 @@ import {
     InitStateRes,
     LoginRes,
     NewWindowOptions,
+    ServerInfo,
     Service
 } from "./index"
 
@@ -55,6 +58,30 @@ export function createService(appdata: AppDataDriver, channel: Channel, resource
             onStateChanged: state.onStateChanged,
             onInitStateChanged(e) {
                 state.onInitChanged((state, errorCode, errorMessage) => e({state, errorCode, errorMessage}))
+            }
+        },
+        server: {
+            async serverInfo(): Promise<ServerInfo> {
+                const connectionInfo = server.connectionInfo()
+                if(connectionInfo) {
+                    const { protocol, port } = url.parse(connectionInfo.url)
+                    return {
+                        running: true,
+                        pid: connectionInfo.pid,
+                        port: port ? parseInt(port) : protocol === "https" ? 443 : 80,
+                        startTime: connectionInfo.startTime
+                    }
+                }else{
+                    return {running: false}
+                }
+            },
+            async webAccessUrls(): Promise<string[]> {
+                const serverUrl = server.connectionInfo()?.url
+                if(serverUrl) {
+                    const { protocol, port, path } = url.parse(serverUrl)
+                    return getIPAddress().map(ip => `${protocol ?? "http:"}//${ip}:${port}${path}`)
+                }
+                return []
             }
         },
         window: {

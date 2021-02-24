@@ -1,3 +1,4 @@
+import { onMounted, onUnmounted, readonly, ref } from "vue"
 import { remote, ipc, clientMode, OpenDialogOptions } from "@/functions/adapter-ipc"
 
 export const dialogManager = clientMode ? {
@@ -34,4 +35,16 @@ export const windowManager = clientMode ? {
         const url = `${window.location.protocol}//${window.location.host}/#/guide`
         window.open(url)
     }
+}
+
+export function openExternal(url: string) {
+    return remote.shell.openExternal(url)
+}
+
+export function useWebAccessUrls() {
+    const urls = ref<string[]>([])
+
+    onMounted(async () => urls.value = await ipc.server.webAccessUrls())
+
+    return readonly(urls)
 }

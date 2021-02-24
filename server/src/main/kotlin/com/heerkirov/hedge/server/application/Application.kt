@@ -31,7 +31,7 @@ fun runApplication(options: ApplicationOptions) {
     val serverOptions = HttpServerOptions(options.userDataPath, options.frontendFromFolder, options.forceToken, options.forcePort)
 
     framework {
-        val health = define { HealthImpl(context, healthOptions) }
+        val health = define { HealthImpl(healthOptions) }
         val lifetime = define { LifetimeImpl(context, lifetimeOptions) }
         val repo = define { DataRepositoryImpl(repositoryOptions) }
         val appdata = define { AppDataDriverImpl(repo, appdataOptions) }

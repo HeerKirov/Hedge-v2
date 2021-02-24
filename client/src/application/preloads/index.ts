@@ -1,4 +1,4 @@
-import { ipcRenderer, remote } from "electron"
+import { ipcRenderer, remote, shell } from "electron"
 
 /**
  * 定义在client，但实际上要注入页面在前端运行的脚本。
@@ -45,6 +45,13 @@ interface RemoteClientAdapter {
          * @param message
          */
         showError(title: string, message: string): void
+    }
+    shell: {
+        /**
+         * 使用系统指定的程序打开协议。
+         * @param url
+         */
+        openExternal(url: string): void
     }
 }
 
@@ -105,6 +112,11 @@ function createRemoteClientAdapter(): RemoteClientAdapter {
             },
             showError(title: string, message: string) {
                 remote.dialog.showErrorBox(title, message)
+            }
+        },
+        shell: {
+            openExternal(url: string) {
+                shell.openExternal(url).catch(reason => remote.dialog.showErrorBox("打开链接时发生错误", reason))
             }
         }
     }
