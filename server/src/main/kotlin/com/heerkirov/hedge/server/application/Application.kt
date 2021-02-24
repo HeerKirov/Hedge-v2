@@ -10,6 +10,7 @@ import com.heerkirov.hedge.server.components.health.HealthImpl
 import com.heerkirov.hedge.server.components.health.HealthOptions
 import com.heerkirov.hedge.server.components.http.HttpServerImpl
 import com.heerkirov.hedge.server.components.http.HttpServerOptions
+import com.heerkirov.hedge.server.components.http.WebControllerImpl
 import com.heerkirov.hedge.server.components.lifetime.LifetimeImpl
 import com.heerkirov.hedge.server.components.lifetime.LifetimeOptions
 import com.heerkirov.hedge.server.components.manager.*
@@ -34,6 +35,8 @@ fun runApplication(options: ApplicationOptions) {
         val lifetime = define { LifetimeImpl(context, lifetimeOptions) }
         val repo = define { DataRepositoryImpl(repositoryOptions) }
         val appdata = define { AppDataDriverImpl(repo, appdataOptions) }
+
+        val webController = WebControllerImpl()
 
         val services = define {
             val relationManager = RelationManager(repo)
@@ -77,7 +80,7 @@ fun runApplication(options: ApplicationOptions) {
             val topicService = TopicService(repo, topicKit, queryManager, illustMetaExporter)
             val importService = ImportService(repo, fileManager, importManager, illustManager, sourceManager, importMetaManager, thumbnailGenerator)
 
-            val settingAppdataService = SettingAppdataService(appdata)
+            val settingAppdataService = SettingAppdataService(appdata, webController)
             val settingImportService = SettingImportService(repo)
             val settingSourceSiteService = SettingSourceService(repo)
 
@@ -98,6 +101,6 @@ fun runApplication(options: ApplicationOptions) {
             )
         }
 
-        define { HttpServerImpl(services, health, lifetime, appdata, serverOptions) }
+        define { HttpServerImpl(services, health, lifetime, appdata, webController, serverOptions) }
     }
 }

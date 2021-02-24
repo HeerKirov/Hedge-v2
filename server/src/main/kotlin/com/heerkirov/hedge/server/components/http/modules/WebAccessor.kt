@@ -2,6 +2,7 @@ package com.heerkirov.hedge.server.components.http.modules
 
 import com.heerkirov.hedge.server.components.appdata.AppDataDriver
 import com.heerkirov.hedge.server.components.http.Endpoints
+import com.heerkirov.hedge.server.components.http.WebController
 import com.heerkirov.hedge.server.definitions.Filename
 import com.heerkirov.hedge.server.enums.LoadStatus
 import com.heerkirov.hedge.server.exceptions.PasswordWrong
@@ -26,11 +27,10 @@ import kotlin.collections.HashSet
  * 3. 提供web登录相关的专有API。
  * 4. 维护web登录的token组。
  */
-class WebAccessor(private val appdata: AppDataDriver, private val frontendPath: String) : Endpoints {
+class WebAccessor(private val appdata: AppDataDriver, private val webController: WebController, private val frontendPath: String) : Endpoints {
     val tokens: MutableSet<String> = Collections.synchronizedSet(HashSet())
 
-    var isResourceExists: Boolean = true
-    var isAccess: Boolean = false
+    private var isResourceExists: Boolean = true
 
     /**
      * 初始化，并给javalin添加几项配置项。
@@ -44,7 +44,7 @@ class WebAccessor(private val appdata: AppDataDriver, private val frontendPath: 
         }
 
         if(if(appdata.status == LoadStatus.LOADED) { appdata.data.web.autoWebAccess }else{ false }) {
-            isAccess = true
+            webController.isAccess = true
         }
     }
 
@@ -61,7 +61,7 @@ class WebAccessor(private val appdata: AppDataDriver, private val frontendPath: 
 
     private fun index(ctx: Context) {
         when {
-            isAccess -> ctx.html(Resources.getFileAsText("$frontendPath/${Filename.FRONTEND_INDEX}"))
+            webController.isAccess -> ctx.html(Resources.getFileAsText("$frontendPath/${Filename.FRONTEND_INDEX}"))
             isResourceExists -> ctx.html(Resources.getResourceAsText("forbidden.html"))
             else -> ctx.status(404).html("<b>No frontend resource found in $frontendPath.</b>")
         }
@@ -70,11 +70,11 @@ class WebAccessor(private val appdata: AppDataDriver, private val frontendPath: 
     private fun webAccess(ctx: Context) {
         val password = appdata.data.web.password
 
-        ctx.json(AccessResponse(access = isAccess, needPassword = password != null))
+        ctx.json(AccessResponse(access = webController.isAccess, needPassword = password != null))
     }
 
     private fun webLogin(ctx: Context) {
-        if(!isAccess) { throw Reject("Web access is not open.") }
+        if(!webController.isAccess) { throw Reject("Web access is not open.") }
         val form = ctx.bodyAsForm<LoginForm>()
         val password = appdata.data.web.password
         if(form.password == password) {
@@ -87,7 +87,7 @@ class WebAccessor(private val appdata: AppDataDriver, private val frontendPath: 
     }
 
     private fun webVerifyToken(ctx: Context) {
-        if(!isAccess) { throw Reject("Web access is not open.") }
+        if(!webController.isAccess) { throw Reject("Web access is not open.") }
 
         val form = ctx.bodyAsForm<TokenForm>()
 

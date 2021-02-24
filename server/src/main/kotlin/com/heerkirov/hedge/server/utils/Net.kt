@@ -1,7 +1,6 @@
 package com.heerkirov.hedge.server.utils
 
-import java.net.InetSocketAddress
-import java.net.Socket
+import java.net.ServerSocket
 
 object Net {
     /**
@@ -43,12 +42,12 @@ object Net {
      * 判断端口是否可用。
      */
     fun isPortAvailable(port: Int): Boolean {
-        fun bind(host: String, port: Int) {
-            Socket().use { it.bind(InetSocketAddress(host, port)) }
+        fun bind(port: Int) {
+            ServerSocket(port).close()
         }
 
         return try {
-            bind("0.0.0.0", port)
+            bind(port)
             true
         }catch (e: Exception) {
             false

@@ -27,22 +27,22 @@ abstract class NotFoundException(code: String, message: String, info: Any? = nul
 /**
  * 表单参数的类型错误。
  */
-open class ParamTypeError(paramName: String, reason: String) : BadRequestException("PARAM_TYPE_ERROR", "Param '$paramName' $reason"), Unchecked
+open class ParamTypeError(paramName: String, reason: String) : BadRequestException("PARAM_TYPE_ERROR", "Param '$paramName' $reason", paramName), Unchecked
 
 /**
  * 表单参数的值错误。
  */
-open class ParamError(paramName: String) : BadRequestException("PARAM_ERROR", "Param '$paramName' has incorrect value.", listOf(paramName)), Unchecked
+open class ParamError(paramName: String) : BadRequestException("PARAM_ERROR", "Param '$paramName' has incorrect value.", paramName), Unchecked
 
 /**
  * 表单参数的值空缺，但是业务需要这个值。
  */
-open class ParamRequired(paramName: String) : BadRequestException("PARAM_REQUIRED", "Param '$paramName' is required.", listOf(paramName)), Unchecked
+open class ParamRequired(paramName: String) : BadRequestException("PARAM_REQUIRED", "Param '$paramName' is required.", paramName), Unchecked
 
 /**
  * 表单参数的值已填写，但业务不需要这个值。
  */
-open class ParamNotRequired(paramName: String) : BadRequestException("PARAM_NOT_REQUIRED", "Param '$paramName' is not required.", listOf(paramName)), Unchecked
+open class ParamNotRequired(paramName: String) : BadRequestException("PARAM_NOT_REQUIRED", "Param '$paramName' is not required.", paramName), Unchecked
 
 /**
  * 表单参数选取的某种目标资源并不存在，因此业务无法进行。

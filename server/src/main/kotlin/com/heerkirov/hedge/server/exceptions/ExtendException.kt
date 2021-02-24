@@ -12,7 +12,7 @@ class FileNotFoundError : BadRequestException("FILE_NOT_FOUND", "Target file is 
  * 抛出位置：
  * - upload/import导入时
  */
-class IllegalFileExtensionError(extension: String) : BadRequestException("ILLEGAL_FILE_EXTENSION", "Extension type '$extension' is illegal.")
+class IllegalFileExtensionError(extension: String) : BadRequestException("ILLEGAL_FILE_EXTENSION", "Extension type '$extension' is illegal.", extension)
 
 /**
  * 当parentId出现闭环时，抛出此异常。parentId为自己也构成闭环。
@@ -70,7 +70,7 @@ class InvalidRegexError(regex: String, msg: String): BadRequestException("INVALI
  * 抛出位置：
  * - 更新import rule列表时
  */
-class InvalidRuleIndexError(site: String, regex: String) : BadRequestException("INVALID_RULE_INDEX", "Rule [$site] $regex has secondaryId config which not suit to site config.")
+class InvalidRuleIndexError(site: String, regex: String) : BadRequestException("INVALID_RULE_INDEX", "Rule [$site] $regex has secondaryId config which not suit to site config.", listOf(site, regex))
 
 /**
  * 当业务所需的某种选项内容不支持当前业务时，抛出此异常。

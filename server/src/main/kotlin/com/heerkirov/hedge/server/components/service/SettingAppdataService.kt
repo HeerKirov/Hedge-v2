@@ -1,20 +1,28 @@
 package com.heerkirov.hedge.server.components.service
 
 import com.heerkirov.hedge.server.components.appdata.*
+import com.heerkirov.hedge.server.components.http.WebController
+import com.heerkirov.hedge.server.components.http.modules.WebAccessor
 import com.heerkirov.hedge.server.form.BackupOptionUpdateForm
 import com.heerkirov.hedge.server.form.ProxyOptionUpdateForm
+import com.heerkirov.hedge.server.form.WebOptionRes
 import com.heerkirov.hedge.server.form.WebOptionUpdateForm
 
-class SettingAppdataService(private val appdata: AppDataDriver) {
-    fun getWeb(): WebOption {
-        return appdata.data.web
+class SettingAppdataService(private val appdata: AppDataDriver, private val webController: WebController) {
+    fun getWeb(): WebOptionRes {
+        return WebOptionRes(appdata.data.web.autoWebAccess, appdata.data.web.permanent, appdata.data.web.password, webController.isAccess)
     }
 
     fun updateWeb(form: WebOptionUpdateForm) {
-        appdata.save {
-            form.autoWebAccess.alsoOpt { web.autoWebAccess = it }
-            form.permanent.alsoOpt { web.permanent = it }
-            form.password.alsoOpt { web.password = it }
+        if(form.autoWebAccess.isPresent || form.permanent.isPresent || form.password.isPresent) {
+            appdata.save {
+                form.autoWebAccess.alsoOpt { web.autoWebAccess = it }
+                form.permanent.alsoOpt { web.permanent = it }
+                form.password.alsoOpt { web.password = it }
+            }
+        }
+        form.access.alsoOpt {
+            webController.isAccess = it
         }
     }
 

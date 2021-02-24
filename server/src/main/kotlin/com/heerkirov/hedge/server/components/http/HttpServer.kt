@@ -55,21 +55,20 @@ class HttpServerImpl(private val allServices: AllServices,
                      private val health: Health,
                      private val lifetime: Lifetime,
                      private val appdata: AppDataDriver,
+                     private val webController: WebController,
                      private val options: HttpServerOptions) : HttpServer {
-    private val log: Logger = LoggerFactory.getLogger(HttpServerImpl::class.java)
-
     private val token: String = options.forceToken ?: Token.token()
     private var port: Int? = null
 
     private var server: Javalin? = null
 
-    private val web = WebAccessor(appdata, options.frontendFromFolder ?: "${options.userDataPath}/${Filename.FRONTEND_FOLDER}")
+    private val web = WebAccessor(appdata, webController, options.frontendFromFolder ?: "${options.userDataPath}/${Filename.FRONTEND_FOLDER}")
 
     override fun load() {
         JavalinJackson.configure(objectMapper())
 
         val aspect = Aspect(appdata)
-        val authentication = Authentication(token, web)
+        val authentication = Authentication(token, web, webController)
         val errorHandler = ErrorHandler()
 
         server = Javalin
@@ -94,7 +93,7 @@ class HttpServerImpl(private val allServices: AllServices,
     }
 
     override val isIdle: Boolean //当web可访问且打开了web的永久访问开关时，http server标记为忙，使进程不会退出
-        get() = !(web.isAccess && appdata.data.web.permanent)
+        get() = !(webController.isAccess && appdata.data.web.permanent)
 
     override fun close() {
         server?.stop()

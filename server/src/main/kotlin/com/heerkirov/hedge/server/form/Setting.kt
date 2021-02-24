@@ -25,7 +25,10 @@ data class ImportOptionUpdateForm(val autoAnalyseMeta: Opt<Boolean>,
 
 data class WebOptionUpdateForm(val autoWebAccess: Opt<Boolean>,
                                val permanent: Opt<Boolean>,
-                               val password: Opt<String?>)
+                               val password: Opt<String?>,
+                               val access: Opt<Boolean>)
+
+data class WebOptionRes(val autoWebAccess: Boolean, val permanent: Boolean, val password: String?, val access: Boolean)
 
 data class ProxyOptionUpdateForm(val socks5Proxy: Opt<String?>,
                                  val httpProxy: Opt<String?>)
