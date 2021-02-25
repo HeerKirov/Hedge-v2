@@ -34,3 +34,28 @@
     cursor: pointer
     vertical-align: bottom
     margin: 0 0.25em 0.05em 0
+
+.select
+  display: inline-block
+  position: relative
+  vertical-align: top
+  select
+    display: block
+    font-size: $font-size-std
+    outline: none
+    line-height: 1.2
+    height: $height-std
+    padding: 0 0.75em 0 0.75em
+    border: 1px solid $dark-lightgrey
+    border-radius: $radius-size-std
+    @media (prefers-color-scheme: dark)
+      background-color: $light-dark
+      color: $white
+      border-color: $more-light-dark
+  $select-size-map: ("small" ($font-size-8, $height-small), "medium" ($font-size-6, $height-medium))
+  @each $name, $pair in $select-size-map
+    $font-size: nth($pair, 1)
+    $height: nth($pair, 2)
+    &.is-#{$name}
+      font-size: $font-size
+      height: $height

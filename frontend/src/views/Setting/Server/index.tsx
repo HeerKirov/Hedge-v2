@@ -2,6 +2,7 @@ import { defineComponent, ref, watch } from "vue"
 import { useServerInfo } from "@/functions/service"
 import { useAuthSetting } from "@/functions/service/app-settings"
 import { useSettingService } from "@/functions/server-api/setting"
+import { usePropertySot } from "@/functions/utils/setter-property"
 import Input from "@/components/Input"
 import CheckBox from "@/components/CheckBox"
 
@@ -11,19 +12,15 @@ export default defineComponent({
         const authSetting = useAuthSetting()
         const { data: settingService } = useSettingService()
 
+        const [ portBox, portBoxSot, setPortBox, savePort ] = usePropertySot(ref(""),
+            () => settingService.value?.port,
+            newValue => {
+                portType.value = validatePort(newValue || "")
+                return newValue || ""
+            },
+            v => settingService.value!.port = v || null)
+
         const portType = ref<PortType>("AUTO")
-        const portBox = ref("")
-        const savePort = () => {
-            if(settingService.value) {
-                settingService.value!.port = portBox.value ? portBox.value : null
-            }
-        }
-        watch(settingService, v => {
-            if(v) {
-                portBox.value = v.port || ""
-                portType.value = validatePort(v.port || "")
-            }
-        })
         watch(portBox, (v, _, onInvalidate) => {
             let validate = true
             onInvalidate(() => validate = false)
@@ -55,8 +52,8 @@ export default defineComponent({
                 <p>建议的端口</p>
                 <div class="field mt-2">
                     <div class="group">
-                        <Input class="v-port-box is-small" placeholder="9000, 9090-9099" value={portBox.value} onUpdateValue={v => portBox.value = v} refreshOnInput={true}/>
-                        <button class="square button is-info is-small" onClick={savePort}><i class="fa fa-save"/></button>
+                        <Input class="is-small" placeholder="9000, 9090-9099" value={portBox.value} onUpdateValue={setPortBox} refreshOnInput={true}/>
+                        {portBoxSot.value && <button class="square button is-info is-small" onClick={savePort}><i class="fa fa-save"/></button>}
                     </div>
                     {
                         portType.value === "AUTO" ? <p class="has-text-grey">由Hedge自动搜索可用的端口。</p> :
@@ -67,9 +64,7 @@ export default defineComponent({
                 </div>
             </div>
             <div class="mt-4">
-                <label class="checkbox">
-                    <CheckBox value={authSetting.value!.fastboot} onUpdateValue={v => authSetting.value!.fastboot = v}/>快速启动
-                </label>
+                <CheckBox value={authSetting.value!.fastboot} onUpdateValue={v => authSetting.value!.fastboot = v}>快速启动</CheckBox>
                 <p class="is-size-7 has-text-grey">在登录通过之前就启动核心服务，以加快启动速度。</p>
             </div>
         </div>

@@ -1,6 +1,7 @@
 import { defineComponent, ref, watch } from "vue"
 import { openExternal, useWebAccessUrls } from "@/functions/service"
 import { useSettingWeb } from "@/functions/server-api/setting"
+import { usePropertySot } from "@/functions/utils/setter-property"
 import CheckBox from "@/components/CheckBox"
 import Input from "@/components/Input"
 import style from "./style.module.scss"
@@ -12,15 +13,11 @@ export default defineComponent({
 
         const onClickLink = (url: string) => () => openExternal(url)
 
+        const [ passwordBox, passwordBoxSot, setPasswordBox, savePassword ] = usePropertySot(ref(""),
+            () => data.value?.password,
+            newValue => newValue ?? "",
+            v => data.value!.password = v || null)
         const passwordSwitch = ref(false)
-        const passwordBox = ref<string>("")
-        const savePassword = () => {
-            if(passwordBox.value) {
-                data.value!.password = passwordBox.value
-            }else{
-                data.value!.password = null
-            }
-        }
         const switchPassword = () => {
             if(passwordSwitch.value) {
                 data.value!.password = null
@@ -28,12 +25,7 @@ export default defineComponent({
                 passwordSwitch.value = true
             }
         }
-        watch(data, v => {
-            if(v) {
-                passwordBox.value = v.password ?? ""
-                passwordSwitch.value = v.password != null
-            }
-        })
+        watch(() => data.value?.password, v => passwordSwitch.value = v != null)
 
         return () => loading.value ? <div/> : <div class={style.root}>
             {data.value!.access ? <div class="block is-success">
@@ -47,21 +39,15 @@ export default defineComponent({
                 <button class="button mt-2 is-white" onClick={() => data.value!.access = true}><i class="fa fa-door-open mr-1"/>启动Web访问</button>
             </div>}
             <p class="mt-3 mb-3">Web访问服务选项</p>
-            <label class="checkbox">
-                <CheckBox value={data.value!.password != null} onUpdateValue={switchPassword}/>通过Web访问需要密码
-            </label>
+            <CheckBox value={data.value!.password != null} onUpdateValue={switchPassword}>通过Web访问需要密码</CheckBox>
             <p class="is-size-8 has-text-grey">如果处于不能完全信任的局域网环境，打开独立密码以阻止无授权的访问。</p>
             {passwordSwitch.value && <div class="group">
-                <Input type="password" class="is-small" value={passwordBox.value} onUpdateValue={v => passwordBox.value = v}/>
-                <button class="square button is-info is-small" onClick={savePassword}><span class="icon"><i class="fa fa-save"/></span></button>
+                <Input type="password" class="is-small" value={passwordBox.value} onUpdateValue={setPasswordBox} refreshOnInput={true}/>
+                {passwordBoxSot.value && <button class="square button is-info is-small" onClick={savePassword}><span class="icon"><i class="fa fa-save"/></span></button>}
             </div>}
-            <label class="checkbox mt-2">
-                <CheckBox value={data.value?.autoWebAccess} onUpdateValue={v => data.value!.autoWebAccess = v}/>自动启动Web访问服务
-            </label>
+            <CheckBox class="mt-2" value={data.value?.autoWebAccess} onUpdateValue={v => data.value!.autoWebAccess = v}>自动启动Web访问服务</CheckBox>
             <p class="is-size-8 has-text-grey">登录App后自动开启Web访问服务。</p>
-            <label class="checkbox mt-2">
-                <CheckBox value={data.value?.permanent} onUpdateValue={v => data.value!.permanent = v}/>维持Web访问服务在后台运行
-            </label>
+            <CheckBox class="mt-2" value={data.value?.permanent} onUpdateValue={v => data.value!.permanent = v}>维持Web访问服务在后台运行</CheckBox>
             <p class="is-size-8 has-text-grey">开启Web访问服务后，即使关闭App，也使访问服务在后台可用。开启这项功能会维持核心服务的持续运行。</p>
         </div>
     }

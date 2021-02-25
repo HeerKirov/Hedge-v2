@@ -65,6 +65,7 @@ const settings: SettingScope[] = [
         list: [
             {route: "SettingServer", name: "核心服务", icon: "server"},
             {route: "SettingCli", name: "命令行工具", icon: "terminal"},
+            {route: "SettingProxy", name: "代理", icon: "globe"},
             {route: "SettingChannel", name: "频道", icon: "coins"},
         ]
     }

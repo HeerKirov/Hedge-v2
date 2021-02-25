@@ -35,6 +35,11 @@ export default <RouteRecordRaw[]>[
                 component: () => import('@/views/Setting/Backup')
             },
             {
+                name: 'SettingDBImport',
+                path: 'db/import',
+                component: () => import('@/views/Setting/Import')
+            },
+            {
                 name: 'SettingServer',
                 path: 'advanced/server',
                 component: () => import('@/views/Setting/Server')
@@ -43,6 +48,11 @@ export default <RouteRecordRaw[]>[
                 name: 'SettingCli',
                 path: 'advanced/cli',
                 component: () => import('@/views/Setting/Cli')
+            },
+            {
+                name: 'SettingProxy',
+                path: 'advanced/proxy',
+                component: () => import('@/views/Setting/Proxy')
             },
             {
                 name: 'SettingChannel',

@@ -24,6 +24,7 @@ export default defineComponent({
             }
         }
 
+        //TODO 完成channel
         return () => <div class={style.root}>
             <div class="block">
                 <p class="is-size-6"><i class="fa fa-coins mr-1"/>当前频道: <code>{currentChannel}</code></p>
