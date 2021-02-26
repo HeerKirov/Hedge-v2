@@ -1,10 +1,12 @@
 package com.heerkirov.hedge.server.form
 
 import com.heerkirov.hedge.server.components.database.ImportOption
+import com.heerkirov.hedge.server.components.database.MetaOption
+import com.heerkirov.hedge.server.components.database.SpiderOption
 import com.heerkirov.hedge.server.library.form.Length
+import com.heerkirov.hedge.server.library.form.Min
 import com.heerkirov.hedge.server.library.form.NotBlank
 import com.heerkirov.hedge.server.library.form.Range
-import com.heerkirov.hedge.server.model.illust.Illust
 import com.heerkirov.hedge.server.utils.types.Opt
 
 data class SiteCreateForm(@NotBlank @Length(16) val name: String,
@@ -22,6 +24,20 @@ data class ImportOptionUpdateForm(val autoAnalyseMeta: Opt<Boolean>,
                                   @Range(min = 0 - 86400000, max = 86400000) val setPartitionTimeDelay: Opt<Long>,
                                   val sourceAnalyseRules: Opt<List<ImportOption.SourceAnalyseRule>>,
                                   val systemDownloadHistoryPath: Opt<String?>)
+
+data class MetaOptionUpdateForm(@Range(1, 100) val scoreMaximum: Opt<Int>,
+                                val scoreDescriptions: Opt<List<MetaOption.ScoreDescription>>,
+                                val autoCleanTagme: Opt<Boolean>)
+
+data class QueryOptionUpdateForm(val chineseSymbolReflect: Opt<Boolean>,
+                                 val translateUnderscoreToSpace: Opt<Boolean>,
+                                 @Min(1) val queryLimitOfQueryItems: Opt<Int>,
+                                 @Min(2) val warningLimitOfUnionItems: Opt<Int>,
+                                 @Min(2) val warningLimitOfIntersectItems: Opt<Int>)
+
+data class SpiderOptionUpdateForm(val rules: Opt<Map<String, String>>,
+                                  val publicRule: Opt<SpiderOption.SpiderRule>,
+                                  val siteRules: Opt<Map<String, SpiderOption.SpiderRule>>)
 
 data class WebOptionUpdateForm(val autoWebAccess: Opt<Boolean>,
                                val permanent: Opt<Boolean>,

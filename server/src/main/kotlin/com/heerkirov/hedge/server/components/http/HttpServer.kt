@@ -78,7 +78,13 @@ class HttpServerImpl(private val allServices: AllServices,
             }
             .handle(aspect, authentication, web, errorHandler)
             .handle(AppRoutes(lifetime, appdata))
-            .handle(SettingRoutes(allServices.settingImport, allServices.settingSource, allServices.settingAppdata))
+            .handle(SettingRoutes(
+                allServices.settingMeta,
+                allServices.settingQuery,
+                allServices.settingImport,
+                allServices.settingSource,
+                allServices.settingSpider,
+                allServices.settingAppdata))
             .handle(QueryRoutes(allServices.queryService))
             .handle(IllustRoutes(allServices.illust))
             .handle(AlbumRoutes(allServices.album))

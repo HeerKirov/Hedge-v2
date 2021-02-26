@@ -81,10 +81,13 @@ fun runApplication(options: ApplicationOptions) {
             val importService = ImportService(repo, fileManager, importManager, illustManager, sourceManager, importMetaManager, thumbnailGenerator)
 
             val settingAppdataService = SettingAppdataService(appdata, webController)
+            val settingMetaService = SettingMetaService(repo)
+            val settingQueryService = SettingQueryService(repo)
             val settingImportService = SettingImportService(repo)
-            val settingSourceSiteService = SettingSourceService(repo)
+            val settingSiteService = SettingSourceService(repo)
+            val settingSpiderService = SettingSpiderService(repo)
 
-            AllServicesImpl(
+            AllServices(
                 illustService,
                 albumService,
                 folderService,
@@ -95,8 +98,11 @@ fun runApplication(options: ApplicationOptions) {
                 authorService,
                 topicService,
                 settingAppdataService,
+                settingMetaService,
+                settingQueryService,
                 settingImportService,
-                settingSourceSiteService,
+                settingSiteService,
+                settingSpiderService,
                 queryService
             )
         }

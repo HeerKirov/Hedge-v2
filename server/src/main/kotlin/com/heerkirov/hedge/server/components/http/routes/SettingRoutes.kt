@@ -2,17 +2,18 @@ package com.heerkirov.hedge.server.components.http.routes
 
 import com.heerkirov.hedge.server.components.appdata.ServiceOption
 import com.heerkirov.hedge.server.components.http.Endpoints
-import com.heerkirov.hedge.server.components.service.SettingAppdataService
-import com.heerkirov.hedge.server.components.service.SettingImportService
+import com.heerkirov.hedge.server.components.service.*
 import com.heerkirov.hedge.server.library.form.bodyAsForm
-import com.heerkirov.hedge.server.components.service.SettingSourceService
 import com.heerkirov.hedge.server.form.*
 import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder.*
 import io.javalin.http.Context
 
-class SettingRoutes(settingImportService: SettingImportService,
+class SettingRoutes(settingMetaService: SettingMetaService,
+                    settingQueryService: SettingQueryService,
+                    settingImportService: SettingImportService,
                     settingSourceService: SettingSourceService,
+                    settingSpiderService: SettingSpiderService,
                     settingAppdataService: SettingAppdataService) : Endpoints {
     override fun handle(javalin: Javalin) {
         javalin.routes {
@@ -34,6 +35,14 @@ class SettingRoutes(settingImportService: SettingImportService,
                     get(proxy::get)
                     patch(proxy::update)
                 }
+                path("meta") {
+                    get(meta::get)
+                    patch(meta::update)
+                }
+                path("query") {
+                    get(query::get)
+                    patch(query::update)
+                }
                 path("import") {
                     get(import::get)
                     patch(import::update)
@@ -48,12 +57,13 @@ class SettingRoutes(settingImportService: SettingImportService,
                             delete(site::delete)
                         }
                     }
+                    path("spider") {
+                        get("usable-rules", spider::getRuleList)
+                        get(spider::get)
+                        patch(spider::update)
+                    }
                 }
                 path("file") {
-                    get(::notImplemented)
-                    patch(::notImplemented)
-                }
-                path("spider") {
                     get(::notImplemented)
                     patch(::notImplemented)
                 }
@@ -61,8 +71,11 @@ class SettingRoutes(settingImportService: SettingImportService,
         }
     }
 
+    private val meta = Meta(settingMetaService)
+    private val query = Query(settingQueryService)
     private val import = Import(settingImportService)
     private val site = Site(settingSourceService)
+    private val spider = Spider(settingSpiderService)
     private val web = Web(settingAppdataService)
     private val service = Service(settingAppdataService)
     private val backup = Backup(settingAppdataService)
@@ -116,6 +129,28 @@ class SettingRoutes(settingImportService: SettingImportService,
         }
     }
 
+    private class Meta(private val service: SettingMetaService) {
+        fun get(ctx: Context) {
+            ctx.json(service.get())
+        }
+
+        fun update(ctx: Context) {
+            val form = ctx.bodyAsForm<MetaOptionUpdateForm>()
+            service.update(form)
+        }
+    }
+
+    private class Query(private val service: SettingQueryService) {
+        fun get(ctx: Context) {
+            ctx.json(service.get())
+        }
+
+        fun update(ctx: Context) {
+            val form = ctx.bodyAsForm<QueryOptionUpdateForm>()
+            service.update(form)
+        }
+    }
+
     private class Import(private val service: SettingImportService) {
         fun get(ctx: Context) {
             ctx.json(service.get())
@@ -153,6 +188,21 @@ class SettingRoutes(settingImportService: SettingImportService,
             val name = ctx.pathParam("name")
             service.delete(name)
             ctx.status(204)
+        }
+    }
+
+    private class Spider(private val service: SettingSpiderService) {
+        fun getRuleList(ctx: Context) {
+            ctx.json(service.getSpiderRuleList())
+        }
+
+        fun get(ctx: Context) {
+            ctx.json(service.get())
+        }
+
+        fun update(ctx: Context) {
+            val form = ctx.bodyAsForm<SpiderOptionUpdateForm>()
+            service.update(form)
         }
     }
 }
