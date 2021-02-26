@@ -3,7 +3,7 @@ import { HttpInstance, Response } from "../server"
 export function createSettingBackupEndpoint(http: HttpInstance): SettingBackupEndpoint {
     return {
         get: http.createRequest("/api/setting/backup", "GET", {
-            parseResponse(data: any): SettingBackup {
+            parseResponse(data: any): BackupOption {
                 return {
                     path: data.path,
                     autoBackup: data.autoBackup,
@@ -23,15 +23,15 @@ export interface SettingBackupEndpoint {
     /**
      * 查看。
      */
-    get(): Promise<Response<SettingBackup>>
+    get(): Promise<Response<BackupOption>>
     /**
      * 更改。
      * @param form
      */
-    update(form: SettingBackupUpdateForm): Promise<Response<unknown>>
+    update(form: BackupOptionUpdateForm): Promise<Response<unknown>>
 }
 
-export interface SettingBackup {
+export interface BackupOption {
     /**
      * 备份的目标路径。null表示没有开启备份。
      */
@@ -46,7 +46,7 @@ export interface SettingBackup {
     autoBackup: boolean
 }
 
-export interface SettingBackupUpdateForm {
+export interface BackupOptionUpdateForm {
     path?: string | null
     autoBackup?: boolean
 }

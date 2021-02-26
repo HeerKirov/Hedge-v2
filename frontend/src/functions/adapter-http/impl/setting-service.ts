@@ -15,14 +15,14 @@ export interface SettingServiceEndpoint {
     /**
      * 查看。
      */
-    get(): Promise<Response<SettingService>>
+    get(): Promise<Response<ServiceOption>>
     /**
      * 更改。
      */
-    update(form: SettingService): Promise<Response<unknown>>
+    update(form: ServiceOption): Promise<Response<unknown>>
 }
 
-export interface SettingService {
+export interface ServiceOption {
     /**
      * 后台服务建议使用的端口。
      * null表示没有建议，由它自己选择端口。

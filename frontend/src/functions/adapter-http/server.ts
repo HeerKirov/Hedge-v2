@@ -1,6 +1,6 @@
 import { computed } from "vue"
 import axios, { AxiosError, Method } from "axios"
-import { HttpException } from "@/functions/adapter-http/exception";
+import { HttpException } from "./exception"
 
 export interface HttpInstance {
     /**

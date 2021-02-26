@@ -5,7 +5,7 @@
         display: flex;
 
         > :global(.block) {
-            padding: 0.5rem 1rem;
+            padding: 0.5rem 0.5rem 0.5rem 1rem;
             margin-bottom: 0.5rem;
             cursor: pointer;
             width: 640px;
@@ -16,12 +16,19 @@
                 color: $grey;
                 margin-top: 1rem;
                 margin-bottom: 0.25rem;
+                margin-right: 0.25rem;
                 float: right;
             }
             > .buttons {
-                margin-top: 0.5rem;
+                margin-top: 1rem;
                 float: right;
                 > :not(:last-child) {
+                    margin-right: 0.5rem;
+                }
+            }
+            > .create {
+                margin-top: 1rem;
+                > input {
                     margin-right: 0.5rem;
                 }
             }

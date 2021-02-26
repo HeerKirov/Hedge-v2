@@ -1,6 +1,6 @@
 import { onMounted, ref, Ref, watch, toRaw } from "vue"
 import { HttpClient, Response } from "@/functions/adapter-http"
-import { useHttpClient, } from "@/functions/service"
+import { useHttpClient } from "@/functions/service"
 import { useNotification } from "@/functions/notification"
 
 /* 此处提供了VCA形态的rest api端点调用器。目标是处理符合标准object模型的对象。

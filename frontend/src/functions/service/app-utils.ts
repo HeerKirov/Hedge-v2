@@ -3,7 +3,8 @@ import { remote, ipc, clientMode, OpenDialogOptions } from "@/functions/adapter-
 
 export const dialogManager = clientMode ? {
     async openDialog(options: OpenDialogOptions): Promise<string[] | null> {
-        return await remote.dialog.openDialog(options)
+        const res = await remote.dialog.openDialog(options)
+        return res && res.length ? res : null
     }
 } : {
     async openDialog(options: OpenDialogOptions): Promise<string[] | null> {

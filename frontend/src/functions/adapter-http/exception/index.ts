@@ -1,5 +1,5 @@
-import { CheckedException, DaemonException, ExtendException, UncheckedException } from "@/functions/adapter-http/exception/exceptions"
-import { InternalError, UnknownError } from "@/functions/adapter-http/exception/base-exceptions"
+import { CheckedException, DaemonException, ExtendException, UncheckedException } from "./exceptions"
+import { InternalError, UnknownError } from "./base-exceptions"
 
 export type ExceptionCode = HttpException['code']
 

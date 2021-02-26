@@ -15,15 +15,14 @@ export interface SettingProxyEndpoint {
     /**
      * 查看。
      */
-    get(): Promise<Response<SettingProxy>>
-
+    get(): Promise<Response<ProxyOption>>
     /**
      * 更改。
      */
-    update(form: SettingProxyUpdateForm): Promise<Response<unknown>>
+    update(form: ProxyOptionUpdateForm): Promise<Response<unknown>>
 }
 
-export interface SettingProxy {
+export interface ProxyOption {
     /**
      * socks5代理地址。
      */
@@ -34,7 +33,7 @@ export interface SettingProxy {
     httpProxy: string | null
 }
 
-export interface SettingProxyUpdateForm {
+export interface ProxyOptionUpdateForm {
     socks5Proxy?: string | null
     httpProxy?: string | null
 }

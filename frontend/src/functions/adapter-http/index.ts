@@ -2,11 +2,13 @@ import type { HttpInstance, HttpInstanceConfig, Response, ResponseOk, ResponseEr
 import { createHttpInstance } from "./server"
 import { createWebEndpoint, WebEndpoint } from "./impl/web"
 import { createSettingWebEndpoint, SettingWebEndpoint } from "./impl/setting-web"
-import { createSettingServiceEndpoint, SettingServiceEndpoint } from "@/functions/adapter-http/impl/setting-service"
-import { createSettingProxyEndpoint, SettingProxyEndpoint } from "@/functions/adapter-http/impl/setting-proxy"
-import { createSettingImportEndpoint, SettingImportEndpoint } from "@/functions/adapter-http/impl/setting-import"
-import { createSettingSourceEndpoint, SettingSourceEndpoint } from "@/functions/adapter-http/impl/setting-source"
-import { createSettingBackupEndpoint, SettingBackupEndpoint } from "@/functions/adapter-http/impl/setting-backup"
+import { createSettingServiceEndpoint, SettingServiceEndpoint } from "./impl/setting-service"
+import { createSettingProxyEndpoint, SettingProxyEndpoint } from "./impl/setting-proxy"
+import { createSettingImportEndpoint, SettingImportEndpoint } from "./impl/setting-import"
+import { createSettingSourceEndpoint, SettingSourceEndpoint } from "./impl/setting-source"
+import { createSettingBackupEndpoint, SettingBackupEndpoint } from "./impl/setting-backup"
+import { createSettingMetaEndpoint, SettingMetaEndpoint } from "./impl/setting-meta"
+import { createSettingQueryEndpoint, SettingQueryEndpoint } from "./impl/setting-query"
 
 export { HttpInstance, HttpInstanceConfig, Response, ResponseOk, ResponseError, ResponseConnectionError, ResponseEmpty, createHttpInstance }
 
@@ -14,6 +16,8 @@ export interface HttpClient {
     web: WebEndpoint
     settingWeb: SettingWebEndpoint
     settingService: SettingServiceEndpoint
+    settingMeta: SettingMetaEndpoint
+    settingQuery: SettingQueryEndpoint
     settingProxy: SettingProxyEndpoint
     settingImport: SettingImportEndpoint
     settingSource: SettingSourceEndpoint
@@ -25,6 +29,8 @@ export function createHttpClient(http: HttpInstance): HttpClient {
         web: createWebEndpoint(http),
         settingWeb: createSettingWebEndpoint(http),
         settingService: createSettingServiceEndpoint(http),
+        settingMeta: createSettingMetaEndpoint(http),
+        settingQuery: createSettingQueryEndpoint(http),
         settingProxy: createSettingProxyEndpoint(http),
         settingImport: createSettingImportEndpoint(http),
         settingSource: createSettingSourceEndpoint(http),

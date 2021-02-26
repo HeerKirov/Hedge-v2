@@ -1,10 +1,10 @@
 import { InjectionKey, inject, provide, reactive } from "vue"
 import { HttpClient, HttpInstanceConfig, createHttpClient, createHttpInstance } from "@/functions/adapter-http"
 import { clientMode, remote, ipc } from "@/functions/adapter-ipc"
+import { performanceTimer } from "@/utils/performance-timer"
 import { AppInfo, AppState, AppInfoInjection, AppStateInjection, useAppStateInjection } from "./app-state"
 import { FullscreenInjection, useFullscreenInjection } from "./app-fullscreen"
-import { performanceTimer } from "@/utils/performance-timer"
-import { useErrorHandler } from "@/functions/service/error-handler";
+import { useErrorHandler } from "./error-handler"
 
 interface AppServiceOptions {
     handleError(title: string, message: string)

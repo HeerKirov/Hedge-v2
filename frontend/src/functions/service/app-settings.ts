@@ -1,7 +1,7 @@
 import { onMounted, ref, watch, toRaw, computed, onUnmounted, readonly } from "vue"
 import { AppearanceSetting, clientMode, ipc, ResourceStatus, AuthSetting } from "@/functions/adapter-ipc"
 import { useNotification } from "@/functions/notification"
-import { useAppInfo } from "@/functions/service/app-state"
+import { useAppInfo } from "./app-state"
 
 export function useAuthSetting() {
     if(!clientMode) {

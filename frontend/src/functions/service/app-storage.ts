@@ -1,5 +1,5 @@
 import { ref, Ref, watch } from "vue"
-import { AppInfo, useAppInfo } from './app-state'
+import { AppInfo, useAppInfo } from "./app-state"
 
 /**
  * 引用一个local storage存储器。

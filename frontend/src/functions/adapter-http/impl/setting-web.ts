@@ -15,14 +15,14 @@ export interface SettingWebEndpoint {
     /**
      * 查看。
      */
-    get(): Promise<Response<SettingWeb>>
+    get(): Promise<Response<WebOption>>
     /**
      * 更改。
      */
-    update(form: SettingWebUpdateForm): Promise<Response<unknown>>
+    update(form: WebOptionUpdateForm): Promise<Response<unknown>>
 }
 
-export interface SettingWeb {
+export interface WebOption {
     /**
      * 自动开启web访问。
      */
@@ -41,7 +41,7 @@ export interface SettingWeb {
     access: boolean
 }
 
-export interface SettingWebUpdateForm {
+export interface WebOptionUpdateForm {
     autoWebAccess?: boolean
     permanent?: boolean
     password?: string | null

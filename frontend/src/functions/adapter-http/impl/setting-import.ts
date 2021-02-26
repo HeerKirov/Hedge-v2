@@ -15,14 +15,16 @@ export interface SettingImportEndpoint {
     /**
      * 查看。
      */
-    get(): Promise<Response<SettingImport>>
+    get(): Promise<Response<ImportOption>>
     /**
      * 更改。
+     * @exception NOT_EXIST(site, {siteName}) rules[].site不在sites列表中存在时报告此错误。
+     * @exception INVALID_RULE_INDEX rules[].secondaryIdIndex与对应的site的hasSecondaryId配置不匹配时报告此错误。
      */
-    update(form: SettingImportUpdateForm): Promise<Response<unknown>>
+    update(form: ImportOptionUpdateForm): Promise<Response<unknown>>
 }
 
-export interface SettingImport {
+export interface ImportOption {
     /**
      * 导入时，自动从文件分析source信息。
      */
@@ -41,6 +43,7 @@ export interface SettingImport {
     setTimeBy: TimeType
     /**
      * 分区的延后时间，单位毫秒。null等同0。
+     * @range [-86400000, 86400000]
      */
     setPartitionTimeDelay: number | null
     /**
@@ -53,7 +56,7 @@ export interface SettingImport {
     systemDownloadHistoryPath: string | null
 }
 
-export interface SettingImportUpdateForm {
+export interface ImportOptionUpdateForm {
     autoAnalyseMeta?: boolean
     setTagmeOfTag?: boolean
     setTagmeOfSource?: boolean

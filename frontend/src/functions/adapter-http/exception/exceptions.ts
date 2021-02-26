@@ -1,4 +1,4 @@
-import { BadRequestException, UnauthorizedException, ForbiddenException, NotFoundException } from "@/functions/adapter-http/exception/base-exceptions"
+import { BadRequestException, UnauthorizedException, ForbiddenException, NotFoundException } from "./base-exceptions"
 
 export type DaemonException =
     NotInit |

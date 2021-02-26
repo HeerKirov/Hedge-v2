@@ -1,4 +1,4 @@
-import { defineComponent, reactive, ref, Ref } from "vue"
+import { defineComponent, reactive, ref, Ref, watch } from "vue"
 import { useChannelSetting } from "@/functions/service/app-settings"
 import Input from "@/components/Input"
 import style from "./style.module.scss"
@@ -9,22 +9,14 @@ export default defineComponent({
         const selected: Ref<number | null> = ref(null)
         const onClick = (index: number) => () => {
             selected.value = selected.value !== index ? index : null
+            openCreateMode.value = false
+        }
+        const openCreateMode = ref(false)
+        const updateOpen = (v: boolean) => {
+            openCreateMode.value = v
+            if(v) selected.value = null
         }
 
-        const createMode = reactive({on: false, value: "", error: false})
-        const switchCreateMode = () => {
-            createMode.on = !createMode.on
-            createMode.error = false
-        }
-        const create = () => {
-            if(createMode.value) {
-                restart(createMode.value)
-            }else{
-                createMode.error = true
-            }
-        }
-
-        //TODO 完成channel
         return () => <div class={style.root}>
             <div class="block">
                 <p class="is-size-6"><i class="fa fa-coins mr-1"/>当前频道: <code>{currentChannel}</code></p>
@@ -34,7 +26,7 @@ export default defineComponent({
                 <p class="mt-1">2. 通过命令行工具命令<code>hedge app</code>启动App。App将以与命令行工具一致的频道启动，在启动前切换命令行工具的channel至目标频道。</p>
                 <p class="mt-4"><i class="fa fa-circle mr-1"/>默认频道: <code>{defaultChannel.value}</code></p>
             </div>
-            <p class="mt-3 mb-3">频道列表</p>
+            <p class="my-3">频道列表</p>
             {channels.value.map(({ channel, isDefault }, index) => <div key={channel} class={style.channelItem}>
                 <div class={["block", "is-light"]} onClick={onClick(index)}>
                     {channel}
@@ -46,15 +38,40 @@ export default defineComponent({
                     </div>)}
                 </div>
             </div>)}
-            <div class={style.channelItem}>
-                <div class="block is-success is-light" onClick={switchCreateMode}>
-                    <i class="fa fa-plus mr-2"/>新建频道
-                    {createMode.on && <div class={style.buttons}>
-                        <Input class={{"is-small": true, "is-danger": createMode.error}} value={createMode.value} onUpdateValue={v => createMode.value = v}/>
-                        <button class="button is-small is-success" onClick={create}><span class="icon"><i class="fa fa-reply"/></span><span>以此频道的身份重新启动</span></button>
-                        <p class="has-text-grey">当一个频道被创建并被初始化后，它会被记录在频道列表中。</p>
-                    </div>}
-                </div>
+            <CreateChannel open={openCreateMode.value} onUpdateOpen={updateOpen} onRestart={restart}/>
+        </div>
+    }
+})
+
+const CreateChannel = defineComponent({
+    props: {
+        open: {type: Boolean, required: true}
+    },
+    emits: ['restart', 'updateOpen'],
+    setup(props, { emit }) {
+        const createMode = reactive({on: props.open, value: "", error: false})
+        const switchCreateMode = () => {
+            createMode.on = !createMode.on
+            createMode.error = false
+            emit('updateOpen', createMode.on)
+        }
+        const create = () => {
+            if(createMode.value) {
+                emit('restart', createMode.value)
+            }else{
+                createMode.error = true
+            }
+        }
+        watch(() => props.open, v => createMode.on = v)
+
+        return () => <div class={style.channelItem}>
+            <div class="block is-success is-light" onClick={switchCreateMode}>
+                <i class="fa fa-plus mr-2"/>新建频道
+                {createMode.on && <div class={style.create}>
+                    <Input class={{"is-small": true, "is-danger": createMode.error}} value={createMode.value} onUpdateValue={v => createMode.value = v}/>
+                    <button class="button is-small is-success" onClick={create}><span class="icon"><i class="fa fa-reply"/></span><span>以此频道的身份重新启动</span></button>
+                    <p class="has-text-grey">当一个频道被创建并被初始化后，它会被记录在频道列表中。</p>
+                </div>}
             </div>
         </div>
     }
