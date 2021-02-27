@@ -31,7 +31,7 @@ export interface MetaOption {
     /**
      * score的描述。descriptions[i]代表了score = i + 1的描述
      */
-    scoreDescriptions: string[]
+    scoreDescriptions: {word: string, content: string}[]
     /**
      * 对相关元数据做更改后自动清除对应的tagme标记。
      */
@@ -40,6 +40,6 @@ export interface MetaOption {
 
 export interface MetaOptionUpdateForm {
     scoreMaximum?: number
-    scoreDescriptions?: string[]
+    scoreDescriptions?: {word: string, content: string}[]
     autoCleanTagme?: boolean
 }

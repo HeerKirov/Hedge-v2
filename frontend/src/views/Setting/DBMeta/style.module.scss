@@ -1,0 +1,22 @@
+@import "@/styles/base/size.sass";
+
+.root {
+  .score-description {
+    display: flex;
+    flex-flow: nowrap;
+    justify-content: left;
+    margin-bottom: 0.25rem;
+    > .score {
+      line-height: $height-std;
+      width: 1.25rem;
+    }
+    > .word {
+      margin-left: 0.25rem;
+      max-width: 10em;
+    }
+    > .content {
+      margin-left: 0.25rem;
+      width: 100%;
+    }
+  }
+}

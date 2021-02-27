@@ -1,4 +1,5 @@
 @import "../base/size"
+@import "../base/font"
 @import "../base/color.scss"
 
 //文本尺寸
@@ -20,6 +21,13 @@
     .has-text-#{$name}
       color: $color
 
+//文本字体
+.is-monospace
+  font-family: $family-monospace
+.is-monaco
+  font-family: $family-monaco
+
+//文本对齐位置
 .has-text-centered
   text-align: center
 .has-text-right

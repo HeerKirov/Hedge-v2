@@ -30,6 +30,7 @@ input
     border-color: $more-light-dark
 
   $input-size-map: ("small" ($font-size-8, $height-small), "medium" ($font-size-6, $height-medium))
+  $input-width-map: ("half" 0.5em, "small" 0.75em, "std" 1em, "medium" 1.25em, "large" 1.5em, "2x" 2em, "3x" 3em)
 
   &:focus
     box-shadow: 0 0 3px $dark-lightgrey
@@ -42,6 +43,10 @@ input
     &.is-#{$name}
       font-size: $font-size
       height: $height
+  @each $name, $size in $input-width-map
+    &.is-width-#{$name}
+      width: #{$size * 13.6}
+      max-width: #{$size * 13.6}
   @media (prefers-color-scheme: light)
     @each $name, $pair in $colors
       $color: nth($pair, 1)

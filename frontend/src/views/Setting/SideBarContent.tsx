@@ -54,9 +54,10 @@ const settings: SettingScope[] = [
     {
         label: "数据库事务",
         list: [
-            {route: "SettingDBGeneral", name: "通用", icon: "coffee"},
+            {route: "SettingDBMeta", name: "元数据选项", icon: "coffee"},
+            {route: "SettingDBQuery", name: "查询选项", icon: "search"},
             {route: "SettingDBImport", name: "导入选项", icon: "plus-square"},
-            {route: "SettingDBSpider", name: "爬虫选项", icon: "spider"},
+            {route: "SettingDBOrigin", name: "原始数据选项", icon: "file-invoice"},
             {route: "SettingDBFile", name: "文件管理选项", icon: "folder-open"}
         ]
     },

@@ -4,7 +4,6 @@ import { useSettingWeb } from "@/functions/server-api/setting"
 import { usePropertySot } from "@/functions/utils/setter-property"
 import CheckBox from "@/components/CheckBox"
 import Input from "@/components/Input"
-import style from "./style.module.scss"
 
 export default defineComponent({
     setup() {
@@ -27,7 +26,7 @@ export default defineComponent({
         }
         watch(() => data.value?.password, v => passwordSwitch.value = v != null)
 
-        return () => loading.value ? <div/> : <div class={style.root}>
+        return () => loading.value ? <div/> : <div>
             {data.value!.access ? <div class="block is-success">
                 <p class="is-size-6"><i class="fa fa-network-wired mr-1"/>局域网Web访问: 已开启</p>
                 <p class="mt-3 mb-1">在浏览器访问以下地址以使用Hedge的Web服务:</p>
@@ -38,7 +37,7 @@ export default defineComponent({
                 <p class="mt-3 mb-1">局域网Web访问服务允许通过浏览器，在本机或同一局域网上的其他电脑使用Hedge。</p>
                 <button class="button mt-2 is-white" onClick={() => data.value!.access = true}><i class="fa fa-door-open mr-1"/>启动Web访问</button>
             </div>}
-            <p class="mt-3 mb-3">Web访问服务选项</p>
+            <p class="mt-3 mb-3 is-size-medium">Web访问服务选项</p>
             <CheckBox value={data.value!.password != null} onUpdateValue={switchPassword}>通过Web访问需要密码</CheckBox>
             <p class="is-size-8 has-text-grey">如果处于不能完全信任的局域网环境，打开独立密码以阻止无授权的访问。</p>
             {passwordSwitch.value && <div class="group">

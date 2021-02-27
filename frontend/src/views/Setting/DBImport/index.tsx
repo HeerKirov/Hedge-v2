@@ -16,11 +16,11 @@ export default defineComponent({
 
         return () => loading.value ? <div/> : <div>
             <p class="mb-3 is-size-medium">导入选项</p>
-            <AnalyseRuleBoard/>
             <AutoOptionsBoard/>
             <TimeTypeBoard/>
             <PartitionTimeDelayBoard/>
             <HistoryPathBoard/>
+            <AnalyseRuleBoard/>
         </div>
     }
 })
@@ -39,9 +39,11 @@ const AnalyseRuleBoard = defineComponent({
 
         //TODO 完成import analyze rules
         return () => <>
-            <label class="label">来源解析规则</label>
-            <div>
+            <div class="mt-2">
+                <label class="label">来源解析规则</label>
+                <div class="block">
 
+                </div>
             </div>
         </>
     }
@@ -52,7 +54,6 @@ const AutoOptionsBoard = defineComponent({
         const data = inject(DataInjection)!
 
         return () => <>
-            <label class="label">自动选项</label>
             <div class="mt-2">
                 <CheckBox value={data.value!.autoAnalyseMeta} onUpdateValue={v => data.value!.autoAnalyseMeta = v}>自动分析</CheckBox>
                 <p class="is-size-7 has-text-grey">导入文件时，自动执行分析操作，分析导入项目的来源。</p>
@@ -122,7 +123,7 @@ const HistoryPathBoard = defineComponent({
         return () => <div class="mt-2">
             <label class="label">系统下载数据库位置</label>
             <div class="group mt-1">
-                <Input class="is-small" value={historyPath.value} onUpdateValue={setHistoryPath} refreshOnInput={true}/>
+                <Input class="is-small is-width-2x" value={historyPath.value} onUpdateValue={setHistoryPath} refreshOnInput={true}/>
                 <button class="button is-small is-info" onClick={selectHistoryPath}><span class="icon"><i class="fa fa-folder-open"/></span><span>选择数据库…</span></button>
                 {historyPathSot.value && <button class="square button is-small is-info" onClick={saveHistoryPath}><span class="icon"><i class="fa fa-save"/></span></button>}
             </div>

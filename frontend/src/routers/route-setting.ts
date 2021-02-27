@@ -22,42 +22,57 @@ export default <RouteRecordRaw[]>[
             {
                 name: 'SettingAppearance',
                 path: 'app/appearance',
-                component: () => import('@/views/Setting/Appearance')
+                component: () => import('@/views/Setting/AppAppearance')
             },
             {
                 name: 'SettingWebAccess',
                 path: 'app/web-access',
-                component: () => import('@/views/Setting/WebAccess')
+                component: () => import('@/views/Setting/AppWebAccess')
             },
             {
                 name: 'SettingBackup',
                 path: 'app/backup',
-                component: () => import('@/views/Setting/Backup')
+                component: () => import('@/views/Setting/AppBackup')
+            },
+            {
+                name: 'SettingDBMeta',
+                path: 'db/meta',
+                component: () => import('@/views/Setting/DBMeta')
+            },
+            {
+                name: 'SettingDBQuery',
+                path: 'db/query',
+                component: () => import('@/views/Setting/DBQuery')
+            },
+            {
+                name: 'SettingDBOrigin',
+                path: 'db/origin',
+                component: () => import('@/views/Setting/DBOrigin')
             },
             {
                 name: 'SettingDBImport',
                 path: 'db/import',
-                component: () => import('@/views/Setting/Import')
+                component: () => import('@/views/Setting/DBImport')
             },
             {
                 name: 'SettingServer',
                 path: 'advanced/server',
-                component: () => import('@/views/Setting/Server')
+                component: () => import('@/views/Setting/AdvancedServer')
             },
             {
                 name: 'SettingCli',
                 path: 'advanced/cli',
-                component: () => import('@/views/Setting/Cli')
+                component: () => import('@/views/Setting/AdvancedCli')
             },
             {
                 name: 'SettingProxy',
                 path: 'advanced/proxy',
-                component: () => import('@/views/Setting/Proxy')
+                component: () => import('@/views/Setting/AdvancedProxy')
             },
             {
                 name: 'SettingChannel',
                 path: 'advanced/channel',
-                component: () => import('@/views/Setting/Channel')
+                component: () => import('@/views/Setting/AdvancedChannel')
             }
         ]
     }

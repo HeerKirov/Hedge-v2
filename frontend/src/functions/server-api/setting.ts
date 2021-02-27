@@ -5,6 +5,7 @@ import { ProxyOption } from "@/functions/adapter-http/impl/setting-proxy"
 import { ImportOption } from "@/functions/adapter-http/impl/setting-import"
 import { MetaOption } from "@/functions/adapter-http/impl/setting-meta"
 import { QueryOption } from "@/functions/adapter-http/impl/setting-query"
+import { SpiderOption } from "@/functions/adapter-http/impl/setting-source";
 
 export function useSettingWeb() {
     return useReactiveEndpoint<WebOption>({
@@ -45,5 +46,12 @@ export function useSettingImport() {
     return useReactiveEndpoint<ImportOption>({
         get: client => client.settingImport.get,
         update: client => client.settingImport.update
+    })
+}
+
+export function useSettingSourceSpider() {
+    return useReactiveEndpoint<SpiderOption>({
+        get: client => client.settingSource.spider.get,
+        update: client => client.settingSource.spider.update
     })
 }

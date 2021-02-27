@@ -36,12 +36,12 @@ export default defineComponent({
 
             return () => {
                 const events = {[props.refreshOnInput ? "onInput" : "onChange"]: onUpdate}
-                return <input ref={dom} class="input" type={type.value} value={value.value} {...events} placeholder={props.placeholder}/>
+                return <input ref={dom} class="input is-monaco" type={type.value} value={value.value} {...events} placeholder={props.placeholder}/>
             }
         }else{
             return () => {
                 const events = {[props.refreshOnInput ? "onInput" : "onChange"]: onUpdate}
-                return <input class="input" type={type.value} value={value.value} {...events} placeholder={props.placeholder}/>
+                return <input class="input is-monaco" type={type.value} value={value.value} {...events} placeholder={props.placeholder}/>
             }
         }
     }

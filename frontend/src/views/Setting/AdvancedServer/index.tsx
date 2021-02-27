@@ -47,7 +47,7 @@ export default defineComponent({
                 <p class="is-size-6"><i class="fa fa-server mr-1"/>核心服务异常</p>
                 <p class="is-size-7 mt-2">核心服务未在运行。</p>
             </div>}
-            <p class="mt-3 mb-3">核心服务选项</p>
+            <p class="mt-3 mb-3 is-size-medium">核心服务选项</p>
             <div class="block">
                 <p>建议的端口</p>
                 <div class="field mt-2">

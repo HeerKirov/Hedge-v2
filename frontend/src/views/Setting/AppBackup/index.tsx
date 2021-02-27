@@ -13,7 +13,7 @@ export default defineComponent({
                 <button class="button mt-4 is-white"><i class="fa fa-sync mr-2"/>开始备份</button>
                 <button class="button mt-4 ml-1 is-white"><i class="fa fa-redo mr-2"/>从备份还原</button>
             </div>
-            <p class="mt-3 mb-3">备份与还原选项</p>
+            <p class="mt-3 mb-3 is-size-medium">备份与还原选项</p>
             <label class="checkbox">
                 <input type="checkbox"/>启用备份
             </label>
