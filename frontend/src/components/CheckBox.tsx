@@ -2,7 +2,8 @@ import { defineComponent, ref, watch } from "vue"
 
 export default defineComponent({
     props: {
-        value: Boolean
+        value: Boolean,
+        disabled: {type: Boolean, default: false}
     },
     emits: ['updateValue'],
     setup(props, { emit, slots }) {
@@ -15,8 +16,8 @@ export default defineComponent({
             emit('updateValue', value.value)
         }
 
-        return () => <label class="checkbox">
-            <input type="checkbox" checked={value.value} onChange={onUpdate}/>
+        return () => <label class={{"checkbox": true, "disabled": props.disabled}}>
+            <input type="checkbox" checked={value.value} disabled={props.disabled} onChange={onUpdate}/>
             {slots.default?.()}
         </label>
     }

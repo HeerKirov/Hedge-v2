@@ -3,8 +3,9 @@
     .content {
         height: 100%;
         > .scroll-content {
+            box-sizing: border-box;
             max-height: 100%;
-            overflow-y: auto;
+            overflow: auto;
             padding: 4rem 2rem 2rem 2rem;
         }
     }

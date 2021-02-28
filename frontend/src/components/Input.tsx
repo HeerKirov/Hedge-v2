@@ -3,19 +3,11 @@ import { defineComponent, onMounted, PropType, ref, toRef, watch } from "vue"
 export default defineComponent({
     props: {
         value: String,
-        type: {
-            type: null as any as PropType<"text" | "password">,
-            default: "text"
-        },
         placeholder: String,
-        refreshOnInput: {
-            type: Boolean,
-            default: false
-        },
-        focusOnMounted: {
-            type: Boolean,
-            default: false
-        }
+        type: {type: null as any as PropType<"text" | "password">, default: "text"},
+        refreshOnInput: {type: Boolean, default: false},
+        focusOnMounted: {type: Boolean, default: false},
+        disabled: {type: Boolean, default: false}
     },
     emits: ['updateValue'],
     setup(props, { emit }) {
@@ -36,12 +28,12 @@ export default defineComponent({
 
             return () => {
                 const events = {[props.refreshOnInput ? "onInput" : "onChange"]: onUpdate}
-                return <input ref={dom} class="input is-monaco" type={type.value} value={value.value} {...events} placeholder={props.placeholder}/>
+                return <input ref={dom} class="input is-monaco" type={type.value} disabled={props.disabled} value={value.value} {...events} placeholder={props.placeholder}/>
             }
         }else{
             return () => {
                 const events = {[props.refreshOnInput ? "onInput" : "onChange"]: onUpdate}
-                return <input class="input is-monaco" type={type.value} value={value.value} {...events} placeholder={props.placeholder}/>
+                return <input class="input is-monaco" type={type.value} value={value.value} disabled={props.disabled} {...events} placeholder={props.placeholder}/>
             }
         }
     }

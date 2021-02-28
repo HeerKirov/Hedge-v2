@@ -2,11 +2,24 @@
 
 .root {
   .site-board {
+    $height: 12.5rem;
+    display: flex;
+    flex-flow: nowrap;
     > .left {
-
+      width: 50%;
+      height: $height;
+      padding-right: 0.5rem;
+      > .left-list {
+        height: calc(100% - #{$height-small + 0.25rem})
+      }
+      > .left-bottom {
+        padding-top: 0.25rem;
+      }
     }
     > .right {
-
+      width: 50%;
+      height: $height;
+      margin-left: 0.5rem;
     }
   }
 }

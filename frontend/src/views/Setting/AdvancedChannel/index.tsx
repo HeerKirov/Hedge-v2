@@ -77,7 +77,7 @@ const CreateChannel = defineComponent({
                 {createMode.on && <div class={style.create}>
                     <Input class={{"is-small": true, "is-danger": createMode.error}} value={createMode.value} onUpdateValue={v => createMode.value = v}/>
                     <button class="button is-small is-success" onClick={create}><span class="icon"><i class="fa fa-reply"/></span><span>以此频道的身份重新启动</span></button>
-                    <p class="has-text-grey">当一个频道被创建并被初始化后，它会被记录在频道列表中。</p>
+                    <p class="has-text-grey">一个频道被创建并被初始化后，会被记录在频道列表中。</p>
                 </div>}
             </div>
         </div>

@@ -6,7 +6,7 @@ export function createSettingSourceEndpoint(http: HttpInstance): SettingSourceEn
             list: http.createRequest("/api/setting/source/sites"),
             create: http.createDataRequest("/api/setting/source/sites", "POST"),
             get: http.createPathRequest(name => `/api/setting/source/sites/${name}`),
-            update: http.createPathDataRequest(name => `/api/setting/source/sites/${name}`, "PATCH"),
+            update: http.createPathDataRequest(name => `/api/setting/source/sites/${name}`, "PUT"),
             delete: http.createPathRequest(name => `/api/setting/source/sites/${name}`, "DELETE"),
         },
         spider: {
