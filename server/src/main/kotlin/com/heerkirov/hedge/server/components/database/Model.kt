@@ -159,24 +159,24 @@ class SpiderOption(
 ) {
     class SpiderRule(
         /**
-         * 开启使用代理。全局默认值为不开启。
+         * 开启使用代理。
          */
-        val useProxy: Boolean? = null,
+        val useProxy: Boolean,
         /**
-         * 在失败指定的次数后，移除代理并尝试直连。设为-1表示总是使用代理。全局默认值-1。
+         * 在失败指定的次数后，移除代理并尝试直连。设为null表示总是使用代理。
          */
-        val disableProxyAfterTimes: Int? = null,
+        val disableProxyAfterTimes: Int?,
         /**
-         * 单次请求多久未响应视作超时，单位毫秒。全局默认值15000。
+         * 单次请求多久未响应视作超时，单位毫秒。
          */
-        val timeout: Long? = null,
+        val timeout: Long,
         /**
-         * 失败重试的次数。全局默认值3。
+         * 失败重试的次数。
          */
-        val retryCount: Int? = null,
+        val retryCount: Int,
         /**
-         * 在完成一个项目后等待多长时间，防止因频率过高引起的封禁。单位毫秒。全局默认值8000。
+         * 在完成一个项目后等待多长时间，防止因频率过高引起的封禁。
          */
-        val tryInterval: Long? = null
+        val tryInterval: Long
     )
 }

@@ -35,7 +35,13 @@ object MetadataMigrationStrategy : JsonObjectStrategy<Metadata>(Metadata::class)
             ),
             spider = SpiderOption(
                 rules = mutableMapOf(),
-                publicRule = SpiderOption.SpiderRule(),
+                publicRule = SpiderOption.SpiderRule(
+                    useProxy = false,
+                    disableProxyAfterTimes = null,
+                    timeout = 15000,
+                    retryCount = 3,
+                    tryInterval = 8000
+                ),
                 siteRules = emptyMap()
             )
         )

@@ -1,17 +1,16 @@
 package com.heerkirov.hedge.server.components.service
 
 import com.heerkirov.hedge.server.components.database.*
-import com.heerkirov.hedge.server.exceptions.InvalidRuleIndexError
 import com.heerkirov.hedge.server.exceptions.ResourceNotExist
-import com.heerkirov.hedge.server.form.ImportOptionUpdateForm
-import com.heerkirov.hedge.server.form.MetaOptionUpdateForm
 import com.heerkirov.hedge.server.form.SpiderOptionUpdateForm
-import com.heerkirov.hedge.server.utils.toBaseElements
 
 class SettingSpiderService(private val data: DataRepository) {
-    private val ruleList = listOf("pixiv", "complex")
+    private val ruleList = mapOf(
+        "pixiv" to "pixiv.net",
+        "complex" to "chan.sankakucomplex.com"
+    )
 
-    fun getSpiderRuleList(): List<String> {
+    fun getSpiderRuleList(): Map<String, String> {
         return ruleList
     }
 
