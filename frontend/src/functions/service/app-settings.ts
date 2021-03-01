@@ -1,6 +1,6 @@
 import { onMounted, ref, watch, toRaw, computed, onUnmounted, readonly } from "vue"
 import { AppearanceSetting, clientMode, ipc, ResourceStatus, AuthSetting } from "@/functions/adapter-ipc"
-import { useNotification } from "@/functions/notification"
+import { useNotification } from "@/functions/message"
 import { useAppInfo } from "./app-state"
 
 export function useAuthSetting() {
@@ -37,7 +37,7 @@ export function useCliController() {
                 status.value = ResourceStatus.LATEST
             }else{
                 status.value = ResourceStatus.NOT_INIT
-                notification.notify("CLI部署失败", "danger", res.errorMessage)
+                notification.handleError("CLI部署失败", res.errorMessage)
                 console.error(res.errorMessage)
             }
         }

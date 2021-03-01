@@ -1,7 +1,7 @@
 import { onMounted, ref, Ref, watch, toRaw } from "vue"
 import { HttpClient, Response } from "@/functions/adapter-http"
 import { useHttpClient } from "@/functions/service"
-import { useNotification } from "@/functions/notification"
+import { useNotification } from "@/functions/message"
 
 /* 此处提供了VCA形态的rest api端点调用器。目标是处理符合标准object模型的对象。
     应对简单和复杂的rest endpoint，有两种更新模型。
@@ -44,7 +44,7 @@ export function useReactiveEndpoint<T>(options: ReactiveEndpointOptions<T>): Rea
             updateLoading.value = true
             const res = await options.update(httpClient)(toRaw(data.value))
             if(!res.ok && res.exception) {
-                notification.notify(`${res.exception.status}: ${res.exception.code}`, "danger", res.exception.message)
+                notification.handleException(res.exception)
             }
             updateLoading.value = false
         }

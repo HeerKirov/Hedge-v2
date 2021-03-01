@@ -1,5 +1,5 @@
 import { defineComponent } from "vue"
-import { TopBar } from "@/layouts/SideLayout";
+import { TopBar } from "@/layouts/SideLayout"
 
 export default defineComponent({
     setup() {

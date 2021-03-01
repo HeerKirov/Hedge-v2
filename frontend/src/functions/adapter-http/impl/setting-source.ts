@@ -59,7 +59,7 @@ export interface SettingSourceEndpoint {
         /**
          * 查询系统中可用的spider rule的列表。
          */
-        getUsableRules(): Promise<Response<string[]>>
+        getUsableRules(): Promise<Response<{[value: string]: string}>>
         /**
          * 查看。
          */
@@ -120,30 +120,30 @@ export interface SpiderOption {
 }
 
 export interface SpiderOptionUpdateForm {
-    rules: {[site: string]: string}
-    publicRule: SpiderRule
-    siteRules: {[site: string]: SpiderRule}
+    rules?: {[site: string]: string}
+    publicRule?: SpiderRule
+    siteRules?: {[site: string]: SpiderRule}
 }
 
 interface SpiderRule {
     /**
-     * 使用代理。默认不使用。
+     * 使用代理。
      */
-    useProxy: boolean | null
+    useProxy: boolean
     /**
-     * 在失败指定的次数后，移除代理并尝试直连。设为-1表示总是使用代理。全局默认值-1。
+     * 在失败指定的次数后，移除代理并尝试直连。null表示总是使用代理。
      */
-    disableProxyAfterTimes: number | null
+    disableProxyAfterTimes: number
     /**
-     * 单次请求多久未响应视作超时，单位毫秒。全局默认值15000。
+     * 单次请求多久未响应视作超时，单位毫秒。
      */
-    timeout: number | null
+    timeout: number
     /**
-     * 失败重试次数。默认值3。
+     * 失败重试次数。
      */
-    retryCount: number | null
+    retryCount: number
     /**
-     * 在完成一个项目后等待多长时间，防止因频率过高引起的封禁。单位毫秒。全局默认值8000。
+     * 在完成一个项目后等待多长时间，防止因频率过高引起的封禁。单位毫秒。
      */
-    tryInterval: number | null
+    tryInterval: number
 }

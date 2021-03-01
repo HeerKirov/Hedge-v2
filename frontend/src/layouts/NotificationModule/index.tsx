@@ -1,5 +1,5 @@
 import { computed, defineComponent } from "vue"
-import { useNotificationConsumer } from "@/functions/notification"
+import { useNotificationConsumer } from "@/functions/message/notification"
 import style from "./style.module.scss"
 
 export default defineComponent({

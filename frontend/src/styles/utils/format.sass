@@ -14,7 +14,7 @@
 @each $name, $pair in $colors
   $color: nth($pair, 1)
   .has-text-#{$name}
-    color: $color
+    color: $color !important
 @media (prefers-color-scheme: dark)
   @each $name, $pair in $colors-dark-mode
     $color: nth($pair, 1)

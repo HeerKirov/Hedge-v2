@@ -9,16 +9,25 @@
       width: 50%;
       height: $height;
       padding-right: 0.5rem;
-      > .left-list {
-        height: calc(100% - #{$height-small + 0.25rem})
-      }
-      > .left-bottom {
-        padding-top: 0.25rem;
-      }
     }
     > .right {
       width: 50%;
       height: $height;
+      margin-left: 0.5rem;
+    }
+  }
+
+  .spider-board {
+    $min-height: 16rem;
+    display: flex;
+    flex-flow: nowrap;
+    min-height: $min-height;
+    > .left {
+      width: 25%;
+      padding-right: 0.5rem;
+    }
+    > .right {
+      width: 75%;
       margin-left: 0.5rem;
     }
   }

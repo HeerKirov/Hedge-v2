@@ -18,8 +18,11 @@ export default defineComponent({
         watch(() => props.value, () => { value.value = props.value })
 
         const onUpdate = (e: InputEvent) => {
-            value.value = parseInt((e.target as HTMLInputElement).value)
-            emit('updateValue', value.value)
+            const newValue = parseInt((e.target as HTMLInputElement).value)
+            if(!isNaN(newValue)) {
+                value.value = newValue
+                emit('updateValue', value.value)
+            }
         }
 
         return () => {

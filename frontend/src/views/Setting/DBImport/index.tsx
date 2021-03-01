@@ -88,7 +88,7 @@ const PartitionTimeDelayBoard = defineComponent({
     setup() {
         const data = inject(DataInjection)!
 
-        const [ partitionTimeDelay, partitionTimeDelaySot, setPartitionTimeDelay, savePartitionTimeDelay] = usePropertySot(ref(0),
+        const [ partitionTimeDelay, partitionTimeDelaySot, setPartitionTimeDelay, savePartitionTimeDelay] = usePropertySot(ref((data.value?.setPartitionTimeDelay ?? 0) / (1000 * 60 * 60)),
             () => data.value?.setPartitionTimeDelay,
             () => data.value != null ? (data.value?.setPartitionTimeDelay ?? 0) / (1000 * 60 * 60) : undefined,
             v => data.value!.setPartitionTimeDelay = v * 1000 * 60 * 60)
