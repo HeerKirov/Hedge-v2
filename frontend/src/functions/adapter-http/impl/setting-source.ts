@@ -125,7 +125,7 @@ export interface SpiderOptionUpdateForm {
     siteRules?: {[site: string]: SpiderRule}
 }
 
-interface SpiderRule {
+export interface SpiderRule {
     /**
      * 使用代理。
      */
@@ -133,7 +133,7 @@ interface SpiderRule {
     /**
      * 在失败指定的次数后，移除代理并尝试直连。null表示总是使用代理。
      */
-    disableProxyAfterTimes: number
+    disableProxyAfterTimes: number | null
     /**
      * 单次请求多久未响应视作超时，单位毫秒。
      */

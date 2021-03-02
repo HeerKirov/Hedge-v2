@@ -1,5 +1,5 @@
-import { onMounted, onUnmounted, readonly, ref } from "vue"
-import { remote, ipc, clientMode, OpenDialogOptions } from "@/functions/adapter-ipc"
+import { computed, onMounted, onUnmounted, readonly, Ref, ref, isReactive, unref, watchEffect, watch } from "vue"
+import { remote, ipc, clientMode, OpenDialogOptions, MenuTemplate, Menu } from "@/functions/adapter-ipc"
 
 export const dialogManager = clientMode ? {
     async openDialog(options: OpenDialogOptions): Promise<string[] | null> {
@@ -40,6 +40,21 @@ export const windowManager = clientMode ? {
 
 export function openExternal(url: string) {
     return remote.shell.openExternal(url)
+}
+
+export function usePopupMenu(items: MenuTemplate[] | Ref<MenuTemplate[]> | (() => MenuTemplate[])): Menu {
+    if(typeof items === "function") {
+        const data = computed(items)
+        let popup = remote.menu.createPopup(data.value).popup
+        watch(data, value => popup = remote.menu.createPopup(value).popup)
+        return readonly({ popup(options) { popup(options)} })
+    }else if(isReactive(items)) {
+        let popup: (options?: {x: number, y: number}) => void = () => {}
+        watchEffect(() => popup = remote.menu.createPopup(unref(items)).popup)
+        return readonly({ popup(options) { popup(options)} })
+    }else{
+        return readonly(remote.menu.createPopup(unref(items)))
+    }
 }
 
 export function useWebAccessUrls() {

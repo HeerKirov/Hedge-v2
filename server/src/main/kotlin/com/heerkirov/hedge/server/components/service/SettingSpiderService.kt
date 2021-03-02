@@ -28,7 +28,7 @@ class SettingSpiderService(private val data: DataRepository) {
             }
             form.siteRules.alsoOpt { siteRules ->
                 for ((siteName, _) in siteRules) {
-                    if(metadata.source.sites.none { it.name === siteName }) throw ResourceNotExist("siteRules.site", siteName)
+                    if(metadata.source.sites.none { it.name == siteName }) throw ResourceNotExist("siteRules.site", siteName)
                 }
             }
 

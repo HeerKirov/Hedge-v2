@@ -6,10 +6,8 @@ export default defineComponent({
         placeholder: String,
         max: Number,
         min: Number,
-        refreshOnInput: {
-            type: Boolean,
-            default: false
-        }
+        refreshOnInput: {type: Boolean, default: false},
+        disabled: {type: Boolean, default: false}
     },
     emits: ['updateValue'],
     setup(props, { emit }) {
@@ -27,7 +25,7 @@ export default defineComponent({
 
         return () => {
             const events = {[props.refreshOnInput ? "onInput" : "onChange"]: onUpdate}
-            return <input class="input" type="number" max={props.max} min={props.min} value={value.value} {...events} placeholder={props.placeholder}/>
+            return <input class="input" type="number" max={props.max} min={props.min} disabled={props.disabled} value={value.value} {...events} placeholder={props.placeholder}/>
         }
     }
 })

@@ -20,7 +20,7 @@ export interface RemoteClientAdapter {
         /**
          * 创建一个弹出菜单的调用。给出菜单模板，返回一个函数，调用此函数以弹出此菜单。
          */
-        createPopup(items: MenuTemplate[]): () => void
+        createPopup(items: MenuTemplate[]): Menu
     }
     dialog: {
         /**
@@ -50,12 +50,24 @@ export interface RemoteClientAdapter {
     }
 }
 
-export interface MenuTemplate {
-    label?: string
+export type MenuTemplate = NormalMenuTemplate | SeparatorMenuTemplate | SubMenuTemplate
+interface NormalMenuTemplate {
+    label: string
     enabled?: boolean
-    type?: 'normal' | 'separator' | 'submenu' | 'checkbox' | 'radio'
-    submenu?: MenuTemplate[]
+    type: "normal"
     click?(): void
+}
+interface SeparatorMenuTemplate {
+    type: "separator"
+}
+interface SubMenuTemplate {
+    label: string
+    enabled?: boolean
+    type: "submenu"
+    submenu: MenuTemplate[]
+}
+export interface Menu {
+    popup(options?: {x: number, y: number}): void
 }
 
 export interface OpenDialogOptions {

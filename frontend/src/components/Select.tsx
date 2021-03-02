@@ -10,7 +10,7 @@ export default defineComponent({
         const selectDom = ref<HTMLSelectElement>()
 
         const changed = (e: Event) => {
-            if(props.items != undefined && props.value != undefined) {
+            if(props.items != undefined) {
                 const idx = (e.target as HTMLSelectElement).selectedIndex
                 const value = props.items[idx]?.value
                 if(value != undefined) {
@@ -23,9 +23,13 @@ export default defineComponent({
         watch(() => [props.items, props.value], watchProps)
 
         function watchProps() {
-            if(selectDom.value != undefined && props.items != undefined && props.value != undefined) {
-                const idx = props.items.findIndex(item => item.value === props.value)
-                if(idx >= 0) selectDom.value!.selectedIndex = idx
+            if(selectDom.value != undefined && props.items != undefined && props.items.length > 0) {
+                if(props.value != undefined) {
+                    const idx = props.items.findIndex(item => item.value === props.value)
+                    if(idx >= 0) selectDom.value!.selectedIndex = idx
+                }else{
+                    emit("updateValue", props.items[0].value)
+                }
             }
         }
 

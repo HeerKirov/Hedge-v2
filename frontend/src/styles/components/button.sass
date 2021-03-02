@@ -37,6 +37,7 @@ button
   font-size: $font-size-7
   height: $height-std
   padding: 0 1rem
+  box-sizing: border-box
   border-radius: $radius-size-std
   vertical-align: top
   line-height: 1.2
@@ -58,6 +59,8 @@ button
   &.square
     width: $height-std
     padding: 0
+  &.has-border
+    border: solid 1px $dark-lightgrey
   @each $name, $radius-size in $radius-size-map
     &.radius-#{$name}
       border-radius: $radius-size

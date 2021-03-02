@@ -23,9 +23,9 @@ interface RemoteClientAdapter {
     }
     menu: {
         /**
-         * 创建一个弹出菜单的调用。给出菜单模板，返回一个函数，调用此函数以弹出此菜单。
+         * 创建一个弹出菜单的调用。
          */
-        createPopup(items: MenuTemplate[]): () => void
+        createPopup(items: MenuTemplate[]): Menu
     }
     dialog: {
         /**
@@ -55,12 +55,24 @@ interface RemoteClientAdapter {
     }
 }
 
-interface MenuTemplate {
-    label?: string
+type MenuTemplate = NormalMenuTemplate | SeparatorMenuTemplate | SubMenuTemplate
+interface NormalMenuTemplate {
+    label: string
     enabled?: boolean
-    type?: 'normal' | 'separator' | 'submenu' | 'checkbox' | 'radio'
-    submenu?: MenuTemplate[]
+    type: "normal"
     click?(): void
+}
+interface SeparatorMenuTemplate {
+    type: "separator"
+}
+interface SubMenuTemplate {
+    label: string
+    enabled?: boolean
+    type: "submenu"
+    submenu: MenuTemplate[]
+}
+interface Menu {
+    popup(options?: {x: number, y: number}): void
 }
 
 interface OpenDialogOptions {
@@ -96,8 +108,15 @@ function createRemoteClientAdapter(): RemoteClientAdapter {
         },
         menu: {
             createPopup(items: MenuTemplate[]) {
-                return () => {
-                    remote.Menu.buildFromTemplate(items).popup({window})
+                const menu = remote.Menu.buildFromTemplate(items)
+                return {
+                    popup(options) {
+                        if(options && options.x && options.y) {
+                            menu.popup({window, ...options})
+                        }else{
+                            menu.popup({window})
+                        }
+                    }
                 }
             }
         },

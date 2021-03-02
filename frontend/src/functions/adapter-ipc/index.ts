@@ -1,7 +1,7 @@
 import { clientMode, remote } from "./client"
 import { ipc } from "./impl"
 import { ResourceStatus, State, InitState } from "./ipc"
-import type { RemoteClientAdapter, OpenDialogOptions, MenuTemplate, MessageOptions } from "./client"
+import type { RemoteClientAdapter, OpenDialogOptions, MenuTemplate, Menu, MessageOptions } from "./client"
 import type { IpcService, NativeTheme, AppearanceSetting, InitConfig, AuthSetting, InitStateRes, ServerInfo } from "./ipc"
 
 export { 
@@ -12,6 +12,7 @@ export {
     RemoteClientAdapter,
     OpenDialogOptions,
     MenuTemplate,
+    Menu,
     MessageOptions,
     AppearanceSetting,
     NativeTheme,

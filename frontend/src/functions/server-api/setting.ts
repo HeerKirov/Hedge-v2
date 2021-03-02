@@ -1,4 +1,4 @@
-import { onMounted, ref } from "vue"
+import { computed, onMounted, Ref, ref } from "vue"
 import { useHttpClient } from "@/functions/service"
 import { useMessageBox, useNotification } from "@/functions/message"
 import { useReactiveEndpoint } from "@/functions/utils/reactive-endpoint"
@@ -8,7 +8,8 @@ import { ProxyOption } from "@/functions/adapter-http/impl/setting-proxy"
 import { ImportOption } from "@/functions/adapter-http/impl/setting-import"
 import { MetaOption } from "@/functions/adapter-http/impl/setting-meta"
 import { QueryOption } from "@/functions/adapter-http/impl/setting-query"
-import { Site, SpiderOption } from "@/functions/adapter-http/impl/setting-source"
+import { Site, SpiderOption, SpiderRule } from "@/functions/adapter-http/impl/setting-source"
+import { maps } from "@/utils/collections"
 
 export function useSettingWeb() {
     return useReactiveEndpoint<WebOption>({
@@ -116,11 +117,66 @@ export function useSettingSite() {
     return {data, createItem, updateItem, deleteItem}
 }
 
-export function useSettingSpider() {
-    return useReactiveEndpoint<SpiderOption>({
+export function useSettingSpider(sites: Ref<Site[]>, selected: Ref<string | undefined>) {
+    const { data: endpoint } = useReactiveEndpoint<SpiderOption>({
         get: client => client.settingSource.spider.get,
         update: client => client.settingSource.spider.update
     })
+
+    const siteNameList = computed(() => {
+        const d = endpoint.value
+        if(d) {
+            const map: {[key: string]: unknown} = {}
+            for(const key in d.rules) map[key] = null
+            for(const key in d.siteRules) map[key] = null
+            return Object.keys(map).sort()
+        }
+        return []
+    })
+    const siteList = computed(() => siteNameList.value.map(name => sites.value.find(site => site.name === name)).filter(site => site != undefined).map(site => site!))
+
+    const publicRule = computed({
+        get() { return endpoint.value?.publicRule },
+        set(value: SpiderRule | undefined) {
+            if(value) {
+                endpoint.value!.publicRule = value
+            }
+        }
+    })
+
+    const selectedSite = computed({
+        get() {
+            const d = endpoint.value
+            if(selected.value && d) {
+                const rule = d.rules[selected.value]
+                const options = d.siteRules[selected.value]
+                return {rule, options}
+            }
+            return undefined
+        },
+        set(value: {rule: string, options: SpiderRule | null} | undefined) {
+            if(selected.value && endpoint.value) {
+                if(value) {
+                    const { rule, options } = value
+                    endpoint.value = {
+                        publicRule: endpoint.value!.publicRule,
+                        rules: {...maps.filter(endpoint.value!.rules, k => k !== selected.value), [selected.value]: rule},
+                        siteRules: options
+                            ? {...maps.filter(endpoint.value!.siteRules, k => k !== selected.value), [selected.value]: options}
+                            : maps.filter(endpoint.value!.siteRules, k => k !== selected.value)
+                    }
+                }else{
+                    endpoint.value = {
+                        publicRule: endpoint.value!.publicRule,
+                        rules: maps.filter(endpoint.value!.rules, k => k !== selected.value),
+                        siteRules: maps.filter(endpoint.value!.siteRules, k => k !== selected.value)
+                    }
+                }
+            }
+        }
+    })
+
+    return {siteList, publicRule, selectedSite}
 }
 
 export function useSettingSpiderUsableRules() {
