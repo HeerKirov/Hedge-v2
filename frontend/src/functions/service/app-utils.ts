@@ -42,18 +42,26 @@ export function openExternal(url: string) {
     return remote.shell.openExternal(url)
 }
 
-export function usePopupMenu(items: MenuTemplate[] | Ref<MenuTemplate[]> | (() => MenuTemplate[])): Menu {
+export function usePopupMenu(items: MenuTemplate[] | Ref<MenuTemplate[]> | (() => MenuTemplate[])) {
+    const element = ref<HTMLElement>()
+    let popup: (options: {x: number, y: number} | undefined) => void
     if(typeof items === "function") {
         const data = computed(items)
-        let popup = remote.menu.createPopup(data.value).popup
+        popup = remote.menu.createPopup(data.value).popup
         watch(data, value => popup = remote.menu.createPopup(value).popup)
-        return readonly({ popup(options) { popup(options)} })
     }else if(isReactive(items)) {
-        let popup: (options?: {x: number, y: number}) => void = () => {}
+        popup = () => {}
         watchEffect(() => popup = remote.menu.createPopup(unref(items)).popup)
-        return readonly({ popup(options) { popup(options)} })
     }else{
-        return readonly(remote.menu.createPopup(unref(items)))
+        popup = remote.menu.createPopup(unref(items)).popup
+    }
+
+    return {
+        element,
+        popup() {
+            const rect = element.value?.getBoundingClientRect()
+            popup(rect ? {x: Math.floor(rect.left), y: Math.floor(rect.top)} : undefined)
+        }
     }
 }
 

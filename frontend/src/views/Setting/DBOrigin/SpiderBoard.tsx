@@ -60,11 +60,6 @@ export default defineComponent({
             if(canAddSiteList.length > 0) return canAddSiteList.map(site => ({ type: "normal", label: site.title, click: onAddItem(site) }))
             return [{ type: "normal", enabled: false, label: "(没有可用的站点)" }]
         })
-        const addButtonRef = ref<HTMLElement>()
-        const popupAddMenu = () => {
-            const rect = addButtonRef.value?.getBoundingClientRect()
-            addMenu.popup(rect ? {x: rect.left, y: rect.top} : undefined)
-        }
         const onAddItem = (site: Site) => () => {
             tempAddItem.value = {name: site.title, value: `_${site.name}`}
             selectedSiteName.value = site.name
@@ -75,7 +70,7 @@ export default defineComponent({
             <div class={style.left}>
                 <SelectList class={style.leftList} value={selected.value} items={items.value} onUpdateValue={select} allowCancel={false}/>
                 <div class={style.leftBottom}>
-                    <button ref={addButtonRef} class="button has-border is-small is-white w-100" onClick={popupAddMenu}><span class="icon"><i class="fa fa-plus"/></span><span>新建规则</span></button>
+                    <button ref={addMenu.element} class="button has-border is-small is-white w-100" onClick={addMenu.popup}><span class="icon"><i class="fa fa-plus"/></span><span>新建规则</span></button>
                 </div>
             </div>
             {selected.value && <div class={style.right}>

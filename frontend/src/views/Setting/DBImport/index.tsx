@@ -7,6 +7,7 @@ import Input from "@/components/Input"
 import CheckBox from "@/components/CheckBox"
 import NumberInput from "@/components/NumberInput"
 import Select from "@/components/Select"
+import SourceAnalyseRuleBoard from "./SourceAnalyseRuleBoard"
 
 export default defineComponent({
     setup() {
@@ -20,7 +21,7 @@ export default defineComponent({
             <TimeTypeBoard/>
             <PartitionTimeDelayBoard/>
             <HistoryPathBoard/>
-            <AnalyseRuleBoard/>
+            <SourceAnalyseRuleBoard/>
         </div>
     }
 })
@@ -31,23 +32,7 @@ const timeTypes: {value: TimeType, name: string}[] = [
     {value: "UPDATE_TIME", name: "文件修改时间"}
 ]
 
-const DataInjection: InjectionKey<Ref<ImportOption | undefined>> = Symbol()
-
-const AnalyseRuleBoard = defineComponent({
-    setup() {
-        const data = inject(DataInjection)!
-
-        //TODO 完成import analyze rules
-        return () => <>
-            <div class="mt-2">
-                <label class="label">来源解析规则</label>
-                <div class="block">
-
-                </div>
-            </div>
-        </>
-    }
-})
+export const DataInjection: InjectionKey<Ref<ImportOption | undefined>> = Symbol()
 
 const AutoOptionsBoard = defineComponent({
     setup() {

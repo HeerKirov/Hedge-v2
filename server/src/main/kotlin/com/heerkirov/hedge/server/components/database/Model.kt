@@ -137,7 +137,7 @@ data class ImportOption(
      * @param pattern 在{LSQuarantineDataURLString}列中，使用此正则表达式匹配文件名。
      * @param regex 在{LSQuarantineOriginURLString}列中，使用此正则表达式匹配并分析id。
      */
-    class SourceAnalyseRuleBySystemHistory(override val site: String, val pattern: String, override val regex: String, override val idIndex: Int, override val secondaryIdIndex: Int?) : SourceAnalyseRuleOfRegex
+    class SourceAnalyseRuleBySystemHistory(override val site: String, override val regex: String, override val idIndex: Int, override val secondaryIdIndex: Int?) : SourceAnalyseRuleOfRegex
 }
 
 /**

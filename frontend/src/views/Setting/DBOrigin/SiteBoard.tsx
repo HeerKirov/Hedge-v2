@@ -122,7 +122,7 @@ const SiteEditor = defineComponent({
             <CheckBox disabled={!props.createMode} class="mt-2" value={data.value.hasSecondaryId} onUpdateValue={v => data.value.hasSecondaryId = v}>站点拥有二级id</CheckBox>
             <div class="group mt-3">
                 {props.createMode
-                    ? <button class="button is-small is-info" onClick={saveItem}><span class="icon"><i class="fa fa-plus"/></span><span>添加站点</span></button>
+                    ? <button class="button is-small is-success" onClick={saveItem}><span class="icon"><i class="fa fa-plus"/></span><span>添加站点</span></button>
                     : <button class="button is-small is-info" onClick={saveItem}><span class="icon"><i class="fa fa-save"/></span><span>保存更改</span></button>
                 }
                 {!props.createMode && <button class="square button is-small is-danger float-right" onClick={deleteItem}><span class="icon"><i class="fa fa-trash"/></span></button>}

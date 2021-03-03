@@ -1,0 +1,20 @@
+
+.source-analyse-rule-board {
+  display: flex;
+  flex-flow: nowrap;
+  min-height: 8.5rem;
+  > .left {
+    width: 35%;
+    padding-right: 0.5rem;
+  }
+  > .right {
+    width: 65%;
+    margin-left: 0.5rem;
+    .inline-div {
+      display: inline-block;
+      &:not(:last-child) {
+        margin-right: 0.5rem;
+      }
+    }
+  }
+}
