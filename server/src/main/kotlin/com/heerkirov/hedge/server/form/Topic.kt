@@ -1,9 +1,6 @@
 package com.heerkirov.hedge.server.form
 
-import com.heerkirov.hedge.server.library.form.Limit
-import com.heerkirov.hedge.server.library.form.Offset
-import com.heerkirov.hedge.server.library.form.Order
-import com.heerkirov.hedge.server.library.form.Search
+import com.heerkirov.hedge.server.library.form.*
 import com.heerkirov.hedge.server.model.meta.Topic
 import com.heerkirov.hedge.server.utils.types.Opt
 import com.heerkirov.hedge.server.utils.types.OrderItem
@@ -33,7 +30,7 @@ data class TopicFilter(@Limit val limit: Int,
                        val favorite: Boolean? = null,
                        val parentId: Int? = null)
 
-data class TopicCreateForm(val name: String,
+data class TopicCreateForm(@NotBlank val name: String,
                            val otherNames: List<String>? = null,
                            val parentId: Int? = null,
                            val type: Topic.Type = Topic.Type.UNKNOWN,
@@ -43,7 +40,7 @@ data class TopicCreateForm(val name: String,
                            val favorite: Boolean = false,
                            val score: Int? = null)
 
-data class TopicUpdateForm(val name: Opt<String>,
+data class TopicUpdateForm(@NotBlank val name: Opt<String>,
                            val otherNames: Opt<List<String>?>,
                            val parentId: Opt<Int?>,
                            val type: Opt<Topic.Type>,

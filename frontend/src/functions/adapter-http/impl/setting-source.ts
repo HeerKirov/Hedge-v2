@@ -48,7 +48,7 @@ export interface SettingSourceEndpoint {
         /**
          * 删除项。
          * @exception NOT_FOUND 此项不存在。
-         * @exception CASCADE_RESOURCE_EXISTS(Illust|ImportImage|SourceAnalyseRule|SpiderRule) 存在级联资源，无法删除。
+         * @exception CASCADE_RESOURCE_EXISTS("Illust"|"ImportImage"|"SourceAnalyseRule"|"SpiderRule") 存在级联资源，无法删除。
          */
         delete(name: string): Promise<Response<unknown>>
     }
@@ -66,7 +66,7 @@ export interface SettingSourceEndpoint {
         get(): Promise<Response<SpiderOption>>
         /**
          * 更改。
-         * @exception NOT_EXIST(rules.site|rules.name|siteRules.site, {value}) 指定的site name或rule name不存在时报告此错误。
+         * @exception NOT_EXIST("rules.site"|"rules.name"|"siteRules.site", name) 指定的site name或rule name不存在时报告此错误。
          */
         update(form: SpiderOptionUpdateForm): Promise<Response<unknown>>
     }

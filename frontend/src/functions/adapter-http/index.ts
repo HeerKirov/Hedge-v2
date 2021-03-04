@@ -9,6 +9,10 @@ import { createSettingSourceEndpoint, SettingSourceEndpoint } from "./impl/setti
 import { createSettingBackupEndpoint, SettingBackupEndpoint } from "./impl/setting-backup"
 import { createSettingMetaEndpoint, SettingMetaEndpoint } from "./impl/setting-meta"
 import { createSettingQueryEndpoint, SettingQueryEndpoint } from "./impl/setting-query"
+import { createTagEndpoint, TagEndpoint } from "./impl/tag"
+import { createAnnotationEndpoint, AnnotationEndpoint } from "./impl/annotations"
+import { createAuthorEndpoint, AuthorEndpoint } from "./impl/author"
+import { createTopicEndpoint, TopicEndpoint } from "./impl/topic"
 
 export { HttpInstance, HttpInstanceConfig, Response, ResponseOk, ResponseError, ResponseConnectionError, ResponseEmpty, createHttpInstance }
 
@@ -22,6 +26,10 @@ export interface HttpClient {
     settingImport: SettingImportEndpoint
     settingSource: SettingSourceEndpoint
     settingBackup: SettingBackupEndpoint
+    tag: TagEndpoint
+    author: AuthorEndpoint
+    topic: TopicEndpoint
+    annotation: AnnotationEndpoint
 }
 
 export function createHttpClient(http: HttpInstance): HttpClient {
@@ -34,6 +42,10 @@ export function createHttpClient(http: HttpInstance): HttpClient {
         settingProxy: createSettingProxyEndpoint(http),
         settingImport: createSettingImportEndpoint(http),
         settingSource: createSettingSourceEndpoint(http),
-        settingBackup: createSettingBackupEndpoint(http)
+        settingBackup: createSettingBackupEndpoint(http),
+        tag: createTagEndpoint(http),
+        author: createAuthorEndpoint(http),
+        topic: createTopicEndpoint(http),
+        annotation: createAnnotationEndpoint(http)
     }
 }

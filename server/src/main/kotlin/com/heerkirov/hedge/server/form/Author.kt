@@ -26,7 +26,7 @@ data class AuthorFilter(@Limit val limit: Int,
                         val type: Author.Type? = null,
                         val favorite: Boolean? = null)
 
-data class AuthorCreateForm(val name: String,
+data class AuthorCreateForm(@NotBlank val name: String,
                             val otherNames: List<String>? = null,
                             val type: Author.Type = Author.Type.UNKNOWN,
                             val description: String = "",
@@ -35,7 +35,7 @@ data class AuthorCreateForm(val name: String,
                             val favorite: Boolean = false,
                             val score: Int? = null)
 
-data class AuthorUpdateForm(val name: Opt<String>,
+data class AuthorUpdateForm(@NotBlank val name: Opt<String>,
                             val otherNames: Opt<List<String>?>,
                             val type: Opt<Author.Type>,
                             val description: Opt<String>,

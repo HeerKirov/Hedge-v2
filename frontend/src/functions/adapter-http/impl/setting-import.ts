@@ -18,7 +18,7 @@ export interface SettingImportEndpoint {
     get(): Promise<Response<ImportOption>>
     /**
      * 更改。
-     * @exception NOT_EXIST(site, {siteName}) rules[].site不在sites列表中存在时报告此错误。
+     * @exception NOT_EXIST("site", siteName) rules[].site不在sites列表中存在时报告此错误。
      * @exception INVALID_RULE_INDEX rules[].secondaryIdIndex与对应的site的hasSecondaryId配置不匹配时报告此错误。
      */
     update(form: ImportOptionUpdateForm): Promise<Response<unknown>>
