@@ -12,6 +12,8 @@
   > .select-item {
     font-size: $font-size-7;
     padding: 0.5em 0.75em;
+    white-space: nowrap;
+    overflow: hidden;
     @media (prefers-color-scheme: light) {
       &:not(.selected) {
         color: $font-black;

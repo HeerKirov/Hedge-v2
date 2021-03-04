@@ -74,37 +74,9 @@ export type TimeType = "IMPORT_TIME" | "CREATE_TIME" | "UPDATE_TIME"
 /**
  * 一条source解析规则。
  */
-export type SourceAnalyseRule = SourceAnalyseRuleByName | SourceAnalyseRuleByFromMeta | SourceAnalyseRuleBySystemHistory
-
-/**
- * 根据文件名解析的规则。
- */
-interface SourceAnalyseRuleByName {
-    type: "name"
+export interface SourceAnalyseRule {
+    type: "name" | "from-meta" | "system-history"
     site: string
-    regex: string
-    idIndex: number
-    secondaryIdIndex: number | null
-}
-
-/**
- * 从meta元数据解析的规则。
- */
-interface SourceAnalyseRuleByFromMeta {
-    type: "from-meta"
-    site: string
-    regex: string
-    idIndex: number
-    secondaryIdIndex: number | null
-}
-
-/**
- * 从系统下载数据库解析的规则。
- */
-interface SourceAnalyseRuleBySystemHistory {
-    type: "system-history"
-    site: string
-    pattern: string
     regex: string
     idIndex: number
     secondaryIdIndex: number | null
