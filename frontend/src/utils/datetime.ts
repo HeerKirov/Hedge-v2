@@ -39,6 +39,10 @@ export interface LocalDate {
      * 此时间的UTC时间戳。
      */
     readonly timestamp: number
+    /**
+     * 转换为标准yyyy-MM-dd格式的字符串。
+     */
+    toISOString(): string
 }
 
 /**
@@ -48,7 +52,7 @@ export interface LocalDateTime extends LocalDate {
     /**
      * 小时。取值0~23。
      */
-    readonly hour: number
+    readonly hours: number
     /**
      * 分钟，取值0~59。
      */
@@ -57,6 +61,10 @@ export interface LocalDateTime extends LocalDate {
      * 秒。取值0~59。
      */
     readonly seconds: number
+    /**
+     * 转换为标准yyyy-MM-dd'T'HH:mm:ss'Z'格式的字符串。
+     */
+    toISOString(): string
 }
 
 /**
@@ -67,13 +75,13 @@ export function dateOf(time: string): LocalDate {
     if(match0) {
         const year = parseInt(match0[1]), month = parseInt(match0[2]), day = parseInt(match0[3])
         const d = new Date(year, month, day)
-        return {year, month, day, dayInWeek: d.getDay(), timestamp: d.getTime()}
+        return newDate(year, month, day, d.getDay(), d.getTime())
     }
     const match1 = /^\d+-\d+-\d+T\d+:\d+:\d+Z$/.exec(time)
     if(match1) {
         const d = new Date(time)
         const timestamp = d.getTime()
-        return {year: d.getFullYear(), month: d.getMonth() + 1, day: d.getDate(), dayInWeek: d.getDay(), timestamp: timestamp - timestamp % 86400000}
+        return newDate(d.getFullYear(), d.getMonth(), d.getDate(), d.getDay(), timestamp - timestamp % 86400000)
     }
     throw new Error(`dateOf can only accept time with format 'yyyy-MM-ddTHH:mm:ssZ' or 'yyyy-MM-dd', but actual is ${time}.`)
 }
@@ -85,7 +93,38 @@ export function dateTimeOf(time: string): LocalDateTime {
     const match = /^\d+-\d+-\d+T\d+:\d+:\d+Z$/.exec(time)
     if (match) {
         const d = new Date(time)
-        return {year: d.getFullYear(), month: d.getMonth() + 1, day: d.getDate(), dayInWeek: d.getDay(), timestamp: d.getTime(), hour: d.getHours(), minutes: d.getMinutes(), seconds: d.getSeconds()}
+        return newDateTime(d.getFullYear(), d.getMonth() + 1, d.getDate(), d.getDay(), d.getHours(), d.getMinutes(), d.getSeconds(), d.getTime())
     }
     throw new Error(`datetimeOf can only accept time with format 'yyyy-MM-ddTHH:mm:ssZ', but actual is ${time}.`)
+}
+
+/**
+ * 构造LocalDate。
+ */
+function newDate(year: number, month: number, day: number, dayInWeek: number, timestamp: number): LocalDate {
+    return {
+        year, month, day, dayInWeek, timestamp,
+        toISOString() {
+            return `${year}-${ten(month)}-${ten(day)}`
+        }
+    }
+}
+
+/**
+ * 构造LocalDateTime。
+ */
+function newDateTime(year: number, month: number, day: number, dayInWeek: number, hours: number, minutes: number, seconds: number, timestamp: number): LocalDateTime {
+    return {
+        year, month, day, dayInWeek, hours, minutes, seconds, timestamp,
+        toISOString() {
+            return new Date(timestamp).toISOString()
+        }
+    }
+}
+
+/**
+ * 如果数字只有1位，填补0；否则原样输出。
+ */
+function ten(i: number): string | number {
+    return i >= 10 ? i : `0${i}`
 }

@@ -13,6 +13,7 @@ import { createTagEndpoint, TagEndpoint } from "./impl/tag"
 import { createAnnotationEndpoint, AnnotationEndpoint } from "./impl/annotations"
 import { createAuthorEndpoint, AuthorEndpoint } from "./impl/author"
 import { createTopicEndpoint, TopicEndpoint } from "./impl/topic"
+import { createPartitionEndpoint, PartitionEndpoint } from "./impl/partition"
 
 export { HttpInstance, HttpInstanceConfig, Response, ResponseOk, ResponseError, ResponseConnectionError, ResponseEmpty, createHttpInstance }
 
@@ -26,6 +27,7 @@ export interface HttpClient {
     settingImport: SettingImportEndpoint
     settingSource: SettingSourceEndpoint
     settingBackup: SettingBackupEndpoint
+    partition: PartitionEndpoint
     tag: TagEndpoint
     author: AuthorEndpoint
     topic: TopicEndpoint
@@ -43,6 +45,7 @@ export function createHttpClient(http: HttpInstance): HttpClient {
         settingImport: createSettingImportEndpoint(http),
         settingSource: createSettingSourceEndpoint(http),
         settingBackup: createSettingBackupEndpoint(http),
+        partition: createPartitionEndpoint(http),
         tag: createTagEndpoint(http),
         author: createAuthorEndpoint(http),
         topic: createTopicEndpoint(http),
