@@ -13,6 +13,11 @@ export default <RouteRecordRaw[]>[
                 name: 'MainIndex',
                 path: '',
                 component: () => import('@/views/Main/Index/index')
+            },
+            {
+                name: 'MainAnnotations',
+                path: 'annotations',
+                component: () => import('@/views/Main/Annotations')
             }
         ]
     }

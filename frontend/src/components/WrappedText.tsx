@@ -10,6 +10,6 @@ export default defineComponent({
     setup(props) {
         return () => props.value ? <>
             {props.value.split('\n').map(line => <p>{line}</p>)}
-        </> : <p></p>
+        </> : <p/>
     }
 })
