@@ -10,3 +10,5 @@ data class PartitionFilter(@Limit val limit: Int,
                            @Offset val offset: Int,
                            val gte: LocalDate? = null,
                            val lt: LocalDate? = null)
+
+data class PartitionMonthRes(val year: Int, val month: Int, val dayCount: Int, val count: Int)

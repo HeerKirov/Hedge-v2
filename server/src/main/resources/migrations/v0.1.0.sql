@@ -109,6 +109,7 @@ CREATE TABLE meta_db.author(
     id 				INTEGER PRIMARY KEY,
     name 			TEXT COLLATE NOCASE NOT NULL,                  -- 标签的名称
     other_names     TEXT COLLATE NOCASE NOT NULL DEFAULT '',       -- 标签的别名::string("nameA|nameB|nameC")
+    keywords        TEXT COLLATE NOCASE NOT NULL DEFAULT '',       -- 关键字::string("k1|k2")
     type 			TINYINT NOT NULL,               -- 此标签的类型{0=未知, 1=画师, 2=工作室, 3=出版物}
     score			INTEGER DEFAULT NULL,           -- 评分
     favorite		BOOLEAN NOT NULL DEFAULT FALSE, -- 喜爱标记，会用于收藏展示
@@ -129,6 +130,7 @@ CREATE TABLE meta_db.topic(
     id 				INTEGER PRIMARY KEY,
     name 			TEXT COLLATE NOCASE NOT NULL,                  -- 标签的名称
     other_names     TEXT COLLATE NOCASE NOT NULL DEFAULT '',       -- 标签的别名::string("nameA|nameB|nameC")
+    keywords        TEXT COLLATE NOCASE NOT NULL DEFAULT '',       -- 关键字::string("k1|k2")
     parent_id 	    INTEGER DEFAULT NULL,           -- 父标签的ID。IP可以以IP/版权方为父；角色可以以作品为父
     type 			TINYINT NOT NULL,               -- 此标签的类型{1=持有IP的版权方, 2=IP(作品), 3=角色}
     score			INTEGER DEFAULT NULL,           -- 评分

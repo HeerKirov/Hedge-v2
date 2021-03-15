@@ -15,6 +15,10 @@ data class Author(val id: Int,
                    */
                   val otherNames: List<String>,
                   /**
+                   * 关键字。作用是一个更突出更简练的description。
+                   */
+                  val keywords: List<String>,
+                  /**
                    * 分类。作者标签分为3类。
                    */
                   val type: Type,

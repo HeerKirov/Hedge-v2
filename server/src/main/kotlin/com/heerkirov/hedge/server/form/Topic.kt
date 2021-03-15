@@ -5,7 +5,7 @@ import com.heerkirov.hedge.server.model.meta.Topic
 import com.heerkirov.hedge.server.utils.types.Opt
 import com.heerkirov.hedge.server.utils.types.OrderItem
 
-data class TopicRes(val id: Int, val name: String,
+data class TopicRes(val id: Int, val name: String, val otherNames: List<String>, val keywords: List<String>,
                     val type: Topic.Type, val favorite: Boolean,
                     val annotations: List<Topic.CachedAnnotation>,
                     val score: Int?, val count: Int)
@@ -13,7 +13,7 @@ data class TopicRes(val id: Int, val name: String,
 data class TopicSimpleRes(val id: Int, val name: String, val isExported: Boolean)
 
 data class TopicDetailRes(val id: Int, val name: String, val parent: Parent?,
-                          val otherNames: List<String>, val description: String,
+                          val otherNames: List<String>, val keywords: List<String>, val description: String,
                           val type: Topic.Type, val favorite: Boolean,
                           val annotations: List<Topic.CachedAnnotation>,
                           val links: List<Topic.Link>,
@@ -34,6 +34,7 @@ data class TopicCreateForm(@NotBlank val name: String,
                            val otherNames: List<String>? = null,
                            val parentId: Int? = null,
                            val type: Topic.Type = Topic.Type.UNKNOWN,
+                           val keywords: List<String>? = null,
                            val description: String = "",
                            val links: List<Topic.Link>? = null,
                            val annotations: List<Any>? = null,
@@ -44,17 +45,18 @@ data class TopicUpdateForm(@NotBlank val name: Opt<String>,
                            val otherNames: Opt<List<String>?>,
                            val parentId: Opt<Int?>,
                            val type: Opt<Topic.Type>,
+                           val keywords: Opt<List<String>?>,
                            val description: Opt<String>,
                            val links: Opt<List<Topic.Link>?>,
                            val annotations: Opt<List<Any>?>,
                            val favorite: Opt<Boolean>,
                            val score: Opt<Int?>)
 
-fun newTopicRes(topic: Topic) = TopicRes(topic.id, topic.name, topic.type, topic.favorite, topic.cachedAnnotations ?: emptyList(), topic.exportedScore, topic.cachedCount)
+fun newTopicRes(topic: Topic) = TopicRes(topic.id, topic.name, topic.otherNames, topic.keywords, topic.type, topic.favorite, topic.cachedAnnotations ?: emptyList(), topic.exportedScore, topic.cachedCount)
 
 fun newTopicDetailRes(topic: Topic, parent: Topic?) = TopicDetailRes(topic.id, topic.name,
     parent?.let { TopicDetailRes.Parent(it.id, it.name, it.type) },
-    topic.otherNames, topic.description, topic.type, topic.favorite,
+    topic.otherNames, topic.keywords, topic.description, topic.type, topic.favorite,
     topic.cachedAnnotations ?: emptyList(),
     topic.links ?: emptyList(),
     topic.score, topic.cachedCount)

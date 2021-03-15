@@ -62,6 +62,7 @@ class AuthorService(private val data: DataRepository,
         data.db.transaction {
             val name = kit.validateName(form.name)
             val otherNames = kit.validateOtherNames(form.otherNames)
+            val keywords = kit.validateKeywords(form.keywords)
 
             val annotations = kit.validateAnnotations(form.annotations, form.type)
             val createTime = DateTime.now()
@@ -69,6 +70,7 @@ class AuthorService(private val data: DataRepository,
             val id = data.db.insertAndGenerateKey(Authors) {
                 set(it.name, name)
                 set(it.otherNames, otherNames)
+                set(it.keywords, keywords)
                 set(it.description, form.description)
                 set(it.type, form.type)
                 set(it.links, form.links)
@@ -99,6 +101,7 @@ class AuthorService(private val data: DataRepository,
 
             val newName = form.name.letOpt { kit.validateName(it, id) }
             val newOtherNames = form.otherNames.letOpt { kit.validateOtherNames(it) }
+            val newKeywords = form.keywords.letOpt { kit.validateKeywords(it) }
 
             val newAnnotations = form.annotations.letOpt { kit.validateAnnotations(it, form.type.unwrapOr { record.type }) }
 
@@ -110,11 +113,12 @@ class AuthorService(private val data: DataRepository,
                     .first().getInt("count")
             }
 
-            if(anyOpt(newName, newOtherNames, form.type, form.description, form.links, form.favorite, form.score, newExportedScore, newAnnotations)) {
+            if(anyOpt(newName, newOtherNames, newKeywords, form.type, form.description, form.links, form.favorite, form.score, newExportedScore, newAnnotations)) {
                 data.db.update(Authors) {
                     where { it.id eq id }
                     newName.applyOpt { set(it.name, this) }
                     newOtherNames.applyOpt { set(it.otherNames, this) }
+                    newKeywords.applyOpt { set(it.keywords, this) }
                     form.type.applyOpt { set(it.type, this) }
                     form.description.applyOpt { set(it.description, this) }
                     form.links.applyOpt { set(it.links, this) }

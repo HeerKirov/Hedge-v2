@@ -16,6 +16,7 @@ class PartitionRoutes(private val partitionService: PartitionService) : Endpoint
         javalin.routes {
             path("api/partitions") {
                 get(::list)
+                get("months", ::listMonths)
                 get(":date", ::get)
             }
         }
@@ -32,5 +33,9 @@ class PartitionRoutes(private val partitionService: PartitionService) : Endpoint
             throw ParamError("date")
         }
         ctx.json(partitionService.get(date))
+    }
+
+    private fun listMonths(ctx: Context) {
+        ctx.json(partitionService.listMonths())
     }
 }

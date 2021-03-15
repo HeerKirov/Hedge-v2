@@ -39,6 +39,15 @@ class TopicKit(private val data: DataRepository, private val annotationManager: 
     }
 
     /**
+     * 校验并纠正keywords。
+     */
+    fun validateKeywords(newKeywords: List<String>?): List<String> {
+        return newKeywords.let { if(it.isNullOrEmpty()) emptyList() else it.map(String::trim) }.apply {
+            if(any { !checkTagName(it) }) throw ParamError("keywords")
+        }
+    }
+
+    /**
      * 给出parentId时，对其进行校验。报告parentId不存在的错误，报告当前type和此parent不兼容的错误。
      */
     fun validateParentType(parentId: Int, type: Topic.Type, thisId: Int? = null): Int {

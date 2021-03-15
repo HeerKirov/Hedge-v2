@@ -38,6 +38,15 @@ class AuthorKit(private val data: DataRepository, private val annotationManager:
     }
 
     /**
+     * 校验并纠正keywords。
+     */
+    fun validateKeywords(newKeywords: List<String>?): List<String> {
+        return newKeywords.let { if(it.isNullOrEmpty()) emptyList() else it.map(String::trim) }.apply {
+            if(any { !checkTagName(it) }) throw ParamError("keywords")
+        }
+    }
+
+    /**
      * 检验给出的annotations参数的正确性，返回全量表。
      */
     fun validateAnnotations(newAnnotations: List<Any>?, type: Author.Type): List<Author.CachedAnnotation> {

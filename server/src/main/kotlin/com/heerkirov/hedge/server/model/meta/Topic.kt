@@ -15,6 +15,10 @@ data class Topic(val id: Int,
                   */
                  val otherNames: List<String>,
                  /**
+                  * 关键字。作用是一个更突出更简练的description。
+                  */
+                 val keywords: List<String>,
+                 /**
                   * 父标签的id。
                   * 可行的父子关系有：
                   * copyright的父标签：copyright。
