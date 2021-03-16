@@ -59,6 +59,14 @@ export interface Author {
      */
     name: string
     /**
+     * 其他名称。需要遵守tag name规范。
+     */
+    otherNames: string[]
+    /**
+     * 关键字。需要遵守tag name规范。
+     */
+    keywords: string[]
+    /**
      * 作者类型。
      */
     type: AuthorType
@@ -81,10 +89,6 @@ export interface Author {
 }
 
 export interface DetailAuthor extends Author {
-    /**
-     * 其他名称。需要遵守tag name规范。
-     */
-    otherNames: string[]
     /**
      * 简介。
      */

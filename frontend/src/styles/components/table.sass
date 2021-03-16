@@ -1,0 +1,33 @@
+@import "../base/color.scss"
+@import "../base/functions"
+
+.table
+  border-collapse: collapse
+  border-spacing: 0
+  &.is-fullwidth
+    width: 100%
+  &.is-hoverable tbody tr:not(.is-selected):hover
+    background-color: $light
+    @media (prefers-color-scheme: dark)
+      background-color: $more-dark
+  thead
+    th,
+    td
+      border-width: 0 0 2px
+  th,
+  td
+    border: solid $dark-lightgrey
+    border-width: 0 0 1px
+    padding: 0.5em 0.75em
+    height: 1.25rem
+    vertical-align: baseline
+    &.is-narrow
+      white-space: nowrap
+      width: 1%
+    @for $i from 1 through 20
+      &.is-width-#{$i * 5}
+        width: #{percentage($i / 20)}
+    @media (prefers-color-scheme: dark)
+      border-color: $more-dark
+  tbody tr:last-child td
+    border-bottom-width: 0

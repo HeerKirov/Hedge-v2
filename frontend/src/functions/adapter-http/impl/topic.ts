@@ -63,6 +63,14 @@ export interface Topic {
      */
     name: string
     /**
+     * 其他名称。需要遵守tag name规范。
+     */
+    otherNames: string[]
+    /**
+     * 关键字。需要遵守tag name规范。
+     */
+    keywords: string[]
+    /**
      * 主题类型。
      */
     type: TopicType
@@ -89,10 +97,6 @@ export interface DetailTopic extends Topic {
      * 主题的父标签。
      */
     parent: ParentTopic | null
-    /**
-     * 其他名称。需要遵守tag name规范。
-     */
-    otherNames: string[]
     /**
      * 简介。
      */

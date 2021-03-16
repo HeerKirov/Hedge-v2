@@ -1,18 +1,18 @@
 import { defineComponent, PropType } from "vue"
-import { AuthorType, AuthorItem } from "."
+import { Annotation, AnnotationTarget } from "@/functions/adapter-http/impl/annotations"
 
 /**
  * 内容列表项视图。
  */
 export default defineComponent({
     props: {
-        items: {type: null as any as PropType<AuthorItem[]>, required: true}
+        items: {type: null as any as PropType<Annotation[]>, required: true}
     },
     setup(props) {
-        return () => <div id="panel-list-view">
+        return () => <div>
             <table class="table is-hoverable is-fullwidth">
                 <tbody>
-                    {props.items.map(item => <Item {...item}/>)}
+                    {props.items.map(item => <Item key={item.id} {...item}/>)}
                 </tbody>
             </table>
         </div>
@@ -24,11 +24,10 @@ export default defineComponent({
  */
 const Item = defineComponent({
     props: {
-        name: String,
-        type: null as any as PropType<AuthorType>,
-        annotations: null as any as PropType<string[]>,
-        favorite: Boolean,
-        count: Number
+        id: {type: Number, required: true},
+        name: {type: String, required: true},
+        target: {type: null as any as PropType<AnnotationTarget[]>, required: true},
+        canBeExported: {type: Boolean, required: true}
     },
     setup(props) {
         const AUTHOR_TYPE_TAG = {
@@ -38,13 +37,20 @@ const Item = defineComponent({
         }
 
         return () => <tr>
-            <td>{props.name}</td>{/*现在还没决定颜色。之后要染成对应类型的颜色*/}
-            <td class="is-narrow">{(props.favorite || null) && <i class="fa fa-heart is-danger"/>}</td>
-            <td>
-                {props.annotations?.map(a => <span class="tag mr-1">{a}</span>)}
+            <td class="is-width-50"><b>[</b><span class="mx-1">{props.name}</span><b>]</b></td>
+            <td class="is-width-10">{(props.canBeExported || null) && <i class="fa fa-share-square is-danger"/>}</td>
+            <td class="is-width-40">
+                {props.target?.map(a => <span class="tag mr-1">{a}</span>)}
             </td>
-            <td class="is-narrow is-size-7 pt-3">{props.type && AUTHOR_TYPE_TAG[props.type]}</td>
-            <td class="has-text-right is-size-7 pt-3">{props.count == null ? "" : `${props.count}项`}</td>
         </tr>
+    }
+})
+
+const AnnotationTargetElement = defineComponent({
+    props: {
+        target: {type: null as any as PropType<AnnotationTarget[]>, required: true},
+    },
+    setup(props) {
+
     }
 })

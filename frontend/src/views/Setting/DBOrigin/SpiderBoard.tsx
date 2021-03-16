@@ -147,7 +147,7 @@ const SpiderEditor = defineComponent({
                 <p class="is-size-8 has-text-grey">为来源站点指定一项已经定义在系统中的爬虫规则。</p>
             </div>
             <div class="mt-2">
-                <CheckBox value={optionsSwitch.value} onUpdateValue={setOptionsSwitch}>使用全局请求配置</CheckBox>
+                <CheckBox value={optionsSwitch.value} onUpdateValue={setOptionsSwitch}>使用专有请求配置</CheckBox>
                 {optionsSwitch.value
                     ? <p class="is-size-8 has-text-grey">此站点的请求配置使用专有定义。</p>
                     : <p class="is-size-8 has-text-grey">此站点的请求配置使用全局配置。</p>
