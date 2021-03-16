@@ -30,17 +30,11 @@ const Item = defineComponent({
         canBeExported: {type: Boolean, required: true}
     },
     setup(props) {
-        const AUTHOR_TYPE_TAG = {
-            "artist": <><i class="fa fa-paint-brush mr-2"/><span class="mr-2">画师</span></>,
-            "studio": <><i class="fa fa-swatchbook mr-2"/><span class="mr-2">工作室</span></>,
-            "publication": <><i class="fa fa-stamp mr-2"/><span class="mr-2">出版物</span></>
-        }
-
         return () => <tr>
-            <td class="is-width-50"><b>[</b><span class="mx-1">{props.name}</span><b>]</b></td>
-            <td class="is-width-10">{(props.canBeExported || null) && <i class="fa fa-share-square is-danger"/>}</td>
-            <td class="is-width-40">
-                {props.target?.map(a => <span class="tag mr-1">{a}</span>)}
+            <td class="is-width-50"><b class="ml-1">[</b><span class="mx-1">{props.name}</span><b>]</b></td>
+            <td class="is-width-15">{(props.canBeExported || null) && <i class="fa fa-share-square is-danger"/>}</td>
+            <td class="is-width-35">
+                <AnnotationTargetElement target={props.target}/>
             </td>
         </tr>
     }
@@ -51,6 +45,20 @@ const AnnotationTargetElement = defineComponent({
         target: {type: null as any as PropType<AnnotationTarget[]>, required: true},
     },
     setup(props) {
+        const TARGET_TYPE_TAG: {[key in AnnotationTarget]: string} = {
+            "TAG": "tag",
+            "TOPIC": "hashtag",
+            "AUTHOR": "user-tag",
+            "ARTIST": "paint-brush",
+            "STUDIO": "swatchbook",
+            "PUBLISH": "stamp",
+            "COPYRIGHT": "copyright",
+            "WORK": "bookmark",
+            "CHARACTER": "user-ninja"
+        }
 
+        return () => <span>
+            {props.target.map(t => <i class={`fa fa-${TARGET_TYPE_TAG[t]} mr-2`}/>)}
+        </span>
     }
 })
