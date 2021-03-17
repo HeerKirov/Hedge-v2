@@ -1,6 +1,6 @@
 import { defineComponent } from "vue"
 import { Annotation } from "@/functions/adapter-http/impl/annotations"
-import { TopBar, MainContent } from "@/layouts/SideLayout"
+import TopBarLayout from "@/layouts/TopBarLayout"
 import TopBarContent from "./TopBarContent"
 import PanelListView from "./PanelListView"
 import style from "./style.module.scss"
@@ -16,12 +16,10 @@ export default defineComponent({
         ]
 
         return () => <div>
-            <MainContent>
-                <PanelListView items={items}/>
-            </MainContent>
-            <TopBar>
-                <TopBarContent/>
-            </TopBar>
+            <TopBarLayout v-slots={{
+                topBar: () => <TopBarContent/>,
+                default: () => <PanelListView items={items}/>
+            }}/>
         </div>
     }
 })

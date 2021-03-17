@@ -8,7 +8,7 @@ import style from "./style.module.scss"
  * 它包含了一个侧边栏控制开关(仅关闭时)，链接到当前组建树上的switch属性。它还负责调整好内容区域的显示范围问题，在macOS平台上为红绿灯的留白、侧边栏响应联动等问题都在组件内已解决。slot只负责顶栏业务即可。
  */
 export default defineComponent({
-    setup(props, { slots }) {
+    setup(_, { slots }) {
         const { platform } = useAppInfo()
         const isFullscreen = useFullscreen()
         const sideBarSwitch = inject(sideBarSwitchInjection)!

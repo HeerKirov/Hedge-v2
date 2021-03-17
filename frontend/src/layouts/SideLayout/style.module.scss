@@ -89,6 +89,10 @@
     height: $title-bar-height;
     top: 0; right: 0;
     transition: left 0.4s ease;
+    background-color: $white;
+    @media (prefers-color-scheme: dark) {
+        background-color: $dark;
+    }
 
     //其他任意平台的内容区域布局
     &:not(has-darwin-button) { left: 0; }
@@ -125,11 +129,4 @@
         //在侧边栏展开时，不限时折叠按钮，不用留出空隙
         &:not(.has-cl-button) { left: $margin-size; }
     }
-}
-
-.main-content {
-    position: absolute;
-    top: $title-bar-height;
-    left: 0; right: 0; bottom: 0;
-    overflow: auto;
 }

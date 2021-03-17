@@ -1,0 +1,58 @@
+@import "@/styles/variable.sass";
+@import "@/styles/base/size.sass";
+@import "@/styles/base/color.scss";
+
+.top-bar-layout {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    > .main-content {
+        position: absolute;
+        top: $title-bar-height;
+        left: 0; right: 0; bottom: 0;
+    }
+
+    > .expand-background {
+        position: absolute;
+        top: $title-bar-height;
+        left: 0; right: 0; bottom: 0;
+        background: rgba(0, 0, 0, 0.25);
+        @media (prefers-color-scheme: dark) {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        &.transaction-active {
+            transition: opacity 0.3s;
+        }
+        &.transaction-goal {
+            opacity: 0;
+        }
+    }
+    > .expand-content {
+        position: absolute;
+        top: $title-bar-height;
+        width: 100%;
+        min-height: 10rem;
+        max-height: calc(75% - #{$title-bar-height});
+
+        @media (prefers-color-scheme: light) {
+            background: $white;
+            box-shadow: 0 0.5em 1em -0.125em rgba($black, 0.1), 0 0px 0 1px rgba($black, 0.02);
+        }
+        @media (prefers-color-scheme: dark) {
+            background: $dark;
+            box-shadow: 0 0.5em 1em -0.125em rgba($white, 0.1), 0 0px 0 1px rgba($white, 0.02);
+        }
+
+
+        &.transaction-enter-active {
+            transition: transform 0.15s ease-in;
+        }
+        &.transaction-leave-active {
+            transition: transform 0.15s ease-out;
+        }
+        &.transaction-goal {
+            transform: translateY(-100%);
+        }
+    }
+}

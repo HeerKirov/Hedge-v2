@@ -1,5 +1,6 @@
-import { computed, onMounted, onUnmounted, readonly, Ref, ref, isReactive, unref, watchEffect, watch } from "vue"
-import { remote, ipc, clientMode, OpenDialogOptions, MenuTemplate, Menu } from "@/functions/adapter-ipc"
+import { computed, Ref, ref, isReactive, unref, watchEffect, watch } from "vue"
+import { remote, ipc, clientMode, OpenDialogOptions, MenuTemplate } from "@/functions/adapter-ipc"
+import { useWebPopupMenu } from "@/functions/message"
 
 export const dialogManager = clientMode ? {
     async openDialog(options: OpenDialogOptions): Promise<string[] | null> {
@@ -38,11 +39,13 @@ export const windowManager = clientMode ? {
     }
 }
 
-export function openExternal(url: string) {
-    return remote.shell.openExternal(url)
-}
+export const openExternal = clientMode
+    ? (url: string) => remote.shell.openExternal(url)
+    : (url: string) => window.open(url)
 
-export function usePopupMenu(items: MenuTemplate[] | Ref<MenuTemplate[]> | (() => MenuTemplate[])) {
+export const usePopupMenu = clientMode ? useNativePopupMenu : useWebPopupMenu
+
+function useNativePopupMenu(items: MenuTemplate[] | Ref<MenuTemplate[]> | (() => MenuTemplate[])) {
     const element = ref<HTMLElement>()
     let popup: (options: {x: number, y: number} | undefined) => void
     if(typeof items === "function") {
@@ -63,12 +66,4 @@ export function usePopupMenu(items: MenuTemplate[] | Ref<MenuTemplate[]> | (() =
             popup(rect ? {x: Math.floor(rect.left), y: Math.floor(rect.top)} : undefined)
         }
     }
-}
-
-export function useWebAccessUrls() {
-    const urls = ref<string[]>([])
-
-    onMounted(async () => urls.value = await ipc.server.webAccessUrls())
-
-    return readonly(urls)
 }
