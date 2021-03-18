@@ -1,5 +1,6 @@
 import { defineComponent, PropType } from "vue"
 import { Annotation, AnnotationTarget } from "@/functions/adapter-http/impl/annotations"
+import ScrollList from "@/layouts/ScrollList"
 
 /**
  * 内容列表项视图。
@@ -9,12 +10,17 @@ export default defineComponent({
         items: {type: null as any as PropType<Annotation[]>, required: true}
     },
     setup(props) {
-        return () => <div>
-            <table class="table is-hoverable is-fullwidth">
-                <tbody>
-                    {props.items.map(item => <Item key={item.id} {...item}/>)}
-                </tbody>
-            </table>
+        // return () => <div>
+        //     <table class="table is-hoverable is-fullwidth">
+        //         <tbody>
+        //             {props.items.map(item => <Item key={item.id} {...item}/>)}
+        //         </tbody>
+        //     </table>
+        // </div>
+        return () => <div class="w-100 h-100">
+            <ScrollList padding={12} totalHeight={1200}>
+                {Array(20).fill(0).map((_, i) => <div style="height: 55px; margin-bottom: 5px" class="block w-100">{i}</div>)}
+            </ScrollList>
         </div>
     }
 })
