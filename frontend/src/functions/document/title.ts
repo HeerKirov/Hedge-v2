@@ -7,6 +7,6 @@ import { useRoute } from "vue-router"
 export function installTitleWatcher() {
     const route = useRoute()
     watch(() => route.meta, meta => {
-        document.title = meta.title ?? "Hedge"
+        document.title = (<string | undefined>meta.title) ?? "Hedge"
     }, {immediate: true})
 }

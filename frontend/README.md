@@ -1,6 +1,8 @@
 # Hedge v2 Frontend
 这是App的前端子项目。它运行在web容器中提供GUI。目标容器为客户端(`electron`)和浏览器(`web`)。
 
+> Note: vue 3.0.7有一个union type推断bug，绕过并等待下一个版本修复。
+
 ## Technology Stack
 * `Node >= 15.8.0`
 * `Vue 3.x`(`vue-cli`, `vue-router`, `jsx`)
