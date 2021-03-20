@@ -1,6 +1,6 @@
-import { defineComponent, PropType } from "vue"
+import { defineComponent, PropType, ref } from "vue"
 import { Annotation, AnnotationTarget } from "@/functions/adapter-http/impl/annotations"
-import ScrollList, { UpdateEvent } from "@/layouts/ScrollList"
+import VirtualList, { UpdateEvent } from "@/layouts/VirtualList"
 
 /**
  * 内容列表项视图。
@@ -17,17 +17,77 @@ export default defineComponent({
         //         </tbody>
         //     </table>
         // </div>
-        const onVirtualListUpdate = (data: UpdateEvent) => {
-            console.log(data)
+        const data = ref<{limit: number, offset: number, total: number | undefined, data: number[]}>({limit: 0, offset: 0, total: undefined, data: []})
+
+        const dataUpdate = async (offset: number, limit: number) => {
+            const r = await mockData(offset, limit)
+            //tips: 在更上一层的hooks，需要进行节流，防止过时数据产生覆盖
+            data.value = {offset, limit, total: r.total, data: r.data}
         }
 
         return () => <div class="w-100 h-100">
-            <ScrollList padding={12} totalHeight={1200} buffer={150} onUpdate={onVirtualListUpdate}>
-                {Array(20).fill(0).map((_, i) => <div style="height: 55px; margin-bottom: 5px" class="block w-100">{i}</div>)}
-            </ScrollList>
+            <AnnotationRowList onUpdate={dataUpdate} {...data.value}/>
         </div>
     }
 })
+
+interface VirtualRowListOptions<T> {
+    padding?: number
+    buffer?: number
+    minUpdateDelta?: number
+    rowHeight: number
+    render(item: T): JSX.Element
+}
+
+function virtualRowList<T>(options: VirtualRowListOptions<T>) {
+    //TODO 可以更改为更自然的slot组件形态，而减少/不使用高阶组件特性
+    //TODO 做成独立组件
+    return defineComponent({
+        props: {
+            limit: Number,
+            offset: Number,
+            total: Number,
+            data: null as any as PropType<T[]>
+        },
+        emits: {
+            update: (_offset: number, _limit: number) => true
+        },
+        setup(props, { emit }) {
+            const onUpdate = ({ offsetTop, offsetHeight }: UpdateEvent) => {
+                const offset = Math.floor(offsetTop / options.rowHeight)
+                const limit = Math.ceil((offsetTop + offsetHeight) / options.rowHeight) - offset
+                emit("update", offset, limit)
+            }
+
+            return () => {
+                const totalHeight = props.total != undefined ? props.total * options.rowHeight : undefined
+                const actualOffsetTop = props.offset != undefined ? props.offset * options.rowHeight : undefined
+                const actualOffsetHeight = props.limit != undefined ? props.limit * options.rowHeight : undefined
+
+                return <VirtualList padding={options.padding} buffer={options.buffer} minUpdateDelta={options.minUpdateDelta} onUpdate={onUpdate}
+                                    totalHeight={totalHeight} actualOffsetTop={actualOffsetTop} actualOffsetHeight={actualOffsetHeight}>
+                    {props.data?.map(options.render)}
+                </VirtualList>
+            }
+        }
+    })
+}
+
+const AnnotationRowList = virtualRowList({
+    padding: 12,
+    buffer: 150,
+    minUpdateDelta: 60,
+    rowHeight: 60,
+    render(item: number) {
+        return <div key={item} style="height: 55px; margin-bottom: 5px" class="block w-100">{item}</div>
+    }
+})
+
+async function mockData(offset: number, limit: number): Promise<{total: number, data: number[]}> {
+    return new Promise(resolve => {
+        setTimeout(() => resolve({total: 100, data: Array(limit).fill(0).map((_, i) => offset + i)}), 50)
+    })
+}
 
 /**
  * 列表项视图中的项。

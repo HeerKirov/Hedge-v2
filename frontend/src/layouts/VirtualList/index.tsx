@@ -12,23 +12,9 @@ export interface UpdateEvent {
 /**
  * 虚拟滚动列表组件。
  * 此组件提供十分原始的虚拟滚动基础支持。指定一个内容总高度，列表会在滚动或尺寸改变时发出通知，告知需要的内容区域的offset和height。
- * TODO 节流机制
- *      可以考虑的节流机制有：
- *      - 距离节流。滚动/尺寸变化的变化量小于一定阈值时，不发出事件，直到超过阈值时一口气更新。
- *        如果使用这个机制，需要注意，可能存在部分属性变化量小于阈值，而另外的属性变化量大于阈值的情况，更新时必须保证所有的属性都更新。
- *        这应该是最平滑的节流方案，只要阈值不太大(比缓冲区小即可，和元素高度差不多)，加上有缓冲区，根本不可能看出来。
- *      - 时间节流。滚动/尺寸变化后触发一个计时器，在计时结束后才触发事件，中间的变化都不触发事件。
- *        这个机制可能会看起来卡顿，如果短时间内变化量太大的话。
- *      - 另一个时间节流。发生变化后触发一个计时器，每次变化都重新计时，计时结束(相当于计时时间内不再变化)时触发事件。
- *        只供参考。这个看起来更加没谱，如果一直保持变化，就一直不会更新。
- * TODO 实际显示机制
- *      目前已完成的是向父组件通知虚拟列表期望中的内容的offset和height，接下来需要处理父组件提供内容更新的情况。
- *      这个情况并不是简单修改一下slot的内容就行了的。
- *      - 实际供给的组件范围极大可能与期望值对不上号，height要根据组件的实际高度来的，这一般都不会一致的。
- *      - 异步更新机制。父组件极大可能要异步、延迟地提供更新。异步更新时列表还可能要有loading。
- *      因此，虚拟滚动列表的实际显示，必须根据当前实际内容和实际值提供显示。
- *      因此实际上虚拟滚动列表的运作方式是，通过事件告知使用者自己期望的范围，而使用者提供的实际值和这个期望值是没有关系的，
- *      因此使用者必须同时提供内容、实际内容的offset和height，虚拟组件来计算这些内容在当前的scroll区间中应该显示的位置。
+ * 使用方提供内容和实际内容的top/height，虚拟组件来计算这些内容在当前的scroll区间中应该显示的位置。
+ * TODO loading提示
+ * TODO 提供将scroll重置回0的方法
  */
 export default defineComponent({
     props: {
@@ -43,7 +29,20 @@ export default defineComponent({
         /**
          * 虚拟列表内容的总高度。如果未设置，就假设总高度和视口大小一样高。
          */
-        totalHeight: Number
+        totalHeight: Number,
+        /**
+         * 触发事件的最小变化阈值。当累计属性变化量小于此值时，事件不会触发。
+         * 设置合理的值，能大量减少无效的事件触发。只要阈值不超过缓冲区大小或内容元素尺寸即可。
+         */
+        minUpdateDelta: Number,
+        /**
+         * 当前slot给出的内容，在虚拟列表中的实际offset top。如果不给，默认为0。
+         */
+        actualOffsetTop: Number,
+        /**
+         * 当前slot给出的内容，在虚拟列表中的实际offset height。如果不给，默认为0。
+         */
+        actualOffsetHeight: Number
     },
     emits: ["update"],
     setup(props, { emit, slots }) {
@@ -52,7 +51,30 @@ export default defineComponent({
 
         const { paddingValue, bufferValue, paddingStyle } = usePaddingProperties(props)
 
-        const data = {offsetTop: 0, offsetHeight: 0, contentWidth: 0, contentHeight: 0}
+        //当前的属性
+        const data: CacheData = {offsetTop: 0, offsetHeight: 0, contentWidth: 0, contentHeight: 0}
+        //上次触发事件时的属性
+        let lastData: CacheData | null = null
+
+        function emitEvent() {
+            if(props.minUpdateDelta) {
+                if(lastData == null) {
+                    lastData = {...data}
+                    emit("update", data)
+                }else if(Math.abs(lastData.offsetTop - data.offsetTop) >= props.minUpdateDelta ||
+                    Math.abs(lastData.offsetHeight - data.offsetHeight) >= props.minUpdateDelta ||
+                    Math.abs(lastData.contentWidth - data.contentWidth) >= props.minUpdateDelta ||
+                    Math.abs(lastData.contentHeight - data.contentHeight) >= props.minUpdateDelta) {
+                    lastData.offsetTop = data.offsetTop
+                    lastData.offsetHeight = data.offsetHeight
+                    lastData.contentWidth = data.contentWidth
+                    lastData.contentHeight = data.contentHeight
+                    emit("update", data)
+                }
+            }else{
+                emit("update", data)
+            }
+        }
 
         function computeOffset(div: HTMLDivElement) {
             //可见的显示高度。指window的视口高度加上buffer的高度。padding的高度已经包括在window高度内了
@@ -80,7 +102,7 @@ export default defineComponent({
             if(offsetTop !== data.offsetTop || offsetHeight !== data.offsetHeight) {
                 data.offsetTop = offsetTop
                 data.offsetHeight = offsetHeight
-                emit("update", data)
+                emitEvent()
             }
         }
 
@@ -101,11 +123,21 @@ export default defineComponent({
                     data.offsetHeight = offsetHeight
                 }
             }
-            if(changed) emit("update", data)
+            if(changed) emitEvent()
+        })
+
+        const actualOffsetStyle = computed(() => {
+            const actualOffsetTop = props.actualOffsetTop ?? 0
+            const actualOffsetHeight = props.actualOffsetHeight ?? 0
+            const totalHeight = props.totalHeight ?? (scrollDivRef.value ? scrollDivRef.value.clientHeight + bufferValue.value.top + bufferValue.value.bottom : 0)
+            return {
+                paddingTop: `${actualOffsetTop}px`,
+                paddingBottom: `${totalHeight - actualOffsetTop - actualOffsetHeight}px`
+            }
         })
 
         return () => <div ref={scrollDivRef} class={style.scrollList} style={paddingStyle.value} onScroll={onScroll}>
-            <div ref={contentDivRef} class={style.scrollContent}>
+            <div ref={contentDivRef} class={style.scrollContent} style={actualOffsetStyle.value}>
                 {slots.default?.()}
             </div>
         </div>
@@ -136,3 +168,5 @@ function usePaddingProperties(props: { padding?: AllPadding | number, buffer?: V
 interface VerticalPadding { top?: number, bottom?: number }
 interface HorizontalPadding { left?: number, right?: number }
 type AllPadding = VerticalPadding & HorizontalPadding
+
+interface CacheData { offsetTop: number, offsetHeight: number, contentWidth: number, contentHeight: number }
