@@ -1,5 +1,5 @@
 import { HttpInstance, Response } from "../server"
-import { IdResponse, LimitAndOffsetFilter, Link, OrderList } from "./generic"
+import { IdResponse, LimitAndOffsetFilter, Link, ListResult, OrderList } from "./generic"
 import { SimpleAnnotation } from "./annotations"
 
 export function createAuthorEndpoint(http: HttpInstance): AuthorEndpoint {
@@ -19,7 +19,7 @@ export interface AuthorEndpoint {
     /**
      * 查询作者列表。
      */
-    list(filter: AuthorFilter): Promise<Response<Author[]>>
+    list(filter: AuthorFilter): Promise<Response<ListResult<Author>>>
     /**
      * 新建作者。
      * @exception ALREADY_EXISTS ("Author", "name", name) 作者重名

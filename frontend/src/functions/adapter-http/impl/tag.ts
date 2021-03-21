@@ -1,5 +1,5 @@
 import { HttpInstance, Response } from "../server"
-import { IdResponse, LimitAndOffsetFilter, OrderList } from "./generic"
+import { IdResponse, LimitAndOffsetFilter, ListResult, OrderList } from "./generic"
 import { SimpleIllust } from "./illust"
 
 export function createTagEndpoint(http: HttpInstance): TagEndpoint {
@@ -20,7 +20,7 @@ export interface TagEndpoint {
     /**
      * 查询标签列表。
      */
-    list(filter: TagFilter): Promise<Response<Tag[]>>
+    list(filter: TagFilter): Promise<Response<ListResult<Tag>>>
     /**
      * 查询标签树。
      */

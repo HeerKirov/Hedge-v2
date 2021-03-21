@@ -1,5 +1,5 @@
 import { HttpInstance, Response } from "../server"
-import { IdResponse, LimitAndOffsetFilter } from "./generic"
+import { IdResponse, LimitAndOffsetFilter, ListResult } from "./generic"
 
 export function createAnnotationEndpoint(http: HttpInstance): AnnotationEndpoint {
     return {
@@ -18,7 +18,7 @@ export interface AnnotationEndpoint {
     /**
      * 查询注解列表。
      */
-    list(filter: AnnotationFilter): Promise<Response<Annotation[]>>
+    list(filter: AnnotationFilter): Promise<Response<ListResult<Annotation>>>
     /**
      * 新建注解。
      * @exception ALREADY_EXISTS ("Annotation", "name", name) 注解重名

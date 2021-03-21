@@ -13,6 +13,11 @@ export interface IdResponse {
     id: number
 }
 
+export interface ListResult<T> {
+    total: number
+    result: T[]
+}
+
 export interface Link {
     title: string
     link: string

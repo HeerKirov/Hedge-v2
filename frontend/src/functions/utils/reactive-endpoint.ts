@@ -6,7 +6,7 @@ import { useNotification } from "@/functions/message"
 /* 此处提供了VCA形态的rest api端点调用器。目标是处理符合标准object模型的对象。
     应对简单和复杂的rest endpoint，有两种更新模型。
     简单模型：直接修改data，响应式更改。data的update form和它的response基本一致。
-    负责模型：调用update函数，发送专门的更改通知。自动发起更改，并请求最新的值。
+    复杂模型：调用update函数，发送专门的更改通知。自动发起更改，并请求最新的值。
 */
 
 /**

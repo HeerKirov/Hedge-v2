@@ -1,6 +1,6 @@
 import { defineComponent, PropType, ref } from "vue"
 import { Annotation, AnnotationTarget } from "@/functions/adapter-http/impl/annotations"
-import VirtualList, { UpdateEvent } from "@/layouts/VirtualList"
+import VirtualRow from "@/layouts/VirtualList/VirtualRow"
 
 /**
  * 内容列表项视图。
@@ -10,82 +10,33 @@ export default defineComponent({
         items: {type: null as any as PropType<Annotation[]>, required: true}
     },
     setup(props) {
-        // return () => <div>
-        //     <table class="table is-hoverable is-fullwidth">
-        //         <tbody>
-        //             {props.items.map(item => <Item key={item.id} {...item}/>)}
-        //         </tbody>
-        //     </table>
-        // </div>
-        const data = ref<{limit: number, offset: number, total: number | undefined, data: number[]}>({limit: 0, offset: 0, total: undefined, data: []})
+        const data = ref<{limit: number, offset: number, total: number | undefined, data: Annotation[]}>({limit: 0, offset: 0, total: undefined, data: []})
 
         const dataUpdate = async (offset: number, limit: number) => {
             const r = await mockData(offset, limit)
             //tips: 在更上一层的hooks，需要进行节流，防止过时数据产生覆盖
-            data.value = {offset, limit, total: r.total, data: r.data}
+            data.value = {offset, limit: r.data.length, total: r.total, data: r.data}
         }
 
         return () => <div class="w-100 h-100">
-            <AnnotationRowList onUpdate={dataUpdate} {...data.value}/>
+            <VirtualRow rowHeight={33} padding={0} bufferSize={10} onUpdate={dataUpdate}
+                        total={data.value.total} limit={data.value.limit} offset={data.value.offset}>
+                <table class="table is-hoverable is-fullwidth">
+                    <tbody>
+                        {data.value.data.map(item => <Item key={item.id} {...item}/>)}
+                    </tbody>
+                </table>
+            </VirtualRow>
         </div>
     }
 })
 
-interface VirtualRowListOptions<T> {
-    padding?: number
-    buffer?: number
-    minUpdateDelta?: number
-    rowHeight: number
-    render(item: T): JSX.Element
-}
+const mockedTotal = 39
+const mockedData: Annotation[] = Array(mockedTotal).fill(0).map((_, i) => ({ id: i, name: `注解${i}`, canBeExported: i % 3 === 0, target: ["AUTHOR", "WORK", "CHARACTER"] }))
 
-function virtualRowList<T>(options: VirtualRowListOptions<T>) {
-    //TODO 可以更改为更自然的slot组件形态，而减少/不使用高阶组件特性
-    //TODO 做成独立组件
-    return defineComponent({
-        props: {
-            limit: Number,
-            offset: Number,
-            total: Number,
-            data: null as any as PropType<T[]>
-        },
-        emits: {
-            update: (_offset: number, _limit: number) => true
-        },
-        setup(props, { emit }) {
-            const onUpdate = ({ offsetTop, offsetHeight }: UpdateEvent) => {
-                const offset = Math.floor(offsetTop / options.rowHeight)
-                const limit = Math.ceil((offsetTop + offsetHeight) / options.rowHeight) - offset
-                emit("update", offset, limit)
-            }
-
-            return () => {
-                const totalHeight = props.total != undefined ? props.total * options.rowHeight : undefined
-                const actualOffsetTop = props.offset != undefined ? props.offset * options.rowHeight : undefined
-                const actualOffsetHeight = props.limit != undefined ? props.limit * options.rowHeight : undefined
-
-                return <VirtualList padding={options.padding} buffer={options.buffer} minUpdateDelta={options.minUpdateDelta} onUpdate={onUpdate}
-                                    totalHeight={totalHeight} actualOffsetTop={actualOffsetTop} actualOffsetHeight={actualOffsetHeight}>
-                    {props.data?.map(options.render)}
-                </VirtualList>
-            }
-        }
-    })
-}
-
-const AnnotationRowList = virtualRowList({
-    padding: 12,
-    buffer: 150,
-    minUpdateDelta: 60,
-    rowHeight: 60,
-    render(item: number) {
-        return <div key={item} style="height: 55px; margin-bottom: 5px" class="block w-100">{item}</div>
-    }
-})
-
-async function mockData(offset: number, limit: number): Promise<{total: number, data: number[]}> {
+function mockData(offset: number, limit: number): Promise<{total: number, data: Annotation[]}> {
     return new Promise(resolve => {
-        setTimeout(() => resolve({total: 100, data: Array(limit).fill(0).map((_, i) => offset + i)}), 50)
+        setTimeout(() => resolve({total: mockedTotal, data: mockedData.slice(offset, limit + offset)}), 20)
     })
 }
 

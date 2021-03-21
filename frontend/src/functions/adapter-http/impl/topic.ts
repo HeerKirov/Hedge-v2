@@ -1,5 +1,5 @@
 import { HttpInstance, Response } from "../server"
-import { IdResponse, LimitAndOffsetFilter, Link, OrderList } from "./generic"
+import { IdResponse, LimitAndOffsetFilter, Link, ListResult, OrderList } from "./generic"
 import { SimpleAnnotation } from "./annotations"
 
 export function createTopicEndpoint(http: HttpInstance): TopicEndpoint {
@@ -19,7 +19,7 @@ export interface TopicEndpoint {
     /**
      * 查询主题列表。
      */
-    list(filter: TopicFilter): Promise<Response<Topic[]>>
+    list(filter: TopicFilter): Promise<Response<ListResult<Topic>>>
     /**
      * 新建主题。
      * @exception ALREADY_EXISTS ("Topic", "name", name) 主题重名

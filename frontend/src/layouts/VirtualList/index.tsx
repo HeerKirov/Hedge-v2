@@ -1,4 +1,4 @@
-import { computed, defineComponent, onMounted, PropType, ref } from "vue"
+import { computed, defineComponent, PropType, ref, watch } from "vue"
 import { watchElementResize } from "@/functions/document/observer"
 import style from "./style.module.scss"
 
@@ -14,7 +14,7 @@ export interface UpdateEvent {
  * 此组件提供十分原始的虚拟滚动基础支持。指定一个内容总高度，列表会在滚动或尺寸改变时发出通知，告知需要的内容区域的offset和height。
  * 使用方提供内容和实际内容的top/height，虚拟组件来计算这些内容在当前的scroll区间中应该显示的位置。
  * TODO loading提示
- * TODO 提供将scroll重置回0的方法
+ * TODO 添加实际内容显示区域的事件通知，用于计算给用户看的当前offset
  */
 export default defineComponent({
     props: {
@@ -27,7 +27,7 @@ export default defineComponent({
          */
         buffer: null as any as PropType<VerticalPadding | number>,
         /**
-         * 虚拟列表内容的总高度。如果未设置，就假设总高度和视口大小一样高。
+         * 虚拟列表内容的总高度。未设置总高度时会假设在加载数据，将总高度重设为未设置会认为需要重新加载数据。
          */
         totalHeight: Number,
         /**
@@ -98,11 +98,13 @@ export default defineComponent({
 
         const onScroll = (e: Event) => {
             //发生滚动时，触发offset重算
-            const { offsetTop, offsetHeight } = computeOffset(e.target as HTMLDivElement)
-            if(offsetTop !== data.offsetTop || offsetHeight !== data.offsetHeight) {
-                data.offsetTop = offsetTop
-                data.offsetHeight = offsetHeight
-                emitEvent()
+            if(props.totalHeight != undefined) {
+                const { offsetTop, offsetHeight } = computeOffset(e.target as HTMLDivElement)
+                if(offsetTop !== data.offsetTop || offsetHeight !== data.offsetHeight) {
+                    data.offsetTop = offsetTop
+                    data.offsetHeight = offsetHeight
+                    emitEvent()
+                }
             }
         }
 
@@ -126,11 +128,24 @@ export default defineComponent({
             if(changed) emitEvent()
         })
 
+        watch(() => props.totalHeight, totalHeight => {
+            //把totalHeight设置为undefined，会被认为是重设了内容，因此会把卷轴滚动回顶端，同时触发数据重刷
+            if(totalHeight == undefined && scrollDivRef.value) {
+                scrollDivRef.value.scrollTo({top: 0, behavior: "auto"})
+                const { offsetTop, offsetHeight } = computeOffset(scrollDivRef.value)
+                data.offsetTop = offsetTop
+                data.offsetHeight = offsetHeight
+                lastData = null
+                emitEvent()
+            }
+        })
+
         const actualOffsetStyle = computed(() => {
             const actualOffsetTop = props.actualOffsetTop ?? 0
             const actualOffsetHeight = props.actualOffsetHeight ?? 0
             const totalHeight = props.totalHeight ?? (scrollDivRef.value ? scrollDivRef.value.clientHeight + bufferValue.value.top + bufferValue.value.bottom : 0)
             return {
+                height: `${actualOffsetHeight}px`,
                 paddingTop: `${actualOffsetTop}px`,
                 paddingBottom: `${totalHeight - actualOffsetTop - actualOffsetHeight}px`
             }
@@ -167,6 +182,6 @@ function usePaddingProperties(props: { padding?: AllPadding | number, buffer?: V
 
 interface VerticalPadding { top?: number, bottom?: number }
 interface HorizontalPadding { left?: number, right?: number }
-type AllPadding = VerticalPadding & HorizontalPadding
+export type AllPadding = VerticalPadding & HorizontalPadding
 
 interface CacheData { offsetTop: number, offsetHeight: number, contentWidth: number, contentHeight: number }
