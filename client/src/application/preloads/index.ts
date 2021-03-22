@@ -1,4 +1,4 @@
-import { ipcRenderer, remote, shell } from "electron"
+import { ipcRenderer, remote, shell, contextBridge } from "electron"
 
 /**
  * 定义在client，但实际上要注入页面在前端运行的脚本。
@@ -165,11 +165,8 @@ function ipcOn<T>(channel: string, event: (arg?: T) => void) {
     })
 }
 
-(() => {
-    const w = window as any
-    w["clientMode"] = true
-    w["ipcInvoke"] = ipcInvoke
-    w["ipcInvokeSync"] = ipcInvokeSync
-    w["ipcOn"] = ipcOn
-    w["createRemoteClientAdapter"] = createRemoteClientAdapter
-})()
+contextBridge.exposeInMainWorld("clientMode", true)
+contextBridge.exposeInMainWorld("ipcInvoke", ipcInvoke)
+contextBridge.exposeInMainWorld("ipcInvokeSync", ipcInvokeSync)
+contextBridge.exposeInMainWorld("ipcOn", ipcOn)
+contextBridge.exposeInMainWorld("createRemoteClientAdapter", createRemoteClientAdapter)
