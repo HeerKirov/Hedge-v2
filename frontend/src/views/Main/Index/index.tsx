@@ -1,18 +1,37 @@
-import { defineComponent } from "vue"
-import { TopBar } from "@/layouts/SideLayout"
+import { defineComponent, ref } from "vue"
+import TopBarLayout from "@/layouts/TopBarLayout"
+import VirtualGrid from "@/layouts/VirtualList/VirtualGrid"
 
 export default defineComponent({
     setup() {
-        return () => <div class="group pl-2 pt-2">
-            <div style="margin-top: 40px">
-                <button class="button"><span class="icon"><i class="fa fa-bars fa-lg"/></span><span>测试</span></button>
-                <button class="button square"><span class="icon"><i class="fa fa-bars fa-lg"/></span></button>
-                <button class="button">测试文本</button>
-                <button class="button is-small">测试文本</button>
-            </div>
-            <TopBar>
-                hello
-            </TopBar>
+        const data = ref<{limit: number, offset: number, total: number | undefined, data: string[]}>({limit: 0, offset: 0, total: undefined, data: []})
+
+        const dataUpdate = async (offset: number, limit: number) => {
+            const r = await mockData(offset, limit)
+            data.value = {offset, limit: r.data.length, total: r.total, data: r.data}
+        }
+
+        return () => <div>
+            <TopBarLayout v-slots={{
+                topBar: () => <span>hello</span>,
+                default: () => <div class="w-100 h-100">
+                    <VirtualGrid onUpdate={dataUpdate} columnCount={6} buffer={450}
+                                 total={data.value.total} limit={data.value.limit} offset={data.value.offset}>
+                        {data.value.data.map(item => <div style="width: 16.666666667%; aspect-ratio: 1">
+                            <div class="box mr-1 w-100 h-100">{item}</div>
+                        </div>)}
+                    </VirtualGrid>
+                </div>
+            }}/>
         </div>
     }
 })
+
+const mockedTotal = 200
+const mockedData: string[] = Array(mockedTotal).fill(0).map((_, i) => `item ${i}`)
+
+function mockData(offset: number, limit: number): Promise<{total: number, data: string[]}> {
+    return new Promise(resolve => {
+        setTimeout(() => resolve({total: mockedTotal, data: mockedData.slice(offset, limit + offset)}), 20)
+    })
+}
