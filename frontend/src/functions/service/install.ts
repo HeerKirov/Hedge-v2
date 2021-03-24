@@ -3,7 +3,7 @@ import { HttpClient, HttpInstanceConfig, createHttpClient, createHttpInstance } 
 import { clientMode, remote, ipc } from "@/functions/adapter-ipc"
 import { performanceTimer } from "@/utils/performance-timer"
 import { AppInfo, AppState, AppInfoInjection, AppStateInjection, useAppStateInjection } from "./app-state"
-import { FullscreenInjection, useFullscreenInjection } from "./app-fullscreen"
+import { fullscreenInjection, useFullscreenInjection } from "./app-fullscreen"
 import { useErrorHandler } from "./error-handler"
 
 interface AppServiceOptions {
@@ -29,7 +29,7 @@ function installAppService(options: AppServiceOptions): {appInfo: AppInfo, appSt
 
     provide(AppInfoInjection, appInfo)
     provide(AppStateInjection, appState)
-    provide(FullscreenInjection, fullscreen)
+    provide(fullscreenInjection, fullscreen)
     provide(HttpClientInjection, httpClient)
 
     return { appInfo, appState, httpClient }

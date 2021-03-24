@@ -1,6 +1,6 @@
 import { defineComponent, ref } from "vue"
 import TopBarLayout from "@/layouts/TopBarLayout"
-import VirtualGrid from "@/layouts/VirtualList/VirtualGrid"
+import VirtualGrid from "@/layouts/VirtualScrollView/VirtualGrid"
 
 export default defineComponent({
     setup() {
@@ -8,6 +8,7 @@ export default defineComponent({
 
         const dataUpdate = async (offset: number, limit: number) => {
             const r = await mockData(offset, limit)
+            console.log(`data update (${offset}, ${r.data.length}, ${r.total})`)
             data.value = {offset, limit: r.data.length, total: r.total, data: r.data}
         }
 
@@ -17,6 +18,7 @@ export default defineComponent({
                 default: () => <div class="w-100 h-100">
                     <VirtualGrid onUpdate={dataUpdate} columnCount={6} buffer={450}
                                  total={data.value.total} limit={data.value.limit} offset={data.value.offset}>
+                        {console.log(`render ${data.value.data.length} item`)}
                         {data.value.data.map(item => <div style="width: 16.666666667%; aspect-ratio: 1">
                             <div class="box mr-1 w-100 h-100">{item}</div>
                         </div>)}

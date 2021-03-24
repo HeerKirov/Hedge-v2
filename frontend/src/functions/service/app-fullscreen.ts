@@ -24,7 +24,7 @@ export function useFullscreenInjection(clientMode: boolean, remote: RemoteClient
 }
 
 export function useFullscreen(): Ref<boolean> {
-    return inject(FullscreenInjection)!
+    return inject(fullscreenInjection)!
 }
 
-export const FullscreenInjection: InjectionKey<Ref<boolean>> = Symbol()
+export const fullscreenInjection: InjectionKey<Ref<boolean>> = Symbol()

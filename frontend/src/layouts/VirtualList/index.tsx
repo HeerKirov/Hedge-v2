@@ -42,7 +42,8 @@ export default defineComponent({
         /**
          * 当前slot给出的内容，在虚拟列表中的实际offset height。如果不给，默认为0。
          */
-        actualOffsetHeight: Number
+        actualOffsetHeight: Number,
+
     },
     emits: ["update"],
     setup(props, { emit, slots }) {

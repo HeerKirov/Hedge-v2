@@ -3,13 +3,34 @@ import VirtualList, { AllPadding, UpdateEvent } from "."
 
 export default defineComponent({
     props: {
+        /**
+         * 位于滚动区域和内容中夹着的padding。这部分padding会被自动算入容器高度。
+         */
         padding: null as any as PropType<AllPadding | number>,
+        /**
+         * 位于可视范围外的缓冲区大小。
+         */
         buffer: {type: Number, default: 0},
+        /**
+         * Grid的列数。
+         */
         columnCount: {type: Number, default: 3},
+        /**
+         * 每个Grid Unit的宽高比。
+         */
         aspectRatio: {type: Number, default: 1},
+        /**
+         * 数据项的总项数。设置为undefined会被认为是需要加载数据。
+         */
+        total: Number,
+        /**
+         * 当前提供的数据项的limit。
+         */
         limit: Number,
+        /**
+         * 当前提供的数据项的offset。
+         */
         offset: Number,
-        total: Number
     },
     emits: {
         update: (_offset: number, _limit: number) => true
