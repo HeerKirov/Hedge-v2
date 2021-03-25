@@ -8,7 +8,6 @@ export default defineComponent({
 
         const dataUpdate = async (offset: number, limit: number) => {
             const r = await mockData(offset, limit)
-            console.log(`data update (${offset}, ${r.data.length}, ${r.total})`)
             data.value = {offset, limit: r.data.length, total: r.total, data: r.data}
         }
 

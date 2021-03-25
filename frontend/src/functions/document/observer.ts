@@ -7,10 +7,7 @@ import { onMounted, onUnmounted, Ref, watch } from "vue"
  */
 export function watchElementResize(ref: Ref<HTMLElement | undefined>, event: (rect: DOMRect) => void) {
     let element: HTMLElement | undefined = undefined
-    const observer = new ResizeObserver((entries, observer) => {
-        const entry = entries[0]
-        event(entry.contentRect)
-    })
+    const observer = new ResizeObserver(entries => event(entries[0].contentRect))
 
     onMounted(() => {
         if(ref.value) observer.observe(element = ref.value)
