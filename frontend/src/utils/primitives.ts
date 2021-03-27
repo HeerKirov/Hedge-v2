@@ -6,6 +6,9 @@ export const numbers = {
     },
     floorHalfDecimal(n: number): number {
         return Math.floor(n * 2) / 2
+    },
+    between(min: number, value: number, max: number): number {
+        return value < min ? min : value > max ? max : value
     }
 }
 

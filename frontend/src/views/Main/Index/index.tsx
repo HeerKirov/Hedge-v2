@@ -1,6 +1,6 @@
-import { computed, defineComponent, onMounted, ref } from "vue"
+import { computed, defineComponent, ref } from "vue"
 import TopBarLayout from "@/layouts/TopBarLayout"
-import VirtualGrid, { useScrollView } from "@/layouts/VirtualScrollView/VirtualGrid"
+import { VirtualGrid, useScrollView } from "@/components/VirtualScrollView"
 import NumberInput from "@/components/NumberInput"
 
 export default defineComponent({
@@ -27,9 +27,9 @@ export default defineComponent({
                     </div>
                 </div>,
                 default: () => <div class="w-100 h-100">
-                    <VirtualGrid onUpdate={dataUpdate} columnCount={columnCount.value} buffer={450} minUpdateDelta={1}
+                    <VirtualGrid onUpdate={dataUpdate} columnCount={columnCount.value} bufferSize={6} minUpdateDelta={2}
                                  total={data.value.total} limit={data.value.limit} offset={data.value.offset}>
-                        {data.value.data.map(item => <div style={`aspect-ratio: 1; width: ${columnWidthStyle.value}`}>
+                        {data.value.data.map(item => <div key={item} style={`aspect-ratio: 1; width: ${columnWidthStyle.value}`}>
                             <div class="box mr-1 w-100 h-100">{item}</div>
                         </div>)}
                     </VirtualGrid>

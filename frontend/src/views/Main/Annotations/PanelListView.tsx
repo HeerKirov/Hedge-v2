@@ -1,6 +1,6 @@
 import { defineComponent, PropType, ref } from "vue"
 import { Annotation, AnnotationTarget } from "@/functions/adapter-http/impl/annotations"
-import VirtualRow from "@/layouts/VirtualList/VirtualRow"
+import { VirtualRow } from "@/components/VirtualScrollView"
 
 /**
  * 内容列表项视图。
@@ -31,7 +31,7 @@ export default defineComponent({
     }
 })
 
-const mockedTotal = 39
+const mockedTotal = 100
 const mockedData: Annotation[] = Array(mockedTotal).fill(0).map((_, i) => ({ id: i, name: `注解${i}`, canBeExported: i % 3 === 0, target: ["AUTHOR", "WORK", "CHARACTER"] }))
 
 function mockData(offset: number, limit: number): Promise<{total: number, data: Annotation[]}> {
