@@ -1,6 +1,7 @@
-import { defineComponent, ref } from "vue"
+import { computed, defineComponent, onMounted, ref } from "vue"
 import TopBarLayout from "@/layouts/TopBarLayout"
-import VirtualGrid from "@/layouts/VirtualScrollView/VirtualGrid"
+import VirtualGrid, { useScrollView } from "@/layouts/VirtualScrollView/VirtualGrid"
+import NumberInput from "@/components/NumberInput"
 
 export default defineComponent({
     setup() {
@@ -11,14 +12,24 @@ export default defineComponent({
             data.value = {offset, limit: r.data.length, total: r.total, data: r.data}
         }
 
+        const view = useScrollView()
+        const columnCount = ref(6)
+        const columnWidthStyle = computed(() => `${100 / columnCount.value}%`)
+
         return () => <div>
             <TopBarLayout v-slots={{
-                topBar: () => <span>hello</span>,
+                topBar: () => <div class="middle-layout">
+                    <div class="left no-drag">
+                        <NumberInput class="is-small is-width-half" value={columnCount.value} onUpdateValue={v => columnCount.value = v}/>
+                    </div>
+                    <div class="right single-line-group no-drag">
+                        <NumberInput class="is-small is-width-half" value={view.state.itemOffset} onUpdateValue={v => view.navigateTo(v)}/><span class="mr-1">/</span><span class="tag">{data.value.total}</span>
+                    </div>
+                </div>,
                 default: () => <div class="w-100 h-100">
-                    <VirtualGrid onUpdate={dataUpdate} columnCount={6} buffer={450}
+                    <VirtualGrid onUpdate={dataUpdate} columnCount={columnCount.value} buffer={450} minUpdateDelta={1}
                                  total={data.value.total} limit={data.value.limit} offset={data.value.offset}>
-                        {console.log(`render ${data.value.data.length} item`)}
-                        {data.value.data.map(item => <div style="width: 16.666666667%; aspect-ratio: 1">
+                        {data.value.data.map(item => <div style={`aspect-ratio: 1; width: ${columnWidthStyle.value}`}>
                             <div class="box mr-1 w-100 h-100">{item}</div>
                         </div>)}
                     </VirtualGrid>
