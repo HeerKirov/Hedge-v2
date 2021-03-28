@@ -74,11 +74,13 @@ export function useBasicVirtualComponent({ props, onRefresh }: BasicVirtualCompo
         totalHeight: undefined, top: 0, height: 0
     })
 
-    const actualOffsetStyle = computed(() => ({
-        height: `${actual.value.height}px`,
-        paddingTop: `${actual.value.top}px`,
-        paddingBottom: `${(actual.value.totalHeight ?? 0) - actual.value.top - actual.value.height}px`
-    }))
+    const actualOffsetStyle = computed(() => {
+        return ({
+            height: `${actual.value.height.toFixed(3)}px`,
+            paddingTop: `${actual.value.top.toFixed(3)}px`,
+            paddingBottom: `${((actual.value.totalHeight ?? 0) - actual.value.top - actual.value.height).toFixed(3)}px`
+        })
+    })
 
     //底层事件: 发生滚动事件时重新计算propose offset
     const onScroll = (e: Event) => {

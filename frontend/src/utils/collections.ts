@@ -1,6 +1,17 @@
 export const arrays = {
     newArray<T>(length: number, generator: (index: number) => T): T[] {
         return Array(length).fill(null).map((_, index) => generator(index))
+    },
+    split<T>(arr: T[], condition: (prev: T, next: T) => boolean): T[][] {
+        const result: T[][] = []
+        let beginIndex = 0
+        for(let i = 0; i < arr.length; i++) {
+            if(i + 1 === arr.length || condition(arr[i], arr[i + 1])) {
+                result.push(arr.slice(beginIndex, i + 1))
+                beginIndex = i + 1
+            }
+        }
+        return result
     }
 }
 
