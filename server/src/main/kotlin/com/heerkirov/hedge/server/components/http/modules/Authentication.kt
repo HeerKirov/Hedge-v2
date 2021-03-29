@@ -14,6 +14,7 @@ import io.javalin.http.Context
  * 使用before handler拦截所有需要认证的API，验证其token，检验token是否能访问目标API，然后放通。
  */
 class Authentication(private val baseToken: String, private val webAccessor: WebAccessor, private val webController: WebController) : Endpoints {
+    private val localhost = setOf("localhost", "127.0.0.1", "::1", "0:0:0:0:0:0:0:1", "[::1]", "[0:0:0:0:0:0:0:1]")
     private val prefixBearer = "bearer "
 
     override fun handle(javalin: Javalin) {
@@ -29,7 +30,7 @@ class Authentication(private val baseToken: String, private val webAccessor: Web
 
         if(baseToken == userToken) {
             //通过baseToken的验证
-            if(!(ctx.req.remoteHost == "127.0.0.1" || ctx.req.remoteHost == "::1" || ctx.req.remoteHost == "0:0:0:0:0:0:0:1" || ctx.req.remoteHost == "localhost")) {
+            if(ctx.req.remoteHost !in localhost) {
                 throw RemoteDisabled()
             }
             return
@@ -48,7 +49,7 @@ class Authentication(private val baseToken: String, private val webAccessor: Web
 
         if(baseToken == userToken) {
             //通过baseToken的验证
-            if(!(ctx.req.remoteHost == "127.0.0.1" || ctx.req.remoteHost == "::1" || ctx.req.remoteHost == "0:0:0:0:0:0:0:1" || ctx.req.remoteHost == "localhost")) {
+            if(ctx.req.remoteHost !in localhost) {
                 throw RemoteDisabled()
             }
             return
