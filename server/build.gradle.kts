@@ -1,6 +1,6 @@
 plugins {
     application
-    kotlin("jvm").version("1.4.21")
+    kotlin("jvm").version("1.4.32")
     id("com.github.johnrengelman.shadow").version("4.0.3")
     id("org.beryx.jlink").version("2.22.1")
 }
@@ -9,11 +9,11 @@ group = "com.heerkirov.hedge.server"
 version = "0.1.0"
 
 dependencies {
-    val kotlinVersion = "1.4.21"
-    val javalinVersion = "3.11.0"
-    val ktormVersion = "3.1.0"
+    val kotlinVersion = "1.4.32"
+    val javalinVersion = "3.13.4"
+    val ktormVersion = "3.3.0"
     val sqliteVersion = "3.32.3.2"
-    val jacksonVersion = "2.11.3"
+    val jacksonVersion = "2.12.2"
     val javeVersion = "3.0.1"
     val plistVersion = "1.23"
     val slf4jVersion = "1.7.30"
@@ -24,8 +24,8 @@ dependencies {
     implementation(group = "com.fasterxml.jackson.core", name = "jackson-core", version = jacksonVersion)
     implementation(group = "com.fasterxml.jackson.module", name = "jackson-module-kotlin", version = jacksonVersion)
     implementation(group = "org.xerial", name = "sqlite-jdbc", version = sqliteVersion)
-    implementation(group = "me.liuwj.ktorm", name = "ktorm-core", version = ktormVersion)
-    implementation(group = "me.liuwj.ktorm", name = "ktorm-support-sqlite", version = ktormVersion)
+    implementation(group = "org.ktorm", name = "ktorm-core", version = ktormVersion)
+    implementation(group = "org.ktorm", name = "ktorm-support-sqlite", version = ktormVersion)
     implementation(group = "io.javalin", name = "javalin", version = javalinVersion)
     implementation(group = "ws.schild", name = "jave-core", version = javeVersion)
     implementation(group = "ws.schild", name = "jave-nativebin-osx64", version = javeVersion)

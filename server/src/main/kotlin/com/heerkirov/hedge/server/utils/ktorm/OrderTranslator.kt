@@ -2,9 +2,9 @@ package com.heerkirov.hedge.server.utils.ktorm
 
 import com.heerkirov.hedge.server.exceptions.ParamTypeError
 import com.heerkirov.hedge.server.utils.types.OrderItem
-import me.liuwj.ktorm.dsl.*
-import me.liuwj.ktorm.expression.OrderByExpression
-import me.liuwj.ktorm.schema.ColumnDeclaring
+import org.ktorm.dsl.*
+import org.ktorm.expression.OrderByExpression
+import org.ktorm.schema.ColumnDeclaring
 
 
 /**

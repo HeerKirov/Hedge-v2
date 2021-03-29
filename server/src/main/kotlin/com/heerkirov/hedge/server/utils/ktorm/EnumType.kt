@@ -1,9 +1,9 @@
 package com.heerkirov.hedge.server.utils.ktorm
 
-import me.liuwj.ktorm.schema.BaseTable
-import me.liuwj.ktorm.schema.Column
-import me.liuwj.ktorm.schema.SqlType
-import me.liuwj.ktorm.schema.TypeReference
+import org.ktorm.schema.BaseTable
+import org.ktorm.schema.Column
+import org.ktorm.schema.SqlType
+import org.ktorm.schema.TypeReference
 import java.sql.PreparedStatement
 import java.sql.ResultSet
 import java.sql.Types

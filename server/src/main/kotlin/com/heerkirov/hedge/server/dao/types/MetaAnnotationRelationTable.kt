@@ -1,7 +1,7 @@
 package com.heerkirov.hedge.server.dao.types
 
-import me.liuwj.ktorm.schema.BaseTable
-import me.liuwj.ktorm.schema.Column
+import org.ktorm.schema.BaseTable
+import org.ktorm.schema.Column
 
 /**
  * 标签和注解类型的关系表的抽象表。

@@ -17,7 +17,7 @@ import com.heerkirov.hedge.server.model.meta.Annotation
 import com.heerkirov.hedge.server.model.meta.Tag
 import com.heerkirov.hedge.server.utils.ktorm.first
 import com.heerkirov.hedge.server.utils.runIf
-import me.liuwj.ktorm.dsl.*
+import org.ktorm.dsl.*
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.collections.ArrayList

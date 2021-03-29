@@ -30,12 +30,12 @@ import com.heerkirov.hedge.server.utils.ktorm.firstOrNull
 import com.heerkirov.hedge.server.utils.ktorm.orderBy
 import com.heerkirov.hedge.server.utils.runIf
 import com.heerkirov.hedge.server.utils.types.*
-import me.liuwj.ktorm.dsl.*
-import me.liuwj.ktorm.entity.filter
-import me.liuwj.ktorm.entity.first
-import me.liuwj.ktorm.entity.firstOrNull
-import me.liuwj.ktorm.entity.sequenceOf
-import me.liuwj.ktorm.expression.BinaryExpression
+import org.ktorm.dsl.*
+import org.ktorm.entity.filter
+import org.ktorm.entity.first
+import org.ktorm.entity.firstOrNull
+import org.ktorm.entity.sequenceOf
+import org.ktorm.expression.BinaryExpression
 import kotlin.math.roundToInt
 
 class IllustService(private val data: DataRepository,

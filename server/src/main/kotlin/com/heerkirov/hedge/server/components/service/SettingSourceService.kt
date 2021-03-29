@@ -8,9 +8,9 @@ import com.heerkirov.hedge.server.exceptions.CascadeResourceExists
 import com.heerkirov.hedge.server.exceptions.NotFound
 import com.heerkirov.hedge.server.form.SiteCreateForm
 import com.heerkirov.hedge.server.form.SiteUpdateForm
-import me.liuwj.ktorm.dsl.eq
-import me.liuwj.ktorm.entity.any
-import me.liuwj.ktorm.entity.sequenceOf
+import org.ktorm.dsl.eq
+import org.ktorm.entity.any
+import org.ktorm.entity.sequenceOf
 
 class SettingSourceService(private val data: DataRepository) {
     fun list(): List<SourceOption.Site> {

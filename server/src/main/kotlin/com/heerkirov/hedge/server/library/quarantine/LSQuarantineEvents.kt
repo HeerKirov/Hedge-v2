@@ -1,9 +1,9 @@
 package com.heerkirov.hedge.server.library.quarantine
 
-import me.liuwj.ktorm.dsl.QueryRowSet
-import me.liuwj.ktorm.schema.BaseTable
-import me.liuwj.ktorm.schema.long
-import me.liuwj.ktorm.schema.varchar
+import org.ktorm.dsl.QueryRowSet
+import org.ktorm.schema.BaseTable
+import org.ktorm.schema.long
+import org.ktorm.schema.varchar
 
 object LSQuarantineEvents : BaseTable<LSQuarantineEvent>("LSQuarantineEvent") {
     val timestamp = long("LSQuarantineTimeStamp")

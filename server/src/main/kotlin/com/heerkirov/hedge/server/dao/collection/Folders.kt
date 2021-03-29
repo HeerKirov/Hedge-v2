@@ -1,11 +1,11 @@
 package com.heerkirov.hedge.server.dao.collection
 
 import com.heerkirov.hedge.server.model.collection.Folder
-import me.liuwj.ktorm.dsl.QueryRowSet
-import me.liuwj.ktorm.schema.BaseTable
-import me.liuwj.ktorm.schema.datetime
-import me.liuwj.ktorm.schema.int
-import me.liuwj.ktorm.schema.varchar
+import org.ktorm.dsl.QueryRowSet
+import org.ktorm.schema.BaseTable
+import org.ktorm.schema.datetime
+import org.ktorm.schema.int
+import org.ktorm.schema.varchar
 
 object Folders : BaseTable<Folder>("folder") {
     val id = int("id").primaryKey()

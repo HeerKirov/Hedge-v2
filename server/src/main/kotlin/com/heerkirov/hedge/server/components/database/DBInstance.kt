@@ -5,7 +5,7 @@ import com.heerkirov.hedge.server.utils.Fs
 import com.heerkirov.hedge.server.utils.ktorm.HedgeDialect
 import com.heerkirov.hedge.server.utils.migrations.VersionFileMigrator
 import com.heerkirov.hedge.server.utils.toJSONString
-import me.liuwj.ktorm.database.Database
+import org.ktorm.database.Database
 import java.io.Closeable
 import java.sql.Connection
 import java.sql.DriverManager

@@ -1,9 +1,9 @@
 package com.heerkirov.hedge.server.dao.collection
 
 import com.heerkirov.hedge.server.model.collection.FolderImageRelation
-import me.liuwj.ktorm.dsl.QueryRowSet
-import me.liuwj.ktorm.schema.BaseTable
-import me.liuwj.ktorm.schema.int
+import org.ktorm.dsl.QueryRowSet
+import org.ktorm.schema.BaseTable
+import org.ktorm.schema.int
 
 object FolderImageRelations : BaseTable<FolderImageRelation>("folder_image_relation") {
     val folderId = int("folder_id")

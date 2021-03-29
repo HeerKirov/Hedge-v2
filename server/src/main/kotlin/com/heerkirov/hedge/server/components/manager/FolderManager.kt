@@ -5,10 +5,10 @@ import com.heerkirov.hedge.server.components.kit.FolderKit
 import com.heerkirov.hedge.server.dao.collection.FolderImageRelations
 import com.heerkirov.hedge.server.dao.collection.Folders
 import com.heerkirov.hedge.server.utils.DateTime
-import me.liuwj.ktorm.dsl.*
-import me.liuwj.ktorm.entity.filter
-import me.liuwj.ktorm.entity.map
-import me.liuwj.ktorm.entity.sequenceOf
+import org.ktorm.dsl.*
+import org.ktorm.entity.filter
+import org.ktorm.entity.map
+import org.ktorm.entity.sequenceOf
 
 class FolderManager(private val data: DataRepository, private val kit: FolderKit) {
     /**

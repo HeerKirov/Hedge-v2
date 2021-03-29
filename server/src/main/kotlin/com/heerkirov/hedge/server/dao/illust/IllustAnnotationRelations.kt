@@ -4,10 +4,10 @@ import com.heerkirov.hedge.server.dao.types.EntityAnnotationRelationTable
 import com.heerkirov.hedge.server.model.meta.Annotation
 import com.heerkirov.hedge.server.model.illust.IllustAnnotationRelation
 import com.heerkirov.hedge.server.utils.ktorm.composition
-import me.liuwj.ktorm.dsl.QueryRowSet
-import me.liuwj.ktorm.schema.BaseTable
-import me.liuwj.ktorm.schema.Column
-import me.liuwj.ktorm.schema.int
+import org.ktorm.dsl.QueryRowSet
+import org.ktorm.schema.BaseTable
+import org.ktorm.schema.Column
+import org.ktorm.schema.int
 
 open class IllustAnnotationRelations(alias: String?) : EntityAnnotationRelationTable<IllustAnnotationRelation>("illust_annotation_relation", alias = alias) {
     companion object : IllustAnnotationRelations(null)

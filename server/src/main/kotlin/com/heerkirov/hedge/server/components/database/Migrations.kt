@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.heerkirov.hedge.server.utils.Resources
 import com.heerkirov.hedge.server.utils.SQLUtil
 import com.heerkirov.hedge.server.utils.migrations.*
-import me.liuwj.ktorm.database.Database
+import org.ktorm.database.Database
 
 object MetadataMigrationStrategy : JsonObjectStrategy<Metadata>(Metadata::class) {
     override fun defaultData(): Metadata {

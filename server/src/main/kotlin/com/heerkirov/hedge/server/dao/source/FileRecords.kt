@@ -3,8 +3,8 @@ package com.heerkirov.hedge.server.dao.source
 import com.heerkirov.hedge.server.model.source.FileRecord
 import com.heerkirov.hedge.server.utils.ktorm.enum
 import com.heerkirov.hedge.server.utils.ktorm.json
-import me.liuwj.ktorm.dsl.QueryRowSet
-import me.liuwj.ktorm.schema.*
+import org.ktorm.dsl.QueryRowSet
+import org.ktorm.schema.*
 
 object FileRecords : BaseTable<FileRecord>("file", schema = "origin_db") {
     val id = int("id").primaryKey()

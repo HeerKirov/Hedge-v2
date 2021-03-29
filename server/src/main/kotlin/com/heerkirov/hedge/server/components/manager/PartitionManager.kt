@@ -2,9 +2,9 @@ package com.heerkirov.hedge.server.components.manager
 
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.dao.collection.Partitions
-import me.liuwj.ktorm.dsl.*
-import me.liuwj.ktorm.entity.firstOrNull
-import me.liuwj.ktorm.entity.sequenceOf
+import org.ktorm.dsl.*
+import org.ktorm.entity.firstOrNull
+import org.ktorm.entity.sequenceOf
 import java.time.LocalDate
 
 class PartitionManager(private val data: DataRepository) {

@@ -11,9 +11,9 @@ import com.heerkirov.hedge.server.model.meta.Author
 import com.heerkirov.hedge.server.tools.checkTagName
 import com.heerkirov.hedge.server.utils.ktorm.asSequence
 import com.heerkirov.hedge.server.utils.runIf
-import me.liuwj.ktorm.dsl.*
-import me.liuwj.ktorm.entity.any
-import me.liuwj.ktorm.entity.sequenceOf
+import org.ktorm.dsl.*
+import org.ktorm.entity.any
+import org.ktorm.entity.sequenceOf
 
 class AuthorKit(private val data: DataRepository, private val annotationManager: AnnotationManager) {
     /**

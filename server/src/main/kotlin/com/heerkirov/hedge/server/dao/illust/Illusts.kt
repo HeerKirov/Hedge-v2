@@ -4,8 +4,8 @@ import com.heerkirov.hedge.server.model.illust.Illust
 import com.heerkirov.hedge.server.utils.ktorm.composition
 import com.heerkirov.hedge.server.utils.ktorm.enum
 import com.heerkirov.hedge.server.utils.ktorm.json
-import me.liuwj.ktorm.dsl.QueryRowSet
-import me.liuwj.ktorm.schema.*
+import org.ktorm.dsl.QueryRowSet
+import org.ktorm.schema.*
 
 object Illusts : BaseTable<Illust>("illust") {
     val id = int("id").primaryKey()

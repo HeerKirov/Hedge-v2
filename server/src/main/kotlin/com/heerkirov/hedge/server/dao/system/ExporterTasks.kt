@@ -2,8 +2,8 @@ package com.heerkirov.hedge.server.dao.system
 
 import com.heerkirov.hedge.server.model.system.ExporterTask
 import com.heerkirov.hedge.server.utils.ktorm.enum
-import me.liuwj.ktorm.dsl.QueryRowSet
-import me.liuwj.ktorm.schema.*
+import org.ktorm.dsl.QueryRowSet
+import org.ktorm.schema.*
 
 object ExporterTasks : BaseTable<ExporterTask>("exporter_task", schema = "system_db") {
     val id = int("id").primaryKey()

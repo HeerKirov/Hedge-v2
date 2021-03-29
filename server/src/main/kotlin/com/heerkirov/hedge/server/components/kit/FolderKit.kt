@@ -9,9 +9,9 @@ import com.heerkirov.hedge.server.exceptions.ParamTypeError
 import com.heerkirov.hedge.server.exceptions.ResourceNotExist
 import com.heerkirov.hedge.server.model.illust.Illust
 import com.heerkirov.hedge.server.utils.runIf
-import me.liuwj.ktorm.dsl.*
-import me.liuwj.ktorm.dsl.map
-import me.liuwj.ktorm.entity.*
+import org.ktorm.dsl.*
+import org.ktorm.dsl.map
+import org.ktorm.entity.*
 
 class FolderKit(private val data: DataRepository) {
     /**

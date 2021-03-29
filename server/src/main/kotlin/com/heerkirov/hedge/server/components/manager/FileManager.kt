@@ -10,12 +10,12 @@ import com.heerkirov.hedge.server.tools.getFilepath
 import com.heerkirov.hedge.server.tools.getThumbnailFilepath
 import com.heerkirov.hedge.server.utils.*
 import com.heerkirov.hedge.server.utils.DateTime.toDateString
-import me.liuwj.ktorm.dsl.delete
-import me.liuwj.ktorm.dsl.eq
-import me.liuwj.ktorm.dsl.insertAndGenerateKey
-import me.liuwj.ktorm.dsl.update
-import me.liuwj.ktorm.entity.firstOrNull
-import me.liuwj.ktorm.entity.sequenceOf
+import org.ktorm.dsl.delete
+import org.ktorm.dsl.eq
+import org.ktorm.dsl.insertAndGenerateKey
+import org.ktorm.dsl.update
+import org.ktorm.entity.firstOrNull
+import org.ktorm.entity.sequenceOf
 import java.io.File
 import java.time.LocalDate
 

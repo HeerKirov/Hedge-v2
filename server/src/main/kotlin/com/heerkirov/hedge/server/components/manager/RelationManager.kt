@@ -4,7 +4,7 @@ import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.dao.illust.Illusts
 import com.heerkirov.hedge.server.exceptions.ResourceNotExist
 import com.heerkirov.hedge.server.utils.RelationGraph
-import me.liuwj.ktorm.dsl.*
+import org.ktorm.dsl.*
 
 class RelationManager(private val data: DataRepository) {
     /**

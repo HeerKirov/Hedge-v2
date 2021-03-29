@@ -2,7 +2,7 @@ package com.heerkirov.hedge.server.tools
 
 import com.heerkirov.hedge.server.dao.source.FileRecords
 import com.heerkirov.hedge.server.model.source.FileRecord
-import me.liuwj.ktorm.dsl.QueryRowSet
+import org.ktorm.dsl.QueryRowSet
 
 
 /**

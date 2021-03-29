@@ -5,9 +5,9 @@ import com.heerkirov.hedge.server.library.compiler.semantic.plan.MetaString
 import com.heerkirov.hedge.server.library.compiler.semantic.plan.MetaType
 import com.heerkirov.hedge.server.model.meta.Annotation
 import com.heerkirov.hedge.server.utils.ktorm.escapeLike
-import me.liuwj.ktorm.dsl.eq
-import me.liuwj.ktorm.dsl.or
-import me.liuwj.ktorm.expression.BinaryExpression
+import org.ktorm.dsl.eq
+import org.ktorm.dsl.or
+import org.ktorm.expression.BinaryExpression
 import java.util.concurrent.ConcurrentHashMap
 
 internal object MetaParserUtil {

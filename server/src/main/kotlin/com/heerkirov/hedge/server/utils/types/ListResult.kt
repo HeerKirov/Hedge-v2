@@ -1,9 +1,9 @@
 package com.heerkirov.hedge.server.utils.types
 
 import com.heerkirov.hedge.server.form.ErrorResult
-import me.liuwj.ktorm.dsl.Query
-import me.liuwj.ktorm.dsl.QueryRowSet
-import me.liuwj.ktorm.dsl.map
+import org.ktorm.dsl.Query
+import org.ktorm.dsl.QueryRowSet
+import org.ktorm.dsl.map
 
 data class ListResult<T>(val total: Int, val result: List<T>)
 

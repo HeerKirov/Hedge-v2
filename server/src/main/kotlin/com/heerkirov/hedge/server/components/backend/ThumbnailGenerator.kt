@@ -13,8 +13,8 @@ import com.heerkirov.hedge.server.tools.getFilepath
 import com.heerkirov.hedge.server.tools.getThumbnailFilepath
 import com.heerkirov.hedge.server.utils.controlledThread
 import com.heerkirov.hedge.server.utils.deleteIfExists
-import me.liuwj.ktorm.dsl.*
-import me.liuwj.ktorm.entity.*
+import org.ktorm.dsl.*
+import org.ktorm.entity.*
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.util.*

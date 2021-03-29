@@ -25,10 +25,10 @@ import com.heerkirov.hedge.server.utils.types.ListResult
 import com.heerkirov.hedge.server.utils.types.anyOpt
 import com.heerkirov.hedge.server.utils.types.descendingOrderItem
 import com.heerkirov.hedge.server.utils.types.toListResult
-import me.liuwj.ktorm.dsl.*
-import me.liuwj.ktorm.entity.count
-import me.liuwj.ktorm.entity.firstOrNull
-import me.liuwj.ktorm.entity.sequenceOf
+import org.ktorm.dsl.*
+import org.ktorm.entity.count
+import org.ktorm.entity.firstOrNull
+import org.ktorm.entity.sequenceOf
 
 class FolderService(private val data: DataRepository,
                     private val kit: FolderKit,

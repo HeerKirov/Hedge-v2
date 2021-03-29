@@ -11,7 +11,7 @@ import com.heerkirov.hedge.server.utils.DateTime.asZonedTime
 import com.heerkirov.hedge.server.utils.DateTime.parseDateTime
 import com.heerkirov.hedge.server.utils.DateTime.toMillisecond
 import com.heerkirov.hedge.server.utils.runIf
-import me.liuwj.ktorm.dsl.insertAndGenerateKey
+import org.ktorm.dsl.insertAndGenerateKey
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.attribute.BasicFileAttributes

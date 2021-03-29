@@ -2,8 +2,8 @@ package com.heerkirov.hedge.server.dao.meta
 
 import com.heerkirov.hedge.server.model.meta.Annotation
 import com.heerkirov.hedge.server.utils.ktorm.composition
-import me.liuwj.ktorm.dsl.QueryRowSet
-import me.liuwj.ktorm.schema.*
+import org.ktorm.dsl.QueryRowSet
+import org.ktorm.schema.*
 
 object Annotations : BaseTable<Annotation>("annotation", schema = "meta_db") {
     val id = int("id").primaryKey()

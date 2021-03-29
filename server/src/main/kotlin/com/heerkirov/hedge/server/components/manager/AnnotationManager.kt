@@ -4,10 +4,10 @@ import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.dao.meta.Annotations
 import com.heerkirov.hedge.server.exceptions.*
 import com.heerkirov.hedge.server.model.meta.Annotation
-import me.liuwj.ktorm.dsl.*
-import me.liuwj.ktorm.entity.filter
-import me.liuwj.ktorm.entity.sequenceOf
-import me.liuwj.ktorm.entity.toList
+import org.ktorm.dsl.*
+import org.ktorm.entity.filter
+import org.ktorm.entity.sequenceOf
+import org.ktorm.entity.toList
 
 class AnnotationManager(private val data: DataRepository) {
     /**

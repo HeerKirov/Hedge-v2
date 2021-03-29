@@ -25,9 +25,9 @@ import com.heerkirov.hedge.server.utils.ktorm.firstOrNull
 import com.heerkirov.hedge.server.utils.ktorm.orderBy
 import com.heerkirov.hedge.server.utils.runIf
 import com.heerkirov.hedge.server.utils.types.*
-import me.liuwj.ktorm.dsl.*
-import me.liuwj.ktorm.entity.firstOrNull
-import me.liuwj.ktorm.entity.sequenceOf
+import org.ktorm.dsl.*
+import org.ktorm.entity.firstOrNull
+import org.ktorm.entity.sequenceOf
 
 class AlbumService(private val data: DataRepository,
                    private val kit: AlbumKit,

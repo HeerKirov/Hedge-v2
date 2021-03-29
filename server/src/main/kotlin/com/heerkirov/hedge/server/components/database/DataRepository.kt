@@ -2,9 +2,9 @@ package com.heerkirov.hedge.server.components.database
 
 import com.heerkirov.hedge.server.enums.LoadStatus
 import com.heerkirov.hedge.server.library.framework.Component
-import me.liuwj.ktorm.database.Database
-import me.liuwj.ktorm.database.Transaction
-import me.liuwj.ktorm.database.TransactionIsolation
+import org.ktorm.database.Database
+import org.ktorm.database.Transaction
+import org.ktorm.database.TransactionIsolation
 import java.lang.RuntimeException
 
 /**

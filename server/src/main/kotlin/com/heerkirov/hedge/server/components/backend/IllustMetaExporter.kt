@@ -18,8 +18,8 @@ import com.heerkirov.hedge.server.utils.ktorm.firstOrNull
 import com.heerkirov.hedge.server.utils.types.Opt
 import com.heerkirov.hedge.server.utils.types.anyOpt
 import com.heerkirov.hedge.server.utils.types.undefined
-import me.liuwj.ktorm.dsl.*
-import me.liuwj.ktorm.entity.*
+import org.ktorm.dsl.*
+import org.ktorm.entity.*
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.concurrent.atomic.AtomicInteger

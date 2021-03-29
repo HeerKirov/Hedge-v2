@@ -10,11 +10,11 @@ import com.heerkirov.hedge.server.model.meta.Topic
 import com.heerkirov.hedge.server.tools.checkTagName
 import com.heerkirov.hedge.server.utils.ktorm.asSequence
 import com.heerkirov.hedge.server.utils.runIf
-import me.liuwj.ktorm.dsl.*
-import me.liuwj.ktorm.entity.any
-import me.liuwj.ktorm.entity.filter
-import me.liuwj.ktorm.entity.firstOrNull
-import me.liuwj.ktorm.entity.sequenceOf
+import org.ktorm.dsl.*
+import org.ktorm.entity.any
+import org.ktorm.entity.filter
+import org.ktorm.entity.firstOrNull
+import org.ktorm.entity.sequenceOf
 
 class TopicKit(private val data: DataRepository, private val annotationManager: AnnotationManager) {
     /**

@@ -2,11 +2,11 @@ package com.heerkirov.hedge.server.dao.album
 
 import com.heerkirov.hedge.server.dao.types.EntityMetaRelationTable
 import com.heerkirov.hedge.server.model.album.AlbumTagRelation
-import me.liuwj.ktorm.dsl.QueryRowSet
-import me.liuwj.ktorm.schema.BaseTable
-import me.liuwj.ktorm.schema.Column
-import me.liuwj.ktorm.schema.boolean
-import me.liuwj.ktorm.schema.int
+import org.ktorm.dsl.QueryRowSet
+import org.ktorm.schema.BaseTable
+import org.ktorm.schema.Column
+import org.ktorm.schema.boolean
+import org.ktorm.schema.int
 
 open class AlbumTagRelations(alias: String?) : EntityMetaRelationTable<AlbumTagRelation>("album_tag_relation") {
     companion object : AlbumTagRelations(null)

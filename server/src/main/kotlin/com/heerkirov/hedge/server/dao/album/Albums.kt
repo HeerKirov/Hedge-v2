@@ -2,8 +2,8 @@ package com.heerkirov.hedge.server.dao.album
 
 import com.heerkirov.hedge.server.model.album.Album
 import com.heerkirov.hedge.server.utils.ktorm.json
-import me.liuwj.ktorm.dsl.QueryRowSet
-import me.liuwj.ktorm.schema.*
+import org.ktorm.dsl.QueryRowSet
+import org.ktorm.schema.*
 
 object Albums : BaseTable<Album>("album") {
     val id = int("id").primaryKey()

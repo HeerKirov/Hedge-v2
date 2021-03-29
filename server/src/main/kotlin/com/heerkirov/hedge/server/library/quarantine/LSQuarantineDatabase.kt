@@ -2,12 +2,12 @@ package com.heerkirov.hedge.server.library.quarantine
 
 import com.heerkirov.hedge.server.utils.DateTime.toMillisecond
 import com.heerkirov.hedge.server.utils.ktorm.HedgeDialect
-import me.liuwj.ktorm.database.Database
-import me.liuwj.ktorm.dsl.and
-import me.liuwj.ktorm.dsl.greaterEq
-import me.liuwj.ktorm.dsl.lessEq
-import me.liuwj.ktorm.entity.filter
-import me.liuwj.ktorm.entity.sequenceOf
+import org.ktorm.database.Database
+import org.ktorm.dsl.and
+import org.ktorm.dsl.greaterEq
+import org.ktorm.dsl.lessEq
+import org.ktorm.entity.filter
+import org.ktorm.entity.sequenceOf
 import java.io.Closeable
 import java.sql.Connection
 import java.sql.DriverManager

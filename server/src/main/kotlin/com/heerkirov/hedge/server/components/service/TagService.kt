@@ -23,8 +23,8 @@ import com.heerkirov.hedge.server.utils.*
 import com.heerkirov.hedge.server.utils.ktorm.OrderTranslator
 import com.heerkirov.hedge.server.utils.ktorm.orderBy
 import com.heerkirov.hedge.server.utils.types.*
-import me.liuwj.ktorm.dsl.*
-import me.liuwj.ktorm.entity.*
+import org.ktorm.dsl.*
+import org.ktorm.entity.*
 
 class TagService(private val data: DataRepository,
                  private val kit: TagKit,

@@ -2,9 +2,9 @@ package com.heerkirov.hedge.server.dao.meta
 
 import com.heerkirov.hedge.server.dao.types.MetaAnnotationRelationTable
 import com.heerkirov.hedge.server.model.meta.TagAnnotationRelation
-import me.liuwj.ktorm.dsl.QueryRowSet
-import me.liuwj.ktorm.schema.Column
-import me.liuwj.ktorm.schema.int
+import org.ktorm.dsl.QueryRowSet
+import org.ktorm.schema.Column
+import org.ktorm.schema.int
 
 object TagAnnotationRelations : MetaAnnotationRelationTable<TagAnnotationRelation>("tag_annotation_relation", schema = "meta_db") {
     val tagId = int("tag_id")

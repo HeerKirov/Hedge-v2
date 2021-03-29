@@ -1,10 +1,10 @@
 package com.heerkirov.hedge.server.dao.collection
 
 import com.heerkirov.hedge.server.model.collection.Partition
-import me.liuwj.ktorm.dsl.QueryRowSet
-import me.liuwj.ktorm.schema.BaseTable
-import me.liuwj.ktorm.schema.date
-import me.liuwj.ktorm.schema.int
+import org.ktorm.dsl.QueryRowSet
+import org.ktorm.schema.BaseTable
+import org.ktorm.schema.date
+import org.ktorm.schema.int
 
 object Partitions : BaseTable<Partition>("partition") {
     val date = date("date").primaryKey()

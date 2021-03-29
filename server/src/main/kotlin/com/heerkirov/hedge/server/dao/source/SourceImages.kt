@@ -3,8 +3,8 @@ package com.heerkirov.hedge.server.dao.source
 import com.heerkirov.hedge.server.model.source.SourceImage
 import com.heerkirov.hedge.server.utils.ktorm.enum
 import com.heerkirov.hedge.server.utils.ktorm.json
-import me.liuwj.ktorm.dsl.QueryRowSet
-import me.liuwj.ktorm.schema.*
+import org.ktorm.dsl.QueryRowSet
+import org.ktorm.schema.*
 
 object SourceImages : BaseTable<SourceImage>("source_image", schema = "source_db") {
     val source = varchar("source")

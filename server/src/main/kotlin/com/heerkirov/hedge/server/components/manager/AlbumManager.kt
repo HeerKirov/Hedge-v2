@@ -8,10 +8,10 @@ import com.heerkirov.hedge.server.dao.illust.Illusts
 import com.heerkirov.hedge.server.model.album.Album
 import com.heerkirov.hedge.server.utils.DateTime
 import com.heerkirov.hedge.server.utils.ktorm.first
-import me.liuwj.ktorm.dsl.*
-import me.liuwj.ktorm.entity.filter
-import me.liuwj.ktorm.entity.map
-import me.liuwj.ktorm.entity.sequenceOf
+import org.ktorm.dsl.*
+import org.ktorm.entity.filter
+import org.ktorm.entity.map
+import org.ktorm.entity.sequenceOf
 
 class AlbumManager(private val data: DataRepository, private val kit: AlbumKit) {
     /**

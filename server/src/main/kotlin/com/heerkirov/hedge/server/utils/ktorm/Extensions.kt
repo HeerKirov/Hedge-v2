@@ -1,9 +1,9 @@
 package com.heerkirov.hedge.server.utils.ktorm
 
-import me.liuwj.ktorm.dsl.*
-import me.liuwj.ktorm.expression.BinaryExpression
-import me.liuwj.ktorm.expression.ScalarExpression
-import me.liuwj.ktorm.schema.Column
+import org.ktorm.dsl.*
+import org.ktorm.expression.BinaryExpression
+import org.ktorm.expression.ScalarExpression
+import org.ktorm.schema.Column
 
 
 fun Query.first(): QueryRowSet = this.asIterable().first()

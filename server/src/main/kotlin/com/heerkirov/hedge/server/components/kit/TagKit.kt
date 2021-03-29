@@ -12,10 +12,10 @@ import com.heerkirov.hedge.server.model.meta.Annotation
 import com.heerkirov.hedge.server.model.illust.Illust
 import com.heerkirov.hedge.server.tools.checkTagName
 import com.heerkirov.hedge.server.utils.ktorm.asSequence
-import me.liuwj.ktorm.dsl.*
-import me.liuwj.ktorm.entity.filter
-import me.liuwj.ktorm.entity.sequenceOf
-import me.liuwj.ktorm.entity.toList
+import org.ktorm.dsl.*
+import org.ktorm.entity.filter
+import org.ktorm.entity.sequenceOf
+import org.ktorm.entity.toList
 
 class TagKit(private val data: DataRepository, private val annotationManager: AnnotationManager) {
     /**

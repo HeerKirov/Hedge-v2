@@ -4,10 +4,10 @@ import com.fasterxml.jackson.databind.JavaType
 import com.heerkirov.hedge.server.utils.objectMapper
 import com.heerkirov.hedge.server.utils.parseJSONObject
 import com.heerkirov.hedge.server.utils.toJSONString
-import me.liuwj.ktorm.schema.BaseTable
-import me.liuwj.ktorm.schema.Column
-import me.liuwj.ktorm.schema.SqlType
-import me.liuwj.ktorm.schema.TypeReference
+import org.ktorm.schema.BaseTable
+import org.ktorm.schema.Column
+import org.ktorm.schema.SqlType
+import org.ktorm.schema.TypeReference
 import java.lang.reflect.Type
 import java.sql.PreparedStatement
 import java.sql.ResultSet

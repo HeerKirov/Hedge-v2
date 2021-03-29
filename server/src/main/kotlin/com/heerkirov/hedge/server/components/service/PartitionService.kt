@@ -9,9 +9,9 @@ import com.heerkirov.hedge.server.form.PartitionRes
 import com.heerkirov.hedge.server.utils.ktorm.firstOrNull
 import com.heerkirov.hedge.server.utils.types.ListResult
 import com.heerkirov.hedge.server.utils.types.toListResult
-import me.liuwj.ktorm.dsl.*
-import me.liuwj.ktorm.entity.sequenceOf
-import me.liuwj.ktorm.entity.sortedBy
+import org.ktorm.dsl.*
+import org.ktorm.entity.sequenceOf
+import org.ktorm.entity.sortedBy
 import java.time.LocalDate
 
 class PartitionService(private val data: DataRepository) {

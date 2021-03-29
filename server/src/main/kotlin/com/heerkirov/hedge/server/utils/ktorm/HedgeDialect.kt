@@ -1,10 +1,10 @@
 package com.heerkirov.hedge.server.utils.ktorm
 
-import me.liuwj.ktorm.database.Database
-import me.liuwj.ktorm.expression.SqlExpression
-import me.liuwj.ktorm.expression.SqlFormatter
-import me.liuwj.ktorm.support.sqlite.SQLiteDialect
-import me.liuwj.ktorm.support.sqlite.SQLiteFormatter
+import org.ktorm.database.Database
+import org.ktorm.expression.SqlExpression
+import org.ktorm.expression.SqlFormatter
+import org.ktorm.support.sqlite.SQLiteDialect
+import org.ktorm.support.sqlite.SQLiteFormatter
 
 class HedgeDialect : SQLiteDialect() {
     override fun createSqlFormatter(database: Database, beautifySql: Boolean, indentSize: Int): SqlFormatter {

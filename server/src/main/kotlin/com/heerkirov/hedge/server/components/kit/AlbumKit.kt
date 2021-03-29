@@ -15,8 +15,8 @@ import com.heerkirov.hedge.server.model.meta.Annotation
 import com.heerkirov.hedge.server.utils.ktorm.asSequence
 import com.heerkirov.hedge.server.utils.ktorm.firstOrNull
 import com.heerkirov.hedge.server.utils.types.Opt
-import me.liuwj.ktorm.dsl.*
-import me.liuwj.ktorm.entity.*
+import org.ktorm.dsl.*
+import org.ktorm.entity.*
 
 class AlbumKit(private val data: DataRepository,
                private val metaManager: MetaManager) {

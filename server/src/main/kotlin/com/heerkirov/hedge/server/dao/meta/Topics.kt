@@ -5,8 +5,8 @@ import com.heerkirov.hedge.server.model.meta.Topic
 import com.heerkirov.hedge.server.utils.ktorm.enum
 import com.heerkirov.hedge.server.utils.ktorm.json
 import com.heerkirov.hedge.server.utils.ktorm.unionList
-import me.liuwj.ktorm.dsl.QueryRowSet
-import me.liuwj.ktorm.schema.*
+import org.ktorm.dsl.QueryRowSet
+import org.ktorm.schema.*
 import java.time.LocalDateTime
 
 object Topics : MetaTag<Topic>("topic", schema = "meta_db") {
