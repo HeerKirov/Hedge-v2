@@ -1,7 +1,6 @@
-import { computed, ComputedRef, defineComponent, inject, PropType, reactive, Ref, ref, toRef, watch } from "vue"
+import { computed, ComputedRef, defineComponent, inject, Ref, ref, toRef, watch } from "vue"
 import { useRoute, useRouter } from "vue-router"
-import { SideBarContextInjection } from "./inject"
-import style from "./style.module.scss"
+import { sideBarContextInjection } from "./inject"
 
 /**
  * 主要界面的侧边菜单栏。内嵌在通用布局内使用。
@@ -14,7 +13,7 @@ export default defineComponent({
             日历默认就显示最近的几个时间项。
         */
         return () => <aside class="menu">
-            <ScopeComponent name="图库">
+            <ScopeComponent id="db" name="图库">
                 <StdItemComponent name="图库" icon="th" routeName="MainIndex"/>
                 <StdItemComponent name="搜索" icon="search" routeName="MainImage"/>
                 <StdItemComponent name="画集" icon="clone" routeName="MainAlbums"/>
@@ -22,7 +21,7 @@ export default defineComponent({
                     <SubItemGroups routeName="MainPartitionsDetail" paramKey="partition"/>
                 </StdItemComponent>
             </ScopeComponent>
-            <ScopeComponent name="元数据">
+            <ScopeComponent id="meta" name="元数据">
                 <StdItemComponent name="标签" icon="tag" routeName="MainTags"/>
                 <StdItemComponent name="作者" icon="user-tag" routeName="MainAuthors">
                     <SubItemGroups routeName="MainAuthorsDetail" paramKey="id"/>
@@ -32,12 +31,12 @@ export default defineComponent({
                 </StdItemComponent>
                 <StdItemComponent name="注解" icon="code" routeName="MainAnnotations"/>
             </ScopeComponent>
-            <ScopeComponent name="工具箱">
+            <ScopeComponent id="tool" name="工具箱">
                 <StdItemComponent name="导入项目" icon="plus-square" routeName="HedgeImport"/>
                 <StdItemComponent name="文件管理" icon="folder-open" routeName="HedgeFile"/>
                 <StdItemComponent name="爬虫" icon="spider" routeName="HedgeSpider"/>
             </ScopeComponent>
-            <ScopeComponent name="文件夹">
+            <ScopeComponent id="folder" name="文件夹">
                 <StdItemComponent name="所有文件夹" icon="archive" routeName="HedgeFolders"/>
                 <SubItemFolders routeName="HedgeFoldersDetail"/>
             </ScopeComponent>
@@ -47,10 +46,15 @@ export default defineComponent({
 
 const ScopeComponent = defineComponent({
     props: {
+        id: {type: String, required: true},
         name: {type: String, required: true}
     },
     setup(props, { slots }) {
-        const isOpen = ref(true)
+        const { scopeStatus } = inject(sideBarContextInjection)!
+        const isOpen = computed<boolean>({
+            get() { return scopeStatus[props.id] ?? true },
+            set(value) { scopeStatus[props.id] = value }
+        })
         const switchOpen = () => { isOpen.value = !isOpen.value }
 
         return () => <>
@@ -73,7 +77,7 @@ const StdItemComponent = defineComponent({
         const router = useRouter()
         const routeName = toRef(route, 'name')
         const click = () => {
-            router.push({name: props.routeName})
+            router.push({name: props.routeName}).finally()
         }
 
         return () => <li>
@@ -92,12 +96,10 @@ const SubItemGroups = defineComponent({
     setup(props) {
         const route = useRoute()
         const router = useRouter()
-        const routeName = toRef(route, 'name')
-        const routeParams = toRef(route, 'params')
+        const routeName = toRef(route, 'name'), routeParams = toRef(route, 'params')
+        const { subItems } = inject(sideBarContextInjection)!
 
-        const sideBarContext = inject(SideBarContextInjection)!
-
-        const items: ComputedRef<readonly {readonly key: string, readonly title: string}[]> = computed(() => sideBarContext.subItems[props.routeName])
+        const items: ComputedRef<readonly {readonly key: string, readonly title: string}[]> = computed(() => subItems[props.routeName])
         const currentItemKey = ref<string>()
 
         watch(routeName, () => {
@@ -111,7 +113,7 @@ const SubItemGroups = defineComponent({
         })
 
         const onClick = (key: string) => () => {
-            router.push({name: props.routeName, params: {[props.paramKey]: key}})
+            router.push({name: props.routeName, params: {[props.paramKey]: key}}).finally()
         }
 
         return () => items.value && <ul>

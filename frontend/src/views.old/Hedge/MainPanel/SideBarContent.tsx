@@ -1,6 +1,6 @@
 import { computed, ComputedRef, defineComponent, inject, PropType, reactive, Ref, ref, toRef, watch } from "vue"
 import { useRoute, useRouter } from "vue-router"
-import { SideBarContextInjection } from "./inject"
+import { sideBarContextInjection } from "./inject"
 import style from "./style.module.scss"
 
 /**
@@ -96,7 +96,7 @@ const SubItemGroups = defineComponent({
         const routeName = toRef(route, 'name')
         const routeParams = toRef(route, 'params')
 
-        const sideBarContext = inject(SideBarContextInjection)!
+        const sideBarContext = inject(sideBarContextInjection)!
 
         const items: ComputedRef<readonly {readonly key: string, readonly title: string}[]> = computed(() => sideBarContext.subItems[props.routeName])
         const currentItemKey = ref<string>()

@@ -1,24 +1,20 @@
-import { defineComponent } from "vue"
-import { Annotation } from "@/functions/adapter-http/impl/annotations"
+import { defineComponent, provide } from "vue"
 import TopBarLayout from "@/layouts/TopBarLayout"
 import TopBarContent from "./TopBarContent"
 import PanelListView from "./PanelListView"
-import style from "./style.module.scss"
+import { annotationContextInjection, useAnnotationContextInjection } from "./inject"
 
 
 export default defineComponent({
     setup() {
-        const items: Annotation[] = [
-            {id: 1, name: "updating", canBeExported: false, target: ["AUTHOR", "TOPIC"]},
-            {id: 2, name: "动画", canBeExported: true, target: ["WORK", "COPYRIGHT", "CHARACTER"]},
-            {id: 3, name: "新番", canBeExported: true, target: ["TOPIC"]},
-            {id: 4, name: "高频更新", canBeExported: false, target: []}
-        ]
+        const context = useAnnotationContextInjection()
+
+        provide(annotationContextInjection, context)
 
         return () => <div>
             <TopBarLayout v-slots={{
                 topBar: () => <TopBarContent/>,
-                default: () => <PanelListView items={items}/>
+                default: () => <PanelListView/>
             }}/>
         </div>
     }

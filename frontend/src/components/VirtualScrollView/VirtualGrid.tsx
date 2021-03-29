@@ -155,7 +155,9 @@ export default defineComponent({
                 //最后计算出item limit
                 const itemLimit = lastItemOffset - itemOffset
 
-                setViewState(itemOffset, itemLimit)
+                setViewState(itemOffset, itemLimit, total)
+            }else if(total == undefined) {
+                setViewState(0, 0, undefined)
             }
         }
 

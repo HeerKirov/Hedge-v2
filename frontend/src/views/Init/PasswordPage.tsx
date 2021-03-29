@@ -1,11 +1,11 @@
 import { defineComponent, inject, ref } from "vue"
-import { InitContextInjection } from "./inject"
+import { initContextInjection } from "./inject"
 import Input from "@/components/Input"
 import style from "./style.module.scss"
 
 export default defineComponent({
     setup() {
-        const context = inject(InitContextInjection)!
+        const context = inject(initContextInjection)!
 
         const hasPassword = ref(context.password.hasPassword)
         const password = ref(context.password.value)

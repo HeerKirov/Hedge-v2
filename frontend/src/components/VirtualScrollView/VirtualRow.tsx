@@ -46,7 +46,7 @@ export default defineComponent({
         //上层事件: 将total设置有效值会刷新view state的值
         watch(() => props.total, (total, oldTotal) => {
             if(total != undefined && oldTotal !== total) {
-                updateViewState(propose.value)
+                updateViewState(propose.value, total)
             }
         })
 
@@ -71,7 +71,7 @@ export default defineComponent({
 
             //计算作为导航的view的值
             if(propose.scrollTop !== oldPropose.scrollTop || propose.scrollHeight !== oldPropose.scrollHeight) {
-                updateViewState(propose)
+                updateViewState(propose, props.total)
             }
         })
 
@@ -93,14 +93,16 @@ export default defineComponent({
         watchViewNavigation(itemOffset => itemOffset * props.rowHeight)
 
         //功能: 更新view state的值
-        function updateViewState(propose: ProposeData) {
-            if(propose.contentHeight != undefined) {
+        function updateViewState(propose: ProposeData, total: number | undefined) {
+            if(propose.contentHeight != undefined && total != undefined) {
                 //根据可视区域的顶端计算当前首行的行数。四舍五入使首行被计算为"超过一半在可视区域内的行"
                 const firstItemOffset = Math.round((propose.scrollTop - padding.top) / props.rowHeight)
                 //同样的方法计算当前尾行的行数
-                const lastItemOffset = Math.round((propose.scrollTop + propose.contentHeight + padding.bottom) / props.rowHeight)
+                const lastItemOffset = Math.min(total, Math.round((propose.scrollTop + propose.contentHeight + padding.bottom) / props.rowHeight))
 
-                setViewState(firstItemOffset, lastItemOffset - firstItemOffset)
+                setViewState(firstItemOffset, lastItemOffset - firstItemOffset, total)
+            }else{
+                setViewState(0, 0, undefined)
             }
         }
 

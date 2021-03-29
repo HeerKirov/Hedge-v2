@@ -1,4 +1,4 @@
-import { defineComponent, Ref, ref, watch } from "vue"
+import { defineComponent, onMounted, Ref, ref, watch } from "vue"
 
 export default defineComponent({
     props: {
@@ -7,6 +7,7 @@ export default defineComponent({
         max: Number,
         min: Number,
         refreshOnInput: {type: Boolean, default: false},
+        focusOnMounted: {type: Boolean, default: false},
         disabled: {type: Boolean, default: false}
     },
     emits: ['updateValue'],
@@ -23,9 +24,21 @@ export default defineComponent({
             }
         }
 
-        return () => {
-            const events = {[props.refreshOnInput ? "onInput" : "onChange"]: onUpdate}
-            return <input class="input" type="number" max={props.max} min={props.min} disabled={props.disabled} value={value.value} {...events} placeholder={props.placeholder}/>
+        if(props.focusOnMounted) {
+            const dom = ref<HTMLInputElement>()
+
+            onMounted(() => dom.value?.focus())
+
+            return () => {
+                const events = {[props.refreshOnInput ? "onInput" : "onChange"]: onUpdate}
+                return <input ref={dom} class="input" type="number" max={props.max} min={props.min} disabled={props.disabled} value={value.value} {...events} placeholder={props.placeholder}/>
+            }
+        }else{
+            return () => {
+                const events = {[props.refreshOnInput ? "onInput" : "onChange"]: onUpdate}
+                return <input class="input" type="number" max={props.max} min={props.min} disabled={props.disabled} value={value.value} {...events} placeholder={props.placeholder}/>
+            }
         }
+
     }
 })

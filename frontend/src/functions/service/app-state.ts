@@ -8,14 +8,14 @@ import { useLocalStorage } from "./app-storage"
  * 使用app平台的基础数据，提供平台相关的环境数据。这些数据恒定不变。
  */
 export function useAppInfo(): Readonly<AppInfo> {
-    return inject(AppInfoInjection)!
+    return inject(appInfoInjection)!
 }
 
 /**
  * 提供app基础状态管理。基础状态指app的初始化状态和登录状态。对于web，只有登录状态。
  * */
 export function useAppState(): AppState {
-    return inject(AppStateInjection)!
+    return inject(appStateInjection)!
 }
 
 export interface AppState {
@@ -51,8 +51,8 @@ export interface AppInfoInWeb {
     canPromptTouchID: false
 }
 
-export const AppInfoInjection: InjectionKey<Readonly<AppInfo>> = Symbol()
-export const AppStateInjection: InjectionKey<AppState> = Symbol()
+export const appInfoInjection: InjectionKey<Readonly<AppInfo>> = Symbol()
+export const appStateInjection: InjectionKey<AppState> = Symbol()
 
 
 export function useAppStateInjection(clientMode: boolean, ipc: IpcService, api: HttpClient, httpClientConfig: HttpInstanceConfig) {

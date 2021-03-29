@@ -1,5 +1,6 @@
 import { defineComponent } from "vue"
 import Input from "@/components/Input"
+import { DataRouter } from "@/layouts/TopBarComponents"
 
 export default defineComponent({
     setup() {
@@ -11,6 +12,7 @@ export default defineComponent({
                 <button class="square button no-drag radius-large is-white"><span class="icon"><i class="fa fa-plus"/></span></button>
             </div>
             <div class="right single-line-group">
+                <DataRouter/>
                 <button class="square button no-drag radius-large is-white"><span class="icon"><i class="fa fa-plus"/></span></button>
                 <button class="square button no-drag radius-large is-white"><span class="icon"><i class="fa fa-grip-vertical"/></span></button>
             </div>

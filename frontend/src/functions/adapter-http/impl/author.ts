@@ -126,8 +126,9 @@ export interface AuthorUpdateForm {
     favorite?: boolean
     score?: number | null
 }
+export type AuthorFilter = AuthorQueryFilter & LimitAndOffsetFilter
 
-export interface AuthorFilter extends LimitAndOffsetFilter {
+export interface AuthorQueryFilter {
     query?: string
     order?: OrderList<"id" | "name" | "score" | "count" | "createTime" | "updateTime">
     type?: AuthorType

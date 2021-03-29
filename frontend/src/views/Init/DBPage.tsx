@@ -1,12 +1,12 @@
 import { defineComponent, inject, ref, Ref } from "vue"
 import { dialogManager } from '@/functions/service'
-import { InitContextInjection } from "./inject"
+import { initContextInjection } from "./inject"
 import Input from "@/components/Input"
 import style from "./style.module.scss"
 
 export default defineComponent({
     setup() {
-        const context = inject(InitContextInjection)!
+        const context = inject(initContextInjection)!
 
         const isCustom = ref(context.db.custom)
         const folderInAppData = ref(context.db.folderInAppData)

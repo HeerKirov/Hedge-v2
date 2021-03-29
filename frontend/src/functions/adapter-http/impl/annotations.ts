@@ -80,7 +80,9 @@ export interface AnnotationUpdateForm {
     target?: AnnotationTarget[]
 }
 
-export interface AnnotationFilter extends LimitAndOffsetFilter {
+export type AnnotationFilter = AnnotationQueryFilter & LimitAndOffsetFilter
+
+export interface AnnotationQueryFilter {
     query?: string
     canBeExported?: boolean
     target?: AnnotationTarget

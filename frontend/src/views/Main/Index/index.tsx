@@ -1,6 +1,7 @@
 import { computed, defineComponent, ref } from "vue"
-import TopBarLayout from "@/layouts/TopBarLayout"
 import NumberInput from "@/components/NumberInput"
+import TopBarLayout from "@/layouts/TopBarLayout"
+import { DataRouter } from "@/layouts/TopBarComponents"
 import { VirtualGrid, useScrollView } from "@/components/VirtualScrollView"
 import { useDataEndpoint } from "@/functions/utils/data-endpoint"
 
@@ -28,8 +29,8 @@ export default defineComponent({
                     <div class="left no-drag">
                         <NumberInput class="is-small is-width-half" value={columnCount.value} onUpdateValue={v => columnCount.value = v}/>
                     </div>
-                    <div class="right single-line-group no-drag">
-                        <NumberInput class="is-small is-width-half" value={view.state.itemOffset} onUpdateValue={v => view.navigateTo(v)}/><span class="mr-1">/</span><span class="tag">{data.value.metrics.total}</span>
+                    <div class="right no-drag">
+                        <DataRouter/>
                     </div>
                 </div>,
                 default: () => <div class="w-100 h-100">

@@ -10,23 +10,24 @@ interface DataEndpointOptions<T> {
      * 根据offset和limit取数据。结果可异步返回。此函数应该直接对接查询API。
      */
     request(offset: number, limit: number): Promise<{ok: true, total: number, result: T[]} | {ok: false, message: string}>
+    handleError?(title: string, errorMessage: string | undefined): void
     /**
      * 数据段大小。段指在内部实现中将数据平均切割后的一份，用于优化数据整体查询。
      */
-    segmentSize: number
+    segmentSize?: number
     /**
      * 查询延时。在提交真实查询后，延时多久以执行查询。用于节流，优化查询频次。延时对初次查询无效。
      */
-    queryDelay: number
+    queryDelay?: number
 }
 
-interface DataEndpointResult<T> {
+export interface DataEndpointResult<T> {
     data: Ref<DataEndpointData<T>>
     dataUpdate(offset: number, limit: number): void
     refresh(): void
 }
 
-interface DataEndpointData<T> {
+export interface DataEndpointData<T> {
     metrics: {
         total: number | undefined,
         offset: number,
@@ -35,28 +36,33 @@ interface DataEndpointData<T> {
     result: T[]
 }
 
-export function useDataEndpoint<T>({ request, segmentSize, queryDelay }: DataEndpointOptions<T>): DataEndpointResult<T> {
-    const queryQueue = useQueryQueue(request, queryDelay)
-    const segments = useSegments(segmentSize, queryQueue)
+export function useDataEndpoint<T>({ request, handleError, segmentSize, queryDelay }: DataEndpointOptions<T>): DataEndpointResult<T> {
+    const queryQueue = useQueryQueue(request, handleError, queryDelay ?? 250)
+    const segments = useSegments(segmentSize ?? 100, queryQueue)
 
     let nextQueryId = 1
+    let completedQueryId = 0
 
     const data: Ref<DataEndpointData<T>> = ref({
         metrics: {total: undefined, offset: 0, limit: 0},
         result: []
     })
+
     const dataUpdate = async (offset: number, limit: number) => {
         const queryId = nextQueryId++
         const ok = await segments.query(queryId, offset, limit)
-        if(ok) {
+        if(ok && queryId > completedQueryId) {
             //ok表示数据可用
             const result: T[] = queryQueue.data.buffer.slice(offset, offset + limit)
             data.value = {
                 metrics: {total: queryQueue.data.total ?? undefined, offset, limit: result.length},
                 result
             }
+            //每次都更新completed query id，保证乱序结果会被丢弃
+            completedQueryId = queryId
         }
     }
+
     const refresh = () => {
         queryQueue.clear()
         segments.clear()
@@ -105,11 +111,9 @@ function useSegments(segmentSize: number, queryQueue: ReturnType<typeof useQuery
                 let segment = segments[i]
                 if(!segment || segment.status === SegmentStatus.NOT_LOADED) {
                     //对于not loaded的segment，将其放入请求队列，并注册回调
-                    if(!segment) {
-                        segments[i] = segment = createSegment(i)
-                    }
-                    requiredSegments.push(segment)
+                    if(!segment) segments[i] = segment = createSegment(i)
                     segment.callbacks = [segmentCallback]
+                    requiredSegments.push(segment)
                 }else if(segment.status === SegmentStatus.LOADING) {
                     //对于loading的segment，注册回调
                     segment.callbacks.push(segmentCallback)
@@ -119,19 +123,19 @@ function useSegments(segmentSize: number, queryQueue: ReturnType<typeof useQuery
                 }
             }
 
-            //将需要请求的segment按照连续性分割成数个分片
-            const splits = arrays.split(requiredSegments, (a, b) => b.index - a.index > 1)
-            for (const split of splits) {
-                //计算出每个分片的数据范围
-                const offset = split[0].index * segmentSize, limit = (split[split.length - 1].index + 1) * segmentSize - offset
-                //发起查询请求
-                queryQueue.query(queryId, offset, limit, queryCallback(queryId, createSegmentSnapshot(split)))
-            }
-
             if(leaveSegment <= 0) {
                 //如果发现剩余的segment已经为0，则直接回调
                 isResolved = true
                 resolve(true)
+            }else{
+                //将需要请求的segment按照连续性分割成数个分片
+                const splits = arrays.split(requiredSegments, (a, b) => b.index - a.index > 1)
+                for (const split of splits) {
+                    //计算出每个分片的数据范围
+                    const offset = split[0].index * segmentSize, limit = (split[split.length - 1].index + 1) * segmentSize - offset
+                    //发起查询请求
+                    queryQueue.query(queryId, offset, limit, queryCallback(queryId, createSegmentSnapshot(split)))
+                }
             }
         })
     }
@@ -195,7 +199,7 @@ function useSegments(segmentSize: number, queryQueue: ReturnType<typeof useQuery
     return {query, clear}
 }
 
-function useQueryQueue<T>(request: DataEndpointOptions<T>["request"], queryDelay: number) {
+function useQueryQueue<T>(request: DataEndpointOptions<T>["request"], errorHandler: DataEndpointOptions<T>["handleError"], queryDelay: number) {
     const data = <{buffer: T[], total: number | null}>{
         buffer: [],
         total: null
@@ -215,37 +219,40 @@ function useQueryQueue<T>(request: DataEndpointOptions<T>["request"], queryDelay
                     callback(QueryCallback.CANCELED)
                 }
             }
-            //total为null可以判定为初次查询，此时没有延时，立即加载数据
-            const delay = data.total != null ? queryDelay : 0
+            //构造新的数据组
             const group = current = {
                 queryId,
                 queue: [[offset, limit, callback]],
-                timer: setTimeout(async () => {
-                    current = null
-                    for (const [, , callback] of group.queue) {
-                        callback(QueryCallback.QUERYING)
-                    }
-                    for await (const [offset, limit, callback] of group.queue) {
-                        const res = await request(offset, limit)
-                        if(res.ok) {
-                            data.total = res.total
-                            for(let i = 0; i < res.result.length; ++i) {
-                                data.buffer[offset + i] = res.result[i]
-                            }
-                            callback(QueryCallback.OK)
-                        }else{
-                            //TODO 调用notification通知错误
-                            callback(QueryCallback.ERROR)
-                        }
-                    }
-                }, delay)
+                timer: 0
             }
+            //total为null可以判定为初次查询，此时没有延时，立即加载数据
+            group.timer = setTimeout(execute(group), data.total != null ? queryDelay : 0)
         }
     }
 
     const clear = () => {
         data.buffer = []
         data.total = null
+    }
+
+    const execute = (group: QueryInfoGroup) => async () => {
+        current = null
+        for (const [, , callback] of group.queue) {
+            callback(QueryCallback.QUERYING)
+        }
+        for await (const [offset, limit, callback] of group.queue) {
+            const res = await request(offset, limit)
+            if(res.ok) {
+                data.total = res.total
+                for(let i = 0; i < res.result.length; ++i) {
+                    data.buffer[offset + i] = res.result[i]
+                }
+                callback(QueryCallback.OK)
+            }else{
+                errorHandler?.("Error Occurred", res.message)
+                callback(QueryCallback.ERROR)
+            }
+        }
     }
 
     return {data, query, clear}

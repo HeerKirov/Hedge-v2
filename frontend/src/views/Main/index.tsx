@@ -3,7 +3,7 @@ import { RouterView } from "vue-router"
 import { windowManager, clientMode } from "@/functions/service"
 import SideLayout, { SideBar, sideBarSwitchInjection } from "@/layouts/SideLayout"
 import SideBarContent from "./SideBarContent"
-import { SideBarContextInjection, useSideBarContextInjection } from "./inject"
+import { sideBarContextInjection, useSideBarContextInjection } from "./inject"
 import style from "./style.module.scss"
 
 export default defineComponent({
@@ -12,7 +12,7 @@ export default defineComponent({
         const sideBarContent = useSideBarContextInjection()
 
         provide(sideBarSwitchInjection, sideBarSwitch)
-        provide(SideBarContextInjection, sideBarContent)
+        provide(sideBarContextInjection, sideBarContent)
 
         return () => {
             const sideSlots = {

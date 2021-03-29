@@ -2,7 +2,7 @@ import { InjectionKey, inject, provide, reactive } from "vue"
 import { HttpClient, HttpInstanceConfig, createHttpClient, createHttpInstance } from "@/functions/adapter-http"
 import { clientMode, remote, ipc } from "@/functions/adapter-ipc"
 import { performanceTimer } from "@/utils/performance-timer"
-import { AppInfo, AppState, AppInfoInjection, AppStateInjection, useAppStateInjection } from "./app-state"
+import { AppInfo, AppState, appInfoInjection, appStateInjection, useAppStateInjection } from "./app-state"
 import { fullscreenInjection, useFullscreenInjection } from "./app-fullscreen"
 import { useErrorHandler } from "./error-handler"
 
@@ -27,8 +27,8 @@ function installAppService(options: AppServiceOptions): {appInfo: AppInfo, appSt
 
     timer.logTotal("install service")
 
-    provide(AppInfoInjection, appInfo)
-    provide(AppStateInjection, appState)
+    provide(appInfoInjection, appInfo)
+    provide(appStateInjection, appState)
     provide(fullscreenInjection, fullscreen)
     provide(HttpClientInjection, httpClient)
 

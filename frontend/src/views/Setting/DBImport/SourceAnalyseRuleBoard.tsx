@@ -1,4 +1,4 @@
-import { computed, defineComponent, inject, PropType, ref, watch, watchEffect } from "vue"
+import { computed, defineComponent, inject, PropType, ref, watch } from "vue"
 import { SourceAnalyseRule } from "@/functions/adapter-http/impl/setting-import"
 import { Site } from "@/functions/adapter-http/impl/setting-source"
 import { useSettingSite } from "@/functions/server-api/setting"
@@ -8,12 +8,12 @@ import Input from "@/components/Input"
 import Select from "@/components/Select"
 import SelectList from "@/components/SelectList"
 import NumberInput from "@/components/NumberInput"
-import { DataInjection } from "."
+import { dataInjection } from "."
 import style from "./style.module.scss"
 
 export default defineComponent({
     setup() {
-        const data = inject(DataInjection)!
+        const data = inject(dataInjection)!
 
         const { data: sites } = useSettingSite()
 
@@ -60,7 +60,7 @@ const RuleEditor = defineComponent({
     emits: ["updateRuleIdx"],
     setup(props, { emit }) {
         const messageBox = useMessageBox()
-        const data = inject(DataInjection)!
+        const data = inject(dataInjection)!
 
         const siteList = computed(() => props.siteList.map(site => ({name: site.title, value: site.name})))
 

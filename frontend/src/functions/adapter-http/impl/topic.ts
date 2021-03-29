@@ -143,7 +143,9 @@ export interface TopicUpdateForm {
     score?: number | null
 }
 
-export interface TopicFilter extends LimitAndOffsetFilter {
+export type TopicFilter = TopicQueryFilter & LimitAndOffsetFilter
+
+export interface TopicQueryFilter {
     query?: string
     order?: OrderList<"id" | "name" | "score" | "count" | "createTime" | "updateTime">
     type?: TopicType

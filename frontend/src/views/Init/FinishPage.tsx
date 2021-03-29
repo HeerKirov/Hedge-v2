@@ -3,14 +3,14 @@ import { useRouter } from "vue-router"
 import { InitState } from "@/functions/adapter-ipc"
 import { useAppInfo, useInitController } from "@/functions/service"
 import ProgressFlag from "@/components/ProgressFlag"
-import { InitContextInjection } from "./inject"
+import { initContextInjection } from "./inject"
 import style from "./style.module.scss"
 
 export default defineComponent({
     setup() {
         const router = useRouter()
         const appInfo = useAppInfo()
-        const context = inject(InitContextInjection)!
+        const context = inject(initContextInjection)!
         const { state, initializeApp, error } = useInitController()
 
         const finish = () => router.push({name: "MainIndex"})

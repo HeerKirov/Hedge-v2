@@ -1,6 +1,6 @@
 import { InjectionKey, readonly, ref, Ref } from "vue"
 
-export const InitContextInjection: InjectionKey<Context> = Symbol()
+export const initContextInjection: InjectionKey<Context> = Symbol()
 
 export interface Context {
     page: {

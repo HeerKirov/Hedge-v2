@@ -1,7 +1,7 @@
 import { InjectionKey, reactive, readonly, ref } from "vue"
 import { useRoute } from "vue-router"
 
-export const SideBarContextInjection: InjectionKey<SideBarContext> = Symbol()
+export const sideBarContextInjection: InjectionKey<SideBarContext> = Symbol()
 
 /**
  * main panel页面的侧边栏相关的依赖。

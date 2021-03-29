@@ -19,7 +19,7 @@ export default defineComponent({
 
         return () => <div class={style.topBarLayout}>
             {slots.default && <div class={style.mainContent}>
-                {slots.default()}
+                {slots.default?.()}
             </div>}
 
             <Transition enterActiveClass={style.transactionActive} leaveActiveClass={style.transactionActive} enterFromClass={style.transactionGoal} leaveToClass={style.transactionGoal}>
@@ -27,11 +27,11 @@ export default defineComponent({
             </Transition>
             <Transition enterActiveClass={style.transactionEnterActive} leaveActiveClass={style.transactionLeaveActive} enterFromClass={style.transactionGoal} leaveToClass={style.transactionGoal}>
                 {expand.value && <div class={style.expandContent}>
-
+                    {slots.expand?.()}
                 </div>}
             </Transition>
             {slots.topBar && <TopBar>
-                {slots.topBar()}
+                {slots.topBar?.()}
             </TopBar>}
         </div>
     }

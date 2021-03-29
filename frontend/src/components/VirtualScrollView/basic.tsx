@@ -20,12 +20,16 @@ interface ScrollState {
      * 当前显示区域一共显示了多少个数据项。从offset的项开始，到最后一个中轴线位于显示区域内的项结束。
      */
     itemLimit: number
+    /**
+     * 当前的数据项总数量。
+     */
+    itemTotal: number | undefined
 }
 
 interface ScrollStateView { state: ScrollState }
-interface ScrollView extends ScrollStateView { navigateTo(itemOffset: number) }
+export interface ScrollView extends ScrollStateView { navigateTo(itemOffset: number) }
 interface ScrollStateViewConsumer {
-    view: ScrollStateView
+    view: ScrollView
     navigateRef: Ref<number | undefined>
 }
 
@@ -38,6 +42,10 @@ interface BasicVirtualComponentOptions {
 }
 
 export function useScrollView(): Readonly<ScrollView> {
+    const parent = inject(scrollControllerInjection, undefined)
+    if(parent != undefined) {
+        return readonly(parent.view)
+    }
     const navigateRef = ref<number | undefined>(undefined)
     const view = reactive({
         state: {
@@ -45,7 +53,7 @@ export function useScrollView(): Readonly<ScrollView> {
             scrollHeight: 0,
             itemOffset: 0,
             itemLimit: 0,
-            itemTotal: 0
+            itemTotal: undefined
         },
         navigateTo(itemOffset) {
             navigateRef.value = itemOffset
@@ -58,7 +66,10 @@ export function useScrollView(): Readonly<ScrollView> {
 export function useBasicVirtualComponent({ props, onRefresh }: BasicVirtualComponentOptions) {
     const scrollDivRef = ref<HTMLElement>()
     const { padding, paddingStyle } = getPaddingProperties(props.padding())
-    const { view, navigateRef } = inject(scrollControllerInjection, () => ({view: reactive({state: {scrollTop: 0, scrollHeight: 0, itemOffset: 0, itemLimit: 0}}), navigateRef: ref<number>()}), true)
+    const { view, navigateRef } = inject(scrollControllerInjection, () => ({
+        view: reactive({state: {scrollTop: 0, scrollHeight: 0, itemOffset: 0, itemLimit: 0, itemTotal: undefined}, navigateTo() {}}),
+        navigateRef: ref<number>()
+    }), true)
 
     //由底层向上提出的需求和参考值，包括内容滚动偏移量、包含缓冲区的实际高度、内容区域宽度和高度(不包括padding和buffer的内容实际大小)
     const propose = ref<ProposeData>({
@@ -129,9 +140,10 @@ export function useBasicVirtualComponent({ props, onRefresh }: BasicVirtualCompo
     }
 
     //功能: 更新view state的值。只需要提供itemOffset和itemLimit即可，scroll的值自动取出
-    function setViewState(itemOffset: number, itemLimit: number) {
-        if(propose.value.scrollTop !== view.state.scrollTop || propose.value.scrollHeight !== view.state.scrollHeight || itemOffset !== view.state.itemOffset || itemLimit !== view.state.itemLimit) {
-            view.state = {scrollTop: propose.value.scrollTop, scrollHeight: propose.value.scrollHeight, itemOffset, itemLimit}
+    function setViewState(itemOffset: number, itemLimit: number, itemTotal: number | undefined) {
+        if(propose.value.scrollTop !== view.state.scrollTop || propose.value.scrollHeight !== view.state.scrollHeight ||
+            itemOffset !== view.state.itemOffset || itemLimit !== view.state.itemLimit || itemTotal !== view.state.itemTotal) {
+            view.state = {scrollTop: propose.value.scrollTop, scrollHeight: propose.value.scrollHeight, itemOffset, itemLimit, itemTotal}
         }
     }
 
@@ -140,8 +152,9 @@ export function useBasicVirtualComponent({ props, onRefresh }: BasicVirtualCompo
         watch(navigateRef, itemOffset => {
             if(itemOffset != undefined && propose.value.contentWidth != undefined) {
                 const expectedScrollTop = event(itemOffset)
+
                 if(expectedScrollTop != undefined) {
-                    const scrollTop = numbers.between(0, expectedScrollTop + padding.top, propose.value.scrollHeight)
+                    const scrollTop = expectedScrollTop + padding.top
                     if(scrollTop !== propose.value.scrollTop) {
                         scrollTo(scrollTop)
                     }

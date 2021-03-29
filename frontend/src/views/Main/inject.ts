@@ -1,7 +1,8 @@
-import { InjectionKey, reactive, readonly } from "vue"
+import { InjectionKey, reactive, readonly, watch } from "vue"
 import { useRoute } from "vue-router"
+import { useLocalStorage } from "@/functions/service"
 
-export const SideBarContextInjection: InjectionKey<SideBarContext> = Symbol()
+export const sideBarContextInjection: InjectionKey<SideBarContext> = Symbol()
 
 /**
  * main panel页面的侧边栏相关的依赖。
@@ -17,9 +18,17 @@ export interface SideBarContext {
      * @param title 子项的title，会显示出来。
      */
     pushSubItem(key: string, title: string): void
+    scopeStatus: {[scopeName: string]: boolean}
 }
 
 export function useSideBarContextInjection(maxCount: number = 5): SideBarContext {
+    const { subItems, pushSubItem } = useSubItems(maxCount)
+    const { scopeStatus } = useScopeStatus()
+
+    return {subItems, pushSubItem, scopeStatus}
+}
+
+function useSubItems(maxCount: number) {
     const route = useRoute()
 
     const subItems = reactive<{[routeName: string]: {key: string, title: string}[]}>({})
@@ -41,8 +50,15 @@ export function useSideBarContextInjection(maxCount: number = 5): SideBarContext
         }
     }
 
-    return {
-        subItems: readonly(subItems),
-        pushSubItem
-    }
+    return {subItems: readonly(subItems), pushSubItem}
+}
+
+function useScopeStatus() {
+    const storage = useLocalStorage<{[scopeName: string]: boolean}>("sidebar-scope-status")
+
+    const scopeStatus = reactive(storage.value ?? {})
+
+    watch(() => scopeStatus, scopeStatus => storage.value = scopeStatus, {deep: true})
+
+    return { scopeStatus }
 }

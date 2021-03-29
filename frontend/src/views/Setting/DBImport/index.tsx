@@ -13,7 +13,7 @@ export default defineComponent({
     setup() {
         const { loading, data } = useSettingImport()
 
-        provide(DataInjection, data)
+        provide(dataInjection, data)
 
         return () => loading.value ? <div/> : <div>
             <p class="mb-3 is-size-medium">导入选项</p>
@@ -32,11 +32,11 @@ const timeTypes: {value: TimeType, name: string}[] = [
     {value: "UPDATE_TIME", name: "文件修改时间"}
 ]
 
-export const DataInjection: InjectionKey<Ref<ImportOption | undefined>> = Symbol()
+export const dataInjection: InjectionKey<Ref<ImportOption | undefined>> = Symbol()
 
 const AutoOptionsBoard = defineComponent({
     setup() {
-        const data = inject(DataInjection)!
+        const data = inject(dataInjection)!
 
         return () => <>
             <div class="mt-2">
@@ -57,7 +57,7 @@ const AutoOptionsBoard = defineComponent({
 
 const TimeTypeBoard = defineComponent({
     setup() {
-        const data = inject(DataInjection)!
+        const data = inject(dataInjection)!
 
         return () => <div class="mt-2">
             <label class="label">创建时间方案</label>
@@ -71,7 +71,7 @@ const TimeTypeBoard = defineComponent({
 
 const PartitionTimeDelayBoard = defineComponent({
     setup() {
-        const data = inject(DataInjection)!
+        const data = inject(dataInjection)!
 
         const [ partitionTimeDelay, partitionTimeDelaySot, setPartitionTimeDelay, savePartitionTimeDelay] = usePropertySot(ref((data.value?.setPartitionTimeDelay ?? 0) / (1000 * 60 * 60)),
             () => data.value?.setPartitionTimeDelay,
@@ -91,7 +91,7 @@ const PartitionTimeDelayBoard = defineComponent({
 
 const HistoryPathBoard = defineComponent({
     setup() {
-        const data = inject(DataInjection)!
+        const data = inject(dataInjection)!
 
         const [ historyPath, historyPathSot, setHistoryPath, saveHistoryPath ] = usePropertySot(ref(data.value?.systemDownloadHistoryPath ?? ""),
             () => data.value?.systemDownloadHistoryPath,

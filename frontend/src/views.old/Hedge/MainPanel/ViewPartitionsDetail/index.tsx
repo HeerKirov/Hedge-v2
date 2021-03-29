@@ -6,7 +6,7 @@ import "./style.scss"
 
 import img1 from "@/assets/img1.local.jpg"
 import img2 from "@/assets/img2.local.jpg"
-import { SideBarContextInjection } from "../inject"
+import { sideBarContextInjection } from "../inject"
 import { useRoute } from "vue-router"
 
 export default defineComponent({
@@ -14,7 +14,7 @@ export default defineComponent({
         const route = useRoute()
         const partitionName: ComputedRef<string | undefined> = computed(() => route.params['partition'] as string)
 
-        const sideBarData = inject(SideBarContextInjection)!
+        const sideBarData = inject(sideBarContextInjection)!
 
         watch(partitionName, partitionName => {
             if(partitionName) {
