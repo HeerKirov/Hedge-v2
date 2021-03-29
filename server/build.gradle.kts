@@ -13,7 +13,7 @@ dependencies {
     val javalinVersion = "3.13.4"
     val ktormVersion = "3.3.0"
     val sqliteVersion = "3.32.3.2"
-    val jacksonVersion = "2.12.2"
+    val jacksonVersion = "2.11.3"
     val javeVersion = "3.0.1"
     val plistVersion = "1.23"
     val slf4jVersion = "1.7.30"
