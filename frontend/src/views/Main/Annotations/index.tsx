@@ -1,7 +1,9 @@
 import { defineComponent, provide } from "vue"
 import TopBarLayout from "@/layouts/TopBarLayout"
+import SplitPane from "@/layouts/SplitPane"
 import TopBarContent from "./TopBarContent"
-import PanelListView from "./PanelListView"
+import ListView from "./ListView"
+import PaneDetailContent from "./PaneDetailContent"
 import { annotationContextInjection, useAnnotationContextInjection } from "./inject"
 
 
@@ -14,7 +16,12 @@ export default defineComponent({
         return () => <div>
             <TopBarLayout v-slots={{
                 topBar: () => <TopBarContent/>,
-                default: () => <PanelListView/>
+                default: () => <SplitPane showPane={context.detail.value != null} v-slots={{
+                    default: () => <ListView/>,
+                    pane: () => typeof context.detail.value === "number"
+                        ? <PaneDetailContent annotationId={context.detail.value}/>
+                        : <div/>
+                }}/>
             }}/>
         </div>
     }

@@ -1,2 +1,9 @@
 @import "@/styles/variable.sass";
+@import "@/styles/base/color.scss";
 
+.pane-detail-content {
+  border-left: solid 1px $dark-lightgrey;
+  @media (prefers-color-scheme: dark) {
+    border-left-color: $light-dark;
+  }
+}

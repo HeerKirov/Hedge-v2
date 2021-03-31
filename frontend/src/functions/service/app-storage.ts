@@ -26,7 +26,7 @@ export function useLocalStorage<T>(bucketName: string, provideAppInfo?: AppInfo)
         }else{
             window.localStorage.removeItem(storageName)
         }
-    })
+    }, {deep: true})
 
     return data
 }

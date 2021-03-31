@@ -1,4 +1,5 @@
 @import "@/styles/variable.sass";
+@import "@/styles/base/size.sass";
 
 .split-pane {
   //主要内容区域的布局定位
@@ -23,7 +24,24 @@
     top: 0;
     bottom: 0;
     width: 5px;
-    transform: translateX(-3px);
+    transform: translateX(3px);
     cursor: ew-resize;
+  }
+}
+
+.pane-basic-layout {
+  $main-padding-top: $spacing-4;
+  height: 100%;
+  > button {
+    position: absolute;
+    right: $spacing-1;
+    top: 0;
+  }
+  > .main-content {
+    overflow-y: auto;
+    padding-top: $main-padding-top;
+    padding-left: $spacing-3;
+    padding-right: $spacing-3;
+    max-height: 100%;
   }
 }

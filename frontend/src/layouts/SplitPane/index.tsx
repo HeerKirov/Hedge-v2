@@ -1,12 +1,15 @@
 import { defineComponent, onUnmounted, ref, Ref } from "vue"
+import PaneBasicLayout from "./PaneBasicLayout"
 import style from "./style.module.scss"
+
+export { PaneBasicLayout }
 
 /**
  * 右侧分栏的双面板结构，右侧的侧边栏可以有限拉伸和被开关控制隐藏。
  */
 export default defineComponent({
     props: {
-        defaultWidth: {type: Number, default: 225},
+        defaultWidth: {type: Number, default: 250},
         maxWidth: {type: Number, default: 300},
         minWidth: {type: Number, default: 200},
         showPane: {type: Boolean, default: true}

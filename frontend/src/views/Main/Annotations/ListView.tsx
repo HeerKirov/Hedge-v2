@@ -1,6 +1,7 @@
 import { defineComponent, inject, PropType } from "vue"
 import { AnnotationTarget } from "@/functions/adapter-http/impl/annotations"
 import { VirtualRow } from "@/components/VirtualScrollView"
+import { TARGET_TYPE_ICON } from "./define"
 import { annotationContextInjection } from "./inject"
 
 /**
@@ -8,14 +9,14 @@ import { annotationContextInjection } from "./inject"
  */
 export default defineComponent({
     setup() {
-        const { dataEndpoint } = inject(annotationContextInjection)!
+        const { dataEndpoint, detail } = inject(annotationContextInjection)!
 
         return () => <div class="w-100 h-100">
             <VirtualRow rowHeight={33} padding={0} bufferSize={10} onUpdate={dataEndpoint.dataUpdate}
                         total={dataEndpoint.data.value.metrics.total} limit={dataEndpoint.data.value.metrics.limit} offset={dataEndpoint.data.value.metrics.offset}>
                 <table class="table is-hoverable is-fullwidth">
                     <tbody>
-                        {dataEndpoint.data.value.result.map(item => <Item key={item.id} {...item}/>)}
+                        {dataEndpoint.data.value.result.map(item => <Item key={item.id} {...item} selected={detail.value === item.id}/>)}
                     </tbody>
                 </table>
             </VirtualRow>
@@ -31,10 +32,17 @@ const Item = defineComponent({
         id: {type: Number, required: true},
         name: {type: String, required: true},
         target: {type: null as any as PropType<AnnotationTarget[]>, required: true},
-        canBeExported: {type: Boolean, required: true}
+        canBeExported: {type: Boolean, required: true},
+        selected: {type: Boolean, default: false}
     },
     setup(props) {
-        return () => <tr>
+        const { detail } = inject(annotationContextInjection)!
+
+        const click = () => {
+            detail.value = props.id
+        }
+
+        return () => <tr onClick={click} class={{'is-selected': props.selected}}>
             <td class="is-width-50"><b class="ml-1">[</b><span class="mx-1">{props.name}</span><b>]</b></td>
             <td class="is-width-15">{(props.canBeExported || null) && <i class="fa fa-share-square is-danger"/>}</td>
             <td class="is-width-35">
@@ -49,20 +57,8 @@ const AnnotationTargetElement = defineComponent({
         target: {type: null as any as PropType<AnnotationTarget[]>, required: true},
     },
     setup(props) {
-        const TARGET_TYPE_TAG: {[key in AnnotationTarget]: string} = {
-            "TAG": "tag",
-            "TOPIC": "hashtag",
-            "AUTHOR": "user-tag",
-            "ARTIST": "paint-brush",
-            "STUDIO": "swatchbook",
-            "PUBLISH": "stamp",
-            "COPYRIGHT": "copyright",
-            "WORK": "bookmark",
-            "CHARACTER": "user-ninja"
-        }
-
         return () => <span>
-            {props.target.map(t => <i class={`fa fa-${TARGET_TYPE_TAG[t]} mr-2`}/>)}
+            {props.target.map(t => <i class={`fa fa-${TARGET_TYPE_ICON[t]} mr-2`}/>)}
         </span>
     }
 })

@@ -11,12 +11,15 @@ export interface AnnotationContext {
     dataEndpoint: DataEndpointResult<Annotation>
     scrollView: Readonly<ScrollView>
     queryFilter: Ref<AnnotationQueryFilter>
+    detail: Ref<number | "NEW" | null>
 }
 
 export function useAnnotationContextInjection(): AnnotationContext {
     const { dataEndpoint, scrollView, queryFilter } = useAnnotationList()
 
-    return {dataEndpoint, scrollView, queryFilter}
+    const detail = ref<number | "NEW" | null>(1)
+
+    return {dataEndpoint, scrollView, queryFilter, detail}
 }
 
 function useAnnotationList() {
