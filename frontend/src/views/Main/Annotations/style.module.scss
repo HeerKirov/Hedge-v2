@@ -1,9 +1,22 @@
 @import "@/styles/variable.sass";
 @import "@/styles/base/color.scss";
+@import "@/styles/base/size.sass";
 
 .pane-detail-content {
   border-left: solid 1px $dark-lightgrey;
   @media (prefers-color-scheme: dark) {
     border-left-color: $light-dark;
+  }
+
+  .annotation-target-view {
+    p {
+      margin-top: $spacing-1;
+      > span:global(.icon) {
+        width: 1rem;
+      }
+      &.sub {
+        margin-left: 1rem;
+      }
+    }
   }
 }

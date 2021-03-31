@@ -20,7 +20,7 @@ export default defineComponent({
                 <span><i class="fa fa-share-square mr-1"/>可导出至图库项目</span>
             </p>
             <p class="mt-4">适用类型</p>
-            <AnnotationTargetView value={[]}/>
+            <AnnotationTargetView value={["TAG", "AUTHOR", "WORK"]}/>
         </PaneBasicLayout>
     }
 })
@@ -44,12 +44,38 @@ const AnnotationTargetView = defineComponent({
             ]}
         ]
 
-        return () => <div>
-            {definitions.map(item => props.value.includes(item.type) && <div>
+        const structs = computed(() => definitions
+            .filter(d => props.value.includes(d.type) || d.sub?.some(sd => props.value.includes(sd.type)))
+            .map(d => ({
+                fullInclude: props.value.includes(d.type),
+                title: d.title,
+                class: `fa fa-${TARGET_TYPE_ICON[d.type]}`,
+                sub: d.sub?.filter(sd => props.value.includes(sd.type)).map(sd => ({
+                    title: sd.title,
+                    class: `fa fa-${TARGET_TYPE_ICON[sd.type]}`
+                }))
+            })))
+
+        return () => <div class={style.annotationTargetView}>
+            {structs.value.length === 0 ? <p>
                 <span class="icon"><i class="fa fa-check"/></span>
-                <span class="icon"><i class={`fa fa-${TARGET_TYPE_ICON[item.type]}`}/></span>
-                <span>{item.title}</span>
-            </div>)}
+                <span>全部</span>
+            </p> : structs.value.map(item => <>
+                <p>
+                    {item.fullInclude
+                        ? <span class="icon"><i class="fa fa-check"/></span>
+                        : <span class="icon"><i class="fa fa-minus"/></span>
+                    }
+                    <span class="icon"><i class={item.class}/></span>
+                    {!item.fullInclude && <span>不完全适用</span>}
+                    <span>{item.title}</span>
+                </p>
+                {item.sub?.map(subItem => <p class={style.sub}>
+                    <span class="icon"><i class="fa fa-check"/></span>
+                    <span class="icon"><i class={subItem.class}/></span>
+                    <span>{subItem.title}</span>
+                </p>)}
+            </>)}
         </div>
     }
 })
