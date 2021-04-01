@@ -34,12 +34,12 @@ export interface AnnotationEndpoint {
      * @exception NOT_FOUND
      * @exception ALREADY_EXISTS ("Annotation", "name", name) 注解重名
      */
-    update(id: number, form: AnnotationUpdateForm): Promise<Response<unknown>>
+    update(id: number, form: AnnotationUpdateForm): Promise<Response<null>>
     /**
      * 删除注解。
      * @exception NOT_FOUND
      */
-    delete(id: number): Promise<Response<unknown>>
+    delete(id: number): Promise<Response<null>>
 }
 
 export type AnnotationTarget = "TAG" | "AUTHOR" | "TOPIC" | "ARTIST" | "STUDIO" | "PUBLISH" | "COPYRIGHT" | "WORK" | "CHARACTER"

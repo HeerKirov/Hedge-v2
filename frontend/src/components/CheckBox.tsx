@@ -9,7 +9,7 @@ export default defineComponent({
     setup(props, { emit, slots }) {
         const value = ref(props.value ?? false)
 
-        watch(() => props.value, () => { value.value = props.value ?? false })
+        watch(() => props.value, v => { value.value = v ?? false })
 
         const onUpdate = (e: Event) => {
             value.value = (e.target as HTMLInputElement).checked

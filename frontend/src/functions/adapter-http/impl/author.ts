@@ -39,12 +39,12 @@ export interface AuthorEndpoint {
      * @exception NOT_EXISTS ("annotations", id) 指定的资源不存在
      * @exception NOT_SUITABLE ("annotations", id) 指定的资源不适用。对于annotations，此注解的target要求不能应用于此种类的tag
      */
-    update(id: number, form: AuthorUpdateForm): Promise<Response<unknown>>
+    update(id: number, form: AuthorUpdateForm): Promise<Response<null>>
     /**
      * 删除作者。
      * @exception NOT_FOUND
      */
-    delete(id: number): Promise<Response<unknown>>
+    delete(id: number): Promise<Response<null>>
 }
 
 export type AuthorType = "UNKNOWN" | "ARTIST" | "STUDIO" | "PUBLISH"

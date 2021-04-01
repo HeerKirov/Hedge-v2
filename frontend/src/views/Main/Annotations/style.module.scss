@@ -19,4 +19,12 @@
       }
     }
   }
+  .annotation-target-editor {
+    p {
+      margin-top: $spacing-1;
+      &.sub {
+        margin-left: 1rem;
+      }
+    }
+  }
 }

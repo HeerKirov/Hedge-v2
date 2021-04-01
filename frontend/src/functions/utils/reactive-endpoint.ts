@@ -4,9 +4,8 @@ import { useHttpClient } from "@/functions/service"
 import { useNotification } from "@/functions/message"
 
 /* 此处提供了VCA形态的rest api端点调用器。目标是处理符合标准object模型的对象。
-    应对简单和复杂的rest endpoint，有两种更新模型。
-    简单模型：直接修改data，响应式更改。data的update form和它的response基本一致。
-    复杂模型：调用update函数，发送专门的更改通知。自动发起更改，并请求最新的值。
+    它的目标是处理简单模型，即整个rest api可被描述为简单的object模型的api。
+    这类模型将被抽象为可读写的Ref对象。
 */
 
 /**

@@ -3,6 +3,7 @@ import style from "./style.module.scss"
 
 export default defineComponent({
     props: {
+        showContent: {type: Boolean, default: true},
         showCloseButton: {type: Boolean, default: true}
     },
     emits: ['close'],
@@ -12,7 +13,7 @@ export default defineComponent({
                 <span class="icon"><i class="fa fa-times"/></span>
             </button>}
             <div class={style.mainContent}>
-                {slots.default?.()}
+                {props.showContent && slots.default?.()}
             </div>
         </div>
     }

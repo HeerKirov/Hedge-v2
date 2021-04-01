@@ -43,12 +43,12 @@ export interface TopicEndpoint {
      * @exception RECURSIVE_PARENT 在父标签检查中发现了闭环
      * @exception ILLEGAL_CONSTRAINT ("type", "parent", parentType) 当前主题的类型和父主题的类型不能兼容
      */
-    update(id: number, form: TopicUpdateForm): Promise<Response<unknown>>
+    update(id: number, form: TopicUpdateForm): Promise<Response<null>>
     /**
      * 删除主题。
      * @exception NOT_FOUND
      */
-    delete(id: number): Promise<Response<unknown>>
+    delete(id: number): Promise<Response<null>>
 }
 
 export type TopicType = "UNKNOWN" | "COPYRIGHT" | "WORK" | "CHARACTER"

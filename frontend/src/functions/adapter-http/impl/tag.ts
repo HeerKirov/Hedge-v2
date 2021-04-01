@@ -47,13 +47,13 @@ export interface TagEndpoint {
      * @exception CANNOT_GIVE_COLOR 只有顶层标签才能指定颜色
      * @exception ALREADY_EXISTS ("Tag", "name", name) 标签重名。addr类型的标签在同一个parent下禁止重名，tag类型的标签除上一条外还禁止与全局其他tag类型的标签重名
      */
-    update(id: number, form: TagUpdateForm): Promise<Response<unknown>>
+    update(id: number, form: TagUpdateForm): Promise<Response<null>>
     /**
      * 删除标签。
      * @exception NOT_FOUND
      *
      */
-    delete(id: number): Promise<Response<unknown>>
+    delete(id: number): Promise<Response<null>>
 }
 
 export type TagType = "TAG" | "ADDR" | "VIRTUAL_ADDR"
