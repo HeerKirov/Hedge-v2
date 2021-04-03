@@ -13,8 +13,8 @@ interface ObjectEndpoint<MODEL, FORM> {
     updating: Ref<Boolean>
     deleting: Ref<Boolean>
     data: Ref<MODEL | null>
-    setData(form: FORM): Promise<void>
-    deleteData(): Promise<void>
+    setData(form: FORM, handleError?: (e: HttpException) => HttpException | void): Promise<boolean>
+    deleteData(): Promise<boolean>
 }
 
 interface ObjectEndpointOptions<PATH, MODEL, FORM> {
@@ -22,7 +22,10 @@ interface ObjectEndpointOptions<PATH, MODEL, FORM> {
     get(httpClient: HttpClient): (path: PATH) => Promise<Response<MODEL>>
     update?(httpClient: HttpClient): (path: PATH, form: FORM) => Promise<Response<MODEL | null>>
     delete?(httpClient: HttpClient): (path: PATH) => Promise<Response<unknown>>
-    afterDelete?(path: Ref<PATH | null>)
+    beforePath?()
+    afterPath?()
+    afterUpdate?()
+    afterDelete?()
     handleUpdateError?(e: HttpException): HttpException | void
     handleDeleteError?(e: HttpException): HttpException | void
 }
@@ -43,7 +46,10 @@ export function useObjectEndpoint<PATH, MODEL, FORM>(options: ObjectEndpointOpti
     const deleting = ref(false)
     const data: Ref<MODEL | null> = ref(null)
 
-    watch(path, async (path, _, onInvalidate) => {
+    watch(path, async (path, oldPath, onInvalidate) => {
+        if(oldPath !== undefined) {
+            options.beforePath?.()
+        }
         if(path == null) {
             //path的值为null时，直接按not found处理
             loading.value = false
@@ -64,51 +70,65 @@ export function useObjectEndpoint<PATH, MODEL, FORM>(options: ObjectEndpointOpti
             }
             loading.value = false
         }
+        if(oldPath !== undefined) {
+            options.afterPath?.()
+        }
     }, {immediate: true})
 
-    const setData = async (form: FORM) => {
+    const setData = async (form: FORM, handleError?: (e: HttpException) => HttpException | void): Promise<boolean> => {
         if(method.update && !updating.value && path.value != null) {
             updating.value = true
-            const res = await method.update(path.value, form)
-            if(res.ok) {
-                if(res.data) {
-                    data.value = res.data
-                }else{
-                    //在update函数没有提供返回值的情况下，去请求get函数以更新数据
-                    const res = await method.get(path.value)
-                    if(res.ok) {
+            try {
+                const res = await method.update(path.value, form)
+                if(res.ok) {
+                    if(res.data) {
                         data.value = res.data
-                    }else if(res.exception) {
-                        if(res.exception.code !== "NOT_FOUND") {
-                            notification.handleException(res.exception)
+                    }else{
+                        //在update函数没有提供返回值的情况下，去请求get函数以更新数据
+                        const res = await method.get(path.value)
+                        if(res.ok) {
+                            data.value = res.data
+                        }else if(res.exception) {
+                            if(res.exception.code !== "NOT_FOUND") {
+                                notification.handleException(res.exception)
+                            }
+                            data.value = null
                         }
-                        data.value = null
                     }
+                }else if(res.exception) {
+                    //首先尝试让上层处理错误，上层拒绝处理则自行处理
+                    const e = handleError ? handleError(res.exception) : options.handleUpdateError ? options.handleUpdateError(res.exception) : res.exception
+                    if(e != undefined) notification.handleException(e)
+                    return false
                 }
-            }else if(res.exception) {
-                //首先尝试让上层处理错误，上层拒绝处理则自行处理
-                const e = options.handleUpdateError ? options.handleUpdateError(res.exception) : res.exception
-                if(e != undefined) notification.handleException(e)
+            }finally{
+                updating.value = false
             }
-            updating.value = false
         }
+
+        return true
     }
 
-    const deleteData = async () => {
+    const deleteData = async (): Promise<boolean> => {
         if(method.delete && !deleting.value && path.value != null) {
             deleting.value = true
-            const res = await method.delete(path.value)
-            if(res.ok) {
-                options.afterDelete?.(path)
-                path.value = null
-                data.value = null
-            }else if(res.exception) {
-                //首先尝试让上层处理错误，上层拒绝处理则自行处理
-                const e = options.handleDeleteError ? options.handleDeleteError(res.exception) : res.exception
-                if(e != undefined) notification.handleException(e)
+            try {
+                const res = await method.delete(path.value)
+                if(res.ok) {
+                    options.afterDelete?.()
+                    data.value = null
+                }else if(res.exception) {
+                    //首先尝试让上层处理错误，上层拒绝处理则自行处理
+                    const e = options.handleDeleteError ? options.handleDeleteError(res.exception) : res.exception
+                    if(e != undefined) notification.handleException(e)
+                    return false
+                }
+            }finally{
+                deleting.value = false
             }
-            deleting.value = false
         }
+
+        return true
     }
 
     return {data, loading, updating, deleting, setData, deleteData}

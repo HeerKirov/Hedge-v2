@@ -1,0 +1,14 @@
+@import '@/styles/base/size.sass';
+
+.root {
+  position: relative;
+
+  .button {
+    &.baseline-std {
+      margin-top: #{-$spacing-1};
+    }
+    &.baseline-medium {
+      margin-top: 0;
+    }
+  }
+}

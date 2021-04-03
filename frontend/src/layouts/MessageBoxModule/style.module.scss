@@ -26,10 +26,10 @@
     transform: translate(-50%, -50%);
 
     &.transaction-enter-active {
-      transition: transform 0.15s ease-out;
+      transition: transform 0.1s ease-out;
     }
     &.transaction-leave-active {
-      transition: transform 0.15s ease-in, opacity 0.15s ease-in;
+      transition: transform 0.1s ease-in, opacity 0.15s ease-in;
     }
     &.transaction-enter-from {
       transform: translate(-50%, calc(1rem - 50%));

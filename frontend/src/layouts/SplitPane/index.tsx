@@ -10,7 +10,7 @@ export { PaneBasicLayout }
 export default defineComponent({
     props: {
         defaultWidth: {type: Number, default: 250},
-        maxWidth: {type: Number, default: 300},
+        maxWidth: {type: Number, default: 400},
         minWidth: {type: Number, default: 200},
         showPane: {type: Boolean, default: true}
     },

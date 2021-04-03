@@ -12,6 +12,17 @@ export const arrays = {
             }
         }
         return result
+    },
+    equals<T>(a: T[], b: T[], equalsBy: (a: T, b: T) => boolean = (a, b) => a === b): boolean {
+        if (a.length !== b.length) {
+            return false
+        }
+        for (let i = 0; i < a.length; ++i) {
+            if (!equalsBy(a[i], b[i])) {
+                return false
+            }
+        }
+        return true
     }
 }
 
@@ -31,5 +42,17 @@ export const maps = {
             }
         }
         return ret
+    },
+    equals<T>(a: {[key: string]: T}, b: {[key: string]: T}, equalsBy: (a: T, b: T) => boolean = (a, b) => a === b): boolean {
+        const entriesA = Object.entries(a)
+        if(entriesA.length !== Object.keys(b).length) {
+            return false
+        }
+        for(const [key, valueA] of entriesA) {
+            if(!b.hasOwnProperty(key) || !equalsBy(valueA, b[key])) {
+                return false
+            }
+        }
+        return true
     }
 }

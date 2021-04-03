@@ -3,7 +3,7 @@ import TopBarLayout from "@/layouts/TopBarLayout"
 import SplitPane from "@/layouts/SplitPane"
 import TopBarContent from "./TopBarContent"
 import ListView from "./ListView"
-import PaneDetailContent from "./PaneDetailContent"
+import PaneDetailView from "./PaneDetailView"
 import { annotationContextInjection, useAnnotationContextInjection } from "./inject"
 
 
@@ -19,7 +19,7 @@ export default defineComponent({
                 default: () => <SplitPane showPane={context.detail.value != null} v-slots={{
                     default: () => <ListView/>,
                     pane: () => typeof context.detail.value === "number"
-                        ? <PaneDetailContent annotationId={context.detail.value}/>
+                        ? <PaneDetailView annotationId={context.detail.value}/>
                         : <div/>
                 }}/>
             }}/>

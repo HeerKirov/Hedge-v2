@@ -27,7 +27,7 @@ export default defineComponent({
 
         return () => <div class={style.root}>
             <Transition enterActiveClass={style.transactionActive} leaveActiveClass={style.transactionActive} enterFromClass={style.transactionGoal} leaveToClass={style.transactionGoal}>
-                {task.value && <div class={style.background} onClick={task.value!.options.esc ? (() => click(task.value!.options.esc!)) : undefined}/>}
+                {task.value && <div class={style.background} onClick={task.value!.options.esc ? (() => task.value?.options.esc && click(task.value.options.esc)) : undefined}/>}
             </Transition>
             <Transition enterActiveClass={style.transactionEnterActive} leaveActiveClass={style.transactionLeaveActive} enterFromClass={style.transactionEnterFrom} leaveToClass={style.transactionLeaveTo}>
                 {task.value && <Box {...task.value!.options} onClick={click}/>}
@@ -41,6 +41,7 @@ const Box = defineComponent({
         title: String,
         message: {type: String, required: true},
         buttons: {type: null as any as PropType<MessageBoxButton[]>, required: true},
+        enter: String,
         esc: String
     },
     emits: ["click"],
@@ -50,10 +51,13 @@ const Box = defineComponent({
         function escapeEvent(e: KeyboardEvent) {
             if(props.esc && e.key === "Escape") {
                 emit("click", props.esc)
+            }else if(props.enter && e.key === "Enter") {
+                emit("click", props.enter)
             }
+            e.returnValue = false
         }
-        onMounted(() => document.addEventListener("keyup", escapeEvent))
-        onUnmounted(() => document.removeEventListener("keyup", escapeEvent))
+        onMounted(() => document.addEventListener("keydown", escapeEvent))
+        onUnmounted(() => document.removeEventListener("keydown", escapeEvent))
 
         return () => <div class={style.boxFramework}>
             <div class={style.box}>

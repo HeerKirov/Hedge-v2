@@ -22,6 +22,9 @@
   .annotation-target-editor {
     p {
       margin-top: $spacing-1;
+      span:global(.icon) {
+        width: 1rem;
+      }
       &.sub {
         margin-left: 1rem;
       }

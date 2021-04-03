@@ -1,4 +1,4 @@
-import { maps } from "@/utils/collections"
+import { arrays, maps } from "@/utils/collections"
 
 export const numbers = {
     round2decimal(n: number): number {
@@ -13,6 +13,26 @@ export const numbers = {
 }
 
 export const objects = {
+    deepEquals(a: any, b: any): boolean {
+        const typeA = typeof a, typeB = typeof b
+        if(typeA === "object" && typeB === "object") {
+            const aIsArray = a instanceof Array, bIsArray = b instanceof Array
+            if(aIsArray && bIsArray) {
+                if(arrays.equals(a, b, objects.deepEquals)) {
+                    return true
+                }
+            }else if(!aIsArray && !bIsArray) {
+                if(maps.equals(a, b, objects.deepEquals)) {
+                    return true
+                }
+            }
+            return false
+        }else if(typeA !== typeB) {
+            return false
+        }else{
+            return a === b
+        }
+    },
     deepCopy<T>(any: T): T {
         const type = typeof any
         if(type === "object") {

@@ -15,6 +15,7 @@ export interface MessageBoxOptions {
     title?: string
     message: string
     buttons: MessageBoxButton[]
+    enter?: string
     esc?: string
 }
 
@@ -39,10 +40,10 @@ export function installMessageBoxManager() {
         })
     }
     const showOkMessage = (title: string | undefined, message: string): void => {
-        showMessageBox({title, message, buttons: [OkButton], esc: "ok"}).finally(null)
+        showMessageBox({title, message, buttons: [OkButton], esc: "ok", enter: "ok"}).finally(null)
     }
     const showYesNoMessage = async (title: string | undefined, message: string): Promise<boolean> => {
-        const res = await showMessageBox({title, message, buttons: [YesButton, NoButton], esc: "no"})
+        const res = await showMessageBox({title, message, buttons: [YesButton, NoButton], enter: "yes", esc: "no"})
         return res === "yes"
     }
 

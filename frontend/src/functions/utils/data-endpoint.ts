@@ -36,6 +36,13 @@ export interface DataEndpointData<T> {
     result: T[]
 }
 
+/*TODO 需要修改方案。
+        - 需要一个方案，从当前列表中删除一个项，并减小损耗。这个应该好实现。
+        - 需要一个方案，修改当前列表的一个项，并减小损耗。
+       修改方案需要一个定位方案，即如何定位到一个目标项。可能需要引用，如果用扫描效率太低。
+       修改方案还有一个问题是如何让virtual view一同更新。
+ */
+
 export function useDataEndpoint<T>({ request, handleError, segmentSize, queryDelay }: DataEndpointOptions<T>): DataEndpointResult<T> {
     const queryQueue = useQueryQueue(request, handleError, queryDelay ?? 250)
     const segments = useSegments(segmentSize ?? 100, queryQueue)

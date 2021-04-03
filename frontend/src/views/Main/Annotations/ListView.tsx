@@ -58,7 +58,7 @@ const AnnotationTargetElement = defineComponent({
     },
     setup(props) {
         return () => <span>
-            {props.target.map(t => <i class={`fa fa-${TARGET_TYPE_ICON[t]} mr-2`}/>)}
+            {(props.target.length > 0 ? props.target : ["TAG", "AUTHOR", "TOPIC"]).map(t => <i class={`fa fa-${TARGET_TYPE_ICON[t]} mr-2`}/>)}
         </span>
     }
 })

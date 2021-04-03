@@ -41,7 +41,7 @@ export default defineComponent({
     }
 })
 
-interface SelectItem {
+export interface SelectItem {
     value: string
     name: string
 }
