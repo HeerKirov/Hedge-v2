@@ -182,6 +182,7 @@ export function useDataEndpoint<T>({ request, handleError, segmentSize, queryDel
                         segment.callbacks.splice(0, segment.callbacks.length)
                     }
                 }
+                queryQueue.data.total -= 1
 
                 if(index >= data.value.metrics.offset) {
                     dataUpdate(data.value.metrics.offset, data.value.metrics.limit).finally()

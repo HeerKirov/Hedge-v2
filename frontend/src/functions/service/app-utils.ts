@@ -42,28 +42,3 @@ export const windowManager = clientMode ? {
 export const openExternal = clientMode
     ? (url: string) => remote.shell.openExternal(url)
     : (url: string) => window.open(url)
-
-export const usePopupMenu = clientMode ? useNativePopupMenu : useWebPopupMenu
-
-function useNativePopupMenu(items: MenuTemplate[] | Ref<MenuTemplate[]> | (() => MenuTemplate[])) {
-    const element = ref<HTMLElement>()
-    let popup: (options: {x: number, y: number} | undefined) => void
-    if(typeof items === "function") {
-        const data = computed(items)
-        popup = remote.menu.createPopup(data.value).popup
-        watch(data, value => popup = remote.menu.createPopup(value).popup)
-    }else if(isReactive(items)) {
-        popup = () => {}
-        watchEffect(() => popup = remote.menu.createPopup(unref(items)).popup)
-    }else{
-        popup = remote.menu.createPopup(unref(items)).popup
-    }
-
-    return {
-        element,
-        popup() {
-            const rect = element.value?.getBoundingClientRect()
-            popup(rect ? {x: Math.floor(rect.left), y: Math.floor(rect.top)} : undefined)
-        }
-    }
-}

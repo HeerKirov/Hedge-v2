@@ -40,6 +40,10 @@ export default defineComponent({
             props: {
                 padding() { return props.padding },
                 buffer() { return props.bufferSize * props.rowHeight }
+            },
+            onRefresh() {
+                lastDataRequired.offset = undefined
+                lastDataRequired.limit = undefined
             }
         })
 

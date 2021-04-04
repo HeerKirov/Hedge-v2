@@ -106,9 +106,9 @@ export function useObjectEndpoint<PATH, MODEL, FORM>(options: ObjectEndpointOpti
             }finally{
                 updating.value = false
             }
+            return true
         }
-
-        return true
+        return false
     }
 
     const deleteData = async (): Promise<boolean> => {

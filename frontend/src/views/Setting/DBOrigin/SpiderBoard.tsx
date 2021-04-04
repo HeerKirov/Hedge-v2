@@ -1,6 +1,6 @@
 import { computed, defineComponent, inject, PropType, ref, watch } from "vue"
 import { Site, SpiderRule } from "@/functions/adapter-http/impl/setting-source"
-import { usePopupMenu } from "@/functions/service"
+import { useElementPopupMenu } from "@/functions/service"
 import { useSettingSpider, useSettingSpiderUsableRules } from "@/functions/server-api/setting"
 import { useMessageBox } from "@/functions/message"
 import Select from "@/components/Select"
@@ -55,7 +55,7 @@ export default defineComponent({
             }
         }
 
-        const addMenu = usePopupMenu(() => {
+        const addMenu = useElementPopupMenu(() => {
             const canAddSiteList = sites.value.filter(site => !siteList.value.find(s => s.name === site.name))
             if(canAddSiteList.length > 0) return canAddSiteList.map(site => ({ type: "normal", label: site.title, click: onAddItem(site) }))
             return [{ type: "normal", enabled: false, label: "(没有可用的站点)" }]

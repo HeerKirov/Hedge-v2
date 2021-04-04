@@ -1,6 +1,7 @@
 import { computed, inject, InjectionKey, isReactive, provide, ref, Ref, unref, watch, watchEffect } from "vue"
 import { MenuTemplate } from "@/functions/adapter-ipc";
 
+//TODO 调整web popup menu，实现，并引入到VCA
 
 export interface PopupMenuManager {
     popup(items: MenuItem[], scale?: {x: number, y: number})
@@ -10,7 +11,7 @@ export interface PopupMenuConsumer extends PopupMenuManager {
     value: Ref<{items: MenuItem[], scale?: {x: number, y: number}} | null>
 }
 
-export type MenuItem = ButtonMenuItem | SeparatorMenuItem | SubMenuItem
+export type MenuItem = ButtonMenuItem | CheckboxMenuItem | RatioMenuItem | SeparatorMenuItem | SubMenuItem
 
 interface SeparatorMenuItem {
     type: "separator"
@@ -19,6 +20,20 @@ interface ButtonMenuItem {
     type: "normal"
     label: string
     enabled?: boolean
+    click?()
+}
+interface CheckboxMenuItem {
+    type: "checkbox"
+    label: string
+    enabled?: boolean
+    checked?: boolean
+    click?()
+}
+interface RatioMenuItem {
+    type: "radio"
+    label: string
+    enabled?: boolean
+    checked?: boolean
     click?()
 }
 interface SubMenuItem {

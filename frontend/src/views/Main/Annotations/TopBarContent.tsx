@@ -17,7 +17,9 @@ export default defineComponent({
             </div>
             <div class="right single-line-group">
                 <DataRouter/>
-                <button class="square button no-drag radius-large is-white" onClick={newButton}><span class="icon"><i class="fa fa-plus"/></span></button>
+                <button class={["square", "button", "no-drag", "radius-large", "is-white"]} onClick={newButton}>
+                    <span class="icon"><i class="fa fa-plus"/></span>
+                </button>
             </div>
         </div>
     }

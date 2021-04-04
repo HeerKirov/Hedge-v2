@@ -50,11 +50,25 @@ export interface RemoteClientAdapter {
     }
 }
 
-export type MenuTemplate = NormalMenuTemplate | SeparatorMenuTemplate | SubMenuTemplate
+export type MenuTemplate = NormalMenuTemplate | CheckboxMenuTemplate | RadioMenuTemplate | SeparatorMenuTemplate | SubMenuTemplate
 interface NormalMenuTemplate {
     label: string
     enabled?: boolean
     type: "normal"
+    click?(): void
+}
+interface CheckboxMenuTemplate {
+    label: string
+    enabled?: boolean
+    type: "checkbox"
+    checked?: boolean
+    click?(): void
+}
+interface RadioMenuTemplate {
+    label: string
+    enabled?: boolean
+    type: "radio"
+    checked?: boolean
     click?(): void
 }
 interface SeparatorMenuTemplate {

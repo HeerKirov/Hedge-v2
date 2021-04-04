@@ -2,7 +2,7 @@ import { computed, defineComponent, inject, PropType, ref, watch } from "vue"
 import { SourceAnalyseRule } from "@/functions/adapter-http/impl/setting-import"
 import { Site } from "@/functions/adapter-http/impl/setting-source"
 import { useSettingSite } from "@/functions/server-api/setting"
-import { usePopupMenu } from "@/functions/service"
+import { useElementPopupMenu } from "@/functions/service"
 import { useMessageBox } from "@/functions/message"
 import Input from "@/components/Input"
 import Select from "@/components/Select"
@@ -80,7 +80,7 @@ const RuleEditor = defineComponent({
                 emit("updateRuleIdx", data.value!.sourceAnalyseRules.length - 1)
             }
         }
-        const sortMenu = usePopupMenu(() => {
+        const sortMenu = useElementPopupMenu(() => {
             const idx = props.ruleIdx
             if(idx !== undefined) {
                 const canPrev = idx > 0, canNext = idx < data.value!.sourceAnalyseRules.length - 1
