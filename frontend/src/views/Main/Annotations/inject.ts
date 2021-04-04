@@ -17,7 +17,7 @@ export interface AnnotationContext {
 export function useAnnotationContextInjection(): AnnotationContext {
     const { dataEndpoint, scrollView, queryFilter } = useAnnotationList()
 
-    const detail = ref<number | "NEW" | null>(1)
+    const detail = ref<number | "NEW" | null>(null)
 
     return {dataEndpoint, scrollView, queryFilter, detail}
 }

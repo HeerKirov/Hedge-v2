@@ -22,9 +22,40 @@ interface DataEndpointOptions<T> {
 }
 
 export interface DataEndpointResult<T> {
+    /**
+     * 响应式返回的数据结果。
+     */
     data: Ref<DataEndpointData<T>>
+    /**
+     * 提出数据更新。
+     */
     dataUpdate(offset: number, limit: number): void
+    /**
+     * 刷新。这会清空缓存和结果，迫使下层重新提出数据更新。
+     */
     refresh(): void
+    /**
+     * 对数据进行即时更改而无需刷新列表的操作。它不是用来真实修改列表的，只是用来在最小操作代价下保证数据同步。
+     */
+    operations: {
+        add()
+        /**
+         * 根据表达式条件查找指定的项。它只会在已经加载的项中查找，且优先在data的数据范围附近查找。
+         * @return 返回项的index，也就是offset。没有查找到指定项就会返回undefined。
+         */
+        find(condition: (data: T) => boolean): number | undefined
+        /**
+         * 替换数据列表中指定位置处的项。
+         * @return 是否成功替换
+         */
+        modify(index: number, newData: T): boolean
+        /**
+         * 从数据列表中删除指定位置处的项。后面的项会前移一位。
+         * 后一个段not loaded的段，会被重新标记为not loaded，使其重新加载数据。
+         * @return 是否成功删除
+         */
+        remove(index: number): boolean
+    }
 }
 
 export interface DataEndpointData<T> {
@@ -36,16 +67,10 @@ export interface DataEndpointData<T> {
     result: T[]
 }
 
-/*TODO 需要修改方案。
-        - 需要一个方案，从当前列表中删除一个项，并减小损耗。这个应该好实现。
-        - 需要一个方案，修改当前列表的一个项，并减小损耗。
-       修改方案需要一个定位方案，即如何定位到一个目标项。可能需要引用，如果用扫描效率太低。
-       修改方案还有一个问题是如何让virtual view一同更新。
- */
-
 export function useDataEndpoint<T>({ request, handleError, segmentSize, queryDelay }: DataEndpointOptions<T>): DataEndpointResult<T> {
+    const size = segmentSize ?? 100
     const queryQueue = useQueryQueue(request, handleError, queryDelay ?? 250)
-    const segments = useSegments(segmentSize ?? 100, queryQueue)
+    const segments = useSegments(size, queryQueue)
 
     let nextQueryId = 1
     let completedQueryId = 0
@@ -76,7 +101,98 @@ export function useDataEndpoint<T>({ request, handleError, segmentSize, queryDel
         data.value = {metrics: {total: undefined, offset: 0, limit: 0}, result: []}
     }
 
-    return {data, dataUpdate, refresh}
+    const operations: DataEndpointResult<T>["operations"] = {
+        add() {
+
+        },
+        find(condition): number | undefined {
+            if(queryQueue.data.total == null) {
+                return undefined
+            }
+            //segment总分片数
+            const segmentCount = Math.ceil(queryQueue.data.total / size)
+            const segmentList = segments.currentSegments()
+
+            function findInSegment(segmentIndex: number): number | undefined {
+                if(segmentList[segmentIndex]?.status === SegmentStatus.LOADED) {
+                    const begin = segmentIndex * size, end = Math.min((segmentIndex + 1) * size, queryQueue.data.total!)
+                    for(let i = begin; i < end; ++i) {
+                        const data = queryQueue.data.buffer[i]
+                        if(data != undefined && condition(data)) {
+                            return i
+                        }
+                    }
+                }
+                return undefined
+            }
+
+            //根据当前的数据显示范围计算搜索起始的段位置
+            const lowerBound = Math.floor(data.value.metrics.offset / size), upperBound = Math.ceil((data.value.metrics.offset + data.value.metrics.limit) / size)
+            //首先在这些段中搜索
+            for(let i = lowerBound; i < upperBound; ++i) {
+                const result = findInSegment(i)
+                if(result != undefined) {
+                    return result
+                }
+            }
+            //没有结果后，从lower和upper向两侧迭代
+            for(let lower = lowerBound - 1, upper = upperBound; lower >= 0 || upper < segmentCount;) {
+                if(lower >= 0) {
+                    const result = findInSegment(lower)
+                    if(result != undefined) {
+                        return result
+                    }
+                    lower -= 1
+                }
+                if(upper < segmentCount) {
+                    const result = findInSegment(upper)
+                    if(result != undefined) {
+                        return result
+                    }
+                    upper += 1
+                }
+            }
+            return undefined
+        },
+        modify(index, newData): boolean {
+            if(index >= 0 && queryQueue.data.total != null && index < queryQueue.data.total) {
+                const segment = Math.floor(index / size)
+                if(segments.currentSegments()[segment]?.status === SegmentStatus.LOADED) {
+                    queryQueue.data.buffer[index] = newData
+                    if(data.value.metrics.offset <= index && index < data.value.metrics.offset + data.value.metrics.limit) {
+                        dataUpdate(data.value.metrics.offset, data.value.metrics.limit).finally()
+                    }
+                    return true
+                }
+            }
+            return false
+        },
+        remove(index): boolean {
+            if(queryQueue.data.total != null && index >= 0 && index < queryQueue.data.total) {
+                //移除数据项
+                queryQueue.data.buffer.splice(index, 1)
+                //发生更改的数据项的段位置和总段数
+                const segmentIndex = Math.floor(index / size), segmentCount = Math.ceil(queryQueue.data.total / size)
+                const segmentList = segments.currentSegments()
+                for(let i = segmentIndex; i < segmentCount; ++i) {
+                    const segment = segmentList[i]
+                    if(segment != undefined && segmentList[i + 1]?.status !== SegmentStatus.LOADED) {
+                        //某个段的后一个段not loaded时，这个段需要被标记为not loaded
+                        segment.status = SegmentStatus.NOT_LOADED
+                        segment.callbacks.splice(0, segment.callbacks.length)
+                    }
+                }
+
+                if(index >= data.value.metrics.offset) {
+                    dataUpdate(data.value.metrics.offset, data.value.metrics.limit).finally()
+                }
+                return true
+            }
+            return false
+        }
+    }
+
+    return {data, dataUpdate, refresh, operations}
 }
 
 function useSegments(segmentSize: number, queryQueue: ReturnType<typeof useQueryQueue>) {
@@ -176,6 +292,8 @@ function useSegments(segmentSize: number, queryQueue: ReturnType<typeof useQuery
         segments = []
     }
 
+    const currentSegments = () => segments
+
     function createSegment(index: number) {
         return {
             index,
@@ -203,7 +321,7 @@ function useSegments(segmentSize: number, queryQueue: ReturnType<typeof useQuery
         }
     }
 
-    return {query, clear}
+    return {query, clear, currentSegments}
 }
 
 function useQueryQueue<T>(request: DataEndpointOptions<T>["request"], errorHandler: DataEndpointOptions<T>["handleError"], queryDelay: number) {

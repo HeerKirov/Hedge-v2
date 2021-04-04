@@ -24,8 +24,8 @@ interface ObjectEndpointOptions<PATH, MODEL, FORM> {
     delete?(httpClient: HttpClient): (path: PATH) => Promise<Response<unknown>>
     beforePath?()
     afterPath?()
-    afterUpdate?()
-    afterDelete?()
+    afterUpdate?(path: PATH, data: MODEL)
+    afterDelete?(path: PATH)
     handleUpdateError?(e: HttpException): HttpException | void
     handleDeleteError?(e: HttpException): HttpException | void
 }
@@ -83,11 +83,13 @@ export function useObjectEndpoint<PATH, MODEL, FORM>(options: ObjectEndpointOpti
                 if(res.ok) {
                     if(res.data) {
                         data.value = res.data
+                        options.afterUpdate?.(path.value, data.value)
                     }else{
                         //在update函数没有提供返回值的情况下，去请求get函数以更新数据
                         const res = await method.get(path.value)
                         if(res.ok) {
                             data.value = res.data
+                            options.afterUpdate?.(path.value, data.value)
                         }else if(res.exception) {
                             if(res.exception.code !== "NOT_FOUND") {
                                 notification.handleException(res.exception)
@@ -115,7 +117,7 @@ export function useObjectEndpoint<PATH, MODEL, FORM>(options: ObjectEndpointOpti
             try {
                 const res = await method.delete(path.value)
                 if(res.ok) {
-                    options.afterDelete?.()
+                    options.afterDelete?.(path.value)
                     data.value = null
                 }else if(res.exception) {
                     //首先尝试让上层处理错误，上层拒绝处理则自行处理

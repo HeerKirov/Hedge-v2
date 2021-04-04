@@ -1,17 +1,18 @@
-import { computed, defineComponent, inject, PropType, reactive, ref, toRef, watch } from "vue"
+import { defineComponent, inject, toRef } from "vue"
 import Input from "@/components/Input"
 import Select, { SelectItem } from "@/components/Select"
 import { PaneBasicLayout } from "@/layouts/SplitPane"
 import { ViewAndEditor } from "@/layouts/EditorComponents"
-import { AnnotationTarget } from "@/functions/adapter-http/impl/annotations"
+import { Annotation, AnnotationTarget, AnnotationUpdateForm } from "@/functions/adapter-http/impl/annotations"
 import { useObjectEndpoint } from "@/functions/utils/object-endpoint"
 import { useMessageBox } from "@/functions/message"
 import { annotationContextInjection } from "@/views/Main/Annotations/inject"
 import { AnnotationTargetEditor, AnnotationTargetView } from "./EditorComponents"
 import { onKeyEnter } from "@/utils/events"
 import { checkTagName } from "@/utils/check"
+import { objects } from "@/utils/primitives"
+import { CAN_BE_EXPORTED_SELECT_ITEMS } from "./define"
 import style from "./style.module.scss"
-import { objects } from "@/utils/primitives";
 
 export default defineComponent({
     props: {
@@ -19,13 +20,17 @@ export default defineComponent({
     },
     setup(props) {
         const message = useMessageBox()
-        const { detail } = inject(annotationContextInjection)!
+        const { dataEndpoint, detail } = inject(annotationContextInjection)!
 
-        const { data, setData } = useObjectEndpoint({
+        const { data, setData } = useObjectEndpoint<number, Annotation, AnnotationUpdateForm>({
             path: toRef(props, 'annotationId'),
             get: httpClient => httpClient.annotation.get,
             update: httpClient => httpClient.annotation.update,
             delete: httpClient => httpClient.annotation.delete,
+            afterUpdate(id, data) {
+                const index = dataEndpoint.operations.find(annotation => annotation.id === id)
+                if(index != undefined) dataEndpoint.operations.modify(index, data)
+            },
             afterDelete() { detail.value = null }
         })
 
@@ -75,8 +80,3 @@ export default defineComponent({
         </PaneBasicLayout>
     }
 })
-
-const CAN_BE_EXPORTED_SELECT_ITEMS: SelectItem[] = [
-    {name: "不可导出至图库项目", value: "false"},
-    {name: "可导出至图库项目", value: "true"}
-]

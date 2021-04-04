@@ -4,6 +4,7 @@ import SplitPane from "@/layouts/SplitPane"
 import TopBarContent from "./TopBarContent"
 import ListView from "./ListView"
 import PaneDetailView from "./PaneDetailView"
+import PaneCreateView from "./PaneCreateView"
 import { annotationContextInjection, useAnnotationContextInjection } from "./inject"
 
 
@@ -20,7 +21,7 @@ export default defineComponent({
                     default: () => <ListView/>,
                     pane: () => typeof context.detail.value === "number"
                         ? <PaneDetailView annotationId={context.detail.value}/>
-                        : <div/>
+                        : <PaneCreateView/>
                 }}/>
             }}/>
         </div>
