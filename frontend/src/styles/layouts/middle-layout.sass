@@ -1,47 +1,33 @@
 @import "@/styles/base/size"
 
-//拥有左中右三段布局的布局CSS。
+//拥有左中右三段布局的布局CSS。用于top bar分块。
 .middle-layout
     width: 100%
     height: 100%
-    position: relative
+    display: flex
+    flex-wrap: nowrap
+    justify-content: space-between
 
-    > .left
-        position: absolute
-        left: 0
-        top: 0
-        height: 100%
-        display: flex 
-        align-items: center
-        justify-content: flex-start
-    
-    > .middle
-        position: absolute
-        height: 100%
-        left: 25%
-        right: 30%
-        &.center
-            left: 0
-            right: 0
-
-    > .middle-left
-        position: absolute
-        height: 100%
-        right: calc(25% - #{$spacing-1})
-        top: 0
-
-    > .middle-right
-        position: absolute
-        height: 100%
-        left: calc(70% + #{$spacing-1})
-        top: 0
-    
-    > .right
-        position: absolute
-        right: 0
-        top: 0
+    > .layout-container
         height: 100%
         display: flex
+        flex-wrap: nowrap
         align-items: center
-        justify-content: flex-start
-    
+
+        min-width: 4rem
+
+        &:first-child
+            justify-content: flex-start
+        &:last-child
+            justify-content: flex-end
+        &:not(:first-child):not(:last-child)
+            justify-content: center
+            min-width: 50%
+            max-width: 75%
+
+        > *
+            flex: 0 0 auto
+            &.is-shrink-item
+                flex-shrink: 1
+            &.is-grow-item
+                flex-grow: 1

@@ -1,5 +1,5 @@
-import { InjectionKey, Ref, ref, watch } from "vue"
-import { Annotation, AnnotationQueryFilter } from "@/functions/adapter-http/impl/annotations"
+import { InjectionKey, Ref, ref, shallowRef, watch } from "vue"
+import { Annotation, AnnotationCreateForm, AnnotationQueryFilter } from "@/functions/adapter-http/impl/annotations"
 import { useHttpClient } from "@/functions/service"
 import { useNotification } from "@/functions/message"
 import { useScrollView, ScrollView } from "@/components/VirtualScrollView"
@@ -11,15 +11,19 @@ export interface AnnotationContext {
     dataEndpoint: DataEndpointResult<Annotation>
     scrollView: Readonly<ScrollView>
     queryFilter: Ref<AnnotationQueryFilter>
-    detail: Ref<number | "NEW" | null>
+    createMode: Ref<AnnotationCreateForm | null>
+    detailMode: Ref<number | null>
+    openCreatePane(template?: AnnotationCreateForm)
+    openDetailPane(id: number)
+    closePane()
 }
 
 export function useAnnotationContextInjection(): AnnotationContext {
     const { dataEndpoint, scrollView, queryFilter } = useAnnotationList()
 
-    const detail = ref<number | "NEW" | null>(null)
+    const { createMode, detailMode, openCreatePane, openDetailPane, closePane } = usePane()
 
-    return {dataEndpoint, scrollView, queryFilter, detail}
+    return {dataEndpoint, scrollView, queryFilter, createMode, detailMode, openCreatePane, openDetailPane, closePane}
 }
 
 function useAnnotationList() {
@@ -40,4 +44,28 @@ function useAnnotationList() {
     const scrollView = useScrollView()
 
     return {dataEndpoint, scrollView, queryFilter}
+}
+
+function usePane() {
+    const createMode = ref<AnnotationCreateForm | null>(null)
+    const detailMode = ref<number | null>(null)
+
+    const openCreatePane = (template?: AnnotationCreateForm) => {
+        createMode.value = template ?? {
+            name: "",
+            canBeExported: false,
+            target: []
+        }
+        detailMode.value = null
+    }
+    const openDetailPane = (id: number) => {
+        createMode.value = null
+        detailMode.value = id
+    }
+    const closePane = () => {
+        createMode.value = null
+        detailMode.value = null
+    }
+
+    return {createMode, detailMode, openCreatePane, openDetailPane, closePane}
 }

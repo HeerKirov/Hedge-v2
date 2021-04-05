@@ -43,7 +43,7 @@ export default defineComponent({
             {isCustom.value ? <>
                 <p class="mt-4 is-size-7">已选择在自定义的位置保存数据库。请指定一个文件夹作为数据库的存储文件夹。</p>
                 <div class="group mt-5">
-                    <Input class="fullwidth" value={customFolderPath.value} onUpdateValue={v => customFolderPath.value = v}/>
+                    <Input class="is-fullwidth" value={customFolderPath.value} onUpdateValue={v => customFolderPath.value = v}/>
                     <button class="button is-info" onClick={selectCustomPath}><i class="fa fa-folder-open mr-1"/>选择文件夹…</button>
                 </div>
                 {errorMessage.value && <p class="helper is-danger">{errorMessage.value}</p>}

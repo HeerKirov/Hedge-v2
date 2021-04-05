@@ -14,14 +14,14 @@ export default defineComponent({
 
         provide(annotationContextInjection, context)
 
+        const { createMode, detailMode } = context
+
         return () => <div>
             <TopBarLayout v-slots={{
                 topBar: () => <TopBarContent/>,
-                default: () => <SplitPane showPane={context.detail.value != null} v-slots={{
+                default: () => <SplitPane showPane={createMode.value != null || detailMode.value != null} v-slots={{
                     default: () => <ListView/>,
-                    pane: () => typeof context.detail.value === "number"
-                        ? <PaneDetailView annotationId={context.detail.value}/>
-                        : <PaneCreateView/>
+                    pane: () => createMode.value != null ? <PaneCreateView/> : <PaneDetailView/>
                 }}/>
             }}/>
         </div>

@@ -116,9 +116,9 @@ const SiteEditor = defineComponent({
 
         return () => <div class="block h-100">
             <label class="label">站点标识名</label>
-            <Input class={{"fullwidth": true, "is-danger": error.value.name}} disabled={!props.createMode} value={data.value.name} onUpdateValue={v => data.value.name = v}/>
+            <Input class={{"is-fullwidth": true, "is-danger": error.value.name}} disabled={!props.createMode} value={data.value.name} onUpdateValue={v => data.value.name = v}/>
             <label class="label">站点名称</label>
-            <Input class={{"fullwidth": true, "is-danger": error.value.title}} value={data.value.title} onUpdateValue={v => data.value.title = v}/>
+            <Input class={{"is-fullwidth": true, "is-danger": error.value.title}} value={data.value.title} onUpdateValue={v => data.value.title = v}/>
             <CheckBox disabled={!props.createMode} class="mt-2" value={data.value.hasSecondaryId} onUpdateValue={v => data.value.hasSecondaryId = v}>站点拥有二级id</CheckBox>
             <div class="group mt-3">
                 {props.createMode

@@ -38,12 +38,15 @@ export interface DataEndpointResult<T> {
      * 对数据进行即时更改而无需刷新列表的操作。它不是用来真实修改列表的，只是用来在最小操作代价下保证数据同步。
      */
     operations: {
-        add()
         /**
          * 根据表达式条件查找指定的项。它只会在已经加载的项中查找，且优先在data的数据范围附近查找。
          * @return 返回项的index，也就是offset。没有查找到指定项就会返回undefined。
          */
         find(condition: (data: T) => boolean): number | undefined
+        /**
+         * 查找指定位置处的项。如果项不存在，或者未加载，则返回undefined。
+         */
+        retrieve(index: number): T | undefined
         /**
          * 替换数据列表中指定位置处的项。
          * @return 是否成功替换
@@ -102,9 +105,6 @@ export function useDataEndpoint<T>({ request, handleError, segmentSize, queryDel
     }
 
     const operations: DataEndpointResult<T>["operations"] = {
-        add() {
-
-        },
         find(condition): number | undefined {
             if(queryQueue.data.total == null) {
                 return undefined
@@ -151,6 +151,12 @@ export function useDataEndpoint<T>({ request, handleError, segmentSize, queryDel
                     }
                     upper += 1
                 }
+            }
+            return undefined
+        },
+        retrieve(index: number): T | undefined {
+            if(index >= 0 && queryQueue.data.total != null && index < queryQueue.data.total) {
+                return queryQueue.data.buffer[index]
             }
             return undefined
         },

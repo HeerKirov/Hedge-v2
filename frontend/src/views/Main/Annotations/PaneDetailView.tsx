@@ -1,6 +1,6 @@
-import { defineComponent, inject, toRef } from "vue"
+import { defineComponent, inject } from "vue"
 import Input from "@/components/Input"
-import Select, { SelectItem } from "@/components/Select"
+import Select from "@/components/Select"
 import { PaneBasicLayout } from "@/layouts/SplitPane"
 import { ViewAndEditor } from "@/layouts/EditorComponents"
 import { Annotation, AnnotationTarget, AnnotationUpdateForm } from "@/functions/adapter-http/impl/annotations"
@@ -15,26 +15,19 @@ import { CAN_BE_EXPORTED_SELECT_ITEMS } from "./define"
 import style from "./style.module.scss"
 
 export default defineComponent({
-    props: {
-        annotationId: {type: Number, required: true}
-    },
-    setup(props) {
+    setup() {
         const message = useMessageBox()
-        const { dataEndpoint, detail } = inject(annotationContextInjection)!
+        const { dataEndpoint, detailMode, closePane } = inject(annotationContextInjection)!
 
         const { data, setData } = useObjectEndpoint<number, Annotation, AnnotationUpdateForm>({
-            path: toRef(props, 'annotationId'),
+            path: detailMode,
             get: httpClient => httpClient.annotation.get,
             update: httpClient => httpClient.annotation.update,
-            delete: httpClient => httpClient.annotation.delete,
             afterUpdate(id, data) {
                 const index = dataEndpoint.operations.find(annotation => annotation.id === id)
                 if(index != undefined) dataEndpoint.operations.modify(index, data)
-            },
-            afterDelete() { detail.value = null }
+            }
         })
-
-        const close = () => { detail.value = null }
 
         const setName = async (name: string) => {
             if(!checkTagName(name)) {
@@ -57,7 +50,7 @@ export default defineComponent({
             return objects.deepEquals(target, data.value?.target) || await setData({ target })
         }
 
-        return () => <PaneBasicLayout onClose={close} class={style.paneDetailContent}>
+        return () => <PaneBasicLayout onClose={closePane} class={style.paneDetailContent}>
             {data.value && <>
                 <ViewAndEditor class="mt-7" baseline="medium" data={data.value.name} onSetData={setName} v-slots={{
                     default: ({ value }) => <p class="is-size-4">[<span class="mx-1 can-select">{value}</span>]</p>,

@@ -26,10 +26,10 @@ export default defineComponent({
         return () => <div>
             <TopBarLayout v-slots={{
                 topBar: () => <div class="middle-layout">
-                    <div class="left no-drag">
+                    <div class="layout-container no-drag">
                         <NumberInput class="is-small is-width-half" value={columnCount.value} onUpdateValue={v => columnCount.value = v}/>
                     </div>
-                    <div class="right no-drag">
+                    <div class="layout-container no-drag">
                         <DataRouter/>
                     </div>
                 </div>,

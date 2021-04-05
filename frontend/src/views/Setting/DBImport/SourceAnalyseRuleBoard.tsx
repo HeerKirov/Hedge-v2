@@ -156,7 +156,7 @@ const RuleEditor = defineComponent({
             </div>
             <div class="mt-2">
                 <label class="label">正则表达式</label>
-                <Input class="fullwidth" value={rule.value.regex} onUpdateValue={v => rule.value.regex = v}/>
+                <Input class="is-fullwidth" value={rule.value.regex} onUpdateValue={v => rule.value.regex = v}/>
             </div>
             <div class="mt-2">
                 <div class={style.inlineDiv}>

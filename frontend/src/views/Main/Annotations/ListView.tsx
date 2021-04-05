@@ -1,6 +1,8 @@
 import { defineComponent, inject, PropType } from "vue"
 import { AnnotationTarget } from "@/functions/adapter-http/impl/annotations"
+import { useMessageBox } from "@/functions/message"
 import { usePopupMenu } from "@/functions/service"
+import { useFastObjectEndpoint } from "@/functions/utils/object-fast-endpoint"
 import { VirtualRow } from "@/components/VirtualScrollView"
 import { TARGET_TYPE_ICON } from "./define"
 import { annotationContextInjection } from "./inject"
@@ -10,20 +12,37 @@ import { annotationContextInjection } from "./inject"
  */
 export default defineComponent({
     setup() {
-        const { dataEndpoint, detail } = inject(annotationContextInjection)!
+        const messageBox = useMessageBox()
+        const { dataEndpoint, detailMode, openCreatePane, openDetailPane, closePane } = inject(annotationContextInjection)!
+
+        const fastEndpoint = useFastObjectEndpoint({
+            delete: httpClient => httpClient.annotation.delete
+        })
+
+        const createByItem = (id: number) => {
+            const index = dataEndpoint.operations.find(annotation => annotation.id === id)
+            if(index != undefined) {
+                const annotation = dataEndpoint.operations.retrieve(index)
+                openCreatePane(annotation)
+            }
+        }
+
+        const deleteItem = async (id: number) => {
+            if(await messageBox.showYesNoMessage("确认", "确定要删除此项吗？此操作不可撤回。")) {
+                if(await fastEndpoint.deleteData(id)) {
+                    if(detailMode.value === id) closePane()
+                    const index = dataEndpoint.operations.find(annotation => annotation.id === id)
+                    if(index != undefined) dataEndpoint.operations.remove(index)
+                }
+            }
+        }
 
         const popupmenu = usePopupMenu<number>([
-            {type: "normal", label: "查看详情", click(id) {
-                console.log("查看详情", id)
-            }},
+            {type: "normal", label: "查看详情", click: openDetailPane},
             {type: "separator"},
-            {type: "normal", label: "以此注解为模板新建", click(id) {
-                console.log("新建", id)
-            }},
+            {type: "normal", label: "以此为模板新建", click: createByItem},
             {type: "separator"},
-            {type: "normal", label: "删除此注解", click(id) {
-                console.log("删除", id)
-            }},
+            {type: "normal", label: "删除此注解", click: deleteItem},
         ])
 
         return () => <div class="w-100 h-100">
@@ -31,7 +50,7 @@ export default defineComponent({
                         total={dataEndpoint.data.value.metrics.total} limit={dataEndpoint.data.value.metrics.limit} offset={dataEndpoint.data.value.metrics.offset}>
                 <table class="table is-hoverable is-fullwidth">
                     <tbody>
-                        {dataEndpoint.data.value.result.map(item => <Item key={item.id} {...item} selected={detail.value === item.id} onRightClick={() => popupmenu.popup(item.id)}/>)}
+                        {dataEndpoint.data.value.result.map(item => <Item key={item.id} {...item} selected={detailMode.value === item.id} onRightClick={() => popupmenu.popup(item.id)}/>)}
                     </tbody>
                 </table>
             </VirtualRow>
@@ -52,9 +71,9 @@ const Item = defineComponent({
     },
     emits: ["rightClick"],
     setup(props, { emit }) {
-        const { detail } = inject(annotationContextInjection)!
+        const { openDetailPane } = inject(annotationContextInjection)!
 
-        const click = () => { detail.value = props.id }
+        const click = () => openDetailPane(props.id)
 
         const rightClick = () => emit("rightClick")
 
