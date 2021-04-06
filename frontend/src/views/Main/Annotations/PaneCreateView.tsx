@@ -1,4 +1,4 @@
-import { defineComponent, inject, reactive, watch } from "vue"
+import { defineComponent, reactive, watch } from "vue"
 import { IdResponse } from "@/functions/adapter-http/impl/generic"
 import { AnnotationCreateForm } from "@/functions/adapter-http/impl/annotations"
 import { useObjectCreator } from "@/functions/utils/object-creator"
@@ -11,13 +11,13 @@ import Input from "@/components/Input"
 import Select from "@/components/Select"
 import { AnnotationTargetEditor } from "./EditorComponents"
 import { CAN_BE_EXPORTED_SELECT_ITEMS } from "./define"
-import { annotationContextInjection } from "./inject"
+import { useAnnotationContext } from "./inject"
 import style from "./style.module.scss"
 
 export default defineComponent({
     setup() {
         const message = useMessageBox()
-        const { dataEndpoint, createMode, openDetailPane, closePane } = inject(annotationContextInjection)!
+        const { dataEndpoint, createMode, openDetailPane, closePane } = useAnnotationContext()
 
         const form: AnnotationCreateForm = reactive(objects.deepCopy(createMode.value!))
 

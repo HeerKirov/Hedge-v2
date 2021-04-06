@@ -1,11 +1,11 @@
 import { defineComponent } from "vue"
 import Input from "@/components/Input"
 import { DataRouter, AddOnFilter } from "@/layouts/TopBarComponents"
-import { useAnnotationContext } from "./inject"
+import { useTopicContext } from "./inject"
 
 export default defineComponent({
     setup() {
-        const { openCreatePane } = useAnnotationContext()
+        const { openCreatePane } = useTopicContext()
 
         return () => <div class="middle-layout">
             <div class="layout-container">你好</div>

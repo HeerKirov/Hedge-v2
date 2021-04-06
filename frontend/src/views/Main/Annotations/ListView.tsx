@@ -5,7 +5,7 @@ import { usePopupMenu } from "@/functions/service"
 import { useFastObjectEndpoint } from "@/functions/utils/object-fast-endpoint"
 import { VirtualRow } from "@/components/VirtualScrollView"
 import { TARGET_TYPE_ICON } from "./define"
-import { annotationContextInjection } from "./inject"
+import { useAnnotationContext } from "./inject"
 
 /**
  * 内容列表项视图。
@@ -13,7 +13,7 @@ import { annotationContextInjection } from "./inject"
 export default defineComponent({
     setup() {
         const messageBox = useMessageBox()
-        const { dataEndpoint, detailMode, openCreatePane, openDetailPane, closePane } = inject(annotationContextInjection)!
+        const { dataEndpoint, detailMode, openCreatePane, openDetailPane, closePane } = useAnnotationContext()
 
         const fastEndpoint = useFastObjectEndpoint({
             delete: httpClient => httpClient.annotation.delete
@@ -71,15 +71,15 @@ const Item = defineComponent({
     },
     emits: ["rightClick"],
     setup(props, { emit }) {
-        const { openDetailPane } = inject(annotationContextInjection)!
+        const { openDetailPane } = useAnnotationContext()
 
         const click = () => openDetailPane(props.id)
 
         const rightClick = () => emit("rightClick")
 
-        return () => <tr onClick={click} onContextmenu={rightClick} class={{'is-selected': props.selected}}>
+        return () => <tr onClick={click} onContextmenu={rightClick} class={{'is-selected': props.selected}} style="height: 33px">
             <td class="is-width-50"><b class="ml-1">[</b><span class="mx-1">{props.name}</span><b>]</b></td>
-            <td class="is-width-15">{(props.canBeExported || null) && <i class="fa fa-share-square is-danger"/>}</td>
+            <td class="is-width-15">{(props.canBeExported || null) && <i class="fa fa-share-square"/>}</td>
             <td class="is-width-35">
                 <AnnotationTargetElement target={props.target}/>
             </td>

@@ -1,49 +1,49 @@
-import { inject, InjectionKey, provide, Ref, ref, shallowRef, watch } from "vue"
-import { Annotation, AnnotationCreateForm, AnnotationQueryFilter } from "@/functions/adapter-http/impl/annotations"
+import { inject, InjectionKey, provide, Ref, ref, watch } from "vue"
+import { Topic, TopicCreateForm, TopicQueryFilter } from "@/functions/adapter-http/impl/topic"
 import { useHttpClient } from "@/functions/service"
 import { useNotification } from "@/functions/message"
 import { useScrollView, ScrollView } from "@/components/VirtualScrollView"
 import { DataEndpointResult, useDataEndpoint } from "@/functions/utils/data-endpoint"
 
-export interface AnnotationContext {
-    dataEndpoint: DataEndpointResult<Annotation>
+export interface TopicContext {
+    dataEndpoint: DataEndpointResult<Topic>
     scrollView: Readonly<ScrollView>
-    queryFilter: Ref<AnnotationQueryFilter>
-    createMode: Ref<AnnotationCreateForm | null>
+    queryFilter: Ref<TopicQueryFilter>
+    createMode: Ref<TopicCreateForm | null>
     detailMode: Ref<number | null>
-    openCreatePane(template?: AnnotationCreateForm)
+    openCreatePane(template?: TopicCreateForm)
     openDetailPane(id: number)
     closePane()
 }
 
-const annotationContextInjection: InjectionKey<AnnotationContext> = Symbol()
+const topicContextInjection: InjectionKey<TopicContext> = Symbol()
 
-export function useAnnotationContext(): AnnotationContext {
-    return inject(annotationContextInjection)!
+export function useTopicContext(): TopicContext {
+    return inject(topicContextInjection)!
 }
 
-export function installAnnotationContext(): AnnotationContext {
-    const { dataEndpoint, scrollView, queryFilter } = useAnnotationList()
+export function installTopicContext(): TopicContext {
+    const { dataEndpoint, scrollView, queryFilter } = useTopicList()
 
     const { createMode, detailMode, openCreatePane, openDetailPane, closePane } = usePane()
 
     const context = {dataEndpoint, scrollView, queryFilter, createMode, detailMode, openCreatePane, openDetailPane, closePane}
 
-    provide(annotationContextInjection, context)
+    provide(topicContextInjection, context)
 
     return context
 }
 
-function useAnnotationList() {
+function useTopicList() {
     const httpClient = useHttpClient()
     const { handleError } = useNotification()
 
-    const queryFilter = ref<AnnotationQueryFilter>({})
+    const queryFilter = ref<TopicQueryFilter>({})
     watch(queryFilter, () => dataEndpoint.refresh())
 
     const dataEndpoint = useDataEndpoint({
         async request(offset: number, limit: number) {
-            const res = await httpClient.annotation.list({offset, limit, ...queryFilter.value})
+            const res = await httpClient.topic.list({offset, limit, ...queryFilter.value})
             return res.ok ? {ok: true, ...res.data} : {ok: false, message: res.exception?.message ?? "unknown error"}
         },
         handleError
@@ -55,15 +55,11 @@ function useAnnotationList() {
 }
 
 function usePane() {
-    const createMode = ref<AnnotationCreateForm | null>(null)
+    const createMode = ref<TopicCreateForm | null>(null)
     const detailMode = ref<number | null>(null)
 
-    const openCreatePane = (template?: AnnotationCreateForm) => {
-        createMode.value = template ?? {
-            name: "",
-            canBeExported: false,
-            target: []
-        }
+    const openCreatePane = (template?: TopicCreateForm) => {
+        createMode.value = template ?? { name: "" }
         detailMode.value = null
     }
     const openDetailPane = (id: number) => {

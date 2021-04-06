@@ -3,14 +3,14 @@ import TopBarLayout from "@/layouts/TopBarLayout"
 import SplitPane from "@/layouts/SplitPane"
 import TopBarContent from "./TopBarContent"
 import ListView from "./ListView"
-import PaneDetailView from "./PaneDetailView"
-import PaneCreateView from "./PaneCreateView"
-import { installAnnotationContext } from "./inject"
+// import PaneDetailView from "./PaneDetailView"
+// import PaneCreateView from "./PaneCreateView"
+import { installTopicContext } from "./inject"
 
 
 export default defineComponent({
     setup() {
-        const context = installAnnotationContext()
+        const context = installTopicContext()
 
         const { createMode, detailMode } = context
 
@@ -19,7 +19,8 @@ export default defineComponent({
                 topBar: () => <TopBarContent/>,
                 default: () => <SplitPane showPane={createMode.value != null || detailMode.value != null} v-slots={{
                     default: () => <ListView/>,
-                    pane: () => createMode.value != null ? <PaneCreateView/> : <PaneDetailView/>
+                    pane: () => <div/>
+                    // pane: () => createMode.value != null ? <PaneCreateView/> : <PaneDetailView/>
                 }}/>
             }}/>
         </div>

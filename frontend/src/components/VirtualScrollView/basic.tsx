@@ -1,4 +1,4 @@
-import { computed, inject, InjectionKey, provide, reactive, readonly, Ref, ref, watch } from "vue"
+import { computed, inject, InjectionKey, onMounted, provide, reactive, readonly, Ref, ref, watch } from "vue"
 import { watchElementResize } from "@/functions/document/observer"
 import { numbers } from "@/utils/primitives"
 import style from "./style.module.scss"
@@ -102,7 +102,8 @@ export function useBasicVirtualComponent({ props, onRefresh }: BasicVirtualCompo
         }
     }
 
-    //底层事件: 区域大小改变时重新计算propose. 机制: 挂载时也会触发一次，作为初始化
+    //底层事件: 区域大小改变时重新计算propose.
+    //机制: 挂载时也会触发一次，作为初始化
     watchElementResize(scrollDivRef, ({ width, height }) => {
         //显示区域大小发生变化时，修改contentHeight，并有可能触发offset重算
         //此外，挂载时，也会触发一次，相当于初始化
@@ -124,13 +125,6 @@ export function useBasicVirtualComponent({ props, onRefresh }: BasicVirtualCompo
             propose.value = {...propose.value, ...c}
         }
     })
-
-    //渲染函数
-    const render = (slot: JSX.Element | undefined) => <div ref={scrollDivRef} class={style.scrollList} style={paddingStyle} onScroll={onScroll}>
-        <div class={style.scrollContent} style={actualOffsetStyle.value}>
-            {slot}
-        </div>
-    </div>
 
     //功能: 滚动到目标位置
     function scrollTo(scrollTop: number) {
@@ -163,6 +157,13 @@ export function useBasicVirtualComponent({ props, onRefresh }: BasicVirtualCompo
             navigateRef.value = undefined
         })
     }
+
+    //渲染函数
+    const render = (slot: JSX.Element | undefined) => <div ref={scrollDivRef} class={style.scrollList} style={paddingStyle} onScroll={onScroll}>
+        <div class={style.scrollContent} style={actualOffsetStyle.value}>
+            {slot}
+        </div>
+    </div>
 
     return {propose, actual, padding, render, scrollTo, setViewState, watchViewNavigation}
 }

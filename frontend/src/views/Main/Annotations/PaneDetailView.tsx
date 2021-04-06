@@ -1,4 +1,4 @@
-import { defineComponent, inject } from "vue"
+import { defineComponent } from "vue"
 import Input from "@/components/Input"
 import Select from "@/components/Select"
 import { PaneBasicLayout } from "@/layouts/SplitPane"
@@ -6,7 +6,7 @@ import { ViewAndEditor } from "@/layouts/EditorComponents"
 import { Annotation, AnnotationTarget, AnnotationUpdateForm } from "@/functions/adapter-http/impl/annotations"
 import { useObjectEndpoint } from "@/functions/utils/object-endpoint"
 import { useMessageBox } from "@/functions/message"
-import { annotationContextInjection } from "@/views/Main/Annotations/inject"
+import { useAnnotationContext } from "@/views/Main/Annotations/inject"
 import { AnnotationTargetEditor, AnnotationTargetView } from "./EditorComponents"
 import { onKeyEnter } from "@/utils/events"
 import { checkTagName } from "@/utils/check"
@@ -17,7 +17,7 @@ import style from "./style.module.scss"
 export default defineComponent({
     setup() {
         const message = useMessageBox()
-        const { dataEndpoint, detailMode, closePane } = inject(annotationContextInjection)!
+        const { dataEndpoint, detailMode, closePane } = useAnnotationContext()
 
         const { data, setData } = useObjectEndpoint<number, Annotation, AnnotationUpdateForm>({
             path: detailMode,
