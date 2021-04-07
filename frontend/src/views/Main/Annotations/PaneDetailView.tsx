@@ -53,7 +53,7 @@ export default defineComponent({
         return () => <PaneBasicLayout onClose={closePane} class={style.paneDetailContent}>
             {data.value && <>
                 <ViewAndEditor class="mt-7" baseline="medium" data={data.value.name} onSetData={setName} v-slots={{
-                    default: ({ value }) => <p class="is-size-4">[<span class="mx-1 can-select">{value}</span>]</p>,
+                    default: ({ value }) => <p class="is-size-4">[<span class="mx-1 can-be-selected">{value}</span>]</p>,
                     editor: ({ value, setValue, save }) => <Input class="mt-mf" placeholder="注解名称" value={value}
                                                                   onUpdateValue={setValue} onKeypress={onKeyEnter(save)}
                                                                   focusOnMounted={true} refreshOnInput={true}/>

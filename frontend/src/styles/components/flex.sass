@@ -1,0 +1,37 @@
+@import "../base/size"
+
+.flex
+  display: flex
+  &:not(.multi)
+    flex-wrap: nowrap
+  &.multi
+    flex-wrap: wrap
+  &.is-left
+    justify-content: flex-start
+  &.is-right
+    justify-content: flex-end
+  &.is-center
+    justify-content: center
+  &.is-stretch
+    justify-content: space-between
+  &.is-around
+    justify-content: space-around
+  &.is-align-top
+    align-items: flex-start
+  &.is-align-bottom
+    align-items: flex-end
+  &.is-align-center
+    align-items: center
+  &.is-align-baseline
+    align-items: baseline
+  &.is-align-stretch
+    align-items: stretch
+  > *
+    @for $i from 1 through 20
+      $key: $i * 5
+      $value: percentage($i / 20)
+      &.is-width-#{$key}
+        width: $value
+      &.is-basis-#{$key}
+        flex-basis: $value
+

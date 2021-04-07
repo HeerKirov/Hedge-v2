@@ -10,7 +10,7 @@ export default defineComponent({
             <div class="v-main box">
                 <p>
                     <span class="icon"><i class="fa fa-hashtag"/></span>
-                    <span class="can-select"><b class="is-size-5">作者名称</b><i class="ml-1 has-text-grey">别名1 / 别名2</i></span>
+                    <span class="can-be-selected"><b class="is-size-5">作者名称</b><i class="ml-1 has-text-grey">别名1 / 别名2</i></span>
                 </p>
                 <p class="is-size-7 mt-2">
                     <i class="fa fa-paint-brush mr-2"/><span class="mr-2">画师</span>

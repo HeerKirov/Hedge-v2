@@ -1,10 +1,9 @@
 import { defineComponent } from "vue"
 import TopBarLayout from "@/layouts/TopBarLayout"
 import SplitPane from "@/layouts/SplitPane"
-import TopBarContent from "./TopBarContent"
-import ListView from "./ListView"
-// import PaneDetailView from "./PaneDetailView"
-// import PaneCreateView from "./PaneCreateView"
+import TopBarContent from "./ListPanel/TopBarContent"
+import ListView from "./ListPanel/ListView"
+import ListPanel from "./ListPanel"
 import { installTopicContext } from "./inject"
 
 
@@ -14,15 +13,9 @@ export default defineComponent({
 
         const { createMode, detailMode } = context
 
+        //TODO 确定使用detail panel。通过单击title进入。
         return () => <div>
-            <TopBarLayout v-slots={{
-                topBar: () => <TopBarContent/>,
-                default: () => <SplitPane showPane={createMode.value != null || detailMode.value != null} v-slots={{
-                    default: () => <ListView/>,
-                    pane: () => <div/>
-                    // pane: () => createMode.value != null ? <PaneCreateView/> : <PaneDetailView/>
-                }}/>
-            }}/>
+            <ListPanel/>
         </div>
     }
 })

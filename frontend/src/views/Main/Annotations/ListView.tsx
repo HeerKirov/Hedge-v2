@@ -48,7 +48,7 @@ export default defineComponent({
         return () => <div class="w-100 h-100">
             <VirtualRow rowHeight={33} padding={0} bufferSize={10} onUpdate={dataEndpoint.dataUpdate}
                         total={dataEndpoint.data.value.metrics.total} limit={dataEndpoint.data.value.metrics.limit} offset={dataEndpoint.data.value.metrics.offset}>
-                <table class="table is-hoverable is-fullwidth">
+                <table class="table is-hoverable is-fullwidth no-wrap">
                     <tbody>
                         {dataEndpoint.data.value.result.map(item => <Item key={item.id} {...item} selected={detailMode.value === item.id} onRightClick={() => popupmenu.popup(item.id)}/>)}
                     </tbody>
