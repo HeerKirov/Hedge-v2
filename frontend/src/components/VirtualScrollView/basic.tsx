@@ -1,6 +1,5 @@
 import { computed, inject, InjectionKey, onMounted, provide, reactive, readonly, Ref, ref, watch } from "vue"
-import { watchElementResize } from "@/functions/document/observer"
-import { numbers } from "@/utils/primitives"
+import { watchElementResize } from "@/functions/document/element"
 import style from "./style.module.scss"
 
 interface ScrollState {
