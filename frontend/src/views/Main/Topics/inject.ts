@@ -9,8 +9,8 @@ export interface TopicContext {
     dataEndpoint: DataEndpointResult<Topic>
     scrollView: Readonly<ScrollView>
     queryFilter: Ref<TopicQueryFilter>
-    createMode: Ref<TopicCreateForm | null>
-    detailMode: Ref<number | null>
+    createMode: Readonly<Ref<TopicCreateForm | null>>
+    detailMode: Readonly<Ref<number | null>>
     openCreatePane(template?: TopicCreateForm)
     openDetailPane(id: number)
     closePane()
@@ -56,7 +56,7 @@ function useTopicList() {
 
 function usePane() {
     const createMode = ref<TopicCreateForm | null>(null)
-    const detailMode = ref<number | null>(null)
+    const detailMode = ref<number | null>(2)
 
     const openCreatePane = (template?: TopicCreateForm) => {
         createMode.value = template ?? { name: "" }

@@ -10,9 +10,7 @@ import { installAnnotationContext } from "./inject"
 
 export default defineComponent({
     setup() {
-        const context = installAnnotationContext()
-
-        const { createMode, detailMode } = context
+        const { createMode, detailMode } = installAnnotationContext()
 
         return () => <div>
             <TopBarLayout v-slots={{

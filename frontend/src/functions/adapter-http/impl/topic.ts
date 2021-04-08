@@ -33,7 +33,7 @@ export interface TopicEndpoint {
      * 查看主题。
      * @exception NOT_FOUND
      */
-    get(id: number): Promise<Response<Topic>>
+    get(id: number): Promise<Response<DetailTopic>>
     /**
      * 更改主题。
      * @exception NOT_FOUND
@@ -75,7 +75,7 @@ export interface Topic {
      */
     type: TopicType
     /**
-     * 标记为喜爱。
+     * 标记为收藏。
      */
     favorite: boolean
     /**

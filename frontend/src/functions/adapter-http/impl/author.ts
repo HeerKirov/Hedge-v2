@@ -31,7 +31,7 @@ export interface AuthorEndpoint {
      * 查看作者。
      * @exception NOT_FOUND
      */
-    get(id: number): Promise<Response<Author>>
+    get(id: number): Promise<Response<DetailAuthor>>
     /**
      * 更改作者。
      * @exception NOT_FOUND
@@ -71,7 +71,7 @@ export interface Author {
      */
     type: AuthorType
     /**
-     * 标记为喜爱。
+     * 标记为收藏。
      */
     favorite: boolean
     /**
@@ -126,6 +126,7 @@ export interface AuthorUpdateForm {
     favorite?: boolean
     score?: number | null
 }
+
 export type AuthorFilter = AuthorQueryFilter & LimitAndOffsetFilter
 
 export interface AuthorQueryFilter {

@@ -15,8 +15,8 @@ export function createPartitionEndpoint(http: HttpInstance): PartitionEndpoint {
 
 function mapToPartition(data: any): Partition {
     return {
-        date: dateOf(<string>data['date']),
-        count: <number>data['count']
+        date: dateOf(<string>data["date"]),
+        count: <number>data["count"]
     }
 }
 

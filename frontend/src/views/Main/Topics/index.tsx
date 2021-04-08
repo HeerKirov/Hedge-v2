@@ -1,21 +1,21 @@
 import { defineComponent } from "vue"
-import TopBarLayout from "@/layouts/TopBarLayout"
-import SplitPane from "@/layouts/SplitPane"
-import TopBarContent from "./ListPanel/TopBarContent"
-import ListView from "./ListPanel/ListView"
+import LazyLoad from "@/components/LazyLoad"
 import ListPanel from "./ListPanel"
+import DetailPanel from "./DetailPanel"
 import { installTopicContext } from "./inject"
 
 
 export default defineComponent({
     setup() {
-        const context = installTopicContext()
+        const { createMode, detailMode } = installTopicContext()
 
-        const { createMode, detailMode } = context
-
-        //TODO 确定使用detail panel。通过单击title进入。
         return () => <div>
-            <ListPanel/>
+            <LazyLoad visible={!createMode.value && !detailMode.value} v-slots={{
+                default: show => <ListPanel v-show={show}/>
+            }}/>
+            <LazyLoad visible={!!detailMode.value} v-slots={{
+                default: show => <DetailPanel v-show={show}/>
+            }}/>
         </div>
     }
 })
