@@ -72,7 +72,7 @@ class AnnotationService(private val data: DataRepository, private val kit: Annot
                     form.target.applyOpt { set(it.target, this) }
                 }
 
-                queryManager.flushCacheOf(QueryManager.CacheType.AUTHOR)
+                queryManager.flushCacheOf(QueryManager.CacheType.ANNOTATION)
             }
         }
     }
@@ -90,7 +90,7 @@ class AnnotationService(private val data: DataRepository, private val kit: Annot
             data.db.delete(AuthorAnnotationRelations) { it.annotationId eq id }
             data.db.delete(TopicAnnotationRelations) { it.annotationId eq id }
 
-            queryManager.flushCacheOf(QueryManager.CacheType.AUTHOR)
+            queryManager.flushCacheOf(QueryManager.CacheType.ANNOTATION)
         }
     }
 }

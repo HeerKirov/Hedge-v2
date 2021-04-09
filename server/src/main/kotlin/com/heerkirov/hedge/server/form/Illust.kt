@@ -18,7 +18,7 @@ data class IllustRes(val id: Int, val type: Illust.IllustType, val childrenCount
 
 data class IllustSimpleRes(val id: Int, val thumbnailFile: String?)
 
-data class IllustDetailRes(val id: Int, val fileId: Int, val file: String,
+data class IllustDetailRes(val id: Int, val fileId: Int, val file: String, val thumbnailFile: String?,
                            val topics: List<TopicSimpleRes>, val authors: List<AuthorSimpleRes>, val tags: List<TagSimpleRes>,
                            val description: String, val score: Int?, val favorite: Boolean, val tagme: Illust.Tagme,
                            val originDescription: String, val originScore: Int?,
@@ -41,6 +41,8 @@ data class IllustQueryFilter(@Limit val limit: Int,
                              @Search val query: String?,
                              @Order(options = ["id", "score", "orderTime", "createTime", "updateTime"])
                              val order: List<OrderItem>? = null,
+                             val topic: Int? = null,
+                             val author: Int? = null,
                              val type: Illust.IllustType,
                              val partition: LocalDate? = null,
                              val favorite: Boolean? = null)

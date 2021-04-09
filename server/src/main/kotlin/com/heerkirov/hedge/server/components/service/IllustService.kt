@@ -64,6 +64,8 @@ class IllustService(private val data: DataRepository,
         return data.db.from(Illusts)
             .innerJoin(FileRecords, Illusts.fileId eq FileRecords.id)
             .let { schema?.joinConditions?.fold(it) { acc, join -> if(join.left) acc.leftJoin(join.table, join.condition) else acc.innerJoin(join.table, join.condition) } ?: it }
+            .let { if(filter.topic == null) it else it.innerJoin(IllustTopicRelations, (IllustTopicRelations.illustId eq Illusts.id) and (IllustTopicRelations.topicId eq filter.topic)) }
+            .let { if(filter.author == null) it else it.innerJoin(IllustAuthorRelations, (IllustAuthorRelations.illustId eq Illusts.id) and (IllustAuthorRelations.authorId eq filter.author)) }
             .select(Illusts.id, Illusts.type, Illusts.exportedScore, Illusts.favorite, Illusts.tagme, Illusts.orderTime, Illusts.cachedChildrenCount,
                 FileRecords.id, FileRecords.folder, FileRecords.extension, FileRecords.thumbnail)
             .whereWithConditions {
@@ -109,7 +111,7 @@ class IllustService(private val data: DataRepository,
             ?: throw NotFound()
 
         val fileId = row[FileRecords.id]!!
-        val file = takeFilepath(row)
+        val (file, thumbnailFile) = takeAllFilepath(row)
 
         val originDescription = row[Illusts.description]!!
         val originScore = row[Illusts.score]
@@ -141,7 +143,7 @@ class IllustService(private val data: DataRepository,
             .map { TagSimpleRes(it[Tags.id]!!, it[Tags.name]!!, it[Tags.color], it[IllustTagRelations.isExported]!!) }
 
         return IllustDetailRes(
-            id, fileId, file,
+            id, fileId, file, thumbnailFile,
             topics, authors, tags,
             description, score, favorite, tagme,
             originDescription, originScore,
