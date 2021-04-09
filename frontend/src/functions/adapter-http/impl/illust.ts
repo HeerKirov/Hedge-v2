@@ -158,4 +158,6 @@ export interface IllustQueryFilter {
     type?: IllustType
     partition?: LocalDate
     favorite?: boolean
+    topic?: number
+    author?: number
 }

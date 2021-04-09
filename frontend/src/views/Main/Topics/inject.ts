@@ -55,6 +55,7 @@ function useTopicList() {
 }
 
 function usePane() {
+    //TODO 改造为router参数
     const createMode = ref<TopicCreateForm | null>(null)
     const detailMode = ref<number | null>(2)
 

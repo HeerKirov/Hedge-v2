@@ -89,9 +89,11 @@
   height: $title-bar-height;
   top: 0; right: 0;
   transition: left 0.4s ease;
-  background-color: $white;
-  @media (prefers-color-scheme: dark) {
-    background-color: $dark;
+  &.background {
+    background-color: $white;
+    @media (prefers-color-scheme: dark) {
+      background-color: $dark;
+    }
   }
 
   //其他任意平台的内容区域布局

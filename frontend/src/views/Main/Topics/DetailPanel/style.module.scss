@@ -1,11 +1,6 @@
 @import "@/styles/base/size.sass";
 
 .detail-view {
-  overflow-y: auto;
-  max-height: 100%;
-  padding: $spacing-2;
-  box-sizing: border-box;
-
   .examples {
     display: flex;
     flex-wrap: wrap;

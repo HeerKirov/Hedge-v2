@@ -1,10 +1,10 @@
 import { defineComponent } from "vue"
-import TopBarLayout from "@/layouts/TopBarLayout"
+import TopBarTransparentLayout from "@/layouts/TopBarTransparentLayout"
 import TopBarContent from "./TopBarContent"
 import DetailView from "./DetailView"
 
 export default defineComponent(function() {
-    return () => <TopBarLayout v-slots={{
+    return () => <TopBarTransparentLayout paddingForTopBar={true} scrollable={true} v-slots={{
         topBar: () => <TopBarContent/>,
         default: () => <DetailView/>
     }}/>

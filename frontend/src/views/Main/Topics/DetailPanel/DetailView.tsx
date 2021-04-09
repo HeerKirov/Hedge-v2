@@ -2,6 +2,7 @@ import { defineComponent, PropType } from "vue"
 import WrappedText from "@/components/WrappedText"
 import Starlight from "@/components/Starlight"
 import { Link, ListResult } from "@/functions/adapter-http/impl/generic"
+import { Illust } from "@/functions/adapter-http/impl/illust"
 import { DetailTopic, Topic, TopicType, TopicUpdateForm } from "@/functions/adapter-http/impl/topic"
 import { clientMode, openExternal } from "@/functions/service"
 import { useObjectEndpoint } from "@/functions/utils/object-endpoint"
@@ -25,22 +26,14 @@ export default defineComponent({
             }
         })
 
-        return () => <div class={["container", style.detailView]}>
+        return () => <div class={["container", "p-2", style.detailView]}>
             <div class="box mb-1">
                 {data.value && <MainContent data={data.value}/>}
                 <SubThemeContent/>
                 {data.value?.score ? <p class="mt-3"><Starlight value={data.value.score} showText={true}/></p> : null}
             </div>
             {data.value?.links.length ? <LinkContent class="mb-1" links={data.value.links}/> : null}
-            <div class={style.examples}>
-                <div class={style.example}><img src={img1}/></div>
-                <div class={style.example}><img src={img1}/></div>
-                <div class={style.example}><img src={img1}/></div>
-                <div class={style.example}><img src={img1}/></div>
-                <div class={style.more}>
-                    <a class="no-wrap">在图库搜索"主题名称"的全部项目<i class="fa fa-angle-double-right ml-1 mr-1"/></a>
-                </div>
-            </div>
+            {data.value && <ExampleContent/>}
         </div>
     }
 })
@@ -103,6 +96,7 @@ const SubThemeContent = defineComponent({
                     {TYPE_ICON[topic.type]}
                     {topic.name}
                 </a>)}
+                {/*TODO*/}
                 <a class="no-wrap mb-1">在主题列表搜索全部子主题<i class="fa fa-angle-double-right ml-1"/></a>
             </div>
         </div> : <div/>
@@ -127,6 +121,28 @@ const LinkContent = defineComponent({
                 createLink(link)
             ])}
         </div>
+    }
+})
+
+const ExampleContent = defineComponent({
+    setup() {
+        const limit = 8
+
+        const { detailMode } = useTopicContext()
+
+        const { data } = useObjectEndpoint<number, ListResult<Illust>, unknown>({
+            path: detailMode,
+            get: httpClient => async (topic: number) => await httpClient.illust.list({limit, topic, type: "IMAGE", order: "-orderTime"})
+        })
+
+        //TODO 引入file url
+        return () => data.value?.total ? <div class={style.examples}>
+            {data.value!.result.map(illust => <div class={style.example}><img src={img1} alt="example"/></div>)}
+            <div class={style.more}>
+                {/*TODO*/}
+                <a class="no-wrap">在图库搜索"主题名称"的全部项目<i class="fa fa-angle-double-right ml-1 mr-1"/></a>
+            </div>
+        </div> : <div/>
     }
 })
 
