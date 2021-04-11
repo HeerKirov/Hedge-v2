@@ -33,6 +33,10 @@ button
   box-sizing: border-box
   outline: none
 
+
+
+$button-size-map: ("small" ($font-size-8, $height-small, 0.8rem), "medium" ($font-size-6, $height-medium, 1.1rem))
+
 .button
   font-size: $font-size-7
   height: $height-std
@@ -41,8 +45,6 @@ button
   border-radius: $radius-size-std
   vertical-align: top
   line-height: 1.2
-
-  $button-size-map: ("small" ($font-size-8, $height-small, 0.8rem), "medium" ($font-size-6, $height-medium, 1.1rem))
 
   background-color: $lightgrey
   &:hover
@@ -140,3 +142,22 @@ button
               color: $color-dark
             &[disabled]
               color: toDarkenColor($color-dark, 25%)
+
+.separator
+  height: #{$height-std * 0.8}
+  width: 0
+  margin: 0 0.25rem
+  flex: 0 0 auto
+  display: inline-block
+  box-sizing: border-box
+  vertical-align: top
+  border-left: solid 1px $dark-lightgrey
+  @media (prefers-color-scheme: dark)
+    border-left-color: $grey
+
+  @each $name, $pair in $button-size-map
+    $height: nth($pair, 2)
+    $px: nth($pair, 3)
+    &.is-#{$name}
+      height: #{$height * 0.8}
+      padding: 0 #{$px}

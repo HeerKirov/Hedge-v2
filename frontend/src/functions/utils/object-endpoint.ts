@@ -8,12 +8,12 @@ import { useNotification } from "@/functions/message"
     它的目标是处理支持retrieve, patch, delete的更复杂的模型，且支持path变更。
  */
 
-interface ObjectEndpoint<MODEL, FORM> {
+export interface ObjectEndpoint<MODEL, FORM> {
     loading: Ref<Boolean>
     updating: Ref<Boolean>
     deleting: Ref<Boolean>
     data: Ref<MODEL | null>
-    setData(form: FORM, handleError?: (e: HttpException) => HttpException | void): Promise<boolean>
+    setData(form: FORM, handleError?: ErrorHandler): Promise<boolean>
     deleteData(): Promise<boolean>
 }
 
@@ -26,8 +26,12 @@ interface ObjectEndpointOptions<PATH, MODEL, FORM> {
     afterPath?()
     afterUpdate?(path: PATH, data: MODEL)
     afterDelete?(path: PATH)
-    handleUpdateError?(e: HttpException): HttpException | void
-    handleDeleteError?(e: HttpException): HttpException | void
+    handleUpdateError?: ErrorHandler
+    handleDeleteError?: ErrorHandler
+}
+
+export interface ErrorHandler {
+    (e: HttpException): HttpException | void
 }
 
 export function useObjectEndpoint<PATH, MODEL, FORM>(options: ObjectEndpointOptions<PATH, MODEL, FORM>): ObjectEndpoint<MODEL, FORM> {

@@ -2,6 +2,8 @@
 
 .detail-view {
   .examples {
+    //列数
+    $column-number: 5;
     display: flex;
     flex-wrap: wrap;
     margin-right: #{-$spacing-1};
@@ -9,8 +11,8 @@
     > .example {
       position: relative;
       height: 0;
-      width: 25%;
-      padding-bottom: 25%;
+      width: #{percentage(1 / $column-number)};
+      padding-bottom: #{percentage(1 / $column-number)};
       //内层img绝对定位以应用长宽比
       > img {
         position: absolute;

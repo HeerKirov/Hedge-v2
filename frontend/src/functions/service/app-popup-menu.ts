@@ -36,14 +36,26 @@ type ClickFunction<T> = T extends undefined ? () => void : (args: T) => void
 
 //== 二级包装的popup menu: 提供元素定位 ==
 
-export function useElementPopupMenu<P = undefined>(items: MenuItem<P>[] | Ref<MenuItem<P>[]> | (() => MenuItem<P>[])) {
+export interface ElementPopupMenuOptions {
+    position?: "top" | "bottom"
+    offsetX?: number
+    offsetY?: number
+}
+
+export function useElementPopupMenu<P = undefined>(items: MenuItem<P>[] | Ref<MenuItem<P>[]> | (() => MenuItem<P>[]), options?: ElementPopupMenuOptions) {
     const element = ref<HTMLElement>()
 
     const menu = usePopupMenu(items)
 
     const popup = <(P extends undefined ? () => void : (args: P) => void)>function popup(args?: P) {
         const rect = element.value?.getBoundingClientRect()
-        menu.popup(args!, rect ? {x: Math.floor(rect.left), y: Math.floor(rect.top)} : undefined)
+        if(rect) {
+            const x = Math.floor(rect.left) + (options?.offsetX ?? 0)
+            const y = Math.floor(rect.top) + (options?.position === "bottom" ? Math.floor(rect.height) : 0) + (options?.offsetY ?? 0)
+            menu.popup(args!, {x, y})
+        }else{
+            menu.popup(args!, undefined)
+        }
     }
 
     return {element, popup}
