@@ -1,9 +1,10 @@
-import { app } from "electron"
+import * as path from "path"
+import { app, protocol } from "electron"
 import { promiseAll, getNodePlatform, Platform } from "../utils/process"
 import { createWindowManager, WindowManager } from "./window-manager"
 import { createAppDataDriver } from "../components/appdata"
 import { createStateManager } from "../components/state"
-import { createChannel } from "../components/channel"
+import { Channel, createChannel } from "../components/channel"
 import { createResourceManager } from "../components/resource"
 import { createServerManager, ServerManager, ServerStatus } from "../components/server"
 import { createService } from "../components/service"
@@ -90,6 +91,8 @@ export async function createApplication(options?: AppOptions) {
         await promiseAll(appDataDriver.load(), resourceManager.load(), app.whenReady())
         await themeManager.load()
 
+        registerProtocol(userDataPath, channelManager)
+
         stateManager.load()
 
         registerAppMenu(windowManager, {debugMode, platform})
@@ -120,5 +123,15 @@ function registerAppEvents(windowManager: WindowManager, serverManager: ServerMa
         if(serverManager.status() == ServerStatus.OPEN) {
             serverManager.closeConnection().finally(() => {})
         }
+    })
+}
+
+function registerProtocol(userDataPath: string, channelManager: Channel) {
+    const prefix = 'record:///'
+    protocol.registerFileProtocol('record', (request, callback) => {
+        const url = request.url.substr(prefix.length)
+        //TODO 临时写法：在db path完成更改后，引入db path属性代替
+        const file = path.normalize(`${userDataPath}/appdata/channel/${channelManager.currentChannel()}/database/default/folders/${url}`)
+        callback({path: file})
     })
 }

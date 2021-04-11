@@ -40,12 +40,3 @@ export const windowManager = clientMode ? {
 export const openExternal = clientMode
     ? (url: string) => remote.shell.openExternal(url)
     : (url: string) => window.open(url)
-
-export const getFileURL = clientMode ? (function () {
-    let dbPath: string | null = null
-    return (path: string) => {
-
-    }
-})() : (path: string) => {
-    throw new Error("Not implemented for web mode.")
-}

@@ -7,8 +7,8 @@ import { DetailTopic, Topic, TopicType, TopicUpdateForm } from "@/functions/adap
 import { clientMode, openExternal } from "@/functions/service"
 import { useObjectEndpoint } from "@/functions/utils/object-endpoint"
 import { useMessageBox } from "@/functions/message"
+import { assetsUrl } from "@/functions/service"
 import { useTopicContext } from "../inject"
-import img1 from "@/assets/img1.local.jpg"
 import style from "./style.module.scss"
 
 export default defineComponent({
@@ -135,9 +135,8 @@ const ExampleContent = defineComponent({
             get: httpClient => async (topic: number) => await httpClient.illust.list({limit, topic, type: "IMAGE", order: "-orderTime"})
         })
 
-        //TODO 引入file url
         return () => data.value?.total ? <div class={style.examples}>
-            {data.value!.result.map(illust => <div class={style.example}><img src={img1} alt="example"/></div>)}
+            {data.value!.result.map(illust => <div class={style.example}><img src={assetsUrl(illust.thumbnailFile)} alt="example"/></div>)}
             <div class={style.more}>
                 {/*TODO*/}
                 <a class="no-wrap">在图库搜索"主题名称"的全部项目<i class="fa fa-angle-double-right ml-1 mr-1"/></a>

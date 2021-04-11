@@ -63,25 +63,17 @@ export type IllustType = "COLLECTION" | "IMAGE"
 
 export type Tagme = "TAG" | "AUTHOR" | "TOPIC" | "SOURCE"
 
-export interface Illust {
+interface IllustPublicPart {
     /**
      * illust id。
      */
     id: number
     /**
-     * illust类型。
-     */
-    type: IllustType
-    /**
-     * 子项目的数量。只有类型为COLLECTION的项目会有子项目。
-     */
-    childrenCount: number | null
-    /**
      * 此项目的文件路径。
      */
     file: string
     /**
-     * 此项目的缩略图文件路径。
+     * 此项目的缩略图文件路径。缩略图有不存在的理论可能(未生成)，此时值为null，应该填充占位图像。
      */
     thumbnailFile: string | null
     /**
@@ -102,7 +94,18 @@ export interface Illust {
     orderTime: LocalDateTime
 }
 
-export interface DetailIllust extends Illust {
+export interface Illust extends IllustPublicPart {
+    /**
+     * illust类型。
+     */
+    type: IllustType
+    /**
+     * 子项目的数量。只有类型为COLLECTION的项目会有子项目。
+     */
+    childrenCount: number | null
+}
+
+export interface DetailIllust extends IllustPublicPart {
     /**
      * 文件记录的id。
      */
