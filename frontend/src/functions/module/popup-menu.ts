@@ -90,11 +90,14 @@ interface PopupOptions {
     x: number
     y: number
 }
+
 type PopupFunction<T> = T extends undefined ? (options: PopupOptions | undefined) => void : (options: PopupOptions | undefined, args: T) => void
 
 export function createPopupMenu<P = undefined>(menuItems: MenuItem<P>[]): PopupFunction<P> {
     return createNativePopupMenu(menuItems)
 }
+
+//== 基础popup menu的electron实现
 
 function createNativePopupMenu<P>(menuItems: MenuItem<P>[]): PopupFunction<P> {
     let localArgument: P | undefined = undefined

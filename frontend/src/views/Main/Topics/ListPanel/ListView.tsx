@@ -1,8 +1,8 @@
 import { defineComponent, PropType } from "vue"
-import { useMessageBox } from "@/functions/message"
-import { usePopupMenu } from "@/functions/service"
-import { useHoverFlag } from "@/functions/document/element"
-import { useFastObjectEndpoint } from "@/functions/utils/object-fast-endpoint"
+import { useMessageBox } from "@/functions/module"
+import { usePopupMenu } from "@/functions/app"
+import { useHoverFlag } from "@/functions/utils/element"
+import { useFastObjectEndpoint } from "@/functions/utils/endpoints/object-fast-endpoint"
 import { Topic, TopicType } from "@/functions/adapter-http/impl/topic"
 import { VirtualRow } from "@/components/VirtualScrollView"
 import { useTopicContext } from "../inject"
@@ -13,7 +13,7 @@ import { useTopicContext } from "../inject"
 export default defineComponent({
     setup() {
         const messageBox = useMessageBox()
-        const { dataEndpoint, detailMode, openDetailPane, closePane } = useTopicContext()
+        const { listEndpoint, detailMode, openDetailPane, closePane } = useTopicContext()
 
         const fastEndpoint = useFastObjectEndpoint({
             update: httpClient => httpClient.topic.update,
@@ -22,10 +22,10 @@ export default defineComponent({
 
         const switchFavorite = async (id: number, favorite: boolean) => {
             if(await fastEndpoint.setData(id, {favorite})) {
-                const index = dataEndpoint.operations.find(topic => topic.id === id)
+                const index = listEndpoint.operations.find(topic => topic.id === id)
                 if(index != undefined) {
-                    const topic = dataEndpoint.operations.retrieve(index)!
-                    dataEndpoint.operations.modify(index, {...topic, favorite})
+                    const topic = listEndpoint.operations.retrieve(index)!
+                    listEndpoint.operations.modify(index, {...topic, favorite})
                 }
             }
         }
@@ -34,8 +34,8 @@ export default defineComponent({
             if(await messageBox.showYesNoMessage("确认", "确定要删除此项吗？此操作不可撤回。")) {
                 if(await fastEndpoint.deleteData(id)) {
                     if(detailMode.value === id) closePane()
-                    const index = dataEndpoint.operations.find(topic => topic.id === id)
-                    if(index != undefined) dataEndpoint.operations.remove(index)
+                    const index = listEndpoint.operations.find(topic => topic.id === id)
+                    if(index != undefined) listEndpoint.operations.remove(index)
                 }
             }
         }
@@ -50,10 +50,10 @@ export default defineComponent({
         ])
 
         return () => <div class="w-100 h-100">
-            <VirtualRow rowHeight={60} padding={{top: 6, bottom: 6, left: 12, right: 12}} bufferSize={10} onUpdate={dataEndpoint.dataUpdate} {...dataEndpoint.data.value.metrics}>
+            <VirtualRow rowHeight={60} padding={{top: 6, bottom: 6, left: 12, right: 12}} bufferSize={10} onUpdate={listEndpoint.dataUpdate} {...listEndpoint.data.value.metrics}>
                 <table class="table is-fullwidth no-wrap">
                     <tbody>
-                        {dataEndpoint.data.value.result.map(item => <Item key={item.id} value={item}
+                        {listEndpoint.data.value.result.map(item => <Item key={item.id} value={item}
                                                                           selected={detailMode.value === item.id}
                                                                           onRightClick={() => popupmenu.popup(item.id)}
                                                                           onSwitchFavorite={(v: boolean) => switchFavorite(item.id, v)}/>)}

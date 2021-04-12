@@ -1,7 +1,7 @@
 import { computed, inject, InjectionKey, isReactive, provide, ref, Ref, unref, watch, watchEffect } from "vue"
-import { MenuTemplate } from "@/functions/adapter-ipc";
+import { MenuTemplate } from "@/functions/adapter-ipc"
 
-//TODO 调整web popup menu，实现，并引入到VCA
+//调整web popup menu，实现，并引入到VCA
 
 export interface PopupMenuManager {
     popup(items: MenuItem[], scale?: {x: number, y: number})

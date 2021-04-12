@@ -1,13 +1,13 @@
 import { defineComponent } from "vue"
-import { useMessageBox } from "@/functions/message"
-import { useElementPopupMenu } from "@/functions/service"
+import { useMessageBox } from "@/functions/module"
+import { useElementPopupMenu } from "@/functions/app"
 import { useTopicContext } from "../inject"
 import { useTopicDetailContext } from "./inject"
 
 export default defineComponent({
     setup() {
         const messageBox = useMessageBox()
-        const { dataEndpoint, detailMode, closePane } = useTopicContext()
+        const { listEndpoint, detailMode, closePane } = useTopicContext()
 
         const { data, setData, deleteData } = useTopicDetailContext()
 
@@ -18,8 +18,8 @@ export default defineComponent({
             if(await messageBox.showYesNoMessage("确认", "确定要删除此项吗？此操作不可撤回。")) {
                 if(await deleteData()) {
                     closePane()
-                    const index = dataEndpoint.operations.find(topic => topic.id === id)
-                    if(index != undefined) dataEndpoint.operations.remove(index)
+                    const index = listEndpoint.operations.find(topic => topic.id === id)
+                    if(index != undefined) listEndpoint.operations.remove(index)
                 }
             }
         }

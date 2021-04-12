@@ -1,5 +1,5 @@
 import { defineComponent, onMounted, onUnmounted, PropType, ref, watch, Transition } from "vue"
-import { MessageBoxButton, MessageTask, useMessageBoxConsumer } from "@/functions/message/message-box"
+import { MessageBoxButton, MessageTask, useMessageBoxConsumer } from "@/functions/document/message-box"
 import style from "./style.module.scss"
 
 export default defineComponent({

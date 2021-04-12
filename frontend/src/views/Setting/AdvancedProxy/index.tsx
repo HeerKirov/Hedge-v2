@@ -1,6 +1,6 @@
-import { defineComponent, ref, watch } from "vue"
-import { useSettingProxy } from "@/functions/server-api/setting"
-import { usePropertySot } from "@/functions/utils/setter-property"
+import { defineComponent, ref } from "vue"
+import { usePropertySot } from "@/functions/utils/properties/setter-property"
+import { useSettingProxy } from "../setting"
 import Input from "@/components/Input"
 
 export default defineComponent({

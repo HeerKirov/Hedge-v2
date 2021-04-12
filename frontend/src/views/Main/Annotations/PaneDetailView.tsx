@@ -4,8 +4,8 @@ import Select from "@/components/Select"
 import { PaneBasicLayout } from "@/layouts/SplitPane"
 import { ViewAndEditor } from "@/layouts/EditorComponents"
 import { Annotation, AnnotationTarget, AnnotationUpdateForm } from "@/functions/adapter-http/impl/annotations"
-import { useObjectEndpoint } from "@/functions/utils/object-endpoint"
-import { useMessageBox } from "@/functions/message"
+import { useObjectEndpoint } from "@/functions/utils/endpoints/object-endpoint"
+import { useMessageBox } from "@/functions/module"
 import { useAnnotationContext } from "@/views/Main/Annotations/inject"
 import { AnnotationTargetEditor, AnnotationTargetView } from "./EditorComponents"
 import { onKeyEnter } from "@/utils/events"
@@ -17,15 +17,15 @@ import style from "./style.module.scss"
 export default defineComponent({
     setup() {
         const message = useMessageBox()
-        const { dataEndpoint, detailMode, closePane } = useAnnotationContext()
+        const { listEndpoint, detailMode, closePane } = useAnnotationContext()
 
         const { data, setData } = useObjectEndpoint<number, Annotation, AnnotationUpdateForm>({
             path: detailMode,
             get: httpClient => httpClient.annotation.get,
             update: httpClient => httpClient.annotation.update,
             afterUpdate(id, data) {
-                const index = dataEndpoint.operations.find(annotation => annotation.id === id)
-                if(index != undefined) dataEndpoint.operations.modify(index, data)
+                const index = listEndpoint.operations.find(annotation => annotation.id === id)
+                if(index != undefined) listEndpoint.operations.modify(index, data)
             }
         })
 

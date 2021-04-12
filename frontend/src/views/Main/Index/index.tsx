@@ -3,11 +3,11 @@ import NumberInput from "@/components/NumberInput"
 import TopBarLayout from "@/layouts/TopBarLayout"
 import { DataRouter } from "@/layouts/TopBarComponents"
 import { VirtualGrid, useScrollView } from "@/components/VirtualScrollView"
-import { useDataEndpoint } from "@/functions/utils/data-endpoint"
+import { useListEndpoint } from "@/functions/utils/endpoints/list-endpoint"
 
 export default defineComponent({
     setup() {
-        const { data, dataUpdate } = useDataEndpoint({
+        const { data, dataUpdate } = useListEndpoint({
             segmentSize: 100,
             queryDelay: 250,
             async request(offset: number, limit: number) {

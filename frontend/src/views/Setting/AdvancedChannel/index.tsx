@@ -1,5 +1,5 @@
 import { defineComponent, reactive, ref, Ref, watch } from "vue"
-import { useChannelSetting } from "@/functions/service/app-settings"
+import { useChannelSetting } from "@/functions/app/app-settings"
 import Input from "@/components/Input"
 import style from "./style.module.scss"
 

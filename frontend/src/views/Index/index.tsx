@@ -1,6 +1,6 @@
 import { defineComponent, watch, watchEffect } from "vue"
 import { useRouter } from "vue-router"
-import { useAppState } from "@/functions/service"
+import { useAppState } from "@/functions/app"
 import { State } from "@/functions/adapter-ipc"
 import ProgressFlag from "@/components/ProgressFlag"
 

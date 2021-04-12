@@ -1,8 +1,8 @@
 import { defineComponent, reactive, watch } from "vue"
 import { IdResponse } from "@/functions/adapter-http/impl/generic"
 import { AnnotationCreateForm } from "@/functions/adapter-http/impl/annotations"
-import { useObjectCreator } from "@/functions/utils/object-creator"
-import { useMessageBox } from "@/functions/message"
+import { useObjectCreator } from "@/functions/utils/endpoints/object-creator"
+import { useMessageBox } from "@/functions/module"
 import { checkTagName } from "@/utils/check"
 import { onKeyEnter } from "@/utils/events"
 import { objects } from "@/utils/primitives"
@@ -17,7 +17,7 @@ import style from "./style.module.scss"
 export default defineComponent({
     setup() {
         const message = useMessageBox()
-        const { dataEndpoint, createMode, openDetailPane, closePane } = useAnnotationContext()
+        const { listEndpoint, createMode, openDetailPane, closePane } = useAnnotationContext()
 
         const form: AnnotationCreateForm = reactive(objects.deepCopy(createMode.value!))
 
@@ -40,7 +40,7 @@ export default defineComponent({
             },
             afterCreate(result: IdResponse) {
                 openDetailPane(result.id)
-                dataEndpoint.refresh()
+                listEndpoint.refresh()
             },
             handleError(e) {
                 if(e.code === "ALREADY_EXISTS") {

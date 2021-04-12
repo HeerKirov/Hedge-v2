@@ -136,10 +136,10 @@ styles/
 以文件夹为单位分开定义。大部分情况下，这里的产出会是`vue hooks`函数或插件。
 * `adapter-ipc`: 与来自client的IPC接口对接，提供API函数包装。
 * `adapter-http`: 与来自server的HTTP接口对接，提供API函数包装，并在函数包装的基础上提供http client封装。
-* `service`: 前端的大业务层。将来自ipc、http等的功能包装为一个一个的服务模块，通过install plugin->use的方式提供。这层包装会将API包装为VCA，抹去其remote API特征。
-* `document`: 与web document相关的功能的hooks函数。
-* `notification`: 提供消息通知框服务。
-* `message-box`: 提供简单对话框服务。
+* `app`: 来自app client的功能的服务模块，通过install plugin->use的方式提供。
+* `document`: 与web document相关的功能模块，如通知、消息、弹出菜单。这里提供原始实现，而业务不应该从这里直接引用。
+* `module`: 前端UI/UX需要的功能模块，如对话框、弹出菜单。这里提供单一入口并封装client/web实现。
+* `utils`: 提供业务相关的复杂函数工具或VCA工具。
 
 #### utils
 这里定义业务无关的工具函数库。

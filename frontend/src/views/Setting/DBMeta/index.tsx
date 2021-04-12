@@ -1,5 +1,5 @@
 import { defineComponent, PropType, ref, watch } from "vue"
-import { useSettingMeta } from "@/functions/server-api/setting"
+import { useSettingMeta } from "../setting"
 import Input from "@/components/Input"
 import CheckBox from "@/components/CheckBox"
 import NumberInput from "@/components/NumberInput"

@@ -1,8 +1,8 @@
-import { defineComponent, inject, PropType } from "vue"
+import { defineComponent, PropType } from "vue"
 import { AnnotationTarget } from "@/functions/adapter-http/impl/annotations"
-import { useMessageBox } from "@/functions/message"
-import { usePopupMenu } from "@/functions/service"
-import { useFastObjectEndpoint } from "@/functions/utils/object-fast-endpoint"
+import { useMessageBox } from "@/functions/module"
+import { usePopupMenu } from "@/functions/app"
+import { useFastObjectEndpoint } from "@/functions/utils/endpoints/object-fast-endpoint"
 import { VirtualRow } from "@/components/VirtualScrollView"
 import { TARGET_TYPE_ICON } from "./define"
 import { useAnnotationContext } from "./inject"
@@ -13,16 +13,16 @@ import { useAnnotationContext } from "./inject"
 export default defineComponent({
     setup() {
         const messageBox = useMessageBox()
-        const { dataEndpoint, detailMode, openCreatePane, openDetailPane, closePane } = useAnnotationContext()
+        const { listEndpoint, detailMode, openCreatePane, openDetailPane, closePane } = useAnnotationContext()
 
         const fastEndpoint = useFastObjectEndpoint({
             delete: httpClient => httpClient.annotation.delete
         })
 
         const createByItem = (id: number) => {
-            const index = dataEndpoint.operations.find(annotation => annotation.id === id)
+            const index = listEndpoint.operations.find(annotation => annotation.id === id)
             if(index != undefined) {
-                const annotation = dataEndpoint.operations.retrieve(index)
+                const annotation = listEndpoint.operations.retrieve(index)
                 openCreatePane(annotation)
             }
         }
@@ -31,8 +31,8 @@ export default defineComponent({
             if(await messageBox.showYesNoMessage("确认", "确定要删除此项吗？此操作不可撤回。")) {
                 if(await fastEndpoint.deleteData(id)) {
                     if(detailMode.value === id) closePane()
-                    const index = dataEndpoint.operations.find(annotation => annotation.id === id)
-                    if(index != undefined) dataEndpoint.operations.remove(index)
+                    const index = listEndpoint.operations.find(annotation => annotation.id === id)
+                    if(index != undefined) listEndpoint.operations.remove(index)
                 }
             }
         }
@@ -46,10 +46,10 @@ export default defineComponent({
         ])
 
         return () => <div class="w-100 h-100">
-            <VirtualRow rowHeight={33} padding={0} bufferSize={10} onUpdate={dataEndpoint.dataUpdate} {...dataEndpoint.data.value.metrics}>
+            <VirtualRow rowHeight={33} padding={0} bufferSize={10} onUpdate={listEndpoint.dataUpdate} {...listEndpoint.data.value.metrics}>
                 <table class="table is-hoverable is-fullwidth no-wrap">
                     <tbody>
-                        {dataEndpoint.data.value.result.map(item => <Item key={item.id} {...item} selected={detailMode.value === item.id} onRightClick={() => popupmenu.popup(item.id)}/>)}
+                        {listEndpoint.data.value.result.map(item => <Item key={item.id} {...item} selected={detailMode.value === item.id} onRightClick={() => popupmenu.popup(item.id)}/>)}
                     </tbody>
                 </table>
             </VirtualRow>

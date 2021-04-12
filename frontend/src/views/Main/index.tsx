@@ -1,6 +1,7 @@
 import { defineComponent, ref, provide, KeepAlive } from "vue"
 import { RouterView } from "vue-router"
-import { windowManager, clientMode } from "@/functions/service"
+import { clientMode } from "@/functions/app"
+import { windowManager } from "@/functions/module"
 import SideLayout, { SideBar, sideBarSwitchInjection } from "@/layouts/SideLayout"
 import SideBarContent from "./SideBarContent"
 import { sideBarContextInjection, useSideBarContextInjection } from "./inject"

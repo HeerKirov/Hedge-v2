@@ -1,7 +1,7 @@
 import { HttpException } from "@/functions/adapter-http/exception"
 import { HttpClient, Response } from "@/functions/adapter-http"
-import { useHttpClient } from "@/functions/service"
-import { useNotification } from "@/functions/message"
+import { useHttpClient } from "@/functions/app"
+import { useNotification } from "@/functions/module"
 
 /* 此处提供了VCA形态的rest api端点调用器，但是与endpoint不同，他的目的是快速处理指定id的object，而不是处理一个。
     它的API形态都是基于指定path的，因此也不提供任何响应式变量，所有数据都通过返回值提供。

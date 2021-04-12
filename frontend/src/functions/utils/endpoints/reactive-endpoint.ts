@@ -1,7 +1,7 @@
 import { onMounted, ref, Ref, watch, toRaw } from "vue"
 import { HttpClient, Response } from "@/functions/adapter-http"
-import { useHttpClient } from "@/functions/service"
-import { useNotification } from "@/functions/message"
+import { useHttpClient } from "@/functions/app"
+import { useNotification } from "@/functions/module"
 
 /* 此处提供了VCA形态的rest api端点调用器。目标是处理符合标准object模型的对象。
     它的目标是处理简单模型，即整个rest api可被描述为简单的object模型的api。

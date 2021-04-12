@@ -1,8 +1,8 @@
 import { defineComponent, ref, watch } from "vue"
-import { useServerInfo } from "@/functions/service"
-import { useAuthSetting } from "@/functions/service/app-settings"
-import { useSettingService } from "@/functions/server-api/setting"
-import { usePropertySot } from "@/functions/utils/setter-property"
+import { useServerInfo } from "@/functions/app"
+import { useAuthSetting } from "@/functions/app/app-settings"
+import { usePropertySot } from "@/functions/utils/properties/setter-property"
+import { useSettingService } from "../setting"
 import Input from "@/components/Input"
 import CheckBox from "@/components/CheckBox"
 

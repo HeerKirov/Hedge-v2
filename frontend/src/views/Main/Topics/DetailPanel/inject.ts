@@ -1,7 +1,7 @@
 import { inject, InjectionKey, provide } from "vue"
 import { DetailTopic, TopicUpdateForm } from "@/functions/adapter-http/impl/topic"
-import { ObjectEndpoint, useObjectEndpoint } from "@/functions/utils/object-endpoint"
-import { useMessageBox } from "@/functions/message"
+import { ObjectEndpoint, useObjectEndpoint } from "@/functions/utils/endpoints/object-endpoint"
+import { useMessageBox } from "@/functions/module"
 import { useTopicContext } from "../inject"
 
 
@@ -21,7 +21,7 @@ export function useTopicDetailContext(): TopicDetailContext {
 
 export function installTopicDetailContext(): TopicDetailContext {
     const message = useMessageBox()
-    const { dataEndpoint, detailMode } = useTopicContext()
+    const { listEndpoint, detailMode } = useTopicContext()
 
     const { data, setData, deleteData } = useObjectEndpoint<number, DetailTopic, TopicUpdateForm>({
         path: detailMode,
@@ -29,8 +29,8 @@ export function installTopicDetailContext(): TopicDetailContext {
         update: httpClient => httpClient.topic.update,
         delete: httpClient => httpClient.topic.delete,
         afterUpdate(id, data) {
-            const index = dataEndpoint.operations.find(topic => topic.id === id)
-            if(index != undefined) dataEndpoint.operations.modify(index, data)
+            const index = listEndpoint.operations.find(topic => topic.id === id)
+            if(index != undefined) listEndpoint.operations.modify(index, data)
         }
     })
 

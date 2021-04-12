@@ -1,12 +1,12 @@
-import { inject, InjectionKey, provide, Ref, ref, shallowRef, watch } from "vue"
+import { inject, InjectionKey, provide, Ref, ref, watch } from "vue"
 import { Annotation, AnnotationCreateForm, AnnotationQueryFilter } from "@/functions/adapter-http/impl/annotations"
-import { useHttpClient } from "@/functions/service"
-import { useNotification } from "@/functions/message"
+import { useHttpClient } from "@/functions/app"
+import { useNotification } from "@/functions/module"
 import { useScrollView, ScrollView } from "@/components/VirtualScrollView"
-import { DataEndpointResult, useDataEndpoint } from "@/functions/utils/data-endpoint"
+import { ListEndpointResult, useListEndpoint } from "@/functions/utils/endpoints/list-endpoint"
 
 export interface AnnotationContext {
-    dataEndpoint: DataEndpointResult<Annotation>
+    listEndpoint: ListEndpointResult<Annotation>
     scrollView: Readonly<ScrollView>
     queryFilter: Ref<AnnotationQueryFilter>
     createMode: Ref<AnnotationCreateForm | null>
@@ -23,11 +23,11 @@ export function useAnnotationContext(): AnnotationContext {
 }
 
 export function installAnnotationContext(): AnnotationContext {
-    const { dataEndpoint, scrollView, queryFilter } = useAnnotationList()
+    const { listEndpoint, scrollView, queryFilter } = useAnnotationList()
 
     const { createMode, detailMode, openCreatePane, openDetailPane, closePane } = usePane()
 
-    const context = {dataEndpoint, scrollView, queryFilter, createMode, detailMode, openCreatePane, openDetailPane, closePane}
+    const context = {listEndpoint, scrollView, queryFilter, createMode, detailMode, openCreatePane, openDetailPane, closePane}
 
     provide(annotationContextInjection, context)
 
@@ -39,9 +39,9 @@ function useAnnotationList() {
     const { handleError } = useNotification()
 
     const queryFilter = ref<AnnotationQueryFilter>({})
-    watch(queryFilter, () => dataEndpoint.refresh())
+    watch(queryFilter, () => listEndpoint.refresh())
 
-    const dataEndpoint = useDataEndpoint({
+    const listEndpoint = useListEndpoint({
         async request(offset: number, limit: number) {
             const res = await httpClient.annotation.list({offset, limit, ...queryFilter.value})
             return res.ok ? {ok: true, ...res.data} : {ok: false, message: res.exception?.message ?? "unknown error"}
@@ -51,7 +51,7 @@ function useAnnotationList() {
 
     const scrollView = useScrollView()
 
-    return {dataEndpoint, scrollView, queryFilter}
+    return {listEndpoint, scrollView, queryFilter}
 }
 
 function usePane() {

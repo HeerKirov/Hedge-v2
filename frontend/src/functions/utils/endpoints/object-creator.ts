@@ -1,8 +1,8 @@
 import { ref } from "vue"
 import { HttpClient, Response } from "@/functions/adapter-http"
 import { HttpException } from "@/functions/adapter-http/exception"
-import { useHttpClient } from "@/functions/service"
-import { useNotification } from "@/functions/message"
+import { useHttpClient } from "@/functions/app"
+import { useNotification } from "@/functions/module"
 
 interface ObjectCreator<FORM> {
     save(): Promise<boolean>

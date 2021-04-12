@@ -1,5 +1,5 @@
 import { defineComponent } from "vue"
-import { useAppearance } from "@/functions/service"
+import { useAppearance } from "@/functions/app"
 import { NativeTheme } from "@/functions/adapter-ipc"
 
 export default defineComponent({

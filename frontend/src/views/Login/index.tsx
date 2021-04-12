@@ -1,7 +1,7 @@
 import { defineComponent, onMounted, ref } from "vue"
 import { useRouter } from "vue-router"
 import { State } from "@/functions/adapter-ipc"
-import { useAppInfo, useAppState } from "@/functions/service"
+import { useAppInfo, useAppState } from "@/functions/app"
 import Input from "@/components/Input"
 
 export default defineComponent({

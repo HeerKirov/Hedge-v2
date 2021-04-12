@@ -1,6 +1,6 @@
 import { defineComponent } from "vue"
 import { RouterView } from "vue-router"
-import { clientMode } from "@/functions/service"
+import { clientMode } from "@/functions/app"
 import NotFoundNotification from "@/layouts/ForbiddenNotification"
 import SideLayout, { SideBar } from "@/layouts/SideLayout"
 import SideBarContent from "./SideBarContent"

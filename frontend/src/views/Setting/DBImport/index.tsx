@@ -1,13 +1,13 @@
 import { defineComponent, inject, InjectionKey, provide, Ref, ref } from "vue"
 import { ImportOption, TimeType } from "@/functions/adapter-http/impl/setting-import"
-import { dialogManager } from "@/functions/service"
-import { useSettingImport } from "@/functions/server-api/setting"
-import { usePropertySot } from "@/functions/utils/setter-property"
+import { dialogManager } from "@/functions/module"
+import { usePropertySot } from "@/functions/utils/properties/setter-property"
 import Input from "@/components/Input"
 import CheckBox from "@/components/CheckBox"
 import NumberInput from "@/components/NumberInput"
 import Select from "@/components/Select"
 import SourceAnalyseRuleBoard from "./SourceAnalyseRuleBoard"
+import { useSettingImport } from "../setting"
 
 export default defineComponent({
     setup() {

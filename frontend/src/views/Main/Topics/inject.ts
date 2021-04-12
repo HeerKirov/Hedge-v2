@@ -1,12 +1,12 @@
 import { inject, InjectionKey, provide, Ref, ref, watch } from "vue"
 import { Topic, TopicCreateForm, TopicQueryFilter } from "@/functions/adapter-http/impl/topic"
-import { useHttpClient } from "@/functions/service"
-import { useNotification } from "@/functions/message"
+import { useHttpClient } from "@/functions/app"
+import { useNotification } from "@/functions/module"
 import { useScrollView, ScrollView } from "@/components/VirtualScrollView"
-import { DataEndpointResult, useDataEndpoint } from "@/functions/utils/data-endpoint"
+import { ListEndpointResult, useListEndpoint } from "@/functions/utils/endpoints/list-endpoint"
 
 export interface TopicContext {
-    dataEndpoint: DataEndpointResult<Topic>
+    listEndpoint: ListEndpointResult<Topic>
     scrollView: Readonly<ScrollView>
     queryFilter: Ref<TopicQueryFilter>
     createMode: Readonly<Ref<TopicCreateForm | null>>
@@ -23,11 +23,11 @@ export function useTopicContext(): TopicContext {
 }
 
 export function installTopicContext(): TopicContext {
-    const { dataEndpoint, scrollView, queryFilter } = useTopicList()
+    const { listEndpoint, scrollView, queryFilter } = useTopicList()
 
     const { createMode, detailMode, openCreatePane, openDetailPane, closePane } = usePane()
 
-    const context = {dataEndpoint, scrollView, queryFilter, createMode, detailMode, openCreatePane, openDetailPane, closePane}
+    const context = {listEndpoint, scrollView, queryFilter, createMode, detailMode, openCreatePane, openDetailPane, closePane}
 
     provide(topicContextInjection, context)
 
@@ -39,9 +39,9 @@ function useTopicList() {
     const { handleError } = useNotification()
 
     const queryFilter = ref<TopicQueryFilter>({})
-    watch(queryFilter, () => dataEndpoint.refresh())
+    watch(queryFilter, () => listEndpoint.refresh())
 
-    const dataEndpoint = useDataEndpoint({
+    const listEndpoint = useListEndpoint({
         async request(offset: number, limit: number) {
             const res = await httpClient.topic.list({offset, limit, ...queryFilter.value})
             return res.ok ? {ok: true, ...res.data} : {ok: false, message: res.exception?.message ?? "unknown error"}
@@ -51,7 +51,7 @@ function useTopicList() {
 
     const scrollView = useScrollView()
 
-    return {dataEndpoint, scrollView, queryFilter}
+    return {listEndpoint, scrollView, queryFilter}
 }
 
 function usePane() {

@@ -5,7 +5,7 @@ import { arrays } from "@/utils/collections"
  * 它将数据分段缓存以减少查询压力，并将并发查询统一处理。
  */
 
-interface DataEndpointOptions<T> {
+interface ListEndpointOptions<T> {
     /**
      * 根据offset和limit取数据。结果可异步返回。此函数应该直接对接查询API。
      */
@@ -21,11 +21,11 @@ interface DataEndpointOptions<T> {
     queryDelay?: number
 }
 
-export interface DataEndpointResult<T> {
+export interface ListEndpointResult<T> {
     /**
      * 响应式返回的数据结果。
      */
-    data: Ref<DataEndpointData<T>>
+    data: Ref<ListEndpointData<T>>
     /**
      * 提出数据更新。
      */
@@ -61,7 +61,7 @@ export interface DataEndpointResult<T> {
     }
 }
 
-export interface DataEndpointData<T> {
+export interface ListEndpointData<T> {
     metrics: {
         total: number | undefined,
         offset: number,
@@ -70,7 +70,7 @@ export interface DataEndpointData<T> {
     result: T[]
 }
 
-export function useDataEndpoint<T>({ request, handleError, segmentSize, queryDelay }: DataEndpointOptions<T>): DataEndpointResult<T> {
+export function useListEndpoint<T>({ request, handleError, segmentSize, queryDelay }: ListEndpointOptions<T>): ListEndpointResult<T> {
     const size = segmentSize ?? 100
     const queryQueue = useQueryQueue(request, handleError, queryDelay ?? 250)
     const segments = useSegments(size, queryQueue)
@@ -78,7 +78,7 @@ export function useDataEndpoint<T>({ request, handleError, segmentSize, queryDel
     let nextQueryId = 1
     let completedQueryId = 0
 
-    const data: Ref<DataEndpointData<T>> = ref({
+    const data: Ref<ListEndpointData<T>> = ref({
         metrics: {total: undefined, offset: 0, limit: 0},
         result: []
     })
@@ -104,7 +104,7 @@ export function useDataEndpoint<T>({ request, handleError, segmentSize, queryDel
         data.value = {metrics: {total: undefined, offset: 0, limit: 0}, result: []}
     }
 
-    const operations: DataEndpointResult<T>["operations"] = {
+    const operations: ListEndpointResult<T>["operations"] = {
         find(condition): number | undefined {
             if(queryQueue.data.total == null) {
                 return undefined
@@ -331,7 +331,7 @@ function useSegments(segmentSize: number, queryQueue: ReturnType<typeof useQuery
     return {query, clear, currentSegments}
 }
 
-function useQueryQueue<T>(request: DataEndpointOptions<T>["request"], errorHandler: DataEndpointOptions<T>["handleError"], queryDelay: number) {
+function useQueryQueue<T>(request: ListEndpointOptions<T>["request"], errorHandler: ListEndpointOptions<T>["handleError"], queryDelay: number) {
     const data = <{buffer: T[], total: number | null}>{
         buffer: [],
         total: null

@@ -1,6 +1,6 @@
 import { InjectionKey, reactive, readonly, watch } from "vue"
 import { useRoute } from "vue-router"
-import { useLocalStorage } from "@/functions/service"
+import { useLocalStorage } from "@/functions/app"
 
 export const sideBarContextInjection: InjectionKey<SideBarContext> = Symbol()
 
