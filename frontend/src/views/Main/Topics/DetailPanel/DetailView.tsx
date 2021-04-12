@@ -4,10 +4,10 @@ import Starlight from "@/components/Starlight"
 import { Link, ListResult } from "@/functions/adapter-http/impl/generic"
 import { Illust } from "@/functions/adapter-http/impl/illust"
 import { DetailTopic, Topic, TopicType } from "@/functions/adapter-http/impl/topic"
-import { clientMode } from "@/functions/app"
+import { clientMode, assetsUrl } from "@/functions/app"
 import { openExternal } from "@/functions/module"
+import { useNavigator } from "@/functions/navigator"
 import { useObjectEndpoint } from "@/functions/utils/endpoints/object-endpoint"
-import { assetsUrl } from "@/functions/app"
 import { useTopicContext } from "../inject"
 import { useTopicDetailContext } from "./inject"
 import style from "./style.module.scss"
@@ -72,12 +72,17 @@ const SubThemeContent = defineComponent({
     setup() {
         const limit = 10
 
+        const navigator = useNavigator()
         const { detailMode, openDetailPane } = useTopicContext()
 
         const { data } = useObjectEndpoint<number, ListResult<Topic>, unknown>({
             path: detailMode,
             get: httpClient => async (path: number) => await httpClient.topic.list({limit, parentId: path, order: "-updateTime"})
         })
+
+        const more = () => {
+            navigator.goto.main.topics({parentId: detailMode.value!})
+        }
 
         return () => data.value?.total ? <div class="mt-1">
             <div class="mb-1"><i class="fa fa-chess mr-2"/><span>子主题</span></div>
@@ -86,9 +91,8 @@ const SubThemeContent = defineComponent({
                     {TYPE_ICON[topic.type]}
                     {topic.name}
                 </a>)}
-                {/*TODO 完成jump机制后添加more链接*/}
                 <p>
-                    <a class="no-wrap mb-1">在主题列表搜索全部子主题<i class="fa fa-angle-double-right ml-1"/></a>
+                    <a class="no-wrap mb-1" onClick={more}>在主题列表搜索全部子主题<i class="fa fa-angle-double-right ml-1"/></a>
                 </p>
             </div>
         </div> : <div/>
@@ -123,6 +127,7 @@ const ExampleContent = defineComponent({
     setup(props) {
         const limit = 10
 
+        const navigator = useNavigator()
         const { detailMode } = useTopicContext()
 
         const { data } = useObjectEndpoint<number, ListResult<Illust>, unknown>({
@@ -130,11 +135,14 @@ const ExampleContent = defineComponent({
             get: httpClient => async (topic: number) => await httpClient.illust.list({limit, topic, type: "IMAGE", order: "-orderTime"})
         })
 
+        const more = () => {
+            navigator.goto.main.illusts({topicName: props.name})
+        }
+
         return () => data.value?.total ? <div class={style.examples}>
             {data.value!.result.map(illust => <div class={style.example}><img src={assetsUrl(illust.thumbnailFile)} alt="example"/></div>)}
             <div class={style.more}>
-                {/*TODO 完成图库后添加more链接和图片跳转链接*/}
-                <a class="no-wrap">在图库搜索"{props.name}"的全部项目<i class="fa fa-angle-double-right ml-1 mr-1"/></a>
+                <a class="no-wrap" onClick={more}>在图库搜索"{props.name}"的全部项目<i class="fa fa-angle-double-right ml-1 mr-1"/></a>
             </div>
         </div> : <div/>
     }

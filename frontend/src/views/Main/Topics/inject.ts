@@ -4,6 +4,7 @@ import { useHttpClient } from "@/functions/app"
 import { useNotification } from "@/functions/module"
 import { useScrollView, ScrollView } from "@/components/VirtualScrollView"
 import { ListEndpointResult, useListEndpoint } from "@/functions/utils/endpoints/list-endpoint"
+import { useRouterQueryNumber } from "@/functions/utils/properties/router-property"
 
 export interface TopicContext {
     listEndpoint: ListEndpointResult<Topic>
@@ -55,9 +56,8 @@ function useTopicList() {
 }
 
 function usePane() {
-    //TODO 改造为router参数
     const createMode = ref<TopicCreateForm | null>(null)
-    const detailMode = ref<number | null>(null)
+    const detailMode = useRouterQueryNumber("MainTopics", "detail")
 
     const openCreatePane = (template?: TopicCreateForm) => {
         createMode.value = template ?? { name: "" }

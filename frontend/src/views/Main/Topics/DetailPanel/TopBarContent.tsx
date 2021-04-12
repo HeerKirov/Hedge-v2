@@ -29,7 +29,7 @@ export default defineComponent({
             {type: "normal", label: "以此为模板新建"},
             {type: "separator"},
             {type: "normal", label: "删除此主题", click: deleteItem}
-        ], {position: "bottom", offsetY: 5})
+        ], {position: "bottom", align: "center", offsetY: 5})
 
         return () => <div class="middle-layout">
             <div class="layout-container">
