@@ -1,13 +1,11 @@
 package com.heerkirov.hedge.server.application
 
 import com.heerkirov.hedge.server.components.appdata.AppDataDriverImpl
-import com.heerkirov.hedge.server.components.appdata.AppdataOptions
 import com.heerkirov.hedge.server.components.backend.IllustMetaExporterImpl
 import com.heerkirov.hedge.server.components.backend.ThumbnailGeneratorImpl
-import com.heerkirov.hedge.server.components.database.RepositoryOptions
+import com.heerkirov.hedge.server.components.configuration.ConfigurationDriverImpl
 import com.heerkirov.hedge.server.components.database.DataRepositoryImpl
 import com.heerkirov.hedge.server.components.health.HealthImpl
-import com.heerkirov.hedge.server.components.health.HealthOptions
 import com.heerkirov.hedge.server.components.http.HttpServerImpl
 import com.heerkirov.hedge.server.components.http.HttpServerOptions
 import com.heerkirov.hedge.server.components.http.WebControllerImpl
@@ -24,17 +22,15 @@ import com.heerkirov.hedge.server.library.framework.framework
  * 应用程序的入口函数。在这里对整个应用程序进行装配。
  */
 fun runApplication(options: ApplicationOptions) {
-    val healthOptions = HealthOptions(options.channel, options.userDataPath)
     val lifetimeOptions = LifetimeOptions(options.permanent)
-    val repositoryOptions = RepositoryOptions(options.channel, options.userDataPath)
-    val appdataOptions = AppdataOptions(options.channel, options.userDataPath)
-    val serverOptions = HttpServerOptions(options.userDataPath, options.frontendFromFolder, options.forceToken, options.forcePort)
+    val serverOptions = HttpServerOptions(options.channelPath, options.forceToken, options.forcePort)
 
     framework {
-        val health = define { HealthImpl(healthOptions) }
+        val health = define { HealthImpl(options.channelPath) }
+        val configuration = define { ConfigurationDriverImpl(options.channelPath) }
         val lifetime = define { LifetimeImpl(context, lifetimeOptions) }
-        val repo = define { DataRepositoryImpl(repositoryOptions) }
-        val appdata = define { AppDataDriverImpl(repo, appdataOptions) }
+        val appdata = define { AppDataDriverImpl(options.channelPath) }
+        val repo = define { DataRepositoryImpl(configuration) }
 
         val webController = WebControllerImpl()
 
@@ -45,8 +41,8 @@ fun runApplication(options: ApplicationOptions) {
             val queryManager = QueryManager(repo)
             val queryService = QueryService(queryManager)
 
-            val thumbnailGenerator = define { ThumbnailGeneratorImpl(appdata, repo) }
-            val fileManager = FileManager(appdata, repo)
+            val thumbnailGenerator = define { ThumbnailGeneratorImpl(configuration, repo) }
+            val fileManager = FileManager(configuration, repo)
             val importMetaManager = ImportMetaManager(repo)
             val importManager = ImportManager(repo, importMetaManager)
 
@@ -107,6 +103,6 @@ fun runApplication(options: ApplicationOptions) {
             )
         }
 
-        define { HttpServerImpl(services, health, lifetime, appdata, webController, serverOptions) }
+        define { HttpServerImpl(services, health, lifetime, appdata, repo, webController, serverOptions) }
     }
 }

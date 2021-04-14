@@ -25,6 +25,8 @@ import org.ktorm.dsl.*
 import org.ktorm.entity.firstOrNull
 import org.ktorm.entity.sequenceOf
 
+//TODO exported score现在还不会因为关联illust的变化而变化。要么加上这个变化，要么移除这个特性
+
 class TopicService(private val data: DataRepository,
                    private val kit: TopicKit,
                    private val queryManager: QueryManager,

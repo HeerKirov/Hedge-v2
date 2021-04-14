@@ -1,6 +1,7 @@
 package com.heerkirov.hedge.server.components.manager
 
 import com.heerkirov.hedge.server.components.appdata.AppDataDriver
+import com.heerkirov.hedge.server.components.configuration.ConfigurationDriver
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.dao.source.FileRecords
 import com.heerkirov.hedge.server.definitions.Filename
@@ -19,7 +20,7 @@ import org.ktorm.entity.sequenceOf
 import java.io.File
 import java.time.LocalDate
 
-class FileManager(private val appdata: AppDataDriver, private val data: DataRepository) {
+class FileManager(private val configurationDriver: ConfigurationDriver, private val data: DataRepository) {
     /**
      * 将指定的File载入到数据库中，同时创建一条新记录。
      * - folder指定为载入时的本地日期。
@@ -46,7 +47,7 @@ class FileManager(private val appdata: AppDataDriver, private val data: DataRepo
         } as Int
 
         val filepath = getFilepath(folder, id, extension).also { path ->
-            file.copyTo(File("${appdata.data.db.path}/${Filename.FOLDER}/$path").applyExcept {
+            file.copyTo(File("${configurationDriver.configuration.dbPath}/${Filename.FOLDER}/$path").applyExcept {
                 deleteIfExists()
             }, overwrite = true)
         }
@@ -64,9 +65,9 @@ class FileManager(private val appdata: AppDataDriver, private val data: DataRepo
      */
     fun revertNewFile(fileId: Int) {
         val fileRecord = getFile(fileId) ?: return
-        File("${appdata.data.db.path}/${Filename.FOLDER}/${getFilepath(fileRecord.folder, fileRecord.id, fileRecord.extension)}").deleteIfExists()
+        File("${configurationDriver.configuration.dbPath}/${Filename.FOLDER}/${getFilepath(fileRecord.folder, fileRecord.id, fileRecord.extension)}").deleteIfExists()
         if(fileRecord.thumbnail == FileRecord.ThumbnailStatus.YES) {
-            File("${appdata.data.db.path}/${Filename.FOLDER}/${getThumbnailFilepath(fileRecord.folder, fileRecord.id)}").deleteIfExists()
+            File("${configurationDriver.configuration.dbPath}/${Filename.FOLDER}/${getThumbnailFilepath(fileRecord.folder, fileRecord.id)}").deleteIfExists()
         }
         data.db.delete(FileRecords) { it.id eq fileId }
     }
@@ -96,8 +97,8 @@ class FileManager(private val appdata: AppDataDriver, private val data: DataRepo
             set(it.syncRecords, syncRecords)
         }
 
-        File("${appdata.data.db.path}/${Filename.FOLDER}/${filepath}").deleteIfExists()
-        if(thumbnailFilepath != null) File("${appdata.data.db.path}/${Filename.FOLDER}/${thumbnailFilepath}").deleteIfExists()
+        File("${configurationDriver.configuration.dbPath}/${Filename.FOLDER}/${filepath}").deleteIfExists()
+        if(thumbnailFilepath != null) File("${configurationDriver.configuration.dbPath}/${Filename.FOLDER}/${thumbnailFilepath}").deleteIfExists()
     }
 
     /**

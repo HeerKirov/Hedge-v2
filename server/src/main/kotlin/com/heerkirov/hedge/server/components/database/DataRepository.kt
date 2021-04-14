@@ -1,5 +1,6 @@
 package com.heerkirov.hedge.server.components.database
 
+import com.heerkirov.hedge.server.components.configuration.ConfigurationDriver
 import com.heerkirov.hedge.server.enums.LoadStatus
 import com.heerkirov.hedge.server.library.framework.Component
 import org.ktorm.database.Database
@@ -15,9 +16,9 @@ import java.lang.RuntimeException
  */
 interface DataRepository : Component {
     /**
-     * 指定一个路径，加载此路径上的数据库，如果不存在就初始化。此方法一般由appDataDriver调用，或者由初始化流程调用。
+     * 加载数据库，并进行初始化和同步。
      */
-    fun loadDatabase(dbPath: String)
+    override fun load()
     /**
      * 目前的初始化状态。
      */
@@ -40,17 +41,12 @@ interface DataRepository : Component {
     fun saveMetadata()
 }
 
-data class RepositoryOptions(
-    val channel: String,
-    val userDataPath: String
-)
-
-class DataRepositoryImpl(options: RepositoryOptions) : DataRepository {
+class DataRepositoryImpl(private val configurationDriver: ConfigurationDriver) : DataRepository {
     private var instance: DBInstance? = null
 
-    private var statusRef: LoadStatus = LoadStatus.NOT_INIT
+    private var loadStatus: LoadStatus = LoadStatus.LOADING
 
-    override val status: LoadStatus get() = statusRef
+    override val status: LoadStatus get() = loadStatus
 
     override val dbPath: String get() = instance?.dbPath ?: throw RuntimeException("DB is not loaded yet.")
 
@@ -62,14 +58,9 @@ class DataRepositoryImpl(options: RepositoryOptions) : DataRepository {
         instance?.saveData() ?: throw RuntimeException("DB is not loaded yet.")
     }
 
-    @Synchronized
-    override fun loadDatabase(dbPath: String) {
-        if(statusRef != LoadStatus.NOT_INIT) {
-            throw RuntimeException("DB status must be NOT_INIT.")
-        }
-        statusRef = LoadStatus.LOADING
-        instance = DBInstance(dbPath)
-        statusRef = LoadStatus.LOADED
+    override fun load() {
+        instance = DBInstance(configurationDriver.configuration.dbPath)
+        loadStatus = LoadStatus.LOADED
     }
 }
 

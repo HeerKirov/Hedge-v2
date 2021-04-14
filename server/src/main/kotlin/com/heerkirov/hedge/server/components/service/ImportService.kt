@@ -223,11 +223,11 @@ class ImportService(private val data: DataRepository,
                             form.tagme.applyOpt { set(it.tagme, this) }
                             form.partitionTime.applyOpt { set(it.partitionTime, this) }
                             form.setCreateTimeBy.alsoOpt { by ->
-                                set(it.createTime, when(by) {
-                                    ImportOption.TimeType.CREATE_TIME -> record.fileCreateTime ?: record.fileImportTime
-                                    ImportOption.TimeType.UPDATE_TIME -> record.fileUpdateTime ?: record.fileImportTime
-                                    ImportOption.TimeType.IMPORT_TIME -> it.fileImportTime
-                                })
+                                when(by) {
+                                    ImportOption.TimeType.CREATE_TIME -> set(it.createTime, record.fileCreateTime ?: record.fileImportTime)
+                                    ImportOption.TimeType.UPDATE_TIME -> set(it.createTime, record.fileUpdateTime ?: record.fileImportTime)
+                                    ImportOption.TimeType.IMPORT_TIME -> set(it.createTime, it.fileImportTime)
+                                }
                             }
                             form.setOrderTimeBy.alsoOpt { by ->
                                 set(it.orderTime, when(by) {

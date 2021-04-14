@@ -21,6 +21,9 @@ import org.ktorm.dsl.*
 import org.ktorm.entity.firstOrNull
 import org.ktorm.entity.sequenceOf
 
+//TODO bug: validate name时，对name进行了trim，但保存时没有，导致校验不一致。不止这里，也检查其他所有name校验的位置。
+//TODO 为update API增加返回值，减少一次retrieve调用
+
 class AnnotationService(private val data: DataRepository, private val kit: AnnotationKit, private val queryManager: QueryManager) {
     fun list(filter: AnnotationFilter): ListResult<AnnotationRes> {
         val schema = if(filter.query.isNullOrBlank()) null else {

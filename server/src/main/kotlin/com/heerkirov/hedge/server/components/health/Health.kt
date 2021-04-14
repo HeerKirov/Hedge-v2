@@ -17,15 +17,9 @@ interface Health : Component {
     fun save(port: Int? = null, token: String? = null): Health
 }
 
-class HealthOptions(
-    val channel: String,
-    val userDataPath: String
-)
-
-class HealthImpl(options: HealthOptions) : Health {
+class HealthImpl(private val channelPath: String) : Health {
     private val log: Logger = LoggerFactory.getLogger(HealthImpl::class.java)
 
-    private val channelPath = "${options.userDataPath}/${Filename.CHANNEL}/${options.channel}"
     private val pidPath: String = "${channelPath}/${Filename.SERVER_PID}"
 
     private val pid: Long = ProcessHandle.current().pid()

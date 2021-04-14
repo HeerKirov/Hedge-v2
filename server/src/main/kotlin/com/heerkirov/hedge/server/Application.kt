@@ -9,9 +9,8 @@ fun main(args: Array<String>) {
 
     runApplication(
         ApplicationOptions(
-            channel = parameters["--channel"]!!,
-            userDataPath = parameters["--user-data"]!!,
-            frontendFromFolder = parameters["--frontend-from-folder"],
+            channelPath = parameters["--channel-path"]!!,
+            frontendPath = parameters["--frontend-path"]!!,
             debugMode = parameters.contain("--debug-mode"),
             permanent = parameters.contain("--permanent"),
             forcePort = parameters["--force-port"]?.toInt(),

@@ -79,7 +79,7 @@ class IllustManager(private val data: DataRepository,
                 }
             data.db.update(Illusts) {
                 where { it.id eq collection.id }
-                set(it.exportedScore, newParentExportedScore)
+                set(it.exportedScore, newParentExportedScore.toInt())
             }
         }
 

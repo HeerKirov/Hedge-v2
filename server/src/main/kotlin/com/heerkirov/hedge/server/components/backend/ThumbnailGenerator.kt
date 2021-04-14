@@ -1,6 +1,6 @@
 package com.heerkirov.hedge.server.components.backend
 
-import com.heerkirov.hedge.server.components.appdata.AppDataDriver
+import com.heerkirov.hedge.server.components.configuration.ConfigurationDriver
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.database.transaction
 import com.heerkirov.hedge.server.dao.source.FileRecords
@@ -29,7 +29,7 @@ interface ThumbnailGenerator : StatefulComponent {
     fun appendTask(fileId: Int)
 }
 
-class ThumbnailGeneratorImpl(private val appdata: AppDataDriver, private val data: DataRepository) : ThumbnailGenerator {
+class ThumbnailGeneratorImpl(private val configurationDriver: ConfigurationDriver, private val data: DataRepository) : ThumbnailGenerator {
     private val log = LoggerFactory.getLogger(ThumbnailGenerator::class.java)
 
     private val queue: MutableList<Int> = LinkedList()
@@ -74,12 +74,12 @@ class ThumbnailGeneratorImpl(private val appdata: AppDataDriver, private val dat
             val fileRecord = data.db.sequenceOf(FileRecords).firstOrNull { it.id eq fileId }
             if(fileRecord != null && fileRecord.thumbnail == FileRecord.ThumbnailStatus.NULL) {
                 val filepath = getFilepath(fileRecord.folder, fileRecord.id, fileRecord.extension)
-                val file = File("${appdata.data.db.path}/${Filename.FOLDER}/$filepath")
+                val file = File("${configurationDriver.configuration.dbPath}/${Filename.FOLDER}/$filepath")
                 if(file.exists()) {
                     val tempFile = ImageProcessor.generateThumbnail(file)
                     if(tempFile != null) {
                         val thumbnailFilepath = getThumbnailFilepath(fileRecord.folder, fileRecord.id)
-                        val thumbnailFile = File("${appdata.data.db.path}/${Filename.FOLDER}/$thumbnailFilepath")
+                        val thumbnailFile = File("${configurationDriver.configuration.dbPath}/${Filename.FOLDER}/$thumbnailFilepath")
                         try {
                             tempFile.copyTo(thumbnailFile, overwrite = true)
 

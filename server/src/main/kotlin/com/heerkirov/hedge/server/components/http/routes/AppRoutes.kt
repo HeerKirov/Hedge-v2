@@ -1,6 +1,7 @@
 package com.heerkirov.hedge.server.components.http.routes
 
 import com.heerkirov.hedge.server.components.appdata.AppDataDriver
+import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.http.Endpoints
 import com.heerkirov.hedge.server.components.lifetime.Lifetime
 import com.heerkirov.hedge.server.enums.LoadStatus
@@ -11,12 +12,11 @@ import io.javalin.apibuilder.ApiBuilder.*
 import io.javalin.http.Context
 
 
-class AppRoutes(private val lifetime: Lifetime, private val appdata: AppDataDriver) : Endpoints {
+class AppRoutes(private val lifetime: Lifetime, private val appdata: AppDataDriver, private val repo: DataRepository) : Endpoints {
     override fun handle(javalin: Javalin) {
         javalin.routes {
             path("app") {
                 get("health", ::health)
-                post("init", ::init)
                 post("signal", ::signal)
                 path("lifetime") {
                     post(::addLifetime)
@@ -33,19 +33,12 @@ class AppRoutes(private val lifetime: Lifetime, private val appdata: AppDataDriv
      * 一般用来健康检查的api。此外，提供对appdata加载状态的检查。
      */
     private fun health(ctx: Context) {
-        ctx.json(HealthResponse(status = appdata.status))
-    }
-
-    /**
-     * 对server进行初始化。
-     * @throws Reject server已经初始化过了。
-     */
-    private fun init(ctx: Context) {
-        if(appdata.status != LoadStatus.NOT_INIT) {
-            throw Reject("Server has already been initialized.")
+        val status = if(appdata.status == LoadStatus.LOADED && repo.status === LoadStatus.LOADED) {
+            LoadStatus.LOADED
+        }else{
+            LoadStatus.LOADING
         }
-        val form = ctx.bodyAsForm<InitForm>()
-        appdata.init(form.dbPath)
+        ctx.json(HealthResponse(status = status))
     }
 
     private fun addLifetime(ctx: Context) {

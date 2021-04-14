@@ -24,6 +24,7 @@ import com.heerkirov.hedge.server.model.meta.Tag
 import com.heerkirov.hedge.server.tools.*
 import com.heerkirov.hedge.server.utils.DateTime
 import com.heerkirov.hedge.server.utils.DateTime.parseDateTime
+import com.heerkirov.hedge.server.utils.DateTime.toMillisecond
 import com.heerkirov.hedge.server.utils.ktorm.OrderTranslator
 import com.heerkirov.hedge.server.utils.ktorm.asSequence
 import com.heerkirov.hedge.server.utils.ktorm.firstOrNull
@@ -407,7 +408,7 @@ class IllustService(private val data: DataRepository,
                     newExportedScore.applyOpt { set(it.exportedScore, this) }
                     form.favorite.applyOpt { set(it.favorite, this) }
                     form.partitionTime.applyOpt { set(it.partitionTime, this) }
-                    form.orderTime.applyOpt { set(it.orderTime, this) }
+                    form.orderTime.applyOpt { set(it.orderTime, this.toMillisecond()) }
                 }
             }
 

@@ -1,6 +1,7 @@
 package com.heerkirov.hedge.server.components.http
 
 import com.heerkirov.hedge.server.components.appdata.AppDataDriver
+import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.health.Health
 import com.heerkirov.hedge.server.components.http.modules.Aspect
 import com.heerkirov.hedge.server.components.http.modules.Authentication
@@ -10,15 +11,12 @@ import com.heerkirov.hedge.server.components.http.routes.*
 import com.heerkirov.hedge.server.components.lifetime.Lifetime
 import com.heerkirov.hedge.server.components.service.AllServices
 import com.heerkirov.hedge.server.library.framework.StatefulComponent
-import com.heerkirov.hedge.server.definitions.Filename
 import com.heerkirov.hedge.server.enums.LoadStatus
 import com.heerkirov.hedge.server.utils.Net
 import com.heerkirov.hedge.server.utils.Token
 import com.heerkirov.hedge.server.utils.objectMapper
 import io.javalin.Javalin
 import io.javalin.plugin.json.JavalinJackson
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import java.net.BindException
 
 interface HttpServer : StatefulComponent {
@@ -30,13 +28,9 @@ interface HttpServer : StatefulComponent {
 
 class HttpServerOptions(
     /**
-     * userData目录。
+     * 前端资源路径。
      */
-    val userDataPath: String,
-    /**
-     * 开发模式下强制使用此路径作为获取前端资源的路径。
-     */
-    val frontendFromFolder: String? = null,
+    val frontendPath: String,
     /**
      * 开发模式下强制使用此token。
      */
@@ -55,6 +49,7 @@ class HttpServerImpl(private val allServices: AllServices,
                      private val health: Health,
                      private val lifetime: Lifetime,
                      private val appdata: AppDataDriver,
+                     private val repo: DataRepository,
                      private val webController: WebController,
                      private val options: HttpServerOptions) : HttpServer {
     private val token: String = options.forceToken ?: Token.token()
@@ -62,12 +57,12 @@ class HttpServerImpl(private val allServices: AllServices,
 
     private var server: Javalin? = null
 
-    private val web = WebAccessor(appdata, webController, options.frontendFromFolder ?: "${options.userDataPath}/${Filename.FRONTEND_FOLDER}")
+    private val web = WebAccessor(appdata, webController, options.frontendPath)
 
     override fun load() {
         JavalinJackson.configure(objectMapper())
 
-        val aspect = Aspect(appdata)
+        val aspect = Aspect(appdata, repo)
         val authentication = Authentication(token, web, webController)
         val errorHandler = ErrorHandler()
 
@@ -77,7 +72,7 @@ class HttpServerImpl(private val allServices: AllServices,
                 web.configure(it)
             }
             .handle(aspect, authentication, web, errorHandler)
-            .handle(AppRoutes(lifetime, appdata))
+            .handle(AppRoutes(lifetime, appdata, repo))
             .handle(SettingRoutes(
                 allServices.settingMeta,
                 allServices.settingQuery,
@@ -121,7 +116,7 @@ class HttpServerImpl(private val allServices: AllServices,
      */
     private fun Javalin.bind(): Javalin {
         val ports = options.forcePort?.let { listOf(it) }
-            ?: if(appdata.status == LoadStatus.LOADED) { appdata.data.service.port }else{ null }?.let { Net.analyzePort(it) }
+            ?: appdata.data.service.port?.let { Net.analyzePort(it) }
             ?: Net.generatePort(options.defaultPort)
 
         val port = ports.firstOrNull { Net.isPortAvailable(it) } ?: throw BindException("Server starting failed because no port is available.")

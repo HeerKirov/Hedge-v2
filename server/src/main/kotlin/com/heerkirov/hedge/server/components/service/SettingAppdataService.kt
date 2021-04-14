@@ -57,8 +57,4 @@ class SettingAppdataService(private val appdata: AppDataDriver, private val webC
             form.autoBackup.alsoOpt { backup.autoBackup = it }
         }
     }
-
-    fun getDb(): DBOption {
-        return appdata.data.db
-    }
 }

@@ -1,6 +1,5 @@
 package com.heerkirov.hedge.server.components.appdata
 
-import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.definitions.Filename
 import com.heerkirov.hedge.server.enums.LoadStatus
 import com.heerkirov.hedge.server.library.framework.Component
@@ -16,17 +15,13 @@ import com.heerkirov.hedge.server.utils.toJSONString
  */
 interface AppDataDriver : Component {
     /**
-     * 程序启动时，加载appdata的状态。如果数据存在，将其加载到内存；如果不存在，记为未初始化的状态。
+     * 程序启动时，加载appdata的状态。如果数据存在，将其加载到内存；如果不存在，则进行初始化操作。
      */
     override fun load()
     /**
      * 目前的加载状态。
      */
     val status: LoadStatus
-    /**
-     * 在数据未初始化时可以调用，初始化数据。
-     */
-    fun init(dbPath: String)
     /**
      * 获得数据。
      */
@@ -38,63 +33,35 @@ interface AppDataDriver : Component {
     fun save(call: (AppData.() -> Unit)? = null)
 }
 
-data class AppdataOptions(
-    val channel: String,
-    val userDataPath: String
-)
+class AppDataDriverImpl(channelPath: String) : AppDataDriver {
+    private val appDataPath = "$channelPath/${Filename.DATA_DAT}"
+    private val versionLockPath = "$channelPath/${Filename.VERSION_LOCK}"
 
-class AppDataDriverImpl(private val repository: DataRepository, options: AppdataOptions) : AppDataDriver {
-    private val appDataPath = "${options.userDataPath}/${Filename.CHANNEL}/${options.channel}/${Filename.DATA_DAT}"
-    private val versionLockPath = "${options.userDataPath}/${Filename.CHANNEL}/${options.channel}/${Filename.VERSION_LOCK}"
-
-    private var loadStatus: LoadStatus? = null
+    private var loadStatus: LoadStatus = LoadStatus.LOADING
     private var appdata: AppData? = null
 
-    override val status: LoadStatus get() = loadStatus ?: throw RuntimeException("Appdata is not loaded yet.")
+    override val status: LoadStatus get() = loadStatus
 
     override val data: AppData get() = appdata ?: throw RuntimeException("Appdata is not loaded yet.")
 
     override fun load() {
+        this.loadStatus = LoadStatus.LOADING
         val appdataFile = Fs.readText(appDataPath)
-        if(appdataFile == null) {
-            this.loadStatus = LoadStatus.NOT_INIT
-        }else{
-            this.loadStatus = LoadStatus.LOADING
+
+        try {
             VersionFileMigrator(versionLockPath).use {
                 it.migrate(appdataFile, AppDataMigrationStrategy).let { (d, changed) ->
                     if(changed) { Fs.writeText(appDataPath, d.toJSONString()) }
                     appdata = d
                 }
             }
-            this.repository.loadDatabase(appdata!!.db.path)
-            this.loadStatus = LoadStatus.LOADED
-        }
-    }
-
-    @Synchronized override fun init(dbPath: String) {
-        if(loadStatus != LoadStatus.NOT_INIT) { throw RuntimeException("Appdata status must be NOT_INIT.") }
-
-        this.loadStatus = LoadStatus.LOADING
-
-        try {
-            VersionFileMigrator(versionLockPath).use {
-                it.migrate(null, AppDataMigrationStrategy).let { (d, changed) ->
-                    if(changed) { Fs.writeText(appDataPath, d.toJSONString()) }
-                    appdata = d
-                }
-            }
-            appdata!!.db.path = dbPath
-
             Fs.writeFile(appDataPath, appdata)
 
-            this.repository.loadDatabase(appdata!!.db.path)
-
-            this.loadStatus = LoadStatus.LOADED
+            loadStatus = LoadStatus.LOADED
         }catch (e: Throwable) {
-            Fs.rm(appDataPath)
+            if(appdataFile == null) Fs.rm(appDataPath)
 
             appdata = null
-            loadStatus = LoadStatus.NOT_INIT
 
             throw e
         }
