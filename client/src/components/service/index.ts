@@ -9,6 +9,7 @@ export { createService } from "./impl"
 /**
  * 控制面板模式。面向外部控制器(ipc-transformer)，将底层模块提供的功能整合成服务，同时内部还负责管理app的应用状态，例如登录状态。
  * 此组件的方法都是endpoint方法。
+ * TODO db path相关的抽离成一个单独的控制器
  */
 export interface Service {
     app: {
@@ -55,6 +56,7 @@ export interface AppEnv {
     debugMode: boolean
     userDataPath: string
     channel: string
+    dbPath: string | null
     canPromptTouchID: boolean
     appState: State
     connection: ServerConnectionInfo | null

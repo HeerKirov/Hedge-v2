@@ -19,7 +19,7 @@ export const DATA_FILE = {
             SERVER_PID: "server.pid",
             SERVER_LOG: "server.log",
             CLIENT_DATA: "client.dat",
-            CLIENT_STORAGE(name: string) { return `client.${name}.storage` }
+            PUBLIC_DATA: "public.dat"
         }
     }
 }

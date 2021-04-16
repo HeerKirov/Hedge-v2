@@ -1,8 +1,10 @@
 import { systemPreferences } from "electron"
 import { AppDataDriver, AppDataStatus } from "../appdata"
 import { ResourceManager, ResourceStatus } from "../resource"
-import { ServerManager } from "../server"
+import { ServerManager, ServerStatus } from "../server"
 import { ClientException, panic } from "../../exceptions"
+import { ConfigurationDriver } from "../configuration";
+import { promiseAll } from "../../utils/process";
 
 /**
  * 对客户端app的状态进行管理。处理从加载到登录的一系列状态。
@@ -80,7 +82,9 @@ export interface StateManagerOptions {
     debugMode: boolean
 }
 
-export function createStateManager(appdata: AppDataDriver, resource: ResourceManager, server: ServerManager, options: StateManagerOptions): StateManager {
+export function createStateManager(appdata: AppDataDriver, configuration: ConfigurationDriver, resource: ResourceManager, server: ServerManager, options: StateManagerOptions): StateManager {
+    const serverAwaiter = createServerStateAwaiter(server)
+
     const stateChangedEvents: ((state: State) => void)[] = []
     const initChangedEvents: ((state: InitState, errorCode?: string, errorMessage?: string) => void)[] = []
 
@@ -110,20 +114,14 @@ export function createStateManager(appdata: AppDataDriver, resource: ResourceMan
 
             //启动server
             setState(State.LOADING_SERVER)
-            await server.startConnection()
+            server.desired(true)
 
+            await serverAwaiter.awaitFor(ServerStatus.OPEN)
             setState(State.LOADED)
         }else{
             if(appdata.getAppData().loginOption.fastboot) {
                 //fastboot模式下，server启动在login检查之前，且前启动过程没有状态信息
-                server.startConnection().then(() => {
-                    //启动完成后，检查state
-                    if(state == State.LOADING_SERVER) {
-                        //如果是loading server的状态，说明已经登录，且正在等待启动完成
-                        setState(State.LOADED)
-                    }
-                    //否则认为还没有登录，什么也不做
-                })
+                server.desired(true)
             }
 
             setState(State.NOT_LOGIN)
@@ -133,38 +131,36 @@ export function createStateManager(appdata: AppDataDriver, resource: ResourceMan
     function asyncLogin(): State {
         if(appdata.getAppData().loginOption.fastboot) {
             //fastboot模式下，检查是否存在server的连接信息
-            if(server.connectionInfo() != null) {
+            if(server.status() === ServerStatus.OPEN) {
                 return state = State.LOADED
-            }else{
-                return state = State.LOADING_SERVER
             }
         }else{
             //非fastboot模式下，启动server
-            try {
-                return state = State.LOADING_SERVER
-            } finally {
-                async function connect() {
-                    await server.startConnection()
-                    setState(State.LOADED)
-                }
-                connect().catch(e => panic(e, options.debugMode))
-            }
+            server.desired(true)
+        }
+        try {
+            return state = State.LOADING_SERVER
+        } finally {
+            serverAwaiter.awaitFor(ServerStatus.OPEN)
+                .then(() => setState(State.LOADED))
+                .catch(e => panic(e, options.debugMode))
         }
     }
 
     async function asyncInit(config: InitConfig) {
         setInitState(InitState.INITIALIZING_APPDATA)
         await appdata.init()
-        await appdata.saveAppData(d => d.loginOption.password = config.password)
+        await promiseAll(appdata.saveAppData(d => d.loginOption.password = config.password), configuration.saveData(d => d.dbPath = config.dbPath))
 
         setInitState(InitState.INITIALIZING_RESOURCE)
         await resource.update()
 
+        server.desired(true)
         setInitState(InitState.INITIALIZING_SERVER)
-        await server.startConnection()
+        await serverAwaiter.awaitFor(ServerStatus.INITIALIZING)
 
         setInitState(InitState.INITIALIZING_SERVER_DATABASE)
-        await server.initializeRemoteServer(config.dbPath)
+        await serverAwaiter.awaitFor(ServerStatus.OPEN)
 
         setState(State.LOADED)
         setInitState(InitState.FINISH)
@@ -218,4 +214,47 @@ export function createStateManager(appdata: AppDataDriver, resource: ResourceMan
             initChangedEvents.push(event)
         }
     }
+}
+
+function createServerStateAwaiter(server: ServerManager) {
+    const cache: {[s in ServerStatus.INITIALIZING | ServerStatus.OPEN]: (() => void)[]} = {
+        [ServerStatus.INITIALIZING]: [],
+        [ServerStatus.OPEN]: []
+    }
+
+    function execute(elements: (() => void)[]) {
+        if(elements.length) {
+            for (const element of elements) {
+                element()
+            }
+            elements.splice(0, elements.length)
+        }
+    }
+
+    server.addEventListener(({ status }) => {
+        if(status === ServerStatus.INITIALIZING) {
+            execute(cache[ServerStatus.INITIALIZING])
+        }else if(status === ServerStatus.OPEN) {
+            execute(cache[ServerStatus.INITIALIZING])
+            execute(cache[ServerStatus.OPEN])
+        }
+    })
+
+    async function awaitFor(status: ServerStatus.INITIALIZING | ServerStatus.OPEN): Promise<void> {
+        if ((server.status() === ServerStatus.INITIALIZING && status === ServerStatus.INITIALIZING) ||
+            (server.status() === ServerStatus.OPEN && (status === ServerStatus.INITIALIZING || status === ServerStatus.OPEN))) {
+            return
+        }
+
+        return new Promise(resolve => {
+            if ((server.status() === ServerStatus.INITIALIZING && status === ServerStatus.INITIALIZING) ||
+                (server.status() === ServerStatus.OPEN && (status === ServerStatus.INITIALIZING || status === ServerStatus.OPEN))) {
+                resolve()
+            }else{
+                cache[status].push(resolve)
+            }
+        })
+    }
+
+    return {awaitFor}
 }

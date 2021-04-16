@@ -2,11 +2,12 @@ import * as path from "path"
 import { app, protocol } from "electron"
 import { promiseAll, getNodePlatform, Platform } from "../utils/process"
 import { createWindowManager, WindowManager } from "./window-manager"
+import { createConfigurationDriver } from "../components/configuration"
 import { createAppDataDriver } from "../components/appdata"
 import { createStateManager } from "../components/state"
 import { Channel, createChannel } from "../components/channel"
 import { createResourceManager } from "../components/resource"
-import { createServerManager, ServerManager, ServerStatus } from "../components/server"
+import { createServerManager, ServerManager } from "../components/server"
 import { createService } from "../components/service"
 import { registerIpcTransformer } from "./ipc-transformer"
 import { registerAppMenu } from "./menu"
@@ -73,28 +74,29 @@ export async function createApplication(options?: AppOptions) {
 
         const appDataDriver = createAppDataDriver({userDataPath, debugMode, channel: channelManager.currentChannel()})
 
+        const configurationDriver = createConfigurationDriver({userDataPath, channel: channelManager.currentChannel()})
+
         const resourceManager = createResourceManager({userDataPath, appPath, debug: options?.debug && {frontendFromFolder: options.debug.frontendFromFolder, serverFromResource: options.debug.serverFromResource}})
 
         const serverManager = createServerManager({userDataPath, channel: channelManager.currentChannel(), debug: options?.debug && {serverFromURL: options.debug.serverFromURL, serverFromFolder: options.debug.serverFromFolder, frontendFromFolder: options.debug.frontendFromFolder}})
 
-        const stateManager = createStateManager(appDataDriver, resourceManager, serverManager, {debugMode})
+        const stateManager = createStateManager(appDataDriver, configurationDriver, resourceManager, serverManager, {debugMode})
 
         const windowManager = createWindowManager(stateManager, {platform, debug: options?.debug && {frontendFromFolder: options.debug.frontendFromFolder, frontendFromURL: options.debug.frontendFromURL}})
 
         const themeManager = createThemeManager(appDataDriver)
 
-        const service = createService(appDataDriver, channelManager, resourceManager, serverManager, stateManager, windowManager, themeManager, {debugMode, userDataPath, platform, channel: channelManager.currentChannel()})
+        const service = createService(appDataDriver, configurationDriver, channelManager, resourceManager, serverManager, stateManager, windowManager, themeManager, {debugMode, userDataPath, platform, channel: channelManager.currentChannel()})
 
         registerAppEvents(windowManager, serverManager, platform)
         registerIpcTransformer(service)
 
-        await promiseAll(appDataDriver.load(), resourceManager.load(), app.whenReady())
+        await promiseAll(appDataDriver.load(), configurationDriver.load(), resourceManager.load(), app.whenReady())
         await themeManager.load()
-
-        registerProtocol(userDataPath, channelManager)
 
         stateManager.load()
 
+        registerProtocol(userDataPath, channelManager)
         registerAppMenu(windowManager, {debugMode, platform})
         registerDockMenu(windowManager)
 
@@ -119,10 +121,8 @@ function registerAppEvents(windowManager: WindowManager, serverManager: ServerMa
     })
 
     app.on('quit', () => {
-        //此事件实际上将同步完成，在同步执行完成后app就已经退出，等不到异步返回
-        if(serverManager.status() == ServerStatus.OPEN) {
-            serverManager.closeConnection().finally(() => {})
-        }
+        //此事件将同步完成，在同步执行完成后app就已经退出，等不到异步返回
+        serverManager.desired(false)
     })
 }
 

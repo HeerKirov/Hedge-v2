@@ -8,7 +8,7 @@ export function getNodePlatform(): Platform {
     throw new Error(`Unsupported platform ${platform}.`)
 }
 
-export async function promiseAll(...promises: Promise<void>[]): Promise<void> {
+export async function promiseAll(...promises: Promise<unknown>[]): Promise<void> {
     for (const promise of promises) {
         await promise
     }
@@ -23,41 +23,40 @@ export async function sleep(timeMs: number): Promise<void> {
 }
 
 /**
- * 启动一个异步的计划任务，每隔一定的时间就自动运行一次。
- * 执行此方法时，task不会立即执行，而是先等待第一轮间隔。
- * @param intervalMs 间隔时间，单位毫秒
- * @param task 自动运行的函数
+ * 创建一个异步的计划任务，可以控制其开关。
  */
-export function schedule(intervalMs: number, task: (future: Future) => Promise<void>): Future {
-    let running = true
+export function scheduleFuture(intervalMs: number, task: (future: ScheduleFuture) => Promise<void>, stopEvent?: () => Promise<void>): ScheduleFuture {
+    let running = false
 
-    function stop() {
-        running = false
-    }
-
-    async function run() {
-        await sleep(intervalMs)
-        while (running) {
-            try {
-                await task({stop})
-            }catch (e) {
-                console.log(e)
-            }
-            await sleep(intervalMs)
+    function start() {
+        if(!running) {
+            running = true
+            run().catch(console.error)
         }
     }
 
-    run().catch(reason => console.log(reason))
+    function stop() {
+        running = false
+        stopEvent?.()?.finally()
+    }
 
-    return {stop}
+    const future = {start, stop}
+
+    async function run() {
+        while(running) {
+            try {
+                await task(future)
+            }catch (e) {
+                console.error(e)
+            }
+            if(running) await sleep(intervalMs)
+        }
+    }
+
+    return future
 }
 
-/**
- * 异步计划任务的上下文。
- */
-export interface Future {
-    /**
-     * 停止此schedule计划。
-     */
+export interface ScheduleFuture {
+    start(): void
     stop(): void
 }

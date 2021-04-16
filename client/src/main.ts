@@ -1,6 +1,5 @@
 import { createApplication } from "./application"
 import { createParameters } from "./utils/parameters"
-import { getIPAddress } from "./utils/net";
 
 const parameters = createParameters(process.argv)
 

@@ -2,9 +2,10 @@ import { showError } from "../utils/notification"
 
 export type ErrorCode = PanicError | CheckedError
 
-export type PanicError = ChannelPanicError | AppdataPanicError | ResourcePanicError | ServerPanicError
+export type PanicError = ChannelPanicError | AppdataPanicError | ConfigurationPanicError | ResourcePanicError | ServerPanicError
 export type ChannelPanicError = "CHANNEL_READ_ERROR"
 export type AppdataPanicError = "APPDATA_LOAD_ERROR"
+export type ConfigurationPanicError = "CONFIGURATION_LOAD_ERROR"
 export type ResourcePanicError = "RESOURCE_LOAD_ERROR" | "RESOURCE_UPDATE_ERROR"
 export type ServerPanicError = "SERVER_EXEC_ERROR" | "SERVER_WAITING_EXIT" | "SERVER_WAITING_TIMEOUT" | "SERVER_REGISTER_ERROR"
 
@@ -17,6 +18,7 @@ export type ServerError = "SERVER_INIT_ERROR" | "SERVER_DISCONNECTED"
 const panicErrorMapping: {[key in PanicError]: string} = {
     "CHANNEL_READ_ERROR": "无法读取channel信息。",
     "APPDATA_LOAD_ERROR": "无法读取app基础数据。",
+    "CONFIGURATION_LOAD_ERROR": "无法读取public configuration。",
     "RESOURCE_LOAD_ERROR": "无法加载资源状态信息。",
     "RESOURCE_UPDATE_ERROR": "升级资源时发生错误。",
     "SERVER_EXEC_ERROR": "开启核心服务失败。",
