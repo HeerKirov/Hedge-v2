@@ -23,7 +23,7 @@ import com.heerkirov.hedge.server.library.framework.framework
  */
 fun runApplication(options: ApplicationOptions) {
     val lifetimeOptions = LifetimeOptions(options.permanent)
-    val serverOptions = HttpServerOptions(options.channelPath, options.forceToken, options.forcePort)
+    val serverOptions = HttpServerOptions(options.frontendPath, options.forceToken, options.forcePort)
 
     framework {
         val health = define { HealthImpl(options.channelPath) }

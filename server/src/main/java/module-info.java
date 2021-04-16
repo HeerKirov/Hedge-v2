@@ -19,6 +19,7 @@ module com.heerkirov.hedge.server {
     opens com.heerkirov.hedge.server.components.health;
     opens com.heerkirov.hedge.server.components.appdata;
     opens com.heerkirov.hedge.server.components.database;
+    opens com.heerkirov.hedge.server.components.configuration;
     opens com.heerkirov.hedge.server.components.http;
     opens com.heerkirov.hedge.server.components.http.modules;
     opens com.heerkirov.hedge.server.components.http.routes;

@@ -26,11 +26,6 @@ class SettingRoutes(settingMetaService: SettingMetaService,
                     get(service::get)
                     patch(service::update)
                 }
-                path("backup") {
-                    get(backup::get)
-                    patch(backup::update)
-                    post("sync", ::notImplemented)
-                }
                 path("proxy") {
                     get(proxy::get)
                     patch(proxy::update)
@@ -78,7 +73,6 @@ class SettingRoutes(settingMetaService: SettingMetaService,
     private val spider = Spider(settingSpiderService)
     private val web = Web(settingAppdataService)
     private val service = Service(settingAppdataService)
-    private val backup = Backup(settingAppdataService)
     private val proxy = Proxy(settingAppdataService)
 
     private fun notImplemented(ctx: Context) {
@@ -104,17 +98,6 @@ class SettingRoutes(settingMetaService: SettingMetaService,
         fun update(ctx: Context) {
             val form = ctx.bodyAsForm<ServiceOption>()
             service.updateService(form)
-        }
-    }
-
-    private class Backup(private val service: SettingAppdataService) {
-        fun get(ctx: Context) {
-            ctx.json(service.getBackup())
-        }
-
-        fun update(ctx: Context) {
-            val form = ctx.bodyAsForm<BackupOptionUpdateForm>()
-            service.updateBackup(form)
         }
     }
 

@@ -48,7 +48,3 @@ data class WebOptionRes(val autoWebAccess: Boolean, val permanent: Boolean, val 
 
 data class ProxyOptionUpdateForm(val socks5Proxy: Opt<String?>,
                                  val httpProxy: Opt<String?>)
-
-
-data class BackupOptionUpdateForm(val path: Opt<String?>,
-                                  val autoBackup: Opt<Boolean>)

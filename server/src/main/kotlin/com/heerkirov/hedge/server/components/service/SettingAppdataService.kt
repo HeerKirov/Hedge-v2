@@ -2,8 +2,6 @@ package com.heerkirov.hedge.server.components.service
 
 import com.heerkirov.hedge.server.components.appdata.*
 import com.heerkirov.hedge.server.components.http.WebController
-import com.heerkirov.hedge.server.components.http.modules.WebAccessor
-import com.heerkirov.hedge.server.form.BackupOptionUpdateForm
 import com.heerkirov.hedge.server.form.ProxyOptionUpdateForm
 import com.heerkirov.hedge.server.form.WebOptionRes
 import com.heerkirov.hedge.server.form.WebOptionUpdateForm
@@ -44,17 +42,6 @@ class SettingAppdataService(private val appdata: AppDataDriver, private val webC
         appdata.save {
             form.httpProxy.alsoOpt { proxy.httpProxy = it }
             form.socks5Proxy.alsoOpt { proxy.socks5Proxy = it }
-        }
-    }
-
-    fun getBackup(): BackupOption {
-        return appdata.data.backup
-    }
-
-    fun updateBackup(form: BackupOptionUpdateForm) {
-        appdata.save {
-            form.path.alsoOpt { backup.path = it }
-            form.autoBackup.alsoOpt { backup.autoBackup = it }
         }
     }
 }
