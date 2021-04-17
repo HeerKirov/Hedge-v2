@@ -1,7 +1,7 @@
 import { defineComponent } from "vue"
 import TopBar from "../../TopBar"
 import TopBarContent from "./TopBarContent"
-import ImageGrid from "@/layouts/ImageGrid"
+import ImageGrid from "@/layouts/old/ImageGrid"
 import { arrays } from "@/utils/collections"
 import "./style.scss"
 

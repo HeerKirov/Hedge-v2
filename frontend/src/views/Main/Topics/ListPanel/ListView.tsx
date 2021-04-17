@@ -4,8 +4,10 @@ import { usePopupMenu } from "@/functions/app"
 import { useHoverFlag } from "@/functions/utils/element"
 import { useFastObjectEndpoint } from "@/functions/utils/endpoints/object-fast-endpoint"
 import { Topic, TopicType } from "@/functions/adapter-http/impl/topic"
-import { VirtualRow } from "@/components/VirtualScrollView"
+import { VirtualRow } from "@/components/functions/VirtualScrollView"
+import { TOPIC_TYPE_ENUMS, TOPIC_TYPE_ICONS, TOPIC_TYPE_NAMES } from "../define"
 import { useTopicContext } from "../inject"
+import { arrays } from "@/utils/collections";
 
 /**
  * 内容列表项视图。
@@ -99,7 +101,9 @@ const Item = defineComponent({
                     <i class="ml-2 fa fa-heart has-text-grey is-cursor-pointer" onClick={switchFavorite}/>
                 : null}
             </td>
-            <td>{((props.value.type !== "UNKNOWN") || null) && TOPIC_TYPE_TAG[props.value.type]}</td>
+            <td>
+                {((props.value.type !== "UNKNOWN") || null) && TYPE_ITEM_ELEMENTS[props.value.type]}
+            </td>
             <td class="is-width-35">
                 {/*控制标签的数量*/}
                 {props.value.keywords.map(keyword => <span class="tag mr-1">{keyword}</span>)}
@@ -120,11 +124,8 @@ const Item = defineComponent({
     }
 })
 
-const TOPIC_TYPE_TAG: {[key in Exclude<TopicType, "UNKNOWN">]: JSX.Element} = {
-    "COPYRIGHT": <><i class="fa fa-copyright mr-1"/><span class="mr-2">版权方</span></>,
-    "WORK": <><i class="fa fa-bookmark mr-1"/><span class="mr-2">作品</span></>,
-    "CHARACTER": <><i class="fa fa-user-ninja mr-1"/><span class="mr-2">角色</span></>
-}
+const TYPE_ITEM_ELEMENTS: {[type in TopicType]: JSX.Element} =
+    arrays.toMap(TOPIC_TYPE_ENUMS, type => <><i class={`fa fa-${TOPIC_TYPE_ICONS[type]} mr-1`}/><span class="mr-2">{TOPIC_TYPE_NAMES[type]}</span></>)
 
 const STAR_ICON = <span class="icon ml-1"><i class="fa fa-star"/></span>
 

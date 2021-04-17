@@ -1,6 +1,6 @@
 import { defineComponent, KeepAlive, provide } from "vue"
 import { RouterView } from "vue-router"
-import SideLayout from "@/layouts/SideLayout"
+import SideLayout from "@/layouts/layouts/SideLayout"
 import SideBar from "../SideBar"
 import SideBarContent from "./SideBarContent"
 import { sideBarContextInjection, useSideBarContextInjection } from "./inject"

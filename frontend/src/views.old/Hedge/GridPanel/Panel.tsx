@@ -1,5 +1,5 @@
 import { defineComponent } from "vue"
-import ImageGrid from "@/layouts/ImageGrid"
+import ImageGrid from "@/layouts/old/ImageGrid"
 
 // import img1 from "@/assets/img1.local.jpg"
 // import img2 from "@/assets/img2.local.jpg"

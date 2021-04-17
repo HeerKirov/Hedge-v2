@@ -1,6 +1,6 @@
 import { defineComponent, provide } from "vue"
 import { clientMode } from "@/functions/app"
-import NotFoundNotification from "@/layouts/ForbiddenNotification"
+import NotFoundNotification from "@/layouts/layouts/ForbiddenNotification"
 import { initContextInjection, useInitContext } from "./inject"
 import WelcomePage from "./WelcomePage"
 import PasswordPage from "./PasswordPage"
@@ -21,7 +21,7 @@ export default defineComponent({
                 const CurrentPage = pages[context.page.num.value]
 
                 return <div class={style.root}>
-                    <div class="title-bar has-text-centered is-size-large">
+                    <div class="title-bar line has-text-centered is-size-large">
                         <span>HEDGE</span>
                     </div>
                     <div class={[style.dialog, "fixed", "center", "box"]}>

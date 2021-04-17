@@ -1,5 +1,5 @@
 import { computed, defineComponent, PropType, reactive, Ref, ref, watch } from "vue"
-import NumberInput from "@/components/NumberInput"
+import NumberInput from "@/components/forms/NumberInput"
 import { arrays } from "@/utils/collections"
 import { getDaysOfMonth } from "@/utils/datetime"
 

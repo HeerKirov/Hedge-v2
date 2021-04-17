@@ -1,8 +1,8 @@
 import { defineComponent, PropType, ref } from "vue"
 import { useAppInfo } from "@/functions/app"
 import { useAuthSetting } from "@/functions/app/app-settings"
-import CheckBox from "@/components/CheckBox"
-import Input from "@/components/Input"
+import CheckBox from "@/components/forms/CheckBox"
+import Input from "@/components/forms/Input"
 
 export default defineComponent({
     setup() {

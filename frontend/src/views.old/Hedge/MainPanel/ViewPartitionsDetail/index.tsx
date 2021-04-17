@@ -1,7 +1,7 @@
 import { computed, ComputedRef, defineComponent, inject, watch } from "vue"
 import TopBar from "../../TopBar"
 import TopBarContent from "./TopBarContent"
-import ImageGrid from "@/layouts/ImageGrid"
+import ImageGrid from "@/layouts/old/ImageGrid"
 import "./style.scss"
 
 import img1 from "@/assets/img1.local.jpg"

@@ -2,7 +2,7 @@ import { inject, InjectionKey, provide, Ref, ref, watch } from "vue"
 import { Topic, TopicCreateForm, TopicQueryFilter } from "@/functions/adapter-http/impl/topic"
 import { useHttpClient } from "@/functions/app"
 import { useNotification } from "@/functions/module"
-import { useScrollView, ScrollView } from "@/components/VirtualScrollView"
+import { useScrollView, ScrollView } from "@/components/functions/VirtualScrollView"
 import { ListEndpointResult, useListEndpoint } from "@/functions/utils/endpoints/list-endpoint"
 import { useRouterQueryNumber } from "@/functions/utils/properties/router-property"
 

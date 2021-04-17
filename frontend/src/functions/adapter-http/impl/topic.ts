@@ -125,6 +125,7 @@ export interface TopicCreateForm {
     parentId?: number | null
     type?: TopicType
     description?: string
+    keywords?: string[]
     links?: Link[] | null
     annotations?: (string | number)[] | null
     favorite?: boolean
@@ -137,6 +138,7 @@ export interface TopicUpdateForm {
     parentId?: number | null
     type?: TopicType
     description?: string
+    keywords?: string[]
     links?: Link[] | null
     annotations?: (string | number)[] | null
     favorite?: boolean

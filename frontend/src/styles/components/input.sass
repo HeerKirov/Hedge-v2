@@ -1,7 +1,8 @@
 @import "../base/size"
 @import "../base/color.scss"
 
-input
+input,
+textarea
   -webkit-writing-mode: horizontal-tb !important
   text-rendering: auto
   letter-spacing: normal
@@ -21,7 +22,7 @@ input
   font-size: $font-size-7
   line-height: 1.2
   height: $height-std
-  padding: 0 calc(0.6rem - 1px)
+  padding: 0 calc(0.85em - 1px)
   border: 1px solid $dark-lightgrey
   border-radius: $radius-size-std
   @media (prefers-color-scheme: dark)
@@ -62,3 +63,29 @@ input
         border-color: $color
         &:focus
           box-shadow: 0 0 2px $color
+
+.textarea
+  $textarea-max-height: 40em !default
+  $textarea-min-height: 4em !default
+  align-items: center
+  display: inline-flex
+  font-size: $font-size-7
+  padding: calc(0.6em - 1px) calc(0.85em - 1px)
+  border: 1px solid $dark-lightgrey
+  border-radius: $radius-size-std
+  @media (prefers-color-scheme: dark)
+    background-color: $light-dark
+    color: $white
+    border-color: $more-light-dark
+  &:focus
+    box-shadow: 0 0 3px $dark-lightgrey
+  max-width: 100%
+  min-width: 100%
+  resize: vertical
+  &:not([rows])
+    max-height: $textarea-max-height
+    min-height: $textarea-min-height
+  &[rows]
+    height: initial
+  &.has-fixed-size
+    resize: none

@@ -1,20 +1,20 @@
 import { defineComponent, PropType } from "vue"
-import WrappedText from "@/components/WrappedText"
-import Starlight from "@/components/Starlight"
-import { Link, ListResult } from "@/functions/adapter-http/impl/generic"
-import { Illust } from "@/functions/adapter-http/impl/illust"
-import { DetailTopic, Topic, TopicType } from "@/functions/adapter-http/impl/topic"
+import WrappedText from "@/components/elements/WrappedText"
+import Starlight from "@/components/elements/Starlight"
+import { Link } from "@/functions/adapter-http/impl/generic"
+import { DetailTopic, TopicType } from "@/functions/adapter-http/impl/topic"
 import { clientMode, assetsUrl } from "@/functions/app"
 import { openExternal } from "@/functions/module"
 import { useNavigator } from "@/functions/navigator"
-import { useObjectEndpoint } from "@/functions/utils/endpoints/object-endpoint"
+import { arrays } from "@/utils/collections"
 import { useTopicContext } from "../inject"
 import { useTopicDetailContext } from "./inject"
+import { TOPIC_TYPE_ENUMS, TOPIC_TYPE_ICONS, TOPIC_TYPE_NAMES } from "../define"
 import style from "./style.module.scss"
 
 export default defineComponent({
     setup() {
-        const { data, setData } = useTopicDetailContext()
+        const { data } = useTopicDetailContext()
 
         return () => <div class={["container", "p-2", style.detailView]}>
             <div class="box mb-1">
@@ -44,7 +44,7 @@ const MainContent = defineComponent({
                     </span>
             </p>
             <p class="is-size-7 mt-2">
-                {TYPE_TAG[props.data.type]}
+                {TYPE_ITEM_ELEMENTS[props.data.type]}
             </p>
             <p class="mt-2">
                 {props.data.annotations.map(annotation => <span class="tag mr-1">[ {annotation.name} ]</span>)}
@@ -59,7 +59,7 @@ const MainContent = defineComponent({
                 <div class="mb-1"><i class="fa fa-chess-queen mr-2"/><span>父主题</span></div>
                 <div>
                     <a class="tag mr-1 mb-1" onClick={() => openDetailPane(props.data.parent!.id)}>
-                        {TYPE_ICON[props.data.parent.type]}
+                        {TYPE_ICON_ELEMENTS[props.data.parent.type]}
                         {props.data.parent.name}
                     </a>
                 </div>
@@ -70,25 +70,19 @@ const MainContent = defineComponent({
 
 const SubThemeContent = defineComponent({
     setup() {
-        const limit = 10
-
         const navigator = useNavigator()
         const { detailMode, openDetailPane } = useTopicContext()
-
-        const { data } = useObjectEndpoint<number, ListResult<Topic>, unknown>({
-            path: detailMode,
-            get: httpClient => async (path: number) => await httpClient.topic.list({limit, parentId: path, order: "-updateTime"})
-        })
+        const { subThemeData } = useTopicDetailContext()
 
         const more = () => {
             navigator.goto.main.topics({parentId: detailMode.value!})
         }
 
-        return () => data.value?.total ? <div class="mt-1">
+        return () => subThemeData.value?.total ? <div class="mt-1">
             <div class="mb-1"><i class="fa fa-chess mr-2"/><span>子主题</span></div>
             <div>
-                {data.value!.result.map(topic => <a class="tag mr-1 mb-1" onClick={() => openDetailPane(topic.id)}>
-                    {TYPE_ICON[topic.type]}
+                {subThemeData.value!.result.map(topic => <a class="tag mr-1 mb-1" onClick={() => openDetailPane(topic.id)}>
+                    {TYPE_ICON_ELEMENTS[topic.type]}
                     {topic.name}
                 </a>)}
                 <p>
@@ -125,22 +119,16 @@ const ExampleContent = defineComponent({
         name: {type: String, required: true},
     },
     setup(props) {
-        const limit = 10
-
         const navigator = useNavigator()
         const { detailMode } = useTopicContext()
-
-        const { data } = useObjectEndpoint<number, ListResult<Illust>, unknown>({
-            path: detailMode,
-            get: httpClient => async (topic: number) => await httpClient.illust.list({limit, topic, type: "IMAGE", order: "-orderTime"})
-        })
+        const { exampleData } = useTopicDetailContext()
 
         const more = () => {
             navigator.goto.main.illusts({topicName: props.name})
         }
 
-        return () => data.value?.total ? <div class={style.examples}>
-            {data.value!.result.map(illust => <div class={style.example}><img src={assetsUrl(illust.thumbnailFile)} alt="example"/></div>)}
+        return () => exampleData.value?.total ? <div class={style.examples}>
+            {exampleData.value!.result.map(illust => <div class={style.example}><img src={assetsUrl(illust.thumbnailFile)} alt="example"/></div>)}
             <div class={style.more}>
                 <a class="no-wrap" onClick={more}>在图库搜索"{props.name}"的全部项目<i class="fa fa-angle-double-right ml-1 mr-1"/></a>
             </div>
@@ -148,14 +136,8 @@ const ExampleContent = defineComponent({
     }
 })
 
-const TYPE_TAG: {[type in Exclude<TopicType, "UNKNOWN">]: JSX.Element} = {
-    "COPYRIGHT": <><i class="fa fa-copyright mr-2"/><span class="mr-2">版权方</span></>,
-    "WORK": <><i class="fa fa-bookmark mr-2"/><span>作品</span></>,
-    "CHARACTER": <><i class="fa fa-user-ninja mr-2"/><span class="mr-2">角色</span></>
-}
+const TYPE_ITEM_ELEMENTS: {[type in TopicType]: JSX.Element} =
+    arrays.toMap(TOPIC_TYPE_ENUMS, type => <><i class={`fa fa-${TOPIC_TYPE_ICONS[type]} mr-2`}/><span class="mr-2">{TOPIC_TYPE_NAMES[type]}</span></>)
 
-const TYPE_ICON: {[type in Exclude<TopicType, "UNKNOWN">]: JSX.Element} = {
-    "COPYRIGHT": <i class="fa fa-copyright mr-1"/>,
-    "WORK": <i class="fa fa-bookmark mr-1"/>,
-    "CHARACTER": <i class="fa fa-user-ninja mr-1"/>
-}
+const TYPE_ICON_ELEMENTS: {[type in TopicType]: JSX.Element} =
+    arrays.toMap(TOPIC_TYPE_ENUMS, type => <i class={`fa fa-${TOPIC_TYPE_ICONS[type]} mr-1`}/>)

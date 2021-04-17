@@ -1,4 +1,4 @@
-import { defineComponent, onMounted, PropType, ref, watch } from "vue"
+import { defineComponent, PropType, ref, watch } from "vue"
 import style from "./SelectList.module.scss"
 
 export default defineComponent({

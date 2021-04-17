@@ -1,6 +1,6 @@
 import { defineComponent } from "vue"
-import WrappedText from "@/components/WrappedText"
-import Starlight from "@/components/Starlight"
+import WrappedText from "@/components/elements/WrappedText"
+import Starlight from "@/components/elements/Starlight"
 
 import img1 from "@/assets/img1.local.jpg"
 

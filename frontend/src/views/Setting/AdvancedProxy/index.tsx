@@ -1,7 +1,7 @@
 import { defineComponent, ref } from "vue"
 import { usePropertySot } from "@/functions/utils/properties/setter-property"
 import { useSettingProxy } from "../setting"
-import Input from "@/components/Input"
+import Input from "@/components/forms/Input"
 
 export default defineComponent({
     setup() {

@@ -3,8 +3,8 @@ import { AnnotationTarget } from "@/functions/adapter-http/impl/annotations"
 import { useMessageBox } from "@/functions/module"
 import { usePopupMenu } from "@/functions/app"
 import { useFastObjectEndpoint } from "@/functions/utils/endpoints/object-fast-endpoint"
-import { VirtualRow } from "@/components/VirtualScrollView"
-import { TARGET_TYPE_ICON } from "./define"
+import { VirtualRow } from "@/components/functions/VirtualScrollView"
+import { TARGET_TYPE_ICONS } from "./define"
 import { useAnnotationContext } from "./inject"
 
 /**
@@ -92,7 +92,7 @@ const AnnotationTargetElement = defineComponent({
     },
     setup(props) {
         return () => <span>
-            {(props.target.length > 0 ? props.target : ["TAG", "AUTHOR", "TOPIC"]).map(t => <i class={`fa fa-${TARGET_TYPE_ICON[t]} mr-2`}/>)}
+            {(props.target.length > 0 ? props.target : ["TAG", "AUTHOR", "TOPIC"]).map(t => <i class={`fa fa-${TARGET_TYPE_ICONS[t]} mr-2`}/>)}
         </span>
     }
 })

@@ -1,8 +1,8 @@
 import { computed, defineComponent, inject, ref, watch } from "vue"
 import { Site } from "@/functions/adapter-http/impl/setting-source"
-import SelectList from "@/components/SelectList"
-import Input from "@/components/Input"
-import CheckBox from "@/components/CheckBox"
+import SelectList from "@/components/forms/SelectList"
+import Input from "@/components/forms/Input"
+import CheckBox from "@/components/forms/CheckBox"
 import { settingSiteInjection } from "."
 import style from "./style.module.scss"
 

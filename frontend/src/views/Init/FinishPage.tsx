@@ -2,7 +2,7 @@ import { defineComponent, inject } from "vue"
 import { useRouter } from "vue-router"
 import { InitState } from "@/functions/adapter-ipc"
 import { useAppInfo, useInitController } from "@/functions/app"
-import ProgressFlag from "@/components/ProgressFlag"
+import ProgressFlag from "@/components/elements/ProgressFlag"
 import { initContextInjection } from "./inject"
 import style from "./style.module.scss"
 

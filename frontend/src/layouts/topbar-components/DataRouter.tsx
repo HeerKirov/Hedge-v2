@@ -1,6 +1,6 @@
 import { defineComponent, ref, watch } from "vue"
-import { useScrollView } from "@/components/VirtualScrollView"
-import NumberInput from "@/components/NumberInput"
+import { useScrollView } from "@/components/functions/VirtualScrollView"
+import NumberInput from "@/components/forms/NumberInput"
 
 
 export default defineComponent({

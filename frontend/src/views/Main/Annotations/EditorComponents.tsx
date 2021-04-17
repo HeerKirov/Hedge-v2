@@ -1,7 +1,7 @@
 import { computed, defineComponent, PropType, ref, watch } from "vue"
-import CheckBox from "@/components/CheckBox"
+import CheckBox from "@/components/forms/CheckBox"
 import { AnnotationTarget } from "@/functions/adapter-http/impl/annotations"
-import { TARGET_TYPE_ICON } from "./define"
+import { TARGET_TYPE_ICONS } from "./define"
 import style from "./style.module.scss"
 
 const ANNOTATION_TARGET_DEFINITIONS: {type: AnnotationTarget, title: string, sub?: {type: AnnotationTarget, title: string}[]}[] = [
@@ -29,10 +29,10 @@ export const AnnotationTargetView = defineComponent({
                 .map(d => ({
                     fullInclude: props.value.includes(d.type),
                     title: d.title,
-                    class: `fa fa-${TARGET_TYPE_ICON[d.type]}`,
+                    class: `fa fa-${TARGET_TYPE_ICONS[d.type]}`,
                     sub: d.sub?.filter(sd => props.value.includes(sd.type)).map(sd => ({
                         title: sd.title,
-                        class: `fa fa-${TARGET_TYPE_ICON[sd.type]}`
+                        class: `fa fa-${TARGET_TYPE_ICONS[sd.type]}`
                     }))
                 })))
 
@@ -113,12 +113,12 @@ export const AnnotationTargetEditor = defineComponent({
                     include: targets.includes(d.type) || (d.sub?.every(sd => targets.includes(sd.type)) ?? false),
                     title: d.title,
                     type: d.type,
-                    class: `fa fa-${TARGET_TYPE_ICON[d.type]}`,
+                    class: `fa fa-${TARGET_TYPE_ICONS[d.type]}`,
                     sub: d.sub?.map(sd => ({
                         include: targets.includes(d.type) || targets.includes(sd.type),
                         title: sd.title,
                         type: sd.type,
-                        class: `fa fa-${TARGET_TYPE_ICON[sd.type]}`
+                        class: `fa fa-${TARGET_TYPE_ICONS[sd.type]}`
                     }))
                 }))
         }, {immediate: true})

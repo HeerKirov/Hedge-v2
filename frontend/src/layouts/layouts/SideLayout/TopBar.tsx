@@ -1,6 +1,6 @@
 import { computed, defineComponent, inject, Transition } from "vue"
 import { useAppInfo, useFullscreen } from "@/functions/app"
-import { sideBarSwitchInjection } from "."
+import { sideBarSwitchInjection } from "./index"
 import style from "./style.module.scss"
 
 /**

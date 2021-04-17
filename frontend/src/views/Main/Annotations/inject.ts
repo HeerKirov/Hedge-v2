@@ -2,7 +2,7 @@ import { inject, InjectionKey, provide, Ref, ref, watch } from "vue"
 import { Annotation, AnnotationCreateForm, AnnotationQueryFilter } from "@/functions/adapter-http/impl/annotations"
 import { useHttpClient } from "@/functions/app"
 import { useNotification } from "@/functions/module"
-import { useScrollView, ScrollView } from "@/components/VirtualScrollView"
+import { useScrollView, ScrollView } from "@/components/functions/VirtualScrollView"
 import { ListEndpointResult, useListEndpoint } from "@/functions/utils/endpoints/list-endpoint"
 
 export interface AnnotationContext {

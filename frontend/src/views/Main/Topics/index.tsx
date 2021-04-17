@@ -1,5 +1,5 @@
 import { defineComponent } from "vue"
-import LazyLoad from "@/components/LazyLoad"
+import LazyLoad from "@/components/functions/LazyLoad"
 import ListPanel from "./ListPanel"
 import DetailPanel from "./DetailPanel"
 import { installTopicContext } from "./inject"

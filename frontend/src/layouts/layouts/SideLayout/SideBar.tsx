@@ -1,5 +1,5 @@
 import { defineComponent, inject } from "vue"
-import { sideBarSwitchInjection } from "."
+import { sideBarSwitchInjection } from "./index"
 import style from "./style.module.scss"
 
 /**

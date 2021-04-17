@@ -1,7 +1,7 @@
 import { AnnotationTarget } from "@/functions/adapter-http/impl/annotations"
-import { SelectItem } from "@/components/Select";
+import { SelectItem } from "@/components/forms/Select"
 
-export const TARGET_TYPE_ICON: {[key in AnnotationTarget]: string} = {
+export const TARGET_TYPE_ICONS: {[key in AnnotationTarget]: string} = {
     "TAG": "tag",
     "TOPIC": "hashtag",
     "AUTHOR": "user-tag",

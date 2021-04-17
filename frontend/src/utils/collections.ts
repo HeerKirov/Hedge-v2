@@ -13,6 +13,13 @@ export const arrays = {
         }
         return result
     },
+    toMap<T extends string, R>(arr: T[], generator: (value: T) => R): {[key in T]: R} {
+        const ret: {[key: string]: R} = {}
+        for (const t of arr) {
+            ret[t] = generator(t)
+        }
+        return <{[key in T]: R}>ret
+    },
     equals<T>(a: T[], b: T[], equalsBy: (a: T, b: T) => boolean = (a, b) => a === b): boolean {
         if (a.length !== b.length) {
             return false

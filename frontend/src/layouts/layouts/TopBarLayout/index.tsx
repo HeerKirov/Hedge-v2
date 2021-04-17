@@ -1,5 +1,5 @@
 import { defineComponent, inject, InjectionKey, Ref, ref, Transition } from "vue"
-import TopBar from "@/layouts/SideLayout/TopBar"
+import TopBar from "@/layouts/layouts/SideLayout/TopBar"
 import style from "./style.module.scss"
 
 /**

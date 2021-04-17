@@ -1,8 +1,8 @@
 import { defineComponent, PropType, ref, watch } from "vue"
 import { useSettingMeta } from "../setting"
-import Input from "@/components/Input"
-import CheckBox from "@/components/CheckBox"
-import NumberInput from "@/components/NumberInput"
+import Input from "@/components/forms/Input"
+import CheckBox from "@/components/forms/CheckBox"
+import NumberInput from "@/components/forms/NumberInput"
 import style from "./style.module.scss"
 
 export default defineComponent({

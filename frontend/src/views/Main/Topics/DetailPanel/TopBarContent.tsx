@@ -9,7 +9,7 @@ export default defineComponent({
         const messageBox = useMessageBox()
         const { listEndpoint, detailMode, closePane } = useTopicContext()
 
-        const { data, setData, deleteData } = useTopicDetailContext()
+        const { data, setData, deleteData, editor } = useTopicDetailContext()
 
         const switchFavorite = () => setData({favorite: !data.value?.favorite})
 
@@ -33,23 +33,26 @@ export default defineComponent({
 
         return () => <div class="middle-layout">
             <div class="layout-container">
-                <button class="square button no-drag radius-large is-white" onClick={closePane}>
+                {editor.editMode.value ? <button class="square button no-drag radius-large is-white" onClick={editor.cancel}>
+                    <span class="icon"><i class="fa fa-times"/></span>
+                </button> : <button class="square button no-drag radius-large is-white" onClick={closePane}>
                     <span class="icon"><i class="fa fa-arrow-left"/></span>
-                </button>
+                </button>}
             </div>
 
             <div class="layout-container">
-                {/*在这里添加favorite按钮*/}
                 <button class={`square button no-drag radius-large is-white ${data.value?.favorite ? "has-text-danger" : "has-text-grey"}`} onClick={switchFavorite}>
                     <span class="icon"><i class="fa fa-heart"/></span>
                 </button>
                 <div class="separator"/>
-                <button class="square button no-drag radius-large is-white" ref={menu.element} onClick={menu.popup}>
+                <button class="square button no-drag radius-large is-white mr-1" ref={menu.element} onClick={menu.popup}>
                     <span class="icon"><i class="fa fa-ellipsis-v"/></span>
                 </button>
-                <button class="square button no-drag radius-large is-white">
+                {editor.editMode.value ? <button class="square button no-drag radius-large is-link" onClick={editor.save}>
+                    <span class="icon"><i class="fa fa-save"/></span>
+                </button> : <button class="square button no-drag radius-large is-white" onClick={editor.edit}>
                     <span class="icon"><i class="fa fa-edit"/></span>
-                </button>
+                </button>}
             </div>
         </div>
     }

@@ -6,9 +6,9 @@ import { installNotificationManager } from "@/functions/document/notification"
 import { installMessageBoxManager } from "@/functions/document/message-box"
 import { installWebPopupMenuManager } from "@/functions/document/web-popup-menu"
 import { installNavigatorManager } from "@/functions/navigator/navigator-event"
-import NotificationModule from "@/layouts/NotificationModule"
-import MessageBoxModule from "@/layouts/MessageBoxModule"
-import PopupMenuModule from "@/layouts/PopupMenuModule"
+import NotificationModule from "@/layouts/modules/NotificationModule"
+import MessageBoxModule from "@/layouts/modules/MessageBoxModule"
+import PopupMenuModule from "@/layouts/modules/PopupMenuModule"
 
 export default defineComponent({
     setup() {

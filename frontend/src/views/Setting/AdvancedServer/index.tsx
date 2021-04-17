@@ -3,8 +3,8 @@ import { useServerInfo } from "@/functions/app"
 import { useAuthSetting } from "@/functions/app/app-settings"
 import { usePropertySot } from "@/functions/utils/properties/setter-property"
 import { useSettingService } from "../setting"
-import Input from "@/components/Input"
-import CheckBox from "@/components/CheckBox"
+import Input from "@/components/forms/Input"
+import CheckBox from "@/components/forms/CheckBox"
 
 export default defineComponent({
     setup() {

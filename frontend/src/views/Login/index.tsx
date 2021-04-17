@@ -2,7 +2,7 @@ import { defineComponent, onMounted, ref } from "vue"
 import { useRouter } from "vue-router"
 import { State } from "@/functions/adapter-ipc"
 import { useAppInfo, useAppState } from "@/functions/app"
-import Input from "@/components/Input"
+import Input from "@/components/forms/Input"
 
 export default defineComponent({
     setup() {
@@ -48,7 +48,7 @@ export default defineComponent({
         })
 
         return () => <div>
-            <div class="title-bar has-text-centered is-size-large">
+            <div class="title-bar line has-text-centered is-size-large">
                 <span>HEDGE</span>
             </div>
             <div class="fixed center has-text-centered">

@@ -1,6 +1,6 @@
 import { defineComponent } from "vue"
-import Input from "@/components/Input"
-import { DataRouter, AddOnFilter } from "@/layouts/TopBarComponents"
+import Input from "@/components/forms/Input"
+import { DataRouter, AddOnFilter } from "@/layouts/topbar-components"
 import { useTopicContext } from "../inject"
 
 export default defineComponent({

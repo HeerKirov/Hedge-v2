@@ -1,5 +1,5 @@
 import { defineComponent, Ref, ref } from "vue"
-import SideLayout from "@/layouts/SideLayout"
+import SideLayout from "@/layouts/layouts/SideLayout"
 import SideBar from "../SideBar"
 import TopBar from "../TopBar"
 import Panel from "./Panel"

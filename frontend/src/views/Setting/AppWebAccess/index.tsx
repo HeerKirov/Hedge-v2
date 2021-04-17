@@ -3,8 +3,8 @@ import { useWebAccessUrls } from "@/functions/app"
 import { openExternal } from "@/functions/module"
 import { usePropertySot } from "@/functions/utils/properties/setter-property"
 import { useSettingWeb } from "../setting"
-import CheckBox from "@/components/CheckBox"
-import Input from "@/components/Input"
+import CheckBox from "@/components/forms/CheckBox"
+import Input from "@/components/forms/Input"
 
 export default defineComponent({
     setup() {
