@@ -2,10 +2,10 @@ import * as path from "path"
 import { app, protocol } from "electron"
 import { promiseAll, getNodePlatform, Platform } from "../utils/process"
 import { createWindowManager, WindowManager } from "./window-manager"
-import { createConfigurationDriver } from "../components/configuration"
+import { ConfigurationDriver, createConfigurationDriver } from "../components/configuration"
 import { createAppDataDriver } from "../components/appdata"
 import { createStateManager } from "../components/state"
-import { Channel, createChannel } from "../components/channel"
+import { createChannel } from "../components/channel"
 import { createResourceManager } from "../components/resource"
 import { createServerManager, ServerManager } from "../components/server"
 import { createService } from "../components/service"
@@ -96,7 +96,7 @@ export async function createApplication(options?: AppOptions) {
 
         stateManager.load()
 
-        registerProtocol(userDataPath, channelManager)
+        registerProtocol(userDataPath, configurationDriver)
         registerAppMenu(windowManager, {debugMode, platform})
         registerDockMenu(windowManager)
 
@@ -126,12 +126,15 @@ function registerAppEvents(windowManager: WindowManager, serverManager: ServerMa
     })
 }
 
-function registerProtocol(userDataPath: string, channelManager: Channel) {
+function registerProtocol(userDataPath: string, configuration: ConfigurationDriver) {
     const prefix = 'record:///'
+    let dbPath: string | undefined = undefined
     protocol.registerFileProtocol('record', (request, callback) => {
         const url = request.url.substr(prefix.length)
-        //TODO 临时写法：在db path完成更改后，引入db path属性代替
-        const file = path.normalize(`${userDataPath}/appdata/channel/${channelManager.currentChannel()}/database/default/folders/${url}`)
+        if(dbPath == undefined) {
+            dbPath = configuration.getData()?.dbPath
+        }
+        const file = path.normalize(`${dbPath}/folders/${url}`)
         callback({path: file})
     })
 }

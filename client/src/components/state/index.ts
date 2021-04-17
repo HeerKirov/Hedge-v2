@@ -90,11 +90,12 @@ export function createStateManager(appdata: AppDataDriver, configuration: Config
 
     let state: State = State.NOT_INIT
 
-    function setState(newState: State) {
+    function setState(newState: State): State {
         state = newState
         for (let event of stateChangedEvents) {
             event(newState)
         }
+        return state
     }
 
     function setInitState(newState: InitState, errorCode?: string, errorMessage?: string) {
@@ -132,14 +133,14 @@ export function createStateManager(appdata: AppDataDriver, configuration: Config
         if(appdata.getAppData().loginOption.fastboot) {
             //fastboot模式下，检查是否存在server的连接信息
             if(server.status() === ServerStatus.OPEN) {
-                return state = State.LOADED
+                return setState(State.LOADED)
             }
         }else{
             //非fastboot模式下，启动server
             server.desired(true)
         }
         try {
-            return state = State.LOADING_SERVER
+            return setState(State.LOADING_SERVER)
         } finally {
             serverAwaiter.awaitFor(ServerStatus.OPEN)
                 .then(() => setState(State.LOADED))
