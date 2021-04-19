@@ -1,21 +1,82 @@
 import { defineComponent, PropType } from "vue"
 import WrappedText from "@/components/elements/WrappedText"
 import Starlight from "@/components/elements/Starlight"
+import TopBarTransparentLayout from "@/layouts/layouts/TopBarTransparentLayout"
 import { Link } from "@/functions/adapter-http/impl/generic"
 import { DetailTopic, TopicType } from "@/functions/adapter-http/impl/topic"
-import { clientMode, assetsUrl } from "@/functions/app"
-import { openExternal } from "@/functions/module"
+import { clientMode, assetsUrl, useElementPopupMenu } from "@/functions/app"
+import { openExternal, useMessageBox } from "@/functions/module"
 import { useNavigator } from "@/functions/navigator"
 import { arrays } from "@/utils/collections"
+import { TOPIC_TYPE_ENUMS, TOPIC_TYPE_ICONS, TOPIC_TYPE_NAMES } from "../define"
 import { useTopicContext } from "../inject"
 import { useTopicDetailContext } from "./inject"
-import { TOPIC_TYPE_ENUMS, TOPIC_TYPE_ICONS, TOPIC_TYPE_NAMES } from "../define"
 import style from "./style.module.scss"
 
 export default defineComponent({
     setup() {
+        return () => <TopBarTransparentLayout paddingForTopBar={true} scrollable={true} v-slots={{
+            topBar: () => <TopBarContent/>,
+            default: () => <Panel/>
+        }}/>
+    }
+})
+
+const TopBarContent = defineComponent({
+    setup() {
+        const messageBox = useMessageBox()
+        const { listEndpoint, detailMode, closePane } = useTopicContext()
+        const { data, setData, deleteData, editMode } = useTopicDetailContext()
+
+        const edit = () => editMode.value = true
+
+        const switchFavorite = () => setData({favorite: !data.value?.favorite})
+
+        const deleteItem = async () => {
+            const id = detailMode.value!
+            if(await messageBox.showYesNoMessage("确认", "确定要删除此项吗？此操作不可撤回。")) {
+                if(await deleteData()) {
+                    closePane()
+                    const index = listEndpoint.operations.find(topic => topic.id === id)
+                    if(index != undefined) listEndpoint.operations.remove(index)
+                }
+            }
+        }
+
+        const menu = useElementPopupMenu([
+            {type: "normal", label: "新建子主题"},
+            {type: "normal", label: "以此为模板新建"},
+            {type: "separator"},
+            {type: "normal", label: "删除此主题", click: deleteItem}
+        ], {position: "bottom", align: "center", offsetY: 5})
+
+        return () => <div class="middle-layout">
+            <div class="layout-container">
+                <button class="square button no-drag radius-large is-white" onClick={closePane}>
+                    <span class="icon"><i class="fa fa-arrow-left"/></span>
+                </button>
+            </div>
+            <div class="layout-container">
+                <button class={`square button no-drag radius-large is-white ${data.value?.favorite ? "has-text-danger" : "has-text-grey"}`} onClick={switchFavorite}>
+                    <span class="icon"><i class="fa fa-heart"/></span>
+                </button>
+                <div class="separator"/>
+                <button class="square button no-drag radius-large is-white mr-1" ref={menu.element} onClick={menu.popup}>
+                    <span class="icon"><i class="fa fa-ellipsis-v"/></span>
+                </button>
+                <button class="square button no-drag radius-large is-white" onClick={edit}>
+                    <span class="icon"><i class="fa fa-edit"/></span>
+                </button>
+            </div>
+        </div>
+    }
+})
+
+const Panel = defineComponent({
+    setup() {
         const { data } = useTopicDetailContext()
 
+        //TODO score 即时编辑
         return () => <div class={["container", "p-2", style.detailView]}>
             <div class="box mb-1">
                 {data.value && <MainContent data={data.value}/>}
@@ -52,9 +113,10 @@ const MainContent = defineComponent({
             <p class="mt-1">
                 {props.data.keywords.map(keyword => <span class="tag mr-1">{keyword}</span>)}
             </p>
-            <p class="mt-3 mb-6">
+            {(props.data.description || null) && <div class="mt-1 block p-3">
                 <WrappedText value={props.data.description}/>
-            </p>
+            </div>}
+            <div class="mb-6"/>
             {props.data.parent && <div class="mt-1">
                 <div class="mb-1"><i class="fa fa-chess-queen mr-2"/><span>父主题</span></div>
                 <div>
@@ -99,10 +161,18 @@ const LinkContent = defineComponent({
     },
     setup(props) {
         const createLink = clientMode ? function (link: Link) {
-            return <a onClick={() => openExternal(link.link)}><i class="fa fa-link mr-1"/>{link.title}</a>
+            return <a onClick={() => openExternal(link.link)} onContextmenu={() => popupmenu.popup(link.link)}><i class="fa fa-link mr-1"/>{link.title}</a>
         } : function (link: Link) {
             return <a href={link.link} target="_blank"><i class="fa fa-link mr-1"/>{link.title}</a>
         }
+
+        const copyLink = (link: string) => {
+            //TODO 实现copy link
+        }
+
+        const popupmenu = useElementPopupMenu([
+            {type: "normal", label: "复制链接", click: copyLink},
+        ], {position: "bottom", align: "center", offsetY: 5})
 
         return () => <div class="box">
             <span class="mr-2">相关链接:</span>

@@ -15,12 +15,7 @@ export interface TopicDetailContext {
     deleteData: Endpoint["deleteData"]
     subThemeData: Ref<ListResult<Topic> | null>
     exampleData: Ref<ListResult<Illust> | null>
-    editor: {
-        editMode: Readonly<Ref<boolean>>
-        edit(): void
-        cancel(): void
-        save(): void
-    }
+    editMode: Ref<boolean>
 }
 
 const contextInjection: InjectionKey<TopicDetailContext> = Symbol()
@@ -44,37 +39,13 @@ export function installTopicDetailContext(): TopicDetailContext {
         }
     })
 
-    const editor = useEditor(detailMode, data, setData)
-
     const attachData = useAttachDetailData(detailMode)
 
-    const context = {data, setData, deleteData, ...attachData, editor}
+    const editMode = ref(false)
+
+    const context = {data, setData, deleteData, ...attachData, editMode}
     provide(contextInjection, context)
     return context
-}
-
-function useEditor(detailMode: Ref<number | null>, data: Endpoint["data"], setData: Endpoint["setData"]) {
-    const editMode = ref(true)
-
-    watch(detailMode, () => {
-        if(editMode.value) {
-            cancel()
-        }
-    })
-
-    const edit = () => {
-        editMode.value = true
-    }
-
-    const cancel = () => {
-        editMode.value = false
-    }
-
-    const save = () => {
-
-    }
-
-    return {editMode: readonly(editMode), edit, cancel, save}
 }
 
 function useAttachDetailData(detailMode: Ref<number | null>) {

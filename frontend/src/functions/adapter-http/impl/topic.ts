@@ -107,7 +107,7 @@ export interface DetailTopic extends Topic {
     links: Link[]
 }
 
-interface ParentTopic {
+export interface ParentTopic {
     id: number
     name: string
     type: TopicType
