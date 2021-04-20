@@ -1,22 +1,24 @@
-import { defineComponent, PropType, reactive, ref } from "vue"
+import { defineComponent, PropType } from "vue"
 import Input from "@/components/forms/Input"
 import Textarea from "@/components/forms/Textarea"
 import Select, { SelectItem } from "@/components/forms/Select"
 import TopBarTransparentLayout from "@/layouts/layouts/TopBarTransparentLayout"
+import { LinkEditor, OtherNameEditor, StarlightEditor } from "@/layouts/editor-components"
 import { Link } from "@/functions/adapter-http/impl/generic"
 import { SimpleAnnotation } from "@/functions/adapter-http/impl/annotations"
-import { ParentTopic, TopicType } from "@/functions/adapter-http/impl/topic"
+import { ParentTopic, TopicType, TopicUpdateForm } from "@/functions/adapter-http/impl/topic"
+import { useMessageBox } from "@/functions/document/message-box"
 import { useMutableComputed } from "@/functions/utils/basic"
-import { onKeyEnter } from "@/utils/events"
 import { objects } from "@/utils/primitives"
 import { arrays } from "@/utils/collections"
+import { checkTagName } from "@/utils/check"
 import { TOPIC_TYPE_ENUMS, TOPIC_TYPE_ICONS, TOPIC_TYPE_NAMES } from "../define"
 import { useTopicContext } from "../inject"
 import { useTopicDetailContext } from "./inject"
-import style from "./style.module.scss"
 
 export default defineComponent({
     setup() {
+        const message = useMessageBox()
         const { data, setData, editMode } = useTopicDetailContext()
 
         const editorData = useMutableComputed<EditorData | null>(() => data.value && ({
@@ -27,7 +29,9 @@ export default defineComponent({
             annotations: data.value.annotations,
             keywords: data.value.keywords,
             description: data.value.description,
-            links: data.value.links
+            links: data.value.links,
+            //TODO 引入originScore后更改此属性来源
+            score: data.value.score
         }))
 
         function update<T extends EditorDataProps>(key: T, value: EditorData[T]) {
@@ -37,17 +41,62 @@ export default defineComponent({
         }
 
         const save = async () => {
-            //TODO validate
             if(editorData.value && data.value) {
-                const r = await setData({
-                    name: editorData.value.name !== data.value.name ? editorData.value.name : undefined,
-                    otherNames: !objects.deepEquals(editorData.value.otherNames, data.value.otherNames) ? editorData.value.otherNames : undefined,
+                const form: TopicUpdateForm = {
                     type: editorData.value.type !== data.value.type ? editorData.value.type : undefined,
                     parentId: (editorData.value.parent?.id ?? null) !== (data.value.parent?.id ?? null) ? (editorData.value.parent?.id ?? null) : undefined,
                     annotations: !objects.deepEquals(editorData.value.annotations.map(i => i.id), data.value.annotations.map(i => i.id)) ? editorData.value.annotations.map(i => i.id) : undefined,
                     keywords: !objects.deepEquals(editorData.value.keywords, data.value.keywords) ? editorData.value.keywords : undefined,
                     description: editorData.value.description !== data.value.description ? editorData.value.description : undefined,
-                    links: !objects.deepEquals(editorData.value.links, data.value.links) ? editorData.value.links : undefined,
+                    score: editorData.value.score !== data.value.score ? editorData.value.score : undefined
+                }
+                if(editorData.value.name !== data.value.name) {
+                    if(!checkTagName(editorData.value.name)) {
+                        message.showOkMessage("prompt", "不合法的名称。", "名称不能为空，且不能包含 ` \" ' . | 字符。")
+                        return
+                    }
+                    form.name = editorData.value.name
+                }
+                if(!objects.deepEquals(editorData.value.otherNames, data.value.otherNames)) {
+                    for(const otherName of editorData.value.otherNames) {
+                        if(!checkTagName(otherName)) {
+                            message.showOkMessage("prompt", "不合法的别名。", "别名不能为空，且不能包含 ` \" ' . | 字符。")
+                            return
+                        }
+                    }
+                    form.otherNames = editorData.value.otherNames
+                }
+                if(!objects.deepEquals(editorData.value.links, data.value.links)) {
+                    for(const link of editorData.value.links) {
+                        if(!link.title.trim() || !link.link.trim()) {
+                            message.showOkMessage("prompt", "不合法的链接内容。", "链接的标题和内容不能为空。")
+                        }
+                    }
+                    form.links = editorData.value.links
+                }
+
+                const r = !Object.values(form).filter(i => i !== undefined).length || await setData(form, e => {
+                    if(e.code === "ALREADY_EXISTS") {
+                        message.showOkMessage("prompt", "该名称已存在。")
+                    }else if(e.code === "NOT_EXIST") {
+                        const [type, id] = e.info
+                        if(type === "annotations") {
+                            message.showOkMessage("error", "选择的注解不存在。", `错误项: ${id}`)
+                        }else if(type === "parentId") {
+                            message.showOkMessage("error", "选择的父主题不存在。", `错误项: ${id}`)
+                        }else{
+                            message.showOkMessage("error", `选择的资源${type}不存在。`, `错误项: ${id}`)
+                        }
+                    }else if(e.code === "NOT_SUITABLE") {
+                        const [, id] = e.info
+                        message.showOkMessage("error", "选择的注解不可用。", `选择的注解的导出目标设置使其无法导出至当前主题类型。错误项: ${id}`)
+                    }else if(e.code === "RECURSIVE_PARENT") {
+                        message.showOkMessage("prompt", "无法应用此父主题。", "此父主题与当前主题存在闭环。")
+                    }else if(e.code === "ILLEGAL_CONSTRAINT") {
+                        message.showOkMessage("prompt", "无法应用父主题或类型。", "当前主题与父主题的类型不能兼容。考虑更改父主题，或更改当前主题的类型。")
+                    }else{
+                        return e
+                    }
                 })
                 if(r) {
                    editMode.value = false
@@ -107,6 +156,7 @@ const Panel = defineComponent({
         }
         const setDescription = (v: string) => emit("update", "description", v)
         const setLinks = (v: Link[]) => emit("update", "links", v)
+        const setScore = (v: number | null) => emit("update", "score", v)
 
         return () => <div class="container p-2">
             <div class="box mb-1">
@@ -134,7 +184,11 @@ const Panel = defineComponent({
                         <button class="square button is-white is-small"><span class="icon"><i class="fa fa-times"/></span></button>
                     </div>
                 </div>
-
+                <div class="mt-2">
+                    <span class="label">手动评分</span>
+                    <StarlightEditor value={props.data.score} onUpdateValue={setScore}/>
+                    <p class="has-text-grey is-size-small">手动编辑的评分会优先作为主题的评分。在手动评分缺省时使用来自项目的平均分。</p>
+                </div>
                 <div class="mt-2">
                     <span class="label">注解</span>
                     <div class="box multi flex">
@@ -159,111 +213,6 @@ const Panel = defineComponent({
     }
 })
 
-const OtherNameEditor = defineComponent({
-    props: {
-        value: {type: Array as PropType<string[]>, required: true}
-    },
-    emits: {
-        updateValue(_: string[]) { return true }
-    },
-    setup(props, { emit }) {
-        const newValue = (v: string) => {
-            const s = v.trim()
-            if(s) {
-                emit("updateValue", [...props.value, s])
-            }
-        }
-
-        const onDelete = (i: number) => () => {
-            emit("updateValue", [...props.value.slice(0, i), ...props.value.slice(i + 1)])
-        }
-
-        return () => <>
-            {props.value.map((otherName, i) => <div class="flex mb-1">
-                <Input class="is-fullwidth is-small mr-1" value={otherName}/>
-                <button class="square button is-white is-small" onClick={onDelete(i)}><span class="icon"><i class="fa fa-times"/></span></button>
-            </div>)}
-            <div class="flex">
-                <OtherNameNewBox onNew={newValue}/>
-                <button disabled class="is-hidden square button is-white is-small"><span class="icon"><i class="fa fa-times"/></span></button>
-            </div>
-        </>
-    }
-})
-
-const OtherNameNewBox = defineComponent({
-    emits: {
-        new(_: string) { return true }
-    },
-    setup(_, { emit }) {
-        const newText = ref("")
-
-        const submit = () => {
-            const text = newText.value.trim()
-            if(text) {
-                emit("new", text)
-                newText.value = ""
-            }
-        }
-
-        return () => <Input class="is-fullwidth is-small mr-1" placeholder="添加新的别名"
-                            value={newText.value} onUpdateValue={v => newText.value = v} refreshOnInput={true}
-                            onBlur={submit} onKeypress={onKeyEnter(submit)}/>
-    }
-})
-
-const LinkEditor = defineComponent({
-    props: {
-        value: {type: Array as PropType<Link[]>, required: true}
-    },
-    emits: {
-        updateValue(_: Link[]) { return true }
-    },
-    setup(props, { emit }) {
-        const onDelete = (i: number) => () => {
-            emit("updateValue", [...props.value.slice(0, i), ...props.value.slice(i + 1)])
-        }
-
-        const newValue = (link: Link) => {
-            emit("updateValue", [...props.value, link])
-        }
-
-        return () => <>
-            {props.value.map((link, i) => <div class="flex mb-1">
-                <Input class="is-small is-width-25 mr-1" value={link.title}/>
-                <Input class="is-small is-width-75 mr-1" value={link.link}/>
-                <button class="square button is-white is-small is-not-shrink is-not-grow" onClick={onDelete(i)}><span class="icon"><i class="fa fa-times"/></span></button>
-            </div>)}
-            <LinkNewBox onNew={newValue}/>
-        </>
-    }
-})
-
-const LinkNewBox = defineComponent({
-    emits: {
-        new(_: Link) { return true }
-    },
-    setup(_, { emit }) {
-        const text = reactive<Link>({title: "", link: ""})
-
-        const add = () => {
-            const title = text.title.trim(), link = text.link.trim()
-            //TODO validate
-            if(title && link) {
-                emit("new", {title, link})
-                text.title = ""
-                text.link = ""
-            }
-        }
-
-        return () => <div class="flex">
-            <Input class="is-small is-width-25 mr-1" value={text.title} onUpdateValue={v => text.title = v} refreshOnInput={true} onKeypress={onKeyEnter(add)}/>
-            <Input class="is-small is-width-75 mr-1" value={text.link} onUpdateValue={v => text.link = v} refreshOnInput={true} onKeypress={onKeyEnter(add)}/>
-            <button class="square button is-white is-small is-not-shrink is-not-grow" onClick={add}><span class="icon"><i class="fa fa-plus"/></span></button>
-        </div>
-    }
-})
-
 const TYPE_SELECT_ITEMS: SelectItem[] =
     Object.entries(TOPIC_TYPE_NAMES).map(([value, name]) => ({name, value}))
 
@@ -279,6 +228,7 @@ interface EditorData {
     keywords: string[]
     description: string
     links: Link[]
+    score: number | null
 }
 
 type EditorDataProps = keyof EditorData

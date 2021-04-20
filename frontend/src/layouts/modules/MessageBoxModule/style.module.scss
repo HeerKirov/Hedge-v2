@@ -48,11 +48,17 @@
       > .title {
         font-size: $font-size-medium;
         color: $black;
+        margin-bottom: 2rem;
       }
       > .message {
-        margin: 1rem 0.25rem;
+        margin: 0 0.75rem 0.25rem 0.75rem;
+      }
+      > .detail-message {
+        margin: 0 0.75rem;
+        color: $grey;
       }
       > .buttons {
+        margin-top: 2rem;
         > button {
           min-width: 4rem;
           &:not(:last-child) {

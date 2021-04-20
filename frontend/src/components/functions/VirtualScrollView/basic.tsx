@@ -1,4 +1,4 @@
-import { computed, inject, InjectionKey, provide, reactive, readonly, Ref, ref, watch } from "vue"
+import { computed, inject, InjectionKey, provide, reactive, readonly, Ref, ref, watch, VNode } from "vue"
 import { watchElementResize } from "@/functions/utils/element"
 import style from "./style.module.scss"
 
@@ -158,7 +158,7 @@ export function useBasicVirtualComponent({ props, onRefresh }: BasicVirtualCompo
     }
 
     //渲染函数
-    const render = (slot: JSX.Element | undefined) => <div ref={scrollDivRef} class={style.scrollList} style={paddingStyle} onScroll={onScroll}>
+    const render = (slot: VNode[] | VNode | undefined) => <div ref={scrollDivRef} class={style.scrollList} style={paddingStyle} onScroll={onScroll}>
         <div class={style.scrollContent} style={actualOffsetStyle.value}>
             {slot}
         </div>

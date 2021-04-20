@@ -3,8 +3,8 @@ import { inject, InjectionKey, provide, reactive } from "vue"
 
 export interface MessageBoxManager {
     showMessageBox(options: MessageBoxOptions): Promise<string>
-    showOkMessage(title: string | undefined, message: string): void
-    showYesNoMessage(title: string | undefined, message: string): Promise<boolean>
+    showOkMessage(titleType: StdTitleType, message: string, detailMessage?: string): void
+    showYesNoMessage(titleType: StdTitleType, message: string, detailMessage?: string): Promise<boolean>
 }
 
 interface MessageBoxConsumer extends MessageBoxManager {
@@ -12,8 +12,9 @@ interface MessageBoxConsumer extends MessageBoxManager {
 }
 
 export interface MessageBoxOptions {
-    title?: string
+    title: string
     message: string
+    detailMessage?: string
     buttons: MessageBoxButton[]
     enter?: string
     esc?: string
@@ -39,11 +40,11 @@ export function installMessageBoxManager() {
             messageTasks.push({options, resolve})
         })
     }
-    const showOkMessage = (title: string | undefined, message: string): void => {
-        showMessageBox({title, message, buttons: [OkButton], esc: "ok", enter: "ok"}).finally(null)
+    const showOkMessage = (titleType: StdTitleType, message: string, detailMessage?: string): void => {
+        showMessageBox({title: stdTitles[titleType], message, detailMessage, buttons: [OkButton], esc: "ok", enter: "ok"}).finally(null)
     }
-    const showYesNoMessage = async (title: string | undefined, message: string): Promise<boolean> => {
-        const res = await showMessageBox({title, message, buttons: [YesButton, NoButton], enter: "yes", esc: "no"})
+    const showYesNoMessage = async (titleType: StdTitleType, message: string, detailMessage?: string): Promise<boolean> => {
+        const res = await showMessageBox({title: stdTitles[titleType], message, detailMessage, buttons: [YesButton, NoButton], enter: "yes", esc: "no"})
         return res === "yes"
     }
 
@@ -68,3 +69,13 @@ const messageBoxInjection: InjectionKey<MessageBoxConsumer> = Symbol()
 const OkButton: MessageBoxButton = {name: "好", action: "ok", type: "info"}
 const YesButton: MessageBoxButton = {name: "是", action: "yes", type: "info"}
 const NoButton: MessageBoxButton = {name: "否", action: "no"}
+
+type StdTitleType = "info" | "prompt" | "error" | "confirm" | "warn"
+
+const stdTitles: {[key in StdTitleType]: string} = {
+    "info": "消息",
+    "prompt": "提示",
+    "error": "错误",
+    "confirm": "确认",
+    "warn": "警告",
+}

@@ -130,7 +130,7 @@ const SpiderEditor = defineComponent({
             }
         }
         const deleteItem = async () => {
-            if(await messageBox.showYesNoMessage("提示", "确定要删除这一项配置吗？")) {
+            if(await messageBox.showYesNoMessage("warn", "确定要删除这一项配置吗？")) {
                 emit("save", undefined, undefined)
             }
         }

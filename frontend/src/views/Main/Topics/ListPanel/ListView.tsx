@@ -1,8 +1,9 @@
-import { defineComponent, PropType } from "vue"
+import { defineComponent, PropType, ref, watchEffect } from "vue"
 import { useMessageBox } from "@/functions/module"
 import { usePopupMenu } from "@/functions/app"
 import { useHoverFlag } from "@/functions/utils/element"
 import { useFastObjectEndpoint } from "@/functions/utils/endpoints/object-fast-endpoint"
+import { SimpleAnnotation } from "@/functions/adapter-http/impl/annotations"
 import { Topic, TopicType } from "@/functions/adapter-http/impl/topic"
 import { VirtualRow } from "@/components/functions/VirtualScrollView"
 import { TOPIC_TYPE_ENUMS, TOPIC_TYPE_ICONS, TOPIC_TYPE_NAMES } from "../define"
@@ -33,7 +34,7 @@ export default defineComponent({
         }
 
         const deleteItem = async (id: number) => {
-            if(await messageBox.showYesNoMessage("确认", "确定要删除此项吗？此操作不可撤回。")) {
+            if(await messageBox.showYesNoMessage("warn", "确定要删除此项吗？", "此操作不可撤回。")) {
                 if(await fastEndpoint.deleteData(id)) {
                     if(detailMode.value === id) closePane()
                     const index = listEndpoint.operations.find(topic => topic.id === id)
@@ -105,11 +106,7 @@ const Item = defineComponent({
                 {((props.value.type !== "UNKNOWN") || null) && TYPE_ITEM_ELEMENTS[props.value.type]}
             </td>
             <td class="is-width-35">
-                {/*控制标签的数量*/}
-                {props.value.keywords.map(keyword => <span class="tag mr-1">{keyword}</span>)}
-                {props.value.annotations.map(annotation => <span class="tag mr-1">
-                    <b>[</b><span class="mx-1">{annotation.name}</span><b>]</b>
-                </span>)}
+                <TopicListTags keywords={props.value.keywords} annotations={props.value.annotations}/>
             </td>
             <td class="is-width-5">
                 {(props.value.score || null) && <>
@@ -121,6 +118,45 @@ const Item = defineComponent({
                 {props.value.count ? `${props.value.count}项` : null}
             </td>
         </tr>
+    }
+})
+
+const TopicListTags = defineComponent({
+    props: {
+        keywords: {type: Array as PropType<string[]>, required: true},
+        annotations: {type: Array as PropType<SimpleAnnotation[]>, required: true},
+    },
+    setup(props) {
+        const max = 6
+
+        const keywords = ref<string[]>([])
+        const annotations = ref<SimpleAnnotation[]>([])
+        const more = ref(false)
+
+        watchEffect(() => {
+            const keywordsSize = props.keywords.length, annotationsSize = props.annotations.length
+            if(keywordsSize + annotationsSize <= max) {
+                keywords.value = props.keywords
+                annotations.value = props.annotations
+                more.value = false
+            }else if(annotationsSize < max) {
+                annotations.value = props.annotations
+                keywords.value = props.keywords.slice(0, max - annotationsSize)
+                more.value = true
+            }else{
+                annotations.value = props.annotations.slice(0, max)
+                keywords.value = []
+                more.value = true
+            }
+        })
+
+        return () => <>
+            {annotations.value.map(annotation => <span class="tag mr-1">
+                <b>[</b><span class="mx-1">{annotation.name}</span><b>]</b>
+            </span>)}
+            {keywords.value.map(keyword => <span class="tag mr-1">{keyword}</span>)}
+            {more.value && <span class="tag mr-1">...</span>}
+        </>
     }
 })
 

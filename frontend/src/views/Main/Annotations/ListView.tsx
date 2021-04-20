@@ -28,7 +28,7 @@ export default defineComponent({
         }
 
         const deleteItem = async (id: number) => {
-            if(await messageBox.showYesNoMessage("确认", "确定要删除此项吗？此操作不可撤回。")) {
+            if(await messageBox.showYesNoMessage("warn", "确定要删除此项吗？", "此操作不可撤回。")) {
                 if(await fastEndpoint.deleteData(id)) {
                     if(detailMode.value === id) closePane()
                     const index = listEndpoint.operations.find(annotation => annotation.id === id)

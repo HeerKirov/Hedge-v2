@@ -34,7 +34,7 @@ export default defineComponent({
             create: httpClient => httpClient.annotation.create,
             beforeCreate(form): boolean | void {
                 if(!checkTagName(form.name)) {
-                    message.showOkMessage("错误", "不合法的名称。名称不能为空，且不能包含 ` \" ' . | 字符。")
+                    message.showOkMessage("prompt", "不合法的名称。", "名称不能为空，且不能包含 ` \" ' . | 字符。")
                     return false
                 }
             },
@@ -44,7 +44,7 @@ export default defineComponent({
             },
             handleError(e) {
                 if(e.code === "ALREADY_EXISTS") {
-                    message.showOkMessage("错误", "该名称已存在。")
+                    message.showOkMessage("prompt", "该名称已存在。")
                 }else{
                     return e
                 }

@@ -75,7 +75,7 @@ export function useSettingSite() {
             return true
         }else if(res.exception) {
             if(res.exception.code === "ALREADY_EXISTS") {
-                messageBox.showOkMessage("错误", "已经存在同名的站点。")
+                messageBox.showOkMessage("prompt", "已经存在同名的站点。")
             }else{
                 notification.handleException(res.exception)
             }
@@ -106,7 +106,7 @@ export function useSettingSite() {
                     "SourceAnalyseRule": "来源解析规则",
                     "SpiderRule": "原始数据爬虫规则"
                 }[res.exception.info]
-                messageBox.showOkMessage("无法删除", `此站点仍存在关联的${resourceName}，请先清理关联项，确保没有意外的级联删除。`)
+                messageBox.showOkMessage("prompt", "无法删除此站点。", `此站点仍存在关联的${resourceName}，请先清理关联项，确保没有意外的级联删除。`)
             }else{
                 notification.handleException(res.exception)
             }

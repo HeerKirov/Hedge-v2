@@ -40,6 +40,7 @@ const Box = defineComponent({
     props: {
         title: String,
         message: {type: String, required: true},
+        detailMessage: {type: String},
         buttons: {type: null as any as PropType<MessageBoxButton[]>, required: true},
         enter: String,
         esc: String
@@ -63,6 +64,7 @@ const Box = defineComponent({
             <div class={style.box}>
                 <p class={style.title}>{props.title}</p>
                 <p class={style.message}>{props.message}</p>
+                {props.detailMessage && <p class={style.detailMessage}>{props.detailMessage}</p>}
                 <div class={style.buttons}>
                     {props.buttons.map(btn => <button class={["button", "is-small", "radius-large", btn.type ? `is-${btn.type}` : undefined]} onClick={onClick(btn.action)}>
                         {btn.icon && <span class="icon"><i class={`fa fa-${btn.icon}`}/></span>}

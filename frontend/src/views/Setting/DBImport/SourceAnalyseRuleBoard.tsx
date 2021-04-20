@@ -138,7 +138,7 @@ const RuleEditor = defineComponent({
             })
         }
         const remove = async () => {
-            if(await messageBox.showYesNoMessage("提示", "确定要删除这条规则吗？")) {
+            if(await messageBox.showYesNoMessage("warn", "确定要删除这条规则吗？")) {
                 data.value!.sourceAnalyseRules.splice(props.ruleIdx!, 1)
                 emit("updateRuleIdx", undefined)
             }

@@ -42,7 +42,7 @@ export default defineComponent({
         }
 
         return () => editMode.value ? <div class={style.root}>
-            <button class={["square", "button", "is-small", "is-white", "has-text-link", "float-right", style.button, baselineStyle[props.baseline]]} onClick={save}><span class="icon"><i class="fa fa-save"/></span></button>
+            {props.showSaveButton && <button class={["square", "button", "is-small", "is-white", "has-text-link", "float-right", style.button, baselineStyle[props.baseline]]} onClick={save}><span class="icon"><i class="fa fa-save"/></span></button>}
             {slots.editor?.({value: editorValue.value, setValue: setEditorValue, save})}
         </div> : props.showEditButton ? <div class={style.root} onMouseover={mouseover} onMouseleave={mouseleave}>
             {hover.value && <button class={["square", "button", "is-small", "is-white", "has-text-link", "float-right", style.button, baselineStyle[props.baseline]]} onClick={edit}><span class="icon"><i class="fa fa-edit"/></span></button>}

@@ -34,7 +34,7 @@ const TopBarContent = defineComponent({
 
         const deleteItem = async () => {
             const id = detailMode.value!
-            if(await messageBox.showYesNoMessage("确认", "确定要删除此项吗？此操作不可撤回。")) {
+            if(await messageBox.showYesNoMessage("warn", "确定要删除此项吗？", "此操作不可撤回。")) {
                 if(await deleteData()) {
                     closePane()
                     const index = listEndpoint.operations.find(topic => topic.id === id)
@@ -76,7 +76,6 @@ const Panel = defineComponent({
     setup() {
         const { data } = useTopicDetailContext()
 
-        //TODO score 即时编辑
         return () => <div class={["container", "p-2", style.detailView]}>
             <div class="box mb-1">
                 {data.value && <MainContent data={data.value}/>}
