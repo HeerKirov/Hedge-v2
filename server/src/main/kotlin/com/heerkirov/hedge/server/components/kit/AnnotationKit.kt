@@ -17,11 +17,13 @@ class AnnotationKit(private val data: DataRepository) {
      * @param thisId 指定此参数时，表示是在对一个项进行更新，此时绕过此id的记录的重名。
      */
     fun validateName(newName: String, thisId: Int? = null): String {
-        return newName.trim().apply {
-            if(!checkTagName(this)) throw ParamError("name")
-            if(data.db.sequenceOf(Annotations).any { (it.name eq newName).runIf(thisId != null) { and (it.id notEq thisId!!) } })
-                throw AlreadyExists("Annotation", "name", newName)
-        }
+        val trimName = newName.trim()
+
+        if(!checkTagName(trimName)) throw ParamError("name")
+        if(data.db.sequenceOf(Annotations).any { (it.name eq trimName).runIf(thisId != null) { and (it.id notEq thisId!!) } })
+            throw AlreadyExists("Annotation", "name", trimName)
+
+        return trimName
     }
 
     /**

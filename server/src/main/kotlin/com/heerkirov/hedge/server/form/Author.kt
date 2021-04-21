@@ -12,17 +12,15 @@ data class AuthorRes(val id: Int, val name: String, val otherNames: List<String>
 
 data class AuthorSimpleRes(val id: Int, val name: String, val isExported: Boolean)
 
-//TODO author/topic的detail追加origin score字段。
-
 data class AuthorDetailRes(val id: Int, val name: String, val otherNames: List<String>, val keywords: List<String>, val description: String,
                            val type: Author.Type, val favorite: Boolean,
                            val annotations: List<Author.CachedAnnotation>,
                            val links: List<Author.Link>,
-                           val score: Int?, val count: Int)
+                           val score: Int?, val count: Int, val originScore: Int?)
 
 data class AuthorFilter(@Limit val limit: Int,
                         @Offset val offset: Int,
-                        @Search val query: String?,
+                        @Search val search: String?,
                         @Order(options = ["id", "name", "score", "count", "createTime", "updateTime"])
                         val order: List<OrderItem>? = null,
                         val type: Author.Type? = null,
@@ -54,4 +52,4 @@ fun newAuthorDetailRes(author: Author) = AuthorDetailRes(author.id, author.name,
     author.otherNames, author.keywords, author.description, author.type, author.favorite,
     author.cachedAnnotations ?: emptyList(),
     author.links ?: emptyList(),
-    author.exportedScore, author.cachedCount)
+    author.exportedScore, author.cachedCount, author.score)

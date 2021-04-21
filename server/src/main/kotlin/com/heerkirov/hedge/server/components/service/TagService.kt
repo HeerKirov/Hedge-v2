@@ -45,6 +45,7 @@ class TagService(private val data: DataRepository,
                 if(filter.parent != null) { it += Tags.parentId eq filter.parent }
                 if(filter.type != null) { it += Tags.type eq filter.type }
                 if(filter.group != null) { it += if(filter.group) Tags.isGroup notEq Tag.IsGroup.NO else Tags.isGroup eq Tag.IsGroup.NO }
+                if(filter.search != null) { it += (Tags.name like "%${filter.search}%") or (Tags.otherNames like "%${filter.search}%") }
             }
             .orderBy(orderTranslator, filter.order, default = ascendingOrderItem("ordinal"))
             .limit(filter.offset, filter.limit)

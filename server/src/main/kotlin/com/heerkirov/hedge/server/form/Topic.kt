@@ -17,13 +17,13 @@ data class TopicDetailRes(val id: Int, val name: String, val parent: Parent?,
                           val type: Topic.Type, val favorite: Boolean,
                           val annotations: List<Topic.CachedAnnotation>,
                           val links: List<Topic.Link>,
-                          val score: Int?, val count: Int) {
+                          val score: Int?, val count: Int, val originScore: Int?) {
     data class Parent(val id: Int, val name: String, val type: Topic.Type)
 }
 
 data class TopicFilter(@Limit val limit: Int,
                        @Offset val offset: Int,
-                       @Search val query: String?,
+                       @Search val search: String?,
                        @Order(options = ["id", "name", "score", "count", "createTime", "updateTime"])
                        val order: List<OrderItem>? = null,
                        val type: Topic.Type? = null,
@@ -59,4 +59,4 @@ fun newTopicDetailRes(topic: Topic, parent: Topic?) = TopicDetailRes(topic.id, t
     topic.otherNames, topic.keywords, topic.description, topic.type, topic.favorite,
     topic.cachedAnnotations ?: emptyList(),
     topic.links ?: emptyList(),
-    topic.score, topic.cachedCount)
+    topic.score, topic.cachedCount, topic.score)
