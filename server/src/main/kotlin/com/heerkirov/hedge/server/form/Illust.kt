@@ -22,14 +22,16 @@ data class IllustDetailRes(val id: Int, val fileId: Int, val file: String, val t
                            val topics: List<TopicSimpleRes>, val authors: List<AuthorSimpleRes>, val tags: List<TagSimpleRes>,
                            val description: String, val score: Int?, val favorite: Boolean, val tagme: Illust.Tagme,
                            val originDescription: String, val originScore: Int?,
-                           val partitionTime: LocalDate, val orderTime: LocalDateTime, val createTime: LocalDateTime, val updateTime: LocalDateTime)
+                           val partitionTime: LocalDate, val orderTime: LocalDateTime,
+                           val createTime: LocalDateTime, val updateTime: LocalDateTime)
 
-data class IllustCollectionRelatedRes(val relations: List<IllustSimpleRes>, val originRelations: List<Int>)
+data class IllustCollectionRelatedRes(val associate: AssociateRes?)
 
 data class IllustImageRelatedRes(val collection: IllustSimpleRes?,
-                                 val relations: List<IllustSimpleRes>,
                                  val albums: List<AlbumSimpleRes>,
-                                 val originRelations: List<Int>)
+                                 val associate: AssociateRes?)
+
+data class AssociateRes(val id: Int, val totalCount: Int, val items: List<IllustRes>)
 
 data class IllustImageOriginRes(val source: String?, val sourceTitle: String?, val sourceId: Long?, val sourcePart: Int?,
                                 val title: String?, val description: String?,
@@ -56,13 +58,13 @@ data class IllustCollectionCreateForm(val images: List<Int>,
 class IllustCollectionUpdateForm(val topics: Opt<List<Int>>, val authors: Opt<List<Int>>, val tags: Opt<List<Int>>,
                                  val description: Opt<String?>, val score: Opt<Int?>, val favorite: Opt<Boolean>, val tagme: Opt<Illust.Tagme>)
 
-class IllustCollectionRelatedUpdateForm(val relations: List<Int>)
+class IllustCollectionRelatedUpdateForm(val associateId: Opt<Int?>)
 
 class IllustImageUpdateForm(val topics: Opt<List<Int>>, val authors: Opt<List<Int>>, val tags: Opt<List<Int>>,
                             val description: Opt<String?>, val score: Opt<Int?>, val favorite: Opt<Boolean>, val tagme: Opt<Illust.Tagme>,
                             val partitionTime: Opt<LocalDate>, val orderTime: Opt<LocalDateTime>)
 
-class IllustImageRelatedUpdateForm(val relations: Opt<List<Int>>, val collectionId: Opt<Int?>)
+class IllustImageRelatedUpdateForm(val associateId: Opt<Int?>, val collectionId: Opt<Int?>)
 
 class IllustImageOriginUpdateForm(val source: Opt<String?>, val sourceId: Opt<Long?>, val sourcePart: Opt<Int?>,
                                   val title: Opt<String?>, val description: Opt<String?>, val tags: Opt<List<SourceImage.SourceTag>>,

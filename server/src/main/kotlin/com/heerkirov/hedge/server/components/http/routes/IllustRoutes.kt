@@ -1,6 +1,7 @@
 package com.heerkirov.hedge.server.components.http.routes
 
 import com.heerkirov.hedge.server.components.http.Endpoints
+import com.heerkirov.hedge.server.components.service.AssociateService
 import com.heerkirov.hedge.server.components.service.IllustService
 import com.heerkirov.hedge.server.exceptions.ParamTypeError
 import com.heerkirov.hedge.server.form.*
@@ -11,40 +12,50 @@ import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder.*
 import io.javalin.http.Context
 
-class IllustRoutes(private val illustService: IllustService) : Endpoints {
+class IllustRoutes(private val illustService: IllustService, private val associateService: AssociateService) : Endpoints {
     override fun handle(javalin: Javalin) {
         javalin.routes {
-            path("api/illusts") {
-                get(::list)
-                path("collection") {
-                    post(::createCollection)
-                    path(":id") {
-                        get(::getCollection)
-                        patch(::updateCollection)
-                        delete(::deleteCollection)
-                        path("related-items") {
-                            get(::getCollectionRelatedItems)
-                            patch(::updateCollectionRelatedItems)
+            path("api") {
+                path("illusts") {
+                    get(::list)
+                    path("collection") {
+                        post(::createCollection)
+                        path(":id") {
+                            get(::getCollection)
+                            patch(::updateCollection)
+                            delete(::deleteCollection)
+                            path("related-items") {
+                                get(::getCollectionRelatedItems)
+                                patch(::updateCollectionRelatedItems)
+                            }
+                            path("images") {
+                                get(::listCollectionImages)
+                                put(::updateCollectionImages)
+                            }
                         }
-                        path("images") {
-                            get(::listCollectionImages)
-                            put(::updateCollectionImages)
+                    }
+                    path("image") {
+                        path(":id") {
+                            get(::getImage)
+                            patch(::updateImage)
+                            delete(::deleteImage)
+                            path("origin-data") {
+                                get(::getImageOriginData)
+                                patch(::updateImageOriginData)
+                            }
+                            path("related-items") {
+                                get(::getImageRelatedItems)
+                                patch(::updateImageRelatedItems)
+                            }
                         }
                     }
                 }
-                path("image") {
+                path("associates") {
+                    post(::createAssociate)
                     path(":id") {
-                        get(::getImage)
-                        patch(::updateImage)
-                        delete(::deleteImage)
-                        path("origin-data") {
-                            get(::getImageOriginData)
-                            patch(::updateImageOriginData)
-                        }
-                        path("related-items") {
-                            get(::getImageRelatedItems)
-                            patch(::updateImageRelatedItems)
-                        }
+                        get(::getAssociate)
+                        put(::updateAssociate)
+                        delete(::deleteAssociate)
                     }
                 }
             }
@@ -81,7 +92,8 @@ class IllustRoutes(private val illustService: IllustService) : Endpoints {
 
     private fun getCollectionRelatedItems(ctx: Context) {
         val id = ctx.pathParam<Int>("id").get()
-        ctx.json(illustService.getCollectionRelatedItems(id))
+        val filter = ctx.queryAsFilter<LimitFilter>()
+        ctx.json(illustService.getCollectionRelatedItems(id, filter))
     }
 
     private fun updateCollectionRelatedItems(ctx: Context) {
@@ -134,12 +146,41 @@ class IllustRoutes(private val illustService: IllustService) : Endpoints {
 
     private fun getImageRelatedItems(ctx: Context) {
         val id = ctx.pathParam<Int>("id").get()
-        ctx.json(illustService.getImageRelatedItems(id))
+        val filter = ctx.queryAsFilter<LimitFilter>()
+        ctx.json(illustService.getImageRelatedItems(id, filter))
     }
 
     private fun updateImageRelatedItems(ctx: Context) {
         val id = ctx.pathParam<Int>("id").get()
         val form = ctx.bodyAsForm<IllustImageRelatedUpdateForm>()
         illustService.updateImageRelatedItems(id, form)
+    }
+
+    private fun createAssociate(ctx: Context) {
+        val illusts = try { ctx.body<List<Int>>() }catch (e: Exception) {
+            throw ParamTypeError("illusts", e.message ?: "cannot convert to List<Int>")
+        }
+        val id = associateService.create(illusts)
+        ctx.status(201).json(IdRes(id))
+    }
+
+    private fun getAssociate(ctx: Context) {
+        val id = ctx.pathParam<Int>("id").get()
+        val filter = ctx.queryAsFilter<LimitAndOffsetFilter>()
+        ctx.json(associateService.get(id, filter))
+    }
+
+    private fun updateAssociate(ctx: Context) {
+        val id = ctx.pathParam<Int>("id").get()
+        val illusts = try { ctx.body<List<Int>>() }catch (e: Exception) {
+            throw ParamTypeError("illusts", e.message ?: "cannot convert to List<Int>")
+        }
+        associateService.update(id, illusts)
+    }
+
+    private fun deleteAssociate(ctx: Context) {
+        val id = ctx.pathParam<Int>("id").get()
+        associateService.delete(id)
+        ctx.status(204)
     }
 }

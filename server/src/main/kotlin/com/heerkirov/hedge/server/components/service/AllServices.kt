@@ -4,6 +4,7 @@ import com.heerkirov.hedge.server.library.framework.Component
 
 class AllServices(val illust: IllustService,
                   val album: AlbumService,
+                  val associate: AssociateService,
                   val folder: FolderService,
                   val partition: PartitionService,
                   val import: ImportService,

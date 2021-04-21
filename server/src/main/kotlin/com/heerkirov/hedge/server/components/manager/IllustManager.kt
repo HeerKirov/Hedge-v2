@@ -19,14 +19,13 @@ import java.time.LocalDateTime
 
 class IllustManager(private val data: DataRepository,
                     private val kit: IllustKit,
-                    private val relationManager: RelationManager,
                     private val sourceManager: SourceManager,
                     private val partitionManager: PartitionManager,
                     private val illustMetaExporter: IllustMetaExporter) {
     /**
      * 创建新的image。
      */
-    fun newImage(fileId: Int, parentId: Int? = null, relations: List<Int>? = null,
+    fun newImage(fileId: Int, parentId: Int? = null,
                  source: String? = null, sourceId: Long? = null, sourcePart: Int? = null,
                  description: String = "", score: Int? = null, favorite: Boolean = false, tagme: Illust.Tagme = Illust.Tagme.EMPTY,
                  tags: List<Int>? = null, topics: List<Int>? = null, authors: List<Int>? = null,
@@ -38,8 +37,6 @@ class IllustManager(private val data: DataRepository,
         }
 
         partitionManager.addItemInPartition(partitionTime)
-
-        if(relations != null) relationManager.validateRelations(relations)
 
         val (newSource, newSourceId, newSourcePart) = sourceManager.validateAndCreateSourceImageIfNotExist(source, sourceId, sourcePart)
 
@@ -58,7 +55,7 @@ class IllustManager(private val data: DataRepository,
             set(it.score, score)
             set(it.favorite, favorite)
             set(it.tagme, tagme)
-            set(it.relations, relations)
+            set(it.associateId, null)
             set(it.exportedDescription, exportedDescription)
             set(it.exportedScore, exportedScore)
             set(it.partitionTime, partitionTime)
@@ -82,8 +79,6 @@ class IllustManager(private val data: DataRepository,
                 set(it.exportedScore, newParentExportedScore.toInt())
             }
         }
-
-        if(relations != null) relationManager.processExportedRelations(id, relations)
 
         if(!tags.isNullOrEmpty() || !authors.isNullOrEmpty() || !topics.isNullOrEmpty()) {
             //指定了任意tags时，对tag进行校验和分析，导出，并同时导出annotations
@@ -125,7 +120,7 @@ class IllustManager(private val data: DataRepository,
             set(it.score, formScore)
             set(it.favorite, formFavorite)
             set(it.tagme, formTagme)
-            set(it.relations, null)
+            set(it.associateId, null)
             set(it.exportedDescription, formDescription)
             set(it.exportedScore, formScore ?: scoreFromSub)
             set(it.partitionTime, partitionTime)
@@ -231,8 +226,6 @@ class IllustManager(private val data: DataRepository,
             data.db.delete(IllustAuthorRelations) { it.illustId eq parent.id }
             data.db.delete(IllustTopicRelations) { it.illustId eq parent.id }
             data.db.delete(IllustAnnotationRelations) { it.illustId eq parent.id }
-
-            if(!parent.exportedRelations.isNullOrEmpty()) relationManager.removeItemInRelations(parent.id, parent.exportedRelations)
         }
     }
 }

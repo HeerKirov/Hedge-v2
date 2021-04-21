@@ -59,16 +59,9 @@ data class Illust(val id: Int,
                    */
                   val tagme: Tagme,
                   /**
-                   * relation(裙带关系)允许collection或image与其他项建立某种更松散的联系。
-                   * 这种关系允许任意两个illust对象建立，即使illust和collection之间也可以。
-                   * 裙带关系的传播是有限可控的，只会一对一建立，或者与关联对象的一级间接对象建立。类似AB系统中的无限间接传播杀伤力较大不可控，在这里不考虑使用。
-                   * 裙带关系一般用于联系collection，通常是相近内容不同版本的collection们。有时也用于联系相近内容不同版本/凑成col不方便的image。
+                   * 所属关联组。
                    */
-                  val relations: List<Int>? = null,
-                  /**
-                   * [exported field]导出的裙带关系，与关联的项目进行关联传播，然后得到的项目列表。
-                   */
-                  val exportedRelations: List<Int>? = null,
+                  val associateId: Int? = null,
                   /**
                    * [exported field]导出的简述信息。聚合时采用。
                    */

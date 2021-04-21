@@ -20,8 +20,7 @@ CREATE TABLE illust(
     exported_description        TEXT NOT NULL DEFAULT '',           -- [导出]导出的简述信息。聚合时采用
     exported_score			    INTEGER DEFAULT NULL,               -- [导出]导出的评分。聚合时取平均值
 
-    relations                   TEXT DEFAULT NULL,                  -- 裙带关系::json<number[]>
-    exported_relations          TEXT DEFAULT NULL,                  -- [导出]裙带关系
+    associate_id                INTEGER DEFAULT NULL,               -- 所属关联组
 
     partition_time	            DATE NOT NULL,                      -- 用于日历分组的时间。集合的值是导出值，取最早项
     order_time			        BIGINT NOT NULL,                    -- 用于排序的时间。集合的值是导出值，取最早时间
@@ -32,6 +31,12 @@ CREATE INDEX illust_filter_index ON illust(type, partition_time);   -- 基于ima
 CREATE INDEX illust_tagme_index ON illust(type, tagme);             -- 基于类型和tagme的索引
 CREATE INDEX illust_file_index ON illust(id, file_id);              -- id和file的索引
 CREATE INDEX illust_parent_index ON illust(parent_id);              -- parent的索引
+
+-- 关联组
+CREATE TABLE associate(
+    id INTEGER PRIMARY KEY,
+    cached_count INTEGER NOT NULL  -- [冗余]关联组中的项目数量
+);
 
 -- 画集
 CREATE TABLE album(

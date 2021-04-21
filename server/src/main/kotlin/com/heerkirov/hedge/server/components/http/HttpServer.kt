@@ -81,7 +81,7 @@ class HttpServerImpl(private val allServices: AllServices,
                 allServices.settingSpider,
                 allServices.settingAppdata))
             .handle(QueryRoutes(allServices.queryService))
-            .handle(IllustRoutes(allServices.illust))
+            .handle(IllustRoutes(allServices.illust, allServices.associate))
             .handle(AlbumRoutes(allServices.album))
             .handle(FolderRoutes(allServices.folder))
             .handle(PartitionRoutes(allServices.partition))

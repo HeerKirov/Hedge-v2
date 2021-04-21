@@ -35,7 +35,6 @@ fun runApplication(options: ApplicationOptions) {
         val webController = WebControllerImpl()
 
         val services = define {
-            val relationManager = RelationManager(repo)
             val sourceManager = SourceManager(repo)
 
             val queryManager = QueryManager(repo)
@@ -61,13 +60,15 @@ fun runApplication(options: ApplicationOptions) {
 
             val illustKit = IllustKit(repo, metaManager)
             val illustMetaExporter = define { IllustMetaExporterImpl(repo, illustKit, albumKit) }
-            val illustManager = IllustManager(repo, illustKit, relationManager, sourceManager, partitionManager, illustMetaExporter)
+            val illustManager = IllustManager(repo, illustKit, sourceManager, partitionManager, illustMetaExporter)
+            val associateManager = AssociateManager(repo)
 
             val folderKit = FolderKit(repo)
             val folderManager = FolderManager(repo, folderKit)
 
-            val illustService = IllustService(repo, illustKit, illustManager, albumManager, folderManager, fileManager, relationManager, sourceManager, partitionManager, queryManager, illustMetaExporter)
+            val illustService = IllustService(repo, illustKit, illustManager, albumManager, associateManager, folderManager, fileManager, sourceManager, partitionManager, queryManager, illustMetaExporter)
             val albumService = AlbumService(repo, albumKit, albumManager, queryManager)
+            val associateService = AssociateService(repo, associateManager)
             val folderService = FolderService(repo, folderKit, folderManager, queryManager)
             val partitionService = PartitionService(repo)
             val annotationService = AnnotationService(repo, annotationKit, queryManager)
@@ -86,6 +87,7 @@ fun runApplication(options: ApplicationOptions) {
             AllServices(
                 illustService,
                 albumService,
+                associateService,
                 folderService,
                 partitionService,
                 importService,
