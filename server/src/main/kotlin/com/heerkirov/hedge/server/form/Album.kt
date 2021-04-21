@@ -23,17 +23,9 @@ data class AlbumDetailRes(val id: Int, val title: String, val imageCount: Int, v
                           val description: String, val score: Int?, val favorite: Boolean,
                           val createTime: LocalDateTime, val updateTime: LocalDateTime)
 
-interface AlbumSubItem {
-    val ordinal: Int
-    val type: AlbumImageRelation.Type
-}
-
-data class AlbumImageRes(override val ordinal: Int, override val type: AlbumImageRelation.Type,
-                         val id: Int, val file: String, val thumbnailFile: String?,
+data class AlbumImageRes(val id: Int, val ordinal: Int, val file: String, val thumbnailFile: String?,
                          val score: Int?, val favorite: Boolean, val tagme: Illust.Tagme,
-                         val orderTime: LocalDateTime) : AlbumSubItem
-
-data class AlbumSubtitleRes(override val ordinal: Int, override val type: AlbumImageRelation.Type, val subtitle: String) : AlbumSubItem
+                         val orderTime: LocalDateTime)
 
 data class AlbumQueryFilter(@Limit val limit: Int,
                             @Offset val offset: Int,
@@ -44,7 +36,7 @@ data class AlbumQueryFilter(@Limit val limit: Int,
 
 data class AlbumCreateForm(val title: String? = null,
                            val description: String? = null,
-                           val images: List<Any> = emptyList(),
+                           val images: List<Int> = emptyList(),
                            val score: Int? = null,
                            val favorite: Boolean = false)
 
@@ -56,7 +48,7 @@ data class AlbumUpdateForm(val title: Opt<String?>,
 
 data class AlbumImagesPartialUpdateForm(val action: BatchAction,
                                         /** 添加新的image，指定其id */
-                                        val images: List<Any>? = null,
+                                        val images: List<Int>? = null,
                                         /** 修改或删除这些ordinal的项 */
                                         val itemIndexes: List<Int>? = null,
                                         /** 添加或移动项到这个位置 */

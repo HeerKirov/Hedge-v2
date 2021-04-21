@@ -13,11 +13,7 @@ data class Metadata(
 
 data class MetaOption(
     /**
-     * illust和album中允许给出的最大score值(最小总是为1)。
-     */
-    var scoreMaximum: Int,
-    /**
-     * score值的描述。[数组下标+1]表示要描述的分数。可以不写表示空出。
+     * score值的描述。[数组下标+1]表示要描述的分数。可以不写表示空出。范围是[0, 10)。
      */
     var scoreDescriptions: List<ScoreDescription?>,
     /**

@@ -161,35 +161,29 @@ class AlbumService(private val data: DataRepository,
         }
     }
 
-    fun getImages(id: Int, filter: LimitAndOffsetFilter): ListResult<AlbumSubItem> {
+    fun getImages(id: Int, filter: LimitAndOffsetFilter): ListResult<AlbumImageRes> {
         return data.db.from(AlbumImageRelations)
-            .leftJoin(Illusts, (AlbumImageRelations.type eq AlbumImageRelation.Type.IMAGE) and (AlbumImageRelations.imageId eq Illusts.id))
+            .leftJoin(Illusts, AlbumImageRelations.imageId eq Illusts.id)
             .leftJoin(FileRecords, Illusts.fileId eq FileRecords.id)
-            .select(AlbumImageRelations.ordinal, AlbumImageRelations.type, AlbumImageRelations.subtitle,
-                Illusts.id, Illusts.exportedScore, Illusts.favorite, Illusts.tagme, Illusts.orderTime,
+            .select(AlbumImageRelations.ordinal, Illusts.id,
+                Illusts.exportedScore, Illusts.favorite, Illusts.tagme, Illusts.orderTime,
                 FileRecords.id, FileRecords.folder, FileRecords.extension, FileRecords.thumbnail)
             .where { AlbumImageRelations.albumId eq id }
             .limit(filter.offset, filter.limit)
             .orderBy(AlbumImageRelations.ordinal.asc())
             .toListResult {
                 val ordinal = it[AlbumImageRelations.ordinal]!!
-                val type = it[AlbumImageRelations.type]!!
-                if(type == AlbumImageRelation.Type.IMAGE) {
-                    val itemId = it[Illusts.id]!!
-                    val score = it[Illusts.exportedScore]
-                    val favorite = it[Illusts.favorite]!!
-                    val tagme = it[Illusts.tagme]!!
-                    val orderTime = it[Illusts.orderTime]!!.parseDateTime()
-                    val (file, thumbnailFile) = takeAllFilepath(it)
-                    AlbumImageRes(ordinal, AlbumImageRelation.Type.IMAGE, itemId, file, thumbnailFile, score, favorite, tagme, orderTime)
-                }else{
-                    val subtitle = it[AlbumImageRelations.subtitle]!!
-                    AlbumSubtitleRes(ordinal, AlbumImageRelation.Type.SUBTITLE, subtitle)
-                }
+                val imageId = it[Illusts.id]!!
+                val score = it[Illusts.exportedScore]
+                val favorite = it[Illusts.favorite]!!
+                val tagme = it[Illusts.tagme]!!
+                val orderTime = it[Illusts.orderTime]!!.parseDateTime()
+                val (file, thumbnailFile) = takeAllFilepath(it)
+                AlbumImageRes(imageId, ordinal, file, thumbnailFile, score, favorite, tagme, orderTime)
             }
     }
 
-    fun updateImages(id: Int, items: List<Any>) {
+    fun updateImages(id: Int, items: List<Int>) {
         data.db.transaction {
             data.db.sequenceOf(Albums).firstOrNull { Albums.id eq id } ?: throw NotFound()
 

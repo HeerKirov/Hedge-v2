@@ -10,16 +10,12 @@ import org.ktorm.schema.varchar
 
 object AlbumImageRelations : BaseTable<AlbumImageRelation>("album_image_relation") {
     val albumId = int("album_id")
-    val type = enum("type", typeRef<AlbumImageRelation.Type>())
     val imageId = int("image_id")
-    val subtitle = varchar("subtitle")
     val ordinal = int("ordinal")
 
     override fun doCreateEntity(row: QueryRowSet, withReferences: Boolean) = AlbumImageRelation(
         albumId = row[albumId]!!,
-        type = row[type]!!,
         imageId = row[imageId]!!,
-        subtitle = row[subtitle],
         ordinal = row[ordinal]!!
     )
 }

@@ -49,9 +49,7 @@ CREATE TABLE album(
 -- 画集与image的M:N关系
 CREATE TABLE album_image_relation(
     album_id 	INTEGER NOT NULL,
-    type        TINYINT NOT NULL,   -- 此关联的类型{0=image, 1=subtitle}
-    image_id 	INTEGER NOT NULL,   -- 类型为image时，关联的image id。没有时写0
-    subtitle    TEXT DEFAULT NULL,  -- 类型为subtitle时，标题的内容
+    image_id 	INTEGER NOT NULL,   -- 关联的image id
     ordinal 	INTEGER NOT NULL    -- 此image在此画集中的排序顺位，从0开始，由系统统一调配，0号视作封面
 );
 CREATE INDEX album_image__index ON album_image_relation(album_id, image_id);

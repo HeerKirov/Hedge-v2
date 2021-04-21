@@ -16,7 +16,6 @@ class SettingMetaService(private val data: DataRepository) {
         data.syncMetadata {
             saveMetadata {
                 form.autoCleanTagme.alsoOpt { meta.autoCleanTagme = it }
-                form.scoreMaximum.alsoOpt { meta.scoreMaximum = it }
                 form.scoreDescriptions.alsoOpt { meta.scoreDescriptions = it }
             }
         }

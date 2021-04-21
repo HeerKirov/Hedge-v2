@@ -12,6 +12,7 @@ import com.heerkirov.hedge.server.exceptions.ResourceNotExist
 import com.heerkirov.hedge.server.model.album.AlbumImageRelation
 import com.heerkirov.hedge.server.model.illust.Illust
 import com.heerkirov.hedge.server.model.meta.Annotation
+import com.heerkirov.hedge.server.tools.checkScore
 import com.heerkirov.hedge.server.utils.ktorm.asSequence
 import com.heerkirov.hedge.server.utils.ktorm.firstOrNull
 import com.heerkirov.hedge.server.utils.types.Opt
@@ -24,7 +25,7 @@ class AlbumKit(private val data: DataRepository,
      * 检查score的值，不允许其超出范围。
      */
     fun validateScore(score: Int) {
-        if(score <= 0 || score > data.metadata.meta.scoreMaximum) throw ParamError("score")
+        if(!checkScore(score)) throw ParamError("score")
     }
 
     /**
@@ -248,12 +249,12 @@ class AlbumKit(private val data: DataRepository,
         val fileId = data.db.from(AlbumImageRelations)
             .innerJoin(Illusts, AlbumImageRelations.imageId eq Illusts.id)
             .select(Illusts.fileId)
-            .where { (AlbumImageRelations.albumId eq thisId) and (AlbumImageRelations.type eq AlbumImageRelation.Type.IMAGE) }
+            .where { AlbumImageRelations.albumId eq thisId }
             .orderBy(AlbumImageRelations.ordinal.asc())
             .limit(0, 1)
             .firstOrNull()
             ?.let { it[Illusts.fileId]!! }
-        val count = data.db.sequenceOf(AlbumImageRelations).count { (it.albumId eq thisId) and (it.type eq AlbumImageRelation.Type.IMAGE) }
+        val count = data.db.sequenceOf(AlbumImageRelations).count { it.albumId eq thisId }
 
         data.db.update(Albums) {
             where { it.id eq thisId }
@@ -266,38 +267,33 @@ class AlbumKit(private val data: DataRepository,
      * 校验album的sub items列表的正确性。列表的值只允许是string(subtitle)或int(image id)。subtitle不允许为空值。
      * @return (全items列表, image类型的项目数, 封面fileId)
      */
-    fun validateSubImages(items: List<Any>): Triple<List<Any>, Int, Int?> {
+    fun validateSubImages(items: List<Int>): Triple<List<Int>, Int, Int?> {
         if(items.isEmpty()) return Triple(emptyList(), 0, null)
 
-        if(items.any { it !is Int && it !is String }) throw ParamTypeError("images", "must be string(subtitle) or int(image id).")
-
-        if(items.filterIsInstance<String>().any { it.isEmpty() }) throw ParamTypeError("images", " subtitle must be not blank.")
-
-        val imageIds = items.filterIsInstance<Int>()
         val images = data.db.from(Illusts)
             .select(Illusts.id, Illusts.fileId)
-            .where { (Illusts.id inList imageIds) and (Illusts.type notEq Illust.Type.COLLECTION) }
+            .where { (Illusts.id inList items) and (Illusts.type notEq Illust.Type.COLLECTION) }
             .map { Pair(it[Illusts.id]!!, it[Illusts.fileId]!!) }
             .toMap()
         //数量不够表示有imageId不存在(或类型是collection，被一同判定为不存在)
-        if(images.size < imageIds.size) throw ResourceNotExist("images", items.toSet() - images.keys)
+        if(images.size < items.size) throw ResourceNotExist("images", items.toSet() - images.keys)
 
-        val fileId = if(imageIds.isNotEmpty()) images[imageIds.first()] else null
+        val fileId = if(items.isNotEmpty()) images[items.first()] else null
 
-        return Triple(items, imageIds.size, fileId)
+        return Triple(items, items.size, fileId)
     }
 
     /**
      * 应用images列表。对列表进行整体替换。
      */
-    fun processSubImages(items: List<Any>, thisId: Int) {
+    fun processSubImages(items: List<Int>, thisId: Int) {
         data.db.delete(AlbumImageRelations) { it.albumId eq thisId }
         data.db.batchInsert(AlbumImageRelations) {
-            items.forEachIndexed { index, thisItem ->
+            items.forEachIndexed { index, imageId ->
                 item {
                     set(it.albumId, thisId)
                     set(it.ordinal, index)
-                    setSubItem(thisItem)
+                    set(it.imageId, imageId)
                 }
             }
         }
@@ -306,7 +302,7 @@ class AlbumKit(private val data: DataRepository,
     /**
      * 插入新的images。
      */
-    fun insertSubImages(items: List<Any>, thisId: Int, ordinal: Int?) {
+    fun insertSubImages(items: List<Int>, thisId: Int, ordinal: Int?) {
         val count = data.db.sequenceOf(AlbumImageRelations).count { it.albumId eq thisId }
         val insertOrdinal = if(ordinal != null && ordinal <= count) ordinal else count
         //先把原有位置的项向后挪动
@@ -316,11 +312,11 @@ class AlbumKit(private val data: DataRepository,
         }
         //然后插入新项
         data.db.batchInsert(AlbumImageRelations) {
-            items.forEachIndexed { index, thisItem ->
+            items.forEachIndexed { index, imageId ->
                 item {
                     set(it.albumId, thisId)
                     set(it.ordinal, insertOrdinal + index)
-                    setSubItem(thisItem)
+                    set(it.imageId, imageId)
                 }
             }
         }
@@ -366,9 +362,7 @@ class AlbumKit(private val data: DataRepository,
                     item {
                         set(it.albumId, thisId)
                         set(it.ordinal, insertOrdinal + index)
-                        set(it.type, r.type)
                         set(it.imageId, r.imageId)
-                        set(it.subtitle, r.subtitle)
                     }
                 }
             }
@@ -396,25 +390,6 @@ class AlbumKit(private val data: DataRepository,
                         }
                     }
             }
-        }
-    }
-
-    /**
-     * 设置relation的model内容。
-     */
-    private fun AssignmentsBuilder.setSubItem(thisItem: Any) {
-        when (thisItem) {
-            is String -> {
-                set(AlbumImageRelations.type, AlbumImageRelation.Type.SUBTITLE)
-                set(AlbumImageRelations.imageId, 0)
-                set(AlbumImageRelations.subtitle, thisItem)
-            }
-            is Int -> {
-                set(AlbumImageRelations.type, AlbumImageRelation.Type.IMAGE)
-                set(AlbumImageRelations.imageId, thisItem)
-                set(AlbumImageRelations.subtitle, null)
-            }
-            else -> throw UnsupportedOperationException()
         }
     }
 }

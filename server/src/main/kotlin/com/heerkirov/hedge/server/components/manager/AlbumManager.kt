@@ -48,7 +48,7 @@ class AlbumManager(private val data: DataRepository, private val kit: AlbumKit) 
     /**
      * 新建一个album。
      */
-    fun newAlbum(formImages: List<Any>, formTitle: String = "", formDescription: String = "", formScore: Int? = null, formFavorite: Boolean = false): Int {
+    fun newAlbum(formImages: List<Int>, formTitle: String = "", formDescription: String = "", formScore: Int? = null, formFavorite: Boolean = false): Int {
         val (images, imageCount, fileId) = kit.validateSubImages(formImages)
         val createTime = DateTime.now()
 

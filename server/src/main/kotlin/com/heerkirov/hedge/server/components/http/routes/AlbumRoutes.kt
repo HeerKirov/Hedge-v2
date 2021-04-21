@@ -66,8 +66,8 @@ class AlbumRoutes(private val albumService: AlbumService) : Endpoints {
 
     private fun updateImages(ctx: Context) {
         val id = ctx.pathParam<Int>("id").get()
-        val images = try { ctx.body<List<Any>>() }catch (e: Exception) {
-            throw ParamTypeError("images", e.message ?: "cannot convert to List<Int | String>")
+        val images = try { ctx.body<List<Int>>() }catch (e: Exception) {
+            throw ParamTypeError("images", e.message ?: "cannot convert to List<Int>")
         }
         albumService.updateImages(id, images)
     }

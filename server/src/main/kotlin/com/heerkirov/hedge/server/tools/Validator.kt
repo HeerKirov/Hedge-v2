@@ -21,4 +21,11 @@ fun checkTagName(name: String): Boolean {
     return true
 }
 
+/**
+ * 检查score的范围是否符合要求。
+ */
+fun checkScore(score: Int): Boolean {
+    return score in 1..10
+}
+
 private val disableCharacter = arrayOf('\'', '"', '`', '.', '|')

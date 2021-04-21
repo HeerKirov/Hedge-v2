@@ -11,6 +11,7 @@ import com.heerkirov.hedge.server.exceptions.ParamRequired
 import com.heerkirov.hedge.server.exceptions.ResourceNotExist
 import com.heerkirov.hedge.server.model.illust.Illust
 import com.heerkirov.hedge.server.model.meta.Annotation
+import com.heerkirov.hedge.server.tools.checkScore
 import com.heerkirov.hedge.server.utils.DateTime
 import com.heerkirov.hedge.server.utils.ktorm.asSequence
 import com.heerkirov.hedge.server.utils.types.Opt
@@ -27,7 +28,7 @@ class IllustKit(private val data: DataRepository,
      * 检查score的值，不允许其超出范围。
      */
     fun validateScore(score: Int) {
-        if(score <= 0 || score > data.metadata.meta.scoreMaximum) throw ParamError("score")
+        if(!checkScore(score)) throw ParamError("score")
     }
 
     /**
