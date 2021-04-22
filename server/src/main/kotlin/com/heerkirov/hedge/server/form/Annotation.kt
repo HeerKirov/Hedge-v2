@@ -11,7 +11,7 @@ data class AnnotationRes(val id: Int, val name: String, val canBeExported: Boole
 
 data class AnnotationFilter(@Limit val limit: Int,
                             @Offset val offset: Int,
-                            @Search val query: String?,
+                            @Search val search: String?,
                             val canBeExported: Boolean? = null,
                             val target: Annotation.AnnotationTarget? = null)
 

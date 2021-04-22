@@ -38,7 +38,7 @@ class ImportManager(private val data: DataRepository, private val importMetaMana
             ImportOption.TimeType.UPDATE_TIME -> fileUpdateTime
             ImportOption.TimeType.IMPORT_TIME -> fileImportTime
         } ?: fileImportTime
-        val partitionTime = createTime.runIf(options.setPartitionTimeDelay != null && options.setPartitionTimeDelay!! > 0) {
+        val partitionTime = createTime.runIf(options.setPartitionTimeDelay != null && options.setPartitionTimeDelay!!!= 0L) {
             (this.toMillisecond() - options.setPartitionTimeDelay!!).parseDateTime()
         }.asZonedTime().toLocalDate()
         val orderTime = createTime.toMillisecond()

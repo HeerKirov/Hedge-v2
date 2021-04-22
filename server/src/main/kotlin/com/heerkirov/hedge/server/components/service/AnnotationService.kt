@@ -23,16 +23,11 @@ import org.ktorm.entity.sequenceOf
 
 class AnnotationService(private val data: DataRepository, private val kit: AnnotationKit, private val queryManager: QueryManager) {
     fun list(filter: AnnotationFilter): ListResult<AnnotationRes> {
-        val schema = if(filter.query.isNullOrBlank()) null else {
-            queryManager.querySchema(filter.query, QueryManager.Dialect.ANNOTATION).executePlan ?: return ListResult(0, emptyList())
-        }
         return data.db.from(Annotations).select()
             .whereWithConditions {
                 if(filter.canBeExported != null) { it += Annotations.canBeExported eq filter.canBeExported }
                 if(filter.target != null) { it += Annotations.target compositionContains filter.target }
-                if(schema != null && schema.whereConditions.isNotEmpty()) {
-                    it.addAll(schema.whereConditions)
-                }
+                if(filter.search != null) { it += Annotations.name like "%${filter.search}%" }
             }
             .limit(filter.offset, filter.limit)
             .orderBy(Annotations.createTime.desc())
