@@ -97,6 +97,10 @@ export interface DetailAuthor extends Author {
      * 相关链接。
      */
     links: Link[]
+    /**
+     * 手写的原始评分。
+     */
+    originScore: number | null
 }
 
 export interface SimpleAuthor {
@@ -130,7 +134,7 @@ export interface AuthorUpdateForm {
 export type AuthorFilter = AuthorQueryFilter & LimitAndOffsetFilter
 
 export interface AuthorQueryFilter {
-    query?: string
+    search?: string
     order?: OrderList<"id" | "name" | "score" | "count" | "createTime" | "updateTime">
     type?: AuthorType
     favorite?: boolean

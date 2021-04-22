@@ -53,7 +53,7 @@ export default defineComponent({
         ])
 
         return () => <div class="w-100 h-100">
-            <VirtualRow rowHeight={60} padding={{top: 6, bottom: 6, left: 12, right: 12}} bufferSize={10} onUpdate={listEndpoint.dataUpdate} {...listEndpoint.data.value.metrics}>
+            <VirtualRow rowHeight={50} padding={{top: 6, bottom: 6, left: 12, right: 12}} bufferSize={10} onUpdate={listEndpoint.dataUpdate} {...listEndpoint.data.value.metrics}>
                 <table class="table is-fullwidth no-wrap">
                     <tbody>
                         {listEndpoint.data.value.result.map(item => <Item key={item.id} value={item}

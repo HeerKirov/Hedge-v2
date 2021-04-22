@@ -83,7 +83,7 @@ export interface AnnotationUpdateForm {
 export type AnnotationFilter = AnnotationQueryFilter & LimitAndOffsetFilter
 
 export interface AnnotationQueryFilter {
-    query?: string
+    search?: string
     canBeExported?: boolean
     target?: AnnotationTarget
 }

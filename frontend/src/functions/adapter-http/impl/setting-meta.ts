@@ -24,11 +24,6 @@ export interface SettingMetaEndpoint {
 
 export interface MetaOption {
     /**
-     * score的最大可取值(最小可取值固定为1)。
-     * @range [1, 100]
-     */
-    scoreMaximum: number
-    /**
      * score的描述。descriptions[i]代表了score = i + 1的描述
      */
     scoreDescriptions: {word: string, content: string}[]
@@ -39,7 +34,6 @@ export interface MetaOption {
 }
 
 export interface MetaOptionUpdateForm {
-    scoreMaximum?: number
     scoreDescriptions?: {word: string, content: string}[]
     autoCleanTagme?: boolean
 }

@@ -8,7 +8,7 @@ export default defineComponent({
         const { openCreatePane } = useTopicContext()
 
         return () => <div class="middle-layout">
-            <div class="layout-container">你好</div>
+            <div class="layout-container"/>
             <div class="layout-container is-shrink-item">
                 <Input class="no-drag w-75"/>
                 <AddOnFilter class="ml-1 no-drag"/>

@@ -105,6 +105,10 @@ export interface DetailTopic extends Topic {
      * 相关链接。
      */
     links: Link[]
+    /**
+     * 手写的原始评分。
+     */
+     originScore: number | null
 }
 
 export interface ParentTopic {
@@ -148,7 +152,7 @@ export interface TopicUpdateForm {
 export type TopicFilter = TopicQueryFilter & LimitAndOffsetFilter
 
 export interface TopicQueryFilter {
-    query?: string
+    search?: string
     order?: OrderList<"id" | "name" | "score" | "count" | "createTime" | "updateTime">
     type?: TopicType
     favorite?: boolean

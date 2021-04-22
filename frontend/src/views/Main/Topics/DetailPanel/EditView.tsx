@@ -30,8 +30,7 @@ export default defineComponent({
             keywords: data.value.keywords,
             description: data.value.description,
             links: data.value.links,
-            //TODO 引入originScore后更改此属性来源
-            score: data.value.score
+            score: data.value.originScore
         }))
 
         function update<T extends EditorDataProps>(key: T, value: EditorData[T]) {
@@ -122,14 +121,11 @@ const TopBarContent = defineComponent({
 
         return () => <div class="middle-layout">
             <div class="layout-container">
-                <button class="square button no-drag radius-large is-white" onClick={closePane}>
-                    <span class="icon"><i class="fa fa-arrow-left"/></span>
-                </button>
-            </div>
-            <div class="layout-container">
                 <button class="square button no-drag radius-large is-white mr-1" onClick={cancel}>
                     <span class="icon"><i class="fa fa-times"/></span>
                 </button>
+            </div>
+            <div class="layout-container">
                 <button class="square button no-drag radius-large is-link" onClick={save}>
                     <span class="icon"><i class="fa fa-save"/></span>
                 </button>

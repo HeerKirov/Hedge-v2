@@ -3,7 +3,6 @@ import { createHttpInstance } from "./server"
 import { createWebEndpoint, WebEndpoint } from "./impl/web"
 import { createSettingWebEndpoint, SettingWebEndpoint } from "./impl/setting-web"
 import { createSettingServiceEndpoint, SettingServiceEndpoint } from "./impl/setting-service"
-import { createSettingDbEndpoint, SettingDbEndpoint } from "./impl/setting-db"
 import { createSettingProxyEndpoint, SettingProxyEndpoint } from "./impl/setting-proxy"
 import { createSettingImportEndpoint, SettingImportEndpoint } from "./impl/setting-import"
 import { createSettingSourceEndpoint, SettingSourceEndpoint } from "./impl/setting-source"
@@ -23,7 +22,6 @@ export interface HttpClient {
     web: WebEndpoint
     settingWeb: SettingWebEndpoint
     settingService: SettingServiceEndpoint
-    settingDb: SettingDbEndpoint
     settingMeta: SettingMetaEndpoint
     settingQuery: SettingQueryEndpoint
     settingProxy: SettingProxyEndpoint
@@ -43,7 +41,6 @@ export function createHttpClient(http: HttpInstance): HttpClient {
         web: createWebEndpoint(http),
         settingWeb: createSettingWebEndpoint(http),
         settingService: createSettingServiceEndpoint(http),
-        settingDb: createSettingDbEndpoint(http),
         settingMeta: createSettingMetaEndpoint(http),
         settingQuery: createSettingQueryEndpoint(http),
         settingProxy: createSettingProxyEndpoint(http),
