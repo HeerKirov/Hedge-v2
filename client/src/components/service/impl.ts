@@ -38,7 +38,6 @@ export function createService(appdata: AppDataDriver, configuration: Configurati
                     debugMode: options.debugMode,
                     userDataPath: options.userDataPath,
                     channel: options.channel,
-                    dbPath: configuration.getData()?.dbPath ?? null,
                     canPromptTouchID: appdata.status() === AppDataStatus.LOADED && appdata.getAppData().loginOption.touchID && systemPreferences.canPromptTouchID(),
                     appState: state.state(),
                     connection: server.connectionInfo()

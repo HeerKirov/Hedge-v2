@@ -1,5 +1,5 @@
 import { app } from "electron"
-import {readdir, readFile, writeFile} from "../../utils/fs"
+import { readdir, readFile, writeFile } from "../../utils/fs"
 import { DATA_FILE } from "../../definitions/file"
 import { ClientException } from "../../exceptions"
 /**

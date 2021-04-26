@@ -56,7 +56,6 @@ export interface AppEnv {
     debugMode: boolean
     userDataPath: string
     channel: string
-    dbPath: string | null
     canPromptTouchID: boolean
     appState: State
     connection: ServerConnectionInfo | null

@@ -96,7 +96,7 @@ export async function createApplication(options?: AppOptions) {
 
         stateManager.load()
 
-        registerProtocol(userDataPath, configurationDriver)
+        registerProtocol(configurationDriver)
         registerAppMenu(windowManager, {debugMode, platform})
         registerDockMenu(windowManager)
 
@@ -126,13 +126,13 @@ function registerAppEvents(windowManager: WindowManager, serverManager: ServerMa
     })
 }
 
-function registerProtocol(userDataPath: string, configuration: ConfigurationDriver) {
+function registerProtocol(configuration: ConfigurationDriver) {
     const prefix = 'record:///'
-    let dbPath: string | undefined = undefined
+    let dbPath: string | null = null
     protocol.registerFileProtocol('record', (request, callback) => {
         const url = request.url.substr(prefix.length)
         if(dbPath == undefined) {
-            dbPath = configuration.getData()?.dbPath
+            dbPath = configuration.getActualDbPath() 
         }
         const file = path.normalize(`${dbPath}/folders/${url}`)
         callback({path: file})

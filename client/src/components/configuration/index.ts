@@ -2,7 +2,7 @@ import path from "path"
 import { DATA_FILE } from "../../definitions/file"
 import { readFile, writeFile } from "../../utils/fs"
 import { ClientException } from "../../exceptions"
-import { Configuration } from "./model"
+import { Configuration, ConfigurationModel, DbPath } from "./model"
 
 /**
  * 连接到指定频道的public data。
@@ -24,6 +24,10 @@ export interface ConfigurationDriver {
      * 保存数据到文件。
      */
     saveData(process?: (data: Configuration) => void): Promise<Configuration>
+    /**
+     * 取得转换后的实际dbPath位置。
+     */
+    getActualDbPath(): string | null
 }
 
 export enum ConfigurationStatus {
@@ -54,9 +58,9 @@ export function createConfigurationDriver(options: ConfigurationDriverOptions): 
     async function load() {
         try {
             status = ConfigurationStatus.LOADING
-            const data = await readFile<Configuration>(publicDataPath)
+            const data = await readFile<ConfigurationModel>(publicDataPath)
             if(data != null) {
-                publicData = data
+                publicData = mapFromModel(data)
                 status = ConfigurationStatus.LOADED
                 console.log("[ConfigurationDriver] Public data is loaded.")
             }else{
@@ -71,13 +75,18 @@ export function createConfigurationDriver(options: ConfigurationDriverOptions): 
     async function saveData(process?: (data: Configuration) => void): Promise<Configuration> {
         if(publicData == null) {
             publicData = {
-                dbPath: ""
+                dbPath: {
+                    type: "channel",
+                    path: "default"
+                }
             }
         }
         if(typeof process === "function") {
             process(publicData)
         }
-        return await writeFile(publicDataPath, publicData)
+        status = ConfigurationStatus.LOADED
+        await writeFile(publicDataPath, mapToModel(publicData))
+        return publicData
     }
 
     return {
@@ -88,6 +97,50 @@ export function createConfigurationDriver(options: ConfigurationDriverOptions): 
         },
         status() {
             return status
+        },
+        getActualDbPath() {
+            if(publicData != null) {
+                if(publicData.dbPath.type === "channel") {
+                    return `${channelPath}/${publicData.dbPath.path}`
+                }else{
+                    return publicData.dbPath.path
+                }
+            }
+            return null
         }
+    }
+}
+
+function mapFromModel(model: ConfigurationModel): Configuration {
+    return {
+        dbPath: mapDbPathFromModel(model.dbPath)
+    }
+}
+
+function mapToModel(configuration: Configuration): ConfigurationModel {
+    return {
+        dbPath: mapDbPathToModel(configuration.dbPath)
+    }
+}
+
+function mapDbPathFromModel(dbPath: string): DbPath {
+    if(dbPath.startsWith("@/")) {
+        return {
+            type: "channel",
+            path: dbPath.substring(2),
+        }
+    }else{
+        return {
+            type: "absolute",
+            path: dbPath
+        }
+    }
+}
+
+function mapDbPathToModel(dbPath: DbPath): string {
+    if(dbPath.type === "channel") {
+        return `@/${dbPath.path}`
+    }else{
+        return dbPath.path
     }
 }
