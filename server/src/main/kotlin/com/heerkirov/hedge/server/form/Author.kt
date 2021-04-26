@@ -24,7 +24,8 @@ data class AuthorFilter(@Limit val limit: Int,
                         @Order(options = ["id", "name", "score", "count", "createTime", "updateTime"])
                         val order: List<OrderItem>? = null,
                         val type: Author.Type? = null,
-                        val favorite: Boolean? = null)
+                        val favorite: Boolean? = null,
+                        val annotationIds: List<Int>? = null)
 
 data class AuthorCreateForm(@NotBlank val name: String,
                             val otherNames: List<String>? = null,

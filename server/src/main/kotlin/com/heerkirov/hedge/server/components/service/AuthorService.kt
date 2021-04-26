@@ -38,7 +38,15 @@ class AuthorService(private val data: DataRepository,
     }
 
     fun list(filter: AuthorFilter): ListResult<AuthorRes> {
-        return data.db.from(Authors).select()
+        return data.db.from(Authors)
+            .let {
+                if(filter.annotationIds.isNullOrEmpty()) it else {
+                    filter.annotationIds.fold(it) { acc, id ->
+                        acc.innerJoin(AuthorAnnotationRelations, (AuthorAnnotationRelations.authorId eq Authors.id) and (AuthorAnnotationRelations.annotationId eq id))
+                    }
+                }
+            }
+            .select()
             .whereWithConditions {
                 if(filter.favorite != null) { it += Authors.favorite eq filter.favorite }
                 if(filter.type != null) { it += Authors.type eq filter.type }

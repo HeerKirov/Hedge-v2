@@ -28,7 +28,8 @@ data class TopicFilter(@Limit val limit: Int,
                        val order: List<OrderItem>? = null,
                        val type: Topic.Type? = null,
                        val favorite: Boolean? = null,
-                       val parentId: Int? = null)
+                       val parentId: Int? = null,
+                       val annotationIds: List<Int>? = null)
 
 data class TopicCreateForm(@NotBlank val name: String,
                            val otherNames: List<String>? = null,

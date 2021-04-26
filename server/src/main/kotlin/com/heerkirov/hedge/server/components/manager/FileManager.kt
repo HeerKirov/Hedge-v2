@@ -47,7 +47,7 @@ class FileManager(private val configurationDriver: ConfigurationDriver, private 
         } as Int
 
         val filepath = getFilepath(folder, id, extension).also { path ->
-            file.copyTo(File("${configurationDriver.configuration.dbPath}/${Filename.FOLDER}/$path").applyExcept {
+            file.copyTo(File("${configurationDriver.dbPath}/${Filename.FOLDER}/$path").applyExcept {
                 deleteIfExists()
             }, overwrite = true)
         }
@@ -65,9 +65,9 @@ class FileManager(private val configurationDriver: ConfigurationDriver, private 
      */
     fun revertNewFile(fileId: Int) {
         val fileRecord = getFile(fileId) ?: return
-        File("${configurationDriver.configuration.dbPath}/${Filename.FOLDER}/${getFilepath(fileRecord.folder, fileRecord.id, fileRecord.extension)}").deleteIfExists()
+        File("${configurationDriver.dbPath}/${Filename.FOLDER}/${getFilepath(fileRecord.folder, fileRecord.id, fileRecord.extension)}").deleteIfExists()
         if(fileRecord.thumbnail == FileRecord.ThumbnailStatus.YES) {
-            File("${configurationDriver.configuration.dbPath}/${Filename.FOLDER}/${getThumbnailFilepath(fileRecord.folder, fileRecord.id)}").deleteIfExists()
+            File("${configurationDriver.dbPath}/${Filename.FOLDER}/${getThumbnailFilepath(fileRecord.folder, fileRecord.id)}").deleteIfExists()
         }
         data.db.delete(FileRecords) { it.id eq fileId }
     }
@@ -97,8 +97,8 @@ class FileManager(private val configurationDriver: ConfigurationDriver, private 
             set(it.syncRecords, syncRecords)
         }
 
-        File("${configurationDriver.configuration.dbPath}/${Filename.FOLDER}/${filepath}").deleteIfExists()
-        if(thumbnailFilepath != null) File("${configurationDriver.configuration.dbPath}/${Filename.FOLDER}/${thumbnailFilepath}").deleteIfExists()
+        File("${configurationDriver.dbPath}/${Filename.FOLDER}/${filepath}").deleteIfExists()
+        if(thumbnailFilepath != null) File("${configurationDriver.dbPath}/${Filename.FOLDER}/${thumbnailFilepath}").deleteIfExists()
     }
 
     /**

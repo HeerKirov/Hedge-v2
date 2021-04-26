@@ -74,12 +74,12 @@ class ThumbnailGeneratorImpl(private val configurationDriver: ConfigurationDrive
             val fileRecord = data.db.sequenceOf(FileRecords).firstOrNull { it.id eq fileId }
             if(fileRecord != null && fileRecord.thumbnail == FileRecord.ThumbnailStatus.NULL) {
                 val filepath = getFilepath(fileRecord.folder, fileRecord.id, fileRecord.extension)
-                val file = File("${configurationDriver.configuration.dbPath}/${Filename.FOLDER}/$filepath")
+                val file = File("${configurationDriver.dbPath}/${Filename.FOLDER}/$filepath")
                 if(file.exists()) {
                     val tempFile = ImageProcessor.generateThumbnail(file)
                     if(tempFile != null) {
                         val thumbnailFilepath = getThumbnailFilepath(fileRecord.folder, fileRecord.id)
-                        val thumbnailFile = File("${configurationDriver.configuration.dbPath}/${Filename.FOLDER}/$thumbnailFilepath")
+                        val thumbnailFile = File("${configurationDriver.dbPath}/${Filename.FOLDER}/$thumbnailFilepath")
                         try {
                             tempFile.copyTo(thumbnailFile, overwrite = true)
 

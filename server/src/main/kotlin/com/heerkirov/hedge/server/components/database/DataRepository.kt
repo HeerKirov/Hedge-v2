@@ -59,7 +59,7 @@ class DataRepositoryImpl(private val configurationDriver: ConfigurationDriver) :
     }
 
     override fun load() {
-        instance = DBInstance(configurationDriver.configuration.dbPath)
+        instance = DBInstance(configurationDriver.dbPath)
         loadStatus = LoadStatus.LOADED
     }
 }

@@ -23,9 +23,9 @@ interface ConfigurationDriver : Component {
     val status: LoadStatus
 
     /**
-     * 取得配置文件。
+     * 取得实际的dbPath。它由原始配置文件的dbPath生成。
      */
-    val configuration: Configuration
+    val dbPath: String
 }
 
 class ConfigurationDriverImpl(private val channelPath: String) : ConfigurationDriver {
@@ -44,5 +44,12 @@ class ConfigurationDriverImpl(private val channelPath: String) : ConfigurationDr
 
     override val status: LoadStatus get() = loadStatus
 
-    override val configuration: Configuration get() = _configuration ?: throw RuntimeException("Configuration is not loaded yet.")
+    override val dbPath: String by lazy {
+        val dbPath = _configuration?.dbPath ?: throw RuntimeException("Configuration is not loaded yet.")
+        if(dbPath.startsWith("@/")) {
+            "$channelPath/${dbPath.substring(2)}"
+        }else{
+            dbPath
+        }
+    }
 }

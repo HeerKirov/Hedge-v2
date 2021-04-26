@@ -13,15 +13,24 @@ import com.heerkirov.hedge.server.dao.meta.TopicAnnotationRelations
 import com.heerkirov.hedge.server.exceptions.NotFound
 import com.heerkirov.hedge.server.form.*
 import com.heerkirov.hedge.server.utils.DateTime
+import com.heerkirov.hedge.server.utils.ktorm.OrderTranslator
 import com.heerkirov.hedge.server.utils.types.anyOpt
 import com.heerkirov.hedge.server.utils.ktorm.compositionContains
+import com.heerkirov.hedge.server.utils.ktorm.orderBy
 import com.heerkirov.hedge.server.utils.types.ListResult
+import com.heerkirov.hedge.server.utils.types.ascendingOrderItem
 import com.heerkirov.hedge.server.utils.types.toListResult
 import org.ktorm.dsl.*
 import org.ktorm.entity.firstOrNull
 import org.ktorm.entity.sequenceOf
 
 class AnnotationService(private val data: DataRepository, private val kit: AnnotationKit, private val queryManager: QueryManager) {
+    private val orderTranslator = OrderTranslator {
+        "id" to Annotations.id
+        "name" to Annotations.name
+        "createTime" to Annotations.createTime
+    }
+
     fun list(filter: AnnotationFilter): ListResult<AnnotationRes> {
         return data.db.from(Annotations).select()
             .whereWithConditions {
@@ -30,7 +39,7 @@ class AnnotationService(private val data: DataRepository, private val kit: Annot
                 if(filter.search != null) { it += Annotations.name like "%${filter.search}%" }
             }
             .limit(filter.offset, filter.limit)
-            .orderBy(Annotations.createTime.desc())
+            .orderBy(orderTranslator, filter.order, default = ascendingOrderItem("id"))
             .toListResult { newAnnotationRes(Annotations.createEntity(it)) }
     }
 
@@ -55,7 +64,7 @@ class AnnotationService(private val data: DataRepository, private val kit: Annot
 
     fun update(id: Int, form: AnnotationUpdateForm) {
         data.db.transaction {
-            val annotation = data.db.sequenceOf(Annotations).firstOrNull { it.id eq id } ?: throw NotFound()
+            data.db.sequenceOf(Annotations).firstOrNull { it.id eq id } ?: throw NotFound()
 
             val newName = form.name.letOpt { kit.validateName(it, id) }
             if(anyOpt(newName, form.canBeExported, form.target)) {

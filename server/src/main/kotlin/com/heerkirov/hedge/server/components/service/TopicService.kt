@@ -38,7 +38,15 @@ class TopicService(private val data: DataRepository,
     }
 
     fun list(filter: TopicFilter): ListResult<TopicRes> {
-        return data.db.from(Topics).select()
+        return data.db.from(Topics)
+            .let {
+                if(filter.annotationIds.isNullOrEmpty()) it else {
+                    filter.annotationIds.fold(it) { acc, id ->
+                        acc.innerJoin(TopicAnnotationRelations, (TopicAnnotationRelations.topicId eq Topics.id) and (TopicAnnotationRelations.annotationId eq id))
+                    }
+                }
+            }
+            .select()
             .whereWithConditions {
                 if(filter.favorite != null) { it += Topics.favorite eq filter.favorite }
                 if(filter.type != null) { it += Topics.type eq filter.type }
