@@ -16,3 +16,7 @@ function analyseSafeURL(url: string): string {
         return `http://${url}`
     }
 }
+
+export function writeClipboard(text: string) {
+    window.navigator.clipboard.writeText(text).catch(console.error)
+}

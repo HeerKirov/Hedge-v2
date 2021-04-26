@@ -4,11 +4,21 @@ import { SimpleAnnotation } from "./annotations"
 
 export function createTopicEndpoint(http: HttpInstance): TopicEndpoint {
     return {
-        list: http.createQueryRequest("/api/topics"),
+        list: http.createQueryRequest("/api/topics", "GET", {
+            parseQuery: mapFromTopicFilter
+        }),
         create: http.createDataRequest("/api/topics", "POST"),
         get: http.createPathRequest(id => `/api/topics/${id}`),
         update: http.createPathDataRequest(id => `/api/topics/${id}`, "PATCH"),
         delete: http.createPathRequest(id => `/api/topics/${id}`, "DELETE")
+    }
+}
+
+function mapFromTopicFilter(data: TopicFilter): any {
+    return {
+        ...data,
+        order: data.order?.length ? data.order.join(",") : undefined,
+        annotationsIds: data.annotationIds?.length ? data.annotationIds.join(",") : undefined
     }
 }
 
@@ -157,4 +167,5 @@ export interface TopicQueryFilter {
     type?: TopicType
     favorite?: boolean
     parentId?: number
+    annotationIds?: number[]
 }

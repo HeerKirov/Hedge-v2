@@ -5,7 +5,7 @@ import TopBarTransparentLayout from "@/layouts/layouts/TopBarTransparentLayout"
 import { Link } from "@/functions/adapter-http/impl/generic"
 import { DetailTopic, TopicType } from "@/functions/adapter-http/impl/topic"
 import { clientMode, assetsUrl, useElementPopupMenu } from "@/functions/app"
-import { openExternal, useMessageBox } from "@/functions/module"
+import { openExternal, useMessageBox, writeClipboard } from "@/functions/module"
 import { useNavigator } from "@/functions/navigator"
 import { arrays } from "@/utils/collections"
 import { TOPIC_TYPE_ENUMS, TOPIC_TYPE_ICONS, TOPIC_TYPE_NAMES } from "../define"
@@ -165,12 +165,8 @@ const LinkContent = defineComponent({
             return <a href={link.link} target="_blank"><i class="fa fa-link mr-1"/>{link.title}</a>
         }
 
-        const copyLink = (link: string) => {
-            //TODO 实现copy link
-        }
-
         const popupmenu = useElementPopupMenu([
-            {type: "normal", label: "复制链接", click: copyLink},
+            {type: "normal", label: "复制链接", click: writeClipboard},
         ], {position: "bottom", align: "center", offsetY: 5})
 
         return () => <div class="box">
@@ -192,9 +188,7 @@ const ExampleContent = defineComponent({
         const { detailMode } = useTopicContext()
         const { exampleData } = useTopicDetailContext()
 
-        const more = () => {
-            navigator.goto.main.illusts({topicName: props.name})
-        }
+        const more = () => navigator.goto.main.illusts({topicName: props.name})
 
         return () => exampleData.value?.total ? <div class={style.examples}>
             {exampleData.value!.result.map(illust => <div class={style.example}><img src={assetsUrl(illust.thumbnailFile)} alt="example"/></div>)}

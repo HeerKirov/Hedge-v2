@@ -1,13 +1,22 @@
 import { HttpInstance, Response } from "../server"
-import { IdResponse, LimitAndOffsetFilter, ListResult } from "./generic"
+import { IdResponse, LimitAndOffsetFilter, ListResult, OrderList } from "./generic"
 
 export function createAnnotationEndpoint(http: HttpInstance): AnnotationEndpoint {
     return {
-        list: http.createQueryRequest("/api/annotations"),
+        list: http.createQueryRequest("/api/annotations", "GET", {
+            parseQuery: mapFromAnnotationFilter
+        }),
         create: http.createDataRequest("/api/annotations", "POST"),
         get: http.createPathRequest(id => `/api/annotations/${id}`),
         update: http.createPathDataRequest(id => `/api/annotations/${id}`, "PATCH"),
         delete: http.createPathRequest(id => `/api/annotations/${id}`, "DELETE")
+    }
+}
+
+function mapFromAnnotationFilter(data: AnnotationFilter): any {
+    return {
+        ...data,
+        order: data.order?.length ? data.order.join(",") : undefined
     }
 }
 
@@ -84,6 +93,7 @@ export type AnnotationFilter = AnnotationQueryFilter & LimitAndOffsetFilter
 
 export interface AnnotationQueryFilter {
     search?: string
+    order?: OrderList<"id" | "name" | "createTime">
     canBeExported?: boolean
     target?: AnnotationTarget
 }

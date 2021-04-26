@@ -4,11 +4,21 @@ import { SimpleAnnotation } from "./annotations"
 
 export function createAuthorEndpoint(http: HttpInstance): AuthorEndpoint {
     return {
-        list: http.createQueryRequest("/api/authors"),
+        list: http.createQueryRequest("/api/authors", "GET", {
+            parseQuery: mapFromAuthorFilter
+        }),
         create: http.createDataRequest("/api/authors", "POST"),
         get: http.createPathRequest(id => `/api/authors/${id}`),
         update: http.createPathDataRequest(id => `/api/authors/${id}`, "PATCH"),
         delete: http.createPathRequest(id => `/api/authors/${id}`, "DELETE")
+    }
+}
+
+function mapFromAuthorFilter(data: AuthorFilter): any {
+    return {
+        ...data,
+        order: data.order?.length ? data.order.join(",") : undefined,
+        annotationsIds: data.annotationIds?.length ? data.annotationIds.join(",") : undefined
     }
 }
 
@@ -138,4 +148,5 @@ export interface AuthorQueryFilter {
     order?: OrderList<"id" | "name" | "score" | "count" | "createTime" | "updateTime">
     type?: AuthorType
     favorite?: boolean
+    annotationIds?: number[]
 }
