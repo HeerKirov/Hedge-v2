@@ -8,9 +8,9 @@
         font-size: $font-size-std
         letter-spacing: 0.1em
         margin-top: $spacing-2
-        color: $side-grey-invert
+        color: $more-shallow-dark
         @media (prefers-color-scheme: dark)
-            color: $dark-lightgrey
+            color: $deep-sidebar
         a
             color: inherit
         &:not(:last-child)
@@ -44,15 +44,15 @@
 .menu:not(.deep) > ul.menu-list
     a
         &:not(.is-active)
-            background-color: $lightgrey
+            background-color: $sidebar
             color: $light-invert
             &:hover
-                background-color: toDarkenColor($lightgrey, 5%)
+                background-color: toDarkenColor($sidebar, 5%)
             @media (prefers-color-scheme: dark)
-                background-color: $light-dark
+                background-color: $sidebar-dm
                 color: $white
                 &:hover
-                    background-color: toLightenColor($light-dark, 5%)
+                    background-color: toLightenColor($sidebar-dm, 5%)
         &.is-active
             background-color: $link
             color: $white
@@ -61,15 +61,15 @@
 .menu.deep > ul.menu-list
     a:not(.menu-label)
         &:not(.is-active)
-            background-color: $dark-lightgrey
+            background-color: $deep-sidebar
             color: $light-invert
             &:hover
-                background-color: toDarkenColor($dark-lightgrey, 5%)
+                background-color: toDarkenColor($deep-sidebar, 5%)
             @media (prefers-color-scheme: dark)
-                background-color: $more-light-dark
+                background-color: $deep-sidebar-dm
                 color: $white
                 &:hover
-                    background-color: toLightenColor($more-light-dark, 5%)
+                    background-color: toLightenColor($deep-sidebar-dm, 5%)
         &.is-active
             background-color: $link
             color: $white

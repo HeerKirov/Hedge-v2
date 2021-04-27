@@ -46,13 +46,13 @@ export default defineComponent({
                     <Input class="is-fullwidth" value={customFolderPath.value} onUpdateValue={v => customFolderPath.value = v}/>
                     <button class="button is-info" onClick={selectCustomPath}><i class="fa fa-folder-open mr-1"/>选择文件夹…</button>
                 </div>
-                {errorMessage.value && <p class="helper is-danger">{errorMessage.value}</p>}
+                {errorMessage.value && <p class="help is-danger">{errorMessage.value}</p>}
                 <div class="is-size-7"><a onClick={() => isCustom.value = false}>在默认位置保存数据库</a></div>
             </> : <>
                     <div class="mt-2">
                         <label class="label">数据库名称</label>
                         <Input class={{"is-danger": !!errorMessage.value}} value={folderInAppData.value} onUpdateValue={v => folderInAppData.value = v}/>
-                        {errorMessage.value && <p class="helper is-danger">{errorMessage.value}</p>}
+                        {errorMessage.value && <p class="help is-danger">{errorMessage.value}</p>}
                     </div>
                     <p class="is-size-7"><a onClick={() => isCustom.value = true}>在自定义位置保存数据库</a></p>
             </>}

@@ -7,10 +7,9 @@
   &.is-fullwidth
     width: 100%
   &.is-hoverable tbody tr:not(.is-selected):hover
-    background-color: $light
+    background-color: $shallow-bg
     @media (prefers-color-scheme: dark)
-      background-color: $more-dark
-
+      background-color: $shallow-bg-dm
 
   tr
     th,
@@ -30,10 +29,10 @@
       color: $white
   &:not(.no-border)
     tr th,td
-      border: solid $dark-lightgrey
+      border: solid $deep-sidebar
       border-width: 0 0 1px
       @media (prefers-color-scheme: dark)
-        border-color: $light-dark
+        border-color: $sidebar-dm
   thead
     th,
     td

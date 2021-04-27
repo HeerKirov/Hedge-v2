@@ -46,23 +46,23 @@ $button-size-map: ("small" ($font-size-8, $height-small, 0.8rem), "medium" ($fon
   vertical-align: top
   line-height: 1.2
 
-  background-color: $lightgrey
+  background-color: $sidebar
   &:hover
-    background-color: toDarkenColor($lightgrey, 5%)
+    background-color: toDarkenColor($sidebar, 5%)
   &:active
-    background-color: toDarkenColor($lightgrey, 7.5%)
+    background-color: toDarkenColor($sidebar, 7.5%)
   @media (prefers-color-scheme: dark)
-    background-color: $light-dark
-    color: $white
+    background-color: $sidebar-dm
+    color: $literal-dm
     &:hover
-      background-color: toLightenColor($light-dark, 5%)
+      background-color: toLightenColor($sidebar-dm, 5%)
     &:active
-      background-color: toLightenColor($light-dark, 7.5%)
+      background-color: toLightenColor($sidebar-dm, 7.5%)
   &.square
     width: $height-std
     padding: 0
   &.has-border
-    border: solid 1px $dark-lightgrey
+    border: solid 1px $deep-sidebar
   @each $name, $radius-size in $radius-size-map
     &.radius-#{$name}
       border-radius: $radius-size
@@ -151,7 +151,7 @@ $button-size-map: ("small" ($font-size-8, $height-small, 0.8rem), "medium" ($fon
   display: inline-block
   box-sizing: border-box
   vertical-align: top
-  border-left: solid 1px $dark-lightgrey
+  border-left: solid 1px $deep-sidebar
   @media (prefers-color-scheme: dark)
     border-left-color: $grey
 

@@ -7,13 +7,13 @@
   border-radius: $radius-size-std
   position: relative
   box-sizing: border-box
-  background-color: $light
-  color: $font-black
+  background-color: $shallow-bg
+  color: $literal
   @media (prefers-color-scheme: dark)
-    background-color: $more-dark
-    color: $light
+    background-color: $shallow-bg-dm
+    color: $literal-dm
   &.has-border
-    border: solid 1px $font-black
+    border: solid 1px $literal
 
   a:not(.button):not(.dropdown-item)
     color: currentColor
@@ -36,6 +36,8 @@
           color: $color-dark
           &.has-border
             border-color: $color-dark
+    &.has-border-#{$name}
+      border: solid 1px $color
   @media (prefers-color-scheme: dark)
     @each $name, $pair in $colors-dark-mode
       $color: nth($pair, 1)
@@ -53,3 +55,5 @@
             color: $color-dark
             &.has-border
               border-color: $color-dark
+      &.has-border-#{$name}
+        border: solid 1px $color

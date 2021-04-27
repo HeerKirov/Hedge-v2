@@ -20,10 +20,10 @@ export default defineComponent({
                 default() { return <SideBarContent/> },
                 bottom() {
                     return <div>
-                        <button disabled={!clientMode} class="button is-lightgrey mr-1 radius-large" onClick={windowManager.openSetting}><span class="icon"><i class="fa fa-cog"/></span></button>
-                        <button class="button is-lightgrey mr-1 radius-large" onClick={windowManager.openGuide}><span class="icon"><i class="fa fa-question-circle"/></span></button>
-                        <button class="button is-lightgrey mr-1 radius-large"><span class="icon"><i class="fa fa-clipboard"/></span><span>777</span></button>
-                        <button class="button is-lightgrey radius-large"><span class="icon"><i class="fa fa-caret-square-right"/></span><span>5</span></button>
+                        <button disabled={!clientMode} class="button is-sidebar mr-1 radius-large" onClick={windowManager.openSetting}><span class="icon"><i class="fa fa-cog"/></span></button>
+                        <button class="button is-sidebar mr-1 radius-large" onClick={windowManager.openGuide}><span class="icon"><i class="fa fa-question-circle"/></span></button>
+                        <button class="button is-sidebar mr-1 radius-large"><span class="icon"><i class="fa fa-clipboard"/></span><span>777</span></button>
+                        <button class="button is-sidebar radius-large"><span class="icon"><i class="fa fa-caret-square-right"/></span><span>5</span></button>
                     </div>
                 }
             }

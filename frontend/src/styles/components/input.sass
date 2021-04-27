@@ -23,18 +23,18 @@ textarea
   line-height: 1.2
   height: $height-std
   padding: 0 calc(0.85em - 1px)
-  border: 1px solid $dark-lightgrey
+  border: 1px solid $deep-sidebar
   border-radius: $radius-size-std
   @media (prefers-color-scheme: dark)
-    background-color: $light-dark
-    color: $white
-    border-color: $more-light-dark
+    background-color: $sidebar-dm
+    color: $literal-dm
+    border-color: $deep-sidebar-dm
 
   $input-size-map: ("small" ($font-size-8, $height-small), "medium" ($font-size-6, $height-medium))
   $input-width-map: ("one-third" 0.333em, "half" 0.5em, "small" 0.75em, "std" 1em, "medium" 1.25em, "large" 1.5em, "2x" 2em, "3x" 3em)
 
   &:focus
-    box-shadow: 0 0 3px $dark-lightgrey
+    box-shadow: 0 0 3px $deep-sidebar
 
   &.is-fullwidth
     max-width: 100%
@@ -71,14 +71,14 @@ textarea
   display: inline-flex
   font-size: $font-size-7
   padding: calc(0.6em - 1px) calc(0.85em - 1px)
-  border: 1px solid $dark-lightgrey
+  border: 1px solid $deep-sidebar
   border-radius: $radius-size-std
   @media (prefers-color-scheme: dark)
-    background-color: $light-dark
-    color: $white
-    border-color: $more-light-dark
+    background-color: $sidebar-dm
+    color: $literal-dm
+    border-color: $deep-sidebar-dm
   &:focus
-    box-shadow: 0 0 3px $dark-lightgrey
+    box-shadow: 0 0 3px $deep-sidebar
   max-width: 100%
   min-width: 100%
   resize: vertical
