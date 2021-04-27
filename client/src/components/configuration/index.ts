@@ -101,7 +101,7 @@ export function createConfigurationDriver(options: ConfigurationDriverOptions): 
         getActualDbPath() {
             if(publicData != null) {
                 if(publicData.dbPath.type === "channel") {
-                    return `${channelPath}/${publicData.dbPath.path}`
+                    return `${channelPath}/database/${publicData.dbPath.path}`
                 }else{
                     return publicData.dbPath.path
                 }

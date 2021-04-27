@@ -40,7 +40,7 @@
     }
 
     > .box {
-      background-color: $dark-lightgrey;
+      background-color: $deep-sidebar;
       border-radius: $radius-size-large;
       text-align: center;
       padding: 0.5rem;
@@ -77,7 +77,7 @@
     }
     .box-framework {
       > .box {
-        background-color: $more-light-dark;
+        background-color: $deep-sidebar-dm;
         > .title {
           color: $white;
         }

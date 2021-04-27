@@ -1,5 +1,5 @@
 import { HttpInstance, Response } from "../server"
-import { IdResponse, LimitAndOffsetFilter, ListResult, OrderList } from "./generic"
+import { IdResponse, LimitAndOffsetFilter, ListResult, mapFromOrderList, OrderList } from "./generic"
 
 export function createAnnotationEndpoint(http: HttpInstance): AnnotationEndpoint {
     return {
@@ -16,7 +16,7 @@ export function createAnnotationEndpoint(http: HttpInstance): AnnotationEndpoint
 function mapFromAnnotationFilter(data: AnnotationFilter): any {
     return {
         ...data,
-        order: data.order?.length ? data.order.join(",") : undefined
+        order: mapFromOrderList(data.order)
     }
 }
 

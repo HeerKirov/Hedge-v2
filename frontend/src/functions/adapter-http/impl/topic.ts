@@ -1,5 +1,5 @@
 import { HttpInstance, Response } from "../server"
-import { IdResponse, LimitAndOffsetFilter, Link, ListResult, OrderList } from "./generic"
+import { IdResponse, LimitAndOffsetFilter, Link, ListResult, mapFromOrderList, OrderList } from "./generic"
 import { SimpleAnnotation } from "./annotations"
 
 export function createTopicEndpoint(http: HttpInstance): TopicEndpoint {
@@ -17,7 +17,7 @@ export function createTopicEndpoint(http: HttpInstance): TopicEndpoint {
 function mapFromTopicFilter(data: TopicFilter): any {
     return {
         ...data,
-        order: data.order?.length ? data.order.join(",") : undefined,
+        order: mapFromOrderList(data.order),
         annotationsIds: data.annotationIds?.length ? data.annotationIds.join(",") : undefined
     }
 }

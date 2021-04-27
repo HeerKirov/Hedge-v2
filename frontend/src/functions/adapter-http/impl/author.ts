@@ -1,5 +1,5 @@
 import { HttpInstance, Response } from "../server"
-import { IdResponse, LimitAndOffsetFilter, Link, ListResult, OrderList } from "./generic"
+import { IdResponse, LimitAndOffsetFilter, Link, ListResult, mapFromOrderList, OrderList } from "./generic"
 import { SimpleAnnotation } from "./annotations"
 
 export function createAuthorEndpoint(http: HttpInstance): AuthorEndpoint {
@@ -17,7 +17,7 @@ export function createAuthorEndpoint(http: HttpInstance): AuthorEndpoint {
 function mapFromAuthorFilter(data: AuthorFilter): any {
     return {
         ...data,
-        order: data.order?.length ? data.order.join(",") : undefined,
+        order: mapFromOrderList(data.order),
         annotationsIds: data.annotationIds?.length ? data.annotationIds.join(",") : undefined
     }
 }

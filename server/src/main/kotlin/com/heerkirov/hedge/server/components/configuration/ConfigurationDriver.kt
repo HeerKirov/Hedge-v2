@@ -47,7 +47,7 @@ class ConfigurationDriverImpl(private val channelPath: String) : ConfigurationDr
     override val dbPath: String by lazy {
         val dbPath = _configuration?.dbPath ?: throw RuntimeException("Configuration is not loaded yet.")
         if(dbPath.startsWith("@/")) {
-            "$channelPath/${dbPath.substring(2)}"
+            "$channelPath/database/${dbPath.substring(2)}"
         }else{
             dbPath
         }
