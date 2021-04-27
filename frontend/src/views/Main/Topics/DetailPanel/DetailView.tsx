@@ -77,11 +77,8 @@ const Panel = defineComponent({
         const { data } = useTopicDetailContext()
 
         return () => <div class={["container", "p-2", style.detailView]}>
-            <div class="box mb-1">
-                {data.value && <MainContent data={data.value}/>}
-                <SubThemeContent/>
-                {data.value?.score ? <p class="mt-3"><Starlight value={data.value.score} showText={true}/></p> : null}
-            </div>
+            {data.value && <MainContent data={data.value}/>}
+            {data.value && <RelatedThemeContent data={data.value}/>}
             {data.value?.links.length ? <LinkContent class="mb-1" links={data.value.links}/> : null}
             {data.value && <ExampleContent name={data.value.name}/>}
         </div>
@@ -95,7 +92,7 @@ const MainContent = defineComponent({
     setup(props) {
         const { openDetailPane } = useTopicContext()
 
-        return () => <>
+        return () => <div class="box mb-1">
             <p>
                 <span class="icon is-size-large"><i class="fa fa-hashtag"/></span>
                 <span class="can-be-selected">
@@ -106,7 +103,8 @@ const MainContent = defineComponent({
             <p class="is-size-7 mt-2">
                 {TYPE_ITEM_ELEMENTS[props.data.type]}
             </p>
-            <p class="mt-2">
+            <p class="mt-6"/>
+            <p class="mt-1">
                 {props.data.annotations.map(annotation => <span class="tag mr-1">[ {annotation.name} ]</span>)}
             </p>
             <p class="mt-1">
@@ -115,7 +113,26 @@ const MainContent = defineComponent({
             {(props.data.description || null) && <div class="mt-1 block p-3">
                 <WrappedText value={props.data.description}/>
             </div>}
-            <div class="mb-6"/>
+            <p class="mt-4"/>
+            {props.data.score && <p><Starlight value={props.data.score} showText={true}/></p>}
+        </div>
+    }
+})
+
+const RelatedThemeContent = defineComponent({
+    props: {
+        data: {type: null as any as PropType<DetailTopic>, required: true}
+    },
+    setup(props) {
+        const navigator = useNavigator()
+        const { detailMode, openDetailPane } = useTopicContext()
+        const { subThemeData } = useTopicDetailContext()
+
+        const more = () => {
+            navigator.goto.main.topics({parentId: detailMode.value!})
+        }
+
+        return () => subThemeData.value?.total ? <div class="box mb-1">
             {props.data.parent && <div class="mt-1">
                 <div class="mb-1"><i class="fa fa-chess-queen mr-2"/><span>父主题</span></div>
                 <div>
@@ -125,22 +142,7 @@ const MainContent = defineComponent({
                     </a>
                 </div>
             </div>}
-        </>
-    }
-})
-
-const SubThemeContent = defineComponent({
-    setup() {
-        const navigator = useNavigator()
-        const { detailMode, openDetailPane } = useTopicContext()
-        const { subThemeData } = useTopicDetailContext()
-
-        const more = () => {
-            navigator.goto.main.topics({parentId: detailMode.value!})
-        }
-
-        return () => subThemeData.value?.total ? <div class="mt-1">
-            <div class="mb-1"><i class="fa fa-chess mr-2"/><span>子主题</span></div>
+            <div class="mt-3 mb-1"><i class="fa fa-chess mr-2"/><span>子主题</span></div>
             <div>
                 {subThemeData.value!.result.map(topic => <a class="tag mr-1 mb-1" onClick={() => openDetailPane(topic.id)}>
                     {TYPE_ICON_ELEMENTS[topic.type]}

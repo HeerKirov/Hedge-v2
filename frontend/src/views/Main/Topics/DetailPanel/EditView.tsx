@@ -3,7 +3,7 @@ import Input from "@/components/forms/Input"
 import Textarea from "@/components/forms/Textarea"
 import Select, { SelectItem } from "@/components/forms/Select"
 import TopBarTransparentLayout from "@/layouts/layouts/TopBarTransparentLayout"
-import { LinkEditor, OtherNameEditor, StarlightEditor } from "@/layouts/editor-components"
+import { AnnotationEditor, LinkEditor, OtherNameEditor, StarlightEditor } from "@/layouts/editor-components"
 import { Link } from "@/functions/adapter-http/impl/generic"
 import { SimpleAnnotation } from "@/functions/adapter-http/impl/annotations"
 import { ParentTopic, TopicType, TopicUpdateForm } from "@/functions/adapter-http/impl/topic"
@@ -187,10 +187,7 @@ const Panel = defineComponent({
                 </div>
                 <div class="mt-2">
                     <span class="label">注解</span>
-                    <div class="box multi flex">
-                        {props.data.annotations.map(annotation => <span class="tag mr-1">[ {annotation.name} ]</span>)}
-                        <a class="tag mr-1 is-light is-success"><i class="fa fa-plus mr-1"/>添加注解</a>
-                    </div>
+                    <AnnotationEditor value={props.data.annotations}/>
                 </div>
                 <div class="mt-2">
                     <span class="label">描述关键字</span>

@@ -3,36 +3,45 @@
 
 .select-list {
   overflow-y: auto;
-  border-radius: $radius-size-std;
-  border: solid 1px $dark-lightgrey;
   box-sizing: border-box;
-  @media (prefers-color-scheme: dark) {
-    border-color: $more-light-dark;
-  }
+  overflow-x: hidden;
+
   > .select-item {
     font-size: $font-size-7;
-    padding: 0.5em 0.75em;
     white-space: nowrap;
     overflow: hidden;
+    &.selected {
+      color: $white;
+      background-color: $link;
+    }
     @media (prefers-color-scheme: light) {
       &:not(.selected) {
-        color: $font-black;
-        background-color: $white;
-      }
-      &.selected {
-        color: $white;
-        background-color: $link;
+        color: $literal;
+        background-color: $bg;
       }
     }
     @media (prefers-color-scheme: dark) {
       &:not(.selected) {
-        color: $white;
-        background-color: $dark;
+        color: $literal-dm;
+        background-color: $bg-dm;
       }
-      &.selected {
-        color: $white;
-        background-color: $link;
-      }
+    }
+  }
+
+  &.std {
+    border-radius: $radius-size-std;
+    border: solid 1px $deep-sidebar;
+    @media (prefers-color-scheme: dark) {
+      border-color: $deep-sidebar-dm;
+    }
+
+    > .select-item {
+      padding: 0.5em 0.75em;
+    }
+  }
+  &.nested {
+    > .select-item {
+      padding: 0.35em;
     }
   }
 }
