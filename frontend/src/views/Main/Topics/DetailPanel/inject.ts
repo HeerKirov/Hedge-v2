@@ -41,7 +41,7 @@ export function installTopicDetailContext(): TopicDetailContext {
 
     const attachData = useAttachDetailData(detailMode)
 
-    const editMode = ref(false)
+    const editMode = ref(true)
 
     const context = {data, setData, deleteData, ...attachData, editMode}
     provide(contextInjection, context)

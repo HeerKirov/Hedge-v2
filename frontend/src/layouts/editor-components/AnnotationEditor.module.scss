@@ -1,4 +1,5 @@
-
+@import "@/styles/base/size.sass";
+@import "@/styles/base/color";
 
 .editor {
   .picker {
@@ -8,6 +9,39 @@
       position: absolute;
       width: 100%;
       padding: 0.25rem 0;
+
+      .select-item {
+        cursor: pointer;
+        font-size: $font-size-7;
+        white-space: nowrap;
+        overflow: hidden;
+        padding: 0.25rem 0 0.25rem 0.5rem;
+        border-top: solid 1px $sidebar;
+        &:last-child {
+          border-bottom: solid 1px $sidebar;
+        }
+
+        > i:global(.fa) {
+          margin-right: 0.5rem;
+        }
+
+        &.selected {
+          color: $white;
+          background-color: $link;
+        }
+        @media (prefers-color-scheme: light) {
+          &:not(.selected) {
+            color: $literal;
+            background-color: $bg;
+          }
+        }
+        @media (prefers-color-scheme: dark) {
+          &:not(.selected) {
+            color: $literal-dm;
+            background-color: $bg-dm;
+          }
+        }
+      }
     }
   }
 }

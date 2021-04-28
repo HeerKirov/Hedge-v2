@@ -6,14 +6,35 @@
 //基本彩色
 $cyan: hsl(171, 100%, 41%);
 $lightgreen: hsl(153, 53%, 53%);
+$green: #228B22;
+$teal: #008080;
 $blue: hsl(207, 61%, 53%);
-$blue-purple: hsl(229, 53%, 53%);
+$skyblue: #00BFFF;
+$bluepurple: hsl(229, 53%, 53%);
 $yellow: hsl(44, 100%, 77%);
 $red: hsl(348, 86%, 61%);
-$orange: hsl(14, 100%, 53%);
-$purple: hsl(271, 100%, 71%);
+$orange: #FF7F50;
 $pink: #FA7C91;
+$deeppink: #FF1493;
+$purple: hsl(271, 100%, 71%);
 $tea: #757763;
+$brown: #8B4513;
+
+/*
+ * 可用颜色:
+ *      tea, brown
+ *      pink, deeppink, purple
+ *      green, lightgreen, cyan, teal
+ *      blue, skyblue
+ *      red, orange, yellow
+ * 画师: pink
+ * 工作室: deeppink
+ * 出版社: purple
+ * 版权方: tea
+ * 作品: brown
+ * 角色: green
+ * 标签: blue, skyblue, red, orange, yellow, lightgreen, cyan, teal
+ */
 
 //基本黑白颜色
 $white: hsl(0, 0%, 100%);
@@ -46,7 +67,7 @@ $deep-sidebar-dm: $more-shallow-dark;
 //其他主题色
 $success: $lightgreen;
 $info: $blue;
-$link: $blue-purple;
+$link: $bluepurple;
 $warning: $yellow;
 $danger: $red;
 
@@ -56,36 +77,51 @@ $dark-invert: findColorInvert($dark);
 $grey-invert: findColorInvert($grey);
 $cyan-invert: findColorInvert($cyan);
 $lightgreen-invert: findColorInvert($lightgreen);
+$green-invert: findColorInvert($green);
+$teal-invert: findColorInvert($teal);
 $blue-invert: findColorInvert($blue);
-$blue-purple-invert: findColorInvert($blue-purple);
+$skyblue-invert: findColorInvert($skyblue);
+$bluepurple-invert: findColorInvert($bluepurple);
 $yellow-invert: findColorInvert($yellow);
 $red-invert: findColorInvert($red);
 $orange-invert: findColorInvert($orange);
-$purple-invert: findColorInvert($purple);
 $pink-invert: findColorInvert($pink);
+$deeppink-invert: findColorInvert($deeppink);
+$purple-invert: findColorInvert($purple);
 $tea-invert: findColorInvert($tea);
+$brown-invert: findColorInvert($brown);
 
 $cyan-light: findLightColor($cyan);
 $lightgreen-light: findLightColor($lightgreen);
+$green-light: findLightColor($green);
+$teal-light: findLightColor($teal);
 $blue-light: findLightColor($blue);
-$blue-purple-light: findLightColor($blue-purple);
+$skyblue-light: findLightColor($skyblue);
+$bluepurple-light: findLightColor($bluepurple);
 $yellow-light: findLightColor($yellow);
 $red-light: findLightColor($red);
 $orange-light: findLightColor($orange);
-$purple-light: findLightColor($purple);
 $pink-light: findLightColor($pink);
+$deeppink-light: findLightColor($deeppink);
+$purple-light: findLightColor($purple);
 $tea-light: findLightColor($tea);
+$brown-light: findLightColor($brown);
 
 $cyan-dark: findDarkColor($cyan);
 $lightgreen-dark: findDarkColor($lightgreen);
+$green-dark: findDarkColor($green);
+$teal-dark: findDarkColor($teal);
 $blue-dark: findDarkColor($blue);
-$blue-purple-dark: findDarkColor($blue-purple);
+$skyblue-dark: findDarkColor($skyblue);
+$bluepurple-dark: findDarkColor($bluepurple);
 $yellow-dark: findDarkColor($yellow);
 $red-dark: findDarkColor($red);
 $orange-dark: findDarkColor($orange);
-$purple-dark: findDarkColor($purple);
 $pink-dark: findDarkColor($pink);
+$deeppink-dark: findDarkColor($deeppink);
+$purple-dark: findDarkColor($purple);
 $tea-dark: findDarkColor($tea);
+$brown-dark: findDarkColor($brown);
 
 //颜色组
 $colors: (
@@ -102,13 +138,18 @@ $colors: (
         "deep-dark" ($deep-dark, $white),
         "cyan" ($cyan, $cyan-invert, $cyan-light, $cyan-dark),
         "lightgreen" ($lightgreen, $lightgreen-invert, $lightgreen-light, $lightgreen-dark),
+        "green" ($green, $green-invert, $green-light, $green-dark),
+        "teal" ($teal, $teal-invert, $teal-light, $teal-dark),
         "blue" ($blue, $blue-invert, $blue-light, $blue-dark),
-        "blue-purple" ($blue-purple, $blue-purple-invert, $blue-purple-light, $blue-purple-dark),
+        "skyblue" ($skyblue, $skyblue-invert, $skyblue-light, $skyblue-dark),
+        "bluepurple" ($bluepurple, $bluepurple-invert, $bluepurple-light, $bluepurple-dark),
         "yellow" ($yellow, $yellow-invert, $yellow-light, $yellow-dark),
         "red" ($red, $red-invert, $red-light, $red-dark),
-        "purple" ($purple, $purple-invert, $purple-light, $purple-dark),
         "pink" ($pink, $pink-invert, $pink-light, $pink-dark),
+        "deeppink" ($deeppink, $deeppink-invert, $deeppink-light, $deeppink-dark),
+        "purple" ($purple, $purple-invert, $purple-light, $purple-dark),
         "tea" ($tea, $tea-invert, $tea-light, $tea-dark),
+        "brown" ($brown, $brown-invert, $brown-light, $brown-dark),
         //主题色
         "bg" ($bg, $bg-dm),
         "shallow-bg" ($shallow-bg, $shallow-bg-dm),
@@ -117,7 +158,7 @@ $colors: (
         "deep-sidebar" ($deep-sidebar, $deep-sidebar-dm),
         "success" ($lightgreen, $lightgreen-invert, $lightgreen-light, $lightgreen-dark),
         "info" ($blue, $blue-invert, $blue-light, $blue-dark),
-        "link" ($blue-purple, $blue-purple-invert, $blue-purple-light, $blue-purple-dark),
+        "link" ($bluepurple, $bluepurple-invert, $bluepurple-light, $bluepurple-dark),
         "warning" ($yellow, $yellow-invert, $yellow-light, $yellow-dark),
         "danger" ($red, $red-invert, $red-light, $red-dark),
 );
@@ -136,13 +177,18 @@ $colors-dark-mode: (
         "deep-dark" ($white, $deep-dark),
         "cyan" ($cyan, $cyan-invert, $cyan-light, $cyan-dark),
         "lightgreen" ($lightgreen, $lightgreen-invert, $lightgreen-light, $lightgreen-dark),
+        "green" ($green, $green-invert, $green-light, $green-dark),
+        "teal" ($teal, $teal-invert, $teal-light, $teal-dark),
         "blue" ($blue, $blue-invert, $blue-light, $blue-dark),
-        "blue-purple" ($blue-purple, $blue-purple-invert, $blue-purple-light, $blue-purple-dark),
+        "skyblue" ($skyblue, $skyblue-invert, $skyblue-light, $skyblue-dark),
+        "bluepurple" ($bluepurple, $bluepurple-invert, $bluepurple-light, $bluepurple-dark),
         "yellow" ($yellow, $yellow-invert, $yellow-light, $yellow-dark),
         "red" ($red, $red-invert, $red-light, $red-dark),
-        "purple" ($purple, $purple-invert, $purple-light, $purple-dark),
         "pink" ($pink, $pink-invert, $pink-light, $pink-dark),
+        "deeppink" ($deeppink, $deeppink-invert, $deeppink-light, $deeppink-dark),
+        "purple" ($purple, $purple-invert, $purple-light, $purple-dark),
         "tea" ($tea, $tea-invert, $tea-light, $tea-dark),
+        "brown" ($brown, $brown-invert, $brown-light, $brown-dark),
         //主题色
         "bg" ($bg-dm, $bg),
         "shallow-bg" ($shallow-bg-dm, $shallow-bg),
@@ -151,7 +197,7 @@ $colors-dark-mode: (
         "deep-sidebar" ($deep-sidebar-dm, $deep-sidebar),
         "success" ($lightgreen, $lightgreen-invert, $lightgreen-light, $lightgreen-dark),
         "info" ($blue, $blue-invert, $blue-light, $blue-dark),
-        "link" ($blue-purple, $blue-purple-invert, $blue-purple-light, $blue-purple-dark),
+        "link" ($bluepurple, $bluepurple-invert, $bluepurple-light, $bluepurple-dark),
         "warning" ($yellow, $yellow-invert, $yellow-light, $yellow-dark),
         "danger" ($red, $red-invert, $red-light, $red-dark),
 );
