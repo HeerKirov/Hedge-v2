@@ -105,7 +105,7 @@ export function createStateManager(appdata: AppDataDriver, configuration: Config
     }
 
     async function asyncLoad() {
-        if(resource.status() == ResourceStatus.NEED_UPDATE) {
+        if(resource.status() == ResourceStatus.NEED_UPDATE || resource.status() == ResourceStatus.NOT_INIT) {
             //resource需要升级
             setState(State.LOADING_RESOURCE)
             await resource.update()
@@ -151,7 +151,13 @@ export function createStateManager(appdata: AppDataDriver, configuration: Config
     async function asyncInit(config: InitConfig) {
         setInitState(InitState.INITIALIZING_APPDATA)
         await appdata.init()
-        await promiseAll(appdata.saveAppData(d => d.loginOption.password = config.password), configuration.saveData(d => d.dbPath = config.dbPath))
+        await promiseAll(appdata.saveAppData(d => d.loginOption.password = config.password), configuration.saveData(d => {
+            if(config.dbPath.startsWith("@/")) {
+                d.dbPath = {type: "channel", path: config.dbPath.substr(2)}
+            }else{
+                d.dbPath = {type: "absolute", path: config.dbPath}
+            }
+        }))
 
         setInitState(InitState.INITIALIZING_RESOURCE)
         await resource.update()
