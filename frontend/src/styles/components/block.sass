@@ -20,24 +20,25 @@
     text-decoration: underline
   strong
     color: currentColor
-  @each $name, $pair in $colors
-    $color: nth($pair, 1)
-    $color-invert: nth($pair, 2)
-    &.is-#{$name}
-      background-color: $color
-      color: $color-invert
-      &.has-border
-        border-color: $color-invert
-      @if length($pair) >= 4
-        $color-light: nth($pair, 3)
-        $color-dark: nth($pair, 4)
-        &.is-light
-          background-color: $color-light
-          color: $color-dark
-          &.has-border
-            border-color: $color-dark
-    &.has-border-#{$name}
-      border: solid 1px $color
+  @media (prefers-color-scheme: light)
+    @each $name, $pair in $colors
+      $color: nth($pair, 1)
+      $color-invert: nth($pair, 2)
+      &.is-#{$name}
+        background-color: $color
+        color: $color-invert
+        &.has-border
+          border-color: $color-invert
+        @if length($pair) >= 4
+          $color-light: nth($pair, 3)
+          $color-dark: nth($pair, 4)
+          &.is-light
+            background-color: $color-light
+            color: $color-dark
+            &.has-border
+              border-color: $color-dark
+      &.has-border-#{$name}
+        border: solid 1px $color
   @media (prefers-color-scheme: dark)
     @each $name, $pair in $colors-dark-mode
       $color: nth($pair, 1)

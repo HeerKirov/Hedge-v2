@@ -1,11 +1,11 @@
-import { defineComponent, PropType } from "vue"
+import { computed, defineComponent, PropType, Ref } from "vue"
 import Input from "@/components/forms/Input"
 import Textarea from "@/components/forms/Textarea"
 import Select, { SelectItem } from "@/components/forms/Select"
 import TopBarTransparentLayout from "@/layouts/layouts/TopBarTransparentLayout"
 import { AnnotationEditor, LinkEditor, OtherNameEditor, StarlightEditor } from "@/layouts/editor-components"
 import { Link } from "@/functions/adapter-http/impl/generic"
-import { SimpleAnnotation } from "@/functions/adapter-http/impl/annotations"
+import { AnnotationTarget, SimpleAnnotation } from "@/functions/adapter-http/impl/annotations"
 import { ParentTopic, TopicType, TopicUpdateForm } from "@/functions/adapter-http/impl/topic"
 import { useMessageBox } from "@/functions/document/message-box"
 import { useMutableComputed } from "@/functions/utils/basic"
@@ -154,6 +154,8 @@ const Panel = defineComponent({
         const setLinks = (v: Link[]) => emit("update", "links", v)
         const setScore = (v: number | null) => emit("update", "score", v)
 
+        const annotationTarget: Ref<AnnotationTarget> = computed(() => props.data.type === "UNKNOWN" ? "TOPIC" : props.data.type)
+
         return () => <div class="container p-2">
             <div class="box mb-1">
                 <div class="mt-2">
@@ -187,7 +189,7 @@ const Panel = defineComponent({
                 </div>
                 <div class="mt-2">
                     <span class="label">注解</span>
-                    <AnnotationEditor value={props.data.annotations}/>
+                    <AnnotationEditor target={annotationTarget.value} value={props.data.annotations}/>
                 </div>
                 <div class="mt-2">
                     <span class="label">描述关键字</span>

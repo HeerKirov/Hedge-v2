@@ -165,8 +165,8 @@ $colors: (
 
 $colors-dark-mode: (
         //基本颜色
-        "white" ($dark, $white),
-        "black" ($white, $black),
+        "white" ($dark, $white, $dark, $white),
+        "black" ($white, $black, $white, $black),
         "grey" ($grey, $grey-invert),
         "light" ($deep-dark, $light),
         "deep-light" ($shallow-dark, $white),
