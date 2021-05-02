@@ -94,9 +94,9 @@ const MainContent = defineComponent({
 
         return () => <div class="box mb-1">
             <p>
-                <span class="icon is-size-large"><i class="fa fa-hashtag"/></span>
+                <span class={["icon", "is-size-large", `has-text-${props.data.color}`]}><i class="fa fa-hashtag"/></span>
                 <span class="can-be-selected">
-                        <b class="is-size-4">{props.data.name}</b>
+                        <b class={["is-size-4", `has-text-${props.data.color}`]}>{props.data.name}</b>
                         <i class="ml-1 has-text-grey">{props.data.otherNames.join(" / ")}</i>
                     </span>
             </p>
@@ -105,12 +105,12 @@ const MainContent = defineComponent({
             </p>
             <p class="mt-6"/>
             <p class="mt-1">
-                {props.data.annotations.map(annotation => <span class="tag mr-1">[ {annotation.name} ]</span>)}
+                {props.data.annotations.map(annotation => <span class="tag mr-1 mb-1"><b class="mr-1">[</b>{annotation.name}<b class="ml-1">]</b></span>)}
             </p>
-            <p class="mt-1">
-                {props.data.keywords.map(keyword => <span class="tag mr-1">{keyword}</span>)}
+            <p>
+                {props.data.keywords.map(keyword => <span class="tag mr-1 mb-1">{keyword}</span>)}
             </p>
-            {(props.data.description || null) && <div class="mt-1 block p-3">
+            {(props.data.description || null) && <div class="block p-3">
                 <WrappedText value={props.data.description}/>
             </div>}
             <p class="mt-4"/>
@@ -132,26 +132,28 @@ const RelatedThemeContent = defineComponent({
             navigator.goto.main.topics({parentId: detailMode.value!})
         }
 
-        return () => subThemeData.value?.total ? <div class="box mb-1">
+        return () => (subThemeData.value?.total || props.data.parent) ? <div class="box mb-1">
             {props.data.parent && <div class="mt-1">
                 <div class="mb-1"><i class="fa fa-chess-queen mr-2"/><span>父主题</span></div>
                 <div>
-                    <a class="tag mr-1 mb-1" onClick={() => openDetailPane(props.data.parent!.id)}>
+                    <a class={["tag", "mr-1", "mb-1", "is-light", `is-${props.data.parent.color}`]} onClick={() => openDetailPane(props.data.parent!.id)}>
                         {TYPE_ICON_ELEMENTS[props.data.parent.type]}
                         {props.data.parent.name}
                     </a>
                 </div>
             </div>}
-            <div class="mt-3 mb-1"><i class="fa fa-chess mr-2"/><span>子主题</span></div>
-            <div>
-                {subThemeData.value!.result.map(topic => <a class="tag mr-1 mb-1" onClick={() => openDetailPane(topic.id)}>
-                    {TYPE_ICON_ELEMENTS[topic.type]}
-                    {topic.name}
-                </a>)}
-                <p>
-                    <a class="no-wrap mb-1" onClick={more}>在主题列表搜索全部子主题<i class="fa fa-angle-double-right ml-1"/></a>
-                </p>
-            </div>
+            {(subThemeData.value?.total || null) && <>
+                <div class="mt-3 mb-1"><i class="fa fa-chess mr-2"/><span>子主题</span></div>
+                <div>
+                    {subThemeData.value!.result.map(topic => <a class={["tag", "mr-1", "mb-1", "is-light", `is-${topic.color}`]} onClick={() => openDetailPane(topic.id)}>
+                        {TYPE_ICON_ELEMENTS[topic.type]}
+                        {topic.name}
+                    </a>)}
+                    <p>
+                        <a class="no-wrap mb-1" onClick={more}>在主题列表搜索全部子主题<i class="fa fa-angle-double-right ml-1"/></a>
+                    </p>
+                </div>
+            </>}
         </div> : <div/>
     }
 })

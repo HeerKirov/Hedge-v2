@@ -153,6 +153,7 @@ const Panel = defineComponent({
         const setDescription = (v: string) => emit("update", "description", v)
         const setLinks = (v: Link[]) => emit("update", "links", v)
         const setScore = (v: number | null) => emit("update", "score", v)
+        const setAnnotations = (v: SimpleAnnotation[]) => emit("update", "annotations", v)
 
         const annotationTarget: Ref<AnnotationTarget> = computed(() => props.data.type === "UNKNOWN" ? "TOPIC" : props.data.type)
 
@@ -189,7 +190,7 @@ const Panel = defineComponent({
                 </div>
                 <div class="mt-2">
                     <span class="label">注解</span>
-                    <AnnotationEditor target={annotationTarget.value} value={props.data.annotations}/>
+                    <AnnotationEditor target={annotationTarget.value} value={props.data.annotations} onUpdateValue={setAnnotations}/>
                 </div>
                 <div class="mt-2">
                     <span class="label">描述关键字</span>

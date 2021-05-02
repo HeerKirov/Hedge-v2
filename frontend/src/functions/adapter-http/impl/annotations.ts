@@ -94,6 +94,7 @@ export type AnnotationFilter = AnnotationQueryFilter & LimitAndOffsetFilter
 export interface AnnotationQueryFilter {
     search?: string
     order?: OrderList<"id" | "name" | "createTime">
+    name?: string
     canBeExported?: boolean
     target?: AnnotationTarget
 }

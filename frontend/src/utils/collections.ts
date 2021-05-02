@@ -7,7 +7,20 @@ export const arrays = {
         let beginIndex = 0
         for(let i = 0; i < arr.length; i++) {
             if(i + 1 === arr.length || condition(arr[i], arr[i + 1])) {
-                result.push(arr.slice(beginIndex, i + 1))
+                const part = arr.slice(beginIndex, i + 1)
+                if(part.length) result.push(part)
+                beginIndex = i + 1
+            }
+        }
+        return result
+    },
+    window<T>(arr: T[], size: number): T[][] {
+        const result: T[][] = []
+        let beginIndex = 0
+        for(let i = 0; i < arr.length; i++) {
+            if(i + 1 === arr.length || (i != 0 && i % size === 0)) {
+                const part = arr.slice(beginIndex, i + 1)
+                if(part.length) result.push(part)
                 beginIndex = i + 1
             }
         }

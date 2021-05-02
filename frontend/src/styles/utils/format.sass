@@ -15,16 +15,28 @@
   .is-line-height-#{$name}
     line-height: $size
 
-//文本颜色
+//元素文本宽度(用于固定文本大小)
+@for $i from 1 through 100
+  .is-line-width-#{$i}
+    width: 1em * $i
+  .is-min-line-width-#{$i}
+    min-width: 1em * $i
+
+
+//文本颜色和背景色
 @each $name, $pair in $colors
   $color: nth($pair, 1)
   .has-text-#{$name}
     color: $color !important
+  .has-bg-#{$name}
+    background-color: $color !important
 @media (prefers-color-scheme: dark)
   @each $name, $pair in $colors-dark-mode
     $color: nth($pair, 1)
     .has-text-#{$name}
       color: $color
+    .has-bg-#{$name}
+      background-color: $color !important
 
 //文本字体
 .is-monospace

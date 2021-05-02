@@ -29,7 +29,7 @@ export default defineComponent({
             }
             const sideLayoutSlots = {
                 side() { return <SideBar v-slots={sideSlots}/> },
-                default() { return <RouterView v-slots={{default: ({ Component }) => <KeepAlive>{Component}</KeepAlive>}}/> /*JSX RouterView的KeepAlive*/ }
+                default() { return <RouterView/> }
             }
             return <div class={style.root}>
                 <SideLayout v-slots={sideLayoutSlots}/>

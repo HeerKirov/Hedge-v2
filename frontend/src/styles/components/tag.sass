@@ -21,6 +21,13 @@
   &.is-large
     font-size: $font-size-large
 
+  .tag-button
+    color: inherit
+    &:not(:first-child)
+      margin-left: $spacing-1
+    &:not(:last-child)
+      margin-right: $spacing-1
+
   &a:hover
     background-color: toLightenColor($light, 2.5%)
   @each $name, $pair in $colors

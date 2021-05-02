@@ -6,7 +6,6 @@ import { createSettingServiceEndpoint, SettingServiceEndpoint } from "./impl/set
 import { createSettingProxyEndpoint, SettingProxyEndpoint } from "./impl/setting-proxy"
 import { createSettingImportEndpoint, SettingImportEndpoint } from "./impl/setting-import"
 import { createSettingSourceEndpoint, SettingSourceEndpoint } from "./impl/setting-source"
-import { createSettingBackupEndpoint, SettingBackupEndpoint } from "./impl/setting-backup"
 import { createSettingMetaEndpoint, SettingMetaEndpoint } from "./impl/setting-meta"
 import { createSettingQueryEndpoint, SettingQueryEndpoint } from "./impl/setting-query"
 import { createIllustEndpoint, IllustEndpoint } from "./impl/illust"
@@ -27,7 +26,6 @@ export interface HttpClient {
     settingProxy: SettingProxyEndpoint
     settingImport: SettingImportEndpoint
     settingSource: SettingSourceEndpoint
-    settingBackup: SettingBackupEndpoint
     illust: IllustEndpoint
     partition: PartitionEndpoint
     tag: TagEndpoint
@@ -46,7 +44,6 @@ export function createHttpClient(http: HttpInstance): HttpClient {
         settingProxy: createSettingProxyEndpoint(http),
         settingImport: createSettingImportEndpoint(http),
         settingSource: createSettingSourceEndpoint(http),
-        settingBackup: createSettingBackupEndpoint(http),
         illust: createIllustEndpoint(http),
         partition: createPartitionEndpoint(http),
         tag: createTagEndpoint(http),

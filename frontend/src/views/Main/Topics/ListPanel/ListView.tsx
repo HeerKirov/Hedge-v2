@@ -87,10 +87,9 @@ const Item = defineComponent({
 
         const { hover, mouseover, mouseleave } = useHoverFlag()
 
-        //TODO 确定title颜色
         return () => <tr onContextmenu={rightClick} onMouseover={mouseover} onMouseleave={mouseleave} style="height: 50px">
             <td class="is-width-50 is-cursor-pointer" onClick={click}>
-                <span>{props.value.name}</span>
+                <span class={`has-text-${props.value.color}`}>{props.value.name}</span>
                 {(props.value.otherNames?.length || null) && <p class="has-text-grey">
                     ({generateOtherNames(props.value.otherNames)})
                 </p>}

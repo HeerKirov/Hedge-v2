@@ -35,6 +35,7 @@ class AnnotationService(private val data: DataRepository, private val kit: Annot
     fun list(filter: AnnotationFilter): ListResult<AnnotationRes> {
         return data.db.from(Annotations).select()
             .whereWithConditions {
+                if(filter.name != null) { it += Annotations.name eq filter.name }
                 if(filter.canBeExported != null) { it += Annotations.canBeExported eq filter.canBeExported }
                 if(filter.target != null) { it += (Annotations.target compositionContains filter.target) or Annotations.target.compositionEmpty() }
                 if(filter.search != null) { it += Annotations.name like "%${filter.search}%" }
