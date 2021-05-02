@@ -96,6 +96,10 @@ export interface Author {
      * 关联的项目数量。
      */
     count: number
+    /**
+     * 此author的颜色。
+     */
+     color: string | null
 }
 
 export interface DetailAuthor extends Author {
@@ -116,7 +120,9 @@ export interface DetailAuthor extends Author {
 export interface SimpleAuthor {
     id: number
     name: string
+    type: AuthorType
     isExported: boolean
+    color: string | null
 }
 
 export interface AuthorCreateForm {

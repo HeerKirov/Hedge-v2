@@ -1,0 +1,53 @@
+@import '@/styles/base/size.sass';
+@import '@/styles/base/color.scss';
+
+.color-selector {
+  $size: 2rem;
+  position: relative;
+  display: inline-block;
+  width: $size;
+  height: $size;
+
+  .color-block {
+    width: $size;
+    height: $size;
+    border: solid 1px $more-deep-light;
+    border-radius: $radius-size-std;
+    background-color: $black;
+    cursor: pointer;
+    @media (prefers-color-scheme: dark) {
+      border-color: $more-shallow-dark;
+    }
+  }
+
+  .color-picker {
+    $block-size: 2rem;
+    $padding: 0;
+    $row: 5;
+    $col: 3;
+    border-radius: $radius-size-std;
+    border: solid 1px $more-deep-light;
+    box-sizing: border-box;
+    display: flex;
+    flex-wrap: wrap;
+    overflow: hidden;
+
+    position: absolute;
+    cursor: pointer;
+    z-index: 1;
+
+    width: calc(#{$block-size * $col + $padding * 2} + 2px);
+    height: calc(#{$block-size * $row + $padding * 2} + 2px);
+    padding: $padding;
+
+    @media (prefers-color-scheme: dark) {
+      border-color: $more-shallow-dark;
+    }
+
+    > .block {
+      width: $block-size;
+      height: $block-size;
+    }
+  }
+}
+

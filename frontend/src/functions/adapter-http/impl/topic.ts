@@ -100,6 +100,10 @@ export interface Topic {
      * 关联的项目数量。
      */
     count: number
+    /**
+     * 此topic的颜色。
+     */
+    color: string | null
 }
 
 export interface DetailTopic extends Topic {
@@ -125,12 +129,15 @@ export interface ParentTopic {
     id: number
     name: string
     type: TopicType
+    color: string | null
 }
 
 export interface SimpleTopic {
     id: number
     name: string
+    type: TopicType
     isExported: boolean
+    color: string | null
 }
 
 export interface TopicCreateForm {

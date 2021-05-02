@@ -1,4 +1,6 @@
 import { HttpInstance, Response } from "../server"
+import { AuthorType } from "./author"
+import { TopicType } from "./topic"
 
 export function createSettingMetaEndpoint(http: HttpInstance): SettingMetaEndpoint {
     return {
@@ -31,6 +33,14 @@ export interface MetaOption {
      * 对相关元数据做更改后自动清除对应的tagme标记。
      */
     autoCleanTagme: boolean
+    /**
+     * topic根据type区分的颜色。
+     */
+    topicColors: {[key in TopicType]: string}
+    /**
+     * author根据type区分的颜色。
+     */
+    authorColors: {[key in AuthorType]: string}
 }
 
 export interface MetaOptionUpdateForm {
