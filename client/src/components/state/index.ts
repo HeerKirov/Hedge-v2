@@ -110,7 +110,7 @@ export function createStateManager(appdata: AppDataDriver, configuration: Config
             setState(State.LOADING_RESOURCE)
             await resource.update()
         }
-        if(appdata.getAppData().loginOption.password == null) {
+        if(!appdata.getAppData().loginOption.password) {
             //没有密码
 
             //启动server
