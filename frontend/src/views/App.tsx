@@ -1,6 +1,7 @@
 import { computed, defineComponent } from "vue"
 import { RouterView } from "vue-router"
 import { installAppService } from "@/functions/app"
+import { installGlobalKey } from "@/functions/document/global-key"
 import { installTitleWatcher } from "@/functions/document/title"
 import { installNotificationManager } from "@/functions/document/notification"
 import { installMessageBoxManager } from "@/functions/document/message-box"
@@ -12,6 +13,7 @@ import PopupMenuModule from "@/layouts/modules/PopupMenuModule"
 
 export default defineComponent({
     setup() {
+        installGlobalKey()
         installTitleWatcher()
         installNavigatorManager()
         installMessageBoxManager()

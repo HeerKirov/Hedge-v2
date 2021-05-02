@@ -25,6 +25,38 @@
           overflow-y: auto;
           max-height: 10rem;
           padding-top: 0.25rem;
+
+          > .item {
+            padding: 0.125rem 0 0.125rem 0.25rem;
+            &.selected,
+            &:active {
+              background-color: $link;
+            }
+          }
+
+          > .more-button {
+            font-size: $font-size-7;
+            white-space: nowrap;
+            overflow: hidden;
+            padding: 0.25rem 0 0.25rem 0.5rem;
+            &.selected,
+            &:active {
+              color: $white;
+              background-color: $link;
+            }
+            @media (prefers-color-scheme: light) {
+              &:not(.selected):not(:active) {
+                color: $literal;
+                background-color: $bg;
+              }
+            }
+            @media (prefers-color-scheme: dark) {
+              &:not(.selected):not(:active) {
+                color: $literal-dm;
+                background-color: $bg-dm;
+              }
+            }
+          }
         }
         > .create-button {
           font-size: $font-size-7;
@@ -37,7 +69,8 @@
             margin-right: 0.5rem;
           }
 
-          &.selected {
+          &.selected,
+          &:active {
             color: $white;
             background-color: $link;
           }
@@ -46,7 +79,7 @@
             &:last-child {
               border-bottom: solid 1px $sidebar;
             }
-            &:not(.selected) {
+            &:not(.selected):not(:active) {
               color: $literal;
               background-color: $bg;
             }
@@ -56,43 +89,13 @@
             &:last-child {
               border-bottom: solid 1px $sidebar-dm;
             }
-            &:not(.selected) {
+            &:not(.selected):not(:active) {
               color: $literal-dm;
               background-color: $bg-dm;
             }
           }
         }
       }
-
-      .item {
-        padding: 0 0 0.25rem 0.25rem;
-      }
-
-      .more-item {
-        font-size: $font-size-7;
-        white-space: nowrap;
-        overflow: hidden;
-        margin-top: -0.25rem;
-        padding: 0.25rem 0 0.25rem 0.5rem;
-        &.selected {
-          color: $white;
-          background-color: $link;
-        }
-        @media (prefers-color-scheme: light) {
-          &:not(.selected) {
-            color: $literal;
-            background-color: $bg;
-          }
-        }
-        @media (prefers-color-scheme: dark) {
-          &:not(.selected) {
-            color: $literal-dm;
-            background-color: $bg-dm;
-          }
-        }
-      }
-
-
     }
   }
 }

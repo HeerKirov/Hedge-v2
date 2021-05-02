@@ -24,7 +24,7 @@ export function watchElementResize(ref: Ref<HTMLElement | undefined>, event: (re
 }
 
 /**
- * 注册一个监听事件，监听点击目标元素意外的元素的事件。
+ * 注册一个监听事件，监听点击目标元素以外的元素的事件。
  * @param ref 监听点击此目标以外的元素
  * @param event 事件
  */

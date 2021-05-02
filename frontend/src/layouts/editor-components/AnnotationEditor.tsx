@@ -1,7 +1,19 @@
-import { defineComponent, isReactive, PropType, readonly, Ref, ref, toRef, watch } from "vue"
+import {
+    ComponentInternalInstance,
+    computed,
+    defineComponent,
+    PropType,
+    reactive,
+    readonly,
+    Ref,
+    ref,
+    toRef,
+    watch
+} from "vue"
 import Input from "@/components/forms/Input"
 import { AnnotationTarget, SimpleAnnotation } from "@/functions/adapter-http/impl/annotations"
 import { useContinuousEndpoint } from "@/functions/utils/endpoints/continuous-endpoint"
+import { interceptGlobalKey } from "@/functions/document/global-key"
 import { useNotification } from "@/functions/document/notification"
 import { useMessageBox } from "@/functions/document/message-box"
 import { useHttpClient } from "@/functions/app"
@@ -46,8 +58,9 @@ const AnnotationPicker = defineComponent({
         pick(_: SimpleAnnotation) { return true }
     },
     setup(props, { emit }) {
+        const data = installData(toRef(props, "target"), v => pick(v))
+        const { updateSearch, enterSearch } = data
         const { pickerRef, showBoard, focus } = useBoard()
-        const { updateSearch, enterSearch } = installData(toRef(props, "target"), v => pick(v))
 
         const textBox = ref("")
 
@@ -84,13 +97,6 @@ const AnnotationPickerBoardContent = defineComponent({
 
         const pick = (v: SimpleAnnotation) => emit("pick", v)
 
-        const keypress = (e: KeyboardEvent) => {
-            if(e.key === "ArrowUp" || e.key === "ArrowDown") {
-                console.log(e.key)
-                e.returnValue = false
-            }
-        }
-
         return () => contentType.value === "recent"
             ? <RecentContent onPick={pick}/>
             : <SearchResultContent onPick={pick}/>
@@ -113,26 +119,59 @@ const SearchResultContent = defineComponent({
     emits: ["pick"],
     setup(_, { emit }) {
         const { searchData, create, search } = useData()
+        const { elements, selectedKey } = useKeyboardSelector(computed(() => {
+            const elements: KeyboardSelectorItem[] = searchData.data.result.map(item => ({
+                key: item.id,
+                event: onPick(item)
+            }))
+            if(searchData.showMore) elements.push({
+                key: "more",
+                event: searchData.next
+            })
+            elements.push({
+                key: "create",
+                event: create
+            })
+            return elements
+        }))
 
         const onPick = (annotation: SimpleAnnotation) => () => emit("pick", annotation)
 
-        return () => <div class={style.searchBoardContent}>
-            <div class={style.scrollContent}>
-                <p class="has-text-grey is-size-small ml-1 mb-1"><i>搜索结果</i></p>
-                {!searchData.loading.value && !searchData.data.value.total ? <div class="has-text-grey m-2 has-text-centered">无匹配结果</div> : null}
-                {searchData.data.value.result.map(annotation => <div class={style.item}>
-                    <span class="tag" onClick={onPick(annotation)}>
-                        <b>[</b><span class="mx-1">{annotation.name}</span><b>]</b>
-                    </span>
-                </div>)}
-                <div class={style.moreItem} v-show={!searchData.loading.value && searchData.data.value.total > searchData.data.value.result.length} onClick={searchData.next}>
-                    加载更多…
+        return () => {
+            const setRef = (i: number | string) => (el: Element | ComponentInternalInstance | null) => {
+                if(el) elements.value[i] = el as Element
+            }
+
+            elements.value = {}
+
+            return <div class={style.searchBoardContent}>
+                <div class={style.scrollContent}>
+                    <p class="has-text-grey is-size-small ml-1 mb-1"><i>搜索结果</i></p>
+                    {!searchData.loading && !searchData.data.total ?
+                        <div class="has-text-grey m-2 has-text-centered">无匹配结果</div> : null}
+                    {searchData.data.result.map(annotation => (
+                        <div key={annotation.id} ref={setRef(annotation.id)}
+                             class={{[style.item]: true, [style.selected]: annotation.id === selectedKey.value}}
+                             onClick={onPick(annotation)}>
+                            <span class="tag">
+                                <b>[</b><span class="mx-1">{annotation.name}</span><b>]</b>
+                            </span>
+                        </div>
+                    ))}
+                    <div ref={setRef("more")}
+                         class={{[style.moreButton]: true, [style.selected]: "more" === selectedKey.value}}
+                         v-show={searchData.showMore}
+                         onClick={searchData.next}>
+                        加载更多…
+                    </div>
+                </div>
+                <div ref={setRef("create")}
+                     class={{[style.createButton]: true, [style.selected]: "create" === selectedKey.value}}
+                     onClick={create}>
+                    <i class="fa fa-plus"/>新建注解"{search.value}"
                 </div>
             </div>
-            <div class={style.createButton} onClick={create}>
-                <i class="fa fa-plus"/>新建名称为"{search.value}"注解…
-            </div>
-        </div>
+        }
     }
 })
 
@@ -153,7 +192,7 @@ function useBoard() {
     return {pickerRef, showBoard, focus}
 }
 
-const [installData, useData] = installation(function (target: Ref<AnnotationTarget | undefined>, pick: (a: SimpleAnnotation) => void) {
+const [installData, useData] = installation(function(target: Ref<AnnotationTarget | undefined>, pick: (a: SimpleAnnotation) => void) {
     const httpClient = useHttpClient()
     const { handleError, handleException } = useNotification()
     const message = useMessageBox()
@@ -168,7 +207,7 @@ const [installData, useData] = installation(function (target: Ref<AnnotationTarg
         }
     }
 
-    const searchData = useContinuousEndpoint({
+    const endpoint = useContinuousEndpoint({
         async request(offset: number, limit: number) {
             const res = await httpClient.annotation.list({offset, limit, search: search.value, target: target.value, order: "-createTime"})
             return res.ok ? {ok: true, ...res.data} : {ok: false, message: res.exception?.message ?? "unknown error"}
@@ -178,17 +217,21 @@ const [installData, useData] = installation(function (target: Ref<AnnotationTarg
         continueSize: 2
     })
 
+    const showMore = computed(() => !endpoint.loading.value && endpoint.data.value.total > endpoint.data.value.result.length)
+
+    const searchData = reactive({...endpoint, showMore})
+
     const contentType = ref<"recent" | "search">("recent")
 
     watch(search, value => {
         if(value.length) {
             //有搜索内容时执行搜索
             contentType.value = "search"
-            searchData.refresh()
+            endpoint.refresh()
         }else{
             //无搜索内容时切换至recent
             contentType.value = "recent"
-            searchData.clear()
+            endpoint.clear()
         }
     })
 
@@ -202,13 +245,13 @@ const [installData, useData] = installation(function (target: Ref<AnnotationTarg
 
         if(existRes.data.total) {
             //找到已存在的记录
-            if(await message.showYesNoMessage("confirm", `名称为"${name}"的注解是已存在的。`, "是否选择将其直接添加到注解列表？")) {
+            if(await message.showYesNoMessage("confirm", `注解"${name}"是已存在的。`, "是否选择将其直接添加到注解列表？")) {
                 const annotation = existRes.data.result[0]
                 pick({id: annotation.id, name: annotation.name})
             }
         }else{
             //没有已存在的记录
-            if(await message.showYesNoMessage("confirm", `确认创建注解"${name}"?`)) {
+            if(await message.showYesNoMessage("confirm", `确定创建新的注解"${name}"?`)) {
                 const idRes = await httpClient.annotation.create({name, canBeExported: false, target: []})
                 if(!idRes.ok) {
                     if(idRes.exception) handleException(idRes.exception)
@@ -222,3 +265,56 @@ const [installData, useData] = installation(function (target: Ref<AnnotationTarg
 
     return {updateSearch, enterSearch, contentType, searchData, create, search: readonly(search)}
 })
+
+interface KeyboardSelectorItem {
+    key: number | string, event(): void
+}
+
+function useKeyboardSelector(items: Ref<KeyboardSelectorItem[]>) {
+    //TODO 需要优化两个问题
+    //      - 点击more按钮之后，index的位置应变换为新元素的第一个
+    //      - 重置结果列表之后，index应当重置为null
+    interceptGlobalKey(["ArrowUp", "ArrowDown"], key => {
+        if(items.value.length) {
+            if(key === "ArrowUp") {
+                if(selected.index === null || selected.index === 0) {
+                    selected.index = items.value.length - 1
+                }else{
+                    selected.index -= 1
+                }
+            }else if(key === "ArrowDown") {
+                if(selected.index === null || selected.index === items.value.length - 1) {
+                    selected.index = 0
+                }else{
+                    selected.index += 1
+                }
+            }
+            selected.key = items.value[selected.index!]?.key ?? null
+
+            const el = selected.index !== null && elements.value[selected.key]
+            if(el) {
+                el.scrollIntoView({block: "nearest"})
+            }
+        }
+    })
+
+    interceptGlobalKey(["Enter"], () => {
+        if(selected.index === null) {
+            selected.index = 0
+            selected.key = items.value[0]?.key ?? null
+        }else{
+            items.value[selected.index]?.event()
+        }
+    })
+
+    const elements = ref<{[key in string | number]: Element}>({})
+
+    const selected = reactive<{key: string | number | null, index: number | null}>({
+        key: null,
+        index: null
+    })
+
+    const selectedKey = toRef(selected, "key")
+
+    return {elements, selectedKey: readonly(selectedKey)}
+}

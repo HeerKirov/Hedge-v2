@@ -1,5 +1,6 @@
-import { defineComponent, onMounted, onUnmounted, PropType, ref, watch, Transition } from "vue"
+import { defineComponent, PropType, ref, watch, Transition } from "vue"
 import { MessageBoxButton, MessageTask, useMessageBoxConsumer } from "@/functions/document/message-box"
+import { watchGlobalKeyEvent } from "@/functions/document/global-key"
 import style from "./style.module.scss"
 
 export default defineComponent({
@@ -49,16 +50,14 @@ const Box = defineComponent({
     setup(props, { emit }) {
         const onClick = (action: string) => () => emit("click", action)
 
-        function escapeEvent(e: KeyboardEvent) {
+        watchGlobalKeyEvent(e => {
             if(props.esc && e.key === "Escape") {
                 emit("click", props.esc)
             }else if(props.enter && e.key === "Enter") {
                 emit("click", props.enter)
             }
-            e.returnValue = false
-        }
-        onMounted(() => document.addEventListener("keydown", escapeEvent))
-        onUnmounted(() => document.removeEventListener("keydown", escapeEvent))
+            e.preventDefault()
+        })
 
         return () => <div class={style.boxFramework}>
             <div class={style.box}>

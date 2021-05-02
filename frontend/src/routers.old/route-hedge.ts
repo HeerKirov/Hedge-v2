@@ -61,16 +61,6 @@ export default <RouteRecordRaw[]>[
                 component: () => import('@/views.old/Hedge/MainPanel/ViewTags')
             },
             {
-                name: 'HedgeTopics',
-                path: 'topics',
-                component: () => import('@/views.old/Hedge/MainPanel/ViewTopics')
-            },
-            {
-                name: 'HedgeTopicsDetail',
-                path: 'topics/:id(\\d+)',
-                component: () => import('@/views.old/Hedge/MainPanel/ViewTopicsDetail')
-            },
-            {
                 name: 'HedgeAuthors',
                 path: 'authors',
                 component: () => import('@/views.old/Hedge/MainPanel/ViewAuthors')
