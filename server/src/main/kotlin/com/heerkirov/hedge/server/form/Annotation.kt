@@ -12,6 +12,7 @@ data class AnnotationFilter(@Limit val limit: Int,
                             @Search val search: String?,
                             @Order(options = ["id", "name", "createTime"])
                             val order: List<OrderItem>? = null,
+                            val name: String? = null,
                             val canBeExported: Boolean? = null,
                             val target: Annotation.AnnotationTarget? = null)
 
