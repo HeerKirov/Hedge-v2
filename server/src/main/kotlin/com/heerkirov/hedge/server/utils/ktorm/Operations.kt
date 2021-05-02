@@ -8,6 +8,12 @@ import org.ktorm.schema.ColumnDeclaring
 import org.ktorm.schema.SqlType
 import org.ktorm.schema.VarcharSqlType
 
+data class CompositionEmptyExpression<T : Composition<T>>(
+    val left: ScalarExpression<T>,
+    override val sqlType: SqlType<Boolean> = BooleanSqlType,
+    override val isLeafNode: Boolean = false,
+    override val extraProperties: Map<String, Any> = emptyMap()
+) : ScalarExpression<Boolean>()
 
 data class CompositionContainExpression<T : Composition<T>>(
     val left: ScalarExpression<T>,
@@ -16,6 +22,13 @@ data class CompositionContainExpression<T : Composition<T>>(
     override val isLeafNode: Boolean = false,
     override val extraProperties: Map<String, Any> = emptyMap()
 ) : ScalarExpression<Boolean>()
+
+/**
+ * 面向composition类型的计算：判断是否为空值。
+ */
+inline fun <reified T : Composition<T>> ColumnDeclaring<T>.compositionEmpty(): CompositionEmptyExpression<T> {
+    return CompositionEmptyExpression(asExpression())
+}
 
 /**
  * 面向composition类型的计算：判断left是否完全包含right的值。

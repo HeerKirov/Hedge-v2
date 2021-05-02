@@ -38,6 +38,8 @@ class AuthorService(private val data: DataRepository,
     }
 
     fun list(filter: AuthorFilter): ListResult<AuthorRes> {
+        val authorColors = data.metadata.meta.authorColors
+
         return data.db.from(Authors)
             .let {
                 if(filter.annotationIds.isNullOrEmpty()) it else {
@@ -54,7 +56,7 @@ class AuthorService(private val data: DataRepository,
             }
             .orderBy(orderTranslator, filter.order, default = ascendingOrderItem("id"))
             .limit(filter.offset, filter.limit)
-            .toListResult { newAuthorRes(Authors.createEntity(it)) }
+            .toListResult { newAuthorRes(Authors.createEntity(it), authorColors) }
     }
 
     fun create(form: AuthorCreateForm): Int {
@@ -90,7 +92,7 @@ class AuthorService(private val data: DataRepository,
 
     fun get(id: Int): AuthorDetailRes {
         return data.db.sequenceOf(Authors).firstOrNull { it.id eq id }
-            ?.let { newAuthorDetailRes(it) }
+            ?.let { newAuthorDetailRes(it, data.metadata.meta.authorColors) }
             ?: throw NotFound()
     }
 

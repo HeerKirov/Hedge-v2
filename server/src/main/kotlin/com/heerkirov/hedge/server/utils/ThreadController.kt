@@ -31,7 +31,7 @@ class ThreadController(start: Boolean = false, private val call: () -> Unit) {
 
     /**
      * 停止任务。
-     * @param force 强制关闭任务，这将使用难过interrupt打断线程。
+     * @param force 强制关闭任务，这将使用interrupt打断线程。
      */
     fun stop(force: Boolean = false) {
         synchronized(this) {

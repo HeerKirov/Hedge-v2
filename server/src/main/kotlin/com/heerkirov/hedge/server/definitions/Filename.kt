@@ -13,6 +13,7 @@ object Filename {
     const val PUBLIC_DAT = "public.dat"
 
     const val META_DAT = "meta.dat"
+    const val STORAGE_DAT = "storage.dat"
     const val DATA_SQLITE = "data.sqlite"
     const val META_SQLITE = "meta.sqlite"
     const val ORIGIN_SQLITE = "origin.sqlite"

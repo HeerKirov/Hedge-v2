@@ -7,6 +7,8 @@ import com.heerkirov.hedge.server.library.form.Length
 import com.heerkirov.hedge.server.library.form.Min
 import com.heerkirov.hedge.server.library.form.NotBlank
 import com.heerkirov.hedge.server.library.form.Range
+import com.heerkirov.hedge.server.model.meta.Author
+import com.heerkirov.hedge.server.model.meta.Topic
 import com.heerkirov.hedge.server.utils.types.Opt
 
 data class SiteCreateForm(@NotBlank @Length(16) val name: String,
@@ -25,9 +27,10 @@ data class ImportOptionUpdateForm(val autoAnalyseMeta: Opt<Boolean>,
                                   val sourceAnalyseRules: Opt<List<ImportOption.SourceAnalyseRule>>,
                                   val systemDownloadHistoryPath: Opt<String?>)
 
-data class MetaOptionUpdateForm(@Range(1, 100) val scoreMaximum: Opt<Int>,
-                                val scoreDescriptions: Opt<List<MetaOption.ScoreDescription>>,
-                                val autoCleanTagme: Opt<Boolean>)
+data class MetaOptionUpdateForm(val scoreDescriptions: Opt<List<MetaOption.ScoreDescription>>,
+                                val autoCleanTagme: Opt<Boolean>,
+                                val topicColors: Opt<Map<Topic.Type, String>>,
+                                val authorColors: Opt<Map<Author.Type, String>>)
 
 data class QueryOptionUpdateForm(val chineseSymbolReflect: Opt<Boolean>,
                                  val translateUnderscoreToSpace: Opt<Boolean>,

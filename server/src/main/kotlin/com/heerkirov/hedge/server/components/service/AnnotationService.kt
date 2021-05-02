@@ -16,6 +16,7 @@ import com.heerkirov.hedge.server.utils.DateTime
 import com.heerkirov.hedge.server.utils.ktorm.OrderTranslator
 import com.heerkirov.hedge.server.utils.types.anyOpt
 import com.heerkirov.hedge.server.utils.ktorm.compositionContains
+import com.heerkirov.hedge.server.utils.ktorm.compositionEmpty
 import com.heerkirov.hedge.server.utils.ktorm.orderBy
 import com.heerkirov.hedge.server.utils.types.ListResult
 import com.heerkirov.hedge.server.utils.types.ascendingOrderItem
@@ -35,7 +36,7 @@ class AnnotationService(private val data: DataRepository, private val kit: Annot
         return data.db.from(Annotations).select()
             .whereWithConditions {
                 if(filter.canBeExported != null) { it += Annotations.canBeExported eq filter.canBeExported }
-                if(filter.target != null) { it += Annotations.target compositionContains filter.target }
+                if(filter.target != null) { it += (Annotations.target compositionContains filter.target) or Annotations.target.compositionEmpty() }
                 if(filter.search != null) { it += Annotations.name like "%${filter.search}%" }
             }
             .limit(filter.offset, filter.limit)

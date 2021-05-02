@@ -11,7 +11,9 @@ object MetadataMigrationStrategy : JsonObjectStrategy<Metadata>(Metadata::class)
         return Metadata(
             meta = MetaOption(
                 scoreDescriptions = emptyList(),
-                autoCleanTagme = true
+                autoCleanTagme = true,
+                topicColors = emptyMap(),
+                authorColors = emptyMap()
             ),
             query = QueryOption(
                 chineseSymbolReflect = false,
@@ -50,6 +52,20 @@ object MetadataMigrationStrategy : JsonObjectStrategy<Metadata>(Metadata::class)
         register.empty("0.1.0")
     }
 
+}
+
+object StorageMigrationStrategy : JsonObjectStrategy<Storage>(Storage::class) {
+    override fun defaultData(): Storage {
+        return Storage(
+            tagExporter = TagExporter(
+                refreshGlobalOrdinal = false
+            )
+        )
+    }
+
+    override fun migrations(register: MigrationRegister<JsonNode>) {
+        register.empty("0.1.0")
+    }
 }
 
 object DatabaseMigrationStrategy : SimpleStrategy<Database>() {

@@ -12,10 +12,12 @@ import java.sql.DriverManager
 
 class DBInstance(val dbPath: String) : Closeable {
     private val metadataFilePath = "$dbPath/${Filename.META_DAT}"
+    private val storageFilePath = "$dbPath/${Filename.STORAGE_DAT}"
 
     val database: Database
-
     val metadata: Metadata
+    val storage: Storage
+
     private val conn: Connection
 
     init {
@@ -39,11 +41,19 @@ class DBInstance(val dbPath: String) : Closeable {
                 if(changed) { Fs.writeText(metadataFilePath, d.toJSONString()) }
                 metadata = d
             }
+            it.migrate(Fs.readText(storageFilePath), StorageMigrationStrategy).let { (d, changed) ->
+                if(changed) { Fs.writeText(storageFilePath, d.toJSONString()) }
+                storage = d
+            }
         }
     }
 
     fun saveData() {
         Fs.writeFile(metadataFilePath, metadata)
+    }
+
+    fun saveStorage() {
+        Fs.writeFile(storageFilePath, storage)
     }
 
     override fun close() {

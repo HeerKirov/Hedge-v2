@@ -9,6 +9,7 @@ import com.heerkirov.hedge.server.components.kit.IllustKit
 import com.heerkirov.hedge.server.components.manager.*
 import com.heerkirov.hedge.server.components.manager.query.QueryManager
 import com.heerkirov.hedge.server.dao.album.AlbumImageRelations
+import com.heerkirov.hedge.server.dao.album.AlbumTopicRelations
 import com.heerkirov.hedge.server.dao.album.Albums
 import com.heerkirov.hedge.server.dao.illust.*
 import com.heerkirov.hedge.server.dao.meta.Authors
@@ -124,22 +125,36 @@ class IllustService(private val data: DataRepository,
         val createTime = row[Illusts.createTime]!!
         val updateTime = row[Illusts.updateTime]!!
 
+        val authorColors = data.metadata.meta.authorColors
+        val topicColors = data.metadata.meta.topicColors
+
         val topics = data.db.from(Topics)
             .innerJoin(IllustTopicRelations, IllustTopicRelations.topicId eq Topics.id)
-            .select(Topics.id, Topics.name, IllustTopicRelations.isExported)
+            .select(Topics.id, Topics.name, Topics.type, IllustTopicRelations.isExported)
             .where { IllustTopicRelations.illustId eq id }
-            .map { TopicSimpleRes(it[Topics.id]!!, it[Topics.name]!!, it[IllustTopicRelations.isExported]!!) }
+            .orderBy(Topics.type.asc(), Topics.id.asc())
+            .map {
+                val topicType = it[Topics.type]!!
+                val color = topicColors[topicType]
+                TopicSimpleRes(it[Topics.id]!!, it[Topics.name]!!, topicType, it[AlbumTopicRelations.isExported]!!, color)
+            }
 
         val authors = data.db.from(Authors)
             .innerJoin(IllustAuthorRelations, IllustAuthorRelations.authorId eq Authors.id)
-            .select(Authors.id, Authors.name, IllustAuthorRelations.isExported)
+            .select(Authors.id, Authors.name, Authors.type, IllustAuthorRelations.isExported)
             .where { IllustAuthorRelations.illustId eq id }
-            .map { AuthorSimpleRes(it[Authors.id]!!, it[Authors.name]!!, it[IllustAuthorRelations.isExported]!!) }
+            .orderBy(Authors.type.asc(), Authors.id.asc())
+            .map {
+                val authorType = it[Authors.type]!!
+                val color = authorColors[authorType]
+                AuthorSimpleRes(it[Authors.id]!!, it[Authors.name]!!, authorType, it[IllustAuthorRelations.isExported]!!, color)
+            }
 
         val tags = data.db.from(Tags)
             .innerJoin(IllustTagRelations, IllustTagRelations.tagId eq Tags.id)
             .select(Tags.id, Tags.name, Tags.color, IllustTagRelations.isExported)
             .where { (IllustTagRelations.illustId eq id) and (Tags.type eq Tag.Type.TAG) }
+            .orderBy(Tags.globalOrdinal.asc())
             .map { TagSimpleRes(it[Tags.id]!!, it[Tags.name]!!, it[Tags.color], it[IllustTagRelations.isExported]!!) }
 
         return IllustDetailRes(

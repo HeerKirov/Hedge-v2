@@ -55,7 +55,7 @@ class TopicService(private val data: DataRepository,
             }
             .orderBy(orderTranslator, filter.order, default = ascendingOrderItem("id"))
             .limit(filter.offset, filter.limit)
-            .toListResult { newTopicRes(Topics.createEntity(it)) }
+            .toListResult { newTopicRes(Topics.createEntity(it), data.metadata.meta.topicColors) }
     }
 
     fun create(form: TopicCreateForm): Int {
@@ -96,7 +96,7 @@ class TopicService(private val data: DataRepository,
     fun get(id: Int): TopicDetailRes {
         val topic = data.db.sequenceOf(Topics).firstOrNull { it.id eq id } ?: throw NotFound()
         val parent = topic.parentId?.let { parentId -> data.db.sequenceOf(Topics).firstOrNull { it.id eq parentId } }
-        return newTopicDetailRes(topic, parent)
+        return newTopicDetailRes(topic, parent, data.metadata.meta.topicColors)
     }
 
     fun update(id: Int, form: TopicUpdateForm) {

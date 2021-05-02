@@ -7,6 +7,10 @@ import java.time.LocalDateTime
  */
 data class Tag(val id: Int,
                /**
+                * 全局排序下标，由系统维护且无需对外展示，用于保持从标签树取出的部分列表的整体有序。从0开始。
+                */
+               val globalOrdinal: Int,
+               /**
                 * 排序下标，由系统维护，同一父标签一组从0开始。
                 */
                val ordinal: Int,

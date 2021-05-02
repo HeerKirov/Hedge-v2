@@ -89,6 +89,7 @@ CREATE UNIQUE INDEX partition_date__index ON partition(date);
 -- 内容描述 标签
 CREATE TABLE meta_db.tag(
     id 				INTEGER PRIMARY KEY,
+    global_ordinal  INTEGER NOT NULL,           -- 全局排序下标，从0开始
     ordinal 		INTEGER NOT NULL,           -- 排序下标，由系统维护，同一父标签一组从0开始
     parent_id 		INTEGER DEFAULT NULL,       -- 父标签的ID
     name 			VARCHAR(32) COLLATE NOCASE NOT NULL,       -- 标签的名称
@@ -106,6 +107,8 @@ CREATE TABLE meta_db.tag(
     create_time 	TIMESTAMP NOT NULL,         -- 此标签初次建立的时间
     update_time 	TIMESTAMP NOT NULL          -- 对标签的关联image项进行更新的时间
 );
+CREATE INDEX meta_db.tag_ordinal_index ON tag(parent_id, ordinal);
+CREATE INDEX meta_db.tag_global_ordinal_index ON tag(global_ordinal);
 
 -- 作者 标签
 CREATE TABLE meta_db.author(

@@ -2,6 +2,8 @@ package com.heerkirov.hedge.server.components.database
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
+import com.heerkirov.hedge.server.model.meta.Author
+import com.heerkirov.hedge.server.model.meta.Topic
 
 data class Metadata(
     val meta: MetaOption,
@@ -19,7 +21,15 @@ data class MetaOption(
     /**
      * 当编辑了对应的成份时，自动对illust的tagme做清理。
      */
-    var autoCleanTagme: Boolean
+    var autoCleanTagme: Boolean,
+    /**
+     * topic根据其type的不同配色。
+     */
+    var topicColors: Map<Topic.Type, String>,
+    /**
+     * author根据其type的不同配色。
+     */
+    var authorColors: Map<Author.Type, String>
 ) {
     data class ScoreDescription(val word: String, val content: String)
 }
@@ -139,7 +149,7 @@ data class ImportOption(
 /**
  * 与爬虫相关的选项。
  */
-class SpiderOption(
+data class SpiderOption(
     /**
      * 爬虫算法的配对规则。key:value=siteName:爬虫算法名称。爬虫算法名称在系统中写死。
      */

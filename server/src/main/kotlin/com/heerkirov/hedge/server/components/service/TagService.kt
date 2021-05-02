@@ -3,6 +3,7 @@ package com.heerkirov.hedge.server.components.service
 import com.heerkirov.hedge.server.components.backend.AlbumExporterTask
 import com.heerkirov.hedge.server.components.backend.IllustExporterTask
 import com.heerkirov.hedge.server.components.backend.IllustMetaExporter
+import com.heerkirov.hedge.server.components.backend.TagExporter
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.database.transaction
 import com.heerkirov.hedge.server.exceptions.*
@@ -30,6 +31,7 @@ class TagService(private val data: DataRepository,
                  private val kit: TagKit,
                  private val fileManager: FileManager,
                  private val queryManager: QueryManager,
+                 private val tagExporter: TagExporter,
                  private val illustMetaExporter: IllustMetaExporter) {
     private val orderTranslator = OrderTranslator {
         "id" to Tags.id
@@ -101,7 +103,7 @@ class TagService(private val data: DataRepository,
             val ordinal = if(form.ordinal == null) {
                 tagCountInParent
             }else when {
-                form.ordinal < 0 -> 0
+                form.ordinal <= 0 -> 0
                 form.ordinal >= tagCountInParent -> tagCountInParent
                 else -> form.ordinal
             }.also { ordinal ->
@@ -132,6 +134,8 @@ class TagService(private val data: DataRepository,
             } as Int
 
             kit.processAnnotations(id, form.annotations, creating = true)
+
+            tagExporter.refreshGlobalOrdinal()
 
             return id
         }
@@ -215,11 +219,11 @@ class TagService(private val data: DataRepository,
                 })
             }else{
                 //parentId没有变化，只在当前范围内变动
-                val tagsInParent = data.db.sequenceOf(Tags)
-                    .filter { if(record.parentId != null) { Tags.parentId eq record.parentId }else{ Tags.parentId.isNull() } }
-                    .toList()
                 Pair(undefined(), if(form.ordinal.isUndefined || form.ordinal.value == record.ordinal) undefined() else {
                     //ordinal发生了变化
+                    val tagsInParent = data.db.sequenceOf(Tags)
+                        .filter { if(record.parentId != null) { Tags.parentId eq record.parentId }else{ Tags.parentId.isNull() } }
+                        .toList()
                     val max = tagsInParent.size
                     val newOrdinal = if(form.ordinal.value > max) max else form.ordinal.value
                     if(newOrdinal > record.ordinal) {
@@ -285,7 +289,7 @@ class TagService(private val data: DataRepository,
                 recursionUpdateColor(id)
             }
 
-            if(anyOpt(newName, newOtherNames, form.type, form.description, newLinks, newExamples, newParentId, newOrdinal, newColor)) {
+            if(anyOpt(newName, newOtherNames, form.type, form.description, form.group, newLinks, newExamples, newParentId, newOrdinal, newColor)) {
                 data.db.update(Tags) {
                     where { it.id eq id }
 
@@ -293,6 +297,7 @@ class TagService(private val data: DataRepository,
                     newOtherNames.applyOpt { set(it.otherNames, this) }
                     form.type.applyOpt { set(it.type, this) }
                     form.description.applyOpt { set(it.description, this) }
+                    form.group.applyOpt { set(it.isGroup, this) }
                     newLinks.applyOpt { set(it.links, this) }
                     newExamples.applyOpt { set(it.examples, this) }
                     newParentId.applyOpt { set(it.parentId, this) }
@@ -318,6 +323,10 @@ class TagService(private val data: DataRepository,
                         .let { illustMetaExporter.appendNewTask(it) }
 
                     queryManager.flushCacheOf(QueryManager.CacheType.TAG)
+            }
+
+            if(newParentId.isPresent || newOrdinal.isPresent) {
+                tagExporter.refreshGlobalOrdinal()
             }
         }
     }

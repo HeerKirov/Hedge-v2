@@ -2,6 +2,7 @@ package com.heerkirov.hedge.server.application
 
 import com.heerkirov.hedge.server.components.appdata.AppDataDriverImpl
 import com.heerkirov.hedge.server.components.backend.IllustMetaExporterImpl
+import com.heerkirov.hedge.server.components.backend.TagExporterImpl
 import com.heerkirov.hedge.server.components.backend.ThumbnailGeneratorImpl
 import com.heerkirov.hedge.server.components.configuration.ConfigurationDriverImpl
 import com.heerkirov.hedge.server.components.database.DataRepositoryImpl
@@ -51,6 +52,7 @@ fun runApplication(options: ApplicationOptions) {
             val authorKit = AuthorKit(repo, annotationManager)
             val topicKit = TopicKit(repo, annotationManager)
             val tagKit = TagKit(repo, annotationManager)
+            val tagExporter = define { TagExporterImpl(repo) }
             val metaManager = MetaManager(repo)
 
             val partitionManager = PartitionManager(repo)
@@ -72,7 +74,7 @@ fun runApplication(options: ApplicationOptions) {
             val folderService = FolderService(repo, folderKit, folderManager, queryManager)
             val partitionService = PartitionService(repo)
             val annotationService = AnnotationService(repo, annotationKit, queryManager)
-            val tagService = TagService(repo, tagKit, fileManager, queryManager, illustMetaExporter)
+            val tagService = TagService(repo, tagKit, fileManager, queryManager, tagExporter, illustMetaExporter)
             val authorService = AuthorService(repo, authorKit, queryManager, illustMetaExporter)
             val topicService = TopicService(repo, topicKit, queryManager, illustMetaExporter)
             val importService = ImportService(repo, fileManager, importManager, illustManager, sourceManager, importMetaManager, thumbnailGenerator)

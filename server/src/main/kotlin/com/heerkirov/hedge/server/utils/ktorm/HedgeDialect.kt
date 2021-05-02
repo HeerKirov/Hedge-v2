@@ -15,7 +15,20 @@ class HedgeDialect : SQLiteDialect() {
 class HedgeSqlFormatter(database: Database, beautifySql: Boolean, indentSize: Int) : SQLiteFormatter(database, beautifySql, indentSize) {
     override fun visitUnknown(expr: SqlExpression): SqlExpression {
         return when (expr) {
+            is CompositionEmptyExpression<*> -> {
+                // (left) = 0
+                write("(")
+                if(expr.left.removeBrackets) {
+                    visit(expr.left)
+                }else{
+                    write("( "); visit(expr.left); removeLastBlank(); write(") ")
+                }
+                write(")=0 ")
+
+                expr
+            }
             is CompositionContainExpression<*> -> {
+                // (~left & right) = 0
                 write("(")
                 if(expr.left.removeBrackets) {
                     write("~ "); visit(expr.left)
@@ -34,6 +47,7 @@ class HedgeSqlFormatter(database: Database, beautifySql: Boolean, indentSize: In
                 expr
             }
             is CompositionAnyExpression<*> -> {
+                // (left & right) <> 0
                 write("(")
                 if(expr.left.removeBrackets) {
                     visit(expr.left)

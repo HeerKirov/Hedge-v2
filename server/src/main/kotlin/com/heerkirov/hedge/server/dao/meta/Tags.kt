@@ -11,6 +11,7 @@ import java.time.LocalDateTime
 
 object Tags : MetaTag<Tag>("tag", schema = "meta_db") {
     override val id = int("id").primaryKey()
+    val globalOrdinal = int("global_ordinal")
     val ordinal = int("ordinal")
     val parentId = int("parent_id")
     override val name = varchar("name")
@@ -28,6 +29,7 @@ object Tags : MetaTag<Tag>("tag", schema = "meta_db") {
 
     override fun doCreateEntity(row: QueryRowSet, withReferences: Boolean) = Tag(
         id = row[id]!!,
+        globalOrdinal = row[globalOrdinal]!!,
         ordinal = row[ordinal]!!,
         parentId = row[parentId],
         name = row[name]!!,

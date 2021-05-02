@@ -17,6 +17,8 @@ class SettingMetaService(private val data: DataRepository) {
             saveMetadata {
                 form.autoCleanTagme.alsoOpt { meta.autoCleanTagme = it }
                 form.scoreDescriptions.alsoOpt { meta.scoreDescriptions = it }
+                form.topicColors.alsoOpt { meta.topicColors = it }
+                form.authorColors.alsoOpt { meta.authorColors = it }
             }
         }
     }
