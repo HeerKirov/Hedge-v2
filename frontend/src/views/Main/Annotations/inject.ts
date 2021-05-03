@@ -1,9 +1,10 @@
-import { inject, InjectionKey, provide, Ref, ref, watch } from "vue"
+import { Ref, ref, watch } from "vue"
 import { Annotation, AnnotationCreateForm, AnnotationQueryFilter } from "@/functions/adapter-http/impl/annotations"
 import { useHttpClient } from "@/functions/app"
 import { useNotification } from "@/functions/module"
 import { useScrollView, ScrollView } from "@/components/functions/VirtualScrollView"
 import { ListEndpointResult, useListEndpoint } from "@/functions/utils/endpoints/list-endpoint"
+import { installation } from "@/functions/utils/basic"
 
 export interface AnnotationContext {
     listEndpoint: ListEndpointResult<Annotation>
@@ -16,23 +17,13 @@ export interface AnnotationContext {
     closePane()
 }
 
-const annotationContextInjection: InjectionKey<AnnotationContext> = Symbol()
-
-export function useAnnotationContext(): AnnotationContext {
-    return inject(annotationContextInjection)!
-}
-
-export function installAnnotationContext(): AnnotationContext {
+export const [installAnnotationContext, useAnnotationContext] = installation(function(): AnnotationContext {
     const { listEndpoint, scrollView, queryFilter } = useAnnotationList()
 
     const { createMode, detailMode, openCreatePane, openDetailPane, closePane } = usePane()
 
-    const context = {listEndpoint, scrollView, queryFilter, createMode, detailMode, openCreatePane, openDetailPane, closePane}
-
-    provide(annotationContextInjection, context)
-
-    return context
-}
+    return {listEndpoint, scrollView, queryFilter, createMode, detailMode, openCreatePane, openDetailPane, closePane}
+})
 
 function useAnnotationList() {
     const httpClient = useHttpClient()

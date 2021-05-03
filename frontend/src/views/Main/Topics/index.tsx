@@ -1,7 +1,8 @@
 import { defineComponent } from "vue"
 import LazyLoad from "@/components/functions/LazyLoad"
 import ListPanel from "./ListPanel"
-import DetailPanel from "./DetailPanel"
+import DetailPanel from "./DetailPanel/DetailPanel"
+import CreatePanel from "./DetailPanel/CreatePanel"
 import { installTopicContext } from "./inject"
 
 
@@ -13,9 +14,8 @@ export default defineComponent({
             <LazyLoad visible={!createMode.value && !detailMode.value} v-slots={{
                 default: show => <ListPanel v-show={show}/>
             }}/>
-            <LazyLoad visible={!!detailMode.value} v-slots={{
-                default: show => <DetailPanel v-show={show}/>
-            }}/>
+            {!!detailMode.value && <DetailPanel/>}
+            {!!createMode.value && <CreatePanel/>}
         </div>
     }
 })

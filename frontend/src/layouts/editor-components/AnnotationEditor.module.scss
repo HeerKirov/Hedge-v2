@@ -11,11 +11,12 @@
       position: absolute;
       width: 100%;
       padding: 0;
+      z-index: 1;
 
       > .recent-content {
         > .scroll-content {
           overflow-y: auto;
-          max-height: 5rem;
+          max-height: 10rem;
           padding: 0.25rem;
         }
       }

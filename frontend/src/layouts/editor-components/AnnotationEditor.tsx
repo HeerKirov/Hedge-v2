@@ -1,24 +1,12 @@
-import {
-    ComponentInternalInstance,
-    computed,
-    defineComponent,
-    PropType,
-    reactive,
-    readonly,
-    Ref,
-    ref,
-    toRef,
-    watch
-} from "vue"
+import { ComponentInternalInstance, computed, defineComponent, PropType, reactive, readonly, Ref, ref, toRef, watch } from "vue"
 import Input from "@/components/forms/Input"
 import { AnnotationTarget, SimpleAnnotation } from "@/functions/adapter-http/impl/annotations"
 import { useContinuousEndpoint } from "@/functions/utils/endpoints/continuous-endpoint"
-import { interceptGlobalKey } from "@/functions/document/global-key"
 import { useNotification } from "@/functions/document/notification"
 import { useMessageBox } from "@/functions/document/message-box"
 import { useHttpClient } from "@/functions/app"
 import { installation } from "@/functions/utils/basic"
-import { watchElementExcludeClick } from "@/functions/utils/element"
+import { KeyboardSelectorItem, useKeyboardSelector, watchElementExcludeClick } from "@/functions/utils/element"
 import { sleep } from "@/utils/primitives"
 import { onKeyEnter } from "@/utils/events"
 import style from "./AnnotationEditor.module.scss"
@@ -58,13 +46,18 @@ const AnnotationPicker = defineComponent({
         pick(_: SimpleAnnotation) { return true }
     },
     setup(props, { emit }) {
-        const data = installData(toRef(props, "target"), v => pick(v))
-        const { updateSearch, enterSearch } = data
+        const { updateSearch } = installData(toRef(props, "target"), v => pick(v))
         const { pickerRef, showBoard, focus } = useBoard()
 
         const textBox = ref("")
 
-        const enter = () => enterSearch(textBox.value.trim())
+        const enter = () => updateSearch(textBox.value.trim())
+
+        const pick = (v: SimpleAnnotation) => {
+            emit("pick", v)
+            updateSearch("")
+            textBox.value = ""
+        }
 
         watch(textBox, async (value, _, onInvalidate) => {
             let invalidate = false
@@ -74,12 +67,6 @@ const AnnotationPicker = defineComponent({
 
             updateSearch(value.trim())
         })
-
-        const pick = (v: SimpleAnnotation) => {
-            emit("pick", v)
-            updateSearch("")
-            textBox.value = ""
-        }
 
         return () => <div ref={pickerRef} class={style.picker}>
             <Input class="is-small is-width-medium" placeholder="搜索并添加注解" onfocus={focus} value={textBox.value} onUpdateValue={v => textBox.value = v} onKeypress={onKeyEnter(enter)} refreshOnInput={true}/>
@@ -105,7 +92,7 @@ const AnnotationPickerBoardContent = defineComponent({
 
 const RecentContent = defineComponent({
     emits: ["pick"],
-    setup(_, { emit }) {
+    setup(_, { }) {
         return () => <div class={style.recentContent}>
             <div class={style.scrollContent}>
                 <p class="has-text-grey is-size-small ml-1"><i>最近使用</i></p>
@@ -118,6 +105,8 @@ const RecentContent = defineComponent({
 const SearchResultContent = defineComponent({
     emits: ["pick"],
     setup(_, { emit }) {
+        const onPick = (annotation: SimpleAnnotation) => () => emit("pick", annotation)
+
         const { searchData, create, search } = useData()
         const { elements, selectedKey } = useKeyboardSelector(computed(() => {
             const elements: KeyboardSelectorItem[] = searchData.data.result.map(item => ({
@@ -135,7 +124,6 @@ const SearchResultContent = defineComponent({
             return elements
         }))
 
-        const onPick = (annotation: SimpleAnnotation) => () => emit("pick", annotation)
 
         return () => {
             const setRef = (i: number | string) => (el: Element | ComponentInternalInstance | null) => {
@@ -194,16 +182,13 @@ function useBoard() {
 
 const [installData, useData] = installation(function(target: Ref<AnnotationTarget | undefined>, pick: (a: SimpleAnnotation) => void) {
     const httpClient = useHttpClient()
-    const { handleError, handleException } = useNotification()
     const message = useMessageBox()
+    const { handleError, handleException } = useNotification()
 
     const search = ref("")
-    const updateSearch = (text: string) => search.value = text
-    const enterSearch = (text: string) => {
+    const updateSearch = (text: string) => {
         if(search.value !== text) {
-            updateSearch(text)
-        }else{
-            //在LOADED，且光标选定了项时，执行pick操作
+            search.value = text
         }
     }
 
@@ -263,58 +248,5 @@ const [installData, useData] = installation(function(target: Ref<AnnotationTarge
         }
     }
 
-    return {updateSearch, enterSearch, contentType, searchData, create, search: readonly(search)}
+    return {updateSearch, contentType, searchData, create, search: readonly(search)}
 })
-
-interface KeyboardSelectorItem {
-    key: number | string, event(): void
-}
-
-function useKeyboardSelector(items: Ref<KeyboardSelectorItem[]>) {
-    //TODO 需要优化两个问题
-    //      - 点击more按钮之后，index的位置应变换为新元素的第一个
-    //      - 重置结果列表之后，index应当重置为null
-    interceptGlobalKey(["ArrowUp", "ArrowDown"], key => {
-        if(items.value.length) {
-            if(key === "ArrowUp") {
-                if(selected.index === null || selected.index === 0) {
-                    selected.index = items.value.length - 1
-                }else{
-                    selected.index -= 1
-                }
-            }else if(key === "ArrowDown") {
-                if(selected.index === null || selected.index === items.value.length - 1) {
-                    selected.index = 0
-                }else{
-                    selected.index += 1
-                }
-            }
-            selected.key = items.value[selected.index!]?.key ?? null
-
-            const el = selected.index !== null && elements.value[selected.key]
-            if(el) {
-                el.scrollIntoView({block: "nearest"})
-            }
-        }
-    })
-
-    interceptGlobalKey(["Enter"], () => {
-        if(selected.index === null) {
-            selected.index = 0
-            selected.key = items.value[0]?.key ?? null
-        }else{
-            items.value[selected.index]?.event()
-        }
-    })
-
-    const elements = ref<{[key in string | number]: Element}>({})
-
-    const selected = reactive<{key: string | number | null, index: number | null}>({
-        key: null,
-        index: null
-    })
-
-    const selectedKey = toRef(selected, "key")
-
-    return {elements, selectedKey: readonly(selectedKey)}
-}

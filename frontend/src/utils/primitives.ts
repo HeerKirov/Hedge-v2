@@ -14,7 +14,8 @@ export const numbers = {
 
 export const objects = {
     deepEquals(a: any, b: any): boolean {
-        const typeA = typeof a, typeB = typeof b
+        const typeA = a === null ? "null" : typeof a, typeB = b === null ? "null" : typeof b
+
         if(typeA === "object" && typeB === "object") {
             const aIsArray = a instanceof Array, bIsArray = b instanceof Array
             if(aIsArray && bIsArray) {
@@ -34,7 +35,7 @@ export const objects = {
         }
     },
     deepCopy<T>(any: T): T {
-        const type = typeof any
+        const type = any === null ? "null" : typeof any
         if(type === "object") {
             if(any instanceof Array) {
                 return any.map(v => objects.deepCopy(v)) as any as T

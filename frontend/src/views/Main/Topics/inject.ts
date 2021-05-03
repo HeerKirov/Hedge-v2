@@ -1,39 +1,31 @@
-import { inject, InjectionKey, provide, Ref, ref, watch } from "vue"
-import { Topic, TopicCreateForm, TopicQueryFilter } from "@/functions/adapter-http/impl/topic"
+import { Ref, ref, watch } from "vue"
+import { Topic, TopicQueryFilter } from "@/functions/adapter-http/impl/topic"
 import { useHttpClient } from "@/functions/app"
 import { useNotification } from "@/functions/module"
 import { useScrollView, ScrollView } from "@/components/functions/VirtualScrollView"
 import { ListEndpointResult, useListEndpoint } from "@/functions/utils/endpoints/list-endpoint"
 import { useRouterQueryNumber } from "@/functions/utils/properties/router-property"
+import { installation } from "@/functions/utils/basic"
+import { CreatorData } from "./DetailPanel/CreatePanel"
 
 export interface TopicContext {
     listEndpoint: ListEndpointResult<Topic>
     scrollView: Readonly<ScrollView>
     queryFilter: Ref<TopicQueryFilter>
-    createMode: Readonly<Ref<TopicCreateForm | null>>
+    createMode: Readonly<Ref<CreatorData | null>>
     detailMode: Readonly<Ref<number | null>>
-    openCreatePane(template?: TopicCreateForm)
+    openCreatePane(template?: CreatorData)
     openDetailPane(id: number)
     closePane()
 }
 
-const topicContextInjection: InjectionKey<TopicContext> = Symbol()
-
-export function useTopicContext(): TopicContext {
-    return inject(topicContextInjection)!
-}
-
-export function installTopicContext(): TopicContext {
+export const [installTopicContext, useTopicContext] = installation(function(): TopicContext {
     const { listEndpoint, scrollView, queryFilter } = useTopicList()
 
     const { createMode, detailMode, openCreatePane, openDetailPane, closePane } = usePane()
 
-    const context = {listEndpoint, scrollView, queryFilter, createMode, detailMode, openCreatePane, openDetailPane, closePane}
-
-    provide(topicContextInjection, context)
-
-    return context
-}
+    return {listEndpoint, scrollView, queryFilter, createMode, detailMode, openCreatePane, openDetailPane, closePane}
+})
 
 function useTopicList() {
     const httpClient = useHttpClient()
@@ -56,11 +48,11 @@ function useTopicList() {
 }
 
 function usePane() {
-    const createMode = ref<TopicCreateForm | null>(null)
+    const createMode = ref<CreatorData | null>(null)
     const detailMode = useRouterQueryNumber("MainTopics", "detail")
 
-    const openCreatePane = (template?: TopicCreateForm) => {
-        createMode.value = template ?? { name: "" }
+    const openCreatePane = (template?: CreatorData) => {
+        createMode.value = template ?? DEFAULT_CREATOR_DATA
         detailMode.value = null
     }
     const openDetailPane = (id: number) => {
@@ -73,4 +65,17 @@ function usePane() {
     }
 
     return {createMode, detailMode, openCreatePane, openDetailPane, closePane}
+}
+
+const DEFAULT_CREATOR_DATA: CreatorData = {
+    name: "",
+    otherNames: [],
+    type: "UNKNOWN",
+    parent: null,
+    annotations: [],
+    keywords: [],
+    description: "",
+    favorite: false,
+    links: [],
+    score: null
 }

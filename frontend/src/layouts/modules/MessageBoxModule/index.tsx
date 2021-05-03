@@ -57,6 +57,7 @@ const Box = defineComponent({
                 emit("click", props.enter)
             }
             e.preventDefault()
+            e.stopPropagation()
         })
 
         return () => <div class={style.boxFramework}>

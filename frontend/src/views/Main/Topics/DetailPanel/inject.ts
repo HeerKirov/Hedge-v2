@@ -1,9 +1,9 @@
-import { inject, InjectionKey, provide, readonly, ref, Ref, watch } from "vue"
+import { inject, InjectionKey, provide, ref, Ref } from "vue"
 import { ListResult } from "@/functions/adapter-http/impl/generic"
 import { Illust } from "@/functions/adapter-http/impl/illust"
 import { DetailTopic, Topic, TopicUpdateForm } from "@/functions/adapter-http/impl/topic"
 import { ObjectEndpoint, useObjectEndpoint } from "@/functions/utils/endpoints/object-endpoint"
-import { useMessageBox } from "@/functions/module"
+import { installation } from "@/functions/utils/basic"
 import { useTopicContext } from "../inject"
 
 
@@ -18,14 +18,7 @@ export interface TopicDetailContext {
     editMode: Ref<boolean>
 }
 
-const contextInjection: InjectionKey<TopicDetailContext> = Symbol()
-
-export function useTopicDetailContext(): TopicDetailContext {
-    return inject(contextInjection)!
-}
-
-export function installTopicDetailContext(): TopicDetailContext {
-    const message = useMessageBox()
+export const [installTopicDetailContext, useTopicDetailContext] = installation(function(): TopicDetailContext {
     const { listEndpoint, detailMode } = useTopicContext()
 
     const { data, setData, deleteData } = useObjectEndpoint<number, DetailTopic, TopicUpdateForm>({
@@ -41,12 +34,10 @@ export function installTopicDetailContext(): TopicDetailContext {
 
     const attachData = useAttachDetailData(detailMode)
 
-    const editMode = ref(true)
+    const editMode = ref(false)
 
-    const context = {data, setData, deleteData, ...attachData, editMode}
-    provide(contextInjection, context)
-    return context
-}
+    return {data, setData, deleteData, ...attachData, editMode}
+})
 
 function useAttachDetailData(detailMode: Ref<number | null>) {
     const { data: subThemeData } = useObjectEndpoint<number, ListResult<Topic>, unknown>({

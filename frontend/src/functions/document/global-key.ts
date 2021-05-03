@@ -57,6 +57,9 @@ const [installGlobalKey, useGlobalKey] = installation(function() {
 
         for(const call of calls) {
             call(consumer)
+            if(stopPropagation) {
+                break
+            }
         }
     }
 

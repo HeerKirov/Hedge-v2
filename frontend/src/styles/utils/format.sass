@@ -14,6 +14,8 @@
 @each $name, $size in $height-map
   .is-line-height-#{$name}
     line-height: $size
+  .is-line-height-default
+    line-height: normal
 
 //元素文本宽度(用于固定文本大小)
 @for $i from 1 through 100

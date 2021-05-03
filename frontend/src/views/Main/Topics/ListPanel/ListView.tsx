@@ -1,7 +1,7 @@
 import { defineComponent, PropType, ref, watchEffect } from "vue"
 import { useMessageBox } from "@/functions/module"
 import { usePopupMenu } from "@/functions/app"
-import { useHoverFlag } from "@/functions/utils/element"
+import { useMouseHover } from "@/functions/utils/element"
 import { useFastObjectEndpoint } from "@/functions/utils/endpoints/object-fast-endpoint"
 import { SimpleAnnotation } from "@/functions/adapter-http/impl/annotations"
 import { Topic, TopicType } from "@/functions/adapter-http/impl/topic"
@@ -85,7 +85,7 @@ const Item = defineComponent({
 
         const switchFavorite = () => emit("switchFavorite", !props.value.favorite)
 
-        const { hover, mouseover, mouseleave } = useHoverFlag()
+        const { hover, mouseover, mouseleave } = useMouseHover()
 
         return () => <tr onContextmenu={rightClick} onMouseover={mouseover} onMouseleave={mouseleave} style="height: 50px">
             <td class="is-width-50 is-cursor-pointer" onClick={click}>
