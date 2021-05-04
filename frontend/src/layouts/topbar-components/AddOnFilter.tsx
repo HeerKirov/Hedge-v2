@@ -1,4 +1,4 @@
-import { computed, defineComponent, PropType, reactive, Ref, toRef, VNode } from "vue"
+import { computed, defineComponent, PropType, reactive, Ref, toRef, VNode, watch } from "vue"
 import { MenuItem, useElementPopupMenu } from "@/functions/module"
 
 export default defineComponent({
@@ -17,6 +17,8 @@ export default defineComponent({
         })
 
         const filterValue = reactive({...defaultFilterValue.value})
+
+        watch(() => filterValue, v => emit("update", v), {deep: true})
 
         const menuItems: Ref<MenuItem<undefined>[]> = computed(() => generateMenuByTemplate(props.templates, filterValue))
 

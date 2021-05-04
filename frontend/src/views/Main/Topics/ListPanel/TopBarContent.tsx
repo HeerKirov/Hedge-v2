@@ -1,4 +1,4 @@
-import { defineComponent } from "vue"
+import { defineComponent, ref, watch } from "vue"
 import { DataRouter, SearchBox, AddOnFilter, AddOnTemplate } from "@/layouts/topbar-components"
 import { watchNavigatorEvent } from "@/functions/navigator"
 import { TOPIC_TYPE_ENUMS_WITHOUT_UNKNOWN, TOPIC_TYPE_ICONS, TOPIC_TYPE_NAMES } from "../define"
@@ -7,16 +7,36 @@ import { useTopicContext } from "../inject"
 export default defineComponent({
     setup() {
         watchNavigatorEvent("MainTopics", (params: {parentId?: number}) => {
-
+            console.log(params)
         })
 
         const { openCreatePane, queryFilter } = useTopicContext()
 
+        const addOnValue = ref({
+            order: "updateTime",
+            direction: "descending",
+            type: undefined,
+            favorite: false,
+            parentId: null,
+            annotationIds: null
+        })
+
+        watch(addOnValue, v => {
+            queryFilter.value.order = ((v.direction === "descending" ? "-" : "") + v.order) as typeof queryFilter.value.order
+            queryFilter.value.type = v.type
+            queryFilter.value.favorite = v.favorite || undefined
+        }, {deep: true})
+
+        //TODO 下一步：
+        //      把navigator参数也加入其中
+        //      整合整套为一个VCA
+        //      处理order的默认参数问题
+
         return () => <div class="middle-layout">
             <div class="layout-container"/>
             <div class="layout-container is-shrink-item">
-                <SearchBox class="w-75"/>
-                <AddOnFilter class="ml-1" templates={addOnTemplates}/>
+                <SearchBox class="w-75" value={queryFilter.value.search} onUpdateValue={v => queryFilter.value.search = v}/>
+                <AddOnFilter class="ml-1" templates={addOnTemplates} filter={addOnValue.value} onUpdate={v => addOnValue.value = v}/>
             </div>
             <div class="layout-container">
                 <DataRouter/>

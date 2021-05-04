@@ -7,13 +7,16 @@ export default defineComponent({
         value: String,
         placeholder: String
     },
-    emits: ["search"],
+    emits: ["updateValue"],
     setup(props, { emit }) {
         const value = ref(props.value)
 
         watch(() => props.value, v => value.value = v)
 
-        const enter = () => emit("search", value.value)
+        const enter = () => {
+            const v = value.value?.trim()
+            emit("updateValue", v ? v : undefined)
+        }
 
         return () => <Input class="radius-circle no-drag"
                             placeholder={props.placeholder}
