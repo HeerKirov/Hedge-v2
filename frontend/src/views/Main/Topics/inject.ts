@@ -14,7 +14,7 @@ export interface TopicContext {
     queryFilter: Ref<TopicQueryFilter>
     createMode: Readonly<Ref<CreatorData | null>>
     detailMode: Readonly<Ref<number | null>>
-    openCreatePane(template?: CreatorData)
+    openCreatePane(template?: Partial<CreatorData>)
     openDetailPane(id: number)
     closePane()
 }
@@ -32,7 +32,7 @@ function useTopicList() {
     const { handleError } = useNotification()
 
     const queryFilter = ref<TopicQueryFilter>({})
-    watch(queryFilter, () => listEndpoint.refresh())
+    watch(queryFilter, () => listEndpoint.refresh(), {deep: true})
 
     const listEndpoint = useListEndpoint({
         async request(offset: number, limit: number) {
@@ -51,8 +51,19 @@ function usePane() {
     const createMode = ref<CreatorData | null>(null)
     const detailMode = useRouterQueryNumber("MainTopics", "detail")
 
-    const openCreatePane = (template?: CreatorData) => {
-        createMode.value = template ?? DEFAULT_CREATOR_DATA
+    const openCreatePane = (template?: Partial<CreatorData>) => {
+        createMode.value = template ? {
+            name: template.name ?? DEFAULT_CREATOR_DATA.name,
+            otherNames: template.otherNames ?? DEFAULT_CREATOR_DATA.otherNames,
+            type: template.type ?? DEFAULT_CREATOR_DATA.type,
+            parent: template.parent ?? DEFAULT_CREATOR_DATA.parent,
+            annotations: template.annotations ?? DEFAULT_CREATOR_DATA.annotations,
+            keywords: template.keywords ?? DEFAULT_CREATOR_DATA.keywords,
+            description: template.description ?? DEFAULT_CREATOR_DATA.description,
+            favorite: template.favorite ?? DEFAULT_CREATOR_DATA.favorite,
+            links: template.links ?? DEFAULT_CREATOR_DATA.links,
+            score: template.score ?? DEFAULT_CREATOR_DATA.score
+        } : DEFAULT_CREATOR_DATA
         detailMode.value = null
     }
     const openDetailPane = (id: number) => {

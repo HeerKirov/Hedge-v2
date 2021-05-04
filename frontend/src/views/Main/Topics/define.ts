@@ -2,6 +2,8 @@ import { TopicType } from "@/functions/adapter-http/impl/topic"
 
 export const TOPIC_TYPE_ENUMS: TopicType[] = ["UNKNOWN", "COPYRIGHT", "WORK", "CHARACTER"]
 
+export const TOPIC_TYPE_ENUMS_WITHOUT_UNKNOWN: TopicType[] = ["COPYRIGHT", "WORK", "CHARACTER"]
+
 export const TOPIC_TYPE_ICONS: {[key in TopicType]: string} = {
     "UNKNOWN": "question",
     "COPYRIGHT": "copyright",

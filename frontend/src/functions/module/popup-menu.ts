@@ -1,4 +1,4 @@
-import { computed, isReactive, ref, Ref, unref, watch, watchEffect } from "vue"
+import { computed, isReactive, isRef, ref, Ref, unref, watch, watchEffect } from "vue"
 import { remote, MenuTemplate } from "@/functions/adapter-ipc"
 
 export type MenuItem<P> = ButtonMenuItem<P> | CheckboxMenuItem<P> | RadioMenuItem<P> | SeparatorMenuItem | SubMenuItem<P>
@@ -71,7 +71,7 @@ export function usePopupMenu<P = undefined>(items: MenuItem<P>[] | Ref<MenuItem<
         const data = computed(items)
         popupFunction = createPopupMenu(data.value)
         watch(data, value => popupFunction = createPopupMenu(value))
-    }else if(isReactive(items)) {
+    }else if(isReactive(items) || isRef(items)) {
         popupFunction = <PopupFunction<P>>function(_: PopupOptions) {}
         watchEffect(() => popupFunction = createPopupMenu(unref(items)))
     }else{

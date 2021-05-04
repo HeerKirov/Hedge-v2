@@ -25,7 +25,7 @@ export default defineComponent({
 const TopBarContent = defineComponent({
     setup() {
         const messageBox = useMessageBox()
-        const { listEndpoint, detailMode, closePane } = useTopicContext()
+        const { listEndpoint, detailMode, openCreatePane, closePane } = useTopicContext()
         const { data, setData, deleteData, editMode } = useTopicDetailContext()
 
         const edit = () => editMode.value = true
@@ -43,9 +43,41 @@ const TopBarContent = defineComponent({
             }
         }
 
+        const createByItem = async () => {
+            const topic = data.value
+            if(topic != undefined) {
+                openCreatePane({
+                    name: topic.name,
+                    otherNames: topic.otherNames,
+                    type: topic.type,
+                    parent: topic.parent,
+                    annotations: topic.annotations,
+                    keywords: topic.keywords,
+                    description: topic.description,
+                    favorite: topic.favorite,
+                    links: topic.links,
+                    score: topic.score
+                })
+            }
+        }
+
+        const createSubOfItem = () => {
+            const topic = data.value
+            if(topic != undefined) {
+                openCreatePane({
+                    parent: {
+                        id: topic.id,
+                        name: topic.name,
+                        type: topic.type,
+                        color: topic.color
+                    }
+                })
+            }
+        }
+
         const menu = useElementPopupMenu([
-            {type: "normal", label: "新建子主题"},
-            {type: "normal", label: "以此为模板新建"},
+            {type: "normal", label: "新建子主题", click: createSubOfItem},
+            {type: "normal", label: "以此为模板新建", click: createByItem},
             {type: "separator"},
             {type: "normal", label: "删除此主题", click: deleteItem}
         ], {position: "bottom", align: "center", offsetY: 5})

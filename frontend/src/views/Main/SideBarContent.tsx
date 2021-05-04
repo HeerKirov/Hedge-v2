@@ -1,6 +1,6 @@
-import { computed, ComputedRef, defineComponent, inject, Ref, ref, toRef, watch } from "vue"
+import { computed, ComputedRef, defineComponent, Ref, ref, toRef, watch } from "vue"
 import { useRoute, useRouter } from "vue-router"
-import { sideBarContextInjection } from "./inject"
+import { useSideBarContext } from "./inject"
 
 /**
  * 主要界面的侧边菜单栏。内嵌在通用布局内使用。
@@ -11,6 +11,7 @@ export default defineComponent({
             在点进一个详情项目时，在subitem追加一条，并高亮显示。
             每个种类的subitem数量有上限，多了之后挤走旧的。
             日历默认就显示最近的几个时间项。
+            //TODO 接入topic的侧边栏历史记录和跳转功能
         */
         return () => <aside class="menu">
             <ScopeComponent id="db" name="图库">
@@ -50,7 +51,7 @@ const ScopeComponent = defineComponent({
         name: {type: String, required: true}
     },
     setup(props, { slots }) {
-        const { scopeStatus } = inject(sideBarContextInjection)!
+        const { scopeStatus } = useSideBarContext()
         const isOpen = computed<boolean>({
             get() { return scopeStatus[props.id] ?? true },
             set(value) { scopeStatus[props.id] = value }
@@ -97,7 +98,7 @@ const SubItemGroups = defineComponent({
         const route = useRoute()
         const router = useRouter()
         const routeName = toRef(route, 'name'), routeParams = toRef(route, 'params')
-        const { subItems } = inject(sideBarContextInjection)!
+        const { subItems } = useSideBarContext()
 
         const items: ComputedRef<readonly {readonly key: string, readonly title: string}[]> = computed(() => subItems[props.routeName])
         const currentItemKey = ref<string>()

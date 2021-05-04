@@ -20,6 +20,10 @@ export default defineComponent({
             form[key] = value
         }
 
+        function updateFavorite(value: boolean) {
+            form.favorite = value
+        }
+
         watch(createMode, template => {
             if(template != null) {
                 form.name = template.name
@@ -38,7 +42,7 @@ export default defineComponent({
         const creator = useObjectCreator({
             form,
             create: httpClient => form => httpClient.topic.create(mapFromCreatorData(form)),
-            beforeCreate(form): boolean | void {
+            beforeCreate(form) {
                 if(!checkTagName(form.name)) {
                     message.showOkMessage("prompt", "不合法的名称。", "名称不能为空，且不能包含 ` \" ' . | 字符。")
                     return false
@@ -89,16 +93,21 @@ export default defineComponent({
         })
 
         return () => <TopBarTransparentLayout paddingForTopBar={true} scrollable={true} v-slots={{
-            topBar: () => <TopBarContent onSave={creator.save}/>,
+            topBar: () => <TopBarContent onSave={creator.save} favorite={form.favorite} onUpdateFavorite={updateFavorite}/>,
             default: () => <FormEditor data={form} onUpdate={update}/>
         }}/>
     }
 })
 
 const TopBarContent = defineComponent({
-    emits: ["save"],
-    setup(_, { emit }) {
+    props: {
+        favorite: {type: Boolean, required: true}
+    },
+    emits: ["save", "updateFavorite"],
+    setup(props, { emit }) {
         const { closePane } = useTopicContext()
+
+        const switchFavorite = () => emit("updateFavorite", !props.favorite)
 
         const save = () => emit("save")
 
@@ -109,6 +118,10 @@ const TopBarContent = defineComponent({
                 </button>
             </div>
             <div class="layout-container">
+                <button class={`square button no-drag radius-large is-white ${props.favorite ? "has-text-danger" : "has-text-grey"}`} onClick={switchFavorite}>
+                    <span class="icon"><i class="fa fa-heart"/></span>
+                </button>
+                <div class="separator"/>
                 <button class="button no-drag radius-large is-white" onClick={save}>
                     <span class="icon"><i class="fa fa-check"/></span>
                     <span>保存</span>
@@ -127,6 +140,7 @@ function mapFromCreatorData(form: CreatorData): TopicCreateForm {
         description: form.description,
         keywords: form.keywords,
         links: form.links,
+        favorite: form.favorite,
         annotations: form.annotations.map(a => a.id),
         score: form.score
     }

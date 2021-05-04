@@ -4,16 +4,15 @@ import { clientMode } from "@/functions/app"
 import { windowManager } from "@/functions/module"
 import SideLayout, { SideBar, sideBarSwitchInjection } from "@/layouts/layouts/SideLayout"
 import SideBarContent from "./SideBarContent"
-import { sideBarContextInjection, useSideBarContextInjection } from "./inject"
+import { installSideBarContext } from "./inject"
 import style from "./style.module.scss"
 
 export default defineComponent({
     setup() {
         const sideBarSwitch = ref(true)
-        const sideBarContent = useSideBarContextInjection()
-
         provide(sideBarSwitchInjection, sideBarSwitch)
-        provide(sideBarContextInjection, sideBarContent)
+
+        installSideBarContext()
 
         return () => {
             const sideSlots = {

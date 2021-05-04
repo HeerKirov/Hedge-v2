@@ -99,3 +99,6 @@
     .my-m#{$name}
         margin-top: #{-$size}
         margin-bottom: #{-$size}
+    .gap-#{$name}
+        > *:not(:last-child)
+            margin-right: $size

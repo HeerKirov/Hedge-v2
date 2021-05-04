@@ -49,6 +49,9 @@ textarea
     &.is-width-#{$name}
       width: #{$size * 13.6}
       max-width: #{$size * 13.6}
+  @each $name, $size in $radius-size-map
+    &.radius-#{$name}
+      border-radius: $size
   @media (prefers-color-scheme: light)
     @each $name, $pair in $colors
       $color: nth($pair, 1)

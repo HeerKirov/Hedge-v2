@@ -16,9 +16,10 @@ import { arrays } from "@/utils/collections";
 export default defineComponent({
     setup() {
         const messageBox = useMessageBox()
-        const { listEndpoint, detailMode, openDetailPane, closePane } = useTopicContext()
+        const { listEndpoint, detailMode, openDetailPane, closePane, openCreatePane } = useTopicContext()
 
         const fastEndpoint = useFastObjectEndpoint({
+            get: httpClient => httpClient.topic.get,
             update: httpClient => httpClient.topic.update,
             delete: httpClient => httpClient.topic.delete
         })
@@ -43,11 +44,46 @@ export default defineComponent({
             }
         }
 
+        const createByItem = async (id: number) => {
+            const topic = await fastEndpoint.getData(id)
+            if(topic != undefined) {
+                openCreatePane({
+                    name: topic.name,
+                    otherNames: topic.otherNames,
+                    type: topic.type,
+                    parent: topic.parent,
+                    annotations: topic.annotations,
+                    keywords: topic.keywords,
+                    description: topic.description,
+                    favorite: topic.favorite,
+                    links: topic.links,
+                    score: topic.score
+                })
+            }
+        }
+
+        const createSubOfItem = (id: number) => {
+            const index = listEndpoint.operations.find(t => t.id === id)
+            if(index != undefined) {
+                const topic = listEndpoint.operations.retrieve(index)
+                if(topic != undefined) {
+                    openCreatePane({
+                        parent: {
+                            id: topic.id,
+                            name: topic.name,
+                            type: topic.type,
+                            color: topic.color
+                        }
+                    })
+                }
+            }
+        }
+
         const popupmenu = usePopupMenu<number>([
             {type: "normal", label: "查看详情", click: openDetailPane},
             {type: "separator"},
-            {type: "normal", label: "新建子主题"},
-            {type: "normal", label: "以此为模板新建"},
+            {type: "normal", label: "新建子主题", click: createSubOfItem},
+            {type: "normal", label: "以此为模板新建", click: createByItem},
             {type: "separator"},
             {type: "normal", label: "删除此主题", click: deleteItem},
         ])

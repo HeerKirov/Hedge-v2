@@ -1,4 +1,5 @@
 import DataRouter from "./DataRouter"
-import AddOnFilter from "./AddOnFilter"
+import SearchBox from "./SearchBox"
+import AddOnFilter, { AddOnTemplate } from "./AddOnFilter"
 
-export { DataRouter, AddOnFilter }
+export { DataRouter, SearchBox, AddOnFilter, AddOnTemplate }

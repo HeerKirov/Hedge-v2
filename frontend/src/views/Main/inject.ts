@@ -1,8 +1,7 @@
-import { InjectionKey, reactive, readonly, watch } from "vue"
+import { reactive, readonly, watch } from "vue"
 import { useRoute } from "vue-router"
+import { installation } from "@/functions/utils/basic"
 import { useLocalStorage } from "@/functions/app"
-
-export const sideBarContextInjection: InjectionKey<SideBarContext> = Symbol()
 
 /**
  * main panel页面的侧边栏相关的依赖。
@@ -21,12 +20,12 @@ export interface SideBarContext {
     scopeStatus: {[scopeName: string]: boolean}
 }
 
-export function useSideBarContextInjection(maxCount: number = 5): SideBarContext {
+export const [installSideBarContext, useSideBarContext] = installation(function(maxCount: number = 5): SideBarContext {
     const { subItems, pushSubItem } = useSubItems(maxCount)
     const { scopeStatus } = useScopeStatus()
 
     return {subItems, pushSubItem, scopeStatus}
-}
+})
 
 function useSubItems(maxCount: number) {
     const route = useRoute()

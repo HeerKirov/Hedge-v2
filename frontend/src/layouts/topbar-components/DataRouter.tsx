@@ -23,7 +23,7 @@ export default defineComponent({
             editMode.value = false
         }
 
-        return () => <div class="mr-2">
+        return () => <div class="mr-2 no-drag">
             {editMode.value
                 ? <NumberInput class="is-small is-width-half no-drag" min={1} value={editValue.value} focusOnMounted={true} onUpdateValue={enter} onBlur={close}/>
                 : <span class="tag no-drag" onClick={edit}>{view.state.itemOffset + 1}-{view.state.itemOffset + view.state.itemLimit}</span>

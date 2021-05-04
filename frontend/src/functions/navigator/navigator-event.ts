@@ -16,6 +16,9 @@ export function useNavigatorManager() {
     return {emit}
 }
 
+/**
+ * 接入方监听此事件，以获得路由跳转时的附带信息。
+ */
 export function watchNavigatorEvent<P>(routeName: string, event: (params: P) => void) {
     const eventBoard = inject(navigatorManagerInjection)!
     watch(() => eventBoard[routeName], value => {
