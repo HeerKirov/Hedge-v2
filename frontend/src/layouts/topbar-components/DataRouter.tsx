@@ -1,4 +1,4 @@
-import { defineComponent, ref, watch } from "vue"
+import { defineComponent, ref } from "vue"
 import { useScrollView } from "@/components/functions/VirtualScrollView"
 import NumberInput from "@/components/forms/NumberInput"
 
@@ -24,9 +24,12 @@ export default defineComponent({
         }
 
         return () => <div class="mr-2 no-drag">
-            {editMode.value
-                ? <NumberInput class="is-small is-width-half no-drag" min={1} value={editValue.value} focusOnMounted={true} onUpdateValue={enter} onBlur={close}/>
-                : <span class="tag no-drag" onClick={edit}>{view.state.itemOffset + 1}-{view.state.itemOffset + view.state.itemLimit}</span>
+            {editMode.value ?
+                <NumberInput class="is-small is-width-half no-drag" min={1} value={editValue.value} focusOnMounted={true} onUpdateValue={enter} onBlur={close}/>
+            : view.state.itemTotal ?
+                <span class="tag no-drag" onClick={edit}>{view.state.itemOffset + 1}-{view.state.itemOffset + view.state.itemLimit}</span>
+            :
+                <span class="tag no-drag">0</span>
             }
             <span class="mx-1">/</span>
             <span class="tag no-drag">{view.state.itemTotal}</span>

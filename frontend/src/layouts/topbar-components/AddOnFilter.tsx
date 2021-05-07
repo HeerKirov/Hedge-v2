@@ -4,29 +4,21 @@ import { MenuItem, useElementPopupMenu } from "@/functions/module"
 export default defineComponent({
     props: {
         templates: {type: Array as PropType<AddOnTemplate[]>, default: []},
-        filter: Object as PropType<{[key: string]: any}>
+        value: Object as PropType<{[key: string]: any}>
     },
-    emits: ["update"],
+    emits: ["updateValue"],
     setup(props, { emit, slots }) {
-        const defaultFilterValue = computed<{[key: string]: any}>(() => {
-            const orderTemplate = props.templates.find(t => t.type === "order") as OrderTemplate | undefined
-            return {
-                order: orderTemplate?.defaultValue,
-                direction: orderTemplate?.defaultDirection
-            }
-        })
+        const filterValue = reactive({...props.value})
 
-        const filterValue = reactive({...defaultFilterValue.value})
-
-        watch(() => filterValue, v => emit("update", v), {deep: true})
+        watch(() => filterValue, v => emit("updateValue", v), {deep: true})
 
         const menuItems: Ref<MenuItem<undefined>[]> = computed(() => generateMenuByTemplate(props.templates, filterValue))
 
         const active = computed(() => calcActive(props.templates, filterValue))
 
         return () => <div class="flex is-align-center no-drag gap-1">
-            <FilterButton active={active.value} menu={menuItems.value}/>
             {renderAddOnComponents(props.templates, filterValue)}
+            <FilterButton active={active.value} menu={menuItems.value}/>
         </div>
     }
 })
@@ -39,13 +31,13 @@ function renderAddOnComponents(templates: AddOnTemplate[], filterValue: {[key: s
         const value = filterValue[template.key]
         if(template.type === "checkbox") {
             if(value) {
-                return <CheckBoxItem title={template.title} icon={template.addOnIcon} color={template.addOnColor}/>
+                return <CheckBoxItem {...template} onCancel={() => filterValue[template.key] = false}/>
             }
         }else if(template.type === "radio") {
             if(value != undefined) {
                 const item = template.items.find(i => i.value === value)
                 if(item !== undefined) {
-                    return <RadioItem title={item.title} icon={item.addOnIcon} color={item.addOnColor}/>
+                    return <RadioItem {...item} items={template.items} showTitle={template.showTitle} onSelect={v => filterValue[template.key] = v}/>
                 }
             }
         }
@@ -59,8 +51,13 @@ const CheckBoxItem = defineComponent({
         icon: String,
         color: String
     },
-    setup(props) {
-        return () => <span class="tag">
+    emits: ["cancel"],
+    setup(props, { emit }) {
+        const cancel = () => emit("cancel")
+
+        const { element, popup } = useElementPopupMenu(() => [{type: "checkbox", label: props.title, checked: true, click: cancel}], {position: "bottom", offsetY: 8})
+
+        return () => <span class="tag" ref={element} onClick={popup}>
             {props.icon
                 ? <span class="icon"><i class={`fa fa-${props.icon} ${props.color ? `has-text-${props.color}` : ""}`}/></span>
                 : <span class={props.color ? `has-text-${props.color}` : ""}>{props.title}</span>}
@@ -71,14 +68,30 @@ const CheckBoxItem = defineComponent({
 const RadioItem = defineComponent({
     props: {
         title: {type: String, required: true},
+        value: {type: String, required: true},
         icon: String,
-        color: String
+        color: String,
+        items: {type: Array as PropType<RadioTemplate["items"]>, required: true},
+        showTitle: Boolean
     },
-    setup(props) {
-        return () => <span class="tag">
-            {props.icon
-                ? <span class="icon"><i class={`fa fa-${props.icon} ${props.color ? `has-text-${props.color}` : ""}`}/></span>
-                : <span class={props.color ? `has-text-${props.color}` : ""}>{props.title}</span>}
+    emits: ["select"],
+    setup(props, { emit }) {
+        const { element, popup } = useElementPopupMenu(() => props.items.map(item => ({
+            type: "checkbox",
+            label: item.title,
+            checked: props.value === item.value,
+            click() {
+                if(props.value === item.value) {
+                    emit("select", undefined)
+                }else{
+                    emit("select", item.value)
+                }
+            }
+        })), {position: "bottom", offsetY: 8})
+
+        return () => <span class="tag" ref={element} onClick={popup}>
+            {props.icon ? <span class="icon"><i class={`fa fa-${props.icon} ${props.color ? `has-text-${props.color}` : ""}`}/></span> : null}
+            {props.showTitle || !props.icon ? <span class={`ml-1 ${props.color ? `has-text-${props.color}` : ""}`}>{props.title}</span> : null}
         </span>
     }
 })
@@ -120,8 +133,8 @@ interface CheckBoxTemplate {
     type: "checkbox"
     key: string
     title: string
-    addOnIcon?: string
-    addOnColor?: string
+    icon?: string
+    color?: string
 }
 
 interface RadioTemplate {
@@ -130,9 +143,10 @@ interface RadioTemplate {
     items: {
         title: string
         value: string
-        addOnIcon?: string
-        addOnColor?: string
+        icon?: string
+        color?: string
     }[]
+    showTitle?: boolean
 }
 
 interface ComplexTemplate {
