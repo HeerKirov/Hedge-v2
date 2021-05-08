@@ -1,9 +1,9 @@
-import { defineComponent, PropType } from "vue"
+import { defineComponent, PropType, watch } from "vue"
 import WrappedText from "@/components/elements/WrappedText"
 import Starlight from "@/components/elements/Starlight"
 import TopBarTransparentLayout from "@/layouts/layouts/TopBarTransparentLayout"
 import { Link } from "@/functions/adapter-http/impl/generic"
-import { DetailTopic, TopicType } from "@/functions/adapter-http/impl/topic"
+import { DetailTopic, ParentTopic, TopicType } from "@/functions/adapter-http/impl/topic"
 import { clientMode, assetsUrl, useElementPopupMenu } from "@/functions/app"
 import { openExternal, useMessageBox, writeClipboard } from "@/functions/module"
 import { useNavigator } from "@/functions/navigator"
@@ -11,10 +11,20 @@ import { arrays } from "@/utils/collections"
 import { TOPIC_TYPE_ENUMS, TOPIC_TYPE_ICONS, TOPIC_TYPE_NAMES } from "../define"
 import { useTopicContext } from "../inject"
 import { useTopicDetailContext } from "./inject"
+import { useSideBarContext } from "../../inject"
 import style from "./style.module.scss"
 
 export default defineComponent({
     setup() {
+        const { pushSubItem } = useSideBarContext()
+        const { data } = useTopicDetailContext()
+
+        watch(data, d => {
+            if(d != null) {
+                pushSubItem(d.id.toString(), d.name)
+            }
+        })
+
         return () => <TopBarTransparentLayout paddingForTopBar={true} scrollable={true} v-slots={{
             topBar: () => <TopBarContent/>,
             default: () => <Panel/>
@@ -157,11 +167,12 @@ const RelatedThemeContent = defineComponent({
     },
     setup(props) {
         const navigator = useNavigator()
-        const { detailMode, openDetailPane } = useTopicContext()
+        const { openDetailPane } = useTopicContext()
         const { subThemeData } = useTopicDetailContext()
 
         const more = () => {
-            navigator.goto.main.topics({parentId: detailMode.value!})
+            const parent: ParentTopic = {id: props.data.id, name: props.data.name, color: props.data.color, type: props.data.type}
+            navigator.goto.main.topics({parent})
         }
 
         return () => (subThemeData.value?.total || props.data.parent) ? <div class="box mb-1">

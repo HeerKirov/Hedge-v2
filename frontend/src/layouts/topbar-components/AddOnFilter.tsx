@@ -1,4 +1,4 @@
-import { computed, defineComponent, PropType, reactive, Ref, toRef, VNode, watch } from "vue"
+import { computed, defineComponent, PropType, reactive, ref, Ref, toRef, VNode, watch } from "vue"
 import { MenuItem, useElementPopupMenu } from "@/functions/module"
 
 export default defineComponent({
@@ -6,24 +6,23 @@ export default defineComponent({
         templates: {type: Array as PropType<AddOnTemplate[]>, default: []},
         value: Object as PropType<{[key: string]: any}>
     },
-    emits: ["updateValue"],
-    setup(props, { emit, slots }) {
-        const filterValue = reactive({...props.value})
+    emits: ["updateValue", "clear"],
+    setup(props, { emit }) {
+        const filterValue = toRef(props, "value")
 
-        watch(() => filterValue, v => emit("updateValue", v), {deep: true})
+        const setValue = (key: string, value: any) => emit("updateValue", {...filterValue.value, [key]: value})
 
-        const menuItems: Ref<MenuItem<undefined>[]> = computed(() => generateMenuByTemplate(props.templates, filterValue))
-
-        const active = computed(() => calcActive(props.templates, filterValue))
+        const clear = () => emit("clear")
 
         return () => <div class="flex is-align-center no-drag gap-1">
-            {renderAddOnComponents(props.templates, filterValue)}
-            <FilterButton active={active.value} menu={menuItems.value}/>
+            {renderAddOnComponents(props.templates, filterValue.value ?? {}, clear)}
+            <FilterButton templates={props.templates} value={filterValue.value ?? {}} onSetValue={setValue}
+                          onClear={clear}/>
         </div>
     }
 })
 
-function renderAddOnComponents(templates: AddOnTemplate[], filterValue: {[key: string]: any}) {
+function renderAddOnComponents(templates: AddOnTemplate[], filterValue: {[key: string]: any}, setValue: (key: string, value: any) => void) {
     return templates.map(template => {
         if(template.type === "separator" || template.type === "order") {
             return undefined
@@ -31,14 +30,18 @@ function renderAddOnComponents(templates: AddOnTemplate[], filterValue: {[key: s
         const value = filterValue[template.key]
         if(template.type === "checkbox") {
             if(value) {
-                return <CheckBoxItem {...template} onCancel={() => filterValue[template.key] = false}/>
+                return <CheckBoxItem {...template} onCancel={() => setValue(template.key, false)}/>
             }
         }else if(template.type === "radio") {
             if(value != undefined) {
                 const item = template.items.find(i => i.value === value)
                 if(item !== undefined) {
-                    return <RadioItem {...item} items={template.items} showTitle={template.showTitle} onSelect={v => filterValue[template.key] = v}/>
+                    return <RadioItem {...item} items={template.items} showTitle={template.showTitle} onUpdateValue={v => setValue(template.key, v)}/>
                 }
+            }
+        }else if(template.type === "complex") {
+            if(value != undefined && (!template.multi || (value as any[]).length)) {
+                return <ComplexItem value={value} {...template}/>
             }
         }
         return undefined
@@ -74,7 +77,7 @@ const RadioItem = defineComponent({
         items: {type: Array as PropType<RadioTemplate["items"]>, required: true},
         showTitle: Boolean
     },
-    emits: ["select"],
+    emits: ["updateValue"],
     setup(props, { emit }) {
         const { element, popup } = useElementPopupMenu(() => props.items.map(item => ({
             type: "checkbox",
@@ -82,9 +85,9 @@ const RadioItem = defineComponent({
             checked: props.value === item.value,
             click() {
                 if(props.value === item.value) {
-                    emit("select", undefined)
+                    emit("updateValue", undefined)
                 }else{
-                    emit("select", item.value)
+                    emit("updateValue", item.value)
                 }
             }
         })), {position: "bottom", offsetY: 8})
@@ -97,20 +100,29 @@ const RadioItem = defineComponent({
 })
 
 const ComplexItem = defineComponent({
-    setup() {
-
+    props: {
+        value: {type: null as any as PropType<any>, required: true},
+        multi: Boolean,
+        render: {type: null as any as PropType<ComplexTemplate["render"]>, required: true}
+    },
+    setup(props) {
+        return props.multi ? () => (props.value as any[]).map(v => props.render(v)) : () => props.render(props.value)
     }
 })
 
 const FilterButton = defineComponent({
     props: {
-        active: Boolean,
-        menu: {type: Array as PropType<MenuItem<undefined>[]>, default: []}
+        templates: {type: Array as PropType<AddOnTemplate[]>, required: true},
+        value: {type: Object as PropType<{[key: string]: any}>, required: true}
     },
-    setup(props) {
-        const { element, popup } = useElementPopupMenu(toRef(props, "menu"), {position: "bottom", offsetY: 8})
+    emits: ["setValue", "clear"],
+    setup(props, { emit }) {
+        const setValue = (key: string, value: any) => emit("setValue", key, value)
+        const clear = () => emit("clear")
+        const { element, popup } = useElementPopupMenu(() => generateMenuByTemplate(props.templates, props.value, setValue, clear), {position: "bottom", offsetY: 8})
+        const active = computed(() => calcActive(props.templates, props.value))
 
-        return () => <button ref={element} class={`square button radius-circle is-white ${props.active ? "has-text-link" : ""}`} onClick={popup}>
+        return () => <button ref={element} class={`square button radius-circle is-white ${active.value ? "has-text-link" : ""}`} onClick={popup}>
             <span class="icon"><i class="fa fa-filter"/></span>
         </button>
     }
@@ -157,61 +169,54 @@ interface ComplexTemplate {
     render(value: any): VNode[] | VNode | undefined
 }
 
-function calcActive(templates: AddOnTemplate[], filterValue: {[key: string]: any}) {
+function calcActive(templates: AddOnTemplate[], value: {[key: string]: any}) {
     for (const template of templates) {
         if(template.type === "order") {
-            if(filterValue["order"] !== template.defaultValue || filterValue["direction"] !== template.defaultDirection) return true
+            if(value["order"] !== template.defaultValue || value["direction"] !== template.defaultDirection) return true
         }else if(template.type === "checkbox") {
-            if(filterValue[template.key]) return true
+            if(value[template.key]) return true
         }else if(template.type !== "separator") {
-            if(filterValue[template.key] != undefined) return true
+            if(value[template.key] != undefined) return true
         }
     }
     return false
 }
 
-function generateMenuByTemplate(templates: AddOnTemplate[], filterValue: {[key: string]: any}): MenuItem<undefined>[] {
+function generateMenuByTemplate(templates: AddOnTemplate[], filterValue: {[key: string]: any}, setValue: (key: string, value: any) => void, clear: () => void): MenuItem<undefined>[] {
     return templates.flatMap(t => {
         if(t.type === "separator") {
             return SEPARATOR_TEMPLATE
         }else if(t.type === "order") {
-            return generateOrderTemplate(t, filterValue)
+            return generateOrderTemplate(t, filterValue["order"], v => setValue("order", v), filterValue["direction"], v => setValue("direction", v))
         }else if(t.type === "checkbox") {
-            return generateCheckBoxTemplate(t, filterValue)
+            return generateCheckBoxTemplate(t, filterValue[t.key], v => setValue(t.key, v))
         }else if(t.type === "radio"){
-            return generateRadioTemplate(t, filterValue)
+            return generateRadioTemplate(t, filterValue[t.key], v => setValue(t.key, v))
         }else if(t.type === "complex") {
             return generateComplexTemplate(t)
         }else{
             return []
         }
-    }).concat(generateFunctions(templates, filterValue))
+    }).concat(generateFunctions(clear))
 }
 
 const SEPARATOR_TEMPLATE: MenuItem<undefined> = {type: "separator"}
 
-function generateCheckBoxTemplate(template: CheckBoxTemplate, filterValue: {[key: string]: any}): MenuItem<undefined>[] {
-    const checked = !!filterValue[template.key]
+function generateCheckBoxTemplate(template: CheckBoxTemplate, value: boolean, setValue: (v: boolean) => void): MenuItem<undefined>[] {
     return [{
         type: "checkbox",
         label: template.title,
-        checked,
-        click() { filterValue[template.key] = !checked }
+        checked: value,
+        click() { setValue(!value) }
     }]
 }
 
-function generateRadioTemplate(template: RadioTemplate, filterValue: {[key: string]: any}): MenuItem<undefined>[] {
+function generateRadioTemplate(template: RadioTemplate, value: string, setValue: (v: string | undefined) => void): MenuItem<undefined>[] {
     return template.items.map(item => ({
         type: "checkbox",
         label: item.title,
-        checked: filterValue[template.key] === item.value,
-        click() {
-            if(filterValue[template.key] === item.value) {
-                filterValue[template.key] = undefined
-            }else{
-                filterValue[template.key] = item.value
-            }
-        }
+        checked: value === item.value,
+        click() { setValue(value === item.value ? undefined : item.value) }
     }))
 }
 
@@ -223,30 +228,22 @@ function generateComplexTemplate(template: ComplexTemplate): MenuItem<undefined>
     }]
 }
 
-function generateOrderTemplate(template: OrderTemplate, filterValue: {[key: string]: any}): MenuItem<undefined>[] {
+function generateOrderTemplate(template: OrderTemplate,
+                               order: string, setOrder: (v: string) => void,
+                               direction: "ascending" | "descending", setDirection: (v: "ascending" | "descending") => void): MenuItem<undefined>[] {
     const orderItems: MenuItem<undefined>[] = template.items.map(item => ({
         type: "radio",
         label: item.title,
-        checked: item.value === filterValue["order"],
-        click() { filterValue["order"] = item.value }
+        checked: item.value === order,
+        click() { setOrder(item.value) }
     }))
     const directionItems: MenuItem<undefined>[] = [
-        {type: "radio", label: "升序", checked: filterValue["direction"] === "ascending", click() {  filterValue["direction"] = "ascending" }},
-        {type: "radio", label: "降序", checked: filterValue["direction"] === "descending", click() {  filterValue["direction"] = "descending" }}
+        {type: "radio", label: "升序", checked: direction === "ascending", click() { setDirection("ascending") }},
+        {type: "radio", label: "降序", checked: direction === "descending", click() { setDirection("ascending") }}
     ]
     return [...orderItems, {type: "separator"}, ...directionItems]
 }
 
-function generateFunctions(templates: AddOnTemplate[], filterValue: {[key: string]: any}): MenuItem<undefined>[] {
-    const clear = () => {
-        for (const template of templates) {
-            if(template.type === "order") {
-                filterValue["order"] = template.defaultValue
-                filterValue["direction"] = template.defaultDirection
-            }else if(template.type !== "separator") {
-                filterValue[template.key] = undefined
-            }
-        }
-    }
+function generateFunctions(clear: () => void): MenuItem<undefined>[] {
     return [{type: "separator"}, {type: "normal", label: "恢复默认值", click: clear}]
 }

@@ -6,9 +6,9 @@ import { useFastObjectEndpoint } from "@/functions/utils/endpoints/object-fast-e
 import { SimpleAnnotation } from "@/functions/adapter-http/impl/annotations"
 import { Topic, TopicType } from "@/functions/adapter-http/impl/topic"
 import { VirtualRow } from "@/components/functions/VirtualScrollView"
+import { arrays } from "@/utils/collections"
 import { TOPIC_TYPE_ENUMS, TOPIC_TYPE_ICONS, TOPIC_TYPE_NAMES } from "../define"
 import { useTopicContext } from "../inject"
-import { arrays } from "@/utils/collections";
 
 /**
  * 内容列表项视图。

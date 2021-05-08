@@ -1,5 +1,6 @@
 import { useRouter } from "vue-router"
 import { useNavigatorManager, watchNavigatorEvent } from "./navigator-event"
+import { ParentTopic } from "@/functions/adapter-http/impl/topic"
 
 export { watchNavigatorEvent }
 
@@ -11,10 +12,10 @@ export { watchNavigatorEvent }
 export interface Navigator {
     goto: {
         main: {
-            illusts(options?: {topicName?: string})
+            illusts(options?: {topicName?: string}): void
             topics: {
-                (options?: {parentId?: number})
-                detail(topicId: number)
+                (options?: {parent?: ParentTopic})
+                detail(topicId: number): void
             }
         }
     }

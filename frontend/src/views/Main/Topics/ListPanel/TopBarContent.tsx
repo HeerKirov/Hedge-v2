@@ -1,47 +1,37 @@
 import { defineComponent, ref, watch } from "vue"
 import { DataRouter, SearchBox, AddOnFilter, AddOnTemplate } from "@/layouts/topbar-components"
 import { ParentTopic, TopicQueryFilter, TopicType } from "@/functions/adapter-http/impl/topic"
+import { SimpleAnnotation } from "@/functions/adapter-http/impl/annotations"
 import { watchNavigatorEvent } from "@/functions/navigator"
 import { TOPIC_TYPE_ENUMS_WITHOUT_UNKNOWN, TOPIC_TYPE_ICONS, TOPIC_TYPE_NAMES } from "../define"
 import { useTopicContext } from "../inject"
-import { SimpleAnnotation } from "@/functions/adapter-http/impl/annotations";
 
 export default defineComponent({
     setup() {
-        const addOnValue = ref<{
-            order: string,
-            direction: "descending" | "ascending",
-            type: TopicType | undefined,
-            favorite: boolean,
-            //TODO 这两个复杂参数的属性该如何处理？
-            parentId: number | undefined,
-            annotationIds: number[] | undefined
-        }>({
-            order: "updateTime",
-            direction: "descending",
-            type: undefined,
-            favorite: false,
-            parentId: undefined,
-            annotationIds: undefined
-        })
+        const addOnFilter = ref<AddOnFilterType>(addOnFilterDefault)
 
-        watchNavigatorEvent("MainTopics", (params: {parentId?: number}) => {
-            if(params.parentId != undefined) {
-                addOnValue.value.parentId = params.parentId
+        const clear = () => addOnFilter.value = addOnFilterDefault
+
+        watchNavigatorEvent("MainTopics", (params: {parent?: ParentTopic}) => {
+            if(params.parent != undefined) {
+                addOnFilter.value.parent = params.parent
             }
         })
 
         const { openCreatePane, queryFilter } = useTopicContext()
 
-        watch(() => [addOnValue.value.order, addOnValue.value.direction], ([order, direction]) => queryFilter.value.order = ((direction === "descending" ? "-" : "") + order) as TopicQueryFilter["order"], {immediate: true})
-        watch(() => addOnValue.value.type, type => queryFilter.value.type = type, {immediate: true})
-        watch(() => addOnValue.value.favorite, f => queryFilter.value.favorite = f || undefined, {immediate: true})
+        watch(() => [addOnFilter.value.order, addOnFilter.value.direction], ([order, direction]) => queryFilter.value.order = ((direction === "descending" ? "-" : "") + order) as TopicQueryFilter["order"], {immediate: true})
+        watch(() => addOnFilter.value.type, type => queryFilter.value.type = type, {immediate: true})
+        watch(() => addOnFilter.value.favorite, f => queryFilter.value.favorite = f || undefined, {immediate: true})
+        watch(() => addOnFilter.value.parent, parent => queryFilter.value.parentId = parent?.id ?? undefined, {immediate: true})
+        watch(() => addOnFilter.value.annotations, annotations => queryFilter.value.annotationIds = annotations?.length ? annotations.map(a => a.id) : undefined, {immediate: true})
 
+        //TODO 更新搜索框和add on的样式设计。现样式比较不协调。
         return () => <div class="middle-layout">
             <div class="layout-container"/>
             <div class="layout-container is-shrink-item">
                 <SearchBox class="w-75" value={queryFilter.value.search} onUpdateValue={v => queryFilter.value.search = v}/>
-                <AddOnFilter class="ml-1" templates={addOnTemplates} value={addOnValue.value} onUpdateValue={v => addOnValue.value = v}/>
+                <AddOnFilter class="ml-1" templates={addOnTemplates} value={addOnFilter.value} onUpdateValue={v => addOnFilter.value = v} onClear={clear}/>
             </div>
             <div class="layout-container">
                 <DataRouter/>
@@ -52,6 +42,20 @@ export default defineComponent({
         </div>
     }
 })
+
+interface AddOnFilterType {
+    order: string,
+    direction: "descending" | "ascending",
+    type?: TopicType,
+    favorite?: boolean,
+    parent?: ParentTopic,
+    annotations?: SimpleAnnotation[]
+}
+
+const addOnFilterDefault: AddOnFilterType = {
+    order: "updateTime",
+    direction: "descending"
+}
 
 const addOnTemplates: AddOnTemplate[] = [
     {

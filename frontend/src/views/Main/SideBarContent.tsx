@@ -1,5 +1,7 @@
 import { computed, ComputedRef, defineComponent, Ref, ref, toRef, watch } from "vue"
 import { useRoute, useRouter } from "vue-router"
+import { installation } from "@/functions/utils/basic"
+import { usePopupMenu } from "@/functions/module"
 import { useSideBarContext } from "./inject"
 
 /**
@@ -11,31 +13,30 @@ export default defineComponent({
             在点进一个详情项目时，在subitem追加一条，并高亮显示。
             每个种类的subitem数量有上限，多了之后挤走旧的。
             日历默认就显示最近的几个时间项。
-            //TODO 接入topic的侧边栏历史记录和跳转功能
         */
         return () => <aside class="menu">
             <ScopeComponent id="db" name="图库">
                 <StdItemComponent name="图库" icon="th" routeName="MainIndex"/>
                 <StdItemComponent name="搜索" icon="search" routeName="MainImage"/>
                 <StdItemComponent name="画集" icon="clone" routeName="MainAlbums"/>
-                <StdItemComponent name="分区" icon="calendar-alt" routeName="MainPartitions">
-                    <SubItemGroups routeName="MainPartitionsDetail" paramKey="partition"/>
+                <StdItemComponent name="分区" icon="calendar-alt" routeName="MainPartitions" detailKey="partition">
+                    <SubItemDetails/>
                 </StdItemComponent>
             </ScopeComponent>
             <ScopeComponent id="meta" name="元数据">
                 <StdItemComponent name="标签" icon="tag" routeName="MainTags"/>
-                <StdItemComponent name="作者" icon="user-tag" routeName="MainAuthors">
-                    <SubItemGroups routeName="MainAuthorsDetail" paramKey="id"/>
+                <StdItemComponent name="作者" icon="user-tag" routeName="MainAuthors" detailKey="detail">
+                    <SubItemDetails/>
                 </StdItemComponent>
-                <StdItemComponent name="主题" icon="hashtag" routeName="MainTopics">
-                    <SubItemGroups routeName="MainTopicsDetail" paramKey="id"/>
+                <StdItemComponent name="主题" icon="hashtag" routeName="MainTopics" detailKey="detail">
+                    <SubItemDetails/>
                 </StdItemComponent>
                 <StdItemComponent name="注解" icon="code" routeName="MainAnnotations"/>
             </ScopeComponent>
             <ScopeComponent id="tool" name="工具箱">
-                <StdItemComponent name="导入项目" icon="plus-square" routeName="HedgeImport"/>
-                <StdItemComponent name="文件管理" icon="folder-open" routeName="HedgeFile"/>
-                <StdItemComponent name="爬虫" icon="spider" routeName="HedgeSpider"/>
+                <StdItemComponent name="导入项目" icon="plus-square" routeName="MainImport"/>
+                <StdItemComponent name="文件管理" icon="folder-open" routeName="MainFile"/>
+                <StdItemComponent name="源数据" icon="spider" routeName="MainSource"/>
             </ScopeComponent>
             <ScopeComponent id="folder" name="文件夹">
                 <StdItemComponent name="所有文件夹" icon="archive" routeName="HedgeFolders"/>
@@ -45,6 +46,9 @@ export default defineComponent({
     }
 })
 
+/**
+ * 最上层嵌套层级：提供一个可折叠的scope。子组件为第一级的menu item。
+ */
 const ScopeComponent = defineComponent({
     props: {
         id: {type: String, required: true},
@@ -56,7 +60,7 @@ const ScopeComponent = defineComponent({
             get() { return scopeStatus[props.id] ?? true },
             set(value) { scopeStatus[props.id] = value }
         })
-        const switchOpen = () => { isOpen.value = !isOpen.value }
+        const switchOpen = () => isOpen.value = !isOpen.value
 
         return () => <>
             <p class="menu-label"><a onClick={switchOpen}>{props.name}</a></p>
@@ -67,62 +71,65 @@ const ScopeComponent = defineComponent({
     }
 })
 
+/**
+ * 标准的第一级menu item，能跳转到指定的导航，并根据导航确定当前项是否被选中。
+ */
 const StdItemComponent = defineComponent({
     props: {
         name: {type: String, required: true},
         icon: {type: String, required: true},
-        routeName: String
+        routeName: {type: String, required: true},
+        detailKey: String
     },
     setup(props, { slots }) {
-        const route = useRoute()
-        const router = useRouter()
-        const routeName = toRef(route, 'name')
-        const click = () => {
-            router.push({name: props.routeName}).finally()
-        }
+        const { isActive, goto } = installStdItemContext(props.routeName, props.detailKey)
 
         return () => <li>
-            <a class={{"is-active": routeName.value === props.routeName}} onClick={click}><span class="icon"><i class={`fa fa-${props.icon}`}/></span><span>{props.name}</span></a>
+            <a class={{"is-active": isActive.value}} onClick={goto}><span class="icon"><i class={`fa fa-${props.icon}`}/></span><span>{props.name}</span></a>
             {slots.default?.()}
         </li>
     }
 })
 
-const SubItemGroups = defineComponent({
-    props: {
-        routeName: {type: String, required: true},
-        paramKey: {type: String, default: "id"},
-        maxCount: {type: Number, default: 5}
-    },
-    setup(props) {
-        const route = useRoute()
-        const router = useRouter()
-        const routeName = toRef(route, 'name'), routeParams = toRef(route, 'params')
-        const { subItems } = useSideBarContext()
+/**
+ * 扩展标准第一级menu item的第二级menu item，根据导航和query参数处理detail项列表。
+ */
+const SubItemDetails = defineComponent({
+    setup() {
+        const { routeName, ifDetailActive, gotoDetail } = useStdItemContext()
+        const { subItems, clearSubItem } = useSideBarContext()
 
-        const items: ComputedRef<readonly {readonly key: string, readonly title: string}[]> = computed(() => subItems[props.routeName])
-        const currentItemKey = ref<string>()
+        const items: ComputedRef<readonly {readonly key: string, readonly title: string}[]> = computed(() => subItems[routeName])
 
-        watch(routeName, () => {
-            currentItemKey.value = routeName.value === props.routeName ? route.params[props.paramKey] as string : undefined
-        }, {immediate: true})
+        const onClick = (key: string) => () => gotoDetail(key)
 
-        watch(routeParams, params => {
-            if(routeName.value === props.routeName) {
-                currentItemKey.value = params[props.paramKey] as string
-            }
-        })
+        const { popup } = usePopupMenu([{type: "normal", label: "清空历史记录", click: () => clearSubItem(routeName)}])
 
-        const onClick = (key: string) => () => {
-            router.push({name: props.routeName, params: {[props.paramKey]: key}}).finally()
-        }
-
-        return () => items.value && <ul>
+        return () => ((items.value && items.value.length) || null) && <ul>
             {items.value.map(item => <li key={item.key}>
-                <a class={{"is-active": item.key === currentItemKey.value}} onClick={onClick(item.key)}>{item.title ?? item.key}</a>
+                <a class={{"is-active": ifDetailActive(item.key)}} onClick={onClick(item.key)} onContextmenu={() => popup()}>{item.title ?? item.key}</a>
             </li>)}
         </ul>
     }
+})
+
+const [installStdItemContext, useStdItemContext] = installation(function(routeName: string, detailKey: string | undefined) {
+    const route = useRoute()
+    const router = useRouter()
+
+    const isCurrentRouteName = computed(() => route.name === routeName)
+
+    const currentItemKey: Ref<string | null> = detailKey ? computed(() => isCurrentRouteName.value ? route.query[detailKey] as string | null : null) : ref(null)
+
+    const isActive = computed(() => isCurrentRouteName.value && currentItemKey.value == null)
+
+    const ifDetailActive = (key: string) => isCurrentRouteName.value && currentItemKey.value === key
+
+    const goto = () => router.push({name: routeName}).finally()
+
+    const gotoDetail = detailKey ? (key: string) => router.push({name: routeName, query: {[detailKey]: key}}).finally() : (_: string) => {}
+
+    return {routeName, isActive, ifDetailActive, goto, gotoDetail}
 })
 
 const SubItemFolders = defineComponent({

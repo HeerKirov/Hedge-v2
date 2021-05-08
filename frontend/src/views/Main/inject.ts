@@ -17,20 +17,28 @@ export interface SideBarContext {
      * @param title 子项的title，会显示出来。
      */
     pushSubItem(key: string, title: string): void
+    /**
+     * 清空一个侧边栏历史记录。
+     */
+    clearSubItem(routeName: string): void
+    /**
+     * 保存每个scope的折叠状态。
+     */
     scopeStatus: {[scopeName: string]: boolean}
 }
 
 export const [installSideBarContext, useSideBarContext] = installation(function(maxCount: number = 5): SideBarContext {
-    const { subItems, pushSubItem } = useSubItems(maxCount)
+    const { subItems, pushSubItem, clearSubItem } = useSubItems(maxCount)
     const { scopeStatus } = useScopeStatus()
 
-    return {subItems, pushSubItem, scopeStatus}
+    return {subItems, pushSubItem, clearSubItem, scopeStatus}
 })
 
 function useSubItems(maxCount: number) {
     const route = useRoute()
 
     const subItems = reactive<{[routeName: string]: {key: string, title: string}[]}>({})
+
     const pushSubItem = (key: string, title: string) => {
         const routeName = route.name as string
         const items = subItems[routeName] || (subItems[routeName] = [])
@@ -49,7 +57,9 @@ function useSubItems(maxCount: number) {
         }
     }
 
-    return {subItems: readonly(subItems), pushSubItem}
+    const clearSubItem = (routeName: string) => subItems[routeName] = []
+
+    return {subItems: readonly(subItems), pushSubItem, clearSubItem}
 }
 
 function useScopeStatus() {
