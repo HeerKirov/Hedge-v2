@@ -8,9 +8,9 @@ import { useTopicContext } from "../inject"
 
 export default defineComponent({
     setup() {
-        const addOnFilter = ref<AddOnFilterType>(addOnFilterDefault)
+        const addOnFilter = ref<AddOnFilterType>({...addOnFilterDefault})
 
-        const clear = () => addOnFilter.value = addOnFilterDefault
+        const clear = () => addOnFilter.value = {...addOnFilterDefault}
 
         watchNavigatorEvent("MainTopics", (params: {parent?: ParentTopic}) => {
             if(params.parent != undefined) {
@@ -77,7 +77,7 @@ const addOnTemplates: AddOnTemplate[] = [
         type: "complex",
         key: "parent",
         title: "选择父主题…",
-        render: (value: ParentTopic) => <span class={`tag is-light is-${value.color}`}>
+        render: (value: ParentTopic) => <span class={`has-text-${value.color} is-size-small`}>
             <span class="icon"><i class={`fa fa-${TOPIC_TYPE_ICONS[value.type]}`}/></span>
             {value.name}
         </span>

@@ -1,0 +1,56 @@
+@import "@/styles/base/size.sass";
+@import "@/styles/base/color.scss";
+
+.root {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+
+  border: solid 1px $deep-sidebar;
+  border-radius: $radius-size-circle;
+  @media (prefers-color-scheme: dark) {
+    border-color: $deep-sidebar-dm;
+  }
+
+  //元素基本轮廓
+  > .element {
+    display: flex;
+    border-radius: $radius-size-circle;
+    height: $height-std;
+    align-items: center;
+    justify-content: center;
+    padding: 0 calc(0.85em - 1px);
+
+    &.only-icon {
+      width: $height-std;
+      padding: 0;
+    }
+
+    &.clickable {
+      @media (prefers-color-scheme: light) {
+        &:hover {
+          background-color: toDarkenColor($white, 5%);
+        }
+        &:active {
+          background-color: toDarkenColor($white, 7.5%);
+        }
+      }
+
+      @media (prefers-color-scheme: dark) {
+        &:hover {
+          background-color: toLightenColor($black, 5%);
+        }
+        &:active {
+          background-color: toLightenColor($black, 7.5%);
+        }
+      }
+    }
+
+    > .text {
+      &:not(:first-child) {
+        margin-left: $spacing-1;
+      }
+      margin-bottom: 0.1rem;
+    }
+  }
+}

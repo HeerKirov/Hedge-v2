@@ -1,5 +1,6 @@
-import { computed, defineComponent, PropType, reactive, ref, Ref, toRef, VNode, watch } from "vue"
+import { computed, defineComponent, PropType, toRef, VNode } from "vue"
 import { MenuItem, useElementPopupMenu } from "@/functions/module"
+import style from "./AddOnFilter.module.scss"
 
 export default defineComponent({
     props: {
@@ -14,9 +15,9 @@ export default defineComponent({
 
         const clear = () => emit("clear")
 
-        return () => <div class="flex is-align-center no-drag gap-1">
-            {renderAddOnComponents(props.templates, filterValue.value ?? {}, clear)}
-            <FilterButton templates={props.templates} value={filterValue.value ?? {}} onSetValue={setValue}
+        return () => <div class={["no-drag", style.root]}>
+            {renderAddOnComponents(props.templates, filterValue.value ?? {}, setValue)}
+            <FilterButton key="filter-button" templates={props.templates} value={filterValue.value ?? {}} onSetValue={setValue}
                           onClear={clear}/>
         </div>
     }
@@ -30,18 +31,18 @@ function renderAddOnComponents(templates: AddOnTemplate[], filterValue: {[key: s
         const value = filterValue[template.key]
         if(template.type === "checkbox") {
             if(value) {
-                return <CheckBoxItem {...template} onCancel={() => setValue(template.key, false)}/>
+                return <CheckBoxItem key={template.key} title={template.title} icon={template.icon} color={template.color} onCancel={() => setValue(template.key, false)}/>
             }
         }else if(template.type === "radio") {
             if(value != undefined) {
                 const item = template.items.find(i => i.value === value)
                 if(item !== undefined) {
-                    return <RadioItem {...item} items={template.items} showTitle={template.showTitle} onUpdateValue={v => setValue(template.key, v)}/>
+                    return <RadioItem key={template.key} title={item.title} value={item.value} icon={item.icon} color={item.color} items={template.items} showTitle={template.showTitle} onUpdateValue={v => setValue(template.key, v)}/>
                 }
             }
         }else if(template.type === "complex") {
             if(value != undefined && (!template.multi || (value as any[]).length)) {
-                return <ComplexItem value={value} {...template}/>
+                return <ComplexItem key={template.key} value={value} multi={template.multi} render={template.render}/>
             }
         }
         return undefined
@@ -60,10 +61,10 @@ const CheckBoxItem = defineComponent({
 
         const { element, popup } = useElementPopupMenu(() => [{type: "checkbox", label: props.title, checked: true, click: cancel}], {position: "bottom", offsetY: 8})
 
-        return () => <span class="tag" ref={element} onClick={popup}>
+        return () => <span class={[style.element, style.clickable, style.onlyIcon, props.color ? `has-text-${props.color}` : undefined]} ref={element} onClick={popup}>
             {props.icon
-                ? <span class="icon"><i class={`fa fa-${props.icon} ${props.color ? `has-text-${props.color}` : ""}`}/></span>
-                : <span class={props.color ? `has-text-${props.color}` : ""}>{props.title}</span>}
+                ? <i class={`fa fa-${props.icon}`}/>
+                : <span class={style.text}>props.title</span>}
         </span>
     }
 })
@@ -92,9 +93,9 @@ const RadioItem = defineComponent({
             }
         })), {position: "bottom", offsetY: 8})
 
-        return () => <span class="tag" ref={element} onClick={popup}>
-            {props.icon ? <span class="icon"><i class={`fa fa-${props.icon} ${props.color ? `has-text-${props.color}` : ""}`}/></span> : null}
-            {props.showTitle || !props.icon ? <span class={`ml-1 ${props.color ? `has-text-${props.color}` : ""}`}>{props.title}</span> : null}
+        return () => <span class={{[style.element]: true, [style.clickable]: true, [style.onlyIcon]: props.icon && !props.showTitle, [`has-text-${props.color}`]: !!props.color}} ref={element} onClick={popup}>
+            {props.icon ? <i class={`fa fa-${props.icon}`}/> : null}
+            {props.showTitle || !props.icon ? <span class={style.text}>{props.title}</span> : null}
         </span>
     }
 })
@@ -106,7 +107,9 @@ const ComplexItem = defineComponent({
         render: {type: null as any as PropType<ComplexTemplate["render"]>, required: true}
     },
     setup(props) {
-        return props.multi ? () => (props.value as any[]).map(v => props.render(v)) : () => props.render(props.value)
+        return () => <span class={[style.element, style.clickable]}>
+            {props.multi ? (props.value as any[]).map(v => props.render(v)) : props.render(props.value)}
+        </span>
     }
 })
 

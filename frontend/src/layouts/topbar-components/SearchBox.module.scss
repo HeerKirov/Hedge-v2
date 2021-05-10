@@ -1,0 +1,10 @@
+@import "@/styles/base/size.sass";
+@import "@/styles/base/color.scss";
+
+.root {
+  border-radius: $radius-size-circle;
+  padding: 0 calc(1em - 1px);
+  &:focus {
+    box-shadow: none;
+  }
+}

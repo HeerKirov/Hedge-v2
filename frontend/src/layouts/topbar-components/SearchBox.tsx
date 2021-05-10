@@ -1,6 +1,7 @@
 import { defineComponent, ref, watch } from "vue"
 import Input from "@/components/forms/Input"
 import { onKeyEnter } from "@/utils/events"
+import style from "./SearchBox.module.scss"
 
 export default defineComponent({
     props: {
@@ -18,7 +19,7 @@ export default defineComponent({
             emit("updateValue", v ? v : undefined)
         }
 
-        return () => <Input class="radius-circle no-drag"
+        return () => <Input class={["no-drag", style.root]}
                             placeholder={props.placeholder}
                             onKeypress={onKeyEnter(enter)}
                             refreshOnInput={true}
