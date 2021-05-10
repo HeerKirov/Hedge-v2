@@ -18,7 +18,7 @@ function mapFromTopicFilter(data: TopicFilter): any {
     return {
         ...data,
         order: mapFromOrderList(data.order),
-        annotationsIds: data.annotationIds?.length ? data.annotationIds.join(",") : undefined
+        annotationIds: data.annotationIds?.length ? data.annotationIds.join(",") : undefined
     }
 }
 

@@ -61,7 +61,7 @@ const CheckBoxItem = defineComponent({
 
         const { element, popup } = useElementPopupMenu(() => [{type: "checkbox", label: props.title, checked: true, click: cancel}], {position: "bottom", offsetY: 8})
 
-        return () => <span class={[style.element, style.clickable, style.onlyIcon, props.color ? `has-text-${props.color}` : undefined]} ref={element} onClick={popup}>
+        return () => <span class={[style.element, style.onlyIcon, props.color ? `has-text-${props.color}` : undefined]} ref={element} onClick={popup}>
             {props.icon
                 ? <i class={`fa fa-${props.icon}`}/>
                 : <span class={style.text}>props.title</span>}
@@ -93,7 +93,7 @@ const RadioItem = defineComponent({
             }
         })), {position: "bottom", offsetY: 8})
 
-        return () => <span class={{[style.element]: true, [style.clickable]: true, [style.onlyIcon]: props.icon && !props.showTitle, [`has-text-${props.color}`]: !!props.color}} ref={element} onClick={popup}>
+        return () => <span class={{[style.element]: true, [style.onlyIcon]: props.icon && !props.showTitle, [`has-text-${props.color}`]: !!props.color}} ref={element} onClick={popup}>
             {props.icon ? <i class={`fa fa-${props.icon}`}/> : null}
             {props.showTitle || !props.icon ? <span class={style.text}>{props.title}</span> : null}
         </span>
@@ -107,9 +107,9 @@ const ComplexItem = defineComponent({
         render: {type: null as any as PropType<ComplexTemplate["render"]>, required: true}
     },
     setup(props) {
-        return () => <span class={[style.element, style.clickable]}>
-            {props.multi ? (props.value as any[]).map(v => props.render(v)) : props.render(props.value)}
-        </span>
+        return props.multi
+            ? () => <div class={style.grouped}>{(props.value as any[]).map(v => <span class={style.element}>{props.render(v)}</span>)}</div>
+            : () => <span class={[style.element]}>{props.render(props.value)}</span>
     }
 })
 
@@ -242,7 +242,7 @@ function generateOrderTemplate(template: OrderTemplate,
     }))
     const directionItems: MenuItem<undefined>[] = [
         {type: "radio", label: "升序", checked: direction === "ascending", click() { setDirection("ascending") }},
-        {type: "radio", label: "降序", checked: direction === "descending", click() { setDirection("ascending") }}
+        {type: "radio", label: "降序", checked: direction === "descending", click() { setDirection("descending") }}
     ]
     return [...orderItems, {type: "separator"}, ...directionItems]
 }

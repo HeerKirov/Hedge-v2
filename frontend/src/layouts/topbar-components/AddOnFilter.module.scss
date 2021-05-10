@@ -12,37 +12,36 @@
     border-color: $deep-sidebar-dm;
   }
 
+  $padding-x: calc(0.85em - 1px);
+
   //元素基本轮廓
-  > .element {
+  .element {
     display: flex;
-    border-radius: $radius-size-circle;
     height: $height-std;
     align-items: center;
     justify-content: center;
-    padding: 0 calc(0.85em - 1px);
+    border-radius: $radius-size-circle;
+    padding: 0 $padding-x;
 
     &.only-icon {
       width: $height-std;
       padding: 0;
     }
 
-    &.clickable {
-      @media (prefers-color-scheme: light) {
-        &:hover {
-          background-color: toDarkenColor($white, 5%);
-        }
-        &:active {
-          background-color: toDarkenColor($white, 7.5%);
-        }
+    @media (prefers-color-scheme: light) {
+      &:hover {
+        background-color: toDarkenColor($white, 5%);
       }
-
-      @media (prefers-color-scheme: dark) {
-        &:hover {
-          background-color: toLightenColor($black, 5%);
-        }
-        &:active {
-          background-color: toLightenColor($black, 7.5%);
-        }
+      &:active {
+        background-color: toDarkenColor($white, 7.5%);
+      }
+    }
+    @media (prefers-color-scheme: dark) {
+      &:hover {
+        background-color: toLightenColor($black, 5%);
+      }
+      &:active {
+        background-color: toLightenColor($black, 7.5%);
       }
     }
 
@@ -51,6 +50,25 @@
         margin-left: $spacing-1;
       }
       margin-bottom: 0.1rem;
+    }
+  }
+
+  .grouped {
+    display: flex;
+    > .element {
+      $large-radius: $radius-size-circle;
+      padding: 0 0.1rem;
+      border-radius: 0;
+      &:first-child {
+        border-top-left-radius: $large-radius;
+        border-bottom-left-radius: $large-radius;
+        padding-left: $padding-x;
+      }
+      &:last-child {
+        border-top-right-radius: $large-radius;
+        border-bottom-right-radius: $large-radius;
+        padding-right: $padding-x;
+      }
     }
   }
 }

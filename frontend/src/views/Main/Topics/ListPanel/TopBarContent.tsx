@@ -87,7 +87,7 @@ const addOnTemplates: AddOnTemplate[] = [
         key: "annotations",
         title: "选择注解…",
         multi: true,
-        render: (value: SimpleAnnotation) => <span class="tag">
+        render: (value: SimpleAnnotation) => <span class="is-size-small">
             <b>[</b><span class="mx-1">{value.name}</span><b>]</b>
         </span>
     },
