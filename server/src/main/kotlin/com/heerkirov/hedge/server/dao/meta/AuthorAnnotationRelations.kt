@@ -7,7 +7,7 @@ import org.ktorm.schema.BaseTable
 import org.ktorm.schema.Column
 import org.ktorm.schema.int
 
-open class AuthorAnnotationRelations(alias: String?) : MetaAnnotationRelationTable<AuthorAnnotationRelation>("author_annotation_relation", schema = "meta_db") {
+open class AuthorAnnotationRelations(alias: String?) : MetaAnnotationRelationTable<AuthorAnnotationRelation>("author_annotation_relation", schema = "meta_db", alias = alias) {
     companion object : AuthorAnnotationRelations(null)
     override fun aliased(alias: String) = AuthorAnnotationRelations(alias)
 

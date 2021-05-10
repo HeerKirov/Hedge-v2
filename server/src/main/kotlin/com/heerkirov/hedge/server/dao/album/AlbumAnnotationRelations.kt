@@ -9,7 +9,7 @@ import org.ktorm.schema.BaseTable
 import org.ktorm.schema.Column
 import org.ktorm.schema.int
 
-open class AlbumAnnotationRelations(alias: String?) : EntityAnnotationRelationTable<AlbumAnnotationRelation>("album_annotation_relation") {
+open class AlbumAnnotationRelations(alias: String?) : EntityAnnotationRelationTable<AlbumAnnotationRelation>("album_annotation_relation", alias = alias) {
     companion object : AlbumAnnotationRelations(null)
     override fun aliased(alias: String) = AlbumAnnotationRelations(alias)
 

@@ -8,7 +8,7 @@ import org.ktorm.schema.Column
 import org.ktorm.schema.boolean
 import org.ktorm.schema.int
 
-open class AlbumTopicRelations(alias: String?) : EntityMetaRelationTable<AlbumTopicRelation>("album_topic_relation") {
+open class AlbumTopicRelations(alias: String?) : EntityMetaRelationTable<AlbumTopicRelation>("album_topic_relation", alias = alias) {
     companion object : AlbumTopicRelations(null)
     override fun aliased(alias: String) = AlbumTopicRelations(alias)
 

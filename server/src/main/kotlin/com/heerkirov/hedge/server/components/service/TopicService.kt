@@ -41,8 +41,10 @@ class TopicService(private val data: DataRepository,
         return data.db.from(Topics)
             .let {
                 if(filter.annotationIds.isNullOrEmpty()) it else {
+                    var joinCount = 0
                     filter.annotationIds.fold(it) { acc, id ->
-                        acc.innerJoin(TopicAnnotationRelations, (TopicAnnotationRelations.topicId eq Topics.id) and (TopicAnnotationRelations.annotationId eq id))
+                        val j = TopicAnnotationRelations.aliased("AR_${++joinCount}")
+                        acc.innerJoin(j, (j.topicId eq Topics.id) and (j.annotationId eq id))
                     }
                 }
             }

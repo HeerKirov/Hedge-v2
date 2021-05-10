@@ -43,8 +43,10 @@ class AuthorService(private val data: DataRepository,
         return data.db.from(Authors)
             .let {
                 if(filter.annotationIds.isNullOrEmpty()) it else {
+                    var joinCount = 0
                     filter.annotationIds.fold(it) { acc, id ->
-                        acc.innerJoin(AuthorAnnotationRelations, (AuthorAnnotationRelations.authorId eq Authors.id) and (AuthorAnnotationRelations.annotationId eq id))
+                        val j = AuthorAnnotationRelations.aliased("AR_${++joinCount}")
+                        acc.innerJoin(j, (j.authorId eq Authors.id) and (j.annotationId eq id))
                     }
                 }
             }

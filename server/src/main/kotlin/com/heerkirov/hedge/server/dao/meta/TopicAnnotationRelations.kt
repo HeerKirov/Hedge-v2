@@ -7,7 +7,7 @@ import org.ktorm.schema.BaseTable
 import org.ktorm.schema.Column
 import org.ktorm.schema.int
 
-open class TopicAnnotationRelations(alias: String?) : MetaAnnotationRelationTable<TopicAnnotationRelation>("topic_annotation_relation", schema = "meta_db") {
+open class TopicAnnotationRelations(alias: String?) : MetaAnnotationRelationTable<TopicAnnotationRelation>("topic_annotation_relation", schema = "meta_db", alias = alias) {
     companion object : TopicAnnotationRelations(null)
     override fun aliased(alias: String) = TopicAnnotationRelations(alias)
 
