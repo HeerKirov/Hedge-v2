@@ -1,5 +1,5 @@
 import { defineComponent, ref } from "vue"
-import { useScrollView } from "@/components/functions/VirtualScrollView"
+import { useScrollView } from "@/components/features/VirtualScrollView"
 import NumberInput from "@/components/forms/NumberInput"
 
 
@@ -29,7 +29,7 @@ export default defineComponent({
             : view.state.itemTotal ?
                 <span class="tag no-drag" onClick={edit}>{view.state.itemOffset + 1}-{view.state.itemOffset + view.state.itemLimit}</span>
             :
-                <span class="tag no-drag">0</span>
+                <span class="tag no-drag">0-0</span>
             }
             <span class="mx-1">/</span>
             <span class="tag no-drag">{view.state.itemTotal}</span>

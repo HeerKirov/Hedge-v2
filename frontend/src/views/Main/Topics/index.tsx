@@ -1,5 +1,5 @@
 import { defineComponent } from "vue"
-import LazyLoad from "@/components/functions/LazyLoad"
+import LazyLoad from "@/components/features/LazyLoad"
 import ListPanel from "./ListPanel"
 import DetailPanel from "./DetailPanel/DetailPanel"
 import CreatePanel from "./DetailPanel/CreatePanel"

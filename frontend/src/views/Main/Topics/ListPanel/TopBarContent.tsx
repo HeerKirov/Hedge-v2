@@ -5,6 +5,7 @@ import { SimpleAnnotation } from "@/functions/adapter-http/impl/annotations"
 import { watchNavigatorEvent } from "@/functions/navigator"
 import { TOPIC_TYPE_ENUMS_WITHOUT_UNKNOWN, TOPIC_TYPE_ICONS, TOPIC_TYPE_NAMES } from "../define"
 import { useTopicContext } from "../inject"
+import TopicSelector from "@/layouts/topbar-components/AddOnFilterComponents/TopicSelector";
 
 export default defineComponent({
     setup() {
@@ -26,11 +27,10 @@ export default defineComponent({
         watch(() => addOnFilter.value.parent, parent => queryFilter.value.parentId = parent?.id ?? undefined, {immediate: true})
         watch(() => addOnFilter.value.annotations, annotations => queryFilter.value.annotationIds = annotations?.length ? annotations.map(a => a.id) : undefined, {immediate: true})
 
-        //TODO 更新搜索框和add on的样式设计。现样式比较不协调。
         return () => <div class="middle-layout">
             <div class="layout-container"/>
-            <div class="layout-container is-shrink-item">
-                <SearchBox class="w-75" value={queryFilter.value.search} onUpdateValue={v => queryFilter.value.search = v}/>
+            <div class="layout-container">
+                <SearchBox class="w-75 is-stretch-item" value={queryFilter.value.search} onUpdateValue={v => queryFilter.value.search = v}/>
                 <AddOnFilter class="ml-1" templates={addOnTemplates} value={addOnFilter.value} onUpdateValue={v => addOnFilter.value = v} onClear={clear}/>
             </div>
             <div class="layout-container">
@@ -44,11 +44,11 @@ export default defineComponent({
 })
 
 interface AddOnFilterType {
-    order: string,
-    direction: "descending" | "ascending",
-    type?: TopicType,
-    favorite?: boolean,
-    parent?: ParentTopic,
+    order: string
+    direction: "descending" | "ascending"
+    type?: TopicType
+    favorite?: boolean
+    parent?: ParentTopic
     annotations?: SimpleAnnotation[]
 }
 
@@ -57,6 +57,9 @@ const addOnFilterDefault: AddOnFilterType = {
     direction: "descending"
 }
 
+//TODO 合并topic editor和topic selector的核心代码，把主要代码抽离到一个组件里
+//TODO 添加清除topic筛选项的功能
+//TODO 添加annotation selector，仿照topic selector完成
 const addOnTemplates: AddOnTemplate[] = [
     {
         type: "radio",
@@ -74,22 +77,24 @@ const addOnTemplates: AddOnTemplate[] = [
     },
     {type: "separator"},
     {
-        type: "complex",
+        type: "label",
         key: "parent",
         title: "选择父主题…",
-        render: (value: ParentTopic) => <span class={`has-text-${value.color} is-size-small`}>
-            <span class="icon"><i class={`fa fa-${TOPIC_TYPE_ICONS[value.type]}`}/></span>
-            {value.name}
-        </span>
+        render: (value: ParentTopic) => <>
+            <span class={["icon", value.color ? `has-text-${value.color}` : undefined]}><i class={`fa fa-${TOPIC_TYPE_ICONS[value.type]}`}/></span>
+            <span class={value.color ? `has-text-${value.color}` : undefined}>{value.name}</span>
+        </>,
+        renderForm: (v, setValue) => <TopicSelector onPick={setValue}/>
     },
     {
-        type: "complex",
+        type: "label",
         key: "annotations",
         title: "选择注解…",
         multi: true,
-        render: (value: SimpleAnnotation) => <span class="is-size-small">
-            <b>[</b><span class="mx-1">{value.name}</span><b>]</b>
-        </span>
+        render: (value: SimpleAnnotation) => <>
+            <b>[</b><span class="mx-1">{value.name}</span><b>]</b>  
+        </>,
+        renderForm: (value: SimpleAnnotation | undefined) => <span>{value?.name}</span>
     },
     {type: "separator"},
     {

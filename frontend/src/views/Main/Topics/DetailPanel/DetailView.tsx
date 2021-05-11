@@ -147,12 +147,12 @@ const MainContent = defineComponent({
             </p>
             <p class="mt-6"/>
             <p class="mt-1">
-                {props.data.annotations.map(annotation => <span class="tag mr-1 mb-1"><b class="mr-1">[</b>{annotation.name}<b class="ml-1">]</b></span>)}
+                {props.data.annotations.map(annotation => <span class="tag mr-1 mb-1"><b>[</b><span class="mx-1 can-be-selected">{annotation.name}</span><b>]</b></span>)}
             </p>
             <p>
-                {props.data.keywords.map(keyword => <span class="tag mr-1 mb-1">{keyword}</span>)}
+                {props.data.keywords.map(keyword => <span class="can-be-selected tag mr-1 mb-1">{keyword}</span>)}
             </p>
-            {(props.data.description || null) && <div class="block p-3">
+            {(props.data.description || null) && <div class="block p-3 can-be-selected">
                 <WrappedText value={props.data.description}/>
             </div>}
             <p class="mt-4"/>

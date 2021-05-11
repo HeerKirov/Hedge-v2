@@ -1,55 +1,16 @@
-import { ComponentInternalInstance, computed, defineComponent, PropType, reactive, readonly, ref, watch } from "vue"
+import { ComponentInternalInstance, computed, defineComponent, reactive, readonly, ref, watch } from "vue"
 import Input from "@/components/forms/Input"
-import { ParentTopic, TopicType } from "@/functions/adapter-http/impl/topic"
+import { ParentTopic } from "@/functions/adapter-http/impl/topic"
 import { useHttpClient } from "@/functions/app"
 import { useNotification } from "@/functions/document/notification"
 import { useContinuousEndpoint } from "@/functions/utils/endpoints/continuous-endpoint"
-import { KeyboardSelectorItem, useKeyboardSelector, watchElementExcludeClick } from "@/functions/utils/element"
+import { KeyboardSelectorItem, useKeyboardSelector } from "@/functions/utils/element"
 import { installation } from "@/functions/utils/basic"
 import { onKeyEnter } from "@/utils/events"
 import { sleep } from "@/utils/primitives"
-import style from "./TopicEditor.module.scss"
+import style from "./TopicSelector.module.scss"
 
-//TODO 使用bg div实现背景点击效果，以实现激活时禁用别处点击的效果
 export default defineComponent({
-    props: {
-        value: {type: null as any as PropType<ParentTopic | null>, required: true}
-    },
-    emits: {
-        updateValue(_: ParentTopic | null) { return true }
-    },
-    setup(props, { emit }) {
-        const { pickerRef, showBoard, switchShow } = useBoard()
-
-        const pick = (v: ParentTopic) => {
-            if(props.value?.id !== v.id) {
-                emit("updateValue", v)
-            }
-        }
-
-        const remove = () => {
-            if(props.value != null) {
-                emit("updateValue", null)
-            }
-        }
-
-        return () => <span ref={pickerRef} class={style.editor}>
-            <span class="mr-1" onClick={switchShow}>
-                <span class={["tag", "is-light", props.value?.color ? `is-${props.value.color}` : undefined]}>
-                    {props.value?.type ? <span class="icon"><i class={`fa fa-${TOPIC_TYPE_ICONS[props.value.type]}`}/></span> : null}
-                    {props.value?.name ?? "未选择"}
-                </span>
-            </span>
-            <button class="square button is-white is-small" onClick={remove}>
-                <span class="icon"><i class="fa fa-times"/></span>
-            </button>
-
-            {showBoard.value && <TopicPickerBoard onPick={pick}/>}
-        </span>
-    }
-})
-
-const TopicPickerBoard = defineComponent({
     emits: {
         pick(_: ParentTopic) { return true }
     },
@@ -75,9 +36,9 @@ const TopicPickerBoard = defineComponent({
             updateSearch(value.trim())
         })
 
-        return () => <div class={[style.pickerBoard, "block", "is-overflow-hidden", "has-border-more-deep-light", "is-light", "is-white"]}>
+        return () => <div class={style.pickerBoard}>
             <div class={style.inputDiv}>
-                <Input class="is-small is-fullwidth" placeholder="搜索并添加主题"
+                <Input class="is-small is-fullwidth" placeholder="搜索主题并用作筛选项"
                        value={textBox.value} onUpdateValue={v => textBox.value = v}
                        onKeypress={onKeyEnter(enter)}
                        refreshOnInput={true} focusOnMounted={true}/>
@@ -150,23 +111,6 @@ const SearchResultContent = defineComponent({
     }
 })
 
-function useBoard() {
-    const pickerRef = ref<HTMLElement>()
-    const showBoard = ref(false)
-
-    watchElementExcludeClick(pickerRef, () => {
-        if(showBoard.value) {
-            showBoard.value = false
-        }
-    })
-
-    const switchShow = () => {
-        showBoard.value = !showBoard.value
-    }
-
-    return {pickerRef, showBoard, switchShow}
-}
-
 const [installData, useData] = installation(function() {
     const httpClient = useHttpClient()
     const { handleError } = useNotification()
@@ -208,10 +152,3 @@ const [installData, useData] = installation(function() {
 
     return {updateSearch, contentType, searchData, search: readonly(search)}
 })
-
-export const TOPIC_TYPE_ICONS: {[key in TopicType]: string} = {
-    "UNKNOWN": "question",
-    "COPYRIGHT": "copyright",
-    "WORK": "bookmark",
-    "CHARACTER": "user-ninja"
-}

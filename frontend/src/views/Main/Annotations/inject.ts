@@ -2,7 +2,7 @@ import { Ref, ref, watch } from "vue"
 import { Annotation, AnnotationCreateForm, AnnotationQueryFilter } from "@/functions/adapter-http/impl/annotations"
 import { useHttpClient } from "@/functions/app"
 import { useNotification } from "@/functions/module"
-import { useScrollView, ScrollView } from "@/components/functions/VirtualScrollView"
+import { useScrollView, ScrollView } from "@/components/features/VirtualScrollView"
 import { ListEndpointResult, useListEndpoint } from "@/functions/utils/endpoints/list-endpoint"
 import { installation } from "@/functions/utils/basic"
 
@@ -30,7 +30,7 @@ function useAnnotationList() {
     const { handleError } = useNotification()
 
     const queryFilter = ref<AnnotationQueryFilter>({})
-    watch(queryFilter, () => listEndpoint.refresh())
+    watch(queryFilter, () => listEndpoint.refresh(), {deep: true})
 
     const listEndpoint = useListEndpoint({
         async request(offset: number, limit: number) {

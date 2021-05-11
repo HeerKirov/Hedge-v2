@@ -3,7 +3,7 @@ import { AnnotationTarget } from "@/functions/adapter-http/impl/annotations"
 import { useMessageBox } from "@/functions/module"
 import { usePopupMenu } from "@/functions/app"
 import { useFastObjectEndpoint } from "@/functions/utils/endpoints/object-fast-endpoint"
-import { VirtualRow } from "@/components/functions/VirtualScrollView"
+import { VirtualRow } from "@/components/features/VirtualScrollView"
 import { TARGET_TYPE_ICONS } from "./define"
 import { useAnnotationContext } from "./inject"
 
