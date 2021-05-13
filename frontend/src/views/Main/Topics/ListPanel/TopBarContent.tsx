@@ -1,11 +1,11 @@
 import { defineComponent, ref, watch } from "vue"
+import { SearchPicker, SearchRequestFunction } from "@/components/features/SearchPicker"
 import { DataRouter, SearchBox, AddOnFilter, AddOnTemplate } from "@/layouts/topbar-components"
 import { ParentTopic, TopicQueryFilter, TopicType } from "@/functions/adapter-http/impl/topic"
 import { SimpleAnnotation } from "@/functions/adapter-http/impl/annotations"
 import { watchNavigatorEvent } from "@/functions/navigator"
 import { TOPIC_TYPE_ENUMS_WITHOUT_UNKNOWN, TOPIC_TYPE_ICONS, TOPIC_TYPE_NAMES } from "../define"
 import { useTopicContext } from "../inject"
-import TopicSelector from "@/layouts/topbar-components/AddOnFilterComponents/TopicSelector";
 
 export default defineComponent({
     setup() {
@@ -57,9 +57,6 @@ const addOnFilterDefault: AddOnFilterType = {
     direction: "descending"
 }
 
-//TODO 合并topic editor和topic selector的核心代码，把主要代码抽离到一个组件里
-//TODO 添加清除topic筛选项的功能
-//TODO 添加annotation selector，仿照topic selector完成
 const addOnTemplates: AddOnTemplate[] = [
     {
         type: "radio",
@@ -80,21 +77,29 @@ const addOnTemplates: AddOnTemplate[] = [
         type: "label",
         key: "parent",
         title: "选择父主题…",
+        equals: (a: ParentTopic, b: ParentTopic) => a.id === b.id,
         render: (value: ParentTopic) => <>
             <span class={["icon", value.color ? `has-text-${value.color}` : undefined]}><i class={`fa fa-${TOPIC_TYPE_ICONS[value.type]}`}/></span>
             <span class={value.color ? `has-text-${value.color}` : undefined}>{value.name}</span>
         </>,
-        renderForm: (v, setValue) => <TopicSelector onPick={setValue}/>
+        renderForm: (v, setValue, close) => <>
+            {!!v && <ClearButton onClick={close}/>}
+            <TopicSelector onPick={setValue}/>
+        </>
     },
     {
         type: "label",
         key: "annotations",
         title: "选择注解…",
         multi: true,
+        equals: (a: SimpleAnnotation, b: SimpleAnnotation) => a.id === b.id,
         render: (value: SimpleAnnotation) => <>
             <b>[</b><span class="mx-1">{value.name}</span><b>]</b>  
         </>,
-        renderForm: (value: SimpleAnnotation | undefined) => <span>{value?.name}</span>
+        renderForm: (v, setValue, close) => <>
+            {!!v && <ClearButton onClick={close}/>}
+            <AnnotationSelector onPick={setValue}/>
+        </>
     },
     {type: "separator"},
     {
@@ -110,3 +115,49 @@ const addOnTemplates: AddOnTemplate[] = [
         defaultDirection: "descending"
     }
 ]
+
+const ClearButton = defineComponent({
+    emits: ["click"],
+    setup(_, { emit }) {
+        return () => <div class="px-1 pt-1">
+            <button class="button is-small is-white w-100" onClick={() => emit("click")}>
+                <span class="icon"><i class="fa fa-times"/></span>
+                <span>清除选择项</span>
+            </button>
+        </div>
+    }
+})
+
+const TopicSelector = defineComponent({
+    emits: ["pick"],
+    setup(_, { emit }) {
+        const request: SearchRequestFunction = (httpClient, offset, limit, search) =>
+            httpClient.topic.list({offset, limit, search, order: "-updateTime"})
+
+        const pick = (v: ParentTopic) => emit("pick", v)
+
+        const slots = {
+            default: (topic: ParentTopic) => <span class="tag">{topic.name}</span>
+        }
+
+        return () => <SearchPicker placeholder="搜索父主题" request={request} onPick={pick} v-slots={slots}/>
+    }
+})
+
+const AnnotationSelector = defineComponent({
+    emits: ["pick"],
+    setup(_, { emit }) {
+        const request: SearchRequestFunction = (httpClient, offset, limit, search) =>
+            httpClient.annotation.list({offset, limit, search, order: "-createTime"})
+
+        const pick = (v: SimpleAnnotation) => emit("pick", v)
+
+        const slots = {
+            default: (topic: SimpleAnnotation) => <span class="tag">
+                <b>[</b><span class="mx-1">{topic.name}</span><b>]</b>
+            </span>
+        }
+
+        return () => <SearchPicker placeholder="搜索注解" request={request} onPick={pick} v-slots={slots}/>
+    }
+})

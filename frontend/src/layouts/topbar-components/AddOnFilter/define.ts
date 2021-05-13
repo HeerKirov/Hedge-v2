@@ -38,8 +38,10 @@ export interface ComplexLabelTemplate {
     key: string
     title: string
     multi?: boolean
+    equals: EqualFunction
     render: RenderFunction
     renderForm: RenderFormFunction
 }
+export type EqualFunction = (a: any, b: any) => boolean
 export type RenderFunction = (value: any) => VNode[] | VNode | undefined
 export type RenderFormFunction = (value: any, setValue: (v: any | undefined) => void, close: () => void) => VNode[] | VNode | undefined

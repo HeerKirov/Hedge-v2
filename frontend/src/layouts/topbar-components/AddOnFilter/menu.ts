@@ -47,7 +47,17 @@ function generateComplexTemplate(template: ComplexLabelTemplate, value: any, set
     const setValueCallback = template.multi 
         ? (v: any | undefined) => {
             if(v != undefined) {
-                setValue([...(<any[]>value), v])
+                const oldValue = <any[] | undefined>value
+                if(oldValue != undefined) {
+                    //存在旧值时，将其追加到列表末尾
+                    if(!oldValue.some(n => template.equals(n, v))) {
+                        //去重: 确认没有重复项时，确定执行追加
+                        setValue([...oldValue, v])
+                    }
+                }else{
+                    //不存在旧值时，构造新的列表
+                    setValue([v])
+                }
             }
         } 
         : setValue

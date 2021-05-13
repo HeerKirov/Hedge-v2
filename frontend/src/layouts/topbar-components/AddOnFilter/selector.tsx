@@ -11,8 +11,9 @@ export const LabelSelector = defineComponent({
     emits: ["close", "setValue"],
     setup(props, { emit }) {
         const setValue = (v: any) => emit("setValue", v)
+        const clear = () => emit("setValue", undefined)
         const close = () => emit("close")
-        return () => props.show && props.render ? <LabelPicker render={() => props.render?.(props.value, setValue, close)} onClose={close}/> : undefined
+        return () => props.show && props.render ? <LabelPicker render={() => props.render?.(props.value, setValue, clear)} onClose={close}/> : undefined
     }
 })
 

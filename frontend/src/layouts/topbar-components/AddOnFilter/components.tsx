@@ -23,7 +23,13 @@ export function renderAddOnComponents(templates: AddOnTemplate[], filterValue: {
             }
         }else if(template.type === "label") {
             if(value != undefined && (!template.multi || (value as any[]).length)) {
-                return <ComplexLabelItem key={template.key} value={value} multi={template.multi} render={template.render} renderForm={template.renderForm} onUpdateValue={v => setValue(template.key, v)}/>
+                return <ComplexLabelItem key={template.key}
+                                         value={value}
+                                         multi={template.multi}
+                                         render={template.render}
+                                         renderForm={template.renderForm}
+                                         equals={template.equals}
+                                         onUpdateValue={v => setValue(template.key, v)}/>
             }
         }
         return undefined
@@ -87,16 +93,28 @@ const ComplexLabelItem = defineComponent({
         multi: Boolean,
         render: {type: null as any as PropType<ComplexLabelTemplate["render"]>, required: true},
         renderForm: {type: null as any as PropType<ComplexLabelTemplate["renderForm"]>, required: true},
+        equals: {type: null as any as PropType<ComplexLabelTemplate["equals"]>, required: true}
     },
     emits: ["updateValue"],
     setup(props, { emit }) {
         if(props.multi) {
             const onUpdateValue = (index: number) => (v: any) => {
+                //在组件中，value不可能是空数组
                 const value = props.value as any[]
-                if(v == undefined) {
-                    emit("updateValue", [...value.slice(0, index), v, ...value.slice(index + 1)])
-                }else{
-                    emit("updateValue", [...value.slice(0, index), v, ...value.slice(index + 1)])
+                if(v == undefined || !props.equals(value[index], v)) {
+                    //首先确认newValue与oldValue不相等。如果相等说明实际上没有任何变化，不必提交更改
+                    if(v != undefined && !value.some(n => props.equals(n, v))) {
+                        //去重: 确认没有重复项时，执行追加
+                        emit("updateValue", [...value.slice(0, index), v, ...value.slice(index + 1)])
+                    }else{
+                        //否则只是移除旧的项。因为已经确认过旧的项!=新的项了，所以不会产生移除的旧项就是重复项的例外情况
+                        if(value.length > 1) {
+                            emit("updateValue", [...value.slice(0, index), ...value.slice(index + 1)])
+                        }else{
+                            //清空最后一个值时，将value设置为undefined以消除整个值
+                            emit("updateValue", undefined)
+                        }
+                    }
                 }
             }
             return () => <div class={style.grouped}>
