@@ -1,4 +1,4 @@
-import { networkInterfaces } from 'os'
+import { networkInterfaces } from "os"
 
 export function getIPAddress(): string[] {
     const interfaces = networkInterfaces()

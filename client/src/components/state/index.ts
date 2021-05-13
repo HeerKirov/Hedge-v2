@@ -3,8 +3,8 @@ import { AppDataDriver, AppDataStatus } from "../appdata"
 import { ResourceManager, ResourceStatus } from "../resource"
 import { ServerManager, ServerStatus } from "../server"
 import { ClientException, panic } from "../../exceptions"
-import { ConfigurationDriver } from "../configuration";
-import { promiseAll } from "../../utils/process";
+import { ConfigurationDriver } from "../configuration"
+import { promiseAll } from "../../utils/process"
 
 /**
  * 对客户端app的状态进行管理。处理从加载到登录的一系列状态。
