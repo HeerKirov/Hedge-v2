@@ -1,5 +1,5 @@
 import { defineComponent } from "vue"
-import NotFoundNotification from "@/layouts/layouts/ForbiddenNotification"
+import NotFoundNotification from "@/layouts/pages/ForbiddenPage"
 
 export default defineComponent({
     setup() {

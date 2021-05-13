@@ -7,9 +7,9 @@ import { installNotificationManager } from "@/functions/document/notification"
 import { installMessageBoxManager } from "@/functions/document/message-box"
 import { installWebPopupMenuManager } from "@/functions/document/web-popup-menu"
 import { installNavigatorManager } from "@/functions/navigator/navigator-event"
-import NotificationModule from "@/layouts/modules/NotificationModule"
-import MessageBoxModule from "@/layouts/modules/MessageBoxModule"
-import PopupMenuModule from "@/layouts/modules/PopupMenuModule"
+import NotificationModule from "@/layouts/web-modules/NotificationModule"
+import MessageBoxModule from "@/layouts/web-modules/MessageBoxModule"
+import PopupMenuModule from "@/layouts/web-modules/PopupMenuModule"
 
 export default defineComponent({
     setup() {
@@ -17,15 +17,15 @@ export default defineComponent({
         installTitleWatcher()
         installNavigatorManager()
         installMessageBoxManager()
+        installWebPopupMenuManager()
         const notification = installNotificationManager()
-        const { appInfo, appState } = installAppService({ handleError: notification.handleError })
+        const { appState } = installAppService({ handleError: notification.handleError })
         const initialized = computed(() => appState.state != null)
-        if(!appInfo.clientMode) installWebPopupMenuManager()
 
         return () => <>
             <MessageBoxModule/>
             <NotificationModule/>
-            {!appInfo.clientMode && <PopupMenuModule/>}
+            <PopupMenuModule/>
             {initialized.value && <RouterView/>}
         </>
     }

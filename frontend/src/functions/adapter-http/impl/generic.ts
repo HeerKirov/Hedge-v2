@@ -24,8 +24,5 @@ export interface Link {
 }
 
 export function mapFromOrderList(orderList: OrderList<string> | null | undefined): string | undefined {
-    return orderList == null ? undefined 
-        : typeof orderList === "string" ? orderList 
-        : orderList.length ? orderList.join(",") 
-        : undefined
+    return orderList == null ? undefined : typeof orderList === "object" ? (orderList.length ? orderList.join(",") : undefined) : orderList
 }

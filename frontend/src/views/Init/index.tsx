@@ -1,6 +1,6 @@
 import { defineComponent, provide } from "vue"
 import { clientMode } from "@/functions/app"
-import NotFoundNotification from "@/layouts/layouts/ForbiddenNotification"
+import NotFoundNotification from "@/layouts/pages/ForbiddenPage"
 import { initContextInjection, useInitContext } from "./inject"
 import WelcomePage from "./WelcomePage"
 import PasswordPage from "./PasswordPage"
