@@ -1,4 +1,5 @@
-import { defineComponent, reactive, VNode, PropType } from "vue"
+import { defineComponent, reactive, VNode, PropType, ref } from "vue"
+import { watchElementExcludeClick } from "@/functions/utils/element"
 import { AddOnTemplate, RenderFormFunction } from "./define"
 import style from "./style.module.scss"
 
@@ -23,12 +24,12 @@ const LabelPicker = defineComponent({
     },
     emits: ["close"],
     setup(props, { emit }) {
-        return () => <>
-            <div class={style.pickerBackground} onClick={() => emit("close")}/>
-            <div class={[style.picker, "is-overflow-hidden", "block", "is-light", "is-white", "has-border-more-deep-light"]}>
-                {props.render()}
-            </div>
-        </>
+        const elementRef = ref<HTMLElement>()
+        watchElementExcludeClick(elementRef, () => emit("close"))
+
+        return () => <div ref={elementRef} class={[style.picker, "popup-block"]}>
+            {props.render()}
+        </div>
     }
 })
 

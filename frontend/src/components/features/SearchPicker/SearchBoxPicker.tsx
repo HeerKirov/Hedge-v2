@@ -51,7 +51,7 @@ export default defineComponent({
                    value={textBox.value} onUpdateValue={v => textBox.value = v}
                    onKeypress={onKeyEnter(enter)} onfocus={focus}
                    refreshOnInput={true}/>
-            {showBoard.value && <div class={[style.searchBoxBoard, "block", "is-overflow-hidden", "has-border-more-deep-light", "is-light", "is-white"]}>
+            {showBoard.value && <div class={[style.searchBoxBoard, "popup-block"]}>
                 <PickerBoardContent onPick={pick} v-slots={slots} searchResultAttachItems={props.searchResultAttachItems}/>
             </div>}
         </div>

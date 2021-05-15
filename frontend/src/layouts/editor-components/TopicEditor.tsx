@@ -57,7 +57,7 @@ const TopicPickerBoard = defineComponent({
             default: (topic: ParentTopic) => <span class="tag">{topic.name}</span>
         }
 
-        return () => <div class={[style.pickerBoard, "block", "is-overflow-hidden", "has-border-more-deep-light", "is-light", "is-white"]}>
+        return () => <div class={[style.pickerBoard, "popup-block"]}>
             <SearchPicker placeholder="搜索主题作为父主题" request={request} onPick={pick} v-slots={slots}/>
         </div>
     }
