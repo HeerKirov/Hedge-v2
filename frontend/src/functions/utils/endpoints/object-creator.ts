@@ -1,4 +1,4 @@
-import { ref } from "vue"
+import { Ref, ref } from "vue"
 import { HttpClient, Response } from "@/functions/adapter-http"
 import { HttpException } from "@/functions/adapter-http/exception"
 import { useHttpClient } from "@/functions/app"
@@ -9,7 +9,7 @@ interface ObjectCreator<FORM> {
 }
 
 interface ObjectCreatorOptions<FORM, RESULT> {
-    form: FORM,
+    form: Ref<FORM>,
     create(httpClient: HttpClient): (form: FORM) => Promise<Response<RESULT>>
     beforeCreate?(form: FORM): boolean | void
     afterCreate?(result: RESULT)
@@ -28,7 +28,7 @@ export function useObjectCreator<FORM, RESULT>(options: ObjectCreatorOptions<FOR
         if(!creating.value) {
             creating.value = true
             try {
-                const form = options.form
+                const form = options.form.value
                 const validated = options.beforeCreate ? (options.beforeCreate(form) ?? true) : true
                 if(!validated) {
                     return false

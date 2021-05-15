@@ -15,6 +15,11 @@ export default <RouteRecordRaw[]>[
                 component: () => import('@/views/Main/Index/index')
             },
             {
+                name: 'MainAuthors',
+                path: 'authors',
+                component: () => import('@/views/Main/Authors')
+            },
+            {
                 name: 'MainTopics',
                 path: 'topics',
                 component: () => import('@/views/Main/Topics')

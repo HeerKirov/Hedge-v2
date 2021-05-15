@@ -104,7 +104,6 @@ export function useKeyboardSelector(items: Ref<KeyboardSelectorItem[]>) {
     })
 
     watch(items, () => {
-        console.log(selected.key, selected.index, items.value)
         if(selected.index === null || selected.index >= items.value.length) {
             selected.key = null
             selected.index = null

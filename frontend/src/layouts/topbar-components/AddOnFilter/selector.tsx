@@ -1,5 +1,4 @@
-import { defineComponent, reactive, VNode, PropType, ref } from "vue"
-import { watchElementExcludeClick } from "@/functions/utils/element"
+import { defineComponent, reactive, VNode, PropType } from "vue"
 import { AddOnTemplate, RenderFormFunction } from "./define"
 import style from "./style.module.scss"
 
@@ -24,12 +23,13 @@ const LabelPicker = defineComponent({
     },
     emits: ["close"],
     setup(props, { emit }) {
-        const elementRef = ref<HTMLElement>()
-        watchElementExcludeClick(elementRef, () => emit("close"))
-
-        return () => <div ref={elementRef} class={[style.picker, "popup-block"]}>
-            {props.render()}
-        </div>
+        //如果使用exclude click，会在打开picker时同步触发一次exclude事件，从而导致这个picker永远也打不开
+        return () => <>
+            <div class={style.pickerBackground} onClick={() => emit("close")}/>
+            <div class={[style.picker, "is-overflow-hidden", "block", "is-light", "is-white", "has-border-more-deep-light"]}>
+                {props.render()}
+            </div>
+        </>
     }
 })
 

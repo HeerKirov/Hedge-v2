@@ -1,20 +1,19 @@
 import { Ref, ref, watch } from "vue"
-import { Topic, TopicQueryFilter } from "@/functions/adapter-http/impl/topic"
+import { DetailTopic, Topic, TopicQueryFilter } from "@/functions/adapter-http/impl/topic"
 import { useHttpClient } from "@/functions/app"
 import { useNotification } from "@/functions/module"
 import { useScrollView, ScrollView } from "@/components/features/VirtualScrollView"
 import { ListEndpointResult, useListEndpoint } from "@/functions/utils/endpoints/list-endpoint"
 import { useRouterQueryNumber } from "@/functions/utils/properties/router-property"
 import { installation } from "@/functions/utils/basic"
-import { CreatorData } from "./DetailPanel/CreatePanel"
 
 export interface TopicContext {
     listEndpoint: ListEndpointResult<Topic>
     scrollView: Readonly<ScrollView>
     queryFilter: Ref<TopicQueryFilter>
-    createMode: Readonly<Ref<CreatorData | null>>
+    createMode: Readonly<Ref<Partial<DetailTopic> | null>>
     detailMode: Readonly<Ref<number | null>>
-    openCreatePane(template?: Partial<CreatorData>)
+    openCreatePane(template?: Partial<DetailTopic>)
     openDetailPane(id: number)
     closePane()
 }
@@ -48,22 +47,11 @@ function useTopicList() {
 }
 
 function usePane() {
-    const createMode = ref<CreatorData | null>(null)
+    const createMode = ref<Partial<DetailTopic> | null>(null)
     const detailMode = useRouterQueryNumber("MainTopics", "detail")
 
-    const openCreatePane = (template?: Partial<CreatorData>) => {
-        createMode.value = template ? {
-            name: template.name ?? DEFAULT_CREATOR_DATA.name,
-            otherNames: template.otherNames ?? DEFAULT_CREATOR_DATA.otherNames,
-            type: template.type ?? DEFAULT_CREATOR_DATA.type,
-            parent: template.parent ?? DEFAULT_CREATOR_DATA.parent,
-            annotations: template.annotations ?? DEFAULT_CREATOR_DATA.annotations,
-            keywords: template.keywords ?? DEFAULT_CREATOR_DATA.keywords,
-            description: template.description ?? DEFAULT_CREATOR_DATA.description,
-            favorite: template.favorite ?? DEFAULT_CREATOR_DATA.favorite,
-            links: template.links ?? DEFAULT_CREATOR_DATA.links,
-            score: template.score ?? DEFAULT_CREATOR_DATA.score
-        } : DEFAULT_CREATOR_DATA
+    const openCreatePane = (template?: Partial<DetailTopic>) => {
+        createMode.value = template ? {...template} : {}
         detailMode.value = null
     }
     const openDetailPane = (id: number) => {
@@ -76,17 +64,4 @@ function usePane() {
     }
 
     return {createMode, detailMode, openCreatePane, openDetailPane, closePane}
-}
-
-const DEFAULT_CREATOR_DATA: CreatorData = {
-    name: "",
-    otherNames: [],
-    type: "UNKNOWN",
-    parent: null,
-    annotations: [],
-    keywords: [],
-    description: "",
-    favorite: false,
-    links: [],
-    score: null
 }

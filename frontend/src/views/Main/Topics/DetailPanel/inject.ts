@@ -1,4 +1,4 @@
-import { inject, InjectionKey, provide, ref, Ref } from "vue"
+import { ref, Ref } from "vue"
 import { ListResult } from "@/functions/adapter-http/impl/generic"
 import { Illust } from "@/functions/adapter-http/impl/illust"
 import { DetailTopic, Topic, TopicUpdateForm } from "@/functions/adapter-http/impl/topic"

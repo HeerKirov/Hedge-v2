@@ -1,17 +1,17 @@
 import { defineComponent, ref, watch } from "vue"
 import TopBarTransparentLayout from "@/layouts/layouts/TopBarTransparentLayout"
 import { useMessageBox } from "@/functions/document/message-box"
-import { DetailTopic, TopicCreateForm } from "@/functions/adapter-http/impl/topic"
+import { DetailAuthor, AuthorCreateForm } from "@/functions/adapter-http/impl/author"
 import { IdResponse } from "@/functions/adapter-http/impl/generic"
 import { useObjectCreator } from "@/functions/utils/endpoints/object-creator"
 import { checkTagName } from "@/utils/check"
 import FormEditor, { FormEditorData } from "./FormEditor"
-import { useTopicContext } from "../inject"
+import { useAuthorContext } from "../inject"
 
 export default defineComponent({
     setup() {
         const message = useMessageBox()
-        const { createMode, listEndpoint, openDetailPane } = useTopicContext()
+        const { createMode, listEndpoint, openDetailPane } = useAuthorContext()
 
         const form = ref<CreatorData>(mapCreatorData(createMode.value!))
 
@@ -31,7 +31,7 @@ export default defineComponent({
 
         const creator = useObjectCreator({
             form,
-            create: httpClient => form => httpClient.topic.create(mapFromCreatorData(form)),
+            create: httpClient => form => httpClient.author.create(mapFromCreatorData(form)),
             beforeCreate(form) {
                 if(!checkTagName(form.name)) {
                     message.showOkMessage("prompt", "不合法的名称。", "名称不能为空，且不能包含 ` \" ' . | 字符。")
@@ -60,8 +60,6 @@ export default defineComponent({
                     const [type, id] = e.info
                     if(type === "annotations") {
                         message.showOkMessage("error", "选择的注解不存在。", `错误项: ${id}`)
-                    }else if(type === "parentId") {
-                        message.showOkMessage("error", "选择的父主题不存在。", `错误项: ${id}`)
                     }else{
                         message.showOkMessage("error", `选择的资源${type}不存在。`, `错误项: ${id}`)
                     }
@@ -72,10 +70,6 @@ export default defineComponent({
                             : id
 
                     message.showOkMessage("error", "选择的注解不可用。", `选择的注解的导出目标设置使其无法导出至当前主题类型。错误项: ${content}`)
-                }else if(e.code === "RECURSIVE_PARENT") {
-                    message.showOkMessage("prompt", "无法应用此父主题。", "此父主题与当前主题存在闭环。")
-                }else if(e.code === "ILLEGAL_CONSTRAINT") {
-                    message.showOkMessage("prompt", "无法应用主题类型。", "当前主题的类型与其与父主题/子主题不能兼容。考虑更改父主题，或更改当前主题的类型。")
                 }else{
                     return e
                 }
@@ -95,7 +89,7 @@ const TopBarContent = defineComponent({
     },
     emits: ["save", "updateFavorite"],
     setup(props, { emit }) {
-        const { closePane } = useTopicContext()
+        const { closePane } = useAuthorContext()
 
         const switchFavorite = () => emit("updateFavorite", !props.favorite)
 
@@ -121,11 +115,10 @@ const TopBarContent = defineComponent({
     }
 })
 
-function mapCreatorData(mode: Partial<DetailTopic>): CreatorData {
+function mapCreatorData(mode: Partial<DetailAuthor>): CreatorData {
     return {
         name: mode.name ?? "",
         otherNames: mode.otherNames ?? [],
-        parent: mode.parent ?? null,
         type: mode.type ?? "UNKNOWN",
         description: mode.description ?? "",
         keywords: mode.keywords ?? [],
@@ -136,11 +129,10 @@ function mapCreatorData(mode: Partial<DetailTopic>): CreatorData {
     }
 }
 
-function mapFromCreatorData(form: CreatorData): TopicCreateForm {
+function mapFromCreatorData(form: CreatorData): AuthorCreateForm {
     return {
         name: form.name,
         otherNames: form.otherNames,
-        parentId: form.parent?.id,
         type: form.type,
         description: form.description,
         keywords: form.keywords,

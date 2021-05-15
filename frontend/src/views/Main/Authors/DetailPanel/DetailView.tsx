@@ -3,21 +3,21 @@ import WrappedText from "@/components/elements/WrappedText"
 import Starlight from "@/components/elements/Starlight"
 import TopBarTransparentLayout from "@/layouts/layouts/TopBarTransparentLayout"
 import { Link } from "@/functions/adapter-http/impl/generic"
-import { DetailTopic, ParentTopic, TopicType } from "@/functions/adapter-http/impl/topic"
+import { DetailAuthor, AuthorType } from "@/functions/adapter-http/impl/author"
 import { clientMode, assetsUrl, useElementPopupMenu } from "@/functions/app"
 import { openExternal, useMessageBox, writeClipboard } from "@/functions/module"
 import { useNavigator } from "@/functions/navigator"
 import { arrays } from "@/utils/collections"
-import { TOPIC_TYPE_ENUMS, TOPIC_TYPE_ICONS, TOPIC_TYPE_NAMES } from "../define"
-import { useTopicContext } from "../inject"
-import { useTopicDetailContext } from "./inject"
+import { AUTHOR_TYPE_ENUMS, AUTHOR_TYPE_ICONS, AUTHOR_TYPE_NAMES } from "../define"
+import { useAuthorContext } from "../inject"
+import { useAuthorDetailContext } from "./inject"
 import { useSideBarContext } from "../../inject"
 import style from "./style.module.scss"
 
 export default defineComponent({
     setup() {
         const { pushSubItem } = useSideBarContext()
-        const { data } = useTopicDetailContext()
+        const { data } = useAuthorDetailContext()
 
         watch(data, d => {
             if(d != null) {
@@ -35,8 +35,8 @@ export default defineComponent({
 const TopBarContent = defineComponent({
     setup() {
         const messageBox = useMessageBox()
-        const { listEndpoint, detailMode, openCreatePane, closePane } = useTopicContext()
-        const { data, setData, deleteData, editMode } = useTopicDetailContext()
+        const { listEndpoint, detailMode, openCreatePane, closePane } = useAuthorContext()
+        const { data, setData, deleteData, editMode } = useAuthorDetailContext()
 
         const edit = () => editMode.value = true
 
@@ -60,7 +60,6 @@ const TopBarContent = defineComponent({
                     name: topic.name,
                     otherNames: topic.otherNames,
                     type: topic.type,
-                    parent: topic.parent,
                     annotations: topic.annotations,
                     keywords: topic.keywords,
                     description: topic.description,
@@ -71,22 +70,7 @@ const TopBarContent = defineComponent({
             }
         }
 
-        const createSubOfItem = () => {
-            const topic = data.value
-            if(topic != undefined) {
-                openCreatePane({
-                    parent: {
-                        id: topic.id,
-                        name: topic.name,
-                        type: topic.type,
-                        color: topic.color
-                    }
-                })
-            }
-        }
-
         const menu = useElementPopupMenu([
-            {type: "normal", label: "新建子主题", click: createSubOfItem},
             {type: "normal", label: "以此为模板新建", click: createByItem},
             {type: "separator"},
             {type: "normal", label: "删除此主题", click: deleteItem}
@@ -116,11 +100,10 @@ const TopBarContent = defineComponent({
 
 const Panel = defineComponent({
     setup() {
-        const { data } = useTopicDetailContext()
+        const { data } = useAuthorDetailContext()
 
         return () => <div class={["container", "p-2", style.detailView]}>
             {data.value && <MainContent data={data.value}/>}
-            {data.value && <RelatedThemeContent data={data.value}/>}
             {data.value?.links.length ? <LinkContent class="mb-1" links={data.value.links}/> : null}
             {data.value && <ExampleContent name={data.value.name}/>}
         </div>
@@ -129,7 +112,7 @@ const Panel = defineComponent({
 
 const MainContent = defineComponent({
     props: {
-        data: {type: null as any as PropType<DetailTopic>, required: true}
+        data: {type: null as any as PropType<DetailAuthor>, required: true}
     },
     setup(props) {
         return () => <div class="box mb-1">
@@ -156,46 +139,6 @@ const MainContent = defineComponent({
             <p class="mt-4"/>
             {props.data.score && <p><Starlight value={props.data.score} showText={true}/></p>}
         </div>
-    }
-})
-
-const RelatedThemeContent = defineComponent({
-    props: {
-        data: {type: null as any as PropType<DetailTopic>, required: true}
-    },
-    setup(props) {
-        const navigator = useNavigator()
-        const { openDetailPane } = useTopicContext()
-        const { subThemeData } = useTopicDetailContext()
-
-        const more = () => {
-            const parent: ParentTopic = {id: props.data.id, name: props.data.name, color: props.data.color, type: props.data.type}
-            navigator.goto.main.topics({parent})
-        }
-
-        return () => (subThemeData.value?.total || props.data.parent) ? <div class="box mb-1">
-            {props.data.parent && <div class="mt-1">
-                <div class="mb-1"><i class="fa fa-chess-queen mr-2"/><span>父主题</span></div>
-                <div>
-                    <a class={["tag", "mr-1", "mb-1", "is-light", `is-${props.data.parent.color}`]} onClick={() => openDetailPane(props.data.parent!.id)}>
-                        {TYPE_ICON_ELEMENTS[props.data.parent.type]}
-                        {props.data.parent.name}
-                    </a>
-                </div>
-            </div>}
-            {(subThemeData.value?.total || null) && <>
-                <div class="mt-3 mb-1"><i class="fa fa-chess mr-2"/><span>子主题</span></div>
-                <div>
-                    {subThemeData.value!.result.map(topic => <a class={["tag", "mr-1", "mb-1", "is-light", `is-${topic.color}`]} onClick={() => openDetailPane(topic.id)}>
-                        {TYPE_ICON_ELEMENTS[topic.type]}
-                        {topic.name}
-                    </a>)}
-                    <p>
-                        <a class="no-wrap mb-1" onClick={more}>在主题列表搜索全部子主题<i class="fa fa-angle-double-right ml-1"/></a>
-                    </p>
-                </div>
-            </>}
-        </div> : <div/>
     }
 })
 
@@ -230,7 +173,7 @@ const ExampleContent = defineComponent({
     },
     setup(props) {
         const navigator = useNavigator()
-        const { exampleData } = useTopicDetailContext()
+        const { exampleData } = useAuthorDetailContext()
 
         const more = () => navigator.goto.main.illusts({topicName: props.name})
 
@@ -243,8 +186,5 @@ const ExampleContent = defineComponent({
     }
 })
 
-const TYPE_ITEM_ELEMENTS: {[type in TopicType]: JSX.Element} =
-    arrays.toMap(TOPIC_TYPE_ENUMS, type => <><i class={`fa fa-${TOPIC_TYPE_ICONS[type]} mr-2`}/><span class="mr-2">{TOPIC_TYPE_NAMES[type]}</span></>)
-
-const TYPE_ICON_ELEMENTS: {[type in TopicType]: JSX.Element} =
-    arrays.toMap(TOPIC_TYPE_ENUMS, type => <i class={`fa fa-${TOPIC_TYPE_ICONS[type]} mr-1`}/>)
+const TYPE_ITEM_ELEMENTS: {[type in AuthorType]: JSX.Element} =
+    arrays.toMap(AUTHOR_TYPE_ENUMS, type => <><i class={`fa fa-${AUTHOR_TYPE_ICONS[type]} mr-2`}/><span class="mr-2">{AUTHOR_TYPE_NAMES[type]}</span></>)

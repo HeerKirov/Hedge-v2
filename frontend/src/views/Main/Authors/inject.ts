@@ -1,40 +1,41 @@
 import { Ref, ref, watch } from "vue"
-import { Annotation, AnnotationCreateForm, AnnotationQueryFilter } from "@/functions/adapter-http/impl/annotations"
+import { DetailAuthor, Author, AuthorQueryFilter } from "@/functions/adapter-http/impl/author"
 import { useHttpClient } from "@/functions/app"
 import { useNotification } from "@/functions/module"
 import { useScrollView, ScrollView } from "@/components/features/VirtualScrollView"
 import { ListEndpointResult, useListEndpoint } from "@/functions/utils/endpoints/list-endpoint"
+import { useRouterQueryNumber } from "@/functions/utils/properties/router-property"
 import { installation } from "@/functions/utils/basic"
 
-export interface AnnotationContext {
-    listEndpoint: ListEndpointResult<Annotation>
+export interface AuthorContext {
+    listEndpoint: ListEndpointResult<Author>
     scrollView: Readonly<ScrollView>
-    queryFilter: Ref<AnnotationQueryFilter>
-    createMode: Ref<Partial<Annotation> | null>
-    detailMode: Ref<number | null>
-    openCreatePane(template?: Partial<Annotation>)
+    queryFilter: Ref<AuthorQueryFilter>
+    createMode: Readonly<Ref<Partial<DetailAuthor> | null>>
+    detailMode: Readonly<Ref<number | null>>
+    openCreatePane(template?: Partial<DetailAuthor>)
     openDetailPane(id: number)
     closePane()
 }
 
-export const [installAnnotationContext, useAnnotationContext] = installation(function(): AnnotationContext {
-    const { listEndpoint, scrollView, queryFilter } = useAnnotationList()
+export const [installAuthorContext, useAuthorContext] = installation(function(): AuthorContext {
+    const { listEndpoint, scrollView, queryFilter } = useAuthorList()
 
     const { createMode, detailMode, openCreatePane, openDetailPane, closePane } = usePane()
 
     return {listEndpoint, scrollView, queryFilter, createMode, detailMode, openCreatePane, openDetailPane, closePane}
 })
 
-function useAnnotationList() {
+function useAuthorList() {
     const httpClient = useHttpClient()
     const { handleError } = useNotification()
 
-    const queryFilter = ref<AnnotationQueryFilter>({})
+    const queryFilter = ref<AuthorQueryFilter>({})
     watch(queryFilter, () => listEndpoint.refresh(), {deep: true})
 
     const listEndpoint = useListEndpoint({
         async request(offset: number, limit: number) {
-            const res = await httpClient.annotation.list({offset, limit, ...queryFilter.value})
+            const res = await httpClient.author.list({offset, limit, ...queryFilter.value})
             return res.ok ? {ok: true, ...res.data} : {ok: false, message: res.exception?.message ?? "unknown error"}
         },
         handleError
@@ -46,10 +47,10 @@ function useAnnotationList() {
 }
 
 function usePane() {
-    const createMode = ref<Partial<Annotation> | null>(null)
-    const detailMode = ref<number | null>(null)
+    const createMode = ref<Partial<DetailAuthor> | null>(null)
+    const detailMode = useRouterQueryNumber("MainAuthors", "detail")
 
-    const openCreatePane = (template?: Partial<Annotation>) => {
+    const openCreatePane = (template?: Partial<DetailAuthor>) => {
         createMode.value = template ? {...template} : {}
         detailMode.value = null
     }

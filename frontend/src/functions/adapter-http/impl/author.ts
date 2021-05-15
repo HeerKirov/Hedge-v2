@@ -130,6 +130,7 @@ export interface AuthorCreateForm {
     otherNames?: string[] | null
     type?: AuthorType
     description?: string
+    keywords?: string[]
     links?: Link[] | null
     annotations?: (string | number)[] | null
     favorite?: boolean
@@ -141,6 +142,7 @@ export interface AuthorUpdateForm {
     otherNames?: string[] | null
     type?: AuthorType
     description?: string
+    keywords?: string[]
     links?: Link[] | null
     annotations?: (string | number)[] | null
     favorite?: boolean
