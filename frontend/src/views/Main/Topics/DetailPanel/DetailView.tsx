@@ -154,7 +154,7 @@ const MainContent = defineComponent({
                 <WrappedText value={props.data.description}/>
             </div>}
             <p class="mt-4"/>
-            {props.data.score && <p><Starlight value={props.data.score} showText={true}/></p>}
+            {props.data.score ? <p><Starlight value={props.data.score} showText={true}/></p> : null}
         </div>
     }
 })

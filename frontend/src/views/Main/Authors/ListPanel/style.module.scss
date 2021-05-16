@@ -1,0 +1,17 @@
+
+
+.item {
+  width: 100%;
+  height: 96px;
+  margin-bottom: 6px;
+  padding: 1rem;
+
+  display: flex;
+  flex-wrap: nowrap;
+  > .left {
+    width: 40%;
+  }
+  > .right {
+    width: 60%;
+  }
+}

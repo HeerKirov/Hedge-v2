@@ -9,6 +9,7 @@ import { VirtualRow } from "@/components/features/VirtualScrollView"
 import { arrays } from "@/utils/collections"
 import { AUTHOR_TYPE_ENUMS, AUTHOR_TYPE_ICONS, AUTHOR_TYPE_NAMES } from "../define"
 import { useAuthorContext } from "../inject"
+import style from "./style.module.scss"
 
 /**
  * 内容列表项视图。
@@ -70,15 +71,11 @@ export default defineComponent({
         ])
 
         return () => <div class="w-100 h-100">
-            <VirtualRow rowHeight={50} padding={{top: 6, bottom: 6, left: 12, right: 12}} bufferSize={10} onUpdate={listEndpoint.dataUpdate} {...listEndpoint.data.value.metrics}>
-                <table class="table is-fullwidth no-wrap">
-                    <tbody>
-                        {listEndpoint.data.value.result.map(item => <Item key={item.id} value={item}
-                                                                          selected={detailMode.value === item.id}
-                                                                          onRightClick={() => popupmenu.popup(item.id)}
-                                                                          onSwitchFavorite={(v: boolean) => switchFavorite(item.id, v)}/>)}
-                    </tbody>
-                </table>
+            <VirtualRow rowHeight={102} padding={{top: 6, bottom: 0, left: 12, right: 12}} bufferSize={10} onUpdate={listEndpoint.dataUpdate} {...listEndpoint.data.value.metrics}>
+                {listEndpoint.data.value.result.map(item => <Item key={item.id} value={item}
+                                                                  selected={detailMode.value === item.id}
+                                                                  onRightClick={() => popupmenu.popup(item.id)}
+                                                                  onSwitchFavorite={(v: boolean) => switchFavorite(item.id, v)}/>)}
             </VirtualRow>
         </div>
     }
@@ -104,82 +101,96 @@ const Item = defineComponent({
 
         const { hover, mouseover, mouseleave } = useMouseHover()
 
-        return () => <tr onContextmenu={rightClick} onMouseover={mouseover} onMouseleave={mouseleave} style="height: 50px">
-            <td class="is-width-50 is-cursor-pointer" onClick={click}>
-                <span class={`has-text-${props.value.color}`}>{props.value.name}</span>
-                {(props.value.otherNames?.length || null) && <p class="has-text-grey">
-                    ({generateOtherNames(props.value.otherNames)})
-                </p>}
-            </td>
-            <td class="is-width-5">
+        return () => <div class={[style.item, "box"]} onMouseover={mouseover} onMouseleave={mouseleave}  onContextmenu={rightClick}>
+            <div class={style.left}>
                 {props.value.favorite ?
-                    <i class="ml-2 fa fa-heart has-text-danger is-cursor-pointer" onClick={switchFavorite}/>
-                : hover.value ?
-                    <i class="ml-2 fa fa-heart has-text-grey is-cursor-pointer" onClick={switchFavorite}/>
-                : null}
-            </td>
-            <td>
-                {((props.value.type !== "UNKNOWN") || null) && TYPE_ITEM_ELEMENTS[props.value.type]}
-            </td>
-            <td class="is-width-35">
-                <TopicListTags keywords={props.value.keywords} annotations={props.value.annotations}/>
-            </td>
-            <td class="is-width-5">
-                {(props.value.score || null) && <>
-                    <span>{props.value.score}</span>
-                    {STAR_ICON}
-                </>}
-            </td>
-            <td class="is-width-5">
-                {props.value.count ? `${props.value.count}项` : null}
-            </td>
-        </tr>
+                    <i class="mr-3 mt-1 fa fa-heart has-text-danger is-cursor-pointer float-right" onClick={switchFavorite}/>
+                    : hover.value ?
+                        <i class="mr-3 mt-1 fa fa-heart has-text-grey is-cursor-pointer float-right" onClick={switchFavorite}/>
+                        : null}
+                <div class={[`has-text-${props.value.color}`, "is-size-medium", "is-cursor-pointer"]} onClick={click}><b>{props.value.name}</b></div>
+                {(props.value.otherNames?.length || null) && <p class="has-text-grey mt-1">
+                    {props.value.otherNames.join(" / ")}
+                </p>}
+            </div>
+            <div class={style.right}>
+                <div>
+                    {((props.value.type !== "UNKNOWN") || null) && TYPE_ITEM_ELEMENTS[props.value.type]}
+                    {(props.value.score || null) && <>
+                        <span>{props.value.score}</span>
+                        {STAR_ICON}
+                    </>}
+                    {props.value.count ? `${props.value.count}项` : null}
+                </div>
+                <AnnotationList annotations={props.value.annotations}/>
+                <KeywordList keywords={props.value.keywords}/>
+            </div>
+        </div>
     }
 })
 
-const TopicListTags = defineComponent({
+const AnnotationList = defineComponent({
     props: {
-        keywords: {type: Array as PropType<string[]>, required: true},
-        annotations: {type: Array as PropType<SimpleAnnotation[]>, required: true},
+        annotations: {type: Array as PropType<SimpleAnnotation[]>, required: true}
+    },
+    setup(props) {
+        const max = 6
+
+        const annotations = ref<SimpleAnnotation[]>([])
+        const more = ref(false)
+
+        watchEffect(() => {
+            const annotationsSize = props.annotations.length
+            if(annotationsSize <= max) {
+                annotations.value = props.annotations
+                more.value = false
+            }else{
+                annotations.value = props.annotations.slice(0, max)
+                more.value = true
+            }
+        })
+
+        return () => <div class="mt-1">
+            {annotations.value.map(annotation => <span class="tag mr-1">
+                <b>[</b><span class="mx-1">{annotation.name}</span><b>]</b>
+            </span>)}
+            {more.value && <span class="tag mr-1">...</span>}
+        </div>
+    }
+})
+
+const KeywordList = defineComponent({
+    props: {
+        keywords: {type: Array as PropType<string[]>, required: true}
     },
     setup(props) {
         const max = 6
 
         const keywords = ref<string[]>([])
-        const annotations = ref<SimpleAnnotation[]>([])
         const more = ref(false)
 
         watchEffect(() => {
-            const keywordsSize = props.keywords.length, annotationsSize = props.annotations.length
-            if(keywordsSize + annotationsSize <= max) {
+            const keywordsSize = props.keywords.length
+            if(keywordsSize <= max) {
                 keywords.value = props.keywords
-                annotations.value = props.annotations
                 more.value = false
-            }else if(annotationsSize < max) {
-                annotations.value = props.annotations
-                keywords.value = props.keywords.slice(0, max - annotationsSize)
-                more.value = true
             }else{
-                annotations.value = props.annotations.slice(0, max)
                 keywords.value = []
                 more.value = true
             }
         })
 
-        return () => <>
-            {annotations.value.map(annotation => <span class="tag mr-1">
-                <b>[</b><span class="mx-1">{annotation.name}</span><b>]</b>
-            </span>)}
+        return () => <div class="mt-1">
             {keywords.value.map(keyword => <span class="tag mr-1">{keyword}</span>)}
             {more.value && <span class="tag mr-1">...</span>}
-        </>
+        </div>
     }
 })
 
 const TYPE_ITEM_ELEMENTS: {[type in AuthorType]: JSX.Element} =
-    arrays.toMap(AUTHOR_TYPE_ENUMS, type => <><i class={`fa fa-${AUTHOR_TYPE_ICONS[type]} mr-1`}/><span class="mr-2">{AUTHOR_TYPE_NAMES[type]}</span></>)
+    arrays.toMap(AUTHOR_TYPE_ENUMS, type => <><i class={`fa fa-${AUTHOR_TYPE_ICONS[type]} mr-1`}/><span class="mr-4">{AUTHOR_TYPE_NAMES[type]}</span></>)
 
-const STAR_ICON = <span class="icon ml-1"><i class="fa fa-star"/></span>
+const STAR_ICON = <span class="icon ml-1 mr-4"><i class="fa fa-star"/></span>
 
 function generateOtherNames(otherNames: string[]): string {
     const origin = otherNames.join(" / ")

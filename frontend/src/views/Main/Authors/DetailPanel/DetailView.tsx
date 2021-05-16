@@ -117,7 +117,7 @@ const MainContent = defineComponent({
     setup(props) {
         return () => <div class="box mb-1">
             <p>
-                <span class={["icon", "is-size-large", `has-text-${props.data.color}`]}><i class="fa fa-hashtag"/></span>
+                <span class={["icon", "is-size-large", `has-text-${props.data.color}`, "mr-1"]}><i class="fa fa-user-tag"/></span>
                 <span class="can-be-selected">
                         <b class={["is-size-4", `has-text-${props.data.color}`]}>{props.data.name}</b>
                         <i class="ml-1 has-text-grey">{props.data.otherNames.join(" / ")}</i>
@@ -137,7 +137,7 @@ const MainContent = defineComponent({
                 <WrappedText value={props.data.description}/>
             </div>}
             <p class="mt-4"/>
-            {props.data.score && <p><Starlight value={props.data.score} showText={true}/></p>}
+            {props.data.score ? <p><Starlight value={props.data.score} showText={true}/></p> : null}
         </div>
     }
 })
