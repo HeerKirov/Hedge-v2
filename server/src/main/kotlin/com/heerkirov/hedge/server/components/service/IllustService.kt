@@ -103,7 +103,7 @@ class IllustService(private val data: DataRepository,
     fun get(id: Int, type: Illust.IllustType): IllustDetailRes {
         val row = data.db.from(Illusts)
             .innerJoin(FileRecords, FileRecords.id eq Illusts.fileId)
-            .select(FileRecords.id, FileRecords.folder, FileRecords.extension,
+            .select(FileRecords.id, FileRecords.folder, FileRecords.extension, FileRecords.thumbnail,
                 Illusts.description, Illusts.score,
                 Illusts.exportedDescription, Illusts.exportedScore, Illusts.favorite, Illusts.tagme,
                 Illusts.partitionTime, Illusts.orderTime, Illusts.createTime, Illusts.updateTime)
