@@ -32,6 +32,12 @@
     color: $color !important
   .has-bg-#{$name}
     background-color: $color !important
+  @if length($pair) >= 4
+    $color-dark: nth($pair, 4)
+    .has-text-#{$name}-dark
+      color: $color-dark !important
+    .has-bg-#{$name}-dark
+      background-color: $color-dark !important
 @media (prefers-color-scheme: dark)
   @each $name, $pair in $colors-dark-mode
     $color: nth($pair, 1)
@@ -39,6 +45,12 @@
       color: $color
     .has-bg-#{$name}
       background-color: $color !important
+    @if length($pair) >= 4
+      $color-dark: nth($pair, 4)
+      .has-text-#{$name}-dark
+        color: $color-dark !important
+      .has-bg-#{$name}-dark
+        background-color: $color-dark !important
 
 //文本字体
 .is-monospace

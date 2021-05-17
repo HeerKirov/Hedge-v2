@@ -1,5 +1,5 @@
 import { Ref, ref, watch } from "vue"
-import { Annotation, AnnotationCreateForm, AnnotationQueryFilter } from "@/functions/adapter-http/impl/annotations"
+import { Annotation, AnnotationQueryFilter } from "@/functions/adapter-http/impl/annotations"
 import { useHttpClient } from "@/functions/app"
 import { useNotification } from "@/functions/module"
 import { useScrollView, ScrollView } from "@/components/features/VirtualScrollView"
@@ -12,9 +12,9 @@ export interface AnnotationContext {
     queryFilter: Ref<AnnotationQueryFilter>
     createMode: Ref<Partial<Annotation> | null>
     detailMode: Ref<number | null>
-    openCreatePane(template?: Partial<Annotation>)
-    openDetailPane(id: number)
-    closePane()
+    openCreatePane(template?: Partial<Annotation>): void
+    openDetailPane(id: number): void
+    closePane(): void
 }
 
 export const [installAnnotationContext, useAnnotationContext] = installation(function(): AnnotationContext {

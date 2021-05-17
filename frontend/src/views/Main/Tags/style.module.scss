@@ -1,0 +1,113 @@
+@import "@/styles/variable.sass";
+@import "@/styles/base/color.scss";
+@import "@/styles/base/size.sass";
+
+.list-view {
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  padding: 1rem 2rem;
+  box-sizing: border-box;
+
+  .root-node {
+    > .expanded-box {
+      //列表区域的展开收起动画
+      @mixin expand-transition-state($e) {
+        transition: max-height 0.25s $e;
+        overflow: hidden;
+        max-height: 250px;
+      }
+      &.expand-transition-enter-active {
+        @include expand-transition-state(ease-in);
+      }
+      &.expand-transition-leave-active {
+        @include expand-transition-state(ease-out);
+      }
+      &.expand-transition-enter-from,
+      &.expand-transition-leave-to {
+        max-height: 0;
+      }
+
+      .child-node-list {
+        &.inline {
+          display: flex;
+          flex-wrap: wrap;
+
+          > * {
+            margin-top: 0.25rem;
+            &:not(:last-child) {
+              margin-right: 0.25rem;
+            }
+          }
+        }
+        &:not(.inline) {
+          > * {
+            margin-top: 0.25rem;
+          }
+        }
+      }
+    }
+  }
+}
+
+.pane-detail-content {
+  border-left: solid 1px $deep-sidebar;
+  @media (prefers-color-scheme: dark) {
+    border-left-color: $deep-sidebar-dm;
+  }
+  .top {
+    margin-top: 1.5rem;
+  }
+  .title {
+    > b { font-size: $font-size-large; }
+    > i { margin-left: 0.25rem; }
+  }
+  .meta {
+    margin-left: 0.25rem;
+    margin-top: 0.75rem;
+    > p { margin-top: 0.5rem; }
+  }
+  .separator {
+    margin-top: 0.75rem;
+  }
+  .annotations {
+    margin-top: 0.25rem;
+    > :global(.tag) {
+      margin-bottom: 0.25rem;
+      margin-right: 0.25rem;
+    }
+  }
+  .description {
+    padding: 0.75rem;
+  }
+  .links {
+    margin-top: 0.75rem;
+    > p:not(:last-child) {
+      margin-bottom: 0.25rem;
+    }
+  }
+  .score {
+    margin-top: 1rem;
+  }
+  .examples {
+    margin-top: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    > .example {
+      position: relative;
+      height: 0;
+      width: 100%;
+      padding-bottom: 66.7%;
+      margin-bottom: 0.25rem;
+      > img {
+        position: absolute;
+        border-radius: 6px;
+        top: 0; left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: 50% 50%;
+      }
+    }
+  }
+}

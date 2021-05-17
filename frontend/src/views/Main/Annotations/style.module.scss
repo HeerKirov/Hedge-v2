@@ -5,7 +5,7 @@
 .pane-detail-content {
   border-left: solid 1px $deep-sidebar;
   @media (prefers-color-scheme: dark) {
-    border-left-color: $sidebar-dm;
+    border-left-color: $deep-sidebar-dm;
   }
 
   .annotation-target-view {

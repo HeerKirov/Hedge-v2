@@ -79,7 +79,7 @@ export interface Tag {
     /**
      * 标签别名。需要遵守tag name规范(不能为blank串，不能包含禁用字符' " ` . |)，且长度不能超过32。
      */
-    otherName: string[]
+    otherNames: string[]
     /**
      * 标签类型。
      */
@@ -128,7 +128,7 @@ export interface TagTreeNode {
     type: TagType
     group: IsGroup
     color: string | null
-    children: TagTreeNode[]
+    children: TagTreeNode[] | null
 }
 
 export interface SimpleTag {
