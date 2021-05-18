@@ -1,17 +1,18 @@
-import { defineComponent, PropType } from "vue"
+import { computed, defineComponent, PropType } from "vue"
 import WrappedText from "@/components/elements/WrappedText"
-import { PaneBasicLayout } from "@/layouts/layouts/SplitPane"
-import { useMessageBox } from "@/functions/module"
-import { useTagContext } from "./inject"
-import { useObjectEndpoint } from "@/functions/utils/endpoints/object-endpoint"
-import { DetailTag, IsGroup, TagType, TagUpdateForm } from "@/functions/adapter-http/impl/tag"
-import style from "./style.module.scss"
 import Starlight from "@/components/elements/Starlight"
+import { PaneBasicLayout } from "@/layouts/layouts/SplitPane"
+import { DetailTag, IsGroup, TagType, TagUpdateForm } from "@/functions/adapter-http/impl/tag"
+import { useObjectEndpoint } from "@/functions/utils/endpoints/object-endpoint"
+import { useMessageBox } from "@/functions/module"
+import { assetsUrl } from "@/functions/app"
+import { useTagContext } from "./inject"
+import style from "./style.module.scss"
 
 export default defineComponent({
     setup() {
         const message = useMessageBox()
-        const { detailMode, closePane } = useTagContext()
+        const { indexedInfo, detailMode, closePane } = useTagContext()
 
         const { data, setData } = useObjectEndpoint<number, DetailTag, TagUpdateForm>({
             path: detailMode,
@@ -22,10 +23,23 @@ export default defineComponent({
             }
         })
 
+        const attachedInfo = computed<{address: string | null, member: boolean, memberIndex: number | null}>(() => {
+            const info = detailMode.value != null ? indexedInfo.value[detailMode.value] : null
+            return info ? {
+                address: info.address.length ? info.address.map(i => i.name).join(".") : null,
+                member: info.member,
+                memberIndex: info.memberIndex != undefined ? info.memberIndex + 1 : null
+            } : {
+                address: null,
+                member: false,
+                memberIndex: null
+            }
+        })
+
         return () => <PaneBasicLayout onClose={closePane} class={style.paneDetailContent}>
             {data.value && <>
                 <p class={style.top}/>
-                <p class="can-be-selected">{/* TODO 地址段也需要依赖tag tree的生成 */}</p>
+                {attachedInfo.value.address && <p class="can-be-selected">{attachedInfo.value.address}</p>}
                 <p class={[style.title, "can-be-selected"]}>
                     <b class={data.value.color ? `has-text-${data.value.color}` : null}>{data.value.name}</b>
                     <i class="has-text-grey">{data.value.otherNames.join(" / ")}</i>
@@ -33,7 +47,7 @@ export default defineComponent({
                 <div class={style.meta}>
                     <TagTypeDisplay value={data.value.type}/>
                     <TagGroupDisplay value={data.value.group}/>
-                    {/* TODO group member的信息也需要依赖tag tree生成 */}
+                    <TagGroupMemberDisplay member={attachedInfo.value.member} memberIndex={attachedInfo.value.memberIndex ?? undefined}/>
                 </div>
                 <p class={style.separator}/>
                 <div class={style.annotations}>
@@ -61,7 +75,7 @@ export default defineComponent({
                 </div>
                 <div class={style.examples}>
                     {data.value.examples.map(example => <div class={style.example}>
-                        <img src={`record:///${example.thumbnailFile}`}/>
+                        <img alt={example.thumbnailFile ?? ""} src={assetsUrl(example.thumbnailFile)}/>
                     </div>)}
                 </div>
             </>}
@@ -107,7 +121,14 @@ const TAG_GROUP_CONTENT: {[key in Exclude<IsGroup, "FORCE_AND_SEQUENCE">]: JSX.E
 }
 
 const TagGroupMemberDisplay = defineComponent({
-    setup() {
-        return () => <p/>
+    props: {
+        member: Boolean,
+        memberIndex: Number
+    },
+    setup(props) {
+        return () => <p>
+            {props.member ? <><i class="fa fa-object-ungroup mr-1"/><span class="mr-3">组成员</span></> : null}
+            {props.memberIndex ? <><i class="fa fa-sort-alpha-down mr-1"/><span class="mr-1">序列化顺位</span><b>{props.memberIndex}</b></> : null}
+        </p>
     }
 })
