@@ -19,10 +19,8 @@ gradle run  # 运行程序
 ```
 在调试运行时，需要为程序指定必须的启动参数。
 ```sh
---channel               # 必选参数，指定启动的channel
---user-data             # 必选参数，指定userData的目录路径
---debug-mode            # 指定程序是否在开发模式下启动
---frontend-from-folder  # 指定此参数时，从此路径，而不是默认的userData路径下寻找前端资源
+--channel-path          # 必选参数，指定启动的channel的资源根目录
+--frontend-path         # 必须按参数，指定引用的前端资源根目录
 --force-port            # 强制指定此端口启动，用于开发
 --force-token           # 强制指定此token启动，用于开发
 --permanent             # 强制永不自动退出，用于开发

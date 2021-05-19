@@ -159,6 +159,23 @@ class TagService(private val data: DataRepository,
         return newTagDetailRes(tag, annotations, examples)
     }
 
+    fun getIndexedInfo(id: Int): TagIndexedInfoRes {
+        val tag = data.db.sequenceOf(Tags).firstOrNull { it.id eq id } ?: throw NotFound()
+
+        return if(tag.parentId != null) {
+            val parentTag = data.db.sequenceOf(Tags).first { it.id eq tag.parentId }
+
+            val address = kit.getAllParents(parentTag)
+
+            val member = parentTag.isGroup != Tag.IsGroup.NO
+            val memberIndex = if(parentTag.isGroup == Tag.IsGroup.FORCE_AND_SEQUENCE || parentTag.isGroup == Tag.IsGroup.SEQUENCE) tag.ordinal else null
+
+            newTagIndexedInfoRes(tag, address, member, memberIndex)
+        }else{
+            newTagIndexedInfoRes(tag, emptyList(), false, null)
+        }
+    }
+
     fun update(id: Int, form: TagUpdateForm) {
         data.db.transaction {
             val record = data.db.sequenceOf(Tags).firstOrNull { it.id eq id } ?: throw NotFound()

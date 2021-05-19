@@ -10,10 +10,6 @@ class ApplicationOptions(
      */
     val frontendPath: String,
     /**
-     * 告知server以调试模式启动。
-     */
-    val debugMode: Boolean = false,
-    /**
      * 告知server直接以permanent模式启动。
      */
     val permanent: Boolean = false,

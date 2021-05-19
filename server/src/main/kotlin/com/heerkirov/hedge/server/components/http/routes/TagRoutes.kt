@@ -18,6 +18,7 @@ class TagRoutes(private val tagService: TagService) : Endpoints {
                 get("tree", ::tree)
                 path(":id") {
                     get(::get)
+                    get("indexed-info", ::getIndexedInfo)
                     patch(::update)
                     delete(::delete)
                     post("duplicate", ::duplicate)
@@ -46,6 +47,11 @@ class TagRoutes(private val tagService: TagService) : Endpoints {
     private fun get(ctx: Context) {
         val id = ctx.pathParam<Int>("id").get()
         ctx.json(tagService.get(id))
+    }
+
+    private fun getIndexedInfo(ctx: Context) {
+        val id = ctx.pathParam<Int>("id").get()
+        ctx.json(tagService.getIndexedInfo(id))
     }
 
     private fun update(ctx: Context) {

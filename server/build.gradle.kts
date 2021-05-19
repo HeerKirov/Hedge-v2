@@ -11,10 +11,10 @@ version = "0.1.0"
 dependencies {
     val kotlinVersion = "1.4.32"
     val javalinVersion = "3.13.4"
-    val ktormVersion = "3.3.0"
+    val ktormVersion = "3.4.1"
     val sqliteVersion = "3.32.3.2"
-    val jacksonVersion = "2.11.3"
-    val javeVersion = "3.0.1"
+    val jacksonVersion = "2.11.3" //be careful to update version
+    val javeVersion = "3.1.1"
     val plistVersion = "1.23"
     val slf4jVersion = "1.7.30"
     val junitVersion = "4.13.1"

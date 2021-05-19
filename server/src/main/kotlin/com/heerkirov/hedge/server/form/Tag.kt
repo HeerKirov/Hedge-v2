@@ -27,6 +27,14 @@ data class TagDetailRes(val id: Int, val ordinal: Int, val parentId: Int?,
     data class Annotation(val id: Int, val name: String, val canBeExported: Boolean)
 }
 
+data class TagIndexedInfoRes(val id: Int, val name: String, val otherNames: List<String>,
+                             val type: Tag.Type, val group: Tag.IsGroup,
+                             val description: String, val color: String?,
+                             val address: List<AddressNode>,
+                             val member: Boolean, val memberIndex: Int?) {
+    data class AddressNode(val id: Int, val name: String)
+}
+
 data class TagFilter(@Limit val limit: Int,
                      @Offset val offset: Int,
                      @Search val search: String?,
@@ -71,3 +79,8 @@ fun newTagDetailRes(tag: Tag, annotations: List<TagDetailRes.Annotation>, exampl
     tag.type, tag.isGroup, tag.links ?: emptyList(), tag.description, tag.color,
     examples, annotations,
     tag.exportedScore, tag.cachedCount)
+
+fun newTagIndexedInfoRes(tag: Tag, address: List<Tag>, member: Boolean, memberIndex: Int?) = TagIndexedInfoRes(
+    tag.id, tag.name, tag.otherNames, tag.type, tag.isGroup, tag.description, tag.color,
+    address.map { TagIndexedInfoRes.AddressNode(it.id, it.name) },
+    member, memberIndex)

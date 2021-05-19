@@ -8,14 +8,18 @@ import com.heerkirov.hedge.server.dao.meta.Tags
 import com.heerkirov.hedge.server.exceptions.ParamError
 import com.heerkirov.hedge.server.exceptions.ResourceNotSuitable
 import com.heerkirov.hedge.server.exceptions.ResourceNotExist
+import com.heerkirov.hedge.server.form.TagIndexedInfoRes
 import com.heerkirov.hedge.server.model.meta.Annotation
 import com.heerkirov.hedge.server.model.illust.Illust
+import com.heerkirov.hedge.server.model.meta.Tag
 import com.heerkirov.hedge.server.tools.checkTagName
 import com.heerkirov.hedge.server.utils.ktorm.asSequence
 import org.ktorm.dsl.*
 import org.ktorm.entity.filter
+import org.ktorm.entity.first
 import org.ktorm.entity.sequenceOf
 import org.ktorm.entity.toList
+import java.util.*
 
 class TagKit(private val data: DataRepository, private val annotationManager: AnnotationManager) {
     /**
@@ -37,14 +41,21 @@ class TagKit(private val data: DataRepository, private val annotationManager: An
     }
 
     /**
-     * 校验并纠正links。
+     * 校验并纠正links。tag的link必须是非虚拟的。
      */
     fun validateLinks(newLinks: List<Int>?): List<Int>? {
         return if(newLinks.isNullOrEmpty()) null else {
             val links = data.db.sequenceOf(Tags).filter { it.id inList newLinks }.toList()
-            if (links.size < newLinks.size) {
+
+            if(links.size < newLinks.size) {
                 throw ResourceNotExist("links", newLinks.toSet() - links.asSequence().map { it.id }.toSet())
             }
+
+            val wrongLinks = links.filter { it.type === Tag.Type.VIRTUAL_ADDR }
+            if(wrongLinks.isNotEmpty()) {
+                throw ResourceNotSuitable("links", wrongLinks)
+            }
+
             newLinks
         }
     }
@@ -92,5 +103,21 @@ class TagKit(private val data: DataRepository, private val annotationManager: An
                 }
             }
         }
+    }
+
+    /**
+     * 从给出的tag开始向上请求，拿到整个address。最终结果包括初始tag。
+     */
+    fun getAllParents(tag: Tag): List<Tag> {
+        val ret = LinkedList<Tag>().also { it.add(tag) }
+
+        var current = tag
+        while (current.parentId != null) {
+            val next = data.db.sequenceOf(Tags).first { it.id eq current.parentId!! }
+            ret.push(next)
+            current = next
+        }
+
+        return ret
     }
 }

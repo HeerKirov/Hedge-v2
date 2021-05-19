@@ -11,7 +11,6 @@ fun main(args: Array<String>) {
         ApplicationOptions(
             channelPath = parameters["--channel-path"]!!,
             frontendPath = parameters["--frontend-path"]!!,
-            debugMode = parameters.contain("--debug-mode"),
             permanent = parameters.contain("--permanent"),
             forcePort = parameters["--force-port"]?.toInt(),
             forceToken = parameters["--force-token"]
