@@ -7,7 +7,7 @@ import { Annotation, AnnotationTarget, AnnotationUpdateForm } from "@/functions/
 import { useObjectEndpoint } from "@/functions/utils/endpoints/object-endpoint"
 import { useMessageBox } from "@/functions/module"
 import { useAnnotationContext } from "@/views/Main/Annotations/inject"
-import { AnnotationTargetEditor, AnnotationTargetView } from "./EditorComponents"
+import { AnnotationTargetEditor, AnnotationTargetDisplay } from "./PaneComponents"
 import { onKeyEnter } from "@/utils/events"
 import { checkTagName } from "@/utils/check"
 import { objects } from "@/utils/primitives"
@@ -66,7 +66,7 @@ export default defineComponent({
                 }}/>
                 <p class="mt-4">适用类型</p>
                 <ViewAndEditor data={data.value.target} onSetData={setAnnotationTarget} v-slots={{
-                    default: ({ value }) => <AnnotationTargetView value={value}/>,
+                    default: ({ value }) => <AnnotationTargetDisplay value={value}/>,
                     editor: ({ value, setValue }) => <AnnotationTargetEditor value={value} onUpdateValue={setValue}/>
                 }}/>
             </>}

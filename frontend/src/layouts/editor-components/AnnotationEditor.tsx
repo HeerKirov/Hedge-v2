@@ -25,7 +25,7 @@ export default defineComponent({
         const onRemoveItem = (index: number) => () => emit("updateValue", [...props.value.slice(0, index), ...props.value.slice(index + 1)])
 
         const request: SearchRequestFunction = (httpClient, offset, limit, search) =>
-            httpClient.annotation.list({offset, limit, search, order: "-createTime"})
+            httpClient.annotation.list({offset, limit, search, order: "-createTime", target: props.target})
 
         const create = async (name: string, httpClient: HttpClient, handleException: NotificationManager["handleException"]): Promise<SimpleAnnotation | null> => {
             const existRes = await httpClient.annotation.list({name, limit: 1})

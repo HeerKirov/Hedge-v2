@@ -18,7 +18,7 @@ const ANNOTATION_TARGET_DEFINITIONS: {type: AnnotationTarget, title: string, sub
         ]}
 ]
 
-export const AnnotationTargetView = defineComponent({
+export const AnnotationTargetDisplay = defineComponent({
     props: {
         value: {type: null as any as PropType<AnnotationTarget[]>, required: true}
     },

@@ -42,7 +42,7 @@ export interface TagEndpoint {
      * 更改标签。
      * @exception NOT_FOUND
      * @exception NOT_EXIST ("parentId"|"links"|"examples"|"annotations", id) 指定的资源不存在
-     * @exception NOT_SUITABLE ("examples"|"annotations", id) 指定的资源不适用。对于examples，只有类型为image的项目可用；对于annotations，是此注解的target要求不能应用于tag
+     * @exception NOT_SUITABLE ("examples"|"annotations|links", id) 指定的资源不适用。对于examples，只有类型为image的项目可用；对于annotations，是此注解的target要求不能应用于tag; 对于links，目标必须是非虚拟的
      * @exception RECURSIVE_PARENT 在父标签检查中发现了闭环
      * @exception CANNOT_GIVE_COLOR 只有顶层标签才能指定颜色
      * @exception ALREADY_EXISTS ("Tag", "name", name) 标签重名。addr类型的标签在同一个parent下禁止重名，tag类型的标签除上一条外还禁止与全局其他tag类型的标签重名

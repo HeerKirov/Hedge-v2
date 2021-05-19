@@ -1,4 +1,4 @@
-import { onMounted, Ref, ref, watch } from "vue"
+import { computed, onMounted, Ref, ref, watch } from "vue"
 import { TagTreeNode } from "@/functions/adapter-http/impl/tag"
 import { useNotification } from "@/functions/module"
 import { useHttpClient } from "@/functions/app"
@@ -97,4 +97,22 @@ function usePane() {
     }
 
     return {detailMode, openDetailPane, closePane}
+}
+
+export const [installExpandedInfo, useExpandedInfo] = installation(function() {
+    const expandedInfo = ref<{[key: number]: boolean}>({})
+
+    return {expandedInfo}
+})
+
+export function useExpandedValue(key: Ref<number>) {
+    const { expandedInfo } = useExpandedInfo()
+    return computed<boolean>({
+        get() {
+            return expandedInfo.value[key.value] ?? false
+        },
+        set(value) {
+            expandedInfo.value[key.value] = value
+        }
+    })
 }
