@@ -116,3 +116,16 @@ export function useExpandedValue(key: Ref<number>) {
         }
     })
 }
+
+export const [installDescriptionCache, useDescriptionCache] = installation(function() {
+
+})
+
+export function setColorForAllChildren(tag: TagTreeNode, color: string | null) {
+    tag.color = color
+    if(tag.children?.length) {
+        for(const child of tag.children) {
+            setColorForAllChildren(child, color)
+        }
+    }
+}

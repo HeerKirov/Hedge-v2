@@ -29,8 +29,8 @@ const RootNode = defineComponent({
         return () => <div class={[style.rootNode, "box"]}>
             <p class={style.titleBox}>
                 <a class={`has-text-${props.value.color}`} onClick={click}><b>{props.value.name}</b></a>
-                <a onClick={switchExpanded} class={`tag ml-1 is-${props.value.color} is-light has-bg-white`}>
-                    <i class={`fa fa-angle-${isExpanded.value ? "down" : "right"}`}/>
+                <a onClick={switchExpanded} class={`ml-1 has-text-${props.value.color}`}>
+                    <i class={`mx-2 fa fa-angle-${isExpanded.value ? "down" : "right"}`}/>
                 </a>
                 {isExpanded.value && <span class={`is-size-small ml-2 has-text-${props.value.color}`}>{props.description}</span>}
             </p>
@@ -74,7 +74,7 @@ const ChildNode = defineComponent({
 
         return () => !!props.value.children?.length ? <>
             <TagElement value={props.value} color={props.color}/>
-            <a onClick={switchExpanded} class={["tag", "ml-1", "is-light", props.value.color ? `is-${props.value.color}` : null]}>
+            <a onClick={switchExpanded} class={["tag", "ml-1", "is-light", props.color ? `is-${props.color}` : null]}>
                 <i class={`fa fa-angle-${isExpanded.value ? "down" : "right"}`}/>
             </a>
             {isExpanded.value && <ChildNodeList class="ml-6" value={props.value.children ?? []} color={props.color}/>}

@@ -1,4 +1,4 @@
-import { defineComponent, ref } from "vue"
+import { computed, defineComponent, PropType, ref } from "vue"
 import { watchElementExcludeClick } from "@/functions/utils/element"
 import style from "./StdColorSelector.module.scss"
 
@@ -16,7 +16,8 @@ export type StdColor = typeof colorEnum[number]
 
 export default defineComponent({
     props: {
-        value: String
+        value: String,
+        theme: {type: String as PropType<"rectangle" | "element">, default: "rectangle"}
     },
     emits: {
         updateValue(_: StdColor) { return true }
@@ -32,7 +33,12 @@ export default defineComponent({
             emit("updateValue", color)
         }
 
-        return () => <div ref={rootRef} class={style.colorSelector}>
+        const themeClass = computed(() => ({
+            rectangle: style.rectangle,
+            element: style.element
+        }[props.theme]))
+
+        return () => <div ref={rootRef} class={[style.colorSelector, themeClass.value]}>
             <div class={[style.colorBlock, `has-bg-${props.value}`]} onClick={() => showPicker.value = !showPicker.value}/>
             {showPicker.value && <ColorPicker onPick={pick}/>}
         </div>

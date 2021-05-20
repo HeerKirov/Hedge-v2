@@ -5,12 +5,21 @@
   $size: 2rem;
   position: relative;
   display: inline-block;
-  width: $size;
-  height: $size;
 
-  .color-block {
+  &.rectangle {
     width: $size;
     height: $size;
+  }
+  &.element {
+    width: $size;
+    height: $height-std;
+  }
+
+
+  .color-block {
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
     border: solid 1px $more-deep-light;
     border-radius: $radius-size-std;
     background-color: $black;

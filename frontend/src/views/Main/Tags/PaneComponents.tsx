@@ -1,6 +1,7 @@
 import { computed, defineComponent, PropType } from "vue"
 import Input from "@/components/forms/Input"
 import CheckBox from "@/components/forms/CheckBox"
+import StdColorSelector from "@/components/forms/StdColorSelector"
 import { IsGroup, TagType, TagTreeNode } from "@/functions/adapter-http/impl/tag"
 import { onKeyEnter } from "@/utils/events"
 import { useTagContext } from "./inject"
@@ -51,18 +52,24 @@ export const TagGroupEditor = defineComponent({
 export const NameAndOtherNamesEditor = defineComponent({
     props: {
         name: {type: String, required: true},
-        otherNames: {type: Array as PropType<string[]>, required: true}
+        otherNames: {type: Array as PropType<string[]>, required: true},
+        color: String,
+        enableToSetColor: {type: Boolean, default: false}
     },
     emits: ["setValue", "save"],
     setup(props, { emit }) {
-        const setName = (v: string) => emit("setValue", [v, props.otherNames])
-        const setOtherNames = (v: string[]) => emit("setValue", [props.name, v])
+        const setName = (v: string) => emit("setValue", [v, props.otherNames, props.color])
+        const setOtherNames = (v: string[]) => emit("setValue", [props.name, v, props.color])
+        const setColor = (v: string) => emit("setValue", [props.name, props.otherNames, v])
         const save = () => emit("save")
 
         return () => <>
-            <Input class="mt-mf mb-1" placeholder="标签名" value={props.name}
-                   onUpdateValue={setName} onKeypress={onKeyEnter(save)}
-                   focusOnMounted={true} refreshOnInput={true}/>
+            <div class="flex is-stretch mt-mf mb-1">
+                {props.enableToSetColor && <StdColorSelector class="is-not-grow is-not-shrink" theme="element" value={props.color} onUpdateValue={setColor}/>}
+                <Input class="is-width-100" placeholder="标签名" value={props.name}
+                       onUpdateValue={setName} onKeypress={onKeyEnter(save)}
+                       focusOnMounted={true} refreshOnInput={true}/>
+            </div>
             <OtherNameEditor value={props.otherNames} onUpdateValue={setOtherNames}/>
         </>
     }
@@ -113,7 +120,7 @@ export const TagGroupDisplay = defineComponent({
 })
 
 const TAG_GROUP_CONTENT: {[key in Exclude<IsGroup, "FORCE_AND_SEQUENCE">]: JSX.Element} = {
-    "NO": <><i class="fa fa-object-ungroup mr-1 has-text-grey"/><span class="mr-3 has-text-grey">非组</span></>,
+    "NO": <><i class="fa fa-object-group mr-1 has-text-grey"/><span class="mr-3 has-text-grey">非组</span></>,
     "YES": <><i class="fa fa-object-group mr-1"/><span class="mr-3">组</span></>,
     "SEQUENCE": <><i class="fa fa-sort-alpha-down mr-1"/><span class="mr-3">序列化</span></>,
     "FORCE": <><b class="mr-1">!</b><span class="mr-3">强制唯一</span></>

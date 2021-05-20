@@ -23,7 +23,7 @@ import {
     NameAndOtherNameDisplay, LinkDisplay
 } from "./PaneComponents"
 import { TAG_TYPE_SELECT_ITEMS } from "./define"
-import { useTagContext } from "./inject"
+import { setColorForAllChildren, useTagContext } from "./inject"
 import style from "./style.module.scss"
 
 export default defineComponent({
@@ -41,9 +41,12 @@ export default defineComponent({
                     const tag = info.tag
                     tag.name = data.name
                     tag.otherNames = data.otherNames
-                    tag.color = data.color
                     tag.type = data.type
                     tag.group = data.group
+                    if(tag.color !== data.color) {
+                        //当颜色改变时，需要递归修改其所有子元素的颜色
+                        setColorForAllChildren(tag, data.color)
+                    }
                 }
             }
         })
@@ -63,7 +66,9 @@ export default defineComponent({
 
         const links = computed(() => (data.value?.links ?? []).map(link => indexedInfo.value[link]).filter(i => i != undefined).map(i => i.tag))
 
-        const setName = async ([name, otherNames]: [string, string[]]) => {
+        const isRootNode = computed(() => data.value?.parentId == null)
+
+        const setName = async ([name, otherNames, color]: [string, string[], string | null]) => {
             if(!checkTagName(name)) {
                 message.showOkMessage("prompt", "不合法的名称。", "名称不能为空，且不能包含 ` \" ' . | 字符。")
                 return false
@@ -72,9 +77,20 @@ export default defineComponent({
                 message.showOkMessage("prompt", "不合法的别名。", "别名不能为空，且不能包含 ` \" ' . | 字符。")
                 return false
             }
-            return (name === data.value?.name && objects.deepEquals(otherNames, data.value?.otherNames)) || await setData({ name, otherNames }, e => {
+
+            const nameNotChanged = name === data.value?.name
+            const otherNamesNotChanged = objects.deepEquals(otherNames, data.value?.otherNames)
+            const colorNotChanged = color === data.value?.color
+
+            return (nameNotChanged && otherNamesNotChanged && colorNotChanged) || await setData({
+                name: nameNotChanged ? undefined : name,
+                otherNames: otherNamesNotChanged ? undefined : otherNames,
+                color: colorNotChanged ? undefined : (color ?? undefined)
+            }, e => {
                 if (e.code === "ALREADY_EXISTS") {
                     message.showOkMessage("prompt", "该名称已存在。")
+                } else if(e.code === "CANNOT_GIVE_COLOR") {
+                    message.showOkMessage("prompt", "不能设置非根节点的颜色。它们的颜色始终跟随根节点。")
                 } else {
                     return e
                 }
@@ -115,9 +131,9 @@ export default defineComponent({
             {data.value && <>
                 <p class={style.top}/>
                 {attachedInfo.value.address && <p class="can-be-selected">{attachedInfo.value.address}</p>}
-                <ViewAndEditor class={[style.title, "can-be-selected"]} baseline="medium" data={[data.value.name, data.value.otherNames]} onSetData={setName} v-slots={{
-                    default: ({ value: [name, otherNames] }) => <NameAndOtherNameDisplay name={name} otherNames={otherNames} color={data.value?.color ?? undefined}/>,
-                    editor: ({ value: [name, otherNames], setValue, save }) => <NameAndOtherNamesEditor name={name} otherNames={otherNames} onSetValue={setValue} onSave={save}/>
+                <ViewAndEditor class={[style.title, "can-be-selected"]} baseline="medium" data={[data.value.name, data.value.otherNames, data.value.color]} onSetData={setName} v-slots={{
+                    default: ({ value: [name, otherNames, color] }) => <NameAndOtherNameDisplay name={name} otherNames={otherNames} color={color}/>,
+                    editor: ({ value: [name, otherNames, color], setValue, save }) => <NameAndOtherNamesEditor name={name} otherNames={otherNames} color={color} enableToSetColor={isRootNode.value} onSetValue={setValue} onSave={save}/>
                 }}/>
                 <div class={style.meta}>
                     <ViewAndEditor data={data.value.type} onSetData={setType} v-slots={{
