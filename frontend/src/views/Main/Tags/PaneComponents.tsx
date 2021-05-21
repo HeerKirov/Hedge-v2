@@ -1,12 +1,15 @@
 import { computed, defineComponent, PropType } from "vue"
 import Input from "@/components/forms/Input"
+import Textarea from "@/components/forms/Textarea"
 import CheckBox from "@/components/forms/CheckBox"
 import StdColorSelector from "@/components/forms/StdColorSelector"
+import WrappedText from "@/components/elements/WrappedText"
+import { OtherNameEditor } from "@/layouts/editor-components"
 import { IsGroup, TagType, TagTreeNode } from "@/functions/adapter-http/impl/tag"
+import { useMouseHover } from "@/functions/utils/element"
 import { onKeyEnter } from "@/utils/events"
 import { useTagContext } from "./inject"
-import { OtherNameEditor } from "@/layouts/editor-components"
-
+import style from "./style.module.scss"
 
 export const TagGroupEditor = defineComponent({
     props: {
@@ -86,6 +89,38 @@ export const NameAndOtherNameDisplay = defineComponent({
             <b class={props.color ? `has-text-${props.color}` : null}>{props.name}</b>
             <i class="has-text-grey">{props.otherNames.join(" / ")}</i>
         </>
+    }
+})
+
+export const DescriptionDisplay = defineComponent({
+    props: {
+        value: {type: String, required: true}
+    },
+    emits: ["edit"],
+    setup(props, { emit }) {
+        const edit = () => emit("edit")
+
+        const { hover, mouseover, mouseleave } = useMouseHover()
+
+        return () => <div class={[style.description, "block", "is-cursor-text"]} onMouseover={mouseover} onMouseleave={mouseleave}>
+            {props.value ? <WrappedText value={props.value}/> : <i class="has-text-grey">没有描述</i>}
+            {hover.value && <a class={[style.edit, "has-text-link"]} onClick={edit}><i class="fa fa-edit"/></a>}
+        </div>
+    }
+})
+
+export const DescriptionEditor = defineComponent({
+    props: {
+        value: {type: String, required: true},
+    },
+    emits: ["updateValue", "save"],
+    setup(props, { emit }) {
+        const setValue = (v: string) => emit("updateValue", v)
+        const save = () => emit("save")
+        return () => <div>
+            <Textarea value={props.value} onUpdateValue={setValue} refreshOnInput={true} focusOnMounted={true}/>
+            <button class="button is-small has-text-link w-100" onClick={save}><span class="icon"><i class="fa fa-save"/></span></button>
+        </div>
     }
 })
 

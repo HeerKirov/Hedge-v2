@@ -1,4 +1,6 @@
 import { defineComponent, PropType, ref } from "vue"
+import { watchGlobalKeyEvent } from "@/functions/document/global-key"
+import { useMouseHover } from "@/functions/utils/element"
 import { objects } from "@/utils/primitives"
 import style from "./ViewAndEditor.module.scss"
 
@@ -29,17 +31,18 @@ export default defineComponent({
             }
         }
 
-        const hover = ref(false)
-        const mouseover = () => { hover.value = true }
-        const mouseleave = () => { hover.value = false }
+        const { hover, mouseover, mouseleave } = useMouseHover()
 
         const editorValue = ref()
         const setEditorValue = (newValue: any) => { editorValue.value = newValue }
 
-        const baselineStyle = {
-            "std": style.baselineStd,
-            "medium": style.baselineMedium
-        }
+        watchGlobalKeyEvent(e => {
+            if(editMode.value && e.key === "Enter" && e.metaKey) {
+                save().finally()
+                e.preventDefault()
+                e.stopPropagation()
+            }
+        })
 
         return () => editMode.value ? <div class={style.root}>
             {props.showSaveButton && <button class={["square", "button", "is-small", "is-white", "has-text-link", "float-right", style.button, baselineStyle[props.baseline]]} onClick={save}><span class="icon"><i class="fa fa-save"/></span></button>}
@@ -55,4 +58,9 @@ export default defineComponent({
 
 interface SetDataFunction {
     (data: any): Promise<boolean>
+}
+
+const baselineStyle = {
+    "std": style.baselineStd,
+    "medium": style.baselineMedium
 }

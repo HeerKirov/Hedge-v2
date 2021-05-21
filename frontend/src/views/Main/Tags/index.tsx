@@ -4,11 +4,12 @@ import SplitPane from "@/layouts/layouts/SplitPane"
 import ListView from "./ListView"
 import TopBarContent from "./TopBarContent"
 import PaneDetailView from "./PaneDetailView"
-import { installTagContext } from "./inject"
+import { installDescriptionCache, installTagContext } from "./inject"
 
 export default defineComponent({
     setup() {
         const { detailMode } = installTagContext()
+        installDescriptionCache()
 
         return () => <div>
             <TopBarLayout v-slots={{

@@ -22,6 +22,7 @@
         height: calc(100% - #{$spacing-1});
         object-fit: cover;
         object-position: 50% 50%;
+        box-shadow: 0.1em 0.1em 0.25em rgba(0, 0, 0, 0.1);
       }
     }
     > .more {

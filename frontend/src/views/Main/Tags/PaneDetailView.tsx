@@ -11,30 +11,33 @@ import { useObjectEndpoint } from "@/functions/utils/endpoints/object-endpoint"
 import { useMessageBox } from "@/functions/module"
 import { assetsUrl } from "@/functions/app"
 import { objects } from "@/utils/primitives"
-import { onKeyEnter } from "@/utils/events"
 import { checkTagName } from "@/utils/check"
 import {
-    LinkElement,
     TagGroupEditor,
     TagTypeDisplay,
     TagGroupDisplay,
     TagGroupMemberDisplay,
     NameAndOtherNamesEditor,
-    NameAndOtherNameDisplay, LinkDisplay
+    NameAndOtherNameDisplay,
+    LinkDisplay, DescriptionDisplay, DescriptionEditor
 } from "./PaneComponents"
 import { TAG_TYPE_SELECT_ITEMS } from "./define"
-import { setColorForAllChildren, useTagContext } from "./inject"
+import { setColorForAllChildren, useDescriptionCache, useTagContext } from "./inject"
 import style from "./style.module.scss"
 
 export default defineComponent({
     setup() {
         const message = useMessageBox()
         const { indexedInfo, detailMode, closePane } = useTagContext()
+        const { setDescriptionCache } = useDescriptionCache()
 
         const { data, setData } = useObjectEndpoint<number, DetailTag, TagUpdateForm>({
             path: detailMode,
             get: httpClient => httpClient.tag.get,
             update: httpClient => httpClient.tag.update,
+            afterGet(id, data) {
+                setDescriptionCache(id, data.description)
+            },
             afterUpdate(id, data) {
                 const info = indexedInfo.value[id]
                 if(info) {
@@ -47,6 +50,8 @@ export default defineComponent({
                         //当颜色改变时，需要递归修改其所有子元素的颜色
                         setColorForAllChildren(tag, data.color)
                     }
+                    //修改其在description cache中的值
+                    setDescriptionCache(id, data.description)
                 }
             }
         })
@@ -154,10 +159,8 @@ export default defineComponent({
                     editor: ({ value, setValue }: {value: SimpleAnnotation[], setValue(v: SimpleAnnotation[]): void}) => <AnnotationEditor class="mb-1" value={value} onUpdateValue={setValue} target="TAG"/>
                 }}/>
                 <ViewAndEditor data={data.value.description} onSetData={setDescription} showEditButton={false} showSaveButton={false} v-slots={{
-                    default: ({ value, edit }) => <div class={[style.description, "block", "is-cursor-text"]} onClick={edit}>
-                        {value ? <WrappedText value={value}/> : <i class="has-text-grey">没有描述</i>}
-                    </div>,
-                    editor: ({ value, setValue, save }) => <Textarea value={value} onUpdateValue={setValue} onKeypress={onKeyEnter(save)} refreshOnInput={true} focusOnMounted={true}/>
+                    default: ({ value, edit }) => <DescriptionDisplay value={value} onEdit={edit}/>,
+                    editor: ({ value, setValue, save }) => <DescriptionEditor value={value} onUpdateValue={setValue} onSave={save}/>
                 }}/>
                 <div class={style.links}>
                     {/* FUTURE: link编辑的功能 */}

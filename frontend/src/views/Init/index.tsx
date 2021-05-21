@@ -4,8 +4,8 @@ import NotFoundNotification from "@/layouts/pages/ForbiddenPage"
 import { initContextInjection, useInitContext } from "./inject"
 import WelcomePage from "./WelcomePage"
 import PasswordPage from "./PasswordPage"
-import DBPage from './DBPage'
-import FinishPage from './FinishPage'
+import DBPage from "./DBPage"
+import FinishPage from "./FinishPage"
 import style from "./style.module.scss"
 
 export default defineComponent({

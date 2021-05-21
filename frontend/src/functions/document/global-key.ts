@@ -7,6 +7,22 @@ export interface GlobalKeyEvent {
      */
     key: string
     /**
+     * 是否一同按下alt。
+     */
+    altKey: boolean
+    /**
+     * 是否一同按下shift。
+     */
+    shiftKey: boolean
+    /**
+     * 是否一同按下meta。这个键指Win/Super/Cmd。
+     */
+    metaKey: boolean
+    /**
+     * 是否一同按下ctrl。
+     */
+    ctrlKey: boolean
+    /**
      * 阻止按键事件继续传递到上一个注册者。
      */
     stopPropagation(): void
@@ -46,6 +62,10 @@ const [installGlobalKey, useGlobalKey] = installation(function() {
     function keydown(keyboardEvent: KeyboardEvent) {
         const consumer: GlobalKeyEvent = {
             key: keyboardEvent.key,
+            altKey: keyboardEvent.altKey,
+            shiftKey: keyboardEvent.shiftKey,
+            metaKey: keyboardEvent.metaKey,
+            ctrlKey: keyboardEvent.ctrlKey,
             stopPropagation() {
                 stopPropagation = true
             },

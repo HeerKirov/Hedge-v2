@@ -71,7 +71,7 @@ export default defineComponent({
         ])
 
         return () => <div class="w-100 h-100">
-            <VirtualRow rowHeight={102} padding={{top: 6, bottom: 0, left: 12, right: 12}} bufferSize={10} onUpdate={listEndpoint.dataUpdate} {...listEndpoint.data.value.metrics}>
+            <VirtualRow rowHeight={80} padding={{top: 6, bottom: 0, left: 12, right: 12}} bufferSize={10} onUpdate={listEndpoint.dataUpdate} {...listEndpoint.data.value.metrics}>
                 {listEndpoint.data.value.result.map(item => <Item key={item.id} value={item}
                                                                   selected={detailMode.value === item.id}
                                                                   onRightClick={() => popupmenu.popup(item.id)}
@@ -110,7 +110,7 @@ const Item = defineComponent({
                         : null}
                 <div class={[`has-text-${props.value.color}`, "is-size-medium", "is-cursor-pointer"]} onClick={click}><b>{props.value.name}</b></div>
                 {(props.value.otherNames?.length || null) && <p class="has-text-grey mt-1">
-                    {props.value.otherNames.join(" / ")}
+                    {generateOtherNames(props.value.otherNames)}
                 </p>}
             </div>
             <div class={style.right}>
@@ -122,67 +122,23 @@ const Item = defineComponent({
                     </>}
                     {props.value.count ? `${props.value.count}项` : null}
                 </div>
-                <AnnotationList annotations={props.value.annotations}/>
-                <KeywordList keywords={props.value.keywords}/>
+                <AnnotationAndKeywordList annotations={props.value.annotations} keywords={props.value.keywords}/>
             </div>
         </div>
     }
 })
 
-const AnnotationList = defineComponent({
+const AnnotationAndKeywordList = defineComponent({
     props: {
-        annotations: {type: Array as PropType<SimpleAnnotation[]>, required: true}
+        keywords: {type: Array as PropType<string[]>, required: true},
+        annotations: {type: Array as PropType<SimpleAnnotation[]>, required: true},
     },
     setup(props) {
-        const max = 6
-
-        const annotations = ref<SimpleAnnotation[]>([])
-        const more = ref(false)
-
-        watchEffect(() => {
-            const annotationsSize = props.annotations.length
-            if(annotationsSize <= max) {
-                annotations.value = props.annotations
-                more.value = false
-            }else{
-                annotations.value = props.annotations.slice(0, max)
-                more.value = true
-            }
-        })
-
-        return () => <div class="mt-1">
-            {annotations.value.map(annotation => <span class="tag mr-1">
+        return () => <div class={style.ankList}>
+            {props.annotations.map(annotation => <span class="tag mr-1">
                 <b>[</b><span class="mx-1">{annotation.name}</span><b>]</b>
             </span>)}
-            {more.value && <span class="tag mr-1">...</span>}
-        </div>
-    }
-})
-
-const KeywordList = defineComponent({
-    props: {
-        keywords: {type: Array as PropType<string[]>, required: true}
-    },
-    setup(props) {
-        const max = 6
-
-        const keywords = ref<string[]>([])
-        const more = ref(false)
-
-        watchEffect(() => {
-            const keywordsSize = props.keywords.length
-            if(keywordsSize <= max) {
-                keywords.value = props.keywords
-                more.value = false
-            }else{
-                keywords.value = []
-                more.value = true
-            }
-        })
-
-        return () => <div class="mt-1">
-            {keywords.value.map(keyword => <span class="tag mr-1">{keyword}</span>)}
-            {more.value && <span class="tag mr-1">...</span>}
+            {props.keywords.map(keyword => <span class="tag mr-1">{keyword}</span>)}
         </div>
     }
 })

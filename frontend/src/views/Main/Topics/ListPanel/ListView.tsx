@@ -124,7 +124,7 @@ const Item = defineComponent({
         const { hover, mouseover, mouseleave } = useMouseHover()
 
         return () => <tr onContextmenu={rightClick} onMouseover={mouseover} onMouseleave={mouseleave} style="height: 50px">
-            <td class="is-width-50 is-cursor-pointer" onClick={click}>
+            <td class="is-width-45 is-cursor-pointer" onClick={click}>
                 <span class={`has-text-${props.value.color}`}>{props.value.name}</span>
                 {(props.value.otherNames?.length || null) && <p class="has-text-grey">
                     ({generateOtherNames(props.value.otherNames)})
@@ -140,8 +140,8 @@ const Item = defineComponent({
             <td>
                 {((props.value.type !== "UNKNOWN") || null) && TYPE_ITEM_ELEMENTS[props.value.type]}
             </td>
-            <td class="is-width-35">
-                <TopicListTags keywords={props.value.keywords} annotations={props.value.annotations}/>
+            <td class="is-width-40">
+                <AnnotationAndKeywordsList keywords={props.value.keywords} annotations={props.value.annotations}/>
             </td>
             <td class="is-width-5">
                 {(props.value.score || null) && <>
@@ -156,7 +156,7 @@ const Item = defineComponent({
     }
 })
 
-const TopicListTags = defineComponent({
+const AnnotationAndKeywordsList = defineComponent({
     props: {
         keywords: {type: Array as PropType<string[]>, required: true},
         annotations: {type: Array as PropType<SimpleAnnotation[]>, required: true},

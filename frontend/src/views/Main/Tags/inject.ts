@@ -2,6 +2,7 @@ import { computed, onMounted, Ref, ref, watch } from "vue"
 import { TagTreeNode } from "@/functions/adapter-http/impl/tag"
 import { useNotification } from "@/functions/module"
 import { useHttpClient } from "@/functions/app"
+import { useFastObjectEndpoint } from "@/functions/utils/endpoints/object-fast-endpoint"
 import { installation } from "@/functions/utils/basic"
 
 export interface TagContext {
@@ -118,8 +119,50 @@ export function useExpandedValue(key: Ref<number>) {
 }
 
 export const [installDescriptionCache, useDescriptionCache] = installation(function() {
+    const descriptions: Ref<{[key: number]: string}> = ref({})
 
+    const endpoint = useFastObjectEndpoint({
+        get: httpClient => httpClient.tag.get
+    })
+
+    const loadDescription = async (key: number) => {
+        const d = await endpoint.getData(key)
+        if(d) setDescriptionCache(key, d.description)
+    }
+
+    const setDescriptionCache = (key: number, value: string) => {
+        const enterIndex = value.indexOf("\n")
+        descriptions.value[key] = enterIndex >= 0 ? value.substr(0, enterIndex) : value
+    }
+
+    const getDescriptionCache = (key: number): string | undefined => {
+        const value = descriptions.value[key]
+        if(value != undefined) {
+            return value
+        }
+        try {
+            return undefined
+        }finally{
+            loadDescription(key).finally()
+        }
+    }
+
+    return {getDescriptionCache, setDescriptionCache}
 })
+
+export function useDescriptionValue(key: Ref<number>) {
+    const { getDescriptionCache, setDescriptionCache } = useDescriptionCache()
+    return computed<string | undefined>({
+        get() {
+            return getDescriptionCache(key.value)
+        },
+        set(value) {
+            if(value != undefined) {
+                setDescriptionCache(key.value, value)
+            }
+        }
+    })
+}
 
 export function setColorForAllChildren(tag: TagTreeNode, color: string | null) {
     tag.color = color

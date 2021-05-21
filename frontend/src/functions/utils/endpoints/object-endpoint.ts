@@ -18,15 +18,49 @@ export interface ObjectEndpoint<MODEL, FORM> {
 }
 
 interface ObjectEndpointOptions<PATH, MODEL, FORM> {
+    /**
+     * 决定object的path属性。
+     */
     path: Ref<PATH | null>
+    /**
+     * retrieve操作的函数。
+     */
     get(httpClient: HttpClient): (path: PATH) => Promise<Response<MODEL>>
+    /**
+     * update操作的函数。
+     */
     update?(httpClient: HttpClient): (path: PATH, form: FORM) => Promise<Response<MODEL | null>>
+    /**
+     * delete操作的函数。
+     */
     delete?(httpClient: HttpClient): (path: PATH) => Promise<Response<unknown>>
+    /**
+     * 在path变化之前发生调用的事件。
+     */
     beforePath?()
+    /**
+     * 在path变化之后发生调用的事件。
+     */
     afterPath?()
+    /**
+     * 在get成功之后调用的事件。
+     */
+    afterGet?(path: PATH, data: MODEL)
+    /**
+     * 在update成功之后调用的事件。
+     */
     afterUpdate?(path: PATH, data: MODEL)
+    /**
+     * 在delete成功之后调用的事件。
+     */
     afterDelete?(path: PATH)
+    /**
+     * update过程中发生错误时的捕获函数。
+     */
     handleUpdateError?: ErrorHandler
+    /**
+     * delete过程中发生错误时的捕获函数。
+     */
     handleDeleteError?: ErrorHandler
 }
 
@@ -68,6 +102,7 @@ export function useObjectEndpoint<PATH, MODEL, FORM>(options: ObjectEndpointOpti
             if(invalidate) return
             if(res.ok) {
                 data.value = res.data
+                options.afterGet?.(path, data.value)
             }else if(res.exception && res.exception.code !== "NOT_FOUND") {
                 //not found类错误会被包装，因此不会抛出
                 notification.handleException(res.exception)

@@ -1,38 +1,43 @@
+import { defineComponent, PropType, Transition, computed, toRef, Ref } from "vue"
 import { TagTreeNode } from "@/functions/adapter-http/impl/tag"
-import { defineComponent, PropType, Transition, computed } from "vue"
-import { useTagContext, installExpandedInfo, useExpandedValue } from "./inject"
+import { usePopupMenu } from "@/functions/module"
+import { installation } from "@/functions/utils/basic"
+import { useTagContext, installExpandedInfo, useExpandedValue, useDescriptionValue } from "./inject"
 import style from "./style.module.scss"
 
 export default defineComponent({
     setup() {
         const { loading, data } = useTagContext()
         installExpandedInfo()
+        installListMenu()
 
         return () => <div class={style.listView}>
-            {!loading.value ? data.value.map(tag => <RootNode key={tag.id} value={tag} description="..."/>) : null}
+            {!loading.value ? data.value.map(tag => <RootNode key={tag.id} value={tag}/>) : null}
         </div>
     }
 })
 
 const RootNode = defineComponent({
     props: {
-        value: {type: null as any as PropType<TagTreeNode>, required: true},
-        description: String //TODO 生成description
+        value: {type: null as any as PropType<TagTreeNode>, required: true}
     },
     setup(props) {
         const { openDetailPane } = useTagContext()
         const click = () => openDetailPane(props.value.id)
 
-        const isExpanded = useExpandedValue(computed(() => props.value.id))
+        const id = computed(() => props.value.id)
+        const isExpanded = useExpandedValue(id)
         const switchExpanded = () => { isExpanded.value = !isExpanded.value }
 
+        const menu = useListMenu(id)
+
         return () => <div class={[style.rootNode, "box"]}>
-            <p class={style.titleBox}>
+            <p class={style.titleBox} onContextmenu={menu.popup}>
                 <a class={`has-text-${props.value.color}`} onClick={click}><b>{props.value.name}</b></a>
                 <a onClick={switchExpanded} class={`ml-1 has-text-${props.value.color}`}>
                     <i class={`mx-2 fa fa-angle-${isExpanded.value ? "down" : "right"}`}/>
                 </a>
-                {isExpanded.value && <span class={`is-size-small ml-2 has-text-${props.value.color}`}>{props.description}</span>}
+                {isExpanded.value && <RootNodeDescription id={id.value} color={props.value.color ?? undefined}/>}
             </p>
             
             <Transition enterActiveClass={style.expandTransitionEnterActive} 
@@ -44,6 +49,19 @@ const RootNode = defineComponent({
                 </div>}
             </Transition>
         </div>
+    }
+})
+
+const RootNodeDescription = defineComponent({
+    props: {
+        id: {type: Number, required: true},
+        color: String
+    },
+    setup(props) {
+        const id = toRef(props, "id")
+        const description = useDescriptionValue(id)
+
+        return () => <span class={`is-size-small ml-2 has-text-${props.color}`}>{description.value}</span>
     }
 })
 
@@ -69,16 +87,19 @@ const ChildNode = defineComponent({
         color: String,
     },
     setup(props) {
-        const isExpanded = useExpandedValue(computed(() => props.value.id))
+        const id = computed(() => props.value.id)
+        const isExpanded = useExpandedValue(id)
         const switchExpanded = () => isExpanded.value = !isExpanded.value
 
+        const menu = useListMenu(id)
+
         return () => !!props.value.children?.length ? <>
-            <TagElement value={props.value} color={props.color}/>
-            <a onClick={switchExpanded} class={["tag", "ml-1", "is-light", props.color ? `is-${props.color}` : null]}>
+            <TagElement value={props.value} color={props.color} onContextmenu={menu.popup}/>
+            <a onClick={switchExpanded} onContextmenu={menu.popup} class={["tag", "ml-1", "is-light", props.color ? `is-${props.color}` : null]}>
                 <i class={`fa fa-angle-${isExpanded.value ? "down" : "right"}`}/>
             </a>
             {isExpanded.value && <ChildNodeList class="ml-6" value={props.value.children ?? []} color={props.color}/>}
-        </> : <TagElement value={props.value} color={props.color}/>
+        </> : <TagElement value={props.value} color={props.color} onContextmenu={menu.popup}/>
     }
 })
 
@@ -109,3 +130,30 @@ const TagElement = defineComponent({
         }
     }
 })
+
+const [installListMenu, useListMenuContext] = installation(function() {
+    const menu = usePopupMenu<number>([
+        {type: "normal", label: "查看详情"},
+        {type: "separator"},
+        {type: "normal", label: "展开下属标签"},
+        {type: "normal", label: "折叠下属标签"},
+        {type: "separator"},
+        {type: "normal", label: "新建子标签"},
+        {type: "normal", label: "在此标签之前新建"},
+        {type: "normal", label: "在此标签之后新建"},
+        {type: "separator"},
+        {type: "normal", label: "删除此标签"}
+    ])
+
+    const popup = (id: number) => menu.popup(id)
+
+    return {popup}
+})
+
+function useListMenu(id: Ref<number>) {
+    const menu = useListMenuContext()
+
+    const popup = () => menu.popup(id.value)
+
+    return {popup}
+}
