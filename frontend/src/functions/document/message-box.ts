@@ -44,7 +44,7 @@ export function installMessageBoxManager() {
         showMessageBox({title: stdTitles[titleType], message, detailMessage, buttons: [OkButton], esc: "ok", enter: "ok"}).finally(null)
     }
     const showYesNoMessage = async (titleType: StdTitleType, message: string, detailMessage?: string): Promise<boolean> => {
-        const res = await showMessageBox({title: stdTitles[titleType], message, detailMessage, buttons: [YesButton, NoButton], enter: "yes", esc: "no"})
+        const res = await showMessageBox({title: stdTitles[titleType], message, detailMessage, buttons: [titleType === "warn" ? DangerYesButton : YesButton, NoButton], enter: "yes", esc: "no"})
         return res === "yes"
     }
 
@@ -68,6 +68,7 @@ const messageBoxInjection: InjectionKey<MessageBoxConsumer> = Symbol()
 
 const OkButton: MessageBoxButton = {name: "好", action: "ok", type: "info"}
 const YesButton: MessageBoxButton = {name: "是", action: "yes", type: "info"}
+const DangerYesButton: MessageBoxButton = {name: "是", action: "yes", type: "danger"}
 const NoButton: MessageBoxButton = {name: "否", action: "no"}
 
 type StdTitleType = "info" | "prompt" | "error" | "confirm" | "warn"

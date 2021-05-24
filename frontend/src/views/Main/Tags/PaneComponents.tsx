@@ -8,7 +8,7 @@ import { OtherNameEditor } from "@/layouts/editor-components"
 import { IsGroup, TagType, TagTreeNode } from "@/functions/adapter-http/impl/tag"
 import { useMouseHover } from "@/functions/utils/element"
 import { onKeyEnter } from "@/utils/events"
-import { useTagContext } from "./inject"
+import { useTagPaneContext } from "./inject"
 import style from "./style.module.scss"
 
 export const TagGroupEditor = defineComponent({
@@ -197,7 +197,7 @@ export const LinkElement = defineComponent({
         value: {type: null as any as PropType<TagTreeNode>, required: true}
     },
     setup(props) {
-        const { openDetailPane } = useTagContext()
+        const { openDetailPane } = useTagPaneContext()
         const click = () => openDetailPane(props.value.id)
 
         return () => {

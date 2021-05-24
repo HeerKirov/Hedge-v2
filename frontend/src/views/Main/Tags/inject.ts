@@ -5,16 +5,43 @@ import { useHttpClient } from "@/functions/app"
 import { useFastObjectEndpoint } from "@/functions/utils/endpoints/object-fast-endpoint"
 import { installation } from "@/functions/utils/basic"
 
-export interface TagContext {
-    loading: Ref<boolean>
-    data: Ref<TagTreeNode[]>
-    indexedInfo: Ref<{[key: number]: IndexedInfo}>
+export interface TagPaneContext {
     detailMode: Ref<number | null>
     openDetailPane(id: number): void
     closePane(): void
 }
 
-interface IndexedInfo {
+export interface TagListContext {
+    /**
+     * 当前加载状态。
+     */
+    loading: Ref<boolean>
+    /**
+     * 树状的原始数据。
+     */
+    data: Ref<TagTreeNode[]>
+    /**
+     * 根据id索引的数据。
+     */
+    indexedInfo: Ref<{[key: number]: IndexedInfo}>
+    /**
+     * 快捷函数：更新当前数据中，指定tag下所有tag的color属性。
+     */
+    updateColorForAllChildren(tag: TagTreeNode, color: string | null): void
+    /**
+     * 用于list view展示的description属性的缓存值。在没有值时，自动调API去取；更新description时应手动更新此缓存。
+     */
+    descriptionCache: {
+        get(key: number): string | undefined
+        set(key: number, value: string): void
+    }
+    /**
+     * 删除指定的tag。这会级联删除下属所有tag。通过此方法删除不会重载数据，在前端同步完成所有处理，以减少开销。
+     */
+    deleteTag(id: number): void
+}
+
+export interface IndexedInfo {
     //原始tag对象的引用
     tag: TagTreeNode
     //tag的地址段
@@ -25,17 +52,59 @@ interface IndexedInfo {
     memberIndex?: number
 }
 
-export const [installTagContext, useTagContext] = installation(function(): TagContext {
-    const { loading, data: requestedData } = useTagTree()
+export interface ExpandedInfoContext {
+    /**
+     * 获得折叠状态。
+     */
+    get(key: number): boolean
+    /**
+     * 设定折叠状态。
+     */
+    set(key: number, value: boolean): void
+    /**
+     * 设定当前节点及其所有子节点的折叠状态。
+     */
+    setAllForChildren(key: number, value: boolean): void
+}
 
-    const { data, indexedInfo } = useIndexedInfo(requestedData)
+export const [installTagPaneContext, useTagPaneContext] = installation(function(): TagPaneContext {
+    const detailMode = ref<number | null>(null)
 
-    const pane = usePane()
+    const openDetailPane = (id: number) => {
+        detailMode.value = id
+    }
 
-    return {loading, data, indexedInfo, ...pane}
+    const closePane = () => {
+        detailMode.value = null
+    }
+
+    return {detailMode, openDetailPane, closePane}
 })
 
-function useTagTree() {
+export const [installTagListContext, useTagListContext] = installation(function(): TagListContext {
+    const { loading, data: requestedData } = useTagTreeEndpoint()
+
+    const { data, indexedInfo } = useIndexedData(requestedData)
+
+    const descriptionCache = useDescriptionCache()
+
+    const updateColorForAllChildren = (tag: TagTreeNode, color: string | null) => {
+        tag.color = color
+        if(tag.children?.length) {
+            for(const child of tag.children) {
+                updateColorForAllChildren(child, color)
+            }
+        }
+    }
+
+    const deleteTag = (id: number) => {
+        //TODO
+    }
+
+    return {loading, data, indexedInfo, updateColorForAllChildren, descriptionCache, deleteTag}
+})
+
+function useTagTreeEndpoint() {
     const httpClient = useHttpClient()
     const { handleException } = useNotification()
 
@@ -58,7 +127,7 @@ function useTagTree() {
     return {loading, data, refresh}
 }
 
-function useIndexedInfo(requestedData: Ref<TagTreeNode[]>) {
+function useIndexedData(requestedData: Ref<TagTreeNode[]>) {
     const data = ref<TagTreeNode[]>([])
     const indexedInfo = ref<{[key: number]: IndexedInfo}>({})
 
@@ -66,19 +135,19 @@ function useIndexedInfo(requestedData: Ref<TagTreeNode[]>) {
         data.value = requestedData
         const info: {[key: number]: IndexedInfo} = {}
         for(const node of requestedData) {
-           processTagNode(info, node)
+           loadTagNode(info, node)
         }
         indexedInfo.value = info
     })
 
-    function processTagNode(info: {[key: number]: IndexedInfo}, tag: TagTreeNode, address: {id: number, name: string}[] = [], member: boolean = false, memberIndex: number | undefined = undefined) {
+    function loadTagNode(info: {[key: number]: IndexedInfo}, tag: TagTreeNode, address: {id: number, name: string}[] = [], member: boolean = false, memberIndex: number | undefined = undefined) {
         info[tag.id] = {tag, address, member, memberIndex}
         if(tag.children?.length) {
             const nextAddress = [...address, {id: tag.id, name: tag.name}]
             const isGroup = tag.group !== "NO"
             const isSequence = tag.group === "SEQUENCE" || tag.group === "FORCE_AND_SEQUENCE"
             for (let i = 0; i < tag.children.length; i++) {
-                processTagNode(info, tag.children[i], nextAddress, isGroup, isSequence ? i : undefined)
+                loadTagNode(info, tag.children[i], nextAddress, isGroup, isSequence ? i : undefined)
             }
         }
     }
@@ -86,39 +155,7 @@ function useIndexedInfo(requestedData: Ref<TagTreeNode[]>) {
     return {data, indexedInfo}
 }
 
-function usePane() {
-    const detailMode = ref<number | null>(null)
-
-    const openDetailPane = (id: number) => {
-        detailMode.value = id
-    }
-
-    const closePane = () => {
-        detailMode.value = null
-    }
-
-    return {detailMode, openDetailPane, closePane}
-}
-
-export const [installExpandedInfo, useExpandedInfo] = installation(function() {
-    const expandedInfo = ref<{[key: number]: boolean}>({})
-
-    return {expandedInfo}
-})
-
-export function useExpandedValue(key: Ref<number>) {
-    const { expandedInfo } = useExpandedInfo()
-    return computed<boolean>({
-        get() {
-            return expandedInfo.value[key.value] ?? false
-        },
-        set(value) {
-            expandedInfo.value[key.value] = value
-        }
-    })
-}
-
-export const [installDescriptionCache, useDescriptionCache] = installation(function() {
+function useDescriptionCache() {
     const descriptions: Ref<{[key: number]: string}> = ref({})
 
     const endpoint = useFastObjectEndpoint({
@@ -127,15 +164,15 @@ export const [installDescriptionCache, useDescriptionCache] = installation(funct
 
     const loadDescription = async (key: number) => {
         const d = await endpoint.getData(key)
-        if(d) setDescriptionCache(key, d.description)
+        if(d) set(key, d.description)
     }
 
-    const setDescriptionCache = (key: number, value: string) => {
+    const set = (key: number, value: string) => {
         const enterIndex = value.indexOf("\n")
         descriptions.value[key] = enterIndex >= 0 ? value.substr(0, enterIndex) : value
     }
 
-    const getDescriptionCache = (key: number): string | undefined => {
+    const get = (key: number): string | undefined => {
         const value = descriptions.value[key]
         if(value != undefined) {
             return value
@@ -147,28 +184,49 @@ export const [installDescriptionCache, useDescriptionCache] = installation(funct
         }
     }
 
-    return {getDescriptionCache, setDescriptionCache}
-})
+    return {get, set}
+}
 
 export function useDescriptionValue(key: Ref<number>) {
-    const { getDescriptionCache, setDescriptionCache } = useDescriptionCache()
+    const { descriptionCache } = useTagListContext()
     return computed<string | undefined>({
-        get() {
-            return getDescriptionCache(key.value)
-        },
+        get: () => descriptionCache.get(key.value),
         set(value) {
             if(value != undefined) {
-                setDescriptionCache(key.value, value)
+                descriptionCache.set(key.value, value)
             }
         }
     })
 }
 
-export function setColorForAllChildren(tag: TagTreeNode, color: string | null) {
-    tag.color = color
-    if(tag.children?.length) {
-        for(const child of tag.children) {
-            setColorForAllChildren(child, color)
+export const [installExpandedInfo, useExpandedInfo] = installation(function(): ExpandedInfoContext {
+    const { indexedInfo } = useTagListContext()
+
+    const expandedInfo = ref<{[key: number]: boolean}>({})
+
+    const get = (key: number): boolean => expandedInfo.value[key] ?? false
+    const set = (key: number, value: boolean) => expandedInfo.value[key] = value
+    const setAllForChildren = (key: number, value: boolean) => {
+        const deepSet = (tag: TagTreeNode, value: boolean) => {
+            set(tag.id, value)
+            if(tag.children) {
+                for(const child of tag.children) {
+                    deepSet(child, value)
+                }
+            }
         }
+
+        const info = indexedInfo.value[key]
+        if(info) deepSet(info.tag, value)
     }
+
+    return {get, set, setAllForChildren}
+})
+
+export function useExpandedValue(key: Ref<number>) {
+    const { get, set } = useExpandedInfo()
+    return computed<boolean>({
+        get: () => get(key.value),
+        set: value => set(key.value, value)
+    })
 }

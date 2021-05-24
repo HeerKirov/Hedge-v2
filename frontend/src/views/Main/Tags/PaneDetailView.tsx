@@ -1,7 +1,5 @@
 import { computed, defineComponent } from "vue"
-import WrappedText from "@/components/elements/WrappedText"
 import Starlight from "@/components/elements/Starlight"
-import Textarea from "@/components/forms/Textarea"
 import Select from "@/components/forms/Select"
 import { PaneBasicLayout } from "@/layouts/layouts/SplitPane"
 import { AnnotationEditor, ViewAndEditor } from "@/layouts/editor-components"
@@ -12,6 +10,7 @@ import { useMessageBox } from "@/functions/module"
 import { assetsUrl } from "@/functions/app"
 import { objects } from "@/utils/primitives"
 import { checkTagName } from "@/utils/check"
+import { TAG_TYPE_SELECT_ITEMS } from "./define"
 import {
     TagGroupEditor,
     TagTypeDisplay,
@@ -21,22 +20,21 @@ import {
     NameAndOtherNameDisplay,
     LinkDisplay, DescriptionDisplay, DescriptionEditor
 } from "./PaneComponents"
-import { TAG_TYPE_SELECT_ITEMS } from "./define"
-import { setColorForAllChildren, useDescriptionCache, useTagContext } from "./inject"
+import { useTagPaneContext, useTagListContext } from "./inject"
 import style from "./style.module.scss"
 
 export default defineComponent({
     setup() {
         const message = useMessageBox()
-        const { indexedInfo, detailMode, closePane } = useTagContext()
-        const { setDescriptionCache } = useDescriptionCache()
+        const { detailMode, closePane } = useTagPaneContext()
+        const { indexedInfo, descriptionCache, updateColorForAllChildren } = useTagListContext()
 
         const { data, setData } = useObjectEndpoint<number, DetailTag, TagUpdateForm>({
             path: detailMode,
             get: httpClient => httpClient.tag.get,
             update: httpClient => httpClient.tag.update,
             afterGet(id, data) {
-                setDescriptionCache(id, data.description)
+                descriptionCache.set(id, data.description)
             },
             afterUpdate(id, data) {
                 const info = indexedInfo.value[id]
@@ -48,10 +46,10 @@ export default defineComponent({
                     tag.group = data.group
                     if(tag.color !== data.color) {
                         //当颜色改变时，需要递归修改其所有子元素的颜色
-                        setColorForAllChildren(tag, data.color)
+                        updateColorForAllChildren(tag, data.color)
                     }
                     //修改其在description cache中的值
-                    setDescriptionCache(id, data.description)
+                    descriptionCache.set(id, data.description)
                 }
             }
         })

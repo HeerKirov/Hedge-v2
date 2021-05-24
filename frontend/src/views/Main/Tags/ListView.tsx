@@ -1,15 +1,22 @@
 import { defineComponent, PropType, Transition, computed, toRef, Ref } from "vue"
 import { TagTreeNode } from "@/functions/adapter-http/impl/tag"
-import { usePopupMenu } from "@/functions/module"
+import { useMessageBox, usePopupMenu } from "@/functions/module"
 import { installation } from "@/functions/utils/basic"
-import { useTagContext, installExpandedInfo, useExpandedValue, useDescriptionValue } from "./inject"
+import {
+    useTagListContext,
+    useTagPaneContext,
+    installExpandedInfo,
+    useExpandedValue,
+    useDescriptionValue,
+    ExpandedInfoContext
+} from "./inject"
 import style from "./style.module.scss"
 
 export default defineComponent({
     setup() {
-        const { loading, data } = useTagContext()
-        installExpandedInfo()
-        installListMenu()
+        const { loading, data } = useTagListContext()
+        const expandedInfo = installExpandedInfo()
+        installListMenu(expandedInfo)
 
         return () => <div class={style.listView}>
             {!loading.value ? data.value.map(tag => <RootNode key={tag.id} value={tag}/>) : null}
@@ -22,7 +29,7 @@ const RootNode = defineComponent({
         value: {type: null as any as PropType<TagTreeNode>, required: true}
     },
     setup(props) {
-        const { openDetailPane } = useTagContext()
+        const { openDetailPane } = useTagPaneContext()
         const click = () => openDetailPane(props.value.id)
 
         const id = computed(() => props.value.id)
@@ -109,7 +116,7 @@ const TagElement = defineComponent({
         color: String,
     },
     setup(props) {
-        const { openDetailPane } = useTagContext()
+        const { openDetailPane } = useTagPaneContext()
         const click = () => openDetailPane(props.value.id)
 
         return () => {
@@ -131,25 +138,6 @@ const TagElement = defineComponent({
     }
 })
 
-const [installListMenu, useListMenuContext] = installation(function() {
-    const menu = usePopupMenu<number>([
-        {type: "normal", label: "查看详情"},
-        {type: "separator"},
-        {type: "normal", label: "展开下属标签"},
-        {type: "normal", label: "折叠下属标签"},
-        {type: "separator"},
-        {type: "normal", label: "新建子标签"},
-        {type: "normal", label: "在此标签之前新建"},
-        {type: "normal", label: "在此标签之后新建"},
-        {type: "separator"},
-        {type: "normal", label: "删除此标签"}
-    ])
-
-    const popup = (id: number) => menu.popup(id)
-
-    return {popup}
-})
-
 function useListMenu(id: Ref<number>) {
     const menu = useListMenuContext()
 
@@ -157,3 +145,39 @@ function useListMenu(id: Ref<number>) {
 
     return {popup}
 }
+
+const [installListMenu, useListMenuContext] = installation(function(expandedInfo: ExpandedInfoContext) {
+    const messageBox = useMessageBox()
+    const { openDetailPane } = useTagPaneContext()
+    const { indexedInfo, deleteTag } = useTagListContext()
+
+    const expandChildren = (id: number) => expandedInfo.setAllForChildren(id, true)
+    const collapseChildren = (id: number) => expandedInfo.setAllForChildren(id, false)
+
+    const deleteItem = async (id: number) => {
+        const info = indexedInfo.value[id]
+        if(info) {
+            const hasChildren = !!info.tag.children?.length
+            if(await messageBox.showYesNoMessage("warn", "确定要删除此项吗？", hasChildren ? "此操作将级联删除从属的所有子标签，且不可撤回。" : "此操作不可撤回。")) {
+                deleteTag(id)
+            }
+        }
+    }
+
+    const menu = usePopupMenu<number>([
+        {type: "normal", label: "查看详情", click: openDetailPane},
+        {type: "separator"},
+        {type: "normal", label: "展开下属标签", click: expandChildren},
+        {type: "normal", label: "折叠下属标签", click: collapseChildren},
+        {type: "separator"},
+        {type: "normal", label: "新建子标签"},
+        {type: "normal", label: "在此标签之前新建"},
+        {type: "normal", label: "在此标签之后新建"},
+        {type: "separator"},
+        {type: "normal", label: "删除此标签", click: deleteItem}
+    ])
+
+    const popup = (id: number) => menu.popup(id)
+
+    return {popup}
+})
