@@ -27,7 +27,7 @@ export default defineComponent({
     setup() {
         const message = useMessageBox()
         const { detailMode, closePane } = useTagPaneContext()
-        const { indexedInfo, descriptionCache, updateColorForAllChildren } = useTagListContext()
+        const { indexedInfo, descriptionCache, syncUpdateTag } = useTagListContext()
 
         const { data, setData } = useObjectEndpoint<number, DetailTag, TagUpdateForm>({
             path: detailMode,
@@ -36,21 +36,8 @@ export default defineComponent({
             afterGet(id, data) {
                 descriptionCache.set(id, data.description)
             },
-            afterUpdate(id, data) {
-                const info = indexedInfo.value[id]
-                if(info) {
-                    const tag = info.tag
-                    tag.name = data.name
-                    tag.otherNames = data.otherNames
-                    tag.type = data.type
-                    tag.group = data.group
-                    if(tag.color !== data.color) {
-                        //当颜色改变时，需要递归修改其所有子元素的颜色
-                        updateColorForAllChildren(tag, data.color)
-                    }
-                    //修改其在description cache中的值
-                    descriptionCache.set(id, data.description)
-                }
+            afterUpdate(_, data) {
+                syncUpdateTag(data)
             }
         })
 
@@ -58,8 +45,8 @@ export default defineComponent({
             const info = detailMode.value != null ? indexedInfo.value[detailMode.value] : null
             return info ? {
                 address: info.address.length ? info.address.map(i => i.name).join(".") : null,
-                member: info.member,
-                memberIndex: info.memberIndex != undefined ? info.memberIndex + 1 : null
+                member: info.isGroupMember !== "NO",
+                memberIndex: info.isGroupMember === "SEQUENCE" ? info.ordinal + 1 : null
             } : {
                 address: null,
                 member: false,
@@ -158,7 +145,7 @@ export default defineComponent({
                 }}/>
                 <ViewAndEditor data={data.value.description} onSetData={setDescription} showEditButton={false} showSaveButton={false} v-slots={{
                     default: ({ value, edit }) => <DescriptionDisplay value={value} onEdit={edit}/>,
-                    editor: ({ value, setValue, save }) => <DescriptionEditor value={value} onUpdateValue={setValue} onSave={save}/>
+                    editor: ({ value, setValue, save }) => <DescriptionEditor value={value} onUpdateValue={setValue} onSave={save} showSaveButton={true}/>
                 }}/>
                 <div class={style.links}>
                     {/* FUTURE: link编辑的功能 */}

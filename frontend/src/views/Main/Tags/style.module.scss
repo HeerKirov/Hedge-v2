@@ -57,7 +57,10 @@
     border-left-color: $deep-sidebar-dm;
   }
   .top {
-    margin-top: 1.5rem;
+    margin-top: 1.75rem;
+  }
+  .creator-top {
+    margin-top: 0.5rem;
   }
   .title {
     > b { font-size: $font-size-large; }

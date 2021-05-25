@@ -19,7 +19,24 @@ export default defineComponent({
         installListMenu(expandedInfo)
 
         return () => <div class={style.listView}>
-            {!loading.value ? data.value.map(tag => <RootNode key={tag.id} value={tag}/>) : null}
+            {loading.value ? null
+            : data.value.length > 0 ? data.value.map(tag => <RootNode key={tag.id} value={tag}/>)
+            : <AddFirstNode/>}
+        </div>
+    }
+})
+
+const AddFirstNode = defineComponent({
+    setup() {
+        const { openCreatePane } = useTagPaneContext()
+
+        const click = () => openCreatePane({})
+
+        return () => <div class={[style.rootNode, "box"]}>
+            <a class="has-text-green" onClick={click}>
+                添加第一个标签
+                <i class="fa fa-plus ml-2"/>
+            </a>
         </div>
     }
 })
@@ -39,9 +56,9 @@ const RootNode = defineComponent({
         const menu = useListMenu(id)
 
         return () => <div class={[style.rootNode, "box"]}>
-            <p class={style.titleBox} onContextmenu={menu.popup}>
-                <a class={`has-text-${props.value.color}`} onClick={click}><b>{props.value.name}</b></a>
-                <a onClick={switchExpanded} class={`ml-1 has-text-${props.value.color}`}>
+            <p onContextmenu={menu.popup}>
+                <a class={props.value.color ? `has-text-${props.value.color}` : "has-text-dark"} onClick={click}><b>{props.value.name}</b></a>
+                <a onClick={switchExpanded} class={["ml-1", props.value.color ? `has-text-${props.value.color}` : "has-text-dark"]}>
                     <i class={`mx-2 fa fa-angle-${isExpanded.value ? "down" : "right"}`}/>
                 </a>
                 {isExpanded.value && <RootNodeDescription id={id.value} color={props.value.color ?? undefined}/>}
@@ -79,7 +96,7 @@ const ChildNodeList = defineComponent({
         multiLine: Boolean
     },
     setup(props) {
-        return () => (props.multiLine ?? props.value.some(t => !!t.children?.length)) 
+        return () => (props.multiLine || props.value.some(t => !!t.children?.length))
             ? <div class={[style.childNodeList]}>
                 {props.value.map(tag => <div><ChildNode key={tag.id} value={tag} color={props.color}/></div>)}
             </div> : <div class={[style.childNodeList, style.inline]}>
@@ -148,18 +165,32 @@ function useListMenu(id: Ref<number>) {
 
 const [installListMenu, useListMenuContext] = installation(function(expandedInfo: ExpandedInfoContext) {
     const messageBox = useMessageBox()
-    const { openDetailPane } = useTagPaneContext()
-    const { indexedInfo, deleteTag } = useTagListContext()
+    const { openCreatePane, openDetailPane, closePane, detailMode } = useTagPaneContext()
+    const { fastEndpoint, indexedInfo, syncDeleteTag } = useTagListContext()
 
     const expandChildren = (id: number) => expandedInfo.setAllForChildren(id, true)
     const collapseChildren = (id: number) => expandedInfo.setAllForChildren(id, false)
+
+    const createChild = (id: number) => openCreatePane({parentId: id})
+    const createBefore = (id: number) => {
+        const info = indexedInfo.value[id]
+        if(info) openCreatePane({parentId: info.parentId ?? undefined, ordinal: info.ordinal})
+    }
+    const createAfter = (id: number) => {
+        const info = indexedInfo.value[id]
+        if(info) openCreatePane({parentId: info.parentId ?? undefined, ordinal: info.ordinal + 1})
+    }
 
     const deleteItem = async (id: number) => {
         const info = indexedInfo.value[id]
         if(info) {
             const hasChildren = !!info.tag.children?.length
             if(await messageBox.showYesNoMessage("warn", "确定要删除此项吗？", hasChildren ? "此操作将级联删除从属的所有子标签，且不可撤回。" : "此操作不可撤回。")) {
-                deleteTag(id)
+                await fastEndpoint.deleteData(id)
+                syncDeleteTag(id)
+                if(detailMode.value === id) {
+                    closePane()
+                }
             }
         }
     }
@@ -167,12 +198,12 @@ const [installListMenu, useListMenuContext] = installation(function(expandedInfo
     const menu = usePopupMenu<number>([
         {type: "normal", label: "查看详情", click: openDetailPane},
         {type: "separator"},
-        {type: "normal", label: "展开下属标签", click: expandChildren},
-        {type: "normal", label: "折叠下属标签", click: collapseChildren},
+        {type: "normal", label: "展开全部标签", click: expandChildren},
+        {type: "normal", label: "折叠全部标签", click: collapseChildren},
         {type: "separator"},
-        {type: "normal", label: "新建子标签"},
-        {type: "normal", label: "在此标签之前新建"},
-        {type: "normal", label: "在此标签之后新建"},
+        {type: "normal", label: "新建子标签", click: createChild},
+        {type: "normal", label: "在此标签之前新建", click: createBefore},
+        {type: "normal", label: "在此标签之后新建", click: createAfter},
         {type: "separator"},
         {type: "normal", label: "删除此标签", click: deleteItem}
     ])

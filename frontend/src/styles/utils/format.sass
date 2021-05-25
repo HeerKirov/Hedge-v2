@@ -28,12 +28,22 @@
 //文本颜色和背景色
 @each $name, $pair in $colors
   $color: nth($pair, 1)
+  $color-invert: nth($pair, 2)
   .has-text-#{$name}
     color: $color !important
   .has-bg-#{$name}
     background-color: $color !important
+  .has-text-#{$name}-invert
+    color: $color-invert !important
+  .has-bg-#{$name}-invert
+    background-color: $color-invert !important
   @if length($pair) >= 4
+    $color-light: nth($pair, 3)
     $color-dark: nth($pair, 4)
+    .has-text-#{$name}-light
+      color: $color-light !important
+    .has-bg-#{$name}-light
+      background-color: $color-light !important
     .has-text-#{$name}-dark
       color: $color-dark !important
     .has-bg-#{$name}-dark
@@ -41,12 +51,22 @@
 @media (prefers-color-scheme: dark)
   @each $name, $pair in $colors-dark-mode
     $color: nth($pair, 1)
+    $color-invert: nth($pair, 2)
     .has-text-#{$name}
       color: $color
     .has-bg-#{$name}
       background-color: $color !important
+    .has-text-#{$name}-invert
+      color: $color-invert !important
+    .has-bg-#{$name}-invert
+      background-color: $color-invert !important
     @if length($pair) >= 4
+      $color-light: nth($pair, 3)
       $color-dark: nth($pair, 4)
+      .has-text-#{$name}-light
+        color: $color-light !important
+      .has-bg-#{$name}-light
+        background-color: $color-light !important
       .has-text-#{$name}-dark
         color: $color-dark !important
       .has-bg-#{$name}-dark

@@ -4,7 +4,6 @@ import { ParentTopic, TopicType } from "@/functions/adapter-http/impl/topic"
 import { watchElementExcludeClick } from "@/functions/utils/element"
 import style from "./TopicEditor.module.scss"
 
-//TODO 使用bg div实现背景点击效果，以实现激活时禁用别处点击的效果。这个功能抽离为popup组件; popup dialog的样式抽离为component style
 export default defineComponent({
     props: {
         value: {type: null as any as PropType<ParentTopic | null>, required: true}

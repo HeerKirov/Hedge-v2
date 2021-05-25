@@ -7,7 +7,7 @@ import { useNotification } from "@/functions/module"
     它的API形态都是基于指定path的，因此也不提供任何响应式变量，所有数据都通过返回值提供。
  */
 
-interface ObjectEndpoint<PATH, MODEL, FORM> {
+export interface ObjectEndpoint<PATH, MODEL, FORM> {
     getData(path: PATH): Promise<MODEL | undefined>
     setData(path: PATH, form: FORM, handleError?: (e: HttpException) => HttpException | void): Promise<boolean>
     deleteData(path: PATH, handleError?: (e: HttpException) => HttpException | void): Promise<boolean>
