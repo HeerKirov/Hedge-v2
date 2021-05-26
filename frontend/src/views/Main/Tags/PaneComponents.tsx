@@ -198,11 +198,14 @@ export const LinkDisplay = defineComponent({
 
 export const LinkElement = defineComponent({
     props: {
-        value: {type: null as any as PropType<TagTreeNode>, required: true}
+        value: {type: null as any as PropType<TagTreeNode>, required: true},
+        showCloseButton: Boolean
     },
-    setup(props) {
+    emits: ["delete"],
+    setup(props, { emit }) {
         const { openDetailPane } = useTagPaneContext()
         const click = () => openDetailPane(props.value.id)
+        const del = () => emit("delete")
 
         return () => {
             const isAddr = props.value.type !== "TAG"
@@ -210,7 +213,7 @@ export const LinkElement = defineComponent({
             const isForced = props.value.group === "FORCE" || props.value.group === "FORCE_AND_SEQUENCE"
             const isGroup = props.value.group !== "NO"
 
-            return <p class="flex">
+            return <p class="flex mb-1">
                 <span class="tag mr-1">
                     <i class="fa fa-link"/>
                 </span>
@@ -223,6 +226,9 @@ export const LinkElement = defineComponent({
                         <b class="ml-1">{'}'}</b>
                     </> : props.value.name}
                 </a>
+                {props.showCloseButton && <a class="tag ml-1" onClick={del}>
+                    <i class="fa fa-times"/>
+                </a>}
             </p>
         }
     }
@@ -237,23 +243,34 @@ export const LinkEditor = defineComponent({
         const { indexedInfo } = useTagListContext()
         const tags = computed(() => props.value.map(link => indexedInfo.value[link]).filter(i => i != undefined).map(i => i.tag))
 
+        const add = (id: number) => emit("updateValue", [...props.value, id])
+
+        const onDelete = (index: number) => () => emit("updateValue", [...props.value.slice(0, index), ...props.value.slice(index + 1)])
+
         return () => <div>
-            {tags.value.map(link => <LinkElement key={link.id} value={link}/>)}
-            <LinkEditorDropArea/>
+            {tags.value.map((link, index) => <LinkElement key={link.id} value={link} showCloseButton={true} onDelete={onDelete(index)}/>)}
+            <LinkEditorDropArea onAdd={add}/>
         </div>
     }
 })
 
 const LinkEditorDropArea = defineComponent({
-    emits: [],
+    emits: ["add"],
     setup(_, { emit }) {
-        return () => <p class="flex">
-            <span class="tag mr-1">
-                <i class="fa fa-plus"/>
-            </span>
-            <span class="tag">
-                拖动标签到此处以添加链接
-            </span>
+        const add = (id: number) => emit("add", id)
+
+        const dragover = (e: DragEvent) => {
+            e.preventDefault()
+        }
+        const drop = (e: DragEvent) => {
+            e.preventDefault()
+            if(e.dataTransfer?.getData("type") === "tag") {
+                add(parseInt(e.dataTransfer.getData("id")))
+            }
+        }
+        return () => <p class="flex" onDragover={dragover} onDrop={drop}>
+            <span class="tag mr-1"><i class="fa fa-plus"/></span>
+            <span class="tag">拖动标签到此处以添加链接</span>
         </p>
     }
 })

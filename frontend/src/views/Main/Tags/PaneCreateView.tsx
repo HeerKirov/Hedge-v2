@@ -11,7 +11,7 @@ import { useMessageBox } from "@/functions/module"
 import { checkTagName } from "@/utils/check"
 import { TAG_TYPE_SELECT_ITEMS } from "./define"
 import { useTagListContext, useTagPaneContext } from "./inject"
-import { NameAndOtherNamesEditor, DescriptionEditor, TagGroupEditor } from "./PaneComponents"
+import { NameAndOtherNamesEditor, DescriptionEditor, TagGroupEditor, LinkEditor } from "./PaneComponents"
 import style from "./style.module.scss"
 
 export default defineComponent({
@@ -116,6 +116,9 @@ export default defineComponent({
                 <AnnotationEditor class="mb-1" value={form.value.annotations} onUpdateValue={v => form.value.annotations = v} target="TAG"/>
             </div>
             <DescriptionEditor value={form.value.description} onUpdateValue={v => form.value.description = v}/>
+            <div class={style.links}>
+                <LinkEditor value={form.value.links} onUpdateValue={v => form.value.links = v}/>
+            </div>
         </PaneBasicLayout>
     }
 })

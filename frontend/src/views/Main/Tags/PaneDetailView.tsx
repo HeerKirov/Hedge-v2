@@ -111,9 +111,7 @@ export default defineComponent({
             return group === data.value?.group || await setData({ group })
         }
 
-        const setLinks = async (linkTags: TagTreeNode[]) => {
-            const links = linkTags.map(l => l.id)
-
+        const setLinks = async (links: number[]) => {
             return objects.deepEquals(links, data.value?.links) || await setData({ links }, e => {
                 if(e.code === "NOT_EXIST") {
                     const [, id] = e.info
