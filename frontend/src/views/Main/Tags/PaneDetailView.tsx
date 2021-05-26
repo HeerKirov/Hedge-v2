@@ -3,7 +3,7 @@ import Starlight from "@/components/elements/Starlight"
 import Select from "@/components/forms/Select"
 import { PaneBasicLayout } from "@/layouts/layouts/SplitPane"
 import { AnnotationEditor, ViewAndEditor } from "@/layouts/editor-components"
-import { DetailTag, IsGroup, TagType, TagUpdateForm } from "@/functions/adapter-http/impl/tag"
+import { DetailTag, IsGroup, TagTreeNode, TagType, TagUpdateForm } from "@/functions/adapter-http/impl/tag"
 import { SimpleAnnotation } from "@/functions/adapter-http/impl/annotations"
 import { useObjectEndpoint } from "@/functions/utils/endpoints/object-endpoint"
 import { useMessageBox } from "@/functions/module"
@@ -12,13 +12,9 @@ import { objects } from "@/utils/primitives"
 import { checkTagName } from "@/utils/check"
 import { TAG_TYPE_SELECT_ITEMS } from "./define"
 import {
-    TagGroupEditor,
-    TagTypeDisplay,
-    TagGroupDisplay,
-    TagGroupMemberDisplay,
-    NameAndOtherNamesEditor,
-    NameAndOtherNameDisplay,
-    LinkDisplay, DescriptionDisplay, DescriptionEditor
+    TagGroupEditor, TagGroupDisplay, TagTypeDisplay, TagGroupMemberDisplay,
+    NameAndOtherNamesEditor, NameAndOtherNameDisplay,
+    LinkDisplay, LinkEditor, DescriptionDisplay, DescriptionEditor
 } from "./PaneComponents"
 import { useTagPaneContext, useTagListContext } from "./inject"
 import style from "./style.module.scss"
@@ -53,8 +49,6 @@ export default defineComponent({
                 memberIndex: null
             }
         })
-
-        const links = computed(() => (data.value?.links ?? []).map(link => indexedInfo.value[link]).filter(i => i != undefined).map(i => i.tag))
 
         const isRootNode = computed(() => data.value?.parentId == null)
 
@@ -117,6 +111,19 @@ export default defineComponent({
             return group === data.value?.group || await setData({ group })
         }
 
+        const setLinks = async (linkTags: TagTreeNode[]) => {
+            const links = linkTags.map(l => l.id)
+
+            return objects.deepEquals(links, data.value?.links) || await setData({ links }, e => {
+                if(e.code === "NOT_EXIST") {
+                    const [, id] = e.info
+                    message.showOkMessage("error", "选择的作为链接的标签不存在。", `错误项: ${id}`)
+                }else{
+                    return e
+                }
+            })
+        }
+
         return () => <PaneBasicLayout onClose={closePane} class={style.paneDetailContent}>
             {data.value && <>
                 <p class={style.top}/>
@@ -148,8 +155,10 @@ export default defineComponent({
                     editor: ({ value, setValue, save }) => <DescriptionEditor value={value} onUpdateValue={setValue} onSave={save} showSaveButton={true}/>
                 }}/>
                 <div class={style.links}>
-                    {/* FUTURE: link编辑的功能 */}
-                    <LinkDisplay value={links.value}/>
+                    <ViewAndEditor data={data.value.links} onSetData={setLinks} v-slots={{
+                        default: ({ value }: {value: number[]}) => <LinkDisplay value={value}/>,
+                        editor: ({ value, setValue }) => <LinkEditor value={value} onUpdateValue={setValue}/>
+                    }}/>
                 </div>
                 <div class={style.score}>
                     {data.value.score != null 
@@ -157,7 +166,7 @@ export default defineComponent({
                         : <i class="has-text-grey">暂无评分</i>}
                 </div>
                 <div class={style.examples}>
-                    {/* FUTURE: 示例编辑的功能 */}
+                    {/* TODO examples编辑的功能 */}
                     <label class="label">示例</label>
                     {data.value.examples.length ? <div class={style.exampleList}>
                         {data.value.examples.map(example => <div class={style.example}>

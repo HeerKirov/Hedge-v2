@@ -8,7 +8,7 @@ import { OtherNameEditor } from "@/layouts/editor-components"
 import { IsGroup, TagType, TagTreeNode } from "@/functions/adapter-http/impl/tag"
 import { useMouseHover } from "@/functions/utils/element"
 import { onKeyEnter } from "@/utils/events"
-import { useTagPaneContext } from "./inject"
+import { useTagListContext, useTagPaneContext } from "./inject"
 import style from "./style.module.scss"
 
 export const TagGroupEditor = defineComponent({
@@ -177,11 +177,14 @@ export const TagGroupMemberDisplay = defineComponent({
 
 export const LinkDisplay = defineComponent({
     props: {
-        value: {type: Array as any as PropType<TagTreeNode[]>, required: true}
+        value: {type: Array as any as PropType<number[]>, required: true}
     },
     setup(props) {
-        return () => props.value.length
-            ? props.value.map(link => <LinkElement key={link.id} value={link}/>)
+        const { indexedInfo } = useTagListContext()
+        const tags = computed(() => props.value.map(link => indexedInfo.value[link]).filter(i => i != undefined).map(i => i.tag))
+
+        return () => tags.value.length
+            ? tags.value.map(link => <LinkElement key={link.id} value={link}/>)
             : <p class="flex">
                 <span class="tag mr-1">
                     <i class="fa fa-link"/>
@@ -222,5 +225,35 @@ export const LinkElement = defineComponent({
                 </a>
             </p>
         }
+    }
+})
+
+export const LinkEditor = defineComponent({
+    props: {
+        value: {type: Array as any as PropType<number[]>, required: true}
+    },
+    emits: ["updateValue"],
+    setup(props, { emit }) {
+        const { indexedInfo } = useTagListContext()
+        const tags = computed(() => props.value.map(link => indexedInfo.value[link]).filter(i => i != undefined).map(i => i.tag))
+
+        return () => <div>
+            {tags.value.map(link => <LinkElement key={link.id} value={link}/>)}
+            <LinkEditorDropArea/>
+        </div>
+    }
+})
+
+const LinkEditorDropArea = defineComponent({
+    emits: [],
+    setup(_, { emit }) {
+        return () => <p class="flex">
+            <span class="tag mr-1">
+                <i class="fa fa-plus"/>
+            </span>
+            <span class="tag">
+                拖动标签到此处以添加链接
+            </span>
+        </p>
     }
 })

@@ -1,9 +1,10 @@
-import { computed, onMounted, readonly, Ref, ref, unref, watch, toRaw } from "vue"
+import { computed, onMounted, readonly, Ref, ref, watch, toRaw } from "vue"
 import { DetailTag, TagTreeNode, TagUpdateForm } from "@/functions/adapter-http/impl/tag"
 import { useNotification } from "@/functions/module"
 import { useHttpClient } from "@/functions/app"
 import { useFastObjectEndpoint, ObjectEndpoint } from "@/functions/utils/endpoints/object-fast-endpoint"
 import { installation } from "@/functions/utils/basic"
+import { objects } from "@/utils/primitives"
 
 export interface TagPaneContext {
     detailMode: Readonly<Ref<number | null>>
@@ -47,6 +48,10 @@ export interface TagListContext {
      * 更新tag。通过此方法更改不会重载数据，在前端同步完成所有处理，以减少开销。
      */
     syncUpdateTag(tag: DetailTag): void
+    /**
+     * 移动tag的位置。通过此方法更改不会重载数据，在前端同步完成所有处理，以减少开销。
+     */
+    syncMoveTag(id: number, parentId: number | null, ordinal: number): void
     /**
      * 删除tag。这会级联删除下属所有tag。通过此方法删除不会重载数据，在前端同步完成所有处理，以减少开销。
      */
@@ -108,7 +113,7 @@ export const [installTagPaneContext, useTagPaneContext] = installation(function(
 export const [installTagListContext, useTagListContext] = installation(function(): TagListContext {
     const { loading, data: requestedData } = useTagTreeEndpoint()
 
-    const { data, indexedInfo, add, remove } = useIndexedData(requestedData)
+    const { data, indexedInfo, add, remove, move } = useIndexedData(requestedData)
 
     const fastEndpoint = useFastObjectEndpoint({
         get: httpClient => httpClient.tag.get,
@@ -139,8 +144,6 @@ export const [installTagListContext, useTagListContext] = installation(function(
                     //修改其在description cache中的值
                     descriptionCache.set(id, tag.description)
                 }
-                console.log(data.value)
-                console.log(indexedInfo.value)
             }
         })
     }
@@ -208,9 +211,11 @@ export const [installTagListContext, useTagListContext] = installation(function(
         }
     }
 
+    const syncMoveTag = move
+
     const syncDeleteTag = remove
 
-    return {loading, data, indexedInfo, descriptionCache, fastEndpoint, syncAddTag, syncUpdateTag, syncDeleteTag}
+    return {loading, data, indexedInfo, descriptionCache, fastEndpoint, syncAddTag, syncUpdateTag, syncMoveTag, syncDeleteTag}
 })
 
 function useTagTreeEndpoint() {
@@ -266,21 +271,29 @@ function useIndexedData(requestedData: Ref<TagTreeNode[]>) {
         }
     }
 
+    function plusIndexedOrdinal(items: TagTreeNode[]) {
+        //使列表中的节点在indexed info中的ordinal数值 + 1。
+        for(const item of items) {
+            const info = indexedInfo.value[item.id]
+            if(info) info.ordinal += 1
+        }
+    }
+
+    function minusIndexedOrdinal(items: TagTreeNode[]) {
+        //使列表中的节点在indexed info中的ordinal数值 - 1。
+        for(const item of items) {
+            const info = indexedInfo.value[item.id]
+            if(info) info.ordinal -= 1
+        }
+    }
+
     /**
      * 向标签树中的位置追加节点。同步生成其indexed data。
      */
     const add = (node: TagTreeNode, parentId: number | null, ordinal: number) => {
-        function updateIndexedOrdinal(items: TagTreeNode[]) {
-            //使列表中的节点在indexed info中的ordinal数值 + 1。
-            for(const item of items) {
-               const info = indexedInfo.value[item.id]
-               if(info) info.ordinal += 1
-            }
-        }
-
         if(parentId == null) {
             //首先更新其后的兄弟元素的ordinal
-            updateIndexedOrdinal(data.value.slice(ordinal))
+            plusIndexedOrdinal(data.value.slice(ordinal))
             //将新node插入到根列表下
             data.value.splice(ordinal, 0, node)
             //然后更新其在indexed info中的索引
@@ -290,14 +303,14 @@ function useIndexedData(requestedData: Ref<TagTreeNode[]>) {
             if(parentInfo) {
                 const nextAddress = [...toRaw(parentInfo.address), {id: parentInfo.tag.id, name: parentInfo.tag.name}]
                 const isGroupMember: IsGroupMember
-                    = node.group === "FORCE_AND_SEQUENCE" || node.group === "SEQUENCE" ? "SEQUENCE"
-                    : node.group === "YES" || node.group === "FORCE" ? "YES"
+                    = parentInfo.tag.group === "FORCE_AND_SEQUENCE" || parentInfo.tag.group === "SEQUENCE" ? "SEQUENCE"
+                    : parentInfo.tag.group === "YES" || parentInfo.tag.group === "FORCE" ? "YES"
                     : "NO"
                 if(parentInfo.tag.children == null) {
                     parentInfo.tag.children = []
                 }
                 //首先更新其后的兄弟元素的ordinal
-                updateIndexedOrdinal(parentInfo.tag.children.slice(ordinal))
+                plusIndexedOrdinal(parentInfo.tag.children.slice(ordinal))
                 //将新node插入到其父节点的孩子列表下
                 parentInfo.tag.children.splice(ordinal, 0, node)
                 //然后更新其在indexed info中的索引
@@ -314,14 +327,6 @@ function useIndexedData(requestedData: Ref<TagTreeNode[]>) {
      * 移除一个节点及其所有子节点，同步移除其indexed data。
      */
     const remove = (id: number) => {
-        function updateIndexedOrdinal(items: TagTreeNode[]) {
-            //使列表中的节点在indexed info中的ordinal数值 - 1。
-            for(const item of items) {
-                const info = indexedInfo.value[item.id]
-                if(info) info.ordinal -= 1
-            }
-        }
-
         function processNode(id: number) {
             const info = indexedInfo.value[id]
             if(info) {
@@ -340,17 +345,15 @@ function useIndexedData(requestedData: Ref<TagTreeNode[]>) {
                 //有parent时，将其从parent的子标签列表移除
                 const parentInfo = indexedInfo.value[info.parentId]
                 if(parentInfo && parentInfo.tag.children != null) {
-                    const index = parentInfo.tag.children.findIndex(t => t.id === id)
-                    parentInfo.tag.children.splice(index, 1)
-                    updateIndexedOrdinal(parentInfo.tag.children.slice(index))
+                    parentInfo.tag.children.splice(info.ordinal, 1)
+                    minusIndexedOrdinal(parentInfo.tag.children.slice(info.ordinal))
                 }else{
                     console.error(`Error occurred while deleting tag ${id}: cannot find parent tag ${info.parentId} in indexed info.`)
                 }
             }else{
                 //没有parent时，从根列表移除
-                const index = data.value.findIndex(t => t.id === id)
-                data.value.splice(index, 1)
-                updateIndexedOrdinal(data.value.slice(index))
+                data.value.splice(info.ordinal, 1)
+                minusIndexedOrdinal(data.value.slice(info.ordinal))
             }
             processNode(id)
         }else{
@@ -358,7 +361,76 @@ function useIndexedData(requestedData: Ref<TagTreeNode[]>) {
         }
     }
 
-    return {data, indexedInfo, add, remove}
+    /**
+     * 移动一个节点，同步更新其indexed data。
+     */
+    const move = (id: number, parentId: number | null, ordinal: number) => {
+        function processInfo(info: IndexedInfo, address: {id: number, name: string}[] | undefined, color: string | null | undefined) {
+            if(address !== undefined) {
+                info.address = address
+            }
+            if(color !== undefined) {
+                info.tag.color = color
+            }
+            if(info.tag.children?.length) {
+                const nextAddress = address !== undefined ? [...address, {id: info.tag.id, name: info.tag.name}] : undefined
+                for(const child of info.tag.children) {
+                    const childInfo = indexedInfo.value[child.id]
+                    if(childInfo) {
+                        processInfo(childInfo, nextAddress, color)
+                    }
+                }
+            }
+        }
+
+        const info = indexedInfo.value[id]
+        if(!info) return
+
+        //将tag从旧的parent下移除，同时处理它后面的tag的ordinal
+        if(info.parentId == null) {
+            data.value.splice(info.ordinal, 1)
+            minusIndexedOrdinal(data.value.slice(info.ordinal))
+        }else{
+            const parentInfo = indexedInfo.value[info.parentId]
+            if(parentInfo) {
+                const children = parentInfo.tag.children ?? (parentInfo.tag.children = [])
+                children.splice(info.ordinal, 1)
+                minusIndexedOrdinal(children.slice(info.ordinal))
+            }
+        }
+
+        //将tag放置到新的parent下，同时处理它与它后面的tag的ordinal。分两步处理与API的target行为一致，便于理解
+        if(parentId == null) {
+            plusIndexedOrdinal(data.value.slice(ordinal))
+            data.value.splice(ordinal, 0, info.tag)
+        }else{
+            const parentInfo = indexedInfo.value[parentId]
+            if(parentInfo) {
+                const children = parentInfo.tag.children ?? (parentInfo.tag.children = [])
+                plusIndexedOrdinal(children.slice(ordinal))
+                children.splice(ordinal, 0, info.tag)
+            }
+        }
+
+        //更新此tag及其所有子节点的color, address, group props
+        const parentInfo = parentId != null ? indexedInfo.value[parentId]! : null
+        info.parentId = parentId
+        info.ordinal = ordinal
+        info.isGroupMember = parentInfo == null ? "NO"
+            : parentInfo.tag.group === "FORCE_AND_SEQUENCE" || parentInfo.tag.group === "SEQUENCE" ? "SEQUENCE"
+            : parentInfo.tag.group === "YES" || parentInfo.tag.group === "FORCE" ? "YES"
+            : "NO"
+
+        const address = parentInfo == null ? [] : [...toRaw(parentInfo.address), {id: parentInfo.tag.id, name: parentInfo.tag.name}]
+        const color = parentInfo == null ? info.tag.color : parentInfo.tag.color
+
+        //监测这两项属性是否有修改。如果有，递归修改全部子标签
+        const newAddress = objects.deepEquals(address, info.address) ? undefined : address
+        const newColor = color === info.tag.color ? undefined : color
+        if(newAddress !== undefined || newColor !== undefined) processInfo(info, newAddress, newColor)
+    }
+
+    return {data, indexedInfo, add, remove, move}
 }
 
 function useDescriptionCache(endpoint: ObjectEndpoint<number, DetailTag, unknown>) {

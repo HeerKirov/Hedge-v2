@@ -1,4 +1,4 @@
-import { defineComponent, PropType, Transition, computed, toRef, Ref } from "vue"
+import { defineComponent, PropType, Transition, computed, toRef, toRefs, Ref, ref, readonly } from "vue"
 import { TagTreeNode } from "@/functions/adapter-http/impl/tag"
 import { useMessageBox, usePopupMenu } from "@/functions/module"
 import { installation } from "@/functions/utils/basic"
@@ -16,11 +16,14 @@ export default defineComponent({
     setup() {
         const { loading, data } = useTagListContext()
         const expandedInfo = installExpandedInfo()
-        installListMenu(expandedInfo)
+        installListMenuContext(expandedInfo)
 
         return () => <div class={style.listView}>
             {loading.value ? null
-            : data.value.length > 0 ? data.value.map(tag => <RootNode key={tag.id} value={tag}/>)
+            : data.value.length > 0 ? data.value.flatMap((tag, index) => [
+                <Gap parentId={null} ordinal={index}/>,
+                <RootNode key={tag.id} value={tag}/>
+            ]).concat(<Gap parentId={null} ordinal={data.value.length}/>)
             : <AddFirstNode/>}
         </div>
     }
@@ -53,14 +56,17 @@ const RootNode = defineComponent({
         const isExpanded = useExpandedValue(id)
         const switchExpanded = () => { isExpanded.value = !isExpanded.value }
 
+        const { dragstart, dragend } = useDraggable(id)
+
         const menu = useListMenu(id)
 
         return () => <div class={[style.rootNode, "box"]}>
             <p onContextmenu={menu.popup}>
-                <a class={props.value.color ? `has-text-${props.value.color}` : "has-text-dark"} onClick={click}><b>{props.value.name}</b></a>
-                <a onClick={switchExpanded} class={["ml-1", props.value.color ? `has-text-${props.value.color}` : "has-text-dark"]}>
-                    <i class={`mx-2 fa fa-angle-${isExpanded.value ? "down" : "right"}`}/>
+                <a class={props.value.color ? `has-text-${props.value.color}` : "has-text-dark"} onClick={click}
+                   draggable="true" onDragstart={dragstart} onDragend={dragend}>
+                    <b>{props.value.name}</b>
                 </a>
+                <ExpandButton class="ml-2 mr-1" isExpanded={isExpanded.value} color={props.value.color ?? undefined} parentId={id.value} hasWhiteBg={true} onClick={switchExpanded}/>
                 {isExpanded.value && <RootNodeDescription id={id.value} color={props.value.color ?? undefined}/>}
             </p>
             
@@ -69,7 +75,7 @@ const RootNode = defineComponent({
                         enterFromClass={style.expandTransitionEnterFrom} 
                         leaveToClass={style.expandTransitionLeaveTo}>
                 {isExpanded.value && <div class={style.expandedBox}>
-                    <ChildNodeList class="ml-1 mt-4" multiLine={true} value={props.value.children ?? []} color={props.value.color ?? undefined}/>
+                    <ChildNodeList class="ml-1 mt-4" multiLine={true} parentId={id.value} value={props.value.children ?? []} color={props.value.color ?? undefined}/>
                 </div>}
             </Transition>
         </div>
@@ -92,16 +98,38 @@ const RootNodeDescription = defineComponent({
 const ChildNodeList = defineComponent({
     props: {
         value: {type: null as any as PropType<TagTreeNode[]>, required: true},
+        parentId: {type: Number, required: true},
         color: String,
         multiLine: Boolean
     },
     setup(props) {
         return () => (props.multiLine || props.value.some(t => !!t.children?.length))
             ? <div class={[style.childNodeList]}>
-                {props.value.map(tag => <div><ChildNode key={tag.id} value={tag} color={props.color}/></div>)}
+                {props.value.flatMap((tag, index) => [
+                    <Gap parentId={props.parentId} ordinal={index}/>,
+                    <div class={style.child} key={tag.id}><ChildNode value={tag} color={props.color}/></div>
+                ])}
+                <Gap parentId={props.parentId} ordinal={props.value.length}/>
             </div> : <div class={[style.childNodeList, style.inline]}>
-                {props.value.map(tag => <ChildNode key={tag.id} value={tag} color={props.color}/>)}
+                {props.value.flatMap((tag, index) => [
+                    <Gap parentId={props.parentId} ordinal={index}/>,
+                    <ChildNode class={style.child} key={tag.id} value={tag} color={props.color}/>
+                ])}
+                <Gap parentId={props.parentId} ordinal={props.value.length}/>
             </div>
+    }
+})
+
+const Gap = defineComponent({
+    props: {
+        parentId: {type: null as any as PropType<number | null>, required: true},
+        ordinal: {type: Number, required: true}
+    },
+    setup(props) {
+        const { parentId, ordinal } = toRefs(props)
+        const { active, dragenter, dragleave, dragover, drop } = useDroppable(parentId, ordinal)
+
+        return () => <div class={{[style.gap]: true, [style.active]: active.value}} onDragenter={dragenter} onDragleave={dragleave} onDrop={drop} onDragover={dragover}/>
     }
 })
 
@@ -119,11 +147,31 @@ const ChildNode = defineComponent({
 
         return () => !!props.value.children?.length ? <>
             <TagElement value={props.value} color={props.color} onContextmenu={menu.popup}/>
-            <a onClick={switchExpanded} onContextmenu={menu.popup} class={["tag", "ml-1", "is-light", props.color ? `is-${props.color}` : null]}>
-                <i class={`fa fa-angle-${isExpanded.value ? "down" : "right"}`}/>
-            </a>
-            {isExpanded.value && <ChildNodeList class="ml-6" value={props.value.children ?? []} color={props.color}/>}
+            <ExpandButton class="ml-1" isExpanded={isExpanded.value} color={props.color} parentId={id.value} onClick={switchExpanded} onRightClick={menu.popup}/>
+            {isExpanded.value && <ChildNodeList class="ml-6" parentId={id.value} value={props.value.children ?? []} color={props.color}/>}
         </> : <TagElement value={props.value} color={props.color} onContextmenu={menu.popup}/>
+    }
+})
+
+const ExpandButton = defineComponent({
+    props: {
+        isExpanded: Boolean,
+        color: String,
+        hasWhiteBg: Boolean,
+        parentId: {type: null as any as PropType<number | null>, required: true}
+    },
+    emits: ["click", "rightClick"],
+    setup(props, { emit }) {
+        const parentId = toRef(props, "parentId")
+        const { active, dragenter, dragleave, dragover, drop } = useDroppable(parentId, null)
+
+        const click = () => emit("click")
+        const rightClick = () => emit("rightClick")
+        return () => <a class={{"tag": true, "is-light": !active.value, "has-bg-white": props.hasWhiteBg && !active.value, [`is-${props.color}`]: !!props.color}}
+                        onClick={click} onContextmenu={rightClick}>
+            <i class={`fa fa-angle-${props.isExpanded ? "down" : "right"}`}/>
+            <div class={style.area} onDragenter={dragenter} onDragleave={dragleave} onDragover={dragover} onDrop={drop}/>
+        </a>
     }
 })
 
@@ -136,13 +184,17 @@ const TagElement = defineComponent({
         const { openDetailPane } = useTagPaneContext()
         const click = () => openDetailPane(props.value.id)
 
+        const id = computed(() => props.value.id)
+        const { dragstart, dragend } = useDraggable(id)
+
         return () => {
             const isAddr = props.value.type !== "TAG"
             const isSequenced = props.value.group === "SEQUENCE" || props.value.group === "FORCE_AND_SEQUENCE"
             const isForced = props.value.group === "FORCE" || props.value.group === "FORCE_AND_SEQUENCE"
             const isGroup = props.value.group !== "NO"
 
-            return <a class={["tag", props.color ? `is-${props.color}` : null, isAddr ? "is-light" : null]} onClick={click}>
+            return <a class={["tag", props.color ? `is-${props.color}` : null, isAddr ? "is-light" : null]} onClick={click}
+                      draggable="true" onDragstart={dragstart} onDragend={dragend}>
                 {isSequenced && <i class="fa fa-sort-alpha-down mr-1"/>}
                 {isForced && <b class="mr-1">!</b>}
                 {isGroup ? <>
@@ -150,20 +202,28 @@ const TagElement = defineComponent({
                     {props.value.name}
                     <b class="ml-1">{'}'}</b>
                 </> : props.value.name}
+                <TagElementDropArea parentId={id.value}/>
             </a>
         }
     }
 })
 
-function useListMenu(id: Ref<number>) {
-    const menu = useListMenuContext()
+const TagElementDropArea = defineComponent({
+    props: {
+        parentId: {type: null as any as PropType<number | null>, required: true}
+    },
+    setup(props) {
+        const parentId = toRef(props, "parentId")
+        const { active, dragenter, dragleave, dragover, drop } = useDroppable(parentId, null)
 
-    const popup = () => menu.popup(id.value)
+        return () => <div class={{[style.dropArea]: true, [style.active]: active.value}}>
+            <i class="fa fa-angle-down" v-show={active.value}/>
+            <div class={style.area} onDragenter={dragenter} onDragleave={dragleave} onDragover={dragover} onDrop={drop}/>
+        </div>
+    }
+})
 
-    return {popup}
-}
-
-const [installListMenu, useListMenuContext] = installation(function(expandedInfo: ExpandedInfoContext) {
+const [installListMenuContext, useListMenuContext] = installation(function(expandedInfo: ExpandedInfoContext) {
     const messageBox = useMessageBox()
     const { openCreatePane, openDetailPane, closePane, detailMode } = useTagPaneContext()
     const { fastEndpoint, indexedInfo, syncDeleteTag } = useTagListContext()
@@ -198,8 +258,8 @@ const [installListMenu, useListMenuContext] = installation(function(expandedInfo
     const menu = usePopupMenu<number>([
         {type: "normal", label: "查看详情", click: openDetailPane},
         {type: "separator"},
-        {type: "normal", label: "展开全部标签", click: expandChildren},
         {type: "normal", label: "折叠全部标签", click: collapseChildren},
+        {type: "normal", label: "展开全部标签", click: expandChildren},
         {type: "separator"},
         {type: "normal", label: "新建子标签", click: createChild},
         {type: "normal", label: "在此标签之前新建", click: createBefore},
@@ -212,3 +272,118 @@ const [installListMenu, useListMenuContext] = installation(function(expandedInfo
 
     return {popup}
 })
+
+function useListMenu(id: Ref<number>) {
+    const menu = useListMenuContext()
+
+    const popup = () => menu.popup(id.value)
+
+    return {popup}
+}
+
+function useDraggable(id: Ref<number>) {
+    const dragstart = (e: DragEvent) => {
+        if(e.dataTransfer) {
+            e.dataTransfer.setData("type", "tag")
+            e.dataTransfer.setData("id", id.value.toString())
+        }
+    }
+
+    const dragend = (e: DragEvent) => {
+        if(e.dataTransfer) {
+            e.dataTransfer.clearData("type")
+            e.dataTransfer.clearData("id")
+        }
+    }
+
+    return {dragstart, dragend}
+}
+
+function useDroppable(parentId: Ref<number | null>, ordinal: Ref<number | null> | null) {
+    const { move } = useMoveFeature()
+
+    const active = ref(false)
+    const dragenter = () => active.value = true
+    const dragleave = () => active.value = false
+
+    const drop = (e: DragEvent) => {
+        e.preventDefault()
+        if(e.dataTransfer?.getData("type") === "tag") {
+            const sourceId = parseInt(e.dataTransfer.getData("id"))
+            move(sourceId, parentId.value, ordinal?.value ?? null)
+        }
+        active.value = false
+    }
+
+    const dragover = (e: DragEvent) => {
+        e.preventDefault()
+    }
+
+    return {active: readonly(active), dragenter, dragleave, drop, dragover}
+}
+
+function useMoveFeature() {
+    const messageBox = useMessageBox()
+    const { fastEndpoint, data, indexedInfo, syncMoveTag } = useTagListContext()
+
+    function getTarget(currentParentId: number | null, currentOrdinal: number, insertParentId: number | null, insertOrdinal: number | null): {parentId: number | null, ordinal: number} {
+        if(insertOrdinal === null) {
+            //省略insert ordinal表示默认操作
+            if(currentParentId === insertParentId) {
+                //parent不变时的默认操作是不移动
+                return {parentId: insertParentId, ordinal: currentOrdinal}
+            }else{
+                //parent变化时的默认操作是移动到列表末尾，此时需要得到列表长度
+                const count = insertParentId !== null ? (indexedInfo.value[insertParentId]!.tag.children?.length ?? 0) : data.value.length
+                return {parentId: insertParentId, ordinal: count}
+            }
+        }else{
+            if(currentParentId === insertParentId && insertOrdinal > currentOrdinal) {
+                //目标parentId保持不变
+                //插入的位置在当前位置之后，这符合开头描述的特殊情况，因此发送给API的ordinal需要调整
+                return {parentId: insertParentId, ordinal: insertOrdinal - 1}
+            }else{
+                return {parentId: insertParentId, ordinal: insertOrdinal}
+            }
+        }
+    }
+
+    /**
+     * 将指定的节点移动到标定的插入位置。
+     * @param sourceId 指定节点的tag id。
+     * @param insertParentId 插入目标节点的id。null表示插入到根列表。
+     * @param insertOrdinal 插入目标节点后的排序顺位。null表示默认操作(追加到节点末尾，或者对于相同parent不执行移动)
+     */
+    const move = (sourceId: number, insertParentId: number | null, insertOrdinal: number | null) => {
+        //需要注意的是，前端的insert(parent, ordinal)含义与API的target(parent, ordinal)并不一致。
+        //API的含义是"移动到此目标位置"，也就是移动后的ordinal保证与给出的一致(除非超过最大值)。
+        //而前端的含义则是"插入到此目标之前"。与API相比，在parent不变、移动到靠后的位置时，调API的位置实际上要-1。
+
+        const info = indexedInfo.value[sourceId]
+        if(!info) {
+            console.error(`Error occurred while moving tag ${sourceId}: cannot find indexed info.`)
+            return
+        }
+        const target = getTarget(info.parentId, info.ordinal, insertParentId, insertOrdinal)
+
+        if(target.parentId === info.parentId && target.ordinal === info.ordinal || sourceId === target.parentId) {
+            //没有变化，或插入目标是其自身时，跳过操作
+            return
+        }
+
+        //如果parentId不变，则将其摘出参数
+        const form = target.parentId === info.parentId ? {ordinal: target.ordinal} : target
+
+        fastEndpoint.setData(sourceId, form, e => {
+            if(e.code === "RECURSIVE_PARENT") {
+                messageBox.showOkMessage("prompt", "无法移动到此位置。", "无法将标签移动到其子标签下。")
+            }else{
+                return e
+            }
+        }).then(ok => {
+            if(ok) syncMoveTag(sourceId, target.parentId, target.ordinal)
+        })
+    }
+
+    return {move}
+}

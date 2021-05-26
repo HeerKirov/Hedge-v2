@@ -9,8 +9,11 @@
   padding: 1rem 2rem;
   box-sizing: border-box;
 
-  .root-node {
-    margin-bottom: 0.25rem;
+  @mixin gap-active {
+    background-color: rgba(127, 127, 127, 0.5);
+  }
+
+  > .root-node {
     > .expanded-box {
       //列表区域的展开收起动画
       @mixin expand-transition-state($e) {
@@ -30,23 +33,69 @@
       }
 
       .child-node-list {
+        padding-top: 0.125rem;
+        display: flex;
         &.inline {
-          display: flex;
           flex-wrap: wrap;
 
-          > * {
-            margin-top: 0.25rem;
-            &:not(:last-child) {
-              margin-right: 0.25rem;
+          > .child {
+            margin-top: 0.125rem;
+            margin-bottom: 0.125rem;
+          }
+          > .gap {
+            width: 0.25rem;
+            height: 2em;
+            &.active {
+              @include gap-active
             }
           }
         }
         &:not(.inline) {
-          > * {
-            margin-top: 0.25rem;
+          flex-wrap: nowrap;
+          flex-direction: column;
+
+          > .gap {
+            height: 0.25rem;
+            &.active {
+              @include gap-active
+            }
           }
         }
       }
+    }
+  }
+  //节点之间的空隙
+  > .gap {
+    height: 0.25rem;
+    &.active {
+      @include gap-active
+    }
+  }
+
+  //标签节点中的drop area内容
+  :global(.tag) {
+    > .drop-area {
+      border-bottom-left-radius: $radius-size-small;
+      border-bottom-right-radius: $radius-size-small;
+      position: absolute;
+      width: 100%;
+      height: 35%;
+      bottom: 0;
+      left: 0;
+      text-align: center;
+      &.active {
+        background-color: rgba(0, 0, 0, 0.25);
+      }
+      > :global(.fa) {
+        transform: translateY(-0.4em);
+      }
+    }
+    .area {
+      position: absolute;
+      border-radius: $radius-size-small;
+      left: 0; top: 0;
+      width: 100%;
+      height: 100%;
     }
   }
 }
