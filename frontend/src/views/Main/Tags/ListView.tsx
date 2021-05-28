@@ -5,6 +5,7 @@ import { installation } from "@/functions/utils/basic"
 import {
     useTagListContext,
     useTagPaneContext,
+    useEditLock,
     installExpandedInfo,
     useExpandedValue,
     useDescriptionValue,
@@ -49,6 +50,7 @@ const RootNode = defineComponent({
         value: {type: null as any as PropType<TagTreeNode>, required: true}
     },
     setup(props) {
+        const editLock = useEditLock()
         const { openDetailPane } = useTagPaneContext()
         const click = () => openDetailPane(props.value.id)
 
@@ -63,7 +65,7 @@ const RootNode = defineComponent({
         return () => <div class={[style.rootNode, "box"]}>
             <p onContextmenu={menu.popup}>
                 <a class={props.value.color ? `has-text-${props.value.color}` : "has-text-dark"} onClick={click}
-                   draggable="true" onDragstart={dragstart} onDragend={dragend}>
+                   draggable={!editLock.value} onDragstart={dragstart} onDragend={dragend}>
                     <b>{props.value.name}</b>
                 </a>
                 <ExpandButton class="ml-2 mr-1" isExpanded={isExpanded.value} color={props.value.color ?? undefined} parentId={id.value} hasWhiteBg={true} onClick={switchExpanded}/>
@@ -181,6 +183,7 @@ const TagElement = defineComponent({
         color: String,
     },
     setup(props) {
+        const editLock = useEditLock()
         const { openDetailPane } = useTagPaneContext()
         const click = () => openDetailPane(props.value.id)
 
@@ -194,7 +197,7 @@ const TagElement = defineComponent({
             const isGroup = props.value.group !== "NO"
 
             return <a class={["tag", props.color ? `is-${props.color}` : null, isAddr ? "is-light" : null]} onClick={click}
-                      draggable="true" onDragstart={dragstart} onDragend={dragend}>
+                      draggable={!editLock.value} onDragstart={dragstart} onDragend={dragend}>
                 {isSequenced && <i class="fa fa-sort-alpha-down mr-1"/>}
                 {isForced && <b class="mr-1">!</b>}
                 {isGroup ? <>

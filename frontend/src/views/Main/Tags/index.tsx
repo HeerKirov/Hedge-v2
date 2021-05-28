@@ -5,21 +5,22 @@ import ListView from "./ListView"
 import TopBarContent from "./TopBarContent"
 import PaneCreateView from "./PaneCreateView"
 import PaneDetailView from "./PaneDetailView"
-import { installTagPaneContext, installTagListContext } from "./inject"
+import PaneSearchView from "./PaneSearchView"
+import { installTagPaneContext, installTagListContext, installEditLock, installSearchService } from "./inject"
 
 export default defineComponent({
     setup() {
-        const { createMode, detailMode } = installTagPaneContext()
-        installTagListContext()
+        const { createMode, detailMode, searchMode } = installTagPaneContext()
+        const tagListContext = installTagListContext()
+        installSearchService(tagListContext)
+        installEditLock()
 
-        return () => <div>
-            <TopBarLayout v-slots={{
-                topBar: () => <TopBarContent/>,
-                default: () => <SplitPane showPane={createMode.value != null || detailMode.value != null} v-slots={{
-                    default: () => <ListView/>,
-                    pane: () => createMode.value != null ? <PaneCreateView/> : <PaneDetailView/>
-                }}/>
+        return () => <TopBarLayout v-slots={{
+            topBar: () => <TopBarContent/>,
+            default: () => <SplitPane showPane={createMode.value != null || detailMode.value != null || searchMode.value } v-slots={{
+                default: () => <ListView/>,
+                pane: () => createMode.value != null ? <PaneCreateView/> : detailMode.value != null ? <PaneDetailView/> : <PaneSearchView/>
             }}/>
-        </div>
+        }}/>
     }
 })

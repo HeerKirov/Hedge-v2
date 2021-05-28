@@ -6,7 +6,7 @@
   width: 100%;
   height: 100%;
   overflow-y: auto;
-  padding: 1rem 2rem;
+  padding: 0.5rem 2rem;
   box-sizing: border-box;
 
   @mixin gap-active {
@@ -171,5 +171,28 @@
         }
       }
     }
+  }
+}
+
+.pane-search-content {
+  border-left: solid 1px $deep-sidebar;
+  @media (prefers-color-scheme: dark) {
+    border-left-color: $deep-sidebar-dm;
+  }
+  .result-count {
+    height: $height-small;
+    line-height: $height-small;
+    margin-top: 0.125rem;
+    margin-bottom: 0.125rem;
+  }
+  .search-input-box {
+    width: 99%;
+  }
+  .result-box {
+    box-sizing: border-box;
+    margin-top: 0.5rem;
+    width: 100%;
+    height: calc(100% - #{$height-small + 0.25rem + $height-std + 0.5rem});
+    overflow-y: auto;
   }
 }
