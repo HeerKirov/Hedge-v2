@@ -75,14 +75,18 @@ export const [installSearchService, useSearchService] = installation(function({ 
 
     const result = ref<SearchResultItem[]>([])
 
+    function condition(node: TagTreeNode, text: string) {
+        return node.name.toLowerCase().includes(text) || node.otherNames.some(n => n.toLowerCase().includes(text))
+    }
+
     const search = (text: string) => {
-        const trimText = text.trim()
+        const trimText = text.trim().toLowerCase()
         if(trimText) {
             const ret: SearchResultItem[] = []
 
             function searchInNode(node: TagTreeNode, parentAddress: string | null) {
                 const address = parentAddress !== null ? `${parentAddress}.${node.name}` : node.name
-                if(node.name.includes(text) || node.otherNames.some(n => n.includes(text))) {
+                if(condition(node, text)) {
                     //当前节点满足搜索条件
                     ret.push({
                         id: node.id,

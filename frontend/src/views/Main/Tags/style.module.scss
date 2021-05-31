@@ -194,5 +194,8 @@
     width: 100%;
     height: calc(100% - #{$height-small + 0.25rem + $height-std + 0.5rem});
     overflow-y: auto;
+    > .result-item {
+      margin-bottom: 0.25rem;
+    }
   }
 }

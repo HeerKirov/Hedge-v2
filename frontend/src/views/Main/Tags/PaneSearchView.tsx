@@ -1,4 +1,4 @@
-import { defineComponent, ref } from "vue"
+import { defineComponent, PropType, ref } from "vue"
 import Input from "@/components/forms/Input"
 import { PaneBasicLayout } from "@/layouts/layouts/SplitPane"
 import { onKeyEnter } from "@/utils/events"
@@ -46,9 +46,26 @@ const SearchResult = defineComponent({
         const { result } = useSearchService()
 
         return () => <div class={style.resultBox}>
-            {result.value.map(item => <p class={item.color ? `has-text-${item.color}` : null}>
-                {item.address}
-            </p>)}
+            {result.value.map(item => <SearchResultItem key={item.id} {...item}/>)}
+        </div>
+    }
+})
+
+const SearchResultItem = defineComponent({
+    props: {
+        color: {type: null as any as PropType<string | null>, required: true},
+        address: {type: String, required: true},
+        id: {type: Number, required: true}
+    },
+    setup(props) {
+        const { openDetailPane } = useTagPaneContext()
+
+        const click = () => openDetailPane(props.id)
+
+        return () => <div class={style.resultItem}>
+            <a class={["tag", "is-light", props.color ? `is-${props.color}` : undefined]} onClick={click}>
+                {props.address}
+            </a>
         </div>
     }
 })
