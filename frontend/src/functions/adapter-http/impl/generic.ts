@@ -13,9 +13,19 @@ export interface IdResponse {
     id: number
 }
 
+export interface IdResponseWithWarnings extends IdResponse {
+    warnings: ErrorResult[]
+}
+
 export interface ListResult<T> {
     total: number
     result: T[]
+}
+
+export interface ErrorResult {
+    code: string
+    message: string | null
+    info: any
 }
 
 export interface Link {

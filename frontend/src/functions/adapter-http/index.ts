@@ -14,6 +14,7 @@ import { createAnnotationEndpoint, AnnotationEndpoint } from "./impl/annotations
 import { createAuthorEndpoint, AuthorEndpoint } from "./impl/author"
 import { createTopicEndpoint, TopicEndpoint } from "./impl/topic"
 import { createPartitionEndpoint, PartitionEndpoint } from "./impl/partition"
+import { createImportEndpoint, ImportEndpoint } from "./impl/import"
 
 export { HttpInstance, HttpInstanceConfig, Response, ResponseOk, ResponseError, ResponseConnectionError, ResponseEmpty, createHttpInstance }
 
@@ -32,6 +33,7 @@ export interface HttpClient {
     author: AuthorEndpoint
     topic: TopicEndpoint
     annotation: AnnotationEndpoint
+    import: ImportEndpoint
 }
 
 export function createHttpClient(http: HttpInstance): HttpClient {
@@ -49,6 +51,7 @@ export function createHttpClient(http: HttpInstance): HttpClient {
         tag: createTagEndpoint(http),
         author: createAuthorEndpoint(http),
         topic: createTopicEndpoint(http),
-        annotation: createAnnotationEndpoint(http)
+        annotation: createAnnotationEndpoint(http),
+        import: createImportEndpoint(http)
     }
 }
