@@ -47,12 +47,12 @@ class ImportService(private val data: DataRepository,
     fun list(filter: ImportFilter): ListResult<ImportImageRes> {
         return data.db.from(ImportImages)
             .innerJoin(FileRecords, FileRecords.id eq ImportImages.fileId)
-            .select(ImportImages.id, FileRecords.id, FileRecords.folder, FileRecords.extension, FileRecords.thumbnail)
+            .select(ImportImages.id, ImportImages.fileName, ImportImages.fileImportTime, FileRecords.id, FileRecords.folder, FileRecords.extension, FileRecords.thumbnail)
             .orderBy(orderTranslator, filter.order)
             .limit(filter.offset, filter.limit)
             .toListResult {
                 val (file, thumbnailFile) = takeAllFilepath(it)
-                ImportImageRes(it[ImportImages.id]!!, file, thumbnailFile)
+                ImportImageRes(it[ImportImages.id]!!, file, thumbnailFile, it[ImportImages.fileName], it[ImportImages.fileImportTime]!!)
             }
     }
 

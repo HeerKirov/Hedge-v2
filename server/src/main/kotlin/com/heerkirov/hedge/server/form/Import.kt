@@ -11,7 +11,8 @@ import java.io.InputStream
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-data class ImportImageRes(val id: Int, val file: String, val thumbnailFile: String?)
+data class ImportImageRes(val id: Int, val file: String, val thumbnailFile: String?,
+                          val fileName: String?, val fileImportTime: LocalDateTime)
 
 data class ImportImageDetailRes(val id: Int,
                                 val file: String, val thumbnailFile: String?,
