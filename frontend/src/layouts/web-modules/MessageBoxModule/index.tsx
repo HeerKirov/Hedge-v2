@@ -1,6 +1,6 @@
-import { defineComponent, PropType, ref, watch, Transition } from "vue"
+import { defineComponent, PropType, ref, watch } from "vue"
+import BlockBox from "@/layouts/layouts/BlockBox"
 import { MessageBoxButton, MessageTask, useMessageBoxConsumer } from "@/functions/document/message-box"
-import { watchGlobalKeyEvent } from "@/functions/document/global-key"
 import style from "./style.module.scss"
 
 export default defineComponent({
@@ -26,51 +26,50 @@ export default defineComponent({
         }
         watch(() => messageTasks, refreshTask, {deep: true})
 
-        return () => <div class={style.root}>
-            <Transition enterActiveClass={style.transactionActive} leaveActiveClass={style.transactionActive} enterFromClass={style.transactionGoal} leaveToClass={style.transactionGoal}>
-                {task.value && <div class={style.background} onClick={task.value!.options.esc ? (() => task.value?.options.esc && click(task.value.options.esc)) : undefined}/>}
-            </Transition>
-            <Transition enterActiveClass={style.transactionEnterActive} leaveActiveClass={style.transactionLeaveActive} enterFromClass={style.transactionEnterFrom} leaveToClass={style.transactionLeaveTo}>
-                {task.value && <Box {...task.value!.options} onClick={click}/>}
-            </Transition>
-        </div>
+        const blockBoxEvents = {
+            onClickBackground() {
+                if(task.value?.options.esc) {
+                    click(task.value.options.esc)
+                }
+            },
+            onEsc() {
+                if(task.value?.options.esc) {
+                    click(task.value.options.esc)
+                }
+            },
+            onEnter() {
+                if(task.value?.options.enter) {
+                    click(task.value.options.enter)
+                }
+            }
+        }
+
+        return () => <BlockBox visible={!!task.value} {...blockBoxEvents}>
+            <Content {...task.value!.options}/>
+        </BlockBox>
     }
 })
 
-const Box = defineComponent({
+const Content = defineComponent({
     props: {
         title: String,
         message: {type: String, required: true},
         detailMessage: {type: String},
-        buttons: {type: null as any as PropType<MessageBoxButton[]>, required: true},
-        enter: String,
-        esc: String
+        buttons: {type: null as any as PropType<MessageBoxButton[]>, required: true}
     },
     emits: ["click"],
     setup(props, { emit }) {
         const onClick = (action: string) => () => emit("click", action)
 
-        watchGlobalKeyEvent(e => {
-            if(props.esc && e.key === "Escape") {
-                emit("click", props.esc)
-            }else if(props.enter && e.key === "Enter") {
-                emit("click", props.enter)
-            }
-            e.preventDefault()
-            e.stopPropagation()
-        })
-
-        return () => <div class={style.boxFramework}>
-            <div class={style.box}>
-                <p class={style.title}>{props.title}</p>
-                <p class={style.message}>{props.message}</p>
-                {props.detailMessage && <p class={style.detailMessage}>{props.detailMessage}</p>}
-                <div class={style.buttons}>
-                    {props.buttons.map(btn => <button class={["button", "is-small", "radius-large", btn.type ? `is-${btn.type}` : undefined]} onClick={onClick(btn.action)}>
-                        {btn.icon && <span class="icon"><i class={`fa fa-${btn.icon}`}/></span>}
-                        <span>{btn.name ?? btn.action}</span>
-                    </button>)}
-                </div>
+        return () => <div class={style.content}>
+            <p class={style.title}>{props.title}</p>
+            <p class={style.message}>{props.message}</p>
+            {props.detailMessage && <p class={style.detailMessage}>{props.detailMessage}</p>}
+            <div class={style.buttons}>
+                {props.buttons.map(btn => <button class={["button", "is-small", "radius-large", btn.type ? `is-${btn.type}` : undefined]} onClick={onClick(btn.action)}>
+                    {btn.icon && <span class="icon"><i class={`fa fa-${btn.icon}`}/></span>}
+                    <span>{btn.name ?? btn.action}</span>
+                </button>)}
             </div>
         </div>
     }

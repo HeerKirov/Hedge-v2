@@ -1,88 +1,32 @@
 @import "@/styles/base/color.scss";
 @import "@/styles/base/size.sass";
 
-.root {
-  z-index: 90;
-  position: fixed;
+.content {
+  padding: 0.5rem;
+  max-width: 12rem;
+  text-align: center;
 
-  .background {
-    position: fixed;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(233, 233, 233, 0.618);
-
-    &.transaction-active {
-      transition: opacity 0.3s ease;
-    }
-    &.transaction-goal {
-      opacity: 0;
+  > .title {
+    font-size: $font-size-medium;
+    color: $black;
+    margin-bottom: 2rem;
+    @media (prefers-color-scheme: dark) {
+      color: $white;
     }
   }
-
-  .box-framework {
-    position: fixed;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-
-    &.transaction-enter-active {
-      transition: transform 0.1s ease-out;
-    }
-    &.transaction-leave-active {
-      transition: transform 0.1s ease-in, opacity 0.15s ease-in;
-    }
-    &.transaction-enter-from {
-      transform: translate(-50%, calc(1rem - 50%));
-    }
-    &.transaction-leave-to {
-      transform: translate(-50%, calc(1rem - 50%));
-      opacity: 0;
-    }
-
-    > .box {
-      background-color: $white;
-      border: solid 1px $more-deep-light;
-      border-radius: $radius-size-large;
-      text-align: center;
-      padding: 0.5rem;
-      max-width: 12rem;
-      > .title {
-        font-size: $font-size-medium;
-        color: $black;
-        margin-bottom: 2rem;
-      }
-      > .message {
-        margin: 0 0.75rem 0.25rem 0.75rem;
-      }
-      > .detail-message {
-        margin: 0 0.75rem;
-        color: $grey;
-      }
-      > .buttons {
-        margin-top: 2rem;
-        > button {
-          min-width: 4rem;
-          &:not(:last-child) {
-            margin-right: 0.25rem;
-          }
-        }
-      }
-    }
+  > .message {
+    margin: 0 0.75rem 0.25rem 0.75rem;
   }
-}
-
-@media (prefers-color-scheme: dark) {
-  .root {
-    .background {
-      background-color: rgba(0, 0, 0, 0.618);
-    }
-    .box-framework {
-      > .box {
-        background-color: $dark;
-        border-color: $more-shallow-dark;
-        > .title {
-          color: $white;
-        }
+  > .detail-message {
+    margin: 0 0.75rem;
+    color: $grey;
+  }
+  > .buttons {
+    margin-top: 2rem;
+    > button {
+      min-width: 4rem;
+      &:not(:last-child) {
+        margin-right: 0.25rem;
       }
     }
   }

@@ -6,7 +6,10 @@ import { TimeType } from "./setting-import"
 
 export function createImportEndpoint(http: HttpInstance): ImportEndpoint {
     return {
-        list: http.createQueryRequest("/api/imports", "GET", { parseQuery: mapFromImportFilter }),
+        list: http.createQueryRequest("/api/imports", "GET", { 
+            parseQuery: mapFromImportFilter, 
+            parseResponse: ({ total, result }: ListResult<any>) => ({total, result: result.map(mapToImportImage)}) 
+        }),
         get: http.createPathRequest(id => `/api/imports/${id}`, "GET", { parseResponse: mapToDetailImportImage }),
         update: http.createPathDataRequest(id => `/api/imports/${id}`, "POST", { parseData: mapFromImportUpdateForm }),
         delete: http.createPathRequest(id => `/api/imports/${id}`, "DELETE"),
@@ -47,9 +50,19 @@ function mapFromBatchUpdateForm(form: ImportBatchUpdateForm): any {
     }
 }
 
+function mapToImportImage(data: any): ImportImage {
+    return {
+        ...data,
+        fileImportTime: data["fileImportTime"] != null ? dateTimeOf(<string>data["fileImportTime"]) : null
+    }
+}
+
 function mapToDetailImportImage(data: any): DetailImportImage {
     return {
         ...data,
+        fileCreateTime: data["fileCreateTime"] != null ? dateTimeOf(<string>data["fileCreateTime"]) : null,
+        fileUpdateTime: data["fileUpdateTime"] != null ? dateTimeOf(<string>data["fileUpdateTime"]) : null,
+        fileImportTime: data["fileImportTime"] != null ? dateTimeOf(<string>data["fileImportTime"]) : null,
         partitionTime: dateOf(<string>data["partitionTime"]),
         orderTime: dateTimeOf(<string>data["orderTime"]),
         createTime: dateTimeOf(<string>data["createTime"])
@@ -114,15 +127,17 @@ export interface ImportImage {
     id: number
     file: string
     thumbnailFile: string | null
+    fileName: string | null
+    fileImportTime: LocalDateTime | null
 }
 
 export interface DetailImportImage extends ImportImage {
     fileName: string | null
     filePath: string | null
     fileFromSource: string | null
-    fileCreateTime: string | null
-    fileUpdateTime: string | null
-    fileImportTime: string | null
+    fileCreateTime: LocalDateTime | null
+    fileUpdateTime: LocalDateTime | null
+    fileImportTime: LocalDateTime | null
     tagme: Tagme[]
     source: string | null
     sourceId: number | null
