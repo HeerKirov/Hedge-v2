@@ -3,32 +3,63 @@
 
 .list-view {
   .list-item {
-    height: $height-std;
-    margin: 0 0.25rem 0.25rem 0.25rem;
+    width: 100%;
+    height: 30px;
+    margin-bottom: 5px;
     box-sizing: border-box;
     border-radius: $radius-size-small;
     border: solid 1px $deep-sidebar;
     @media (prefers-color-scheme: dark) {
       border-color: $deep-sidebar-dm;
     }
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    > .filename {
+      width: 70%;
+      padding-left: 0.5rem;
+    }
+    > .time {
+      width: 30%;
+      text-align: right;
+      padding-right: 0.5rem;
+    }
   }
 }
 
-.loading-box {
-  text-align: center;
-  padding: 0.5rem;
-  width: 12rem;
-  max-height: 5rem;
+.top-bar-content {
+  .loading-box {
+    width: 12rem;
+    text-align: center;
+    > progress {
+      margin-top: 0.125rem;
+    }
+  }
+}
 
-  > .title {
-    margin-bottom: 0.4rem;
+.pane-detail-content {
+  border-left: solid 1px $deep-sidebar;
+  @media (prefers-color-scheme: dark) {
+    border-left-color: $deep-sidebar-dm;
   }
-  > .number {
-    font-size: 0.65rem;
-    margin-bottom: 0.125rem;
+  .top {
+    margin-top: 1.75rem;
   }
-  > .buttons {
-    margin-top: 0.4rem;
-    text-align: right;
+  .thumbnail {
+    text-align: center;
+    > img {
+      min-height: 12rem;
+      max-height: 30rem;
+      object-fit: contain;
+      object-position: center;
+      border-radius: $radius-size-std;
+      border: solid 1px $deep-sidebar;
+      @media (prefers-color-scheme: dark) {
+        border-color: $deep-sidebar-dm;
+      }
+    }
+  }
+  .filename {
+    font-size: $font-size-medium;
   }
 }

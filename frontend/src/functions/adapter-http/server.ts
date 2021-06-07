@@ -82,7 +82,7 @@ export function createHttpInstance(config: Readonly<HttpInstanceConfig>): HttpIn
             .then(res => resolve({
                 ok: true,
                 status: res.status,
-                data: res.data
+                data: requestConfig.parseResponse?.(res.data) ?? res.data
             }))
             .catch((reason: AxiosError) => {
                 let error: ResponseError | ResponseConnectionError

@@ -96,7 +96,7 @@ $button-size-map: ("small" ($font-size-8, $height-small, 0.9em), "medium" ($font
         background-color: toDarkenColor($color, 7.5%)
         color: $color-invert
       &[disabled]
-        color: toLightenColor($color-invert, 10%)
+        color: toLightenColor($color-invert, 30%)
         box-shadow: none
       @if length($pair) >= 4
         $color-light: nth($pair, 3)
@@ -111,7 +111,7 @@ $button-size-map: ("small" ($font-size-8, $height-small, 0.9em), "medium" ($font
             background-color: toDarkenColor($color-light, 5%)
             color: $color-dark
           &[disabled]
-            color: toLightenColor($color-dark, 10%)
+            color: toLightenColor($color-dark, 30%)
   @media (prefers-color-scheme: dark)
     @each $name, $pair in $colors-dark-mode
       $color: nth($pair, 1)
@@ -126,7 +126,7 @@ $button-size-map: ("small" ($font-size-8, $height-small, 0.9em), "medium" ($font
           background-color: toLightenColor($color, 7.5%)
           color: $color-invert
         &[disabled]
-          color: toDarkenColor($color-invert, 25%)
+          color: toDarkenColor($color-invert, 30%)
           box-shadow: none
         @if length($pair) >= 4
           $color-light: nth($pair, 3)
@@ -141,7 +141,7 @@ $button-size-map: ("small" ($font-size-8, $height-small, 0.9em), "medium" ($font
               background-color: toLightenColor($color-light, 5%)
               color: $color-dark
             &[disabled]
-              color: toDarkenColor($color-dark, 25%)
+              color: toDarkenColor($color-dark, 30%)
 
 .separator
   height: #{$height-std * 0.8}

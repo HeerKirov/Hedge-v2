@@ -1,13 +1,13 @@
 import { HttpInstance, Response } from "../server"
 import { LimitAndOffsetFilter } from "./generic"
-import { dateOf, LocalDate } from "@/utils/datetime"
+import { date, LocalDate } from "@/utils/datetime"
 
 export function createPartitionEndpoint(http: HttpInstance): PartitionEndpoint {
     return {
         list: http.createQueryRequest("/api/partitions", "GET", {
             parseResponse: d => (<any[]>d).map(mapToPartition)
         }),
-        get: http.createPathRequest(date => `/api/partitions/${date.toISOString()}`, "GET", {
+        get: http.createPathRequest(d => `/api/partitions/${date.toISOString(d)}`, "GET", {
             parseResponse: mapToPartition
         })
     }
@@ -15,7 +15,7 @@ export function createPartitionEndpoint(http: HttpInstance): PartitionEndpoint {
 
 function mapToPartition(data: any): Partition {
     return {
-        date: dateOf(<string>data["date"]),
+        date: date.of(<string>data["date"]),
         count: <number>data["count"]
     }
 }

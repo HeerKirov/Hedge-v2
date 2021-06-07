@@ -1,4 +1,4 @@
-import { dateOf, dateTimeOf, LocalDate, LocalDateTime } from "@/utils/datetime"
+import { date, datetime, LocalDate, LocalDateTime } from "@/utils/datetime"
 import { HttpInstance, Response } from "../server"
 import { ErrorResult, IdResponseWithWarnings, LimitAndOffsetFilter, ListResult, mapFromOrderList, OrderList } from "./generic"
 import { Tagme } from "./illust"
@@ -37,35 +37,35 @@ function mapFromUploadFile(file: File): FormData {
 function mapFromImportUpdateForm(form: ImportUpdateForm): any {
     return {
         ...form,
-        partitionTime: form.partitionTime?.toISOString(),
-        orderTime: form.orderTime?.toISOString(),
-        createTime: form.orderTime?.toISOString()
+        partitionTime: form.partitionTime && date.toISOString(form.partitionTime),
+        orderTime: form.orderTime && datetime.toISOString(form.orderTime),
+        createTime: form.createTime && datetime.toISOString(form.createTime)
     }
 }
 
 function mapFromBatchUpdateForm(form: ImportBatchUpdateForm): any {
     return {
         ...form,
-        partitionTime: form.partitionTime?.toISOString()
+        partitionTime: form.partitionTime && date.toISOString(form.partitionTime)
     }
 }
 
 function mapToImportImage(data: any): ImportImage {
     return {
         ...data,
-        fileImportTime: data["fileImportTime"] != null ? dateTimeOf(<string>data["fileImportTime"]) : null
+        fileImportTime: data["fileImportTime"] != null ? datetime.of(<string>data["fileImportTime"]) : null
     }
 }
 
 function mapToDetailImportImage(data: any): DetailImportImage {
     return {
         ...data,
-        fileCreateTime: data["fileCreateTime"] != null ? dateTimeOf(<string>data["fileCreateTime"]) : null,
-        fileUpdateTime: data["fileUpdateTime"] != null ? dateTimeOf(<string>data["fileUpdateTime"]) : null,
-        fileImportTime: data["fileImportTime"] != null ? dateTimeOf(<string>data["fileImportTime"]) : null,
-        partitionTime: dateOf(<string>data["partitionTime"]),
-        orderTime: dateTimeOf(<string>data["orderTime"]),
-        createTime: dateTimeOf(<string>data["createTime"])
+        fileCreateTime: data["fileCreateTime"] != null ? datetime.of(<string>data["fileCreateTime"]) : null,
+        fileUpdateTime: data["fileUpdateTime"] != null ? datetime.of(<string>data["fileUpdateTime"]) : null,
+        fileImportTime: data["fileImportTime"] != null ? datetime.of(<string>data["fileImportTime"]) : null,
+        partitionTime: date.of(<string>data["partitionTime"]),
+        orderTime: datetime.of(<string>data["orderTime"]),
+        createTime: datetime.of(<string>data["createTime"])
     }
 }
 

@@ -49,7 +49,7 @@ export default defineComponent({
             <VirtualRow rowHeight={33} padding={0} bufferSize={10} onUpdate={listEndpoint.dataUpdate} {...listEndpoint.data.value.metrics}>
                 <table class="table is-hoverable is-fullwidth no-wrap">
                     <tbody>
-                        {listEndpoint.data.value.result.map(item => <Item key={item.id} {...item} selected={detailMode.value === item.id} onRightClick={() => popupmenu.popup(item.id)}/>)}
+                        {listEndpoint.data.value.result.map(item => <Item key={item.id} {...item} selected={detailMode.value === item.id} onRightClick={popupmenu.popup}/>)}
                     </tbody>
                 </table>
             </VirtualRow>
@@ -74,7 +74,7 @@ const Item = defineComponent({
 
         const click = () => openDetailPane(props.id)
 
-        const rightClick = () => emit("rightClick")
+        const rightClick = () => emit("rightClick", props.id)
 
         return () => <tr onClick={click} onContextmenu={rightClick} class={{'is-selected': props.selected}} style="height: 33px">
             <td class="is-width-50"><b class="ml-1">[</b><span class="mx-1">{props.name}</span><b>]</b></td>

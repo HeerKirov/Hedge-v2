@@ -45,7 +45,7 @@ export default defineComponent({
         }
 
         return () => <BlockBox visible={!!task.value} {...blockBoxEvents}>
-            <Content {...task.value!.options}/>
+            <Content {...task.value!.options} onClick={click}/>
         </BlockBox>
     }
 })

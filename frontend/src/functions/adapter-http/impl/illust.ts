@@ -1,10 +1,9 @@
-import { dateOf, dateTimeOf, LocalDate, LocalDateTime } from "@/utils/datetime"
+import { date, datetime, LocalDate, LocalDateTime } from "@/utils/datetime"
 import { HttpInstance, Response } from "../server"
 import { LimitAndOffsetFilter, ListResult, OrderList } from "./generic"
 import { SimpleTopic } from "./topic"
 import { SimpleAuthor } from "./author"
 import { SimpleTag } from "./tag"
-
 
 export function createIllustEndpoint(http: HttpInstance): IllustEndpoint {
     return {
@@ -25,7 +24,7 @@ function mapToIllust(data: any): Illust {
         score: <number | null>data["score"],
         favorite: <boolean>data["favorite"],
         tagme: <Tagme[]>data["tagme"],
-        orderTime: dateTimeOf(<string>data["orderTime"])
+        orderTime: datetime.of(<string>data["orderTime"])
     }
 }
 
@@ -39,16 +38,16 @@ function mapToDetailIllust(data: any): DetailIllust {
         description: <string>data["description"],
         originDescription: <string>data["originDescription"],
         originScore: <number | null>data["originScore"],
-        partitionTime: dateOf(<string>data["partitionTime"]),
-        createTime: dateTimeOf(<string>data["createTime"]),
-        updateTime: dateTimeOf(<string>data["updateTime"])
+        partitionTime: date.of(<string>data["partitionTime"]),
+        createTime: datetime.of(<string>data["createTime"]),
+        updateTime: datetime.of(<string>data["updateTime"])
     }
 }
 
 function mapFromIllustFilter(data: IllustFilter) {
     return {
         ...data,
-        partition: data.partition?.toISOString()
+        partition: data.partition && date.toISOString(data.partition)
     }
 }
 

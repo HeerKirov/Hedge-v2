@@ -32,7 +32,7 @@ export default defineComponent({
                 <span class="tag no-drag">0-0</span>
             }
             <span class="mx-1">/</span>
-            <span class="tag no-drag">{view.state.itemTotal}</span>
+            <span class="tag no-drag">{view.state.itemTotal ?? 0}</span>
         </div>
     }
 })
