@@ -48,6 +48,7 @@
   .thumbnail {
     text-align: center;
     > img {
+      width: 100%;
       min-height: 12rem;
       max-height: 30rem;
       object-fit: contain;
@@ -61,5 +62,21 @@
   }
   .filename {
     font-size: $font-size-medium;
+    margin-bottom: 0.25rem;
+  }
+  .separator {
+    border-top: solid 1px $deep-sidebar;
+    @media (prefers-color-scheme: dark) {
+      border-top-color: $deep-sidebar-dm;
+    }
+    width: 100%;
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+  .spacing {
+    margin-top: 0.5rem;
+  }
+  .char-2-left {
+    padding-left: 2em;
   }
 }

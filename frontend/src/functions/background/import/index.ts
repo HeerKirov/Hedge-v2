@@ -34,8 +34,10 @@ export const [installImportService, useImportService] = installation(function():
         const files = await dialogManager.openDialog({
             title: "选择文件",
             filters: [
-                {name: "图片文件(*.jpeg, *.jpg, *.png, *.gif)", extensions: ["jpeg", "jpg", "png", "gif"]},
-                {name: "视频文件(*.mp4, *.webm, *.ogv)", extensions: ["mp4", "webm", "ogv"]}
+                {
+                    name: "支持的文件格式(*.jpeg, *.jpg, *.png, *.gif, *.mp4, *.webm, *.ogv)",
+                    extensions: ["jpeg", "jpg", "png", "gif", "mp4", "webm", "ogv"]
+                }
             ],
             properties: ["openFile", "multiSelections", "createDirectory"]
         })

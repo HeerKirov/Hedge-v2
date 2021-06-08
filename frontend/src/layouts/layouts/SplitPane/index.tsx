@@ -1,4 +1,5 @@
-import { defineComponent, onUnmounted, ref, Ref } from "vue"
+import { computed, defineComponent, onUnmounted, ref, Ref } from "vue"
+import { useLocalStorage } from "@/functions/app"
 import PaneBasicLayout from "./PaneBasicLayout"
 import style from "./style.module.scss"
 
@@ -15,7 +16,11 @@ export default defineComponent({
         showPane: {type: Boolean, default: true}
     },
     setup(props, { slots }) {
-        const paneWidth = ref(props.defaultWidth)
+        const paneWidthStorage = useLocalStorage<number>("split-pane-width")
+        const paneWidth = computed({
+            get: () => paneWidthStorage.value ?? props.defaultWidth,
+            set: value => paneWidthStorage.value = value
+        })
         const splitPaneRef = ref<HTMLElement>()
 
         const { resizeAreaMouseDown } = useResizeBar(splitPaneRef, paneWidth, {

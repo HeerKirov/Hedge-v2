@@ -132,12 +132,10 @@ export interface ImportImage {
 }
 
 export interface DetailImportImage extends ImportImage {
-    fileName: string | null
     filePath: string | null
     fileFromSource: string | null
     fileCreateTime: LocalDateTime | null
     fileUpdateTime: LocalDateTime | null
-    fileImportTime: LocalDateTime | null
     tagme: Tagme[]
     source: string | null
     sourceId: number | null
