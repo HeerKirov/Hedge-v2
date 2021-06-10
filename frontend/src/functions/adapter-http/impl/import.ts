@@ -11,7 +11,7 @@ export function createImportEndpoint(http: HttpInstance): ImportEndpoint {
             parseResponse: ({ total, result }: ListResult<any>) => ({total, result: result.map(mapToImportImage)}) 
         }),
         get: http.createPathRequest(id => `/api/imports/${id}`, "GET", { parseResponse: mapToDetailImportImage }),
-        update: http.createPathDataRequest(id => `/api/imports/${id}`, "POST", { parseData: mapFromImportUpdateForm }),
+        update: http.createPathDataRequest(id => `/api/imports/${id}`, "PATCH", { parseData: mapFromImportUpdateForm }),
         delete: http.createPathRequest(id => `/api/imports/${id}`, "DELETE"),
         import: http.createDataRequest("/api/imports/import", "POST"),
         upload: http.createDataRequest("/api/imports/upload", "POST", { parseData: mapFromUploadFile }),
@@ -98,6 +98,8 @@ export interface ImportEndpoint {
     get(id: number): Promise<Response<DetailImportImage>>
     /**
      * 更改导入项目的元数据。
+     * @exception PARAM_REQUIRED ("sourceId"/"sourcePart") 需要这些参数
+     * @exception PARAM_NOT_REQUIRED ("sourcePart"/"sourceId/sourcePart") 不需要这些参数
      * @exception NOT_FOUND
      */
     update(id: number, form: ImportUpdateForm): Promise<Response<null>>

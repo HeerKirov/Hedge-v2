@@ -1,6 +1,6 @@
 import { defineComponent, ref } from "vue"
 import { usePropertySot } from "@/functions/utils/properties/setter-property"
-import { useSettingQuery } from "../setting"
+import { useSettingQuery } from "@/functions/api/setting"
 import CheckBox from "@/components/forms/CheckBox"
 import NumberInput from "@/components/forms/NumberInput"
 

@@ -4,7 +4,7 @@ import { ImportImage } from "@/functions/adapter-http/impl/import"
 import { ListEndpointResult, useListEndpoint } from "@/functions/utils/endpoints/list-endpoint"
 import { useHttpClient } from "@/functions/app"
 import { useNotification } from "@/functions/document/notification"
-import { useImportService } from "@/functions/background"
+import { useImportService } from "@/functions/api/import"
 import { installation } from "@/functions/utils/basic"
 
 export interface ImportContext {

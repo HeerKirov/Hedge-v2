@@ -7,7 +7,7 @@ import CheckBox from "@/components/forms/CheckBox"
 import NumberInput from "@/components/forms/NumberInput"
 import Select from "@/components/forms/Select"
 import SourceAnalyseRuleBoard from "./SourceAnalyseRuleBoard"
-import { useSettingImport } from "../setting"
+import { useSettingImport } from "@/functions/api/setting"
 
 export default defineComponent({
     setup() {

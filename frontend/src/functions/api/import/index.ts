@@ -1,8 +1,7 @@
-import { computed, reactive, Ref, ref } from "vue"
+import { computed, reactive, Ref } from "vue"
 import { useHttpClient } from "@/functions/app"
 import { dialogManager, useNotification } from "@/functions/module"
 import { installation } from "@/functions/utils/basic"
-import { sleep } from "@/utils/primitives";
 
 export interface ImportService {
     openDialog(): Promise<void>

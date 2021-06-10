@@ -1,6 +1,6 @@
 import { computed, defineComponent } from "vue"
 import { DataRouter } from "@/layouts/topbar-components"
-import { useImportService } from "@/functions/background"
+import { useImportService } from "@/functions/api/import"
 import style from "./style.module.scss"
 
 export default defineComponent({

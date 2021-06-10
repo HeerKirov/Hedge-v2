@@ -1,4 +1,5 @@
 import { defineComponent } from "vue"
+import { SourceEditor, TagmeEditor, ViewAndEditor } from "@/layouts/editor-components"
 import { SourceInfo, TagmeInfo } from "@/layouts/display-components"
 import { PaneBasicLayout } from "@/layouts/layouts/SplitPane"
 import { useMessageBox } from "@/functions/document/message-box"
@@ -26,6 +27,41 @@ export default defineComponent({
             }
         })
 
+        const setTagme = async (tagme: Tagme[]) => {
+            return objects.deepEquals(tagme, data.value?.tagme) || await setData({tagme})
+        }
+
+        const setSourceInfo = async ({ source, sourceId, sourcePart }: { source: string | null, sourceId: number | null, sourcePart: number | null}) => {
+            return (source === data.value?.source && sourceId === data.value?.sourceId && sourcePart === data.value?.sourcePart) || await setData({source, sourceId, sourcePart}, e => {
+                if(e.code === "PARAM_REQUIRED") {
+                    const target = e.info === "sourceId" ? "来源ID" : e.info === "sourcePart" ? "分P" : e.info
+                    message.showOkMessage("error", `${target}属性缺失。`)
+                }else if(e.code === "PARAM_NOT_REQUIRED") {
+                    if(e.info === "sourcePart") {
+                        message.showOkMessage("error", `分P属性不需要填写，因为选择的来源类型不支持分P。`)
+                    }else if(e.info === "sourceId/sourcePart") {
+                        message.showOkMessage("error", `来源ID/分P属性不需要填写，因为未指定来源类型。`)
+                    }else{
+                        message.showOkMessage("error", `${e.info}属性不需要填写。`)
+                    }
+                }else{
+                    return e
+                }
+            })
+        }
+
+        const setPartitionTime = async (partitionTime: LocalDateTime) => {
+            return partitionTime.timestamp === data.value?.partitionTime?.timestamp || await setData({partitionTime})
+        }
+
+        const setCreateTime = async (createTime: LocalDateTime) => {
+            return createTime.timestamp === data.value?.createTime?.timestamp || await setData({createTime})
+        }
+
+        const setOrderTime = async (orderTime: LocalDateTime) => {
+            return orderTime.timestamp === data.value?.orderTime?.timestamp || await setData({orderTime})
+        }
+
         return () => <PaneBasicLayout class={style.paneDetailContent} onClose={closePane}>
             {data.value && <>
                 <p class={style.top}/>
@@ -37,9 +73,15 @@ export default defineComponent({
                 {data.value.fileUpdateTime && <p class="has-text-grey">文件修改时间 {datetime.toSimpleFormat(data.value.fileUpdateTime)}</p>}
                 {data.value.fileImportTime && <p class="has-text-grey">文件导入时间 {datetime.toSimpleFormat(data.value.fileImportTime)}</p>}
                 <div class={style.separator}/>
-                <SourceInfo source={data.value.source} sourceId={data.value.sourceId} sourcePart={data.value.sourcePart}/>
+                <ViewAndEditor data={{source: data.value.source, sourceId: data.value.sourceId, sourcePart: data.value.sourcePart}} onSetData={setSourceInfo} v-slots={{
+                    default: ({ value }: {value: {source: string | null, sourceId: number | null, sourcePart: number | null}}) => <SourceInfo {...value}/>,
+                    editor: ({ value, setValue }) => <SourceEditor {...value} onUpdateValue={setValue}/>
+                }}/>
                 <div class={style.spacing}/>
-                <TagmeInfo value={data.value.tagme}/>
+                <ViewAndEditor data={data.value.tagme} onSetData={setTagme} v-slots={{
+                    default: ({ value }) => <TagmeInfo value={value}/>,
+                    editor: ({ value, setValue }) => <TagmeEditor value={value} onUpdateValue={setValue}/>
+                }}/>
                 <div class={style.spacing}/>
                 {data.value.partitionTime && <p class={["has-text-grey", style.char2Left]}>分区 {date.toISOString(data.value.partitionTime)}</p>}
                 {data.value.createTime && <p class="has-text-grey">创建时间 {datetime.toSimpleFormat(data.value.createTime)}</p>}

@@ -1,5 +1,5 @@
-import { defineComponent, InjectionKey, provide, Ref } from "vue"
-import { useSettingSite } from "../setting"
+import { defineComponent, InjectionKey, provide } from "vue"
+import { useSettingSite } from "@/functions/api/setting"
 import SiteBoard from "./SiteBoard"
 import SpiderBoard from "./SpiderBoard"
 import style from "./style.module.scss"

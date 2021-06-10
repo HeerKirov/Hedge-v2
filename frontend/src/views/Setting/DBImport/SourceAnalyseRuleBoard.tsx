@@ -7,7 +7,7 @@ import Input from "@/components/forms/Input"
 import Select from "@/components/forms/Select"
 import SelectList from "@/components/forms/SelectList"
 import NumberInput from "@/components/forms/NumberInput"
-import { useSettingSite } from "../setting"
+import { useSettingSite } from "@/functions/api/setting"
 import { dataInjection } from "."
 import style from "./style.module.scss"
 

@@ -2,7 +2,7 @@ import { defineComponent, ref, watch } from "vue"
 import { useServerInfo } from "@/functions/app"
 import { useAuthSetting } from "@/functions/app/app-settings"
 import { usePropertySot } from "@/functions/utils/properties/setter-property"
-import { useSettingService } from "../setting"
+import { useSettingService } from "@/functions/api/setting"
 import Input from "@/components/forms/Input"
 import CheckBox from "@/components/forms/CheckBox"
 

@@ -6,14 +6,17 @@ export default defineComponent({
         value: null as any as PropType<Tagme[]>
     },
     setup(props) {
-        const tagmeList: Tagme[] = ["TAG", "AUTHOR", "TOPIC", "SOURCE"]
-
-        return () => <span class="tag">
-            <span>Tagme</span>
-            {tagmeList.filter(tagme => props.value?.includes(tagme)).map(tagme => ICONS[tagme])}
-        </span>
+        return () => {
+            const valueList = TAGME_LIST.filter(tagme => props.value?.includes(tagme))
+            return <span class="tag">
+                <span>Tagme</span>
+                {valueList.length ? valueList.map(tagme => ICONS[tagme]) : <i class="ml-1">无</i>}
+            </span>
+        }
     }
 })
+
+const TAGME_LIST: Tagme[] = ["TAG", "AUTHOR", "TOPIC", "SOURCE"]
 
 const ICONS: {[tagme in Tagme]: JSX.Element} = {
     "TAG": <i class="fa fa-tag ml-1"/>,

@@ -4,7 +4,7 @@ import CheckBox from "@/components/forms/CheckBox"
 import StdColorSelector from "@/components/forms/StdColorSelector"
 import { TopicType } from "@/functions/adapter-http/impl/topic"
 import { AuthorType } from "@/functions/adapter-http/impl/author"
-import { useSettingMeta } from "../setting"
+import { useSettingMeta } from "@/functions/api/setting"
 import style from "./style.module.scss"
 
 export default defineComponent({
