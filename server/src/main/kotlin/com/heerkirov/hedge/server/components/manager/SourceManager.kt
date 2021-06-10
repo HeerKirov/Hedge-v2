@@ -26,11 +26,11 @@ class SourceManager(private val data: DataRepository) {
         if(source != null) {
             val site = data.metadata.source.sites.firstOrNull { it.name.equals(source, ignoreCase = true) } ?: throw ResourceNotExist("source", source)
 
-            if(site.hasSecondaryId && sourcePart == null) throw ParamRequired("sourcePart")
-            else if(!site.hasSecondaryId && sourcePart != null) throw ParamNotRequired("sourcePart")
-
             if(sourceId == null) throw ParamRequired("sourceId")
             else if(sourceId < 0) throw ParamError("sourceId")
+
+            if(site.hasSecondaryId && sourcePart == null) throw ParamRequired("sourcePart")
+            else if(!site.hasSecondaryId && sourcePart != null) throw ParamNotRequired("sourcePart")
 
             if(sourcePart != null && sourcePart < 0) throw ParamError("sourcePart")
         }
