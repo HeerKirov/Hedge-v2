@@ -1,5 +1,5 @@
 import { defineComponent } from "vue"
-import { SourceEditor, TagmeEditor, ViewAndEditor } from "@/layouts/editor-components"
+import { SourceEditor, TagmeEditor, DateTimeEditor, ViewAndEditor, DateEditor } from "@/layouts/editor-components"
 import { SourceInfo, TagmeInfo } from "@/layouts/display-components"
 import { PaneBasicLayout } from "@/layouts/layouts/SplitPane"
 import { useMessageBox } from "@/functions/document/message-box"
@@ -83,9 +83,18 @@ export default defineComponent({
                     editor: ({ value, setValue }) => <TagmeEditor value={value} onUpdateValue={setValue}/>
                 }}/>
                 <div class={style.spacing}/>
-                {data.value.partitionTime && <p class={["has-text-grey", style.char2Left]}>分区 {date.toISOString(data.value.partitionTime)}</p>}
-                {data.value.createTime && <p class="has-text-grey">创建时间 {datetime.toSimpleFormat(data.value.createTime)}</p>}
-                {data.value.orderTime && <p class="has-text-grey">排序时间 {datetime.toSimpleFormat(data.value.orderTime)}</p>}
+                <ViewAndEditor data={data.value.partitionTime} onSetData={setPartitionTime} v-slots={{
+                    default: ({ value }) => <p class="has-text-grey">时间分区 {date.toISOString(value)}</p>,
+                    editor: ({ value, setValue }) => <DateEditor value={value} onUpdateValue={setValue}/>
+                }}/>
+                <ViewAndEditor data={data.value.createTime} onSetData={setCreateTime} v-slots={{
+                    default: ({ value }) => <p class="has-text-grey">创建时间 {datetime.toSimpleFormat(value)}</p>,
+                    editor: ({ value, setValue }) => <DateTimeEditor value={value} onUpdateValue={setValue}/>
+                }}/>
+                <ViewAndEditor data={data.value.orderTime} onSetData={setOrderTime} v-slots={{
+                    default: ({ value }) => <p class="has-text-grey">排序时间 {datetime.toSimpleFormat(value)}</p>,
+                    editor: ({ value, setValue }) => <DateTimeEditor value={value} onUpdateValue={setValue}/>
+                }}/>
             </>}
         </PaneBasicLayout>
     }

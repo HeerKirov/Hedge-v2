@@ -164,7 +164,7 @@ const RuleEditor = defineComponent({
                     <NumberInput class="is-width-one-third mx-1" min={0} value={rule.value.idIndex} onUpdateValue={v => rule.value.idIndex = v}/>
                 </div>
                 {needSecondaryId.value && <div class={style.inlineDiv}>
-                    <label class="label">次级ID生成位置</label>
+                    <label class="label">分P生成位置</label>
                     <NumberInput class="is-width-one-third mx-1" min={0} value={rule.value.secondaryIdIndex!} onUpdateValue={v => rule.value.secondaryIdIndex = v}/>
                 </div>}
             </div>

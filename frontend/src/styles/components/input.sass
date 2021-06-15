@@ -67,6 +67,15 @@ textarea
         &:focus
           box-shadow: 0 0 2px $color
 
+.underline-input
+  align-items: center
+  display: inline-flex
+  font-size: $font-size-7
+  border-bottom: 1px solid $deep-sidebar
+  @media (prefers-color-scheme: dark)
+    border-bottom-color: $deep-sidebar-dm
+  
+
 .textarea
   $textarea-max-height: 40em !default
   $textarea-min-height: 8em !default
