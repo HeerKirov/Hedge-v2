@@ -1,4 +1,4 @@
-import { readonly, ref, Ref, watch } from "vue"
+import { computed, readonly, ref, Ref, watch } from "vue"
 import { ScrollView, useScrollView } from "@/components/features/VirtualScrollView"
 import { ImportImage } from "@/functions/adapter-http/impl/import"
 import { ListEndpointResult, useListEndpoint } from "@/functions/utils/endpoints/list-endpoint"
@@ -12,6 +12,10 @@ export interface ImportContext {
         endpoint: ListEndpointResult<ImportImage>
         scrollView: Readonly<ScrollView>
     }
+    operation: {
+        canSave: Ref<boolean>
+        save(): void
+    }
     pane: {
         detailMode: Readonly<Ref<number | null>>
         infoMode: Readonly<Ref<boolean>>
@@ -22,10 +26,11 @@ export interface ImportContext {
 }
 
 export const [installImportContext, useImportContext] = installation(function(): ImportContext {
-    return {
-        list: useImportListContext(),
-        pane: usePaneContext()
-    }
+    const list = useImportListContext()
+    const pane = usePaneContext()
+    const operation = useImportOperationContext(list.endpoint)
+
+    return {list, pane, operation}
 })
 
 function usePaneContext() {
@@ -68,4 +73,30 @@ function useImportListContext() {
     })
 
     return {endpoint, scrollView}
+}
+
+function useImportOperationContext(endpoint: ListEndpointResult<ImportImage>) {
+    const httpClient = useHttpClient()
+    const { handleException, notify } = useNotification()
+
+    const canSave = computed(() => endpoint.data.value.metrics.total != undefined && endpoint.data.value.metrics.total > 0)
+
+    const save = async () => {
+        if(canSave.value) {
+            const res = await httpClient.import.save()
+            if (res.ok) {
+                const { total, succeed } = res.data
+                if (succeed < total) {
+                    notify("导入结果", "warning", `${succeed}个项目已导入图库，${total - succeed}个项目导入失败。`)
+                } else {
+                    notify("导入结果", "success", `${total}个项目已导入图库。`)
+                }
+                endpoint.refresh()
+            } else if (res.exception) {
+                handleException(res.exception)
+            }
+        }
+    }
+
+    return {canSave, save}
 }

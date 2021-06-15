@@ -1,6 +1,8 @@
 import { computed, defineComponent } from "vue"
 import { DataRouter } from "@/layouts/topbar-components"
 import { useImportService } from "@/functions/api/import"
+import { useElementPopupMenu } from "@/functions/module"
+import { useImportContext } from "./inject"
 import style from "./style.module.scss"
 
 export default defineComponent({
@@ -13,11 +15,9 @@ export default defineComponent({
                 <LoadingBox/>
             </div>
             <div class="layout-container">
-                <ImportAndMessageBox/>
+                <ImportButton/>
                 <DataRouter/>
-                <button class="square button no-drag radius-large is-white">
-                    <span class="icon"><i class="fa fa-ellipsis-v"/></span>
-                </button>
+                <MenuButton/>
             </div>
         </div>
     }
@@ -26,6 +26,7 @@ export default defineComponent({
 const AddButton = defineComponent({
     setup() {
         const { openDialog } = useImportService()
+
         return () => <button class="button no-drag radius-large is-success ml-1" onClick={openDialog}>
             <span class="icon"><i class="fa fa-plus"/></span>
             <span>添加项目</span>
@@ -43,25 +44,33 @@ const LoadingBox = defineComponent({
     }
 })
 
-const ImportAndMessageBox = defineComponent({
+const ImportButton = defineComponent({
     setup() {
-        const { isProgressing, warningList, errorList } = useImportService()
+        const { isProgressing } = useImportService()
+        const { operation: { canSave, save } } = useImportContext()
 
-        const warningCount = computed(() => warningList.length)
+        const enableImport = computed(() => !isProgressing.value && canSave.value)
 
-        const errorCount = computed(() => errorList.length)
+        return () => <button class="button no-drag radius-large is-white mr-1" disabled={!enableImport.value} onClick={save}>
+            <span class="icon"><i class="fa fa-check"/></span>
+            <span>导入</span>
+        </button>
+    }
+})
 
-        const enableImport = computed(() => !isProgressing.value)
+const MenuButton = defineComponent({
+    setup() {
+        const { operation: { canSave, save } } = useImportContext()
 
-        return () => <>
-            {(warningCount.value && errorCount.value) ? <button class="button no-drag radius-large is-white">
-                <i class="fa fa-info-circle has-text-danger"/><span class="mx-1">{warningCount.value}</span>
-                <i class="fa fa-info-circle has-text-warning"/><span class="ml-1">{errorCount.value}</span>
-            </button> : null}
-            <button class="button no-drag radius-large is-white mr-1" disabled={!enableImport.value}>
-                <span class="icon"><i class="fa fa-check"/></span>
-                <span>导入</span>
-            </button>
-        </>
+        const menu = useElementPopupMenu(() => [
+            {type: "normal", label: "导入", enabled: canSave.value, click: save},
+            {type: "separator"},
+            {type: "normal", label: "分析来源"},
+            {type: "normal", label: "批量设定属性"}
+        ], {position: "bottom", align: "left", offsetY: 4})
+
+        return () => <button ref={menu.element} class="square button no-drag radius-large is-white" onClick={() => menu.popup()}>
+            <span class="icon"><i class="fa fa-ellipsis-v"/></span>
+        </button>
     }
 })

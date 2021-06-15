@@ -10,12 +10,7 @@ export interface ImportService {
         value: number,
         max: number
     }
-    errorList: ErrorListItem[]
-    warningList: WarningListItem[]
 }
-
-interface ErrorListItem {filepath: string, reason: "FILE_NOT_FOUND" | "ILLEGAL_FILE_EXTENSION"}
-interface WarningListItem {id: number, filepath: string, reason: "INVALID_REGEX"}
 
 export const [installImportService, useImportService] = installation(function(): ImportService {
     const httpClient = useHttpClient()
@@ -25,9 +20,7 @@ export const [installImportService, useImportService] = installation(function():
 
     const isProgressing = computed(() => progress.max > 0)
 
-    const errorList = reactive<ErrorListItem[]>([])
-
-    const warningList = reactive<WarningListItem[]>([])
+    const warningList: {id: number, filepath: string}[] = []
 
     const openDialog = async () => {
         const files = await dialogManager.openDialog({
@@ -49,11 +42,13 @@ export const [installImportService, useImportService] = installation(function():
                 if(res.ok) {
                     const { id, warnings } = res.data
                     if(warnings.length) {
-                        warningList.push({id, filepath, reason: "INVALID_REGEX"})
+                        warningList.push({id, filepath})
                     }
                 }else if(res.exception) {
-                    if(res.exception.code === "FILE_NOT_FOUND" || res.exception.code === "ILLEGAL_FILE_EXTENSION") {
-                        errorList.push({filepath, reason: res.exception.code})
+                    if(res.exception.code === "FILE_NOT_FOUND") {
+                        notification.notify("错误", "danger", `文件${filepath}不存在。`)
+                    }else if(res.exception.code === "ILLEGAL_FILE_EXTENSION") {
+                        notification.notify("错误", "danger", `文件${filepath}的类型不适用。`)
                     }else{
                         notification.handleException(res.exception)
                     }
@@ -64,9 +59,18 @@ export const [installImportService, useImportService] = installation(function():
             if(progress.value >= progress.max) {
                 progress.max = 0
                 progress.value = 0
+
+                if(warningList.length) {
+                    if(warningList.length > 3) {
+                        notification.notify("来源信息分析失败", "warning", `超过${warningList.length}个文件的来源信息分析失败，可能是因为正则表达式内容错误。`)
+                    }else{
+                        notification.notify("来源信息分析失败", "warning", ["存在文件的来源信息分析失败，可能是因为正则表达式内容错误。", ...warningList.map(i => i.filepath)])
+                    }
+                    warningList.splice(0, warningList.length)
+                }
             }
         }
     }
 
-    return {openDialog, isProgressing, progress, errorList, warningList}
+    return {openDialog, isProgressing, progress}
 })

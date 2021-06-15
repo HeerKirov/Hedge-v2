@@ -2,6 +2,8 @@
 @import '@/styles/base/color.scss';
 
 .list-view {
+  width: 100%;
+  height: 100%;
   .list-item {
     width: 100%;
     height: 30px;
@@ -25,6 +27,14 @@
       padding-right: 0.5rem;
     }
   }
+}
+
+.empty-list-view {
+  position: absolute;
+  left: 50%; top: 45%;
+  width: 50%; height: 30%;
+  transform: translate(-50%, -50%);
+  text-align: center;
 }
 
 .top-bar-content {
