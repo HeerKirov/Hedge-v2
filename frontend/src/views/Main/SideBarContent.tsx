@@ -17,7 +17,7 @@ export default defineComponent({
         return () => <aside class="menu">
             <ScopeComponent id="db" name="图库">
                 <StdItemComponent name="图库" icon="th" routeName="MainIndex"/>
-                <StdItemComponent name="搜索" icon="search" routeName="MainImage"/>
+                <StdItemComponent name="搜索" icon="search" routeName="MainIllusts"/>
                 <StdItemComponent name="画集" icon="clone" routeName="MainAlbums"/>
                 <StdItemComponent name="分区" icon="calendar-alt" routeName="MainPartitions" detailKey="partition">
                     <SubItemDetails/>

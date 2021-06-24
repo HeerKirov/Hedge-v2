@@ -157,7 +157,7 @@ export type IllustFilter = IllustQueryFilter & LimitAndOffsetFilter
 export interface IllustQueryFilter {
     query?: string
     order?: OrderList<"id" | "score" | "orderTime" | "createTime" | "updateTime">
-    type?: IllustType
+    type: IllustType
     partition?: LocalDate
     favorite?: boolean
     topic?: number

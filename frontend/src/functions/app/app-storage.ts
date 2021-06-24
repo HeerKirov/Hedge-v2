@@ -1,4 +1,4 @@
-import { ref, Ref, watch } from "vue"
+import { computed, ref, Ref, watch } from "vue"
 import { AppInfo, useAppInfo } from "./app-state"
 
 /**
@@ -29,4 +29,13 @@ export function useLocalStorage<T>(bucketName: string, provideAppInfo?: AppInfo)
     }, {deep: true})
 
     return data
+}
+
+export function useLocalStorageWithDefault<T>(bucketName: string, defaultValue: T): Ref<T> {
+    const storage = useLocalStorage<T>(bucketName)
+
+    return computed({
+        get: () => storage.value ?? defaultValue,
+        set: value => storage.value = value
+    })
 }

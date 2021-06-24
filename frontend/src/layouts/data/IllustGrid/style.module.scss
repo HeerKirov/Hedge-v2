@@ -1,0 +1,69 @@
+@import '@/styles/base/size.sass';
+@import '@/styles/base/color.scss';
+
+.root {
+  width: 100%; height: 100%;
+
+  .item {
+    position: relative;
+    height: 0;
+
+    //内容显示
+    > .content {
+      position: absolute;
+      top: 0; bottom: 0; left: 0; right: 0;
+      margin: 1px;
+
+      //实际的img
+      > img {
+        width: 100%;
+        height: 100%;
+        object-position: center;
+      }
+    }
+    //点击和选中显示块
+    > .touch {
+      position: absolute;
+      top: 0; bottom: 0; left: 0; right: 0;
+      margin: 1px;
+      //被选中
+      &.selected {
+        border: solid 3px blue;
+        > div {
+          width: 100%; height: 100%;
+          box-sizing: border-box;
+          border: solid 1px $white;
+        }
+      }
+    }
+    //children num的浮动角标
+    > .num-tag {
+      position: absolute;
+      right: 0.35rem;
+      top: 0.35rem;
+      opacity: 75%;
+      border-radius: $radius-size-std;
+      > i {
+        margin-right: 0.25rem;
+      }
+    }
+    > .fav-tag {
+      position: absolute;
+      right: 0.35rem;
+      bottom: 0.35rem;
+    }
+  }
+
+  &.fit-type-cover .item > div > img {
+    object-fit: cover
+  }
+  &.fit-type-contain .item > div > img {
+    object-fit: contain
+  }
+  @for $col from 3 through 16 {
+    &.column-num-#{$col} .item {
+      width: #{percentage(1 / $col)};
+      padding: #{percentage(0.5 / $col)} 0
+    }
+  }
+}

@@ -48,7 +48,8 @@ export default defineComponent({
             }
         })
 
-        const buffer = computed(() => props.bufferSize * (propose.value.contentWidth ?? 0) / props.columnCount / props.aspectRatio)
+        const DEFAULT_CONTENT_WIDTH = 1000
+        const buffer = computed(() => props.bufferSize * (propose.value.contentWidth ?? DEFAULT_CONTENT_WIDTH) / props.columnCount / props.aspectRatio)
 
         //上层事件: 将total设置有效值会刷新view state的值
         watch(() => props.total, (total, oldTotal) => {
