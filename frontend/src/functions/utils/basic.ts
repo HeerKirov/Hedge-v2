@@ -1,4 +1,4 @@
-import { inject, InjectionKey, provide, Ref, ref, watchEffect } from "vue"
+import { computed, inject, InjectionKey, provide, Ref, ref, toRef, watchEffect } from "vue"
 
 /**
  * 产生一个ref，它的值会随watch源的变动而重新计算，但它也能被修改。
@@ -7,6 +7,20 @@ export function useMutableComputed<T>(call: () => T): Ref<T> {
     const data = <Ref<T>>ref(call())
     watchEffect(() => data.value = call())
     return data
+}
+
+/**
+ * 从Ref类型toRef。
+ */
+export function splitRef<T extends object, K extends keyof T>(ref: Ref<T>, key: K): Ref<T[K]> {
+    return computed({
+        get: () => ref.value[key],
+        set(value) {
+            const v = ref.value
+            v[key] = value
+            ref.value = v
+        }
+    })
 }
 
 /**

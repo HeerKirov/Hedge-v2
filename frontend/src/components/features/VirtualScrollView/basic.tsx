@@ -118,9 +118,9 @@ export function useBasicVirtualComponent({ props, onRefresh }: BasicVirtualCompo
     watch(() => actual.value.totalHeight, totalHeight => {
         //把totalHeight设置为undefined，会被认为是重设了内容，因此会把卷轴滚动回顶端，同时触发数据重刷
         if(totalHeight == undefined && scrollDivRef.value) {
-            const c = computeOffset(scrollDivRef.value, totalHeight, props.buffer(), padding)
             scrollDivRef.value.scrollTo({top: 0, behavior: "auto"})
             onRefresh?.()
+            const c = computeOffset(scrollDivRef.value, totalHeight, props.buffer(), padding)
             propose.value = {...propose.value, ...c}
         }
     })

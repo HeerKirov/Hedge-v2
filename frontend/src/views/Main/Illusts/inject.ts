@@ -1,11 +1,11 @@
-import { Ref } from "vue"
+import { computed, ref, Ref, watch } from "vue"
 import { useScrollView, ScrollView } from "@/components/features/VirtualScrollView"
 import { FitType } from "@/layouts/data/IllustGrid"
 import { ListEndpointResult, useListEndpoint } from "@/functions/utils/endpoints/list-endpoint"
-import { Illust } from "@/functions/adapter-http/impl/illust"
+import { Illust, IllustQueryFilter } from "@/functions/adapter-http/impl/illust"
 import { useHttpClient, useLocalStorageWithDefault } from "@/functions/app"
 import { useNotification } from "@/functions/document/notification"
-import { installation } from "@/functions/utils/basic"
+import { installation, splitRef } from "@/functions/utils/basic"
 
 export interface IllustContext {
     endpoint: ListEndpointResult<Illust>
@@ -13,25 +13,33 @@ export interface IllustContext {
     viewController: {
         fitType: Ref<FitType>
         columnNum: Ref<number>
+        collectionMode: Ref<boolean>
     }
 }
 
 export const [installIllustContext, useIllustContext] = installation(function(): IllustContext {
-    const list = useListContext()
-
     const viewController = useViewController()
+
+    const list = useListContext(viewController.collectionMode)
 
     return {...list, viewController}
 })
 
-function useListContext() {
+function useListContext(collectionMode: Ref<boolean>) {
     const httpClient = useHttpClient()
     const { handleError } = useNotification()
     const scrollView = useScrollView()
 
+    const queryFilter = ref<IllustQueryFilter>({
+        order: "-orderTime",
+        type: collectionMode.value ? "COLLECTION" : "IMAGE"
+    })
+    watch(collectionMode, v => queryFilter.value.type = v ? "COLLECTION" : "IMAGE")
+    watch(queryFilter, () => endpoint.refresh(), {deep: true})
+
     const endpoint = useListEndpoint({
         async request(offset: number, limit: number) {
-            const res = await httpClient.illust.list({offset, limit, order: "-orderTime", type: "IMAGE"})
+            const res = await httpClient.illust.list({offset, limit, ...queryFilter.value})
             return res.ok ? {ok: true, ...res.data} : {ok: false, message: res.exception?.message ?? "unknown error"}
         },
         handleError
@@ -41,8 +49,15 @@ function useListContext() {
 }
 
 function useViewController() {
-    const fitType = useLocalStorageWithDefault<FitType>("illust-list-fit-type", "cover")
-    const columnNum = useLocalStorageWithDefault<number>("illust-list-column-num", 8)
+    const storage = useLocalStorageWithDefault<{
+        fitType: FitType, columnNum: number, collectionMode: boolean
+    }>("illust-list-view-controller", {
+        fitType: "cover", columnNum: 8, collectionMode: false
+    })
 
-    return {fitType, columnNum}
+    return {
+        fitType: splitRef(storage, "fitType"),
+        columnNum: splitRef(storage, "columnNum"),
+        collectionMode: splitRef(storage, "collectionMode")
+    }
 }

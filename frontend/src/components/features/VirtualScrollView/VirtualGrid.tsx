@@ -45,6 +45,10 @@ export default defineComponent({
             props: {
                 padding() { return props.padding },
                 buffer() { return buffer.value }
+            },
+            onRefresh() {
+                lastDataRequired.offset = undefined
+                lastDataRequired.limit = undefined
             }
         })
 

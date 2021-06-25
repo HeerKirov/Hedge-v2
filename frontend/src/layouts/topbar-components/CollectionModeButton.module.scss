@@ -1,0 +1,10 @@
+@import '@/styles/base/size.sass';
+@import '@/styles/base/color.scss';
+
+.button {
+  border: solid 1px $deep-sidebar;
+  border-radius: $radius-size-circle;
+  @media (prefers-color-scheme: dark) {
+    border-color: $deep-sidebar-dm;
+  }
+}
