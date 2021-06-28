@@ -5,7 +5,6 @@ import com.heerkirov.hedge.server.components.database.ImportOption
 import com.heerkirov.hedge.server.exceptions.InvalidOptionError
 import com.heerkirov.hedge.server.exceptions.InvalidRegexError
 import com.heerkirov.hedge.server.library.quarantine.LSQuarantineDatabase
-import com.heerkirov.hedge.server.library.quarantine.LSQuarantineEvents
 import com.heerkirov.hedge.server.utils.AutoCloseableComponent
 import java.time.LocalDateTime
 import java.util.concurrent.ConcurrentHashMap
@@ -112,7 +111,7 @@ class ImportMetaManager(private val data: DataRepository) {
 
     private var systemDownloadHistoryPath: String? = null
 
-    private val quarantineDatabase = AutoCloseableComponent(1000 * 60) {
+    private val quarantineDatabase = AutoCloseableComponent(1000L * 60) {
         LSQuarantineDatabase(systemDownloadHistoryPath!!)
     }
 }

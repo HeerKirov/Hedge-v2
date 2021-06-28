@@ -134,13 +134,17 @@ interface FilterEnumValue<T : Enum<T>> : FilterValue, EquableValue<T> {
 interface FilterNothingValue : FilterValue
 
 
-inline class FilterStringValueImpl(override val value: String) : FilterStringValue
+@JvmInline
+value class FilterStringValueImpl(override val value: String) : FilterStringValue
 
-inline class FilterNumberValueImpl(override val value: Long) : FilterNumberValue
+@JvmInline
+value class FilterNumberValueImpl(override val value: Long) : FilterNumberValue
 
-inline class FilterDateValueImpl(override val value: LocalDate) : FilterDateValue
+@JvmInline
+value class FilterDateValueImpl(override val value: LocalDate) : FilterDateValue
 
-inline class FilterSizeValueImpl(override val value: Long) : FilterSizeValue
+@JvmInline
+value class FilterSizeValueImpl(override val value: Long) : FilterSizeValue
 
 data class FilterEnumValueImpl<T : Enum<T>>(override val value: T) : FilterEnumValue<T>
 

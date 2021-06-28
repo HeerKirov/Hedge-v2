@@ -1,23 +1,23 @@
 plugins {
     application
-    kotlin("jvm").version("1.4.32")
+    kotlin("jvm").version("1.5.20")
     id("com.github.johnrengelman.shadow").version("4.0.3")
-    id("org.beryx.jlink").version("2.22.1")
+    id("org.beryx.jlink").version("2.24.0")
 }
 
 group = "com.heerkirov.hedge.server"
 version = "0.1.0"
 
 dependencies {
-    val kotlinVersion = "1.4.32"
-    val javalinVersion = "3.13.4"
+    val kotlinVersion = "1.5.20"
+    val javalinVersion = "3.13.8"
     val ktormVersion = "3.4.1"
-    val sqliteVersion = "3.32.3.2"
-    val jacksonVersion = "2.11.3" //be careful to update version
+    val sqliteVersion = "3.36.0"
+    val jacksonVersion = "2.12.3"
     val javeVersion = "3.1.1"
     val plistVersion = "1.23"
-    val slf4jVersion = "1.7.30"
-    val junitVersion = "4.13.1"
+    val slf4jVersion = "1.7.31"
+    val junitVersion = "4.13.2"
 
     implementation(group = "org.jetbrains.kotlin", name = "kotlin-stdlib-jdk8", version = kotlinVersion)
     implementation(group = "org.jetbrains.kotlin", name = "kotlin-reflect", version = kotlinVersion)

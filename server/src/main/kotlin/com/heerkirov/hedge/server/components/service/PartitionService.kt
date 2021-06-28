@@ -40,6 +40,6 @@ class PartitionService(private val data: DataRepository) {
             .sortedBy { it.date }
             .asKotlinSequence()
             .groupBy { it.date.year to it.date.monthValue }
-            .map { (e, p) -> PartitionMonthRes(e.first, e.second, p.count(), p.sumBy { it.cachedCount }) }
+            .map { (e, p) -> PartitionMonthRes(e.first, e.second, p.count(), p.sumOf { it.cachedCount }) }
     }
 }

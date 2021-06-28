@@ -91,7 +91,7 @@ internal object MetaParserUtil {
      * 串联列表。
      */
     fun <T> unionList(vararg list: List<T>): List<T> {
-        val result = ArrayList<T>(list.sumBy { it.size })
+        val result = ArrayList<T>(list.sumOf { it.size })
         for (i in list) {
             result.addAll(i)
         }

@@ -29,15 +29,15 @@ data class Annotation(val id: Int,
                       val createTime: LocalDateTime) {
 
     open class AnnotationTarget(value: Int) : Composition<AnnotationTarget>(AnnotationTarget::class, value) {
-        object TAG : AnnotationTarget(0b1)
-        object ARTIST : AnnotationTarget(0b10)
-        object STUDIO : AnnotationTarget(0b100)
-        object PUBLISH : AnnotationTarget(0b1000)
-        object COPYRIGHT : AnnotationTarget(0b10000)
-        object WORK : AnnotationTarget(0b100000)
-        object CHARACTER : AnnotationTarget(0b1000000)
-        object AUTHOR : AnnotationTarget(ARTIST.value or STUDIO.value or PUBLISH.value)
-        object TOPIC : AnnotationTarget(COPYRIGHT.value or WORK.value or CHARACTER.value)
+        object TAG : AnnotationTarget(AnnotationTargetValues.TAG)
+        object ARTIST : AnnotationTarget(AnnotationTargetValues.ARTIST)
+        object STUDIO : AnnotationTarget(AnnotationTargetValues.STUDIO)
+        object PUBLISH : AnnotationTarget(AnnotationTargetValues.PUBLISH)
+        object COPYRIGHT : AnnotationTarget(AnnotationTargetValues.COPYRIGHT)
+        object WORK : AnnotationTarget(AnnotationTargetValues.WORK)
+        object CHARACTER : AnnotationTarget(AnnotationTargetValues.CHARACTER)
+        object AUTHOR : AnnotationTarget(AnnotationTargetValues.ARTIST or AnnotationTargetValues.STUDIO or AnnotationTargetValues.PUBLISH)
+        object TOPIC : AnnotationTarget(AnnotationTargetValues.COPYRIGHT or AnnotationTargetValues.WORK or AnnotationTargetValues.CHARACTER)
         object EMPTY : AnnotationTarget(0b0)
 
         companion object {
@@ -45,6 +45,16 @@ data class Annotation(val id: Int,
             val exportedElements by lazy { listOf(AUTHOR, TOPIC) }
             val empty by lazy { EMPTY }
         }
+    }
+
+    private object AnnotationTargetValues {
+        const val TAG = 0b1
+        const val ARTIST = 0b10
+        const val STUDIO = 0b100
+        const val PUBLISH = 0b1000
+        const val COPYRIGHT = 0b10000
+        const val WORK = 0b100000
+        const val CHARACTER = 0b1000000
     }
 
     open class ExportedFrom(value: Int): Composition<ExportedFrom>(ExportedFrom::class, value) {

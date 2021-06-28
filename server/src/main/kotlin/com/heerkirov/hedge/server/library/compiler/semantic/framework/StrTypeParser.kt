@@ -29,8 +29,8 @@ object StringParser : StrTypeParser<FilterStringValue> {
  * 无视大小写对枚举值做配对。配对使用枚举值的alias属性。
  */
 class EnumParser<E : Enum<E>>(clazz: KClass<E>, enumAlias: List<AliasDefinition<E, String>>) : StrTypeParser<FilterEnumValue<E>> {
-    private val expected = enumAlias.flatMap { it.alias }.map { it.toLowerCase() }
-    private val valueMap = enumAlias.asSequence().flatMap { (k, v) -> v.asSequence().map { it.toLowerCase() to k } }.toMap()
+    private val expected = enumAlias.flatMap { it.alias }.map { it.lowercase() }
+    private val valueMap = enumAlias.asSequence().flatMap { (k, v) -> v.asSequence().map { it.lowercase() to k } }.toMap()
     private val typeName = clazz.simpleName!!
 
     override fun parse(str: Str): FilterEnumValue<E> {
@@ -77,7 +77,7 @@ object SizeParser : StrTypeParser<FilterSizeValue> {
         val match = pattern.matcher(str.value)
         if(match.find()) {
             val size = match.group(1).toLongOrNull() ?: semanticError(TypeCastError(str.value, TypeCastError.Type.SIZE, str.beginIndex, str.endIndex))
-            val unit = units[match.group(2).toLowerCase()] ?: semanticError(TypeCastError(str.value, TypeCastError.Type.SIZE, str.beginIndex, str.endIndex))
+            val unit = units[match.group(2).lowercase()] ?: semanticError(TypeCastError(str.value, TypeCastError.Type.SIZE, str.beginIndex, str.endIndex))
             return FilterSizeValueImpl(size * unit)
         }else semanticError(TypeCastError(str.value, TypeCastError.Type.SIZE, str.beginIndex, str.endIndex))
     }

@@ -33,7 +33,7 @@ object ImageProcessor {
      * @return 缩略图文件的临时文件File。如果返回null，表示按照全局策略不需要生成缩略图。
      */
     fun generateThumbnail(src: File): File? {
-        val extension = src.extension.toLowerCase()
+        val extension = src.extension.lowercase()
         val snapshot = if(extension == "jpeg" || extension == "jpg") {
             null
         }else if(extension == "png" || extension == "gif") {

@@ -8,9 +8,9 @@ module com.heerkirov.hedge.server {
     requires io.javalin;
     requires ktorm.core;
     requires ktorm.support.sqlite;
-    requires sqlite.jdbc;
+    requires org.xerial.sqlitejdbc;
     requires com.fasterxml.jackson.databind;
-    requires jackson.module.kotlin;
+    requires com.fasterxml.jackson.kotlin;
     requires java.desktop;
     requires jave.core;
     requires org.slf4j;

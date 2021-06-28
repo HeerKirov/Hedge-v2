@@ -112,7 +112,7 @@ class FileManager(private val configurationDriver: ConfigurationDriver, private 
      * 检查并纠正一个文件的扩展名。扩展名必须是受支持的扩展名，且统一转换为小写。
      */
     private fun validateExtension(extension: String): String {
-        return extension.toLowerCase().apply {
+        return extension.lowercase().apply {
             if(this !in extensions) throw IllegalFileExtensionError(extension)
         }
     }

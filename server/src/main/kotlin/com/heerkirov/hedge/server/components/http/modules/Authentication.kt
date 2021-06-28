@@ -26,7 +26,7 @@ class Authentication(private val baseToken: String, private val webAccessor: Web
     private fun authenticate(ctx: Context) {
         if(ctx.method() == "OPTIONS" || ctx.path() == "/api/imports/import") return
         val bearer = ctx.header("Authorization") ?: throw NoToken()
-        val userToken = if(bearer.substring(0, prefixBearer.length).toLowerCase() == prefixBearer) bearer.substring(prefixBearer.length) else throw NoToken()
+        val userToken = if(bearer.substring(0, prefixBearer.length).lowercase() == prefixBearer) bearer.substring(prefixBearer.length) else throw NoToken()
 
         if(baseToken == userToken) {
             //通过baseToken的验证
@@ -45,7 +45,7 @@ class Authentication(private val baseToken: String, private val webAccessor: Web
     private fun authenticateOnlyForClient(ctx: Context) {
         if(ctx.method() == "OPTIONS") return
         val bearer = ctx.header("Authorization") ?: throw NoToken()
-        val userToken = if(bearer.substring(0, prefixBearer.length).toLowerCase() == prefixBearer) bearer.substring(prefixBearer.length) else throw NoToken()
+        val userToken = if(bearer.substring(0, prefixBearer.length).lowercase() == prefixBearer) bearer.substring(prefixBearer.length) else throw NoToken()
 
         if(baseToken == userToken) {
             //通过baseToken的验证

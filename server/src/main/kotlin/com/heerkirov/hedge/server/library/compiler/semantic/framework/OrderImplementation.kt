@@ -23,14 +23,14 @@ class OrderDefinition<T : Enum<T>>(items: List<AliasDefinition<T, Alias>>) : Ord
     /**
      * 期望值列表。
      */
-    private val expected: List<String> = items.asSequence().map { it.alias }.flatten().map { it.toString().toLowerCase() }.toList()
+    private val expected: List<String> = items.asSequence().map { it.alias }.flatten().map { it.toString().lowercase() }.toList()
     /**
      * 从[^]name映射到对应的项。
      */
     private val aliasMap: Map<String, AliasDefinition<T, Alias>> = mutableMapOf<String, AliasDefinition<T, Alias>>().also { aliasMap ->
         for (item in items) {
             for (alias in item.alias) {
-                val aliasName = alias.toString().toLowerCase()
+                val aliasName = alias.toString().lowercase()
                 if(aliasName in aliasMap) throw RuntimeException("Order item alias $aliasName is duplicated.")
                 aliasMap[aliasName] = item
             }
@@ -55,7 +55,7 @@ class OrderDefinition<T : Enum<T>>(items: List<AliasDefinition<T, Alias>>) : Ord
     }
 
     private fun mapOrderItem(name: String, sourceFlag: Boolean, beginIndex: Int, endIndex: Int): T {
-        val value = aliasToString(name.toLowerCase(), sourceFlag)
+        val value = aliasToString(name.lowercase(), sourceFlag)
         val key = aliasMap[value] ?: semanticError(InvalidOrderItem(value, expected, beginIndex, endIndex))
         return key.key
     }

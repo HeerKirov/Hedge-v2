@@ -19,7 +19,7 @@ import kotlin.reflect.full.memberProperties
  * 语义分析。执行语义树 -> 查询计划的步骤。
  */
 object SemanticAnalyzer {
-    private val dialects = arrayOf(IllustDialect, AlbumDialect, AuthorAndTopicDialect, AnnotationDialect).map { it::class to DialectStructure(it) }.toMap()
+    private val dialects = arrayOf(IllustDialect, AlbumDialect, AuthorAndTopicDialect, AnnotationDialect).associate { it::class to DialectStructure(it) }
 
     /**
      * 执行语义分析。
@@ -132,7 +132,7 @@ object SemanticAnalyzer {
     private fun whetherIsIdentifyAndMapToAlias(dialect: DialectStructure<*>, subject: Subject, prefix: Symbol?, sourceFlag: Boolean): String? {
         if(subject !is StrList) throw RuntimeException("Unsupported subject type ${subject::class.simpleName}.")
         if(prefix == null && subject.items.size == 1 && subject.items.first().type == Str.Type.RESTRICTED) {
-            val aliasName = subject.items.first().value.toLowerCase()
+            val aliasName = subject.items.first().value.lowercase()
             if (aliasName == "order") {
                 //发现order项
                 if(sourceFlag) semanticError(ThisIdentifyCannotHaveSourceFlag(aliasName, subject.beginIndex, subject.endIndex))
@@ -177,7 +177,7 @@ object SemanticAnalyzer {
             .filter { !it.returnType.isMarkedNullable && it.returnType.classifier == FilterFieldDefinition::class }
             .map { it.call(dialect) as FilterFieldDefinition<*> }
             .map { it.cast<FilterFieldDefinition<*>, FilterFieldByIdentify<*>>() }
-            .flatMap { it.alias.asSequence().map { alias -> alias.toLowerCase() to it } }
+            .flatMap { it.alias.asSequence().map { alias -> alias.lowercase() to it } }
             .toMap()
 
         /**

@@ -120,7 +120,7 @@ private fun <T : Any> mapAny(jsonNode: JsonNode, kType: KType): Any? {
             val value = jsonNode.asText()
             val valueOf = kClass.java.getDeclaredMethod("valueOf", String::class.java)
             try {
-                valueOf(null, value.toUpperCase())
+                valueOf(null, value.uppercase())
             }catch (e: Exception) {
                 throw ClassCastException("Cannot convert '$value' to enum type ${kClass.simpleName}.")
             }
@@ -177,7 +177,7 @@ private fun mapStringKey(string: String, kType: KType): Any? {
         kClass.isSubclassOf(Enum::class) -> {
             val valueOf = kClass.java.getDeclaredMethod("valueOf", String::class.java)
             try {
-                valueOf(null, string.toUpperCase())
+                valueOf(null, string.uppercase())
             }catch (e: Exception) {
                 throw ClassCastException("Cannot convert '$string' to enum type ${kClass.simpleName}.")
             }

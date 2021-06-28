@@ -73,11 +73,11 @@ private fun parseSearchParameter(parameter: KParameter, parameterValue: String?)
 private fun parseOrderParameter(annotation: Order, parameter: KParameter, parameterValue: String?): Pair<KParameter, List<OrderItem>>? {
     return when {
         !parameterValue.isNullOrBlank() -> {
-            val options = annotation.options.takeIf { it.isNotEmpty() }?.map { Pair(it.toLowerCase(), it) }?.toMap()
+            val options = annotation.options.takeIf { it.isNotEmpty() }?.associate { Pair(it.lowercase(), it) }
 
             val arraylist = splitIntoList(parameterValue, annotation.delimiter).map(::OrderItem).runIf(options != null) {
                 map {
-                    val match = options!![it.name.toLowerCase()] ?: throw ParamTypeError(parameter.name!!, "must be one of [${options.values.joinToString(", ")}].")
+                    val match = options!![it.name.lowercase()] ?: throw ParamTypeError(parameter.name!!, "must be one of [${options.values.joinToString(", ")}].")
                     OrderItem(match, it.desc)
                 }
             }
@@ -131,7 +131,7 @@ private fun mapAnyFromString(string: String, kType: KType): Any {
         kClass.isSubclassOf(Enum::class) -> {
             val valueOf = kClass.java.getDeclaredMethod("valueOf", String::class.java)
             try {
-                valueOf(null, string.toUpperCase())
+                valueOf(null, string.uppercase())
             }catch (e: Exception) {
                 throw ClassCastException("Cannot convert '$string' to enum type ${kClass.simpleName}.")
             }
