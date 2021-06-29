@@ -2,6 +2,7 @@
 @import '@/styles/base/color.scss';
 
 .root {
+  position: relative;
   width: 100%; height: 100%;
 
   .item {
@@ -64,6 +65,21 @@
     &.column-num-#{$col} .item {
       width: #{percentage(1 / $col)};
       padding: #{percentage(0.5 / $col)} 0
+    }
+  }
+
+  > .layer {
+    position: absolute;
+    right: 0; top: 0;
+    > .selected-count-tag {
+      margin-top: 0.75rem;
+      margin-right: 0.75rem;
+      padding: 0.15rem 0.6rem;
+      border-radius: $radius-size-std;
+      font-weight: bold;
+      color: $literal-dm;
+      background-color: rgba(0, 0, 0, 0.65);
+      box-shadow: 0 0 6px rgba(0, 0, 0, 0.65);
     }
   }
 }

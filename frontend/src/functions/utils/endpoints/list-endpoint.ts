@@ -3,6 +3,7 @@ import { arrays } from "@/utils/collections"
 
 /* 此处提供了VCA形态的缓存型数据分页查询端点。
  * 它将数据分段缓存以减少查询压力，并将并发查询统一处理。
+ * TODO 重构：按更加利于复用的层级进行拆分：基于单个查询条件的类封装；基于查询条件的响应对象；基于虚拟查询的响应对象。
  */
 
 interface ListEndpointOptions<T> {

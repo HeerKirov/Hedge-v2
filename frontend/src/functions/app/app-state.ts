@@ -2,6 +2,7 @@ import { inject, InjectionKey, readonly, ref, Ref } from "vue"
 import { AppEnv, ClientPlatform, IpcService, State } from "../adapter-ipc/ipc"
 import { HttpClient, HttpInstanceConfig } from "../adapter-http"
 import { useLocalStorage } from "./app-storage"
+import { getOSName, OSName } from "@/utils/process";
 
 
 /**
@@ -46,7 +47,7 @@ export interface AppInfoInClient {
 
 export interface AppInfoInWeb {
     clientMode: false
-    platform: "web"
+    platform: OSName
     debugMode: false
     canPromptTouchID: false
 }
@@ -123,7 +124,7 @@ function useAppStateInClientMode(ipc: IpcService, appEnv: AppEnv, httpClientConf
 }
 
 function useAppStateInWebMode(api: HttpClient, httpClientConfig: HttpInstanceConfig): AppState {
-    const ls = useLocalStorage<{token: string}>("web-access", {clientMode: false, canPromptTouchID: false, debugMode: false, platform: "web"})
+    const ls = useLocalStorage<{token: string}>("web-access", {clientMode: false, canPromptTouchID: false, debugMode: false, platform: getOSName()})
 
     const state: Ref<State | null> = ref(null)
 
@@ -145,7 +146,7 @@ function useAppStateInWebMode(api: HttpClient, httpClientConfig: HttpInstanceCon
         const webAccess = await api.web.access()
         if(!webAccess.ok) {
             if(webAccess.exception) {
-                console.error(`Error ${webAccess.exception.status} ${webAccess.exception.code}: ${console.error(webAccess.exception.message)}`)
+                console.error(`Error ${webAccess.exception.status} ${webAccess.exception.code}: ${webAccess.exception.message}`)
             }else{
                 console.error("Web server connection error.")
             }
@@ -195,7 +196,7 @@ function getAppInfoInClient(env: AppEnv): AppInfo {
 function getAppInfoInWeb(): AppInfo {
     return {
         clientMode: false,
-        platform: "web",
+        platform: getOSName(),
         debugMode: false,
         canPromptTouchID: false
     }

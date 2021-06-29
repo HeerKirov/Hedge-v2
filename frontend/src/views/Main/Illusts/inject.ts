@@ -1,4 +1,4 @@
-import { computed, ref, Ref, watch } from "vue"
+import { ref, Ref, watch } from "vue"
 import { useScrollView, ScrollView } from "@/components/features/VirtualScrollView"
 import { FitType } from "@/layouts/data/IllustGrid"
 import { ListEndpointResult, useListEndpoint } from "@/functions/utils/endpoints/list-endpoint"
@@ -15,6 +15,10 @@ export interface IllustContext {
         columnNum: Ref<number>
         collectionMode: Ref<boolean>
     }
+    selector: {
+        selected: Ref<number[]>
+        lastSelected: Ref<number | null>
+    }
 }
 
 export const [installIllustContext, useIllustContext] = installation(function(): IllustContext {
@@ -22,7 +26,9 @@ export const [installIllustContext, useIllustContext] = installation(function():
 
     const list = useListContext(viewController.collectionMode)
 
-    return {...list, viewController}
+    const selector = useSelector()
+
+    return {...list, viewController, selector}
 })
 
 function useListContext(collectionMode: Ref<boolean>) {
@@ -60,4 +66,11 @@ function useViewController() {
         columnNum: splitRef(storage, "columnNum"),
         collectionMode: splitRef(storage, "collectionMode")
     }
+}
+
+function useSelector() {
+    const selected = ref<number[]>([])
+    const lastSelected = ref<number | null>(null)
+
+    return {selected, lastSelected}
 }
