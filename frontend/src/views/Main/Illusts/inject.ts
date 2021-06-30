@@ -1,14 +1,15 @@
 import { ref, Ref, watch } from "vue"
 import { useScrollView, ScrollView } from "@/components/features/VirtualScrollView"
 import { FitType } from "@/layouts/data/IllustGrid"
-import { ListEndpointResult, useListEndpoint } from "@/functions/utils/endpoints/list-endpoint"
+import { PaginationDataView, QueryEndpointResult, usePaginationDataView, useQueryEndpoint } from "@/functions/utils/endpoints/query-endpoint"
 import { Illust, IllustQueryFilter } from "@/functions/adapter-http/impl/illust"
 import { useHttpClient, useLocalStorageWithDefault } from "@/functions/app"
 import { useNotification } from "@/functions/document/notification"
 import { installation, splitRef } from "@/functions/utils/basic"
 
 export interface IllustContext {
-    endpoint: ListEndpointResult<Illust>
+    dataView: PaginationDataView<Illust>
+    endpoint: QueryEndpointResult<Illust>
     scrollView: Readonly<ScrollView>
     viewController: {
         fitType: Ref<FitType>
@@ -43,15 +44,16 @@ function useListContext(collectionMode: Ref<boolean>) {
     watch(collectionMode, v => queryFilter.value.type = v ? "COLLECTION" : "IMAGE")
     watch(queryFilter, () => endpoint.refresh(), {deep: true})
 
-    const endpoint = useListEndpoint({
+    const endpoint = useQueryEndpoint({
         async request(offset: number, limit: number) {
             const res = await httpClient.illust.list({offset, limit, ...queryFilter.value})
             return res.ok ? {ok: true, ...res.data} : {ok: false, message: res.exception?.message ?? "unknown error"}
         },
         handleError
     })
+    const dataView = usePaginationDataView(endpoint)
 
-    return {endpoint, scrollView}
+    return {endpoint, dataView, scrollView}
 }
 
 function useViewController() {

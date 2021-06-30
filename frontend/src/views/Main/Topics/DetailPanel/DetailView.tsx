@@ -35,7 +35,7 @@ export default defineComponent({
 const TopBarContent = defineComponent({
     setup() {
         const messageBox = useMessageBox()
-        const { listEndpoint, detailMode, openCreatePane, closePane } = useTopicContext()
+        const { endpoint, detailMode, openCreatePane, closePane } = useTopicContext()
         const { data, setData, deleteData, editMode } = useTopicDetailContext()
 
         const edit = () => editMode.value = true
@@ -47,8 +47,8 @@ const TopBarContent = defineComponent({
             if(await messageBox.showYesNoMessage("warn", "确定要删除此项吗？", "此操作不可撤回。")) {
                 if(await deleteData()) {
                     closePane()
-                    const index = listEndpoint.operations.find(topic => topic.id === id)
-                    if(index != undefined) listEndpoint.operations.remove(index)
+                    const index = endpoint.proxy.syncOperations.find(topic => topic.id === id)
+                    if(index != undefined) endpoint.proxy.syncOperations.remove(index)
                 }
             }
         }

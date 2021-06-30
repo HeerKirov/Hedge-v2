@@ -11,7 +11,7 @@ import { useTopicContext } from "../inject"
 export default defineComponent({
     setup() {
         const message = useMessageBox()
-        const { createMode, listEndpoint, openDetailPane } = useTopicContext()
+        const { createMode, endpoint, openDetailPane } = useTopicContext()
 
         const form = ref<CreatorData>(mapCreatorData(createMode.value!))
 
@@ -51,7 +51,7 @@ export default defineComponent({
             },
             afterCreate(result: IdResponse) {
                 openDetailPane(result.id)
-                listEndpoint.refresh()
+                endpoint.refresh()
             },
             handleError(e) {
                 if(e.code === "ALREADY_EXISTS") {

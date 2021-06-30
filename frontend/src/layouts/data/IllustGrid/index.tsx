@@ -1,6 +1,5 @@
-import { computed, defineComponent, inject, InjectionKey, PropType, provide, Ref, ref, toRef } from "vue"
+import { computed, defineComponent, inject, InjectionKey, PropType, provide, Ref, toRef } from "vue"
 import { VirtualGrid } from "@/components/features/VirtualScrollView"
-import { ListEndpointData } from "@/functions/utils/endpoints/list-endpoint"
 import { Illust } from "@/functions/adapter-http/impl/illust"
 import { assetsUrl, useAppInfo } from "@/functions/app"
 import { arrays } from "@/utils/collections"
@@ -8,7 +7,7 @@ import style from "./style.module.scss"
 
 export default defineComponent({
     props: {
-        data: {type: Object as PropType<ListEndpointData<Illust>>, required: true},
+        data: {type: Object as PropType<Data>, required: true},
         columnNum: {type: Number, default: 4},
         fitType: {type: String as PropType<FitType>, default: "cover"},
         selected: {type: Array as PropType<number[]>, default: []},
@@ -50,7 +49,7 @@ const OverLayer = defineComponent({
 
 const Content = defineComponent({
     props: {
-        data: {type: Object as PropType<ListEndpointData<Illust>>, required: true},
+        data: {type: Object as PropType<Data>, required: true},
         columnNum: {type: Number, required: true}
     },
     emits: ["dataUpdate", "dblClick", "rightClick", "select"],
@@ -139,6 +138,11 @@ const Item = defineComponent({
 })
 
 export type FitType = "cover" | "contain"
+
+interface Data {
+    metrics: {total: number | undefined, offset: number, limit: number}
+    result: Illust[]
+}
 
 const selectContextInjection: InjectionKey<{selected: Ref<number[]>, lastSelected: Ref<number | null>}> = Symbol()
 

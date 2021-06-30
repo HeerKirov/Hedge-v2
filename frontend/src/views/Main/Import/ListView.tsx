@@ -9,7 +9,7 @@ import style from "./style.module.scss"
 export default defineComponent({
     setup() {
         const messageBox = useMessageBox()
-        const { list, pane } = useImportContext()
+        const { list: { endpoint, dataView }, pane } = useImportContext()
 
         const fastEndpoint = useFastObjectEndpoint({
             delete: httpClient => httpClient.import.delete
@@ -19,8 +19,8 @@ export default defineComponent({
             if(await messageBox.showYesNoMessage("warn", "确定要删除此项吗？", "此操作不可撤回。")) {
                 if(await fastEndpoint.deleteData(id)) {
                     if(pane.detailMode.value === id) pane.closePane()
-                    const index = list.endpoint.operations.find(i => i.id === id)
-                    if(index != undefined) list.endpoint.operations.remove(index)
+                    const index = endpoint.proxy.syncOperations.find(i => i.id === id)
+                    if(index != undefined) endpoint.proxy.syncOperations.remove(index)
                 }
             }
         }
@@ -32,8 +32,8 @@ export default defineComponent({
         ])
 
         return () => <div class={style.listView}>
-            <VirtualRow rowHeight={35} padding={5} bufferSize={10} onUpdate={list.endpoint.dataUpdate} {...list.endpoint.data.value.metrics}>
-                {list.endpoint.data.value.result.map(item => <Item key={item.id} {...item} onRightClick={popupmenu.popup}/>)}
+            <VirtualRow rowHeight={35} padding={5} bufferSize={10} onUpdate={dataView.dataUpdate} {...dataView.data.value.metrics}>
+                {dataView.data.value.result.map(item => <Item key={item.id} {...item} onRightClick={popupmenu.popup}/>)}
             </VirtualRow>
         </div>
     }

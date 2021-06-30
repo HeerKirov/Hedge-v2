@@ -3,13 +3,11 @@ import NumberInput from "@/components/forms/NumberInput"
 import TopBarLayout from "@/layouts/layouts/TopBarLayout"
 import { DataRouter } from "@/layouts/topbar-components"
 import { VirtualGrid, useScrollView } from "@/components/features/VirtualScrollView"
-import { useListEndpoint } from "@/functions/utils/endpoints/list-endpoint"
+import { usePaginationDataView, useQueryEndpoint } from "@/functions/utils/endpoints/query-endpoint"
 
 export default defineComponent({
     setup() {
-        const { data, dataUpdate } = useListEndpoint({
-            segmentSize: 100,
-            queryDelay: 250,
+        const queryEndpoint = useQueryEndpoint({
             async request(offset: number, limit: number) {
                 return {
                     ok: true,
@@ -18,8 +16,9 @@ export default defineComponent({
                 }
             }
         })
+        const { data, dataUpdate } = usePaginationDataView(queryEndpoint)
 
-        const view = useScrollView()
+        useScrollView()
         const columnCount = ref(6)
         const columnWidthStyle = computed(() => `${100 / columnCount.value}%`)
 
@@ -34,8 +33,7 @@ export default defineComponent({
                     </div>
                 </div>,
                 default: () => <div class="w-100 h-100">
-                    <VirtualGrid onUpdate={dataUpdate} columnCount={columnCount.value} bufferSize={6} minUpdateDelta={2}
-                                 total={data.value.metrics.total} limit={data.value.metrics.limit} offset={data.value.metrics.offset}>
+                    <VirtualGrid onUpdate={dataUpdate} columnCount={columnCount.value} bufferSize={6} minUpdateDelta={2} {...data.value.metrics}>
                         {data.value.result.map(item => <div key={item} style={`aspect-ratio: 1; width: ${columnWidthStyle.value}`}>
                             <div class="box mr-1 w-100 h-100">{item}</div>
                         </div>)}

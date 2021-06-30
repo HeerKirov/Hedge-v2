@@ -1,4 +1,4 @@
-import { defineComponent, PropType, ref, watchEffect } from "vue"
+import { defineComponent, PropType } from "vue"
 import { useMessageBox } from "@/functions/module"
 import { usePopupMenu } from "@/functions/app"
 import { useMouseHover } from "@/functions/utils/element"
@@ -17,7 +17,7 @@ import style from "./style.module.scss"
 export default defineComponent({
     setup() {
         const messageBox = useMessageBox()
-        const { listEndpoint, detailMode, openDetailPane, closePane, openCreatePane } = useAuthorContext()
+        const { endpoint, dataView, detailMode, openDetailPane, closePane, openCreatePane } = useAuthorContext()
 
         const fastEndpoint = useFastObjectEndpoint({
             get: httpClient => httpClient.author.get,
@@ -27,10 +27,10 @@ export default defineComponent({
 
         const switchFavorite = async (id: number, favorite: boolean) => {
             if(await fastEndpoint.setData(id, {favorite})) {
-                const index = listEndpoint.operations.find(topic => topic.id === id)
+                const index = endpoint.proxy.syncOperations.find(topic => topic.id === id)
                 if(index != undefined) {
-                    const topic = listEndpoint.operations.retrieve(index)!
-                    listEndpoint.operations.modify(index, {...topic, favorite})
+                    const topic = endpoint.proxy.syncOperations.retrieve(index)!
+                    endpoint.proxy.syncOperations.modify(index, {...topic, favorite})
                 }
             }
         }
@@ -39,8 +39,8 @@ export default defineComponent({
             if(await messageBox.showYesNoMessage("warn", "确定要删除此项吗？", "此操作不可撤回。")) {
                 if(await fastEndpoint.deleteData(id)) {
                     if(detailMode.value === id) closePane()
-                    const index = listEndpoint.operations.find(topic => topic.id === id)
-                    if(index != undefined) listEndpoint.operations.remove(index)
+                    const index = endpoint.proxy.syncOperations.find(topic => topic.id === id)
+                    if(index != undefined) endpoint.proxy.syncOperations.remove(index)
                 }
             }
         }
@@ -71,8 +71,8 @@ export default defineComponent({
         ])
 
         return () => <div class="w-100 h-100">
-            <VirtualRow rowHeight={80} padding={{top: 6, bottom: 0, left: 12, right: 12}} bufferSize={10} onUpdate={listEndpoint.dataUpdate} {...listEndpoint.data.value.metrics}>
-                {listEndpoint.data.value.result.map(item => <Item key={item.id} value={item}
+            <VirtualRow rowHeight={80} padding={{top: 6, bottom: 0, left: 12, right: 12}} bufferSize={10} onUpdate={dataView.dataUpdate} {...dataView.data.value.metrics}>
+                {dataView.data.value.result.map(item => <Item key={item.id} value={item}
                                                                   selected={detailMode.value === item.id}
                                                                   onRightClick={() => popupmenu.popup(item.id)}
                                                                   onSwitchFavorite={(v: boolean) => switchFavorite(item.id, v)}/>)}

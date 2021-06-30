@@ -16,7 +16,7 @@ import style from "./style.module.scss"
 export default defineComponent({
     setup() {
         const message = useMessageBox()
-        const { listEndpoint, createMode, openDetailPane, closePane } = useAnnotationContext()
+        const { endpoint, createMode, openDetailPane, closePane } = useAnnotationContext()
 
         const form = ref(mapCreatorData(createMode.value!))
 
@@ -37,7 +37,7 @@ export default defineComponent({
             },
             afterCreate(result: IdResponse) {
                 openDetailPane(result.id)
-                listEndpoint.refresh()
+                endpoint.refresh()
             },
             handleError(e) {
                 if(e.code === "ALREADY_EXISTS") {

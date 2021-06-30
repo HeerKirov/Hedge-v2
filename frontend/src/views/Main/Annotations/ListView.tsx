@@ -13,16 +13,16 @@ import { useAnnotationContext } from "./inject"
 export default defineComponent({
     setup() {
         const messageBox = useMessageBox()
-        const { listEndpoint, detailMode, openCreatePane, openDetailPane, closePane } = useAnnotationContext()
+        const { endpoint, dataView, detailMode, openCreatePane, openDetailPane, closePane } = useAnnotationContext()
 
         const fastEndpoint = useFastObjectEndpoint({
             delete: httpClient => httpClient.annotation.delete
         })
 
         const createByItem = (id: number) => {
-            const index = listEndpoint.operations.find(annotation => annotation.id === id)
+            const index = endpoint.proxy.syncOperations.find(annotation => annotation.id === id)
             if(index != undefined) {
-                const annotation = listEndpoint.operations.retrieve(index)
+                const annotation = endpoint.proxy.syncOperations.retrieve(index)
                 openCreatePane(annotation)
             }
         }
@@ -31,8 +31,8 @@ export default defineComponent({
             if(await messageBox.showYesNoMessage("warn", "确定要删除此项吗？", "此操作不可撤回。")) {
                 if(await fastEndpoint.deleteData(id)) {
                     if(detailMode.value === id) closePane()
-                    const index = listEndpoint.operations.find(annotation => annotation.id === id)
-                    if(index != undefined) listEndpoint.operations.remove(index)
+                    const index = endpoint.proxy.syncOperations.find(annotation => annotation.id === id)
+                    if(index != undefined) endpoint.proxy.syncOperations.remove(index)
                 }
             }
         }
@@ -46,10 +46,10 @@ export default defineComponent({
         ])
 
         return () => <div class="w-100 h-100">
-            <VirtualRow rowHeight={33} padding={0} bufferSize={10} onUpdate={listEndpoint.dataUpdate} {...listEndpoint.data.value.metrics}>
+            <VirtualRow rowHeight={33} padding={0} bufferSize={10} onUpdate={dataView.dataUpdate} {...dataView.data.value.metrics}>
                 <table class="table is-hoverable is-fullwidth no-wrap">
                     <tbody>
-                        {listEndpoint.data.value.result.map(item => <Item key={item.id} {...item} selected={detailMode.value === item.id} onRightClick={popupmenu.popup}/>)}
+                        {dataView.data.value.result.map(item => <Item key={item.id} {...item} selected={detailMode.value === item.id} onRightClick={popupmenu.popup}/>)}
                     </tbody>
                 </table>
             </VirtualRow>

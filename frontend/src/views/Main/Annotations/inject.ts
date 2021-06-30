@@ -3,11 +3,12 @@ import { Annotation, AnnotationQueryFilter } from "@/functions/adapter-http/impl
 import { useHttpClient } from "@/functions/app"
 import { useNotification } from "@/functions/module"
 import { useScrollView, ScrollView } from "@/components/features/VirtualScrollView"
-import { ListEndpointResult, useListEndpoint } from "@/functions/utils/endpoints/list-endpoint"
+import { PaginationDataView, QueryEndpointResult, usePaginationDataView, useQueryEndpoint } from "@/functions/utils/endpoints/query-endpoint"
 import { installation } from "@/functions/utils/basic"
 
 export interface AnnotationContext {
-    listEndpoint: ListEndpointResult<Annotation>
+    endpoint: QueryEndpointResult<Annotation>
+    dataView: PaginationDataView<Annotation>
     scrollView: Readonly<ScrollView>
     queryFilter: Ref<AnnotationQueryFilter>
     createMode: Ref<Partial<Annotation> | null>
@@ -18,11 +19,11 @@ export interface AnnotationContext {
 }
 
 export const [installAnnotationContext, useAnnotationContext] = installation(function(): AnnotationContext {
-    const { listEndpoint, scrollView, queryFilter } = useAnnotationList()
+    const { endpoint, dataView, scrollView, queryFilter } = useAnnotationList()
 
     const { createMode, detailMode, openCreatePane, openDetailPane, closePane } = usePane()
 
-    return {listEndpoint, scrollView, queryFilter, createMode, detailMode, openCreatePane, openDetailPane, closePane}
+    return {endpoint, dataView, scrollView, queryFilter, createMode, detailMode, openCreatePane, openDetailPane, closePane}
 })
 
 function useAnnotationList() {
@@ -30,19 +31,20 @@ function useAnnotationList() {
     const { handleError } = useNotification()
 
     const queryFilter = ref<AnnotationQueryFilter>({})
-    watch(queryFilter, () => listEndpoint.refresh(), {deep: true})
 
-    const listEndpoint = useListEndpoint({
+    const endpoint = useQueryEndpoint({
+        filter: queryFilter,
         async request(offset: number, limit: number) {
             const res = await httpClient.annotation.list({offset, limit, ...queryFilter.value})
             return res.ok ? {ok: true, ...res.data} : {ok: false, message: res.exception?.message ?? "unknown error"}
         },
         handleError
     })
+    const dataView = usePaginationDataView(endpoint)
 
     const scrollView = useScrollView()
 
-    return {listEndpoint, scrollView, queryFilter}
+    return {endpoint, dataView, scrollView, queryFilter}
 }
 
 function usePane() {

@@ -18,7 +18,7 @@ export default defineComponent({
 const ListView = defineComponent({
     setup() {
         const {
-            endpoint,
+            dataView,
             viewController: { fitType, columnNum },
             selector: { selected, lastSelected }
         } = useIllustContext()
@@ -28,7 +28,7 @@ const ListView = defineComponent({
             lastSelected.value = lastSelectedValue
         }
 
-        return () => <IllustGrid data={endpoint.data.value} onDataUpdate={endpoint.dataUpdate}
+        return () => <IllustGrid data={dataView.data.value} onDataUpdate={dataView.dataUpdate}
                                  fitType={fitType.value} columnNum={columnNum.value}
                                  selected={selected.value} lastSelected={lastSelected.value} onSelect={emitSelect}/>
     }

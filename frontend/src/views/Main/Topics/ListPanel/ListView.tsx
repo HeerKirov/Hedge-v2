@@ -16,7 +16,7 @@ import { useTopicContext } from "../inject"
 export default defineComponent({
     setup() {
         const messageBox = useMessageBox()
-        const { listEndpoint, detailMode, openDetailPane, closePane, openCreatePane } = useTopicContext()
+        const { dataView, endpoint, detailMode, openDetailPane, closePane, openCreatePane } = useTopicContext()
 
         const fastEndpoint = useFastObjectEndpoint({
             get: httpClient => httpClient.topic.get,
@@ -26,10 +26,10 @@ export default defineComponent({
 
         const switchFavorite = async (id: number, favorite: boolean) => {
             if(await fastEndpoint.setData(id, {favorite})) {
-                const index = listEndpoint.operations.find(topic => topic.id === id)
+                const index = endpoint.proxy.syncOperations.find(topic => topic.id === id)
                 if(index != undefined) {
-                    const topic = listEndpoint.operations.retrieve(index)!
-                    listEndpoint.operations.modify(index, {...topic, favorite})
+                    const topic = endpoint.proxy.syncOperations.retrieve(index)!
+                    endpoint.proxy.syncOperations.modify(index, {...topic, favorite})
                 }
             }
         }
@@ -38,8 +38,8 @@ export default defineComponent({
             if(await messageBox.showYesNoMessage("warn", "确定要删除此项吗？", "此操作不可撤回。")) {
                 if(await fastEndpoint.deleteData(id)) {
                     if(detailMode.value === id) closePane()
-                    const index = listEndpoint.operations.find(topic => topic.id === id)
-                    if(index != undefined) listEndpoint.operations.remove(index)
+                    const index = endpoint.proxy.syncOperations.find(topic => topic.id === id)
+                    if(index != undefined) endpoint.proxy.syncOperations.remove(index)
                 }
             }
         }
@@ -63,9 +63,9 @@ export default defineComponent({
         }
 
         const createSubOfItem = (id: number) => {
-            const index = listEndpoint.operations.find(t => t.id === id)
+            const index = endpoint.proxy.syncOperations.find(t => t.id === id)
             if(index != undefined) {
-                const topic = listEndpoint.operations.retrieve(index)
+                const topic = endpoint.proxy.syncOperations.retrieve(index)
                 if(topic != undefined) {
                     openCreatePane({
                         parent: {
@@ -89,10 +89,10 @@ export default defineComponent({
         ])
 
         return () => <div class="w-100 h-100">
-            <VirtualRow rowHeight={50} padding={{top: 6, bottom: 6, left: 12, right: 12}} bufferSize={10} onUpdate={listEndpoint.dataUpdate} {...listEndpoint.data.value.metrics}>
+            <VirtualRow rowHeight={50} padding={{top: 6, bottom: 6, left: 12, right: 12}} bufferSize={10} onUpdate={dataView.dataUpdate} {...dataView.data.value.metrics}>
                 <table class="table is-fullwidth no-wrap">
                     <tbody>
-                        {listEndpoint.data.value.result.map(item => <Item key={item.id} value={item}
+                        {dataView.data.value.result.map(item => <Item key={item.id} value={item}
                                                                           selected={detailMode.value === item.id}
                                                                           onRightClick={() => popupmenu.popup(item.id)}
                                                                           onSwitchFavorite={(v: boolean) => switchFavorite(item.id, v)}/>)}

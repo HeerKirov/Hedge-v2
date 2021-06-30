@@ -4,8 +4,8 @@ import { SourceInfo, TagmeInfo } from "@/layouts/display-components"
 import { PaneBasicLayout } from "@/layouts/layouts/SplitPane"
 import { useMessageBox } from "@/functions/document/message-box"
 import { useObjectEndpoint } from "@/functions/utils/endpoints/object-endpoint"
-import { Tagme } from "@/functions/adapter-http/impl/illust"
 import { DetailImportImage, ImportUpdateForm } from "@/functions/adapter-http/impl/import"
+import { Tagme } from "@/functions/adapter-http/impl/illust"
 import { assetsUrl } from "@/functions/app"
 import { objects } from "@/utils/primitives"
 import { date, datetime, LocalDateTime } from "@/utils/datetime"
@@ -15,15 +15,15 @@ import style from "./style.module.scss"
 export default defineComponent({
     setup() {
         const message = useMessageBox()
-        const { pane: { detailMode, closePane }, list } = useImportContext()
+        const { pane: { detailMode, closePane }, list: { endpoint } } = useImportContext()
 
         const { data, setData } = useObjectEndpoint<number, DetailImportImage, ImportUpdateForm>({
             path: detailMode,
             get: httpClient => httpClient.import.get,
             update: httpClient => httpClient.import.update,
             afterUpdate(id, data) {
-                const index = list.endpoint.operations.find(annotation => annotation.id === id)
-                if(index != undefined) list.endpoint.operations.modify(index, data)
+                const index = endpoint.proxy.syncOperations.find(annotation => annotation.id === id)
+                if(index != undefined) endpoint.proxy.syncOperations.modify(index, data)
             }
         })
 

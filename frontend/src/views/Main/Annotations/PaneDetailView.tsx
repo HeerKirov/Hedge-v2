@@ -17,15 +17,15 @@ import style from "./style.module.scss"
 export default defineComponent({
     setup() {
         const message = useMessageBox()
-        const { listEndpoint, detailMode, closePane } = useAnnotationContext()
+        const { endpoint, detailMode, closePane } = useAnnotationContext()
 
         const { data, setData } = useObjectEndpoint<number, Annotation, AnnotationUpdateForm>({
             path: detailMode,
             get: httpClient => httpClient.annotation.get,
             update: httpClient => httpClient.annotation.update,
             afterUpdate(id, data) {
-                const index = listEndpoint.operations.find(annotation => annotation.id === id)
-                if(index != undefined) listEndpoint.operations.modify(index, data)
+                const index = endpoint.proxy.syncOperations.find(annotation => annotation.id === id)
+                if(index != undefined) endpoint.proxy.syncOperations.modify(index, data)
             }
         })
 
