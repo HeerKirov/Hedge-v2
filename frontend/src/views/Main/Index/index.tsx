@@ -19,7 +19,7 @@ export default defineComponent({
         const { data, dataUpdate } = usePaginationDataView(queryEndpoint)
 
         useScrollView()
-        const columnCount = ref(6)
+        const columnCount = ref(5)
         const columnWidthStyle = computed(() => `${100 / columnCount.value}%`)
 
         return () => <div>

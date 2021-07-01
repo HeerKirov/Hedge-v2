@@ -42,11 +42,11 @@ function useListContext(collectionMode: Ref<boolean>) {
         type: collectionMode.value ? "COLLECTION" : "IMAGE"
     })
     watch(collectionMode, v => queryFilter.value.type = v ? "COLLECTION" : "IMAGE")
-    watch(queryFilter, () => endpoint.refresh(), {deep: true})
 
     const endpoint = useQueryEndpoint({
-        async request(offset: number, limit: number) {
-            const res = await httpClient.illust.list({offset, limit, ...queryFilter.value})
+        filter: queryFilter,
+        async request(offset: number, limit: number, filter: IllustQueryFilter) {
+            const res = await httpClient.illust.list({offset, limit, ...filter})
             return res.ok ? {ok: true, ...res.data} : {ok: false, message: res.exception?.message ?? "unknown error"}
         },
         handleError

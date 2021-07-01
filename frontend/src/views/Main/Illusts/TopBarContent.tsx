@@ -7,7 +7,6 @@ import {
     SearchBox
 } from "@/layouts/topbar-components"
 import { FitType } from "@/layouts/data/IllustGrid"
-import { useElementPopupMenu } from "@/functions/module"
 import { useIllustContext } from "./inject"
 
 export default defineComponent({
@@ -30,20 +29,7 @@ export default defineComponent({
                 <DataRouter/>
                 <FitTypeButton value={fitType.value} onUpdateValue={setFitType}/>
                 <ColumnNumButton value={columnNum.value} onUpdateValue={setColumnNum}/>
-                <MenuButton/>
             </div>
         </div>
-    }
-})
-
-const MenuButton = defineComponent({
-    setup() {
-        const menu = useElementPopupMenu(() => [
-
-        ], {position: "bottom", align: "left", offsetY: 4})
-
-        return () => <button ref={menu.element} class="square button no-drag radius-large is-white" onClick={() => menu.popup()}>
-            <span class="icon"><i class="fa fa-ellipsis-v"/></span>
-        </button>
     }
 })

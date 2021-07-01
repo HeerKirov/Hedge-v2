@@ -1,6 +1,7 @@
 import { Ref, shallowRef, watch } from "vue"
 import { QueryEndpointResult } from "./query-endpoint"
 import { LoadedStatus } from "./instance"
+import { useListeningEvent } from "@/functions/utils/emitter";
 
 export interface PaginationOptions {
     /**
@@ -25,7 +26,7 @@ export interface PaginationDataView<T> {
     reset(): void
 }
 
-interface PaginationData<T> {
+export interface PaginationData<T> {
     metrics: {total: number | undefined, offset: number, limit: number}
     result: T[]
 }
@@ -80,7 +81,18 @@ export function usePaginationDataView<T>(endpoint: QueryEndpointResult<T>, optio
     //在引用的query endpoint实例更换时，触发一次数据重刷
     watch(endpoint.instance, reset)
 
-    //TODO 需要instance operation的机制，在instance的数据被更改时，通知其引用方，以实现刷新
+    //在endpoint的内容变更，且变更对象在影响范围内时，对数据进行更新
+    useListeningEvent(endpoint.modifiedEvent, e => {
+        if(e.type === "modify") {
+            if(e.index >= data.value.metrics.offset && e.index < data.value.metrics.offset + data.value.metrics.limit) {
+                dataUpdate(data.value.metrics.offset, data.value.metrics.limit).finally()
+            }
+        }else{
+            if(e.index < data.value.metrics.offset + data.value.metrics.limit) {
+                dataUpdate(data.value.metrics.offset, data.value.metrics.limit).finally()
+            }
+        }
+    })
 
     return {data, dataUpdate, reset}
 }

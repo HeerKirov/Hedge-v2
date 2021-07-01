@@ -1,8 +1,8 @@
 import { defineComponent } from "vue"
 import TopBarLayout from "@/layouts/layouts/TopBarLayout"
-import IllustGrid from "@/layouts/data/IllustGrid"
 import TopBarContent from "./TopBarContent"
-import { installIllustContext, useIllustContext } from "./inject"
+import ListView from "./ListView"
+import { installIllustContext } from "./inject"
 
 export default defineComponent({
     setup() {
@@ -12,24 +12,5 @@ export default defineComponent({
             topBar: () => <TopBarContent/>,
             default: () => <ListView/>
         }}/>
-    }
-})
-
-const ListView = defineComponent({
-    setup() {
-        const {
-            dataView,
-            viewController: { fitType, columnNum },
-            selector: { selected, lastSelected }
-        } = useIllustContext()
-
-        const emitSelect = (selectedValue: number[], lastSelectedValue: number | null) => {
-            selected.value = selectedValue
-            lastSelected.value = lastSelectedValue
-        }
-
-        return () => <IllustGrid data={dataView.data.value} onDataUpdate={dataView.dataUpdate}
-                                 fitType={fitType.value} columnNum={columnNum.value}
-                                 selected={selected.value} lastSelected={lastSelected.value} onSelect={emitSelect}/>
     }
 })

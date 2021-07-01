@@ -140,17 +140,22 @@ export function useBasicVirtualComponent({ props, onRefresh }: BasicVirtualCompo
         }
     }
 
-    //监听事件: 外部指定了新的item offset。需要返回scrollTop(不需要考虑padding)
-    function watchViewNavigation(event: (itemOffset: number) => number | void) {
+    //监听事件: 外部指定了新的item offset。需要返回此item的scrollTop(不需要考虑padding)和item height，便于自动调整实际位置。
+    function watchViewNavigation(event: (itemOffset: number) => [number, number] | undefined) {
         watch(navigateRef, itemOffset => {
-            if(itemOffset != undefined && propose.value.contentWidth != undefined) {
-                const expectedScrollTop = event(itemOffset)
+            if(itemOffset != undefined && propose.value.contentWidth != undefined && propose.value.contentHeight != undefined) {
+                const res = event(itemOffset)
+                if(res !== undefined) {
+                    const [expectedScrollTop, expectedItemHeight] = res
 
-                if(expectedScrollTop != undefined) {
                     const scrollTop = expectedScrollTop + padding.top
-                    if(scrollTop !== propose.value.scrollTop) {
+                    //进行判断计算，让跳转的目标scroll top经过最小滚动长度，而不是总是滚动到屏幕顶端
+                    if(scrollTop < propose.value.scrollTop) {
                         scrollTo(scrollTop)
+                    }else if(scrollTop + expectedItemHeight > propose.value.scrollTop + propose.value.contentHeight) {
+                        scrollTo(scrollTop - propose.value.contentHeight + expectedItemHeight)
                     }
+                    //else的情况则是target已在可视区域内，不需要调整位置
                 }
             }
             navigateRef.value = undefined

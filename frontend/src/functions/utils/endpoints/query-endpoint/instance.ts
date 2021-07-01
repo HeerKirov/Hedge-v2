@@ -1,4 +1,5 @@
 import { arrays } from "@/utils/collections"
+import { createEmitter, Emitter } from "@/utils/emitter"
 
 export interface QueryEndpointInstanceOptions<T> extends QueryEndpointArguments {
     /**
@@ -51,7 +52,6 @@ export interface QueryEndpointInstance<T> {
     syncOperations: SyncOperations<T>
 }
 
-//TODO 需要一套事件机制，在数据被sync modify/remove时，向其引用者传递变化的情报
 export interface SyncOperations<T> {
     /**
      * 根据表达式条件查找指定的项。它只会在已经加载的项中查找，并可以指定优先范围。
@@ -75,6 +75,10 @@ export interface SyncOperations<T> {
      * @return 是否成功删除
      */
     remove(index: number): boolean
+    /**
+     * 变化事件。进行任意变更时，发送事件通知。
+     */
+    modified: Emitter<ModifiedEvent<T>>
 }
 
 export function createQueryEndpointInstance<T>(options: QueryEndpointInstanceOptions<T>): QueryEndpointInstance<T> {
@@ -83,6 +87,8 @@ export function createQueryEndpointInstance<T>(options: QueryEndpointInstanceOpt
     const datasource = createDatasource(options.request, options.handleError)
 
     const segments = createSegments(datasource, segmentSize)
+
+    const modified = createEmitter<ModifiedEvent<T>>()
 
     return {
         async queryOne(index: number): Promise<T | undefined> {
@@ -170,8 +176,9 @@ export function createQueryEndpointInstance<T>(options: QueryEndpointInstanceOpt
                 if(index >= 0 && datasource.data.total != null && index < datasource.data.total) {
                     const segment = Math.floor(index / segmentSize)
                     if(segments.getSegments()[segment]?.status === SegmentStatus.LOADED) {
+                        const oldValue = datasource.data.buffer[index]
                         datasource.data.buffer[index] = newData
-                        //TODO notify event
+                        modified.emit({type: "modify", index, value: newData, oldValue})
                         return true
                     }
                 }
@@ -193,13 +200,14 @@ export function createQueryEndpointInstance<T>(options: QueryEndpointInstanceOpt
                         }
                     }
                     //移除数据项
-                    datasource.data.buffer.splice(index, 1)
+                    const [oldValue] = datasource.data.buffer.splice(index, 1)
                     datasource.data.total -= 1
-                    //TODO notify event
+                    modified.emit({type: "remove", index, oldValue})
                     return true
                 }
                 return false
-            }
+            },
+            modified
         }
     }
 }
@@ -357,6 +365,17 @@ export enum SegmentStatus {
     NOT_LOADED,
     LOADING,
     LOADED
+}
+
+export type ModifiedEvent<T> = {
+    type: "modify"
+    index: number
+    value: T
+    oldValue: T
+} | {
+    type: "remove"
+    index: number
+    oldValue: T
 }
 
 interface Segment {

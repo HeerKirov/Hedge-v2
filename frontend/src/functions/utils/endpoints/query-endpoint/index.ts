@@ -9,6 +9,6 @@
 export { usePaginationDataView } from "./pagination-data-view"
 export { useQueryEndpoint } from "./query-endpoint"
 export { createQueryEndpointInstance } from "./instance"
-export type { PaginationDataView } from "./pagination-data-view"
+export type { PaginationDataView, PaginationData } from "./pagination-data-view"
 export type { QueryEndpointResult, QueryEndpointOptions } from "./query-endpoint"
-export type { QueryEndpointInstance, QueryEndpointInstanceOptions } from "./instance"
+export type { QueryEndpointInstance, QueryEndpointInstanceOptions, SyncOperations } from "./instance"

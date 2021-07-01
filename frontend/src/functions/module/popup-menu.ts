@@ -62,6 +62,16 @@ export function useElementPopupMenu<P = undefined>(items: MenuItem<P>[] | Ref<Me
     return {element, popup}
 }
 
+//== 一级包装的popup menu: 提供响应元素变化的菜单项
+export function useDynamicPopupMenu<P>(generator: (value: P) => (MenuItem<P> | null | undefined)[]) {
+    function popup(args: P, options?: PopupOptions) {
+        const items = generator(args).filter(item => item != null) as MenuItem<P>[]
+        createPopupMenu(items)(options, args)
+    }
+
+    return {popup}
+}
+
 //== 一级包装的popup menu: 提供VCA形式调用 ==
 
 export function usePopupMenu<P = undefined>(items: MenuItem<P>[] | Ref<MenuItem<P>[]> | (() => MenuItem<P>[])) {

@@ -1,17 +1,21 @@
 import { computed, defineComponent, inject, InjectionKey, PropType, provide, Ref, toRef } from "vue"
-import { VirtualGrid } from "@/components/features/VirtualScrollView"
+import { useScrollView, VirtualGrid } from "@/components/features/VirtualScrollView"
 import { Illust } from "@/functions/adapter-http/impl/illust"
+import { useNotification } from "@/functions/document/notification"
+import { watchGlobalKeyEvent } from "@/functions/document/global-key"
+import { PaginationData, QueryEndpointInstance } from "@/functions/utils/endpoints/query-endpoint"
 import { assetsUrl, useAppInfo } from "@/functions/app"
 import { arrays } from "@/utils/collections"
 import style from "./style.module.scss"
 
 export default defineComponent({
     props: {
-        data: {type: Object as PropType<Data>, required: true},
+        data: {type: Object as PropType<PaginationData<Illust>>, required: true},
         columnNum: {type: Number, default: 4},
         fitType: {type: String as PropType<FitType>, default: "cover"},
         selected: {type: Array as PropType<number[]>, default: []},
-        lastSelected: {type: null as any as PropType<number | null>, default: null}
+        lastSelected: {type: null as any as PropType<number | null>, default: null},
+        queryEndpoint: Object as PropType<QueryEndpointInstance<Illust>>
     },
     emits: ["dataUpdate", "select", "dblClick", "rightClick"],
     setup(props, { emit }) {
@@ -20,7 +24,7 @@ export default defineComponent({
 
         const dataUpdate = (offset: number, limit: number) => emit("dataUpdate", offset, limit)
 
-        const dblClick = (illust: Illust) => emit("dblClick", illust)
+        const dblClick = (illustId: number) => emit("dblClick", illustId)
 
         const rightClick = (illust: Illust) => emit("rightClick", illust)
 
@@ -29,7 +33,7 @@ export default defineComponent({
         provide(selectContextInjection, {selected, lastSelected})
 
         return () => <div class={[style.root, FIT_TYPE_CLASS[props.fitType], COLUMN_NUMBER_CLASS[props.columnNum]]}>
-            <Content data={props.data} columnNum={props.columnNum} onDataUpdate={dataUpdate} onDblClick={dblClick} onRightClick={rightClick} onSelect={emitSelect}/>
+            <Content data={props.data} columnNum={props.columnNum} queryEndpoint={props.queryEndpoint} onDataUpdate={dataUpdate} onDblClick={dblClick} onRightClick={rightClick} onSelect={emitSelect}/>
             <OverLayer/>
         </div>
     }
@@ -49,57 +53,38 @@ const OverLayer = defineComponent({
 
 const Content = defineComponent({
     props: {
-        data: {type: Object as PropType<Data>, required: true},
-        columnNum: {type: Number, required: true}
+        data: {type: Object as PropType<PaginationData<Illust>>, required: true},
+        columnNum: {type: Number, required: true},
+        queryEndpoint: Object as PropType<QueryEndpointInstance<Illust>>
     },
     emits: ["dataUpdate", "dblClick", "rightClick", "select"],
     setup(props, { emit }) {
         const appInfo = useAppInfo()
 
-        const { selected, lastSelected } = inject(selectContextInjection)!
+        const columnNum = toRef(props, "columnNum")
+
+        const selector = useSelector(columnNum, props.queryEndpoint, (selected, lastSelected) => emit("select", selected, lastSelected))
 
         const dataUpdate = (offset: number, limit: number) => emit("dataUpdate", offset, limit)
-
-        const dblClick = (illust: Illust) => emit("dblClick", illust)
-
+        const dblClick = (illustId: number) => emit("dblClick", illustId)
         const rightClick = (illust: Illust) => emit("rightClick", illust)
-
         const click = (illust: Illust, index: number, e: MouseEvent) => {
             // 追加添加的任意选择项都会排列在选择列表的最后
             // 选择任意项都会使其成为last selected
-            // TODO 为了性能考虑，选择的项数上限为100
+            // 为了性能考虑，选择的项数上限为100
             if(e.shiftKey) {
-                // 按住SHIFT单击一个项时，
-                // - 如果没有last selected(等价于没有选择项)，则选择此项；
-                // - 如果last selected不是自己，那么将从自己到last selected之间的所有项加入选择列表；否则无动作
-                if(lastSelected.value === null) {
-                    const last = illust.id
-                    emitSelect([last], last)
-                }else if(lastSelected.value !== illust.id) {
-                    //TODO shift select
-                }
+                selector.shiftSelect(index, illust.id).finally()
             }else if((e.metaKey && appInfo.platform === "darwin") || (e.ctrlKey && appInfo.platform !== "darwin")) {
-                // 按住CTRL/CMD单击一个项时，如果没有选择此项，则将此项加入选择列表；否则将此项从选择列表移除
-                const find = selected.value.findIndex(i => i === illust.id);
-                if(find >= 0) {
-                    emitSelect([...selected.value.slice(0, find), ...selected.value.slice(find + 1)], null)
-                }else{
-                    const last = illust.id
-                    emitSelect([...selected.value, last], last)
-                }
+                selector.appendSelect(index, illust.id)
             }else{
-                // 单击一个项时，如果没有选择此项，则取消所有选择项，只选择此项；否则无动作
-                if(!selected.value.includes(illust.id)) {
-                    const last = illust.id
-                    emitSelect([last], last)
-                }
+                selector.select(index, illust.id)
             }
         }
 
-        const emitSelect = (selected: number[], lastSelected: number | null) => emit("select", selected, lastSelected)
+        useKeyboardEvents(selector, dblClick)
 
         return () => <VirtualGrid {...props.data.metrics}
-                                  onUpdate={dataUpdate} columnCount={props.columnNum}
+                                  onUpdate={dataUpdate} columnCount={columnNum.value}
                                   bufferSize={5} minUpdateDelta={1} padding={2}>
             {props.data.result.map((item, i) => <Item key={item.id}
                                                       index={props.data.metrics.offset + i} data={item}
@@ -122,7 +107,7 @@ const Item = defineComponent({
 
         const click = (e: MouseEvent) => emit("click", props.data, props.index, e)
 
-        const dblClick = () => emit("dblClick", props.data)
+        const dblClick = () => emit("dblClick", props.data.id)
 
         const rightClick = () => emit("rightClick", props.data)
 
@@ -137,12 +122,137 @@ const Item = defineComponent({
     }
 })
 
+function useSelector(columnNum: Ref<number>, queryEndpoint: QueryEndpointInstance<Illust> | undefined, emitSelectEvent: EmitSelectFunction) {
+    const scrollView = useScrollView()
+    const { notify } = useNotification()
+    const { selected, lastSelected } = inject(selectContextInjection)!
+
+    const select = (index: number, illustId: number) => {
+        // 单击一个项时，如果没有选择此项，则取消所有选择项，只选择此项；否则无动作
+        if(!selected.value.includes(illustId)) {
+            emitSelectEvent([illustId], illustId)
+        }
+    }
+
+    const appendSelect = (index: number, illustId: number) => {
+        // 按住CTRL/CMD单击一个项时，如果没有选择此项，则将此项加入选择列表；否则将此项从选择列表移除
+        const find = selected.value.findIndex(i => i === illustId);
+        if(find >= 0) {
+            emitSelectEvent([...selected.value.slice(0, find), ...selected.value.slice(find + 1)], null)
+        }else{
+            if(selected.value.length + 1 > SELECTED_MAX) {
+                notify("选择上限", "warning", `选择的数量超过上限: 最多可选择${SELECTED_MAX}项。`)
+                return
+            }
+            emitSelectEvent([...selected.value, illustId], illustId)
+        }
+    }
+
+    const shiftSelect = async (index: number, illustId: number) => {
+        // 按住SHIFT单击一个项时，
+        // - 如果没有last selected(等价于没有选择项)，则选择此项；
+        // - 如果last selected不是自己，那么将从自己到last selected之间的所有项加入选择列表；否则无动作
+        if(lastSelected.value === null) {
+            emitSelectEvent([illustId], illustId)
+        }else if(lastSelected.value !== illustId) {
+            if(queryEndpoint !== undefined) {
+                const result = await getShiftSelectItems(queryEndpoint, illustId, lastSelected.value)
+                if(result === null) {
+                    notify("选择失败", "warning", "内部错误: 无法正确获取选择项。")
+                    return
+                }
+                const ret: number[] = []
+                for(const id of selected.value) {
+                    if(!result.includes(id)) {
+                        ret.push(id)
+                    }
+                }
+                ret.push(...result)
+
+                if(ret.length > SELECTED_MAX) {
+                    notify("选择上限", "warning", `选择的数量超过上限: 最多可选择${SELECTED_MAX}项。`)
+                    return
+                }
+                emitSelectEvent(ret, illustId)
+            }
+        }
+    }
+
+    const moveSelect = async (arrow: "ArrowUp" | "ArrowDown" | "ArrowLeft" | "ArrowRight", shift: boolean) => {
+        if(queryEndpoint !== undefined) {
+            if(lastSelected.value === null) {
+                //在未选择任何选项时，根据scrollView得知当前显示范围内的上下界，并作为选择项
+                const index = arrow === "ArrowLeft" || arrow === "ArrowUp" ? scrollView.state.itemOffset : (scrollView.state.itemOffset + scrollView.state.itemLimit - 1)
+                const illustId = await getOffsetSelectItem(queryEndpoint, index)
+                if(illustId !== null) {
+                    emitSelectEvent([illustId], illustId)
+                    scrollView.navigateTo(index)
+                }
+            }else{
+                const offset = arrow === "ArrowLeft" ? -1 : arrow === "ArrowRight" ? 1 : arrow === "ArrowUp" ? -columnNum.value : columnNum.value
+                const result = await getArrowSelectItem(queryEndpoint, lastSelected.value, offset)
+                if (result !== null) {
+                    if(shift) {
+                        await shiftSelect(result.index, result.illustId)
+                    }else{
+                        emitSelectEvent([result.illustId], result.illustId)
+                        scrollView.navigateTo(result.index)
+                    }
+                }
+            }
+        }
+    }
+
+    async function getShiftSelectItems(queryEndpoint: QueryEndpointInstance<Illust>, selectId: number, lastSelectId: number) {
+        const index1 = queryEndpoint.syncOperations.find(i => i.id === selectId)
+        const index2 = queryEndpoint.syncOperations.find(i => i.id === lastSelectId)
+        if(index1 === undefined || index2 === undefined) {
+            return null
+        }
+        if(index1 <= index2) {
+            return (await queryEndpoint.queryRange(index1, index2 - index1 + 1)).map(i => i.id)
+        }else{
+            return (await queryEndpoint.queryRange(index2, index1 - index2 + 1)).map(i => i.id)
+        }
+    }
+
+    async function getArrowSelectItem(queryEndpoint: QueryEndpointInstance<Illust>, lastSelectId: number, offset: number) {
+        const lastIndex = queryEndpoint.syncOperations.find(i => i.id === lastSelectId)
+        if(lastIndex === undefined) return null
+        const index = lastIndex + offset
+        const count = queryEndpoint.count()
+        if(index < 0 || (count !== null && index >= count)) return null
+        const res = await queryEndpoint.queryOne(index)
+        if(res === undefined) return null
+        return {illustId: res.id, index}
+    }
+
+    async function getOffsetSelectItem(queryEndpoint: QueryEndpointInstance<Illust>, index: number) {
+        return (await queryEndpoint.queryOne(index))?.id ?? null
+    }
+
+    return {select, appendSelect, shiftSelect, moveSelect, lastSelected, selected}
+}
+
+//TODO 在上层的某个位置，需要能处理按键屏蔽，在打开panel时屏蔽下层快捷键。目前看来这个最好做成XXXPanel的setup
+function useKeyboardEvents({ moveSelect, lastSelected }: ReturnType<typeof useSelector>, enter: (illustId: number) => void) {
+    watchGlobalKeyEvent(e => {
+        if(e.key === "ArrowLeft" || e.key === "ArrowRight" || e.key === "ArrowUp" || e.key === "ArrowDown") {
+            moveSelect(e.key, e.shiftKey).finally()
+            e.stopPropagation()
+        }else if(e.key === "Enter") {
+            if(lastSelected.value !== null) {
+                enter(lastSelected.value)
+            }
+            e.stopPropagation()
+        }
+    })
+}
+
 export type FitType = "cover" | "contain"
 
-interface Data {
-    metrics: {total: number | undefined, offset: number, limit: number}
-    result: Illust[]
-}
+type SelectRequestFunction = (selectId: number, lastSelectId: number) => Promise<number[] | null>
+type EmitSelectFunction = (selected: number[], lastSelected: number | null) => void
 
 const selectContextInjection: InjectionKey<{selected: Ref<number[]>, lastSelected: Ref<number | null>}> = Symbol()
 
@@ -153,3 +263,5 @@ const FIT_TYPE_CLASS: {[key in FitType]: string} = {
 
 const COLUMN_MAX = 16
 const COLUMN_NUMBER_CLASS = arrays.newArray(COLUMN_MAX + 1, i => style[`columnNum${i}`])
+
+const SELECTED_MAX = 100

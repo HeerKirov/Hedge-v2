@@ -13,7 +13,7 @@ function analyseSafeURL(url: string): string {
     if(url.startsWith("http://") || url.startsWith("https://")) {
         return url
     }else{
-        return `http://${url}`
+        return `https://${url}`
     }
 }
 

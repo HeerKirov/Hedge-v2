@@ -1,6 +1,8 @@
-import { shallowRef, Ref, watch } from "vue"
+import { shallowRef, Ref, watch, onUnmounted, onMounted } from "vue"
 import { objects } from "@/utils/primitives"
-import { createQueryEndpointInstance, QueryEndpointArguments, QueryEndpointInstance } from "./instance"
+import { createQueryEndpointInstance, ModifiedEvent, QueryEndpointArguments, QueryEndpointInstance } from "./instance"
+import { createEmitter, Emitter } from "@/utils/emitter"
+import { RefEmitter, useRefEmitter } from "@/functions/utils/emitter";
 
 export interface QueryEndpointOptions<T, K> extends QueryEndpointArguments {
     /**
@@ -23,6 +25,10 @@ export interface QueryEndpointResult<T> {
      */
     instance: Ref<QueryEndpointInstance<T>>
     /**
+     * 将instance的syncOperations.modified代理为响应式事件。
+     */
+    modifiedEvent: RefEmitter<ModifiedEvent<T>>
+    /**
      * 刷新。这会强制销毁重建实例以重新请求所有数据。
      */
     refresh(): void
@@ -40,11 +46,42 @@ export function useQueryEndpoint<T, K = undefined>(options: QueryEndpointOptions
 
     const instance: Ref<QueryEndpointInstance<T>> = shallowRef(createInstance(options.filter?.value))
 
-    const refresh = () => instance.value = createInstance(options.filter?.value)
+    const { modified, modifiedEvent} = useModifiedEvent<T>()
 
-    if(options.filter !== undefined) watch(options.filter, filter => instance.value = createInstance(filter), {deep: true})
+    const { refresh } = useInstanceChange<T, K>(instance, options.filter, createInstance, modified.emit)
 
-    const proxy: QueryEndpointInstance<T> = {
+    const proxy = useProxyObject(instance, modified)
+
+    return {proxy, instance, modifiedEvent, refresh}
+}
+
+function useModifiedEvent<T>() {
+    const modified = createEmitter<ModifiedEvent<T>>()
+    const modifiedEvent = useRefEmitter<ModifiedEvent<T>>()
+
+    onMounted(() => modified.addEventListener(modifiedEvent.emit))
+    onUnmounted(() => modified.removeEventListener(modifiedEvent.emit))
+
+    return {modified, modifiedEvent}
+}
+
+function useInstanceChange<T, K>(instance: Ref<QueryEndpointInstance<T>>, filter: Ref<K> | undefined, createInstance: (filter: K | undefined) => QueryEndpointInstance<T>, modified: (arg: ModifiedEvent<T>) => void) {
+    const changeInstance = (filter: K | undefined) => {
+        //移除旧实例时要移除代理事件
+        instance.value.syncOperations.modified.removeEventListener(modified)
+        //创建新实例
+        instance.value = createInstance(filter)
+        //创建新实例时再加入代理事件
+        instance.value.syncOperations.modified.addEventListener(modified)
+    }
+    const refresh = () => changeInstance(filter?.value)
+    if(filter !== undefined) watch(filter, changeInstance, {deep: true})
+
+    return {refresh}
+}
+
+function useProxyObject<T>(instance: Ref<QueryEndpointInstance<T>>, modified: Emitter<ModifiedEvent<T>>): QueryEndpointInstance<T> {
+    return {
         queryOne: index => instance.value.queryOne(index),
         queryRange: (offset, limit) => instance.value.queryRange(offset, limit),
         queryList: indexList => instance.value.queryList(indexList),
@@ -54,9 +91,8 @@ export function useQueryEndpoint<T, K = undefined>(options: QueryEndpointOptions
             find: (condition, priorityRange) => instance.value.syncOperations.find(condition, priorityRange),
             retrieve: index => instance.value.syncOperations.retrieve(index),
             modify: (index, newData) => instance.value.syncOperations.modify(index, newData),
-            remove: index => instance.value.syncOperations.remove(index)
+            remove: index => instance.value.syncOperations.remove(index),
+            modified
         }
     }
-
-    return {proxy, instance, refresh}
 }

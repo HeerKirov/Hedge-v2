@@ -142,8 +142,9 @@ export default defineComponent({
             if(propose.value.contentWidth != undefined) {
                 const unitWidth = propose.value.contentWidth / props.columnCount, unitHeight = unitWidth / props.aspectRatio
                 const expectedRow = Math.floor(itemOffset / props.columnCount)
-                return expectedRow * unitHeight
+                return [expectedRow * unitHeight, unitHeight]
             }
+            return undefined
         })
 
         //功能: 更新view state的值

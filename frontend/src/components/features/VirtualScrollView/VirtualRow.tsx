@@ -94,7 +94,7 @@ export default defineComponent({
         }, {deep: true})
 
         //外部事件: 外部指定了滚动位置，指定方式是指定item offset
-        watchViewNavigation(itemOffset => itemOffset * props.rowHeight)
+        watchViewNavigation(itemOffset => [itemOffset * props.rowHeight, props.rowHeight])
 
         //功能: 更新view state的值
         function updateViewState(propose: ProposeData, total: number | undefined) {
