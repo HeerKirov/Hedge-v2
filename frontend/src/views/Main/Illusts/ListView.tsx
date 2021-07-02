@@ -2,6 +2,7 @@ import { defineComponent, markRaw } from "vue"
 import IllustGrid from "@/layouts/data/IllustGrid"
 import { Illust } from "@/functions/adapter-http/impl/illust"
 import { useDynamicPopupMenu } from "@/functions/module"
+import { useViewStacks } from "../ViewStacks"
 import { useIllustContext } from "./inject"
 
 export default defineComponent({
@@ -12,6 +13,8 @@ export default defineComponent({
             viewController: { fitType, columnNum },
             selector: { selected, lastSelected }
         } = useIllustContext()
+
+        const viewStacks = useViewStacks()
 
         const emitSelect = (selectedValue: number[], lastSelectedValue: number | null) => {
             selected.value = selectedValue
@@ -45,6 +48,8 @@ export default defineComponent({
 
         const openDetail = (illustId: number) => {
             console.log("dbl click", illustId)
+            //TODO grid view传递的数据应该是Illust还是id还是index，需要再考量
+            viewStacks.openView({type: "image", data: endpoint.instance.value, currentIndex: illustId})
         }
 
         return () => <IllustGrid data={markRaw(dataView.data.value)} onDataUpdate={dataView.dataUpdate}

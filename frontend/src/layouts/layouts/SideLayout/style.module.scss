@@ -1,6 +1,9 @@
 @import "@/styles/variable.sass";
 
 .side-layout {
+  position: relative;
+  width: 100%;
+  height: 100%;
   //主要内容区域的布局定位
   > .content {
     position: absolute;

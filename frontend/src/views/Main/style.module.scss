@@ -1,26 +1,23 @@
 @import '@/styles/variable.sass';
 
 .root {
-    //主面板的进入和离开变换
-    > :global(.v-main-panel-transition-enter-from),
-    > :global(.v-main-panel-transition-leave-to) {
-        transform: translateY(25%);
+  width: 100vw;
+  height: 100vh;
+
+  > .cover {
+    position: absolute;
+    left: 0; top: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+
+    &.cover-enter-from,
+    &.cover-leave-to {
+      opacity: 0;
     }
-    > :global(.v-main-panel-transition-enter-active) {
-        transition: transform 0.3s ease-out;
+    &.cover-enter-active,
+    &.cover-leave-active {
+      transition: opacity 0.5s;
     }
-    > :global(.v-main-panel-transition-leave-active) {
-        transition: transform 0.3s ease-in;
-    }
-    //其他面板的进入和离开变换
-    > :global(.v-other-panel-transition-enter-from),
-    > :global(.v-other-panel-transition-leave-to) {
-        transform: translateY(100%);
-    }
-    > :global(.v-other-panel-transition-enter-active) {
-        transition: transform 0.3s ease-out;
-    }
-    > :global(.v-other-panel-transition-leave-active) {
-        transition: transform 0.3s ease-in;
-    }
+  }
 }

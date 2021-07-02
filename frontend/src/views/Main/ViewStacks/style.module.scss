@@ -1,0 +1,27 @@
+
+.view-container {
+  position: absolute;
+  width: 100vw;
+  height: 100vh;
+  top: 0;
+  left: 0;
+
+  &.hidden {
+    visibility: hidden;
+  }
+
+  //view container的进入和离开变换
+  &.view-container-enter-from {
+    transform: translateY(50vh);
+  }
+  &.view-container-leave-to {
+    transform: translateY(100vh);
+  }
+  &.view-container-enter-active {
+    transition: transform 0.3s ease-out;
+  }
+  &.view-container-leave-active {
+    transition: transform 0.3s;
+  }
+}
+

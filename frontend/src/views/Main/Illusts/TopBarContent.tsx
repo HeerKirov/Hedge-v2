@@ -9,6 +9,8 @@ import {
 import { FitType } from "@/layouts/data/IllustGrid"
 import { useIllustContext } from "./inject"
 
+//TODO 在TopBar组件添加公共的key event冒泡拦截
+//TODO 在Input组件添加公共的key event冒泡拦截
 export default defineComponent({
     setup() {
         const { viewController: { fitType, columnNum, collectionMode }} = useIllustContext()

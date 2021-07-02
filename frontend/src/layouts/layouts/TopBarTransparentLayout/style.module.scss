@@ -6,6 +6,10 @@
     position: absolute;
     width: 100%;
     height: 100%;
+    background-color: $bg;
+    @media (prefers-color-scheme: dark) {
+        background-color: $bg-dm;
+    }
     > .main-content {
         position: absolute;
         width: 100%; height: 100%;

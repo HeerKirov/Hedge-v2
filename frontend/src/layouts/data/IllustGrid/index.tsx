@@ -107,7 +107,10 @@ const Item = defineComponent({
 
         const click = (e: MouseEvent) => emit("click", props.data, props.index, e)
 
-        const dblClick = () => emit("dblClick", props.data.id)
+        const dblClick = (e: MouseEvent) => {
+            if(e.ctrlKey || e.metaKey || e.shiftKey) return
+            emit("dblClick", props.data.id)
+        }
 
         const rightClick = () => emit("rightClick", props.data)
 
@@ -251,7 +254,6 @@ function useKeyboardEvents({ moveSelect, lastSelected }: ReturnType<typeof useSe
 
 export type FitType = "cover" | "contain"
 
-type SelectRequestFunction = (selectId: number, lastSelectId: number) => Promise<number[] | null>
 type EmitSelectFunction = (selected: number[], lastSelected: number | null) => void
 
 const selectContextInjection: InjectionKey<{selected: Ref<number[]>, lastSelected: Ref<number | null>}> = Symbol()

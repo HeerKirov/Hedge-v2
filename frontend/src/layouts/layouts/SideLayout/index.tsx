@@ -16,6 +16,11 @@ export const sideBarSwitchInjection: InjectionKey<Ref<boolean>> = Symbol()
 export const sideBarWidthInjection: InjectionKey<Ref<number>> = Symbol()
 
 /**
+ * 默认宽度。
+ */
+export const DEFAULT_WIDTH = 225
+
+/**
  * 主要页面的侧栏分栏结构。
  * 只提供了一个分栏结构，不包括任何内容，通过slot.side导入侧栏，slot.default导入主要内容区域。
  * 通过inject响应sideBarWidth/sideBarSwitch属性，以控制侧栏开关。
@@ -23,7 +28,7 @@ export const sideBarWidthInjection: InjectionKey<Ref<number>> = Symbol()
  */
 export default defineComponent({
     props: {
-        defaultWidth: {type: Number, default: 225},
+        defaultWidth: {type: Number, default: DEFAULT_WIDTH},
         attachRange: {type: Number, default: 10},
         maxWidth: {type: Number, default: 400},
         minWidth: {type: Number, default: 150}
