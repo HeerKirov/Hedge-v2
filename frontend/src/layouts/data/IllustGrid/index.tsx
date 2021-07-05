@@ -62,8 +62,9 @@ const Content = defineComponent({
         const appInfo = useAppInfo()
 
         const columnNum = toRef(props, "columnNum")
+        const data = toRef(props, "data")
 
-        const selector = useSelector(columnNum, props.queryEndpoint, (selected, lastSelected) => emit("select", selected, lastSelected))
+        const selector = useSelector(data, columnNum, props.queryEndpoint, (selected, lastSelected) => emit("select", selected, lastSelected))
 
         const dataUpdate = (offset: number, limit: number) => emit("dataUpdate", offset, limit)
         const dblClick = (illustId: number) => emit("dblClick", illustId)
@@ -83,11 +84,11 @@ const Content = defineComponent({
 
         useKeyboardEvents(selector, dblClick)
 
-        return () => <VirtualGrid {...props.data.metrics}
+        return () => <VirtualGrid {...data.value.metrics}
                                   onUpdate={dataUpdate} columnCount={columnNum.value}
-                                  bufferSize={5} minUpdateDelta={1} padding={2}>
-            {props.data.result.map((item, i) => <Item key={item.id}
-                                                      index={props.data.metrics.offset + i} data={item}
+                                  bufferSize={5} minUpdateDelta={1} padding={{top: 1, bottom: 1, left: 2, right: 2}}>
+            {data.value.result.map((item, i) => <Item key={item.id}
+                                                      index={data.value.metrics.offset + i} data={item}
                                                       onDblClick={dblClick} onRightClick={rightClick} onClick={click}/>)}
         </VirtualGrid>
     }
@@ -125,7 +126,7 @@ const Item = defineComponent({
     }
 })
 
-function useSelector(columnNum: Ref<number>, queryEndpoint: QueryEndpointInstance<Illust> | undefined, emitSelectEvent: EmitSelectFunction) {
+function useSelector(data: Ref<PaginationData<Illust>>, columnNum: Ref<number>, queryEndpoint: QueryEndpointInstance<Illust> | undefined, emitSelectEvent: EmitSelectFunction) {
     const scrollView = useScrollView()
     const { notify } = useNotification()
     const { selected, lastSelected } = inject(selectContextInjection)!
@@ -207,8 +208,9 @@ function useSelector(columnNum: Ref<number>, queryEndpoint: QueryEndpointInstanc
     }
 
     async function getShiftSelectItems(queryEndpoint: QueryEndpointInstance<Illust>, selectId: number, lastSelectId: number) {
-        const index1 = queryEndpoint.syncOperations.find(i => i.id === selectId)
-        const index2 = queryEndpoint.syncOperations.find(i => i.id === lastSelectId)
+        const priorityRange: [number, number] = [data.value.metrics.offset, data.value.metrics.offset + data.value.metrics.limit]
+        const index1 = queryEndpoint.syncOperations.find(i => i.id === selectId, priorityRange)
+        const index2 = queryEndpoint.syncOperations.find(i => i.id === lastSelectId, priorityRange)
         if(index1 === undefined || index2 === undefined) {
             return null
         }
@@ -220,7 +222,8 @@ function useSelector(columnNum: Ref<number>, queryEndpoint: QueryEndpointInstanc
     }
 
     async function getArrowSelectItem(queryEndpoint: QueryEndpointInstance<Illust>, lastSelectId: number, offset: number) {
-        const lastIndex = queryEndpoint.syncOperations.find(i => i.id === lastSelectId)
+        const priorityRange: [number, number] = [data.value.metrics.offset, data.value.metrics.offset + data.value.metrics.limit]
+        const lastIndex = queryEndpoint.syncOperations.find(i => i.id === lastSelectId, priorityRange)
         if(lastIndex === undefined) return null
         const index = lastIndex + offset
         const count = queryEndpoint.count()
@@ -237,7 +240,6 @@ function useSelector(columnNum: Ref<number>, queryEndpoint: QueryEndpointInstanc
     return {select, appendSelect, shiftSelect, moveSelect, lastSelected, selected}
 }
 
-//TODO 在上层的某个位置，需要能处理按键屏蔽，在打开panel时屏蔽下层快捷键。目前看来这个最好做成XXXPanel的setup
 function useKeyboardEvents({ moveSelect, lastSelected }: ReturnType<typeof useSelector>, enter: (illustId: number) => void) {
     watchGlobalKeyEvent(e => {
         if(e.key === "ArrowLeft" || e.key === "ArrowRight" || e.key === "ArrowUp" || e.key === "ArrowDown") {

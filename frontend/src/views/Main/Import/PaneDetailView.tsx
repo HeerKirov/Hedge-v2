@@ -15,15 +15,15 @@ import style from "./style.module.scss"
 export default defineComponent({
     setup() {
         const message = useMessageBox()
-        const { pane: { detailMode, closePane }, list: { endpoint } } = useImportContext()
+        const { pane: { detailMode, closePane }, list: { dataView } } = useImportContext()
 
         const { data, setData } = useObjectEndpoint<number, DetailImportImage, ImportUpdateForm>({
             path: detailMode,
             get: httpClient => httpClient.import.get,
             update: httpClient => httpClient.import.update,
             afterUpdate(id, data) {
-                const index = endpoint.proxy.syncOperations.find(annotation => annotation.id === id)
-                if(index != undefined) endpoint.proxy.syncOperations.modify(index, data)
+                const index = dataView.proxy.syncOperations.find(annotation => annotation.id === id)
+                if(index != undefined) dataView.proxy.syncOperations.modify(index, data)
             }
         })
 

@@ -35,7 +35,7 @@ export default defineComponent({
 const TopBarContent = defineComponent({
     setup() {
         const messageBox = useMessageBox()
-        const { endpoint, detailMode, openCreatePane, closePane } = useAuthorContext()
+        const { dataView, detailMode, openCreatePane, closePane } = useAuthorContext()
         const { data, setData, deleteData, editMode } = useAuthorDetailContext()
 
         const edit = () => editMode.value = true
@@ -47,8 +47,8 @@ const TopBarContent = defineComponent({
             if(await messageBox.showYesNoMessage("warn", "确定要删除此项吗？", "此操作不可撤回。")) {
                 if(await deleteData()) {
                     closePane()
-                    const index = endpoint.proxy.syncOperations.find(topic => topic.id === id)
-                    if(index != undefined) endpoint.proxy.syncOperations.remove(index)
+                    const index = dataView.proxy.syncOperations.find(topic => topic.id === id)
+                    if(index != undefined) dataView.proxy.syncOperations.remove(index)
                 }
             }
         }

@@ -1,7 +1,7 @@
 import { Ref, shallowRef, watch } from "vue"
 import { QueryEndpointResult } from "./query-endpoint"
-import { LoadedStatus } from "./instance"
-import { useListeningEvent } from "@/functions/utils/emitter";
+import { LoadedStatus, QueryEndpointInstance } from "./instance"
+import { useListeningEvent } from "@/functions/utils/emitter"
 
 export interface PaginationOptions {
     /**
@@ -24,6 +24,10 @@ export interface PaginationDataView<T> {
      * 重新请求数据。这并不会使底层重新请求数据，如有需要，从query endpoint调用refresh。
      */
     reset(): void
+    /**
+     * 代理instance实例。与query endpoint的代理一致，不过此处的find方法会自动使用data的值作为优化项。
+     */
+    proxy: QueryEndpointInstance<T>
 }
 
 export interface PaginationData<T> {
@@ -78,6 +82,8 @@ export function usePaginationDataView<T>(endpoint: QueryEndpointResult<T>, optio
         }
     }
 
+    const proxy = useProxy(endpoint.proxy, data)
+
     //在引用的query endpoint实例更换时，触发一次数据重刷
     watch(endpoint.instance, reset)
 
@@ -94,5 +100,21 @@ export function usePaginationDataView<T>(endpoint: QueryEndpointResult<T>, optio
         }
     })
 
-    return {data, dataUpdate, reset}
+    return {data, dataUpdate, reset, proxy}
+}
+
+function useProxy<T>(instance: QueryEndpointInstance<T>, data: Ref<PaginationData<T>>): QueryEndpointInstance<T> {
+    return {
+        ...instance,
+        syncOperations: {
+            ...instance.syncOperations,
+            find(condition, priorityRange) {
+                const range: [number, number] | number | undefined
+                    = priorityRange !== undefined ? priorityRange
+                    : data.value.metrics.total !== undefined ? [data.value.metrics.offset, data.value.metrics.offset + data.value.metrics.limit]
+                    : undefined
+                return instance.syncOperations.find(condition, range)
+            }
+        }
+    }
 }

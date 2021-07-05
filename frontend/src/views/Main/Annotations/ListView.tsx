@@ -13,16 +13,16 @@ import { useAnnotationContext } from "./inject"
 export default defineComponent({
     setup() {
         const messageBox = useMessageBox()
-        const { endpoint, dataView, detailMode, openCreatePane, openDetailPane, closePane } = useAnnotationContext()
+        const { dataView, detailMode, openCreatePane, openDetailPane, closePane } = useAnnotationContext()
 
         const fastEndpoint = useFastObjectEndpoint({
             delete: httpClient => httpClient.annotation.delete
         })
 
         const createByItem = (id: number) => {
-            const index = endpoint.proxy.syncOperations.find(annotation => annotation.id === id)
+            const index = dataView.proxy.syncOperations.find(annotation => annotation.id === id)
             if(index != undefined) {
-                const annotation = endpoint.proxy.syncOperations.retrieve(index)
+                const annotation = dataView.proxy.syncOperations.retrieve(index)
                 openCreatePane(annotation)
             }
         }
@@ -31,8 +31,8 @@ export default defineComponent({
             if(await messageBox.showYesNoMessage("warn", "确定要删除此项吗？", "此操作不可撤回。")) {
                 if(await fastEndpoint.deleteData(id)) {
                     if(detailMode.value === id) closePane()
-                    const index = endpoint.proxy.syncOperations.find(annotation => annotation.id === id)
-                    if(index != undefined) endpoint.proxy.syncOperations.remove(index)
+                    const index = dataView.proxy.syncOperations.find(annotation => annotation.id === id)
+                    if(index != undefined) dataView.proxy.syncOperations.remove(index)
                 }
             }
         }

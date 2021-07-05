@@ -33,7 +33,6 @@ export default defineComponent({
                 : {type: "normal", label: "标记为收藏"},
             {type: "separator"},
             {type: "normal", label: "加入剪贴板"},
-            {type: "normal", label: "追加到剪贴板"},
             {type: "separator"},
             {type: "normal", label: "创建集合"},
             {type: "normal", label: "创建画集"},

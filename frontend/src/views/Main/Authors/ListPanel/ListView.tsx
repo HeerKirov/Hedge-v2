@@ -17,7 +17,7 @@ import style from "./style.module.scss"
 export default defineComponent({
     setup() {
         const messageBox = useMessageBox()
-        const { endpoint, dataView, detailMode, openDetailPane, closePane, openCreatePane } = useAuthorContext()
+        const { dataView, detailMode, openDetailPane, closePane, openCreatePane } = useAuthorContext()
 
         const fastEndpoint = useFastObjectEndpoint({
             get: httpClient => httpClient.author.get,
@@ -27,10 +27,10 @@ export default defineComponent({
 
         const switchFavorite = async (id: number, favorite: boolean) => {
             if(await fastEndpoint.setData(id, {favorite})) {
-                const index = endpoint.proxy.syncOperations.find(topic => topic.id === id)
+                const index = dataView.proxy.syncOperations.find(topic => topic.id === id)
                 if(index != undefined) {
-                    const topic = endpoint.proxy.syncOperations.retrieve(index)!
-                    endpoint.proxy.syncOperations.modify(index, {...topic, favorite})
+                    const topic = dataView.proxy.syncOperations.retrieve(index)!
+                    dataView.proxy.syncOperations.modify(index, {...topic, favorite})
                 }
             }
         }
@@ -39,8 +39,8 @@ export default defineComponent({
             if(await messageBox.showYesNoMessage("warn", "确定要删除此项吗？", "此操作不可撤回。")) {
                 if(await fastEndpoint.deleteData(id)) {
                     if(detailMode.value === id) closePane()
-                    const index = endpoint.proxy.syncOperations.find(topic => topic.id === id)
-                    if(index != undefined) endpoint.proxy.syncOperations.remove(index)
+                    const index = dataView.proxy.syncOperations.find(topic => topic.id === id)
+                    if(index != undefined) dataView.proxy.syncOperations.remove(index)
                 }
             }
         }

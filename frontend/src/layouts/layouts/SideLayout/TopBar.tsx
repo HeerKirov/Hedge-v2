@@ -20,7 +20,12 @@ export default defineComponent({
 
         const openSideBar = () => { sideBarSwitch.value = true }
 
-        return () => <div class={{[style.topBar]: true, [style.background]: !props.transparent, [style.hasDarwinButton]: hasDarwinButton.value, "title-bar": true}}>
+        const keyEventPrevent = (e: KeyboardEvent) => {
+            e.stopPropagation()
+            e.stopImmediatePropagation()
+        }
+
+        return () => <div class={{[style.topBar]: true, [style.background]: !props.transparent, [style.hasDarwinButton]: hasDarwinButton.value, "title-bar": true}} onKeydown={keyEventPrevent}>
             <Transition name="v-collapse-button">
                 {!sideBarSwitch.value && <button class={[style.collapseButton, "no-drag", "button", "square", "is-white"]} onClick={openSideBar}><span class="icon"><i class="fa fa-lg fa-bars"/></span></button>}
             </Transition>

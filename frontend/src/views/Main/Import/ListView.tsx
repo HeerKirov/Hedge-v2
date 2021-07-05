@@ -9,7 +9,7 @@ import style from "./style.module.scss"
 export default defineComponent({
     setup() {
         const messageBox = useMessageBox()
-        const { list: { endpoint, dataView }, pane } = useImportContext()
+        const { list: { dataView }, pane } = useImportContext()
 
         const fastEndpoint = useFastObjectEndpoint({
             delete: httpClient => httpClient.import.delete
@@ -19,8 +19,8 @@ export default defineComponent({
             if(await messageBox.showYesNoMessage("warn", "确定要删除此项吗？", "此操作不可撤回。")) {
                 if(await fastEndpoint.deleteData(id)) {
                     if(pane.detailMode.value === id) pane.closePane()
-                    const index = endpoint.proxy.syncOperations.find(i => i.id === id)
-                    if(index != undefined) endpoint.proxy.syncOperations.remove(index)
+                    const index = dataView.proxy.syncOperations.find(i => i.id === id)
+                    if(index != undefined) dataView.proxy.syncOperations.remove(index)
                 }
             }
         }

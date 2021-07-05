@@ -18,7 +18,7 @@ export interface AuthorDetailContext {
 }
 
 export const [installAuthorDetailContext, useAuthorDetailContext] = installation(function(): AuthorDetailContext {
-    const { endpoint, detailMode } = useAuthorContext()
+    const { dataView, detailMode } = useAuthorContext()
 
     const { data, setData, deleteData } = useObjectEndpoint<number, DetailAuthor, AuthorUpdateForm>({
         path: detailMode,
@@ -26,8 +26,8 @@ export const [installAuthorDetailContext, useAuthorDetailContext] = installation
         update: httpClient => httpClient.author.update,
         delete: httpClient => httpClient.author.delete,
         afterUpdate(id, data) {
-            const index = endpoint.proxy.syncOperations.find(author => author.id === id)
-            if(index != undefined) endpoint.proxy.syncOperations.modify(index, data)
+            const index = dataView.proxy.syncOperations.find(author => author.id === id)
+            if(index != undefined) dataView.proxy.syncOperations.modify(index, data)
         }
     })
 

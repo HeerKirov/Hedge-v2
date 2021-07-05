@@ -19,7 +19,7 @@ export interface TopicDetailContext {
 }
 
 export const [installTopicDetailContext, useTopicDetailContext] = installation(function(): TopicDetailContext {
-    const { endpoint, detailMode } = useTopicContext()
+    const { dataView, detailMode } = useTopicContext()
 
     const { data, setData, deleteData } = useObjectEndpoint<number, DetailTopic, TopicUpdateForm>({
         path: detailMode,
@@ -27,8 +27,8 @@ export const [installTopicDetailContext, useTopicDetailContext] = installation(f
         update: httpClient => httpClient.topic.update,
         delete: httpClient => httpClient.topic.delete,
         afterUpdate(id, data) {
-            const index = endpoint.proxy.syncOperations.find(topic => topic.id === id)
-            if(index != undefined) endpoint.proxy.syncOperations.modify(index, data)
+            const index = dataView.proxy.syncOperations.find(topic => topic.id === id)
+            if(index != undefined) dataView.proxy.syncOperations.modify(index, data)
         }
     })
 

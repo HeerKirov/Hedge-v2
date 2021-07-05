@@ -18,7 +18,7 @@
     transform: translateY(100vh);
   }
   &.view-container-enter-active {
-    transition: transform 0.3s ease-out;
+    transition: transform 0.15s ease-out;
   }
   &.view-container-leave-active {
     transition: transform 0.3s;
