@@ -150,7 +150,6 @@ export function useBasicVirtualComponent({ props, onRefresh }: BasicVirtualCompo
 
                     const scrollTop = expectedScrollTop + padding.top
                     //进行判断计算，让跳转的目标scroll top经过最小滚动长度，而不是总是滚动到屏幕顶端
-                    //TODO bug fix: 目前在屏幕内跳转时仍有小幅度滚动。虽然看起来效果好像还挺好，但这并不是预设目的，因此需要搞清楚成因
                     if(scrollTop < propose.value.scrollTop) {
                         scrollTo(scrollTop)
                     }else if(scrollTop + expectedItemHeight > propose.value.scrollTop + propose.value.contentHeight) {

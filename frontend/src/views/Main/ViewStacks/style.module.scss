@@ -1,4 +1,4 @@
-
+//视图容器
 .view-container {
   position: absolute;
   width: 100vw;
@@ -8,20 +8,43 @@
 
   &.hidden {
     visibility: hidden;
+    transition: visibility 0.15s;
   }
 
   //view container的进入和离开变换
-  &.view-container-enter-from {
+  &.transition-enter-from {
     transform: translateY(50vh);
   }
-  &.view-container-leave-to {
+  &.transition-leave-to {
     transform: translateY(100vh);
   }
-  &.view-container-enter-active {
+  &.transition-enter-active {
     transition: transform 0.15s ease-out;
+    backface-visibility: hidden;
   }
-  &.view-container-leave-active {
+  &.transition-leave-active {
     transition: transform 0.3s;
+    backface-visibility: hidden;
   }
 }
+//视图后的渐变遮罩层
+.view-background-cover {
+  position: absolute;
+  left: 0; top: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
 
+  &.transition-enter-from,
+  &.transition-leave-to {
+    opacity: 0;
+  }
+  &.transition-enter-active {
+    transition: opacity 0.15s;
+    backface-visibility: hidden;
+  }
+  &.transition-leave-active {
+    transition: opacity 0.6s;
+    backface-visibility: hidden;
+  }
+}

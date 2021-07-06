@@ -1,23 +1,11 @@
 @import '@/styles/variable.sass';
 
-.root {
+.root-view {
   width: 100vw;
   height: 100vh;
 
-  > .cover {
-    position: absolute;
-    left: 0; top: 0;
-    width: 100vw;
-    height: 100vh;
-    background-color: rgba(0, 0, 0, 0.5);
-
-    &.cover-enter-from,
-    &.cover-leave-to {
-      opacity: 0;
-    }
-    &.cover-enter-active,
-    &.cover-leave-active {
-      transition: opacity 0.5s;
-    }
+  &.hidden {
+    visibility: hidden;
+    transition: visibility 0.15s;
   }
 }

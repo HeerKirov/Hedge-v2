@@ -245,11 +245,13 @@ function useKeyboardEvents({ moveSelect, lastSelected }: ReturnType<typeof useSe
         if(e.key === "ArrowLeft" || e.key === "ArrowRight" || e.key === "ArrowUp" || e.key === "ArrowDown") {
             moveSelect(e.key, e.shiftKey).finally()
             e.stopPropagation()
+            e.preventDefault()
         }else if(e.key === "Enter") {
             if(lastSelected.value !== null) {
                 enter(lastSelected.value)
             }
             e.stopPropagation()
+            e.preventDefault()
         }
     })
 }

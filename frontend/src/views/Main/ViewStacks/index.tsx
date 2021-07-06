@@ -10,18 +10,18 @@ export default defineComponent({
     setup() {
         const { stacks } = useViewStacks()
 
-        return () => <TransitionGroup enterFromClass={style.viewContainerEnterFrom}
-                                      leaveToClass={style.viewContainerLeaveTo}
-                                      enterActiveClass={style.viewContainerEnterActive}
-                                      leaveActiveClass={style.viewContainerLeaveActive}>
-            {stacks.value.map(mapView)}
+        return () => <TransitionGroup enterFromClass={style.transitionEnterFrom}
+                                      leaveToClass={style.transitionLeaveTo}
+                                      enterActiveClass={style.transitionEnterActive}
+                                      leaveActiveClass={style.transitionLeaveActive}>
+            {mapViews(stacks.value)}
         </TransitionGroup>
     }
 })
 
 const ViewContainer = defineComponent({
     props: {
-        visible: Boolean
+        hidden: Boolean
     },
     setup(props, { slots }) {
         watchGlobalKeyEvent(e => {
@@ -29,20 +29,28 @@ const ViewContainer = defineComponent({
             e.stopPropagation()
         })
 
-        //TODO 把cover遮罩动画移到这里实现
-        //TODO 当view不是最上层时，在动画时间过后将其隐藏
-        return () => <div class={style.viewContainer}>{slots.default?.()}</div>
+        return () => <div class={{[style.viewContainer]: true, [style.hidden]: props.hidden}}>{slots.default?.()}</div>
     }
 })
 
-function mapView(page: DetailViewInfo, index: number, arr: DetailViewInfo[]) {
-    const visible = index === arr.length - 1
+function mapViews(pages: DetailViewInfo[]) {
+    if(pages.length <= 0) {
+        return []
+    }
+    return pages.slice(0, pages.length - 1).map((page, i) => mapView(page, i, true))
+        .concat(coverDom(pages.length), mapView(pages[pages.length - 1], pages.length - 1, false))
+}
 
+function mapView(page: DetailViewInfo, index: number, hidden: boolean) {
     if(page.type === "image") {
-        return <ViewContainer key={index} visible={visible}>
+        return <ViewContainer key={index} hidden={hidden}>
             <ImageDetailView data={page.data} currentIndex={page.currentIndex}/>
         </ViewContainer>
     }else{
         return undefined
     }
+}
+
+function coverDom(index: number) {
+    return <div key={`background-cover-${index}`} class={style.viewBackgroundCover}/>
 }
