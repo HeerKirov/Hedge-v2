@@ -4,8 +4,11 @@ type OrderPrefix = "" | "+" | "-"
 type OrderListItem<T extends string> = `${OrderPrefix}${T}`
 export type OrderList<T extends string> = OrderListItem<T> | OrderListItem<T>[]
 
-export interface LimitAndOffsetFilter {
+export interface LimitFilter {
     limit?: number
+}
+
+export interface LimitAndOffsetFilter extends LimitFilter {
     offset?: number
 }
 

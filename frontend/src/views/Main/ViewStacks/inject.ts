@@ -11,7 +11,7 @@ export interface ViewStacks {
 
 export type DetailViewInfo = {
     type: "image"
-    data: QueryEndpointInstance<Illust> | number[]
+    data: QueryEndpointInstance<Illust> | Illust[]
     currentIndex: number
 } | {
     type: "collection"

@@ -1,13 +1,22 @@
-import { defineComponent } from "vue"
-import TopBarTransparentLayout from "@/layouts/layouts/TopBarTransparentLayout"
+import { defineComponent, provide, ref } from "vue"
+import Dashboard, { dashboardZoomInjection } from "@/components/features/Dashboard"
+import TopBarLayout from "@/layouts/layouts/TopBarLayout"
+import { assetsUrl } from "@/functions/app"
 import TopBarContent from "./TopBarContent"
+import { useDetailViewContext } from "./inject"
 
 export default defineComponent({
     setup() {
+        const { detail } = useDetailViewContext()
+
+        provide(dashboardZoomInjection, {zoom: ref(1)})
+
         const topBarLayoutSlots = {
             topBar() { return <TopBarContent/> },
-            default() {}
+            default() {
+                return detail.target.value && <Dashboard src={assetsUrl(detail.target.value.file)}/>
+            }
         }
-        return () => <TopBarTransparentLayout v-slots={topBarLayoutSlots}/>
+        return () => <TopBarLayout v-slots={topBarLayoutSlots}/>
     }
 })

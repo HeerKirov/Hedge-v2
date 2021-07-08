@@ -46,9 +46,10 @@ export default defineComponent({
         ])
 
         const openDetail = (illustId: number) => {
-            console.log("dbl click", illustId)
-            //TODO grid view传递的数据应该是Illust还是id还是index，需要再考量
-            viewStacks.openView({type: "image", data: endpoint.instance.value, currentIndex: illustId})
+            const currentIndex = dataView.proxy.syncOperations.find(i => i.id === illustId)
+            if(currentIndex !== undefined) {
+                viewStacks.openView({type: "image", data: endpoint.instance.value, currentIndex})
+            }
         }
 
         return () => <IllustGrid data={markRaw(dataView.data.value)} onDataUpdate={dataView.dataUpdate}

@@ -1,6 +1,7 @@
 import { date, datetime, LocalDate, LocalDateTime } from "@/utils/datetime"
 import { HttpInstance, Response } from "../server"
-import { LimitAndOffsetFilter, ListResult, OrderList } from "./generic"
+import { IdResponse, LimitAndOffsetFilter, LimitFilter, ListResult, OrderList } from "./generic"
+import { SimpleAlbum } from "./album"
 import { SimpleTopic } from "./topic"
 import { SimpleAuthor } from "./author"
 import { SimpleTag } from "./tag"
@@ -10,7 +11,50 @@ export function createIllustEndpoint(http: HttpInstance): IllustEndpoint {
         list: http.createQueryRequest("/api/illusts", "GET", {
             parseResponse: ({ total, result }: ListResult<any>) => ({total, result: result.map(mapToIllust)}),
             parseQuery: mapFromIllustFilter
-        })
+        }),
+        collection: {
+            create: http.createDataRequest("/api/illusts/collection", "POST"),
+            get: http.createPathRequest(id => `/api/illusts/collection/${id}`, "GET", {
+                parseResponse: mapToDetailIllust
+            }),
+            update: http.createPathDataRequest(id => `/api/illusts/collection/${id}`, "PATCH"),
+            delete: http.createPathRequest(id => `/api/illusts/collection/${id}`, "DELETE"),
+            relatedItems: {
+                get: http.createPathQueryRequest(id => `/api/illusts/collection/${id}/related-items`, "GET", {
+                    parseResponse: mapToCollectionRelatedItems
+                }),
+                update: http.createPathDataRequest(id => `/api/illusts/collection/${id}/related-items`, "PATCH")
+            },
+            images: {
+                get: http.createPathQueryRequest(id => `/api/illusts/collection/${id}/images`, "GET"),
+                update: http.createPathDataRequest(id => `/api/illusts/collection/${id}/images`, "PUT")
+            }
+        },
+        image: {
+            get: http.createPathRequest(id => `/api/illusts/image/${id}`, "GET", {
+                parseResponse: mapToDetailIllust
+            }),
+            update: http.createPathDataRequest(id => `/api/illusts/image/${id}`, "PATCH", {
+                parseData: mapFromImageUpdateForm
+            }),
+            delete: http.createPathRequest(id => `/api/illusts/image/${id}`, "DELETE"),
+            relatedItems: {
+                get: http.createPathQueryRequest(id => `/api/illusts/image/${id}/related-items`, "GET", {
+                    parseResponse: mapToImageRelatedItems
+                }),
+                update: http.createPathDataRequest(id => `/api/illusts/image/${id}/related-items`, "PATCH")
+            },
+            originData: {
+                get: http.createPathRequest(id => `/api/illusts/image/${id}/origin-data`, "GET"),
+                update: http.createPathDataRequest(id => `/api/illusts/image/${id}/origin-data`, "PATCH")
+            }
+        },
+        associates: {
+            create: http.createDataRequest("/api/associates", "POST"),
+            get: http.createPathQueryRequest(id => `/api/associates/${id}`, "GET"),
+            update: http.createPathDataRequest(id => `/api/associates/${id}`, "PUT"),
+            delete: http.createPathRequest(id => `/api/associates/${id}`, "DELETE")
+        }
     }
 }
 
@@ -44,6 +88,36 @@ function mapToDetailIllust(data: any): DetailIllust {
     }
 }
 
+function mapToCollectionRelatedItems(data: any): CollectionRelatedItems {
+    return {
+        associate: data["associate"] != null ? mapToAssociate(data["associate"]) : null
+    }
+}
+
+function mapToImageRelatedItems(data: any): ImageRelatedItems {
+    return {
+        collection: <SimpleIllust | null>data["collection"],
+        albums: <SimpleAlbum[]>data["albums"],
+        associate: data["associate"] != null ? mapToAssociate(data["associate"]) : null
+    }
+}
+
+function mapToAssociate(data: any): Associate {
+    return {
+        id: <number>data["id"],
+        totalCount: <number>data["totalCount"],
+        items: (<any[]>data["items"]).map(mapToIllust)
+    }
+}
+
+function mapFromImageUpdateForm(form: ImageUpdateForm): any {
+    return {
+        ...form,
+        partitionTime: form.partitionTime !== undefined ? date.toISOString(form.partitionTime) : undefined,
+        orderTime: form.orderTime !== undefined ? datetime.toISOString(form.orderTime) : undefined
+    }
+}
+
 function mapFromIllustFilter(data: IllustFilter) {
     return {
         ...data,
@@ -52,10 +126,149 @@ function mapFromIllustFilter(data: IllustFilter) {
 }
 
 /**
- * 项目。
+ * 图库项目。
  */
 export interface IllustEndpoint {
+    /**
+     * 查询图库项目列表。
+     */
     list(filter: IllustFilter): Promise<Response<ListResult<Illust>>>
+    /**
+     * collection类型的项的操作API。collection是image的集合，不能为空，空集合会自动删除。每个image只能从属一个集合。
+     */
+    collection: {
+        /**
+         * 创建一个新的collection。
+         * @exception PARAM_ERROR ("score") score超出范围
+         * @exception PARAM_REQUIRED ("images") images未提供
+         * @exception RESOURCE_NOT_EXIST ("images", id: number[]) image id不存在或者可能是collection，总之不能用
+         */
+        create(form: CollectionCreateForm): Promise<Response<IdResponse>>
+        /**
+         * 查看collection的元数据。
+         * @exception NOT_FOUND
+         */
+        get(id: number): Promise<Response<DetailIllust>>
+        /**
+         * 更改collection的元数据。
+         * @exception NOT_FOUND
+         * @exception PARAM_ERROR ("score") score超出范围
+         */
+        update(id: number, form: CollectionUpdateForm): Promise<Response<null>>
+        /**
+         * 删除collection。
+         * @exception NOT_FOUND
+         */
+        delete(id: number): Promise<Response<null>>
+        /**
+         * collection的关联内容。只有关联组。
+         */
+        relatedItems: {
+            /**
+             * 查看关联内容。
+             * @exception NOT_FOUND
+             */
+            get(id: number, filter: LimitFilter): Promise<Response<CollectionRelatedItems>>
+            /**
+             * 更改关联内容。
+             * @exception NOT_FOUND
+             * @exception RESOURCE_NOT_EXIST ("associateId", id: number) 目标关联组不存在
+             */
+            update(id: number, form: CollectionRelatedUpdateForm): Promise<Response<null>>
+        }
+        /**
+         * collection的下属image。
+         */
+        images: {
+            /**
+             * 查询下属images。
+             */
+            get(id: number, filter: LimitAndOffsetFilter): Promise<Response<ListResult<Illust>>>
+            /**
+             * 更改下属images。
+             * @exception PARAM_REQUIRED ("images") images未提供
+             * @exception RESOURCE_NOT_EXIST ("images", id: number[]) image id不存在或者可能是collection，总之不能用
+             */
+            update(id: number, imageIds: number[]): Promise<Response<null>>
+        }
+    }
+    /**
+     * image类型的项的操作API。
+     */
+    image: {
+        /**
+         * 查看image的元数据。
+         * @exception NOT_FOUND
+         */
+        get(id: number): Promise<Response<DetailIllust>>
+        /**
+         * 更改image的元数据。
+         * @exception NOT_FOUND
+         * @exception PARAM_ERROR ("score") score超出范围
+         */
+        update(id: number, form: ImageUpdateForm): Promise<Response<null>>
+        /**
+         * 删除image。
+         * @exception NOT_FOUND
+         */
+        delete(id: number): Promise<Response<null>>
+        /**
+         * image的关联内容。包括关联组、所属画集、所属集合。
+         */
+        relatedItems: {
+            /**
+             * 查看关联内容。
+             * @exception NOT_FOUND
+             */
+            get(id: number, filter: LimitFilter): Promise<Response<ImageRelatedItems>>
+            /**
+             * 更改关联内容。
+             * @exception NOT_FOUND
+             * @exception RESOURCE_NOT_EXIST ("associateId"|"collectionId", id: number) 目标关联组/集合不存在
+             */
+            update(id: number, form: ImageRelatedUpdateForm): Promise<Response<null>>
+        }
+        /**
+         * image的原始数据。包括关联的原始数据的id，以及关联到的原始数据内容。
+         */
+        originData: {
+            /**
+             * 查看原始数据。
+             * @exception NOT_FOUND
+             */
+            get(id: number): Promise<Response<ImageOriginData>>
+            /**
+             * 更改原始数据。
+             * @exception NOT_FOUND
+             */
+            update(id: number, form: ImageOriginUpdateForm): Promise<Response<null>>
+        }
+    }
+    /**
+     * 关联组的操作API。关联组是illust的集合，不能为空，空集合会自动删除。每个illust只能枞树一个关联组。
+     */
+    associates: {
+        /**
+         * 使用给定的illust列表，创建新的关联组。
+         * @exception PARAM_ERROR ("illusts") illust列表不能为空
+         */
+        create(illustIds: number[]): Promise<Response<IdResponse>>
+        /**
+         * 查询一个关联组的内容列表。
+         * @exception NOT_FOUND
+         */
+        get(id: number, filter: LimitAndOffsetFilter): Promise<Response<ListResult<Illust>>>
+        /**
+         * 更换关联组的内容列表。
+         * @exception NOT_FOUND
+         * @exception PARAM_ERROR ("illusts") illust列表不能为空
+         */
+        update(id: number, illustIds: number[]): Promise<Response<null>>
+        /**
+         * 删除一个关联组。
+         */
+        delete(id: number): Promise<Response<null>>
+    }
 }
 
 export type IllustType = "COLLECTION" | "IMAGE"
@@ -152,14 +365,158 @@ export interface SimpleIllust {
     thumbnailFile: string | null
 }
 
+export interface CollectionRelatedItems {
+    /**
+     * collection所属的关联组。
+     */
+    associate: Associate | null
+}
+
+export interface ImageRelatedItems {
+    /**
+     * image所属的collection。
+     */
+    collection: SimpleIllust | null
+    /**
+     * image所属的画集列表。
+     */
+    albums: SimpleAlbum[]
+    /**
+     * image所属的关联组。
+     */
+    associate: Associate | null
+}
+
+export interface ImageOriginData {
+    /**
+     * source站点的name。
+     */
+    source: string
+    /**
+     * source站点的显示标题。当此站点没有标题时值为null。
+     */
+    sourceTitle: string | null
+    /**
+     * 此项目的source id。
+     */
+    sourceId: number | null
+    /**
+     * 此项目的secondary id。
+     */
+    sourcePart: number | null
+    /**
+     * 来源数据：标题。
+     */
+    title: string | null
+    /**
+     * 来源数据：描述。
+     */
+    description: string | null
+    /**
+     * 来源数据：标签。
+     */
+    tags: {type: string, name: string, displayName: string | null}[]
+    /**
+     * 来源数据：所属pool的标题列表。
+     */
+    pools: string[] | null
+    /**
+     * 来源数据：关联的children的id列表。
+     */
+    children: number[] | null
+    /**
+     * 来源数据：关联的parent的id列表。
+     */
+    parents: number[] | null
+}
+
+export interface Associate {
+    /**
+     * 此关联组的id。
+     */
+    id: number
+    /**
+     * 此关联组的项目总数。
+     */
+    totalCount: number
+    /**
+     * 此关联组的项目列表。它会被filter所影响。
+     */
+    items: Illust[]
+}
+
+export interface CollectionCreateForm {
+    images: number[]
+    description?: string
+    score?: number
+    favorite?: boolean
+    tagme?: Tagme[]
+}
+
+export interface CollectionUpdateForm {
+    topics?: number[]
+    authors?: number[]
+    tags?: number[]
+    description?: string | null
+    score?: number | null
+    favorite?: boolean
+    tagme?: Tagme[]
+}
+
+export interface CollectionRelatedUpdateForm {
+    associateId?: number
+}
+
+export interface ImageUpdateForm extends CollectionUpdateForm {
+    partitionTime?: LocalDate
+    orderTime?: LocalDateTime
+}
+
+export interface ImageRelatedUpdateForm extends CollectionRelatedUpdateForm {
+    collectionId?: number | null
+}
+
+export interface ImageOriginUpdateForm {
+    source?: string | null
+    sourceId?: number | null
+    sourcePart?: number | null
+    title?: string | null
+    description?: string | null
+    tags?: {type: string, name: string, displayName: string | null}[]
+    pools?: string[]
+    children?: number[]
+    parents?: number[]
+}
+
 export type IllustFilter = IllustQueryFilter & LimitAndOffsetFilter
 
 export interface IllustQueryFilter {
+    /**
+     * 使用HQL进行查询。list API不提示解析结果，需要使用另外的API。
+     */
     query?: string
+    /**
+     * 排序字段列表。优先使用来自HQL的排序。
+     */
     order?: OrderList<"id" | "score" | "orderTime" | "createTime" | "updateTime">
+    /**
+     * 查询类型。IMAGE仅查询image类型；COLLECTION查询collection项以及非collection所属的项。
+     */
     type: IllustType
+    /**
+     * 分区。
+     */
     partition?: LocalDate
+    /**
+     * 收藏标记。
+     */
     favorite?: boolean
+    /**
+     * 按topic id筛选。
+     */
     topic?: number
+    /**
+     * 按author id筛选。
+     */
     author?: number
 }
