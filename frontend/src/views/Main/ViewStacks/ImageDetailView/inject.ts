@@ -1,9 +1,14 @@
+import { computed, ref, Ref, watch } from "vue"
+import {
+    Illust,
+    DetailIllust, ImageOriginData, ImageRelatedItems,
+    ImageUpdateForm, ImageOriginUpdateForm, ImageRelatedUpdateForm
+} from "@/functions/adapter-http/impl/illust"
 import { QueryEndpointInstance } from "@/functions/utils/endpoints/query-endpoint"
-import { Illust } from "@/functions/adapter-http/impl/illust"
-import { computed, ref, Ref, watch } from "vue";
-import { installation } from "@/functions/utils/basic";
-import { useNotification } from "@/functions/document/notification";
-import { useHttpClient } from "@/functions/app";
+import { ObjectEndpoint, useObjectEndpoint } from "@/functions/utils/endpoints/object-endpoint"
+import { useHttpClient } from "@/functions/app"
+import { useNotification } from "@/functions/document/notification"
+import { installation } from "@/functions/utils/basic"
 
 export interface DetailViewContext {
     data: DataAccessor
@@ -15,7 +20,12 @@ export interface DetailViewContext {
         next(): void
         nextWholeIllust(): void
     }
-    detail: Targets
+    detail: Targets & {
+        //TODO 优化为lazy load
+        metadata: ObjectEndpoint<DetailIllust, ImageUpdateForm>
+        relatedItems: ObjectEndpoint<ImageRelatedItems, ImageRelatedUpdateForm>
+        originData: ObjectEndpoint<ImageOriginData, ImageOriginUpdateForm>
+    }
 }
 
 interface Targets {
@@ -32,12 +42,17 @@ export const [installDetailViewContext, useDetailViewContext] = installation(fun
     const data = createDataAccessor(queryEndpoint)
     const { target, collectionItems, ...navigator } = useNavigator(data, initIndex)
 
+    const path = computed(() => target.value?.id ?? null)
+
+    const detailEndpoints = useDetailEndpoints(path)
+
     return {
         data,
         navigator,
         detail: {
             target,
-            collectionItems
+            collectionItems,
+            ...detailEndpoints
         }
     }
 })
@@ -141,6 +156,29 @@ function useNavigator(data: DataAccessor, initIndex: Ref<number>): DetailViewCon
         target,
         collectionItems
     }
+}
+
+function useDetailEndpoints(path: Ref<number | null>) {
+    const metadata = useObjectEndpoint({
+        path,
+        get: httpClient => httpClient.illust.image.get,
+        update: httpClient => httpClient.illust.image.update,
+        delete: httpClient => httpClient.illust.image.delete
+    })
+
+    const relatedItems = useObjectEndpoint({
+        path,
+        get: httpClient => id => httpClient.illust.image.relatedItems.get(id, {limit: 10}),
+        update: httpClient => httpClient.illust.image.relatedItems.update
+    })
+
+    const originData = useObjectEndpoint({
+        path,
+        get: httpClient => httpClient.illust.image.originData.get,
+        update: httpClient => httpClient.illust.image.originData.update
+    })
+
+    return {metadata, relatedItems, originData}
 }
 
 function createDataAccessor(queryEndpoint: QueryEndpointInstance<Illust> | Illust[]): DataAccessor {

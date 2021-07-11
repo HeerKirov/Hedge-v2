@@ -229,16 +229,16 @@ export interface IllustEndpoint {
             update(id: number, form: ImageRelatedUpdateForm): Promise<Response<null>>
         }
         /**
-         * image的原始数据。包括关联的原始数据的id，以及关联到的原始数据内容。
+         * image的来源数据。包括关联的来源数据的id，以及关联到的来源数据内容。
          */
         originData: {
             /**
-             * 查看原始数据。
+             * 查看来源数据。
              * @exception NOT_FOUND
              */
             get(id: number): Promise<Response<ImageOriginData>>
             /**
-             * 更改原始数据。
+             * 更改来源数据。
              * @exception NOT_FOUND
              */
             update(id: number, form: ImageOriginUpdateForm): Promise<Response<null>>

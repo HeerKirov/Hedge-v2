@@ -12,7 +12,7 @@ export interface TagListContext {
      */
     loading: Ref<boolean>
     /**
-     * 树状的原始数据。
+     * 树状的来源数据。
      */
     data: Ref<TagTreeNode[]>
     /**

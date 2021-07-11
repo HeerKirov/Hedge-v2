@@ -56,7 +56,7 @@ export const useSettingSite = simpleInstallation(function() {
                     "Illust": "图库项目",
                     "ImportImage": "导入项目",
                     "SourceAnalyseRule": "来源解析规则",
-                    "SpiderRule": "原始数据爬虫规则"
+                    "SpiderRule": "来源数据爬虫规则"
                 }[res.exception.info]
                 messageBox.showOkMessage("prompt", "无法删除此站点。", `此站点仍存在关联的${resourceName}，请先清理关联项，确保没有意外的级联删除。`)
             }else{

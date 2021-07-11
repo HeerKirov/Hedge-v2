@@ -2,7 +2,7 @@ import { defineComponent } from "vue"
 import { arrays } from "@/utils/collections"
 
 /**
- * 详情页面的侧边栏，显示原始数据的分栏。
+ * 详情页面的侧边栏，显示来源数据的分栏。
  */
 export default defineComponent({
     setup() {

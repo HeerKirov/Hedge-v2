@@ -11,7 +11,7 @@ export default defineComponent({
     setup(props, { emit }) {
         const buttons = [
             {key: "info", title: "图像信息", icon: "info", onClick() { emit("updateTab", "info") }},
-            {key: "origin", title: "原始数据", icon: "file-invoice", onClick() { emit("updateTab", "origin") }},
+            {key: "origin", title: "来源数据", icon: "file-invoice", onClick() { emit("updateTab", "origin") }},
             {key: "others", title: "相关项目", icon: "dice-d6", onClick() { emit("updateTab", "others") }},
         ]
         return () => <div class="buttons">

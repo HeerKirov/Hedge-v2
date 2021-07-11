@@ -18,7 +18,7 @@ export function createSettingSourceEndpoint(http: HttpInstance): SettingSourceEn
 }
 
 /**
- * 设置：原始数据相关的选项。
+ * 设置：来源数据相关的选项。
  * @permission only client
  */
 export interface SettingSourceEndpoint {
