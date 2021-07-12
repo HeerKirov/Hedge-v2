@@ -6,7 +6,7 @@ import com.heerkirov.hedge.server.components.backend.IllustMetaExporter
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.database.transaction
 import com.heerkirov.hedge.server.exceptions.NotFound
-import com.heerkirov.hedge.server.form.*
+import com.heerkirov.hedge.server.dto.*
 import com.heerkirov.hedge.server.components.kit.TopicKit
 import com.heerkirov.hedge.server.components.manager.query.QueryManager
 import com.heerkirov.hedge.server.dao.album.AlbumTopicRelations

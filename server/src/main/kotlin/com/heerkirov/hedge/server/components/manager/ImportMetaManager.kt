@@ -5,7 +5,7 @@ import com.heerkirov.hedge.server.components.database.ImportOption
 import com.heerkirov.hedge.server.exceptions.InvalidOptionError
 import com.heerkirov.hedge.server.exceptions.InvalidRegexError
 import com.heerkirov.hedge.server.library.quarantine.LSQuarantineDatabase
-import com.heerkirov.hedge.server.utils.AutoCloseableComponent
+import com.heerkirov.hedge.server.utils.tools.AutoCloseableComponent
 import java.time.LocalDateTime
 import java.util.concurrent.ConcurrentHashMap
 import java.util.regex.Pattern

@@ -4,7 +4,7 @@ import com.heerkirov.hedge.server.components.http.Endpoints
 import com.heerkirov.hedge.server.components.service.AssociateService
 import com.heerkirov.hedge.server.components.service.IllustService
 import com.heerkirov.hedge.server.exceptions.ParamTypeError
-import com.heerkirov.hedge.server.form.*
+import com.heerkirov.hedge.server.dto.*
 import com.heerkirov.hedge.server.library.form.bodyAsForm
 import com.heerkirov.hedge.server.library.form.queryAsFilter
 import com.heerkirov.hedge.server.model.illust.Illust

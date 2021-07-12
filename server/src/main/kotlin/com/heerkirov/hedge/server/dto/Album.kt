@@ -1,11 +1,9 @@
-package com.heerkirov.hedge.server.form
+package com.heerkirov.hedge.server.dto
 
 import com.heerkirov.hedge.server.library.form.Limit
 import com.heerkirov.hedge.server.library.form.Offset
 import com.heerkirov.hedge.server.library.form.Order
 import com.heerkirov.hedge.server.library.form.Search
-import com.heerkirov.hedge.server.model.album.Album
-import com.heerkirov.hedge.server.model.album.AlbumImageRelation
 import com.heerkirov.hedge.server.model.illust.Illust
 import com.heerkirov.hedge.server.utils.types.Opt
 import com.heerkirov.hedge.server.utils.types.OrderItem

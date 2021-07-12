@@ -3,9 +3,9 @@ package com.heerkirov.hedge.server.components.service
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.dao.collection.Partitions
 import com.heerkirov.hedge.server.exceptions.NotFound
-import com.heerkirov.hedge.server.form.PartitionFilter
-import com.heerkirov.hedge.server.form.PartitionMonthRes
-import com.heerkirov.hedge.server.form.PartitionRes
+import com.heerkirov.hedge.server.dto.PartitionFilter
+import com.heerkirov.hedge.server.dto.PartitionMonthRes
+import com.heerkirov.hedge.server.dto.PartitionRes
 import com.heerkirov.hedge.server.utils.ktorm.firstOrNull
 import com.heerkirov.hedge.server.utils.types.ListResult
 import com.heerkirov.hedge.server.utils.types.toListResult

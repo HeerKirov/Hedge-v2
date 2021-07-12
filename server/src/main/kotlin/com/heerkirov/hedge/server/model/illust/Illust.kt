@@ -1,6 +1,6 @@
 package com.heerkirov.hedge.server.model.illust
 
-import com.heerkirov.hedge.server.utils.Composition
+import com.heerkirov.hedge.server.utils.types.Composition
 import java.time.LocalDate
 import java.time.LocalDateTime
 

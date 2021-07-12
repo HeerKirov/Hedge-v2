@@ -2,9 +2,9 @@ package com.heerkirov.hedge.server.components.service
 
 import com.heerkirov.hedge.server.components.appdata.*
 import com.heerkirov.hedge.server.components.http.WebController
-import com.heerkirov.hedge.server.form.ProxyOptionUpdateForm
-import com.heerkirov.hedge.server.form.WebOptionRes
-import com.heerkirov.hedge.server.form.WebOptionUpdateForm
+import com.heerkirov.hedge.server.dto.ProxyOptionUpdateForm
+import com.heerkirov.hedge.server.dto.WebOptionRes
+import com.heerkirov.hedge.server.dto.WebOptionUpdateForm
 
 class SettingAppdataService(private val appdata: AppDataDriver, private val webController: WebController) {
     fun getWeb(): WebOptionRes {

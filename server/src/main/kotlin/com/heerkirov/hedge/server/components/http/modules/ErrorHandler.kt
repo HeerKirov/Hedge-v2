@@ -2,7 +2,7 @@ package com.heerkirov.hedge.server.components.http.modules
 
 import com.heerkirov.hedge.server.components.http.Endpoints
 import com.heerkirov.hedge.server.exceptions.BaseException
-import com.heerkirov.hedge.server.form.ErrorResult
+import com.heerkirov.hedge.server.dto.ErrorResult
 import io.javalin.Javalin
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory

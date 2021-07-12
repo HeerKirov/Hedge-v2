@@ -6,8 +6,8 @@ import com.heerkirov.hedge.server.dao.source.ImportImages
 import com.heerkirov.hedge.server.exceptions.AlreadyExists
 import com.heerkirov.hedge.server.exceptions.CascadeResourceExists
 import com.heerkirov.hedge.server.exceptions.NotFound
-import com.heerkirov.hedge.server.form.SiteCreateForm
-import com.heerkirov.hedge.server.form.SiteUpdateForm
+import com.heerkirov.hedge.server.dto.SiteCreateForm
+import com.heerkirov.hedge.server.dto.SiteUpdateForm
 import org.ktorm.dsl.eq
 import org.ktorm.entity.any
 import org.ktorm.entity.sequenceOf

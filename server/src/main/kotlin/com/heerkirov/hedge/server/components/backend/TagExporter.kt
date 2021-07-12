@@ -6,7 +6,7 @@ import com.heerkirov.hedge.server.components.database.transaction
 import com.heerkirov.hedge.server.dao.meta.Tags
 import com.heerkirov.hedge.server.enums.LoadStatus
 import com.heerkirov.hedge.server.library.framework.Component
-import com.heerkirov.hedge.server.utils.controlledThread
+import com.heerkirov.hedge.server.utils.tools.controlledThread
 import org.ktorm.dsl.BatchUpdateStatementBuilder
 import org.ktorm.dsl.batchUpdate
 import org.ktorm.dsl.eq

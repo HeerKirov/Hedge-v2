@@ -1,7 +1,7 @@
 package com.heerkirov.hedge.server.components.http.routes
 
 import com.heerkirov.hedge.server.components.http.Endpoints
-import com.heerkirov.hedge.server.form.*
+import com.heerkirov.hedge.server.dto.*
 import com.heerkirov.hedge.server.library.form.bodyAsForm
 import com.heerkirov.hedge.server.library.form.queryAsFilter
 import com.heerkirov.hedge.server.components.service.TopicService

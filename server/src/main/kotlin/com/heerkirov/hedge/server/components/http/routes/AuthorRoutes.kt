@@ -1,13 +1,13 @@
 package com.heerkirov.hedge.server.components.http.routes
 
 import com.heerkirov.hedge.server.components.http.Endpoints
-import com.heerkirov.hedge.server.form.AuthorCreateForm
-import com.heerkirov.hedge.server.form.AuthorFilter
-import com.heerkirov.hedge.server.form.AuthorUpdateForm
+import com.heerkirov.hedge.server.dto.AuthorCreateForm
+import com.heerkirov.hedge.server.dto.AuthorFilter
+import com.heerkirov.hedge.server.dto.AuthorUpdateForm
 import com.heerkirov.hedge.server.library.form.bodyAsForm
 import com.heerkirov.hedge.server.library.form.queryAsFilter
 import com.heerkirov.hedge.server.components.service.AuthorService
-import com.heerkirov.hedge.server.form.IdRes
+import com.heerkirov.hedge.server.dto.IdRes
 import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder.*
 import io.javalin.http.Context

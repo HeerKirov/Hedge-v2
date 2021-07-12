@@ -4,7 +4,7 @@ import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.dao.meta.*
 import com.heerkirov.hedge.server.exceptions.AlreadyExists
 import com.heerkirov.hedge.server.exceptions.ParamError
-import com.heerkirov.hedge.server.tools.checkTagName
+import com.heerkirov.hedge.server.utils.business.checkTagName
 import com.heerkirov.hedge.server.utils.ktorm.asSequence
 import com.heerkirov.hedge.server.utils.runIf
 import org.ktorm.dsl.*

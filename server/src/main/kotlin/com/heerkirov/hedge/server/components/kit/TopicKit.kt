@@ -7,7 +7,7 @@ import com.heerkirov.hedge.server.dao.meta.Topics
 import com.heerkirov.hedge.server.exceptions.*
 import com.heerkirov.hedge.server.model.meta.Annotation
 import com.heerkirov.hedge.server.model.meta.Topic
-import com.heerkirov.hedge.server.tools.checkTagName
+import com.heerkirov.hedge.server.utils.business.checkTagName
 import com.heerkirov.hedge.server.utils.ktorm.asSequence
 import com.heerkirov.hedge.server.utils.runIf
 import org.ktorm.dsl.*

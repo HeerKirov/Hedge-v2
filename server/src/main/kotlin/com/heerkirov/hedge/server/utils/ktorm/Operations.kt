@@ -1,6 +1,6 @@
 package com.heerkirov.hedge.server.utils.ktorm
 
-import com.heerkirov.hedge.server.utils.Composition
+import com.heerkirov.hedge.server.utils.types.Composition
 import org.ktorm.expression.ArgumentExpression
 import org.ktorm.expression.ScalarExpression
 import org.ktorm.schema.BooleanSqlType

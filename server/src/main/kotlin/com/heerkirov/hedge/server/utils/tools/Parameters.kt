@@ -1,4 +1,4 @@
-package com.heerkirov.hedge.server.utils
+package com.heerkirov.hedge.server.utils.tools
 
 class Parameters(private val args: Array<String>) {
     fun contain(flag: String): Boolean {

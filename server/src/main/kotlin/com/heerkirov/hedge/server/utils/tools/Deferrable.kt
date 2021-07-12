@@ -1,4 +1,4 @@
-package com.heerkirov.hedge.server.utils
+package com.heerkirov.hedge.server.utils.tools
 
 
 class Deferrable(private val completes: MutableList<() -> Unit>,

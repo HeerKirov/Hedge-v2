@@ -1,11 +1,7 @@
 package com.heerkirov.hedge.server.components.service
 
 import com.heerkirov.hedge.server.components.database.*
-import com.heerkirov.hedge.server.exceptions.InvalidRuleIndexError
-import com.heerkirov.hedge.server.exceptions.ResourceNotExist
-import com.heerkirov.hedge.server.form.ImportOptionUpdateForm
-import com.heerkirov.hedge.server.form.MetaOptionUpdateForm
-import com.heerkirov.hedge.server.utils.toBaseElements
+import com.heerkirov.hedge.server.dto.MetaOptionUpdateForm
 
 class SettingMetaService(private val data: DataRepository) {
     fun get(): MetaOption {

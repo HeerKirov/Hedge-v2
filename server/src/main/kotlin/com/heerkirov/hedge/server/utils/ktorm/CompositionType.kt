@@ -1,7 +1,7 @@
 package com.heerkirov.hedge.server.utils.ktorm
 
-import com.heerkirov.hedge.server.utils.Composition
-import com.heerkirov.hedge.server.utils.CompositionGenerator
+import com.heerkirov.hedge.server.utils.types.Composition
+import com.heerkirov.hedge.server.utils.types.CompositionGenerator
 import org.ktorm.schema.*
 import java.sql.PreparedStatement
 import java.sql.ResultSet

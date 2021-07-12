@@ -2,7 +2,7 @@ package com.heerkirov.hedge.server.components.service
 
 import com.heerkirov.hedge.server.components.database.*
 import com.heerkirov.hedge.server.exceptions.ResourceNotExist
-import com.heerkirov.hedge.server.form.SpiderOptionUpdateForm
+import com.heerkirov.hedge.server.dto.SpiderOptionUpdateForm
 
 class SettingSpiderService(private val data: DataRepository) {
     private val ruleList = mapOf(

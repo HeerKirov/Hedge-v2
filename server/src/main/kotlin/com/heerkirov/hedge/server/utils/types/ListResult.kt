@@ -1,6 +1,6 @@
 package com.heerkirov.hedge.server.utils.types
 
-import com.heerkirov.hedge.server.form.ErrorResult
+import com.heerkirov.hedge.server.dto.ErrorResult
 import org.ktorm.dsl.Query
 import org.ktorm.dsl.QueryRowSet
 import org.ktorm.dsl.map

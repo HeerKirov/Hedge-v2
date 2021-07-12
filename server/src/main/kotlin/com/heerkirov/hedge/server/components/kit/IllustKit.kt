@@ -11,11 +11,11 @@ import com.heerkirov.hedge.server.exceptions.ParamRequired
 import com.heerkirov.hedge.server.exceptions.ResourceNotExist
 import com.heerkirov.hedge.server.model.illust.Illust
 import com.heerkirov.hedge.server.model.meta.Annotation
-import com.heerkirov.hedge.server.tools.checkScore
+import com.heerkirov.hedge.server.utils.business.checkScore
 import com.heerkirov.hedge.server.utils.DateTime
 import com.heerkirov.hedge.server.utils.ktorm.asSequence
 import com.heerkirov.hedge.server.utils.types.Opt
-import com.heerkirov.hedge.server.utils.union
+import com.heerkirov.hedge.server.utils.types.union
 import org.ktorm.dsl.*
 import org.ktorm.dsl.where
 import org.ktorm.entity.*

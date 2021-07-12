@@ -1,4 +1,4 @@
-package com.heerkirov.hedge.server.tools
+package com.heerkirov.hedge.server.utils.business
 
 /**
  * 检查name的命名是否符合要求。用于tag类entity的检查。

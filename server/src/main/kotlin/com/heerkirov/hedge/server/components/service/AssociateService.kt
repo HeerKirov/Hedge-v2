@@ -8,10 +8,10 @@ import com.heerkirov.hedge.server.dao.illust.Illusts
 import com.heerkirov.hedge.server.dao.source.FileRecords
 import com.heerkirov.hedge.server.exceptions.NotFound
 import com.heerkirov.hedge.server.exceptions.ParamError
-import com.heerkirov.hedge.server.form.IllustRes
-import com.heerkirov.hedge.server.form.LimitAndOffsetFilter
+import com.heerkirov.hedge.server.dto.IllustRes
+import com.heerkirov.hedge.server.dto.LimitAndOffsetFilter
 import com.heerkirov.hedge.server.model.illust.Illust
-import com.heerkirov.hedge.server.tools.takeAllFilepath
+import com.heerkirov.hedge.server.utils.business.takeAllFilepath
 import com.heerkirov.hedge.server.utils.DateTime.parseDateTime
 import com.heerkirov.hedge.server.utils.types.ListResult
 import com.heerkirov.hedge.server.utils.types.toListResult

@@ -1,4 +1,4 @@
-package com.heerkirov.hedge.server.form
+package com.heerkirov.hedge.server.dto
 
 import com.heerkirov.hedge.server.components.manager.query.QueryManager
 import com.heerkirov.hedge.server.library.compiler.translator.visual.VisualQueryPlan

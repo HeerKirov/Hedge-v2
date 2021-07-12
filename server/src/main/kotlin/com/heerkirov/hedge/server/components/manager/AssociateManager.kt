@@ -5,10 +5,10 @@ import com.heerkirov.hedge.server.dao.illust.Associates
 import com.heerkirov.hedge.server.dao.illust.Illusts
 import com.heerkirov.hedge.server.dao.source.FileRecords
 import com.heerkirov.hedge.server.exceptions.ResourceNotExist
-import com.heerkirov.hedge.server.form.AssociateRes
-import com.heerkirov.hedge.server.form.IllustRes
+import com.heerkirov.hedge.server.dto.AssociateRes
+import com.heerkirov.hedge.server.dto.IllustRes
 import com.heerkirov.hedge.server.model.illust.Illust
-import com.heerkirov.hedge.server.tools.takeAllFilepath
+import com.heerkirov.hedge.server.utils.business.takeAllFilepath
 import com.heerkirov.hedge.server.utils.DateTime.parseDateTime
 import org.ktorm.dsl.*
 import org.ktorm.entity.first

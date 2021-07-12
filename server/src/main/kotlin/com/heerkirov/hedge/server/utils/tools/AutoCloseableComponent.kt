@@ -1,4 +1,4 @@
-package com.heerkirov.hedge.server.utils
+package com.heerkirov.hedge.server.utils.tools
 
 import java.io.Closeable
 import kotlin.concurrent.thread

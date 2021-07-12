@@ -1,4 +1,4 @@
-package com.heerkirov.hedge.server.form
+package com.heerkirov.hedge.server.dto
 
 import com.heerkirov.hedge.server.components.database.ImportOption
 import com.heerkirov.hedge.server.components.database.MetaOption

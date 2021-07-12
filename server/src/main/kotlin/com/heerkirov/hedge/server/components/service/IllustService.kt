@@ -19,10 +19,10 @@ import com.heerkirov.hedge.server.dao.source.FileRecords
 import com.heerkirov.hedge.server.dao.source.SourceImages
 import com.heerkirov.hedge.server.exceptions.NotFound
 import com.heerkirov.hedge.server.exceptions.ResourceNotExist
-import com.heerkirov.hedge.server.form.*
+import com.heerkirov.hedge.server.dto.*
 import com.heerkirov.hedge.server.model.illust.Illust
 import com.heerkirov.hedge.server.model.meta.Tag
-import com.heerkirov.hedge.server.tools.*
+import com.heerkirov.hedge.server.utils.business.*
 import com.heerkirov.hedge.server.utils.DateTime
 import com.heerkirov.hedge.server.utils.DateTime.parseDateTime
 import com.heerkirov.hedge.server.utils.DateTime.toMillisecond
@@ -364,7 +364,7 @@ class IllustService(private val data: DataRepository,
             val newExportedScore = form.score.letOpt { it ?: parent?.score }
 
             val newDescription = form.description.letOpt { it ?: "" }
-            val newExportedDescription = newDescription.letOpt { if(it.isEmpty()) parent?.description ?: "" else it }
+            val newExportedDescription = newDescription.letOpt { it.ifEmpty { parent?.description ?: "" } }
 
             form.partitionTime.alsoOpt {
                 if(illust.partitionTime != it) partitionManager.updateItemPartition(illust.partitionTime, it)

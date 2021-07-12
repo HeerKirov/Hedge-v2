@@ -3,19 +3,19 @@ package com.heerkirov.hedge.server.utils
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-class SQLUtilTest {
+class SqlDelimiterTest {
     @Test
     fun test() {
         assertEquals(
             listOf("SELECT * FROM TEST", "SELECT count(1)"),
-            SQLUtil.splitByDelimiter("""
+            SqlDelimiter.splitByDelimiter("""
                 SELECT * FROM TEST;
                 SELECT count(1);
             """.trimIndent()))
 
         assertEquals(
             listOf("SELECT  * FROM TEST", "SELECT count(1)"),
-            SQLUtil.splitByDelimiter("""
+            SqlDelimiter.splitByDelimiter("""
                 SELECT/*hello?*/ * FROM TEST;
                 --oh
                 SELECT count(1);--ok
@@ -24,7 +24,7 @@ class SQLUtilTest {
 
         assertEquals(
             listOf("SELECT *\nFROM\nTEST", "SELECT count(1)"),
-            SQLUtil.splitByDelimiter("""
+            SqlDelimiter.splitByDelimiter("""
                 SELECT *
                 FROM
                 TEST;SELECT count(1);

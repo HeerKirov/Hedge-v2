@@ -3,7 +3,7 @@ package com.heerkirov.hedge.server.components.http.routes
 import com.heerkirov.hedge.server.components.http.Endpoints
 import com.heerkirov.hedge.server.components.service.AlbumService
 import com.heerkirov.hedge.server.exceptions.ParamTypeError
-import com.heerkirov.hedge.server.form.*
+import com.heerkirov.hedge.server.dto.*
 import com.heerkirov.hedge.server.library.form.bodyAsForm
 import com.heerkirov.hedge.server.library.form.queryAsFilter
 import io.javalin.Javalin

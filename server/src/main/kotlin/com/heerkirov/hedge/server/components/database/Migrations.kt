@@ -2,7 +2,7 @@ package com.heerkirov.hedge.server.components.database
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.heerkirov.hedge.server.utils.Resources
-import com.heerkirov.hedge.server.utils.SQLUtil
+import com.heerkirov.hedge.server.utils.SqlDelimiter
 import com.heerkirov.hedge.server.utils.migrations.*
 import org.ktorm.database.Database
 
@@ -80,7 +80,7 @@ object DatabaseMigrationStrategy : SimpleStrategy<Database>() {
         useConnection { conn ->
             conn.createStatement().use { stat ->
                 Resources.getResourceAsText("migrations/v$version.sql")
-                    .let { SQLUtil.splitByDelimiter(it) }
+                    .let { SqlDelimiter.splitByDelimiter(it) }
                     .forEach { stat.execute(it) }
             }
         }

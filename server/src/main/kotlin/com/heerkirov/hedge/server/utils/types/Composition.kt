@@ -1,4 +1,4 @@
-package com.heerkirov.hedge.server.utils
+package com.heerkirov.hedge.server.utils.types
 
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KClass

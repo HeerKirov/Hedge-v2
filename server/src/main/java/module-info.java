@@ -29,7 +29,7 @@ module com.heerkirov.hedge.server {
     opens com.heerkirov.hedge.server.model.meta;
     opens com.heerkirov.hedge.server.model.illust;
     opens com.heerkirov.hedge.server.model.system;
-    opens com.heerkirov.hedge.server.form;
+    opens com.heerkirov.hedge.server.dto;
     opens com.heerkirov.hedge.server.exceptions;
     opens com.heerkirov.hedge.server.utils.types;
     exports com.heerkirov.hedge.server.library.compiler.translator.visual to com.fasterxml.jackson.databind;

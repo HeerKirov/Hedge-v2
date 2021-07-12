@@ -7,7 +7,7 @@ import com.heerkirov.hedge.server.components.backend.TagExporter
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.database.transaction
 import com.heerkirov.hedge.server.exceptions.*
-import com.heerkirov.hedge.server.form.*
+import com.heerkirov.hedge.server.dto.*
 import com.heerkirov.hedge.server.components.manager.FileManager
 import com.heerkirov.hedge.server.components.kit.TagKit
 import com.heerkirov.hedge.server.components.manager.query.QueryManager
@@ -19,7 +19,7 @@ import com.heerkirov.hedge.server.dao.meta.TagAnnotationRelations
 import com.heerkirov.hedge.server.dao.meta.Tags
 import com.heerkirov.hedge.server.dao.source.FileRecords
 import com.heerkirov.hedge.server.model.meta.Tag
-import com.heerkirov.hedge.server.tools.takeThumbnailFilepath
+import com.heerkirov.hedge.server.utils.business.takeThumbnailFilepath
 import com.heerkirov.hedge.server.utils.*
 import com.heerkirov.hedge.server.utils.ktorm.OrderTranslator
 import com.heerkirov.hedge.server.utils.ktorm.orderBy

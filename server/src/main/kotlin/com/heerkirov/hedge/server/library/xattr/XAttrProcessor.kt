@@ -2,7 +2,7 @@ package com.heerkirov.hedge.server.library.xattr
 
 import com.dd.plist.NSArray
 import com.dd.plist.PropertyListParser
-import com.heerkirov.hedge.server.utils.defer
+import com.heerkirov.hedge.server.utils.tools.defer
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader

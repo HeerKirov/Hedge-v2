@@ -8,11 +8,10 @@ import com.heerkirov.hedge.server.dao.meta.Tags
 import com.heerkirov.hedge.server.exceptions.ParamError
 import com.heerkirov.hedge.server.exceptions.ResourceNotSuitable
 import com.heerkirov.hedge.server.exceptions.ResourceNotExist
-import com.heerkirov.hedge.server.form.TagIndexedInfoRes
 import com.heerkirov.hedge.server.model.meta.Annotation
 import com.heerkirov.hedge.server.model.illust.Illust
 import com.heerkirov.hedge.server.model.meta.Tag
-import com.heerkirov.hedge.server.tools.checkTagName
+import com.heerkirov.hedge.server.utils.business.checkTagName
 import com.heerkirov.hedge.server.utils.ktorm.asSequence
 import org.ktorm.dsl.*
 import org.ktorm.entity.filter

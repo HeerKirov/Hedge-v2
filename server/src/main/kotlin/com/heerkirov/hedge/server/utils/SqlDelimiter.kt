@@ -2,7 +2,7 @@ package com.heerkirov.hedge.server.utils
 
 import java.util.*
 
-object SQLUtil {
+object SqlDelimiter {
     /**
      * 给出一段(可以包括数行)SQL语句。使用分号，将其分割为单句的SQL语句。
      * @param SQL SQL语句段
