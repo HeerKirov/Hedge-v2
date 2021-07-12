@@ -10,7 +10,7 @@ module com.heerkirov.hedge.server {
     requires ktorm.support.sqlite;
     requires org.xerial.sqlitejdbc;
     requires com.fasterxml.jackson.databind;
-    requires com.fasterxml.jackson.kotlin;
+    requires jackson.module.kotlin;
     requires java.desktop;
     requires jave.core;
     requires org.slf4j;

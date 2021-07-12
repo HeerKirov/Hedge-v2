@@ -13,7 +13,7 @@ dependencies {
     val javalinVersion = "3.13.8"
     val ktormVersion = "3.4.1"
     val sqliteVersion = "3.36.0"
-    val jacksonVersion = "2.12.3"
+    val jacksonVersion = "2.11.4" //fk, how to upgrade it?
     val javeVersion = "3.1.1"
     val plistVersion = "1.23"
     val slf4jVersion = "1.7.31"
@@ -22,6 +22,7 @@ dependencies {
     implementation(group = "org.jetbrains.kotlin", name = "kotlin-stdlib-jdk8", version = kotlinVersion)
     implementation(group = "org.jetbrains.kotlin", name = "kotlin-reflect", version = kotlinVersion)
     implementation(group = "com.fasterxml.jackson.core", name = "jackson-core", version = jacksonVersion)
+    implementation(group = "com.fasterxml.jackson.core", name = "jackson-databind", version = jacksonVersion)
     implementation(group = "com.fasterxml.jackson.module", name = "jackson-module-kotlin", version = jacksonVersion)
     implementation(group = "org.xerial", name = "sqlite-jdbc", version = sqliteVersion)
     implementation(group = "org.ktorm", name = "ktorm-core", version = ktormVersion)
@@ -91,7 +92,7 @@ tasks {
 }
 
 jlink {
-    options.set(listOf("--strip-debug", "--compress", "2", "--no-header-files", "--no-man-pages"))
+    options.set(listOf("--strip-debug", "--compress", "1", "--no-header-files", "--no-man-pages"))
     launcher {
         name = projectBinaryName
     }
