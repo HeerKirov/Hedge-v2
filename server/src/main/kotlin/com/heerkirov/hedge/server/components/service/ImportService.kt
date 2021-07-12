@@ -1,6 +1,6 @@
 package com.heerkirov.hedge.server.components.service
 
-import com.heerkirov.hedge.server.components.backend.ThumbnailGenerator
+import com.heerkirov.hedge.server.components.backend.FileGenerator
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.database.ImportOption
 import com.heerkirov.hedge.server.components.database.transaction
@@ -10,10 +10,11 @@ import com.heerkirov.hedge.server.dao.source.ImportImages
 import com.heerkirov.hedge.server.dto.*
 import com.heerkirov.hedge.server.exceptions.*
 import com.heerkirov.hedge.server.model.illust.Illust
-import com.heerkirov.hedge.server.utils.business.takeAllFilepath
+import com.heerkirov.hedge.server.model.source.FileRecord
 import com.heerkirov.hedge.server.utils.DateTime.parseDateTime
 import com.heerkirov.hedge.server.utils.DateTime.toMillisecond
 import com.heerkirov.hedge.server.utils.Fs
+import com.heerkirov.hedge.server.utils.business.takeAllFilepathOrNull
 import com.heerkirov.hedge.server.utils.tools.defer
 import com.heerkirov.hedge.server.utils.deleteIfExists
 import com.heerkirov.hedge.server.utils.ktorm.OrderTranslator
@@ -35,7 +36,7 @@ class ImportService(private val data: DataRepository,
                     private val illustManager: IllustManager,
                     private val sourceManager: SourceManager,
                     private val importMetaManager: ImportMetaManager,
-                    private val thumbnailGenerator: ThumbnailGenerator) {
+                    private val fileGenerator: FileGenerator) {
     private val orderTranslator = OrderTranslator {
         "id" to ImportImages.id
         "fileCreateTime" to ImportImages.fileCreateTime nulls last
@@ -47,11 +48,11 @@ class ImportService(private val data: DataRepository,
     fun list(filter: ImportFilter): ListResult<ImportImageRes> {
         return data.db.from(ImportImages)
             .innerJoin(FileRecords, FileRecords.id eq ImportImages.fileId)
-            .select(ImportImages.id, ImportImages.fileName, ImportImages.fileImportTime, FileRecords.id, FileRecords.folder, FileRecords.extension, FileRecords.thumbnail)
+            .select(ImportImages.id, ImportImages.fileName, ImportImages.fileImportTime, FileRecords.id, FileRecords.folder, FileRecords.extension, FileRecords.status)
             .orderBy(orderTranslator, filter.order)
             .limit(filter.offset, filter.limit)
             .toListResult {
-                val (file, thumbnailFile) = takeAllFilepath(it)
+                val (file, thumbnailFile) = takeAllFilepathOrNull(it)
                 ImportImageRes(it[ImportImages.id]!!, file, thumbnailFile, it[ImportImages.fileName], it[ImportImages.fileImportTime]!!)
             }
     }
@@ -65,7 +66,7 @@ class ImportService(private val data: DataRepository,
         val fileId = data.db.transaction { fileManager.newFile(file) }.alsoExcept { fileId ->
             fileManager.revertNewFile(fileId)
         }.alsoReturns {
-            thumbnailGenerator.appendTask(it)
+            fileGenerator.appendTask(it)
         }
 
         data.db.transaction {
@@ -83,7 +84,7 @@ class ImportService(private val data: DataRepository,
         val fileId = data.db.transaction { fileManager.newFile(file) }.alsoExcept { fileId ->
             fileManager.revertNewFile(fileId)
         }.alsoReturns {
-            thumbnailGenerator.appendTask(it)
+            fileGenerator.appendTask(it)
         }
 
         data.db.transaction {
@@ -98,7 +99,7 @@ class ImportService(private val data: DataRepository,
             .where { ImportImages.id eq id }
             .firstOrNull() ?: throw NotFound()
 
-        val (file, thumbnailFile) = takeAllFilepath(row)
+        val (file, thumbnailFile) = takeAllFilepathOrNull(row)
 
         return ImportImageDetailRes(
             row[ImportImages.id]!!,
@@ -152,7 +153,7 @@ class ImportService(private val data: DataRepository,
         data.db.transaction {
             val row = data.db.from(ImportImages).select(ImportImages.fileId).where { ImportImages.id eq id }.firstOrNull() ?: throw NotFound()
             data.db.delete(ImportImages) { it.id eq id }
-            fileManager.deleteFile(row[ImportImages.fileId]!!)
+            fileManager.trashFile(row[ImportImages.fileId]!!)
         }
     }
 
@@ -245,27 +246,34 @@ class ImportService(private val data: DataRepository,
 
     fun save(): ImportSaveRes {
         data.db.transaction {
-            val records = data.db.sequenceOf(ImportImages).toList()
+            val records = data.db.from(ImportImages)
+                .innerJoin(FileRecords, ImportImages.fileId eq FileRecords.id)
+                .select()
+                .map { Pair(ImportImages.createEntity(it), FileRecords.createEntity(it)) }
 
             val errors = mutableMapOf<Int, ErrorResult>()
             val succeeds = mutableListOf<Int>()
 
-            for (record in records) {
-                try {
-                    illustManager.newImage(
-                        fileId = record.fileId,
-                        tagme = record.tagme,
-                        source = record.source,
-                        sourceId = record.sourceId,
-                        sourcePart = record.sourcePart,
-                        partitionTime = record.partitionTime,
-                        orderTime = record.orderTime,
-                        createTime = record.createTime)
-                }catch (e: BaseException) {
-                    errors[record.id] = ErrorResult(e)
-                    continue
+            for ((record, file) in records) {
+                if(file.status != FileRecord.FileStatus.NOT_READY) {
+                    try {
+                        illustManager.newImage(
+                            fileId = record.fileId,
+                            tagme = record.tagme,
+                            source = record.source,
+                            sourceId = record.sourceId,
+                            sourcePart = record.sourcePart,
+                            partitionTime = record.partitionTime,
+                            orderTime = record.orderTime,
+                            createTime = record.createTime)
+                    }catch (e: BaseException) {
+                        errors[record.id] = ErrorResult(e)
+                        continue
+                    }
+                    succeeds.add(record.id)
+                }else{
+                    errors[record.id] = ErrorResult(NotReadyFileError())
                 }
-                succeeds.add(record.id)
             }
 
             data.db.delete(ImportImages) { it.id inList succeeds }

@@ -68,7 +68,7 @@ class IllustService(private val data: DataRepository,
             .let { if(filter.topic == null) it else it.innerJoin(IllustTopicRelations, (IllustTopicRelations.illustId eq Illusts.id) and (IllustTopicRelations.topicId eq filter.topic)) }
             .let { if(filter.author == null) it else it.innerJoin(IllustAuthorRelations, (IllustAuthorRelations.illustId eq Illusts.id) and (IllustAuthorRelations.authorId eq filter.author)) }
             .select(Illusts.id, Illusts.type, Illusts.exportedScore, Illusts.favorite, Illusts.tagme, Illusts.orderTime, Illusts.cachedChildrenCount,
-                FileRecords.id, FileRecords.folder, FileRecords.extension, FileRecords.thumbnail)
+                FileRecords.id, FileRecords.folder, FileRecords.extension, FileRecords.status)
             .whereWithConditions {
                 it += when(filter.type) {
                     Illust.IllustType.COLLECTION -> (Illusts.type eq Illust.Type.COLLECTION) or (Illusts.type eq Illust.Type.IMAGE)
@@ -103,7 +103,7 @@ class IllustService(private val data: DataRepository,
     fun get(id: Int, type: Illust.IllustType): IllustDetailRes {
         val row = data.db.from(Illusts)
             .innerJoin(FileRecords, FileRecords.id eq Illusts.fileId)
-            .select(FileRecords.id, FileRecords.folder, FileRecords.extension, FileRecords.thumbnail,
+            .select(FileRecords.id, FileRecords.folder, FileRecords.extension, FileRecords.status,
                 Illusts.description, Illusts.score,
                 Illusts.exportedDescription, Illusts.exportedScore, Illusts.favorite, Illusts.tagme,
                 Illusts.partitionTime, Illusts.orderTime, Illusts.createTime, Illusts.updateTime)
@@ -136,7 +136,7 @@ class IllustService(private val data: DataRepository,
             .map {
                 val topicType = it[Topics.type]!!
                 val color = topicColors[topicType]
-                TopicSimpleRes(it[Topics.id]!!, it[Topics.name]!!, topicType, it[AlbumTopicRelations.isExported]!!, color)
+                TopicSimpleRes(it[Topics.id]!!, it[Topics.name]!!, topicType, it[IllustTopicRelations.isExported]!!, color)
             }
 
         val authors = data.db.from(Authors)
@@ -184,7 +184,7 @@ class IllustService(private val data: DataRepository,
         return data.db.from(Illusts)
             .innerJoin(FileRecords, Illusts.fileId eq FileRecords.id)
             .select(Illusts.id, Illusts.type, Illusts.exportedScore, Illusts.favorite, Illusts.tagme, Illusts.orderTime,
-                FileRecords.id, FileRecords.folder, FileRecords.extension, FileRecords.thumbnail)
+                FileRecords.id, FileRecords.folder, FileRecords.extension, FileRecords.status)
             .where { (Illusts.parentId eq id) and (Illusts.type eq Illust.Type.IMAGE_WITH_PARENT) }
             .limit(filter.offset, filter.limit)
             .orderBy(Illusts.orderTime.asc())
@@ -211,7 +211,7 @@ class IllustService(private val data: DataRepository,
 
         val parent = if(parentId == null) null else data.db.from(Illusts)
             .innerJoin(FileRecords, FileRecords.id eq Illusts.fileId)
-            .select(Illusts.id, FileRecords.id, FileRecords.folder, FileRecords.extension, FileRecords.thumbnail)
+            .select(Illusts.id, FileRecords.id, FileRecords.folder, FileRecords.extension, FileRecords.status)
             .where { Illusts.id eq parentId }
             .firstOrNull()
             ?.let { IllustSimpleRes(it[Illusts.id]!!, takeThumbnailFilepath(it)) }
@@ -501,7 +501,7 @@ class IllustService(private val data: DataRepository,
                 //存在parent时，执行parent重导出处理。
                 if(illust.parentId != null) illustManager.processRemoveItemFromCollection(illust.parentId, illust)
                 //删除关联的file。无法撤销的删除放到最后，这样不必回滚
-                fileManager.deleteFile(illust.fileId)
+                fileManager.trashFile(illust.fileId)
             }else{
                 val children = data.db.from(Illusts).select(Illusts.id)
                     .where { Illusts.parentId eq id }

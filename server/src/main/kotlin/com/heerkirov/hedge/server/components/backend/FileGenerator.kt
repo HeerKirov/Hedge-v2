@@ -20,17 +20,19 @@ import java.io.File
 import java.util.*
 
 /**
- * 处理缩略图生成的后台任务。每当新建了新的File时，都应当在后台任务生成其缩略图。
+ * 处理文件的后台任务。每当新建了新的File时，都应当在后台任务生成其缩略图，并解析其附加参数。
  */
-interface ThumbnailGenerator : StatefulComponent {
+interface FileGenerator : StatefulComponent {
     /**
      * 添加一个新任务。任务不会被持久化，因此此方法仅用于新建File时对此组件发出通知。
      */
     fun appendTask(fileId: Int)
 }
 
-class ThumbnailGeneratorImpl(private val configurationDriver: ConfigurationDriver, private val data: DataRepository) : ThumbnailGenerator {
-    private val log = LoggerFactory.getLogger(ThumbnailGenerator::class.java)
+const val GENERATE_INTERVAL: Long = 200
+
+class FileGeneratorImpl(private val configurationDriver: ConfigurationDriver, private val data: DataRepository) : FileGenerator {
+    private val log = LoggerFactory.getLogger(FileGenerator::class.java)
 
     private val queue: MutableList<Int> = LinkedList()
 
@@ -42,7 +44,7 @@ class ThumbnailGeneratorImpl(private val configurationDriver: ConfigurationDrive
         if(data.status == LoadStatus.LOADED) {
             val tasks = data.db.from(FileRecords)
                 .select(FileRecords.id)
-                .where { FileRecords.deleted.not() and (FileRecords.thumbnail eq FileRecord.ThumbnailStatus.NULL) }
+                .where { FileRecords.deleted.not() and (FileRecords.status eq FileRecord.FileStatus.NOT_READY) }
                 .orderBy(FileRecords.updateTime.asc())
                 .map { it[FileRecords.id]!! }
             if(tasks.isNotEmpty()) {
@@ -72,11 +74,11 @@ class ThumbnailGeneratorImpl(private val configurationDriver: ConfigurationDrive
 
         try {
             val fileRecord = data.db.sequenceOf(FileRecords).firstOrNull { it.id eq fileId }
-            if(fileRecord != null && fileRecord.thumbnail == FileRecord.ThumbnailStatus.NULL) {
+            if(fileRecord != null && fileRecord.status == FileRecord.FileStatus.NOT_READY) {
                 val filepath = getFilepath(fileRecord.folder, fileRecord.id, fileRecord.extension)
                 val file = File("${configurationDriver.dbPath}/${Filename.FOLDER}/$filepath")
                 if(file.exists()) {
-                    val tempFile = ImageProcessor.generateThumbnail(file)
+                    val (tempFile, resolutionWidth, resolutionHeight) = ImageProcessor.process(file)
                     if(tempFile != null) {
                         val thumbnailFilepath = getThumbnailFilepath(fileRecord.folder, fileRecord.id)
                         val thumbnailFile = File("${configurationDriver.dbPath}/${Filename.FOLDER}/$thumbnailFilepath")
@@ -86,13 +88,14 @@ class ThumbnailGeneratorImpl(private val configurationDriver: ConfigurationDrive
                             data.db.transaction {
                                 data.db.update(FileRecords) {
                                     where { it.id eq fileId }
-                                    set(it.thumbnail, FileRecord.ThumbnailStatus.YES)
+                                    set(it.status, FileRecord.FileStatus.READY)
                                     set(it.thumbnailSize, thumbnailFile.length())
-                                    set(it.syncRecords, fileRecord.syncRecords + FileRecord.SyncRecord(FileRecord.SyncAction.CREATE, thumbnailFilepath))
+                                    set(it.resolutionWidth, resolutionWidth)
+                                    set(it.resolutionHeight, resolutionHeight)
                                 }
                             }
 
-                            Thread.sleep(200)
+                            Thread.sleep(GENERATE_INTERVAL)
                         }catch(_: Exception) {
                             thumbnailFile.deleteIfExists()
                         }finally {
@@ -102,7 +105,9 @@ class ThumbnailGeneratorImpl(private val configurationDriver: ConfigurationDrive
                         data.db.transaction {
                             data.db.update(FileRecords) {
                                 where { it.id eq fileId }
-                                set(it.thumbnail, FileRecord.ThumbnailStatus.NO)
+                                set(it.status, FileRecord.FileStatus.READY_WITHOUT_THUMBNAIL)
+                                set(it.resolutionWidth, resolutionWidth)
+                                set(it.resolutionHeight, resolutionHeight)
                             }
                         }
                     }
@@ -111,7 +116,7 @@ class ThumbnailGeneratorImpl(private val configurationDriver: ConfigurationDrive
                     data.db.transaction {
                         data.db.update(FileRecords) {
                             where { it.id eq fileId }
-                            set(it.thumbnail, FileRecord.ThumbnailStatus.NO)
+                            set(it.status, FileRecord.FileStatus.READY_WITHOUT_THUMBNAIL)
                         }
                     }
                 }

@@ -32,29 +32,39 @@ fun takeFilepath(it: QueryRowSet): String {
 /**
  * 直接从QueryRowSet中提取参数并生成thumbnail file。使用前确保FileRecord的id/folder/extension/thumbnail都在。
  */
-fun takeThumbnailFilepath(it: QueryRowSet): String? {
+fun takeThumbnailFilepath(it: QueryRowSet): String {
     val fileId = it[FileRecords.id]!!
     val folder = it[FileRecords.folder]!!
     val extension = it[FileRecords.extension]!!
-    return when(it[FileRecords.thumbnail]!!) {
-        FileRecord.ThumbnailStatus.YES -> getThumbnailFilepath(folder, fileId)
-        FileRecord.ThumbnailStatus.NO -> getFilepath(folder, fileId, extension)
-        FileRecord.ThumbnailStatus.NULL -> null
+    return when(it[FileRecords.status]!!) {
+        FileRecord.FileStatus.READY -> getThumbnailFilepath(folder, fileId)
+        FileRecord.FileStatus.READY_WITHOUT_THUMBNAIL -> getFilepath(folder, fileId, extension)
+        FileRecord.FileStatus.NOT_READY -> throw NullPointerException("Thumbnail file path is null.")
     }
 }
 
 /**
  * 直接从QueryRowSet中提取参数并生成file和thumbnail file。使用前确保FileRecord的id/folder/extension/thumbnail都在。
  */
-fun takeAllFilepath(it: QueryRowSet): Pair<String, String?> {
+fun takeAllFilepath(it: QueryRowSet): Pair<String, String> {
+    val (f, t) = takeAllFilepathOrNull(it)
+    if(t == null) throw NullPointerException("Thumbnail file path is null.")
+    return Pair(f, t)
+}
+
+/**
+ * 直接从QueryRowSet中提取参数并生成file和thumbnail file。使用前确保FileRecord的id/folder/extension/thumbnail都在。
+ * 它有可能返回null的thumbnail。
+ */
+fun takeAllFilepathOrNull(it: QueryRowSet): Pair<String, String?> {
     val fileId = it[FileRecords.id]!!
     val folder = it[FileRecords.folder]!!
     val extension = it[FileRecords.extension]!!
     val file = getFilepath(folder, fileId, extension)
-    val thumbnailFile = when(it[FileRecords.thumbnail]!!) {
-        FileRecord.ThumbnailStatus.YES -> getThumbnailFilepath(folder, fileId)
-        FileRecord.ThumbnailStatus.NO -> file
-        FileRecord.ThumbnailStatus.NULL -> null
+    val thumbnailFile = when(it[FileRecords.status]!!) {
+        FileRecord.FileStatus.READY -> getThumbnailFilepath(folder, fileId)
+        FileRecord.FileStatus.READY_WITHOUT_THUMBNAIL -> file
+        FileRecord.FileStatus.NOT_READY -> null
     }
     return Pair(file, thumbnailFile)
 }

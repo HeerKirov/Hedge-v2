@@ -37,24 +37,20 @@ class FileManager(private val configurationDriver: ConfigurationDriver, private 
         val id = data.db.insertAndGenerateKey(FileRecords) {
             set(it.folder, folder)
             set(it.extension, extension)
-            set(it.thumbnail, FileRecord.ThumbnailStatus.NULL)
             set(it.size, file.length())
             set(it.thumbnailSize, 0)
+            set(it.resolutionWidth, 0)
+            set(it.resolutionHeight, 0)
             set(it.deleted, false)
-            set(it.syncRecords, emptyList())
+            set(it.status, FileRecord.FileStatus.NOT_READY)
             set(it.createTime, now)
             set(it.updateTime, now)
         } as Int
 
-        val filepath = getFilepath(folder, id, extension).also { path ->
+        getFilepath(folder, id, extension).also { path ->
             file.copyTo(File("${configurationDriver.dbPath}/${Filename.FOLDER}/$path").applyExcept {
                 deleteIfExists()
             }, overwrite = true)
-        }
-
-        data.db.update(FileRecords) {
-            where { it.id eq id }
-            set(it.syncRecords, listOf(FileRecord.SyncRecord(FileRecord.SyncAction.CREATE, filepath)))
         }
 
         return id
@@ -66,35 +62,39 @@ class FileManager(private val configurationDriver: ConfigurationDriver, private 
     fun revertNewFile(fileId: Int) {
         val fileRecord = getFile(fileId) ?: return
         File("${configurationDriver.dbPath}/${Filename.FOLDER}/${getFilepath(fileRecord.folder, fileRecord.id, fileRecord.extension)}").deleteIfExists()
-        if(fileRecord.thumbnail == FileRecord.ThumbnailStatus.YES) {
+        if(fileRecord.status == FileRecord.FileStatus.READY) {
             File("${configurationDriver.dbPath}/${Filename.FOLDER}/${getThumbnailFilepath(fileRecord.folder, fileRecord.id)}").deleteIfExists()
         }
         data.db.delete(FileRecords) { it.id eq fileId }
     }
 
     /**
-     * 删除指定的物理文件。
-     * 这是一层被包装的伪删除，数据库中的记录将保留，以便同步。
+     * 将文件放入垃圾桶。
+     * 这不会真实删除文件，只会将其标记为deleted。
      */
-    fun deleteFile(fileId: Int) {
-        val fileRecord = getFile(fileId) ?: return
-        val filepath = getFilepath(fileRecord.folder, fileRecord.id, fileRecord.extension)
-        val thumbnailFilepath = if(fileRecord.thumbnail == FileRecord.ThumbnailStatus.YES) {
-            getThumbnailFilepath(fileRecord.folder, fileRecord.id)
-        }else null
-
+    fun trashFile(fileId: Int) {
         val now = DateTime.now()
-        val syncRecords = fileRecord.syncRecords.run {
-            plus(FileRecord.SyncRecord(FileRecord.SyncAction.DELETE, filepath))
-        }.runIf(thumbnailFilepath != null) {
-            plus(FileRecord.SyncRecord(FileRecord.SyncAction.DELETE, thumbnailFilepath!!))
-        }
 
         data.db.update(FileRecords) {
             where { it.id eq fileId }
             set(it.updateTime, now)
             set(it.deleted, true)
-            set(it.syncRecords, syncRecords)
+        }
+    }
+
+    /**
+     * 删除一个文件。
+     * 这会确实地删除文件，一并删除数据库记录。
+     */
+    fun deleteFile(fileId: Int) {
+        val fileRecord = getFile(fileId) ?: return
+        val filepath = getFilepath(fileRecord.folder, fileRecord.id, fileRecord.extension)
+        val thumbnailFilepath = if(fileRecord.status == FileRecord.FileStatus.READY) {
+            getThumbnailFilepath(fileRecord.folder, fileRecord.id)
+        }else null
+
+        data.db.delete(FileRecords) {
+            it.id eq fileId
         }
 
         File("${configurationDriver.dbPath}/${Filename.FOLDER}/${filepath}").deleteIfExists()

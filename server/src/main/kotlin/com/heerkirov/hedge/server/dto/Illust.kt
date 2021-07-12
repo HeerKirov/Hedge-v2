@@ -12,13 +12,13 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 data class IllustRes(val id: Int, val type: Illust.IllustType, val childrenCount: Int?,
-                     val file: String, val thumbnailFile: String?,
+                     val file: String, val thumbnailFile: String,
                      val score: Int?, val favorite: Boolean, val tagme: Illust.Tagme,
                      val orderTime: LocalDateTime)
 
-data class IllustSimpleRes(val id: Int, val thumbnailFile: String?)
+data class IllustSimpleRes(val id: Int, val thumbnailFile: String)
 
-data class IllustDetailRes(val id: Int, val fileId: Int, val file: String, val thumbnailFile: String?,
+data class IllustDetailRes(val id: Int, val fileId: Int, val file: String, val thumbnailFile: String,
                            val topics: List<TopicSimpleRes>, val authors: List<AuthorSimpleRes>, val tags: List<TagSimpleRes>,
                            val description: String, val score: Int?, val favorite: Boolean, val tagme: Illust.Tagme,
                            val originDescription: String, val originScore: Int?,

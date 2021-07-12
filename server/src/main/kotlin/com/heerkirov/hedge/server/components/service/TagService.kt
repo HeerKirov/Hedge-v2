@@ -152,7 +152,7 @@ class TagService(private val data: DataRepository,
 
         val examples = if(tag.examples.isNullOrEmpty()) emptyList() else data.db.from(Illusts)
             .innerJoin(FileRecords, FileRecords.id eq Illusts.fileId)
-            .select(Illusts.id, FileRecords.id, FileRecords.folder, FileRecords.extension, FileRecords.thumbnail)
+            .select(Illusts.id, FileRecords.id, FileRecords.folder, FileRecords.extension, FileRecords.status)
             .where { Illusts.id inList tag.examples }
             .map { IllustSimpleRes(it[Illusts.id]!!, takeThumbnailFilepath(it)) }
 

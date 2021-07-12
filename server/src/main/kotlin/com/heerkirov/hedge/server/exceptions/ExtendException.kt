@@ -15,6 +15,13 @@ class FileNotFoundError : BadRequestException("FILE_NOT_FOUND", "Target file is 
 class IllegalFileExtensionError(extension: String) : BadRequestException("ILLEGAL_FILE_EXTENSION", "Extension type '$extension' is illegal.", extension)
 
 /**
+ * 当尝试保存一个还未导入完成的文件时，抛出此异常。
+ * 抛出位置：
+ * - save文件时
+ */
+class NotReadyFileError : BadRequestException("FILE_NOT_READY", "File is not ready.")
+
+/**
  * 当parentId出现闭环时，抛出此异常。parentId为自己也构成闭环。
  * 抛出位置：
  * - 更新tag的parentId

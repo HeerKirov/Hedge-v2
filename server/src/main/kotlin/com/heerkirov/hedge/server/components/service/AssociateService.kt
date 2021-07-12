@@ -41,7 +41,7 @@ class AssociateService(private val data: DataRepository, private val associateMa
         return data.db.from(Illusts)
             .innerJoin(FileRecords, Illusts.fileId eq FileRecords.id)
             .select(Illusts.id, Illusts.type, Illusts.exportedScore, Illusts.favorite, Illusts.tagme, Illusts.orderTime, Illusts.cachedChildrenCount,
-                FileRecords.id, FileRecords.folder, FileRecords.extension, FileRecords.thumbnail)
+                FileRecords.id, FileRecords.folder, FileRecords.extension, FileRecords.status)
             .where { Illusts.associateId eq associateId }
             .limit(filter.offset, filter.limit)
             .orderBy(Illusts.orderTime.asc())

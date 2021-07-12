@@ -7,23 +7,17 @@ import java.time.LocalDateTime
  * 此表的每条记录对应一个物理文件。对此表的ORM操作可封装为对物理文件的操作。
  *  - 记录对应的文件路径通过属性推出，为"${folder}/${id}.${extension}"。
  *  - 如果存在缩略图，缩略图路径为"${folder}/${id}.thumbnail.jpg"。缩略图只可能使用jpg格式。
- * 物理文件表为同步而设计。备份引擎会对物理文件表做筛选扫描，以在最小范围内确定需要备份的文件。
- *  - 通过update_time比对扫描得出需要更新的记录。
- *  - 比对记录的sync_records记录，根据这个记录对物理文件进行同步。
+ * 物理文件导入后需要经过后台任务的处理，以生成缩略图和其他详细信息。这个状态保存在status中。
  */
 data class FileRecord(val id: Int,
                       /**
-                       * 所在文件夹名称<yyyy-MM-dd>，一般用其添加日期作为文件夹名称
+                       * 所在文件夹名称<yyyy-MM-dd>，一般用其添加日期作为文件夹名称。
                        */
                       val folder: String,
                       /**
                        * 文件扩展名，同时也表示此文件的类型。
                        */
                       val extension: String,
-                      /**
-                       * 是否存在缩略图。
-                       */
-                      val thumbnail: ThumbnailStatus,
                       /**
                        * 此文件占用的磁盘大小，单位Byte。
                        */
@@ -33,48 +27,45 @@ data class FileRecord(val id: Int,
                        */
                       val thumbnailSize: Long,
                       /**
-                       * 文件是否处于删除状态。由于同步机制的需要，文件可以删除，记录不能删除。
+                       * 分辨率的宽度值。未填写时记0。
+                       */
+                      val resolutionWidth: Int,
+                      /**
+                       * 分辨率的高度值。未填写时记0。
+                       */
+                      val resolutionHeight: Int,
+                      /**
+                       * 文件的处理与可用状态。
+                       */
+                      val status: FileStatus,
+                      /**
+                       * 文件是否处于删除状态。删除状态的文件仍可以在文件管理的废纸篓中看到。
+                       * 删除illust会使失去引用的文件进入删除状态。
                        */
                       val deleted: Boolean = false,
-                      /**
-                       * 该文件对象的同步记录。
-                       */
-                      val syncRecords: List<SyncRecord>,
                       /**
                        * 记录创建时间。
                        */
                       val createTime: LocalDateTime,
                       /**
-                       * 同步记录上次更新的时间。
+                       * 上次更新物理文件的时间。
                        */
                       val updateTime: LocalDateTime) {
-    /**
-     * 对文件的任意操作都会留下记录。
-     * 比如，导入一个新文件，并建立其缩略图时，记录可能为：
-     * - action=create, filepath=yyyy-MM-dd/id.ext
-     * - action=create, filepath=yyyy-MM/dd/id.thumbnail.jpg
-     * 比如对文件做了格式转换时：
-     * - action=delete, filepath=yyyy-MM-dd/id.png
-     * - action=create, filepath=yyyy-MM-dd/id.jpg
-     */
-    data class SyncRecord(val action: SyncAction, val filepath: String)
 
-    enum class SyncAction {
-        CREATE, DELETE
-    }
+    enum class FileStatus {
+        /**
+         * 文件未准备完成。
+         */
+        NOT_READY,
 
-    enum class ThumbnailStatus {
         /**
-         * 缩略图未生成。
+         * 文件已准备完成，已生成缩略图和其他信息。
          */
-        NULL,
+        READY,
+
         /**
-         * 缩略图存在。
+         * 文件已准备完成，已生成其他信息，但不需要且没有生成缩略图。
          */
-        YES,
-        /**
-         * 缩略图不存在，使用主图代替即可。
-         */
-        NO
+        READY_WITHOUT_THUMBNAIL
     }
 }

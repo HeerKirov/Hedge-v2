@@ -284,13 +284,14 @@ CREATE TABLE origin_db.file(
     id 				INTEGER PRIMARY KEY,            -- 自增ID
     folder 			VARCHAR(16) NOT NULL,           -- 所在文件夹名称::format<yyyy-MM-dd>，一般用其添加日期作为文件夹名称
     extension		VARCHAR(8) NOT NULL,            -- 文件扩展名，同时也表示此文件的类型
-    thumbnail	    TINYINT NOT NULL,               -- 是否存在缩略图
 
-    size            BIGINT NOT NULL,                -- 此文件占用的磁盘大小，单位Byte
-    thumbnail_size  BIGINT NOT NULL,                -- 缩略图占用的磁盘大小，单位Byte。没有缩略图时记0
+    size                BIGINT NOT NULL,            -- 此文件占用的磁盘大小，单位Byte
+    thumbnail_size      BIGINT NOT NULL,            -- 缩略图占用的磁盘大小，单位Byte。没有缩略图时记0
+    resolution_width    INTEGER NOT NULL,           -- 分辨率宽度
+    resolution_height   INTEGER NOT NULL,           -- 分辨率高度
 
-    deleted		    BOOLEAN NOT NULL DEFAULT FALSE, -- 文件是否处于删除状态。由于同步机制的需要，文件可以删除，记录不能删除
-    sync_records    TEXT NOT NULL,                  -- 该文件对象的同步记录::json<SyncRecord[]>
+    status	        TINYINT NOT NULL,               -- 文件准备状态
+    deleted		    BOOLEAN NOT NULL DEFAULT FALSE, -- 是否处于删除状态
     create_time 	TIMESTAMP NOT NULL,             -- 创建时间
     update_time     TIMESTAMP NOT NULL              -- 上次更新的时间
 );

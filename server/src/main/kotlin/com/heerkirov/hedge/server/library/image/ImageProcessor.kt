@@ -28,11 +28,11 @@ object ImageProcessor {
     }
 
     /**
-     * 使用全局通用策略生成缩略图。
+     * 使用全局通用策略生成缩略图，并获得原始分辨率。
      * 全局策略中，非jpg类型的文件需要转换至jpg文件(视频需要截图)，尺寸超过一定面积的图片需要缩放至适合尺寸。
      * @return 缩略图文件的临时文件File。如果返回null，表示按照全局策略不需要生成缩略图。
      */
-    fun generateThumbnail(src: File): File? {
+    fun process(src: File): ProcessResult {
         val extension = src.extension.lowercase()
         val snapshot = if(extension == "jpeg" || extension == "jpg") {
             null
@@ -43,8 +43,12 @@ object ImageProcessor {
         }else{
             throw IllegalFileExtensionError(src.extension)
         }
+        val resolution: Pair<Int, Int>
         val resized = try {
-            whetherResize(snapshot ?: src) { w, h ->
+            val file = snapshot ?: src
+            val source = ImageIO.read(file)
+            resolution = Pair(source.width, source.height)
+            whetherResize(source, file.extension) { w, h ->
                 //当原始图像的面积超过262144~=512*512时，对其缩放，保持比例收缩至小于此面积。
                 if(w * h > RESIZE_AREA) {
                     /* nw * nh = RA
@@ -64,7 +68,7 @@ object ImageProcessor {
             throw e
         }
 
-        return resized?.also { if(snapshot?.exists() == true) snapshot.delete() } ?: snapshot
+        return ProcessResult(resized?.also { if(snapshot?.exists() == true) snapshot.delete() } ?: snapshot, resolution.first, resolution.second)
     }
 
     /**
@@ -72,12 +76,11 @@ object ImageProcessor {
      * @param whether 给出当前尺寸，判断是否需要缩放。
      * @return 返回缩放后的file，或返回null。
      */
-    private inline fun whetherResize(src: File, whether: (width: Int, height: Int) -> Pair<Int, Int>?): File? {
-        val source = ImageIO.read(src)
+    private inline fun whetherResize(source: BufferedImage, extension: String, whether: (width: Int, height: Int) -> Pair<Int, Int>?): File? {
         val result = whether(source.width, source.height)
         return if(result != null) {
             val (width, height) = result
-            resize(source, src.extension, width, height)
+            resize(source, extension, width, height)
         }else null
     }
 
@@ -199,4 +202,6 @@ object ImageProcessor {
             }
         }
     }
+
+    data class ProcessResult(val thumbnailFile: File?, val resolutionWidth: Int, val resolutionHeight: Int)
 }

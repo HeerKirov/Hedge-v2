@@ -244,7 +244,7 @@ class FolderService(private val data: DataRepository,
             .innerJoin(FileRecords, FileRecords.id eq Illusts.fileId)
             .select(FolderImageRelations.ordinal, Illusts.id,
                 Illusts.exportedScore, Illusts.favorite, Illusts.tagme, Illusts.orderTime,
-                FileRecords.id, FileRecords.folder, FileRecords.extension, FileRecords.thumbnail)
+                FileRecords.id, FileRecords.folder, FileRecords.extension, FileRecords.status)
             .where { FolderImageRelations.folderId eq id }
             .limit(filter.offset, filter.limit)
             .orderBy(imagesOrderTranslator, filter.order)
@@ -268,7 +268,7 @@ class FolderService(private val data: DataRepository,
         return data.db.from(Illusts)
             .innerJoin(FileRecords, Illusts.fileId eq FileRecords.id)
             .let { schema?.joinConditions?.fold(it) { acc, join -> if(join.left) acc.leftJoin(join.table, join.condition) else acc.innerJoin(join.table, join.condition) } ?: it }
-            .select(Illusts.id, Illusts.exportedScore, Illusts.favorite, Illusts.tagme, Illusts.orderTime, FileRecords.id, FileRecords.folder, FileRecords.extension, FileRecords.thumbnail)
+            .select(Illusts.id, Illusts.exportedScore, Illusts.favorite, Illusts.tagme, Illusts.orderTime, FileRecords.id, FileRecords.folder, FileRecords.extension, FileRecords.status)
             .whereWithConditions {
                 if(schema != null && schema.whereConditions.isNotEmpty()) {
                     it.addAll(schema.whereConditions)

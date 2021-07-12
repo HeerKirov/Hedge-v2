@@ -230,7 +230,7 @@ class SemanticNodeRules {
         ForExpression("ORDERED_SORT_ITEM -> + SORT_ITEM"),
         ForExpression("ORDERED_SORT_ITEM -> - SORT_ITEM")
     ])
-    fun eval55And57(symbol: Symbol, sortItem: SortItem): SortItem {
+    fun eval55And56(symbol: Symbol, sortItem: SortItem): SortItem {
         val direction = when (symbol.value) {
             "+" -> 1
             "-" -> -1
@@ -244,8 +244,8 @@ class SemanticNodeRules {
         return SortItem(str, false, 0, str.beginIndex, str.endIndex)
     }
 
-    @ForExpression("SORT_ITEM -> ^ str")
-    fun eval58(symbol: Symbol, str: Str): SortItem {
+    @ForExpression("SORT_ITEM -> ^ str", args = [1])
+    fun eval58(str: Str): SortItem {
         return SortItem(str, true, 0, str.beginIndex, str.endIndex)
     }
 }

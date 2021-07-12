@@ -48,7 +48,7 @@ class AlbumService(private val data: DataRepository,
             .leftJoin(FileRecords, Albums.fileId eq FileRecords.id)
             .let { schema?.joinConditions?.fold(it) { acc, join -> if(join.left) acc.leftJoin(join.table, join.condition) else acc.innerJoin(join.table, join.condition) } ?: it }
             .select(Albums.id, Albums.title, Albums.cachedCount, Albums.score, Albums.favorite, Albums.createTime, Albums.updateTime,
-                FileRecords.thumbnail, FileRecords.folder, FileRecords.id, FileRecords.extension)
+                FileRecords.status, FileRecords.folder, FileRecords.id, FileRecords.extension)
             .whereWithConditions {
                 if(filter.favorite != null) {
                     it += if(filter.favorite) Albums.favorite else Albums.favorite.not()
@@ -123,7 +123,7 @@ class AlbumService(private val data: DataRepository,
             .map {
                 val authorType = it[Authors.type]!!
                 val color = authorColors[authorType]
-                AuthorSimpleRes(it[Authors.id]!!, it[Authors.name]!!, authorType, it[IllustAuthorRelations.isExported]!!, color)
+                AuthorSimpleRes(it[Authors.id]!!, it[Authors.name]!!, authorType, it[AlbumAuthorRelations.isExported]!!, color)
             }
 
         val tags = data.db.from(Tags)
@@ -156,7 +156,7 @@ class AlbumService(private val data: DataRepository,
                     where { it.id eq id }
                     form.score.applyOpt { set(it.score, this) }
                     form.favorite.applyOpt { set(it.favorite, this) }
-                    newTitle.applyOpt { set(it.description, this) }
+                    newTitle.applyOpt { set(it.title, this) }
                     newDescription.applyOpt { set(it.description, this) }
                 }
             }
@@ -181,7 +181,7 @@ class AlbumService(private val data: DataRepository,
             .leftJoin(FileRecords, Illusts.fileId eq FileRecords.id)
             .select(AlbumImageRelations.ordinal, Illusts.id,
                 Illusts.exportedScore, Illusts.favorite, Illusts.tagme, Illusts.orderTime,
-                FileRecords.id, FileRecords.folder, FileRecords.extension, FileRecords.thumbnail)
+                FileRecords.id, FileRecords.folder, FileRecords.extension, FileRecords.status)
             .where { AlbumImageRelations.albumId eq id }
             .limit(filter.offset, filter.limit)
             .orderBy(AlbumImageRelations.ordinal.asc())

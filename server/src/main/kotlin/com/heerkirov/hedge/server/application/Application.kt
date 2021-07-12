@@ -3,7 +3,7 @@ package com.heerkirov.hedge.server.application
 import com.heerkirov.hedge.server.components.appdata.AppDataDriverImpl
 import com.heerkirov.hedge.server.components.backend.IllustMetaExporterImpl
 import com.heerkirov.hedge.server.components.backend.TagExporterImpl
-import com.heerkirov.hedge.server.components.backend.ThumbnailGeneratorImpl
+import com.heerkirov.hedge.server.components.backend.FileGeneratorImpl
 import com.heerkirov.hedge.server.components.configuration.ConfigurationDriverImpl
 import com.heerkirov.hedge.server.components.database.DataRepositoryImpl
 import com.heerkirov.hedge.server.components.health.HealthImpl
@@ -41,7 +41,7 @@ fun runApplication(options: ApplicationOptions) {
             val queryManager = QueryManager(repo)
             val queryService = QueryService(queryManager)
 
-            val thumbnailGenerator = define { ThumbnailGeneratorImpl(configuration, repo) }
+            val thumbnailGenerator = define { FileGeneratorImpl(configuration, repo) }
             val fileManager = FileManager(configuration, repo)
             val importMetaManager = ImportMetaManager(repo)
             val importManager = ImportManager(repo, importMetaManager)

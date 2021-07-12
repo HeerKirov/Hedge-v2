@@ -51,7 +51,7 @@ class AssociateManager(private val data: DataRepository) {
         val illusts = data.db.from(Illusts)
             .innerJoin(FileRecords, Illusts.fileId eq FileRecords.id)
             .select(Illusts.id, Illusts.type, Illusts.exportedScore, Illusts.favorite, Illusts.tagme, Illusts.orderTime, Illusts.cachedChildrenCount,
-                FileRecords.id, FileRecords.folder, FileRecords.extension, FileRecords.thumbnail)
+                FileRecords.id, FileRecords.folder, FileRecords.extension, FileRecords.status)
             .where { Illusts.associateId eq associateId }
             .limit(0, limit)
             .orderBy(Illusts.orderTime.asc())
