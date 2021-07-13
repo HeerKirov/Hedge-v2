@@ -8,8 +8,7 @@ import com.heerkirov.hedge.server.utils.types.OrderItem
 data class AuthorRes(val id: Int, val name: String, val otherNames: List<String>, val keywords: List<String>,
                      val type: Author.Type, val favorite: Boolean,
                      val annotations: List<Author.CachedAnnotation>,
-                     val score: Int?, val count: Int,
-                     val color: String?)
+                     val score: Int?, val count: Int, val color: String?)
 
 data class AuthorSimpleRes(val id: Int, val name: String, val type: Author.Type, val isExported: Boolean, val color: String?)
 
@@ -17,8 +16,7 @@ data class AuthorDetailRes(val id: Int, val name: String, val otherNames: List<S
                            val type: Author.Type, val favorite: Boolean,
                            val annotations: List<Author.CachedAnnotation>,
                            val links: List<Author.Link>,
-                           val score: Int?, val count: Int, val originScore: Int?,
-                           val color: String?)
+                           val score: Int?, val count: Int, val color: String?)
 
 data class AuthorFilter(@Limit val limit: Int,
                         @Offset val offset: Int,
@@ -51,10 +49,10 @@ data class AuthorUpdateForm(@NotBlank val name: Opt<String>,
 
 fun newAuthorRes(author: Author, colors: Map<Author.Type, String>) = AuthorRes(author.id, author.name,
     author.otherNames, author.keywords, author.type, author.favorite,
-    author.cachedAnnotations ?: emptyList(), author.exportedScore, author.cachedCount, colors[author.type])
+    author.cachedAnnotations ?: emptyList(), author.score, author.cachedCount, colors[author.type])
 
 fun newAuthorDetailRes(author: Author, colors: Map<Author.Type, String>) = AuthorDetailRes(author.id, author.name,
     author.otherNames, author.keywords, author.description, author.type, author.favorite,
     author.cachedAnnotations ?: emptyList(),
     author.links ?: emptyList(),
-    author.exportedScore, author.cachedCount, author.score, colors[author.type])
+    author.score, author.cachedCount, colors[author.type])

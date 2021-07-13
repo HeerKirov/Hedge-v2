@@ -31,7 +31,7 @@ data class Topic(val id: Int,
                   */
                  val type: Type,
                  /**
-                  * 手动评分。
+                  * 评分。
                   */
                  val score: Int? = null,
                  /**
@@ -46,10 +46,6 @@ data class Topic(val id: Int,
                   * 描述。
                   */
                  val description: String = "",
-                 /**
-                  * [exported field]导出的评分。
-                  */
-                 val exportedScore: Int? = null,
                  /**
                   * [cache field]冗余的与此标签关联的image数量。
                   */

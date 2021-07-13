@@ -11,13 +11,10 @@ import com.heerkirov.hedge.server.components.kit.TopicKit
 import com.heerkirov.hedge.server.components.manager.query.QueryManager
 import com.heerkirov.hedge.server.dao.album.AlbumTopicRelations
 import com.heerkirov.hedge.server.dao.illust.IllustTopicRelations
-import com.heerkirov.hedge.server.dao.illust.Illusts
 import com.heerkirov.hedge.server.dao.meta.TopicAnnotationRelations
 import com.heerkirov.hedge.server.dao.meta.Topics
-import com.heerkirov.hedge.server.model.illust.Illust
 import com.heerkirov.hedge.server.utils.DateTime
 import com.heerkirov.hedge.server.utils.ktorm.OrderTranslator
-import com.heerkirov.hedge.server.utils.ktorm.first
 import com.heerkirov.hedge.server.utils.ktorm.orderBy
 import com.heerkirov.hedge.server.utils.types.*
 import org.ktorm.dsl.*
@@ -31,7 +28,7 @@ class TopicService(private val data: DataRepository,
     private val orderTranslator = OrderTranslator {
         "id" to Topics.id
         "name" to Topics.name
-        "score" to Topics.exportedScore nulls last
+        "score" to Topics.score nulls last
         "count" to Topics.cachedCount nulls last
         "createTime" to Topics.createTime
         "updateTime" to Topics.updateTime
@@ -82,7 +79,6 @@ class TopicService(private val data: DataRepository,
                 set(it.links, form.links)
                 set(it.favorite, form.favorite)
                 set(it.score, form.score)
-                set(it.exportedScore, form.score ?: 0)
                 set(it.cachedCount, 0)
                 set(it.cachedAnnotations, annotations)
                 set(it.createTime, createTime)
@@ -119,17 +115,9 @@ class TopicService(private val data: DataRepository,
 
             form.type.letOpt { type -> kit.checkChildrenType(id, type) }
 
-            val newExportedScore = form.score.letOpt {
-                it ?: data.db.from(Illusts)
-                    .innerJoin(IllustTopicRelations, Illusts.id eq IllustTopicRelations.illustId)
-                    .select(count(Illusts.exportedScore).aliased("count"))
-                    .where { (IllustTopicRelations.topicId eq id) and (Illusts.type eq Illust.Type.IMAGE) or (Illusts.type eq Illust.Type.IMAGE_WITH_PARENT) }
-                    .first().getInt("count")
-            }
-
             val newAnnotations = form.annotations.letOpt { kit.validateAnnotations(it, form.type.unwrapOr { record.type }) }
 
-            if(anyOpt(newName, newOtherNames, newKeywords, newParentId, form.type, form.description, form.links, form.favorite, form.score, newExportedScore, newAnnotations)) {
+            if(anyOpt(newName, newOtherNames, newKeywords, newParentId, form.type, form.description, form.links, form.favorite, form.score, newAnnotations)) {
                 data.db.update(Topics) {
                     where { it.id eq id }
                     newName.applyOpt { set(it.name, this) }
@@ -141,7 +129,6 @@ class TopicService(private val data: DataRepository,
                     form.links.applyOpt { set(it.links, this) }
                     form.favorite.applyOpt { set(it.favorite, this) }
                     form.score.applyOpt { set(it.score, this) }
-                    newExportedScore.applyOpt { set(it.exportedScore, this) }
                     newAnnotations.applyOpt { set(it.cachedAnnotations, this) }
                 }
             }

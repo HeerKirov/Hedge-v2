@@ -8,8 +8,7 @@ import com.heerkirov.hedge.server.utils.types.OrderItem
 data class TopicRes(val id: Int, val name: String, val otherNames: List<String>, val keywords: List<String>,
                     val type: Topic.Type, val favorite: Boolean,
                     val annotations: List<Topic.CachedAnnotation>,
-                    val score: Int?, val count: Int,
-                    val color: String?)
+                    val score: Int?, val count: Int, val color: String?)
 
 data class TopicSimpleRes(val id: Int, val name: String, val type: Topic.Type, val isExported: Boolean, val color: String?)
 
@@ -18,8 +17,7 @@ data class TopicDetailRes(val id: Int, val name: String, val parent: Parent?,
                           val type: Topic.Type, val favorite: Boolean,
                           val annotations: List<Topic.CachedAnnotation>,
                           val links: List<Topic.Link>,
-                          val score: Int?, val count: Int, val originScore: Int?,
-                          val color: String?) {
+                          val score: Int?, val count: Int, val color: String?) {
     data class Parent(val id: Int, val name: String, val type: Topic.Type, val color: String?)
 }
 
@@ -58,11 +56,11 @@ data class TopicUpdateForm(@NotBlank val name: Opt<String>,
 fun newTopicRes(topic: Topic, colors: Map<Topic.Type, String>) = TopicRes(topic.id, topic.name,
     topic.otherNames, topic.keywords, topic.type, topic.favorite,
     topic.cachedAnnotations ?: emptyList(),
-    topic.exportedScore, topic.cachedCount, colors[topic.type])
+    topic.score, topic.cachedCount, colors[topic.type])
 
 fun newTopicDetailRes(topic: Topic, parent: Topic?, colors: Map<Topic.Type, String>) = TopicDetailRes(topic.id, topic.name,
     parent?.let { TopicDetailRes.Parent(it.id, it.name, it.type, colors[it.type]) },
     topic.otherNames, topic.keywords, topic.description, topic.type, topic.favorite,
     topic.cachedAnnotations ?: emptyList(),
     topic.links ?: emptyList(),
-    topic.score, topic.cachedCount, topic.score, colors[topic.type])
+    topic.score, topic.cachedCount, colors[topic.type])

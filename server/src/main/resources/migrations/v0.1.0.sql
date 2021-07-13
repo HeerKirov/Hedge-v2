@@ -122,7 +122,6 @@ CREATE TABLE meta_db.author(
     links			TEXT DEFAULT NULL,              -- 相关链接::json<Link[]>
     description     TEXT NOT NULL,                  -- 标签的内容描述
 
-    exported_score  INTEGER DEFAULT NULL,           -- 根据评分或其关联的image导出的统计分数
     cached_count 	INTEGER NOT NULL DEFAULT 0,     -- [冗余]此标签关联的图片数量
     cached_annotations 	TEXT DEFAULT NULL,          -- [冗余]此标签的注解的缓存，用于显示::json<string[]>
 
@@ -144,7 +143,6 @@ CREATE TABLE meta_db.topic(
     links			TEXT DEFAULT NULL,              -- 相关链接::json<Link[]>
     description		TEXT NOT NULL,                  -- 标签的内容描述
 
-    exported_score  INTEGER DEFAULT NULL,           -- [导出]根据评分或其关联的image导出的统计分数
     cached_count 	INTEGER NOT NULL DEFAULT 0,     -- [冗余]此标签关联的图片数量
     cached_annotations 	TEXT DEFAULT NULL,          -- [冗余]此标签的注解的缓存，用于显示::json<string[]>
 

@@ -9,15 +9,12 @@ import com.heerkirov.hedge.server.components.kit.AuthorKit
 import com.heerkirov.hedge.server.components.manager.query.QueryManager
 import com.heerkirov.hedge.server.dao.album.AlbumAuthorRelations
 import com.heerkirov.hedge.server.dao.illust.IllustAuthorRelations
-import com.heerkirov.hedge.server.dao.illust.Illusts
 import com.heerkirov.hedge.server.dao.meta.AuthorAnnotationRelations
 import com.heerkirov.hedge.server.dao.meta.Authors
 import com.heerkirov.hedge.server.exceptions.NotFound
 import com.heerkirov.hedge.server.dto.*
-import com.heerkirov.hedge.server.model.illust.Illust
 import com.heerkirov.hedge.server.utils.DateTime
 import com.heerkirov.hedge.server.utils.ktorm.OrderTranslator
-import com.heerkirov.hedge.server.utils.ktorm.first
 import com.heerkirov.hedge.server.utils.ktorm.orderBy
 import com.heerkirov.hedge.server.utils.types.*
 import org.ktorm.dsl.*
@@ -31,7 +28,7 @@ class AuthorService(private val data: DataRepository,
     private val orderTranslator = OrderTranslator {
         "id" to Authors.id
         "name" to Authors.name
-        "score" to Authors.exportedScore nulls last
+        "score" to Authors.score nulls last
         "count" to Authors.cachedCount nulls last
         "createTime" to Authors.createTime
         "updateTime" to Authors.updateTime
@@ -79,7 +76,6 @@ class AuthorService(private val data: DataRepository,
                 set(it.links, form.links)
                 set(it.favorite, form.favorite)
                 set(it.score, form.score)
-                set(it.exportedScore, form.score ?: 0)
                 set(it.cachedCount, 0)
                 set(it.cachedAnnotations, annotations)
                 set(it.createTime, createTime)
@@ -108,15 +104,7 @@ class AuthorService(private val data: DataRepository,
 
             val newAnnotations = form.annotations.letOpt { kit.validateAnnotations(it, form.type.unwrapOr { record.type }) }
 
-            val newExportedScore = form.score.letOpt {
-                it ?: data.db.from(Illusts)
-                    .innerJoin(IllustAuthorRelations, Illusts.id eq IllustAuthorRelations.illustId)
-                    .select(count(Illusts.exportedScore).aliased("count"))
-                    .where { (IllustAuthorRelations.authorId eq id) and (Illusts.type eq Illust.Type.IMAGE) or (Illusts.type eq Illust.Type.IMAGE_WITH_PARENT) }
-                    .first().getInt("count")
-            }
-
-            if(anyOpt(newName, newOtherNames, newKeywords, form.type, form.description, form.links, form.favorite, form.score, newExportedScore, newAnnotations)) {
+            if(anyOpt(newName, newOtherNames, newKeywords, form.type, form.description, form.links, form.favorite, form.score, newAnnotations)) {
                 data.db.update(Authors) {
                     where { it.id eq id }
                     newName.applyOpt { set(it.name, this) }
@@ -127,7 +115,6 @@ class AuthorService(private val data: DataRepository,
                     form.links.applyOpt { set(it.links, this) }
                     form.favorite.applyOpt { set(it.favorite, this) }
                     form.score.applyOpt { set(it.score, this) }
-                    newExportedScore.applyOpt { set(it.exportedScore, this) }
                     newAnnotations.applyOpt { set(it.cachedAnnotations, this) }
                 }
             }
