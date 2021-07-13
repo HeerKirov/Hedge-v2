@@ -47,6 +47,11 @@ export function createIllustEndpoint(http: HttpInstance): IllustEndpoint {
             originData: {
                 get: http.createPathRequest(id => `/api/illusts/image/${id}/origin-data`, "GET"),
                 update: http.createPathDataRequest(id => `/api/illusts/image/${id}/origin-data`, "PATCH")
+            },
+            fileInfo: {
+                get: http.createPathRequest(id => `/api/illusts/image/${id}/file-info`, "GET", {
+                    parseResponse: mapToImageFileInfo
+                })
             }
         },
         associates: {
@@ -94,9 +99,21 @@ function mapToCollectionRelatedItems(data: any): CollectionRelatedItems {
     }
 }
 
+function mapToImageFileInfo(data: any): ImageFileInfo {
+    return {
+        file: <string>data["file"],
+        extension: <string>data["extension"],
+        size: <number>data["size"],
+        thumbnailSize: <number | null>data["thumbnailSize"],
+        resolutionWidth: <number>data["resolutionWidth"],
+        resolutionHeight: <number>data["resolutionHeight"],
+        createTime: datetime.of(<string>data["createTime"])
+    }
+}
+
 function mapToImageRelatedItems(data: any): ImageRelatedItems {
     return {
-        collection: <SimpleIllust | null>data["collection"],
+        collection: <IllustParent | null>data["collection"],
         albums: <SimpleAlbum[]>data["albums"],
         associate: data["associate"] != null ? mapToAssociate(data["associate"]) : null
     }
@@ -243,6 +260,13 @@ export interface IllustEndpoint {
              */
             update(id: number, form: ImageOriginUpdateForm): Promise<Response<null>>
         }
+        fileInfo: {
+            /**
+             * 查看文件信息。
+             * @exception NOT_FOUND
+             */
+            get(id: number): Promise<Response<ImageFileInfo>>
+        }
     }
     /**
      * 关联组的操作API。关联组是illust的集合，不能为空，空集合会自动删除。每个illust只能枞树一个关联组。
@@ -287,7 +311,7 @@ interface IllustPublicPart {
     /**
      * 此项目的缩略图文件路径。缩略图有不存在的理论可能(未生成)，此时值为null，应该填充占位图像。
      */
-    thumbnailFile: string | null
+    thumbnailFile: string
     /**
      * 此项目的评分。可能由手写评分或父子项目导出。
      */
@@ -362,7 +386,11 @@ export interface DetailIllust extends IllustPublicPart {
 
 export interface SimpleIllust {
     id: number
-    thumbnailFile: string | null
+    thumbnailFile: string
+}
+
+interface IllustParent extends SimpleIllust {
+    childrenCount: number
 }
 
 export interface CollectionRelatedItems {
@@ -372,11 +400,21 @@ export interface CollectionRelatedItems {
     associate: Associate | null
 }
 
+export interface ImageFileInfo {
+    file: string
+    extension: string
+    size: number
+    thumbnailSize: number | null
+    resolutionWidth: number
+    resolutionHeight: number
+    createTime: LocalDateTime
+}
+
 export interface ImageRelatedItems {
     /**
      * image所属的collection。
      */
-    collection: SimpleIllust | null
+    collection: IllustParent | null
     /**
      * image所属的画集列表。
      */
@@ -387,7 +425,7 @@ export interface ImageRelatedItems {
     associate: Associate | null
 }
 
-export interface ImageOriginData {
+export type ImageOriginData = {
     /**
      * source站点的name。
      */
@@ -399,7 +437,7 @@ export interface ImageOriginData {
     /**
      * 此项目的source id。
      */
-    sourceId: number | null
+    sourceId: number
     /**
      * 此项目的secondary id。
      */
@@ -419,15 +457,26 @@ export interface ImageOriginData {
     /**
      * 来源数据：所属pool的标题列表。
      */
-    pools: string[] | null
+    pools: string[]
     /**
      * 来源数据：关联的children的id列表。
      */
-    children: number[] | null
+    children: number[]
     /**
      * 来源数据：关联的parent的id列表。
      */
-    parents: number[] | null
+    parents: number[]
+} | {
+    source: null
+    sourceTitle: null
+    sourceId: null
+    sourcePart: null
+    title: null
+    description: null
+    tags: null
+    pools: null
+    children: null
+    parents: null
 }
 
 export interface Associate {

@@ -168,7 +168,7 @@ function useDetailEndpoints(path: Ref<number | null>) {
 
     const relatedItems = useObjectEndpoint({
         path,
-        get: httpClient => id => httpClient.illust.image.relatedItems.get(id, {limit: 10}),
+        get: httpClient => id => httpClient.illust.image.relatedItems.get(id, {limit: 9}),
         update: httpClient => httpClient.illust.image.relatedItems.update
     })
 

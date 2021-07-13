@@ -89,7 +89,7 @@ export interface Author {
      */
     annotations: SimpleAnnotation[]
     /**
-     * 手写的评分或关联的项目的平均分。
+     * 评分。
      */
     score: number | null
     /**
@@ -99,7 +99,7 @@ export interface Author {
     /**
      * 此author的颜色。
      */
-     color: string | null
+    color: string | null
 }
 
 export interface DetailAuthor extends Author {
@@ -111,10 +111,6 @@ export interface DetailAuthor extends Author {
      * 相关链接。
      */
     links: Link[]
-    /**
-     * 手写的原始评分。
-     */
-    originScore: number | null
 }
 
 export interface SimpleAuthor {

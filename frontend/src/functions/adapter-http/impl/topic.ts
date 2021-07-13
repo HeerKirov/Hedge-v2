@@ -93,7 +93,7 @@ export interface Topic {
      */
     annotations: SimpleAnnotation[]
     /**
-     * 手写的评分或关联的项目的平均分。
+     * 评分。
      */
     score: number | null
     /**
@@ -119,10 +119,6 @@ export interface DetailTopic extends Topic {
      * 相关链接。
      */
     links: Link[]
-    /**
-     * 手写的原始评分。
-     */
-     originScore: number | null
 }
 
 export interface ParentTopic {

@@ -168,7 +168,7 @@ export default defineComponent({
                     <label class="label">示例</label>
                     {data.value.examples.length ? <div class={style.exampleList}>
                         {data.value.examples.map(example => <div class={style.example}>
-                            <img alt={example.thumbnailFile ?? ""} src={assetsUrl(example.thumbnailFile)}/>
+                            <img alt={example.thumbnailFile} src={assetsUrl(example.thumbnailFile)}/>
                         </div>)}
                     </div> : <i class="has-text-grey">没有示例</i>}
                 </div>

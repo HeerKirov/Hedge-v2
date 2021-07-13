@@ -57,9 +57,8 @@ export default defineComponent({
                     </div>
                 </div>
                 <div class="mt-2">
-                    <span class="label">手动评分</span>
+                    <span class="label">评分</span>
                     <StarlightEditor value={props.data.score} onUpdateValue={setScore}/>
-                    <p class="has-text-grey is-size-small">手动编辑的评分会优先作为主题的评分。在手动评分缺省时使用来自项目的平均分。</p>
                 </div>
                 <div class="mt-2">
                     <span class="label">注解</span>

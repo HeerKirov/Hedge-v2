@@ -22,7 +22,7 @@ export default defineComponent({
             keywords: data.value.keywords,
             description: data.value.description,
             links: data.value.links,
-            score: data.value.originScore
+            score: data.value.score
         }))
 
         function update<T extends EditorProps>(key: T, value: FormEditorData[T]) {
