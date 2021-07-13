@@ -13,6 +13,7 @@ object Illusts : BaseTable<Illust>("illust") {
     val parentId = int("parent_id")
     val fileId = int("file_id")
     val cachedChildrenCount = int("cached_children_count")
+    val sourceImageId = int("source_image_id")
     val source = varchar("source")
     val sourceId = long("source_id")
     val sourcePart = int("source_part")
@@ -34,6 +35,7 @@ object Illusts : BaseTable<Illust>("illust") {
         parentId = row[parentId],
         fileId = row[fileId]!!,
         cachedChildrenCount = row[cachedChildrenCount]!!,
+        sourceImageId = row[sourceImageId],
         source = row[source],
         sourceId = row[sourceId],
         sourcePart = row[sourcePart],

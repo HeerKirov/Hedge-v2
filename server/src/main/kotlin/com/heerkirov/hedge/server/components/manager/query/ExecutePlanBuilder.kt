@@ -5,6 +5,7 @@ import com.heerkirov.hedge.server.dao.illust.*
 import com.heerkirov.hedge.server.dao.meta.*
 import com.heerkirov.hedge.server.dao.source.FileRecords
 import com.heerkirov.hedge.server.dao.source.SourceImages
+import com.heerkirov.hedge.server.dao.source.SourceTagRelations
 import com.heerkirov.hedge.server.library.compiler.semantic.dialect.AlbumDialect
 import com.heerkirov.hedge.server.library.compiler.semantic.dialect.IllustDialect
 import com.heerkirov.hedge.server.library.compiler.semantic.framework.FilterFieldDefinition
@@ -140,6 +141,7 @@ class IllustExecutePlanBuilder(private val db: Database) : ExecutePlanBuilder, O
     private val excludeTopics: MutableCollection<Int> = mutableSetOf()
     private val excludeAuthors: MutableCollection<Int> = mutableSetOf()
     private val excludeAnnotations: MutableCollection<Int> = mutableSetOf()
+    private val excludeSourceTags: MutableCollection<Int> = mutableSetOf()
 
     private val orderDeclareMapping = mapOf(
         IllustDialect.IllustOrderItem.ID to OrderByColumn.ColumnDefinition(Illusts.id),
@@ -298,16 +300,21 @@ class IllustExecutePlanBuilder(private val db: Database) : ExecutePlanBuilder, O
         }
     }
 
-    override fun mapSourceTagElement(unionItems: List<ElementString>, exclude: Boolean) {
-        wheres.add(unionItems.map {
-            if(it.precise) {
-                """"name":"${MetaParserUtil.escapeSqlSpecial(it.value.toJSONString())}""""
-            }else{
-                """"name":"${MetaParserUtil.escapeSqlLike(MetaParserUtil.escapeSqlSpecial(it.value.toJSONString()))}""""
+    override fun mapSourceTagElement(unionItems: List<ElementSourceTag>, exclude: Boolean) {
+        when {
+            exclude -> excludeSourceTags.addAll(unionItems.map { it.id })
+            unionItems.isEmpty() -> alwaysFalseFlag = true
+            else -> {
+                val j = SourceTagRelations.aliased("IR_${++joinCount}")
+                val condition = if(unionItems.size == 1) {
+                    j.tagId eq unionItems.first().id
+                }else{
+                    needDistinct = true
+                    j.tagId inList unionItems.map { it.id }
+                }
+                joins.add(ExecutePlan.Join(j, j.sourceId eq Illusts.sourceImageId and condition))
             }
-        }.map { SourceImages.tags escapeLike it }.reduce { a, b -> a or b }.let {
-            if(exclude) it.not() else it
-        })
+        }
     }
 
     override fun build(): ExecutePlan {
@@ -334,8 +341,13 @@ class IllustExecutePlanBuilder(private val db: Database) : ExecutePlanBuilder, O
                 if(excludeAnnotations.size == 1) IllustAnnotationRelations.annotationId eq excludeAnnotations.first() else IllustAnnotationRelations.annotationId inList excludeAnnotations
             })
         }
+        if(excludeSourceTags.isNotEmpty()) {
+            wheres.add(Illusts.id notInList db.from(Illusts)
+                .innerJoin(SourceTagRelations, SourceTagRelations.sourceId eq Illusts.sourceImageId)
+                .select(Illusts.id))
+        }
         if(joinSourceImage) {
-            joins.add(ExecutePlan.Join(SourceImages, (SourceImages.source eq Illusts.source) and (SourceImages.sourceId eq Illusts.sourceId) and (SourceImages.sourcePart eq Illusts.sourcePart), left = true))
+            joins.add(ExecutePlan.Join(SourceImages, SourceImages.id eq Illusts.sourceImageId, left = true))
         }
         return ExecutePlan(wheres, joins, orders, needDistinct)
     }

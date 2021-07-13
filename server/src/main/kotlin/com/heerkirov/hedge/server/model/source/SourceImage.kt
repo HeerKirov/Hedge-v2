@@ -6,7 +6,8 @@ import java.time.LocalDateTime
  * 来源信息。
  * 分离存储illust关联的来源信息，与image类型的illust 1:1存储。
  */
-data class SourceImage(/**
+data class SourceImage(val id: Int,
+                       /**
                         * 来源网站的代号。
                         */
                        val source: String,
@@ -15,10 +16,6 @@ data class SourceImage(/**
                         */
                        val sourceId: Long,
                        /**
-                        * 来源网站中的二级图像id，有些会有，比如pixiv。来源网站没有这个信息时，写-1。
-                        */
-                       val sourcePart: Int = -1,
-                       /**
                         * 原数据的标题信息，有些会有，比如pixiv。
                         */
                        val title: String? = null,
@@ -26,10 +23,6 @@ data class SourceImage(/**
                         * 原数据的描述信息，有些会有，比如pixiv。
                         */
                        val description: String? = null,
-                       /**
-                        * 原数据的标签信息。
-                        */
-                       val tags: List<SourceTag>? = null,
                        /**
                         * 原数据的关系信息。
                         */
@@ -65,6 +58,5 @@ data class SourceImage(/**
         NOT_FOUND
     }
 
-    data class SourceTag(val type: String, val name: String, val displayName: String?)
     data class SourceRelation(val pools: List<String>?, val parents: List<Int>?, val children: List<Int>?)
 }

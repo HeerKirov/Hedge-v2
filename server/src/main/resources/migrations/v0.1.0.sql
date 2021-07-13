@@ -8,9 +8,10 @@ CREATE TABLE illust(
     file_id				        INTEGER NOT NULL,				    -- 链接的文件ID。对集合来说链接的是封面图像的ID冗余
     cached_children_count       INTEGER NOT NULL,                   -- [冗余]对collection来说是子项数量; 对image是无用字段
 
-    source 			            VARCHAR(16),                        -- 链接的来源网站的代号
-    source_id 		            BIGINT,                             -- 链接的来源网站中的图像代号
-    source_part 	            INTEGER,                            -- 链接的来源网站中的二级图像代号，如果此来源没有这个信息，写0
+    source_image_id             INTEGER,                            -- 链接的source image ID
+    source 			            VARCHAR(16),                        -- [冗余]链接的来源网站的名称
+    source_id 		            BIGINT,                             -- [冗余]链接的来源网站的代号
+    source_part 	            INTEGER,                            -- 链接的来源网站中的图像分P
 
     description			        TEXT COLLATE NOCASE NOT NULL DEFAULT '',           -- 简述信息，不存在时记空串
     score						INTEGER DEFAULT NULL,               -- 图像的评分。具体含义由setting定义
@@ -253,19 +254,34 @@ CREATE TABLE import_image(
 
 -- 来源信息
 CREATE TABLE source_db.source_image(
+    id              INTEGER PRIMARY KEY,                -- id
     source 			VARCHAR(16) NOT NULL,               -- 来源网站的代号
     source_id 		BIGINT NOT NULL,                    -- 来源网站中的图像代号
-    source_part 	INTEGER NOT NULL DEFAULT 0,         -- 来源网站中的二级图像代号，有些会有，比如pixiv。如果此来源没有这个信息，写0
 
     title 			TEXT DEFAULT NULL,                  -- 原数据的标题信息，有些会有，比如pixiv
     description     TEXT DEFAULT NULL,                  -- 原数据的描述信息，有些会有，比如pixiv
-    tags 			TEXT DEFAULT NULL,                  -- 原数据的标签信息::json<SourceTag[]>
     relations 		TEXT DEFAULT NULL,                  -- 原数据的关系信息::json<SourceRelations>
 
     analyse_status  TINYINT NOT NULL DEFAULT 0,         -- 原数据的解析状态{0=无,1=已解析, 2=解析出错, 3=手动填写, 4=未找到信息}
     analyse_time    TIMESTAMP DEFAULT NULL              -- 对原数据进行解析的时间
 );
-CREATE UNIQUE INDEX source_db.source_image__source__index ON source_image(source, source_id, source_part);
+CREATE UNIQUE INDEX source_db.source_image__source__index ON source_image(source, source_id);
+
+-- 来源信息中的标签
+CREATE TABLE source_db.source_tag(
+    id              INTEGER PRIMARY KEY,            -- id
+    source          VARCHAR(16) NOT NULL,           -- 来源网站的代号
+    name            TEXT NOT NULL,                  -- 标签名称
+    display_name    TEXT,                           -- 标签的显示名称(如果有)
+    type            TEXT                            -- 标签在来源网站的分类名称(如果有)
+);
+
+-- 来源信息与标签的关联
+CREATE TABLE source_db.source_tag_relation(
+    source_id       INTEGER NOT NULL,               -- source image id
+    tag_id          INTEGER NOT NULL                -- source tag id
+);
+CREATE UNIQUE INDEX source_db.source_tag__index ON source_tag_relation(source_id, tag_id);
 
 -- 原始标签映射
 CREATE TABLE source_db.source_tag_mapping(

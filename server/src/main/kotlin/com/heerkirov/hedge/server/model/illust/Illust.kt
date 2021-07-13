@@ -31,15 +31,19 @@ data class Illust(val id: Int,
                    */
                   val cachedChildrenCount: Int = 0,
                   /**
-                   * 链接的来源网站。
+                   * 链接的来源网站的图像id。
+                   */
+                  val sourceImageId: Int? = null,
+                  /**
+                   * [cache field]链接的来源网站名称。
                    */
                   val source: String? = null,
                   /**
-                   * 链接的来源网站的图像id。
+                   * [cache field]链接的来源网站的图像id。
                    */
                   val sourceId: Long? = null,
                   /**
-                   * 链接的来源网站的二级图像id。有些会有，比如pixiv。来源网站没有这个信息时，写-1。
+                   * 链接的来源网站的二级图像id。有些会有，比如pixiv。
                    */
                   val sourcePart: Int? = null,
                   /**

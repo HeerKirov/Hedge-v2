@@ -64,8 +64,8 @@ object Translator {
                 }else{
                     ElementItem(element.exclude, when (element) {
                         is NameElementForMeta -> element.items.map { ElementString(it.value, it.precise) }.also { executeBuilder.mapNameElement(it, element.exclude) }
-                        is SourceTagElement -> element.items.map { ElementString(it.value, it.precise) }.also { executeBuilder.mapSourceTagElement(it, element.exclude) }
                         is AnnotationElementForMeta -> mapAnnotationElementForMeta(element, queryer, collector, options).also { joinDepth += 1 }.also { executeBuilder.mapAnnotationElement(it, element.exclude, exportedFromAuthor = false, exportedFromTopic = false, exportedFromTag = false) }
+                        is SourceTagElement -> mapSourceTagElement(element, queryer, collector, options).also { joinDepth += 1 }.also { executeBuilder.mapSourceTagElement(it, element.exclude) }
                         is TagElement -> {
                             val (r, t) = mapTagElement(element, queryer, collector, options)
                             @Suppress("UNCHECKED_CAST")
@@ -74,7 +74,8 @@ object Translator {
                                 "author" -> executeBuilder.mapAuthorElement(r as List<ElementAuthor>, element.exclude)
                                 "topic" -> executeBuilder.mapTopicElement(r as List<ElementTopic>, element.exclude)
                             }
-                            r.also { joinDepth += 1 }
+                            joinDepth += 1
+                            r
                         }
                         else -> throw RuntimeException("Unsupported element type $type.")
                     })
@@ -140,6 +141,16 @@ object Translator {
             MetaType.TOPIC -> (element as TopicElement<*>).items.flatMap { queryer.findTopic(it, collector) } to "topic"
             MetaType.TAG -> element.items.flatMap { queryer.findTag(it, collector) } to "tag"
         }).also { (result, _) ->
+            if(result.isEmpty()) collector.warning(WholeElementMatchesNone(element.items.map { it.revertToQueryString() }))
+            else if(options!= null && result.size >= options.warningLimitOfUnionItems) collector.warning(NumberOfUnionItemExceed(element.items.map { it.revertToQueryString() }, options.warningLimitOfUnionItems))
+        }
+    }
+
+    /**
+     * 处理一个SourceTagElement的翻译。
+     */
+    private fun mapSourceTagElement(element: SourceTagElement, queryer: Queryer, collector: ErrorCollector<TranslatorError<*>>, options: TranslatorOptions?): List<ElementSourceTag> {
+        return element.items.flatMap { queryer.findSourceTag(it, collector) }.also { result ->
             if(result.isEmpty()) collector.warning(WholeElementMatchesNone(element.items.map { it.revertToQueryString() }))
             else if(options!= null && result.size >= options.warningLimitOfUnionItems) collector.warning(NumberOfUnionItemExceed(element.items.map { it.revertToQueryString() }, options.warningLimitOfUnionItems))
         }

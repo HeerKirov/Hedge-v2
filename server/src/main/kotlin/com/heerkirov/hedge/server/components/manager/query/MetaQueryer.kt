@@ -5,12 +5,10 @@ import com.heerkirov.hedge.server.dao.meta.Annotations
 import com.heerkirov.hedge.server.dao.meta.Authors
 import com.heerkirov.hedge.server.dao.meta.Tags
 import com.heerkirov.hedge.server.dao.meta.Topics
+import com.heerkirov.hedge.server.dao.source.SourceTags
 import com.heerkirov.hedge.server.library.compiler.semantic.plan.*
 import com.heerkirov.hedge.server.library.compiler.translator.*
-import com.heerkirov.hedge.server.library.compiler.translator.visual.ElementAnnotation
-import com.heerkirov.hedge.server.library.compiler.translator.visual.ElementAuthor
-import com.heerkirov.hedge.server.library.compiler.translator.visual.ElementTag
-import com.heerkirov.hedge.server.library.compiler.translator.visual.ElementTopic
+import com.heerkirov.hedge.server.library.compiler.translator.visual.*
 import com.heerkirov.hedge.server.library.compiler.utils.ErrorCollector
 import com.heerkirov.hedge.server.library.compiler.utils.TranslatorError
 import com.heerkirov.hedge.server.model.meta.Annotation
@@ -373,16 +371,33 @@ class MetaQueryer(private val data: DataRepository) : Queryer {
                 emptyList()
             }else if(!isForMeta) {
                 val result = annotations.filter { it.canBeExported }.map { ElementAnnotation(it.id, it.name) }
-                if(result.isEmpty()) {
+                result.ifEmpty {
                     //如果canBeExported的结果为空，那么提出警告
                     collector.warning(ElementCannotBeExported(metaString.revertToQueryString()))
                     emptyList()
-                }else{
-                    result
                 }
             }else{
                 //区分forMeta时的情况。当forMeta时，不需要canBeExported检查，可以直接输出
                 annotations.map { ElementAnnotation(it.id, it.name) }
+            }
+        }
+    }
+
+    override fun findSourceTag(metaString: MetaString, collector: ErrorCollector<TranslatorError<*>>): List<ElementSourceTag> {
+        if(metaString.value.isBlank()) {
+            //元素内容为空时抛出空警告并直接返回
+            collector.warning(BlankElement())
+            return emptyList()
+        }
+        return sourceTagCacheMap.computeIfAbsent(metaString) { str ->
+            data.db.from(SourceTags).select(SourceTags.id, SourceTags.name)
+                .where { parser.compileNameString(str, SourceTags) }
+                .limit(0, queryLimit)
+                .map { ElementSourceTag(it[SourceTags.id]!!, it[SourceTags.name]!!) }
+        }.also {
+            if(it.isEmpty()) {
+                //查询结果为空时抛出无匹配警告
+                collector.warning(ElementMatchesNone(metaString.revertToQueryString()))
             }
         }
     }
@@ -404,6 +419,9 @@ class MetaQueryer(private val data: DataRepository) : Queryer {
             QueryManager.CacheType.ANNOTATION -> {
                 annotationCacheMap.clear()
             }
+            QueryManager.CacheType.SOURCE_TAG -> {
+                sourceTagCacheMap.clear()
+            }
         }
     }
 
@@ -421,6 +439,11 @@ class MetaQueryer(private val data: DataRepository) : Queryer {
      * 缓存annotation查询的最终结果。
      */
     private val annotationCacheMap = ConcurrentHashMap<AnnotationCacheKey, List<Annotation>>()
+
+    /**
+     * 缓存source tag的查询的最终结果。
+     */
+    private val sourceTagCacheMap = ConcurrentHashMap<MetaString, List<ElementSourceTag>>()
 
     /**
      * 在parent溯源中缓存每一个遇到的topic。

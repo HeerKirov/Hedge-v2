@@ -68,10 +68,14 @@ interface ElementValue
 
 data class ElementString(val value: String, val precise: Boolean) : ElementValue
 
-interface ElementMeta : ElementValue {
+sealed interface ElementMeta : ElementValue {
     val type: String
     val id: Int
     val name: String
+}
+
+data class ElementSourceTag(override val id: Int, override val name: String) : ElementMeta {
+    override val type: String get() = "source-tag"
 }
 
 data class ElementAnnotation(override val id: Int, override val name: String) : ElementMeta {

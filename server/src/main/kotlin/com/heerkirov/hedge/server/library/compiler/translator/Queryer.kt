@@ -1,10 +1,7 @@
 package com.heerkirov.hedge.server.library.compiler.translator
 
 import com.heerkirov.hedge.server.library.compiler.semantic.plan.*
-import com.heerkirov.hedge.server.library.compiler.translator.visual.ElementAnnotation
-import com.heerkirov.hedge.server.library.compiler.translator.visual.ElementAuthor
-import com.heerkirov.hedge.server.library.compiler.translator.visual.ElementTag
-import com.heerkirov.hedge.server.library.compiler.translator.visual.ElementTopic
+import com.heerkirov.hedge.server.library.compiler.translator.visual.*
 import com.heerkirov.hedge.server.library.compiler.utils.ErrorCollector
 import com.heerkirov.hedge.server.library.compiler.utils.TranslatorError
 
@@ -19,4 +16,6 @@ interface Queryer {
     fun findAuthor(metaValue: SingleMetaValue, collector: ErrorCollector<TranslatorError<*>>): List<ElementAuthor>
 
     fun findAnnotation(metaString: MetaString, metaType: Set<MetaType>, isForMeta: Boolean, collector: ErrorCollector<TranslatorError<*>>): List<ElementAnnotation>
+
+    fun findSourceTag(metaString: MetaString, collector: ErrorCollector<TranslatorError<*>>): List<ElementSourceTag>
 }

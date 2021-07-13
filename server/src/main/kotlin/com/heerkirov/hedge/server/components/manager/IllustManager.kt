@@ -38,7 +38,7 @@ class IllustManager(private val data: DataRepository,
 
         partitionManager.addItemInPartition(partitionTime)
 
-        val (newSource, newSourceId, newSourcePart) = sourceManager.validateAndCreateSourceImageIfNotExist(source, sourceId, sourcePart)
+        val (newSourceImageId, newSource, newSourceId) = sourceManager.validateAndCreateSourceImageIfNotExist(source, sourceId, sourcePart)
 
         val exportedDescription = if(description.isEmpty() && collection != null) collection.exportedDescription else description
         val exportedScore = if(score == null && collection != null) collection.exportedScore else score
@@ -48,9 +48,10 @@ class IllustManager(private val data: DataRepository,
             set(it.parentId, parentId)
             set(it.fileId, fileId)
             set(it.cachedChildrenCount, 0)
+            set(it.sourceImageId, newSourceImageId)
             set(it.source, newSource)
             set(it.sourceId, newSourceId)
-            set(it.sourcePart, newSourcePart)
+            set(it.sourcePart, sourcePart)
             set(it.description, description)
             set(it.score, score)
             set(it.favorite, favorite)

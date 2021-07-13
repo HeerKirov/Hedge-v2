@@ -36,10 +36,10 @@ fun runApplication(options: ApplicationOptions) {
         val webController = WebControllerImpl()
 
         val services = define {
-            val sourceManager = SourceManager(repo)
-
             val queryManager = QueryManager(repo)
             val queryService = QueryService(queryManager)
+
+            val sourceManager = SourceManager(repo, queryManager)
 
             val thumbnailGenerator = define { FileGeneratorImpl(configuration, repo) }
             val fileManager = FileManager(configuration, repo)

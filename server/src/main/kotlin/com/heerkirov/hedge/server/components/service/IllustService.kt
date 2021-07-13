@@ -9,7 +9,6 @@ import com.heerkirov.hedge.server.components.kit.IllustKit
 import com.heerkirov.hedge.server.components.manager.*
 import com.heerkirov.hedge.server.components.manager.query.QueryManager
 import com.heerkirov.hedge.server.dao.album.AlbumImageRelations
-import com.heerkirov.hedge.server.dao.album.AlbumTopicRelations
 import com.heerkirov.hedge.server.dao.album.Albums
 import com.heerkirov.hedge.server.dao.illust.*
 import com.heerkirov.hedge.server.dao.meta.Authors
@@ -17,6 +16,8 @@ import com.heerkirov.hedge.server.dao.meta.Tags
 import com.heerkirov.hedge.server.dao.meta.Topics
 import com.heerkirov.hedge.server.dao.source.FileRecords
 import com.heerkirov.hedge.server.dao.source.SourceImages
+import com.heerkirov.hedge.server.dao.source.SourceTagRelations
+import com.heerkirov.hedge.server.dao.source.SourceTags
 import com.heerkirov.hedge.server.exceptions.NotFound
 import com.heerkirov.hedge.server.exceptions.ResourceNotExist
 import com.heerkirov.hedge.server.dto.*
@@ -237,22 +238,30 @@ class IllustService(private val data: DataRepository,
         val source = row[Illusts.source]
         val sourceId = row[Illusts.sourceId]
         val sourcePart = row[Illusts.sourcePart]
-        if(source != null && sourceId != null && sourcePart != null) {
+        return if(source != null && sourceId != null) {
             val sourceTitle = data.metadata.source.sites.find { it.name == source }?.title
             val sourceRow = data.db.from(SourceImages).select()
-                .where { (SourceImages.source eq source) and (SourceImages.sourceId eq sourceId) and (SourceImages.sourcePart eq sourcePart) }
+                .where { (SourceImages.source eq source) and (SourceImages.sourceId eq sourceId) }
                 .firstOrNull()
-            return if(sourceRow != null) {
+            if(sourceRow != null) {
+                val sourceRowId = sourceRow[SourceImages.id]!!
+                val sourceTags = data.db.from(SourceTags).innerJoin(SourceTagRelations, (SourceTags.id eq SourceTagRelations.tagId) and (SourceTagRelations.sourceId eq sourceRowId))
+                    .select()
+                    .map { SourceTags.createEntity(it) }
+                    .map { SourceTagDto(it.name, it.displayName, it.type) }
+
+
                 val relation = sourceRow[SourceImages.relations]
-                IllustImageOriginRes(source, sourceTitle ?: source, sourceId, sourcePart.takeIf { it != -1 },
-                    sourceRow[SourceImages.title], sourceRow[SourceImages.description], sourceRow[SourceImages.tags] ?: emptyList(),
+                IllustImageOriginRes(source, sourceTitle ?: source, sourceId, sourcePart,
+                    sourceRow[SourceImages.title], sourceRow[SourceImages.description], sourceTags,
                     relation?.pools ?: emptyList(), relation?.children ?: emptyList(), relation?.parents ?: emptyList())
             }else{
-                IllustImageOriginRes(source, sourceTitle ?: source, sourceId, sourcePart.takeIf { it != -1 },
+                IllustImageOriginRes(source, sourceTitle ?: source, sourceId, sourcePart,
                     null, null, emptyList(), emptyList(), emptyList(), emptyList())
             }
+        }else{
+            IllustImageOriginRes(null, null, null, null, null, null, null, null, null, null)
         }
-        return IllustImageOriginRes(null, null, null, null, null, null, null, null, null, null)
     }
 
     fun createCollection(form: IllustCollectionCreateForm): Int {
@@ -458,14 +467,15 @@ class IllustService(private val data: DataRepository,
             val sourcePart = row[Illusts.sourcePart]
             val tagme = row[Illusts.tagme]!!
             if(form.source.isPresent || form.sourceId.isPresent || form.sourcePart.isPresent) {
-                val (newSource, newSourceId, newSourcePart) = sourceManager.createOrUpdateSourceImage(
+                val (newSourceImageId, newSource, newSourceId) = sourceManager.createOrUpdateSourceImage(
                     form.source.unwrapOr { source }, form.sourceId.unwrapOr { sourceId }, form.sourcePart.unwrapOr { sourcePart },
                     form.title, form.description, form.tags, form.pools, form.children, form.parents)
                 data.db.update(Illusts) {
                     where { it.id eq id }
+                    set(it.sourceImageId, newSourceImageId)
                     set(it.source, newSource)
                     set(it.sourceId, newSourceId)
-                    set(it.sourcePart, newSourcePart)
+                    set(it.sourcePart, sourcePart)
                     if(data.metadata.meta.autoCleanTagme && Illust.Tagme.SOURCE in tagme) set(it.tagme, tagme - Illust.Tagme.SOURCE)
                 }
             }else{

@@ -5,7 +5,6 @@ import com.heerkirov.hedge.server.library.form.Offset
 import com.heerkirov.hedge.server.library.form.Order
 import com.heerkirov.hedge.server.library.form.Search
 import com.heerkirov.hedge.server.model.illust.Illust
-import com.heerkirov.hedge.server.model.source.SourceImage
 import com.heerkirov.hedge.server.utils.types.Opt
 import com.heerkirov.hedge.server.utils.types.OrderItem
 import java.time.LocalDate
@@ -35,8 +34,10 @@ data class AssociateRes(val id: Int, val totalCount: Int, val items: List<Illust
 
 data class IllustImageOriginRes(val source: String?, val sourceTitle: String?, val sourceId: Long?, val sourcePart: Int?,
                                 val title: String?, val description: String?,
-                                val tags: List<SourceImage.SourceTag>?,
+                                val tags: List<SourceTagDto>?,
                                 val pools: List<String>?, val children: List<Int>?, val parents: List<Int>?)
+
+data class SourceTagDto(val name: String, val displayName: String?, val type: String?)
 
 data class IllustQueryFilter(@Limit val limit: Int,
                              @Offset val offset: Int,
@@ -67,5 +68,5 @@ class IllustImageUpdateForm(val topics: Opt<List<Int>>, val authors: Opt<List<In
 class IllustImageRelatedUpdateForm(val associateId: Opt<Int?>, val collectionId: Opt<Int?>)
 
 class IllustImageOriginUpdateForm(val source: Opt<String?>, val sourceId: Opt<Long?>, val sourcePart: Opt<Int?>,
-                                  val title: Opt<String?>, val description: Opt<String?>, val tags: Opt<List<SourceImage.SourceTag>>,
+                                  val title: Opt<String?>, val description: Opt<String?>, val tags: Opt<List<SourceTagDto>>,
                                   val pools: Opt<List<String>>, val children: Opt<List<Int>>, val parents: Opt<List<Int>>)

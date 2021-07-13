@@ -21,7 +21,7 @@ interface ExecuteBuilder {
         throw UnsupportedOperationException("Unsupported element type 'name'.")
     }
 
-    fun mapSourceTagElement(unionItems: List<ElementString>, exclude: Boolean) {
+    fun mapSourceTagElement(unionItems: List<ElementSourceTag>, exclude: Boolean) {
         throw UnsupportedOperationException("Unsupported element type 'source-tag'.")
     }
 

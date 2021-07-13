@@ -1,24 +1,27 @@
 package com.heerkirov.hedge.server.components.manager
 
 import com.heerkirov.hedge.server.components.database.DataRepository
+import com.heerkirov.hedge.server.components.manager.query.QueryManager
 import com.heerkirov.hedge.server.dao.source.SourceImages
+import com.heerkirov.hedge.server.dao.source.SourceTagRelations
+import com.heerkirov.hedge.server.dao.source.SourceTags
+import com.heerkirov.hedge.server.dto.SourceTagDto
 import com.heerkirov.hedge.server.exceptions.ParamError
 import com.heerkirov.hedge.server.exceptions.ParamNotRequired
 import com.heerkirov.hedge.server.exceptions.ParamRequired
 import com.heerkirov.hedge.server.exceptions.ResourceNotExist
 import com.heerkirov.hedge.server.model.source.SourceImage
+import com.heerkirov.hedge.server.model.source.SourceTag
 import com.heerkirov.hedge.server.utils.types.Opt
 import com.heerkirov.hedge.server.utils.types.anyOpt
 import com.heerkirov.hedge.server.utils.types.undefined
-import org.ktorm.dsl.and
-import org.ktorm.dsl.eq
-import org.ktorm.dsl.insert
-import org.ktorm.dsl.update
+import org.ktorm.dsl.*
+import org.ktorm.entity.filter
 import org.ktorm.entity.firstOrNull
-import org.ktorm.entity.none
 import org.ktorm.entity.sequenceOf
+import org.ktorm.entity.toList
 
-class SourceManager(private val data: DataRepository) {
+class SourceManager(private val data: DataRepository, private val queryManager: QueryManager) {
     /**
      * 检查source key。主要检查source是否是已注册的site，检查part是否存在，检查id/part是否为非负数。
      */
@@ -38,49 +41,48 @@ class SourceManager(private val data: DataRepository) {
 
     /**
      * 检查source key是否存在。如果存在，检查目标sourceImage是否存在并创建对应的记录。在创建之前自动检查source key。
-     * @return 返回在sourceImage中实际存储的key。被省略的参数会被-1取代。
+     * @return 返回在sourceImage中实际存储的key。
      */
-    fun validateAndCreateSourceImageIfNotExist(source: String?, sourceId: Long?, sourcePart: Int?): Triple<String?, Long?, Int?> {
+    fun validateAndCreateSourceImageIfNotExist(source: String?, sourceId: Long?, sourcePart: Int?): Triple<Int?, String?, Long?> {
         if(source == null) return Triple(null, null, null)
         checkSource(source, sourceId, sourcePart)
 
         val realSourceId = sourceId!!
-        val realSourcePart = sourcePart ?: -1
 
-        if(data.db.sequenceOf(SourceImages).none { (it.source eq source) and (it.sourceId eq realSourceId) and (it.sourcePart eq realSourcePart) }) {
-            data.db.insert(SourceImages) {
+        val sourceImage = data.db.sequenceOf(SourceImages).firstOrNull { (it.source eq source) and (it.sourceId eq realSourceId) }
+        return if(sourceImage != null) {
+            Triple(sourceImage.id, source, realSourceId)
+        }else{
+            val id = data.db.insertAndGenerateKey(SourceImages) {
                 set(it.source, source)
                 set(it.sourceId, realSourceId)
-                set(it.sourcePart, realSourcePart)
                 set(it.title, null)
                 set(it.description, null)
-                set(it.tags, null)
                 set(it.relations, null)
                 set(it.analyseStatus, SourceImage.AnalyseStatus.NO)
                 set(it.analyseTime, null)
-            }
-        }
+            } as Int
 
-        return Triple(source, realSourceId, realSourcePart)
+            Triple(id, source, realSourceId)
+        }
     }
 
     /**
      * 检查source key是否存在，创建对应记录，并手动更新内容。
-     * @return 返回在sourceImage中实际存储的key。被省略的参数会被-1取代。
+     * @return 返回在sourceImage中实际存储的key。
      */
     fun createOrUpdateSourceImage(source: String?, sourceId: Long?, sourcePart: Int?,
                                   title: Opt<String?> = undefined(),
                                   description: Opt<String?> = undefined(),
-                                  tags: Opt<List<SourceImage.SourceTag>> = undefined(),
+                                  tags: Opt<List<SourceTagDto>> = undefined(),
                                   pools: Opt<List<String>> = undefined(),
                                   children: Opt<List<Int>> = undefined(),
-                                  parents: Opt<List<Int>> = undefined()): Triple<String?, Long?, Int?> {
+                                  parents: Opt<List<Int>> = undefined()): Triple<Int?, String?, Long?> {
         if(source == null) return Triple(null, null, null)
         checkSource(source, sourceId, sourcePart)
         val realSourceId = sourceId!!
-        val realSourcePart = sourcePart ?: -1
 
-        val sourceImage = data.db.sequenceOf(SourceImages).firstOrNull { (it.source eq source) and (it.sourceId eq realSourceId) and (it.sourcePart eq realSourcePart) }
+        val sourceImage = data.db.sequenceOf(SourceImages).firstOrNull { (it.source eq source) and (it.sourceId eq realSourceId) }
         if(sourceImage == null) {
             //新建
             val analyseStatus = if(anyOpt(title, description, tags, pools, children, parents))
@@ -94,17 +96,32 @@ class SourceManager(private val data: DataRepository) {
                 )
             }else null
 
-            data.db.insert(SourceImages) {
+            val id = data.db.insertAndGenerateKey(SourceImages) {
                 set(it.source, source)
                 set(it.sourceId, realSourceId)
-                set(it.sourcePart, realSourcePart)
                 set(it.title, title.unwrapOr { null })
                 set(it.description, description.unwrapOr { null })
-                set(it.tags, tags.runOpt { takeIf { t -> t.isNotEmpty() } }.unwrapOr { null })
                 set(it.relations, relations)
                 set(it.analyseStatus, analyseStatus)
                 set(it.analyseTime, null)
+            } as Int
+
+            tags.applyOpt {
+                if(isNotEmpty()) {
+                    val tagIds = getAndUpsertSourceTags(source, this)
+                    data.db.batchInsert(SourceTagRelations) {
+                        for (tagId in tagIds) {
+                            item {
+                                set(it.sourceId, id)
+                                set(it.tagId, tagId)
+                            }
+                        }
+                    }
+                    queryManager.flushCacheOf(QueryManager.CacheType.SOURCE_TAG)
+                }
             }
+
+            return Triple(id, source, realSourceId)
         }else{
             //更新
             val analyseStatus = if(sourceImage.analyseStatus != SourceImage.AnalyseStatus.MANUAL && anyOpt(title, description, tags, pools, children, parents))
@@ -118,16 +135,83 @@ class SourceManager(private val data: DataRepository) {
                 ))
             }else undefined()
 
-            data.db.update(SourceImages) {
-                where { (it.source eq source) and (it.sourceId eq realSourceId) and (it.sourcePart eq realSourcePart) }
-                analyseStatus.applyOpt { set(it.analyseStatus, this) }
-                title.applyOpt { set(it.title, this) }
-                description.applyOpt { set(it.description, this) }
-                tags.applyOpt { set(it.tags, this) }
-                relations.applyOpt { set(it.relations, this) }
+            if(analyseStatus.isPresent || title.isPresent || description.isPresent || relations.isPresent) {
+                data.db.update(SourceImages) {
+                    where { it.id eq sourceImage.id }
+                    analyseStatus.applyOpt { set(it.analyseStatus, this) }
+                    title.applyOpt { set(it.title, this) }
+                    description.applyOpt { set(it.description, this) }
+                    relations.applyOpt { set(it.relations, this) }
+                }
+            }
+
+            tags.applyOpt {
+                data.db.delete(SourceTagRelations) { it.sourceId eq sourceImage.id }
+                if(isNotEmpty()) {
+                    val tagIds = getAndUpsertSourceTags(source, this)
+                    data.db.batchInsert(SourceTagRelations) {
+                        for (tagId in tagIds) {
+                            item {
+                                set(it.sourceId, sourceImage.id)
+                                set(it.tagId, tagId)
+                            }
+                        }
+                    }
+                    queryManager.flushCacheOf(QueryManager.CacheType.SOURCE_TAG)
+                }
+                queryManager.flushCacheOf(QueryManager.CacheType.SOURCE_TAG)
+            }
+
+            return Triple(sourceImage.id, source, realSourceId)
+        }
+
+    }
+
+    /**
+     * 根据给出的tags dto，创建或修改数据库里的source tag model，并返回这些模型的id。
+     */
+    private fun getAndUpsertSourceTags(source: String, tags: List<SourceTagDto>): List<Int> {
+        val tagMap = tags.associateBy { it.name }
+
+        val dbTags = data.db.sequenceOf(SourceTags).filter { (it.source eq source) and (it.name inList tagMap.keys) }.toList()
+        val dbTagMap = dbTags.associateBy { it.name }
+
+        fun SourceTag.mapToDto() = SourceTagDto(name, displayName, type)
+
+        //挑选出目前在数据库里没有的tag
+        val minus = tagMap.keys - dbTagMap.keys
+        if(minus.isNotEmpty()) {
+            data.db.batchInsert(SourceTags) {
+                for (name in minus) {
+                    val tag = tagMap[name]!!
+                    item {
+                        set(it.source, source)
+                        set(it.name, name)
+                        set(it.displayName, tag.displayName)
+                        set(it.type, tag.type)
+                    }
+                }
             }
         }
 
-        return Triple(source, realSourceId, realSourcePart)
+        //挑选出在数据库里有，但是发生了变化的tag
+        val common = tagMap.keys.intersect(dbTagMap.keys).filter { tagMap[it]!! != dbTagMap[it]!!.mapToDto() }
+        if(common.isNotEmpty()) {
+            data.db.batchUpdate(SourceTags) {
+                for (name in common) {
+                    val tag = tagMap[name]!!
+                    val dbTag = dbTagMap[name]!!
+                    item {
+                        where { it.id eq dbTag.id }
+                        set(it.displayName, tag.displayName)
+                        set(it.type, tag.type)
+                    }
+                }
+            }
+        }
+
+        return data.db.from(SourceTags).select(SourceTags.id)
+            .where { (SourceTags.source eq source) and (SourceTags.name inList tagMap.keys) }
+            .map { it[SourceTags.id]!! }
     }
 }

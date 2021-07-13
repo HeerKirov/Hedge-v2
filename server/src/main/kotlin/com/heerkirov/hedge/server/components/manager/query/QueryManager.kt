@@ -63,7 +63,7 @@ class QueryManager(private val data: DataRepository) {
 
     enum class Dialect { ILLUST, ALBUM }
 
-    enum class CacheType { TAG, TOPIC, AUTHOR, ANNOTATION }
+    enum class CacheType { TAG, TOPIC, AUTHOR, ANNOTATION, SOURCE_TAG }
 
     data class QuerySchema(val visualQueryPlan: VisualQueryPlan?, val executePlan: ExecutePlan?, val warnings: List<CompileError<*>>, val errors: List<CompileError<*>>)
 

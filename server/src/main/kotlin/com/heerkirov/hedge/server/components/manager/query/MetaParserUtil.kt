@@ -1,9 +1,11 @@
 package com.heerkirov.hedge.server.components.manager.query
 
+import com.heerkirov.hedge.server.dao.source.SourceTags
 import com.heerkirov.hedge.server.dao.types.MetaTag
 import com.heerkirov.hedge.server.library.compiler.semantic.plan.MetaString
 import com.heerkirov.hedge.server.library.compiler.semantic.plan.MetaType
 import com.heerkirov.hedge.server.model.meta.Annotation
+import com.heerkirov.hedge.server.model.source.SourceTag
 import com.heerkirov.hedge.server.utils.ktorm.escapeLike
 import org.ktorm.dsl.eq
 import org.ktorm.dsl.or
@@ -20,6 +22,18 @@ internal object MetaParserUtil {
         }else{
             val value = mapMatchToSqlLike(metaString.value)
             (metaTag.name escapeLike value) or (metaTag.otherNames escapeLike value)
+        }
+    }
+
+    /**
+     * 将metaString的值编译为对指定种类metaTag的等价或比较操作。
+     */
+    fun compileNameString(metaString: MetaString, metaTag: SourceTags): BinaryExpression<Boolean> {
+        return if(metaString.precise) {
+            metaTag.name eq metaString.value
+        }else{
+            val value = mapMatchToSqlLike(metaString.value)
+            (metaTag.name escapeLike value) or (metaTag.displayName escapeLike value)
         }
     }
 
