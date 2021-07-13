@@ -26,9 +26,11 @@ data class IllustDetailRes(val id: Int, val fileId: Int, val file: String, val t
 
 data class IllustCollectionRelatedRes(val associate: AssociateRes?)
 
-data class IllustImageRelatedRes(val collection: IllustSimpleRes?,
+data class IllustImageRelatedRes(val collection: IllustParent?,
                                  val albums: List<AlbumSimpleRes>,
-                                 val associate: AssociateRes?)
+                                 val associate: AssociateRes?) {
+    data class IllustParent(val id: Int, val thumbnailFile: String, val childrenCount: Int)
+}
 
 data class AssociateRes(val id: Int, val totalCount: Int, val items: List<IllustRes>)
 
@@ -36,6 +38,8 @@ data class IllustImageOriginRes(val source: String?, val sourceTitle: String?, v
                                 val title: String?, val description: String?,
                                 val tags: List<SourceTagDto>?,
                                 val pools: List<String>?, val children: List<Int>?, val parents: List<Int>?)
+
+data class IllustImageFileInfoRes(val file: String, val extension: String, val size: Long, val thumbnailSize: Long?, val resolutionWidth: Int, val resolutionHeight: Int, val createTime: LocalDateTime)
 
 data class SourceTagDto(val name: String, val displayName: String?, val type: String?)
 

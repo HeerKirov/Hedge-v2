@@ -212,10 +212,10 @@ class IllustService(private val data: DataRepository,
 
         val parent = if(parentId == null) null else data.db.from(Illusts)
             .innerJoin(FileRecords, FileRecords.id eq Illusts.fileId)
-            .select(Illusts.id, FileRecords.id, FileRecords.folder, FileRecords.extension, FileRecords.status)
+            .select(Illusts.id, Illusts.cachedChildrenCount, FileRecords.id, FileRecords.folder, FileRecords.extension, FileRecords.status)
             .where { Illusts.id eq parentId }
             .firstOrNull()
-            ?.let { IllustSimpleRes(it[Illusts.id]!!, takeThumbnailFilepath(it)) }
+            ?.let { IllustImageRelatedRes.IllustParent(it[Illusts.id]!!, takeThumbnailFilepath(it), it[Illusts.cachedChildrenCount]!!) }
 
         val albums = data.db.from(Albums)
             .innerJoin(AlbumImageRelations, AlbumImageRelations.albumId eq Albums.id)
@@ -262,6 +262,23 @@ class IllustService(private val data: DataRepository,
         }else{
             IllustImageOriginRes(null, null, null, null, null, null, null, null, null, null)
         }
+    }
+
+    fun getImageFileInfo(id: Int): IllustImageFileInfoRes {
+        val row = data.db.from(Illusts)
+            .innerJoin(FileRecords, FileRecords.id eq Illusts.fileId)
+            .select(FileRecords.columns)
+            .where { retrieveCondition(id, Illust.IllustType.IMAGE) }
+            .firstOrNull()
+            ?: throw NotFound()
+
+        val file = takeFilepath(row)
+        val fileRecord = FileRecords.createEntity(row)
+
+        return IllustImageFileInfoRes(file, fileRecord.extension,
+            fileRecord.size, fileRecord.thumbnailSize.takeIf { it > 0 },
+            fileRecord.resolutionWidth, fileRecord.resolutionHeight,
+            fileRecord.createTime)
     }
 
     fun createCollection(form: IllustCollectionCreateForm): Int {

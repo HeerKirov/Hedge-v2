@@ -47,6 +47,9 @@ class IllustRoutes(private val illustService: IllustService, private val associa
                                 get(::getImageRelatedItems)
                                 patch(::updateImageRelatedItems)
                             }
+                            path("file-info") {
+                                get(::getImageFileInfo)
+                            }
                         }
                     }
                 }
@@ -154,6 +157,11 @@ class IllustRoutes(private val illustService: IllustService, private val associa
         val id = ctx.pathParam<Int>("id").get()
         val form = ctx.bodyAsForm<IllustImageRelatedUpdateForm>()
         illustService.updateImageRelatedItems(id, form)
+    }
+
+    private fun getImageFileInfo(ctx: Context) {
+        val id = ctx.pathParam<Int>("id").get()
+        ctx.json(illustService.getImageFileInfo(id))
     }
 
     private fun createAssociate(ctx: Context) {
