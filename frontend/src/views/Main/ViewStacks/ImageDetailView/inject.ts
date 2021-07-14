@@ -1,11 +1,10 @@
-import { computed, ref, Ref, watch } from "vue"
+import { computed, InjectionKey, ref, Ref, watch } from "vue"
 import {
-    Illust,
-    DetailIllust, ImageOriginData, ImageRelatedItems,
-    ImageUpdateForm, ImageOriginUpdateForm, ImageRelatedUpdateForm
+    Illust, DetailIllust, ImageFileInfo, ImageOriginData,
+    ImageOriginUpdateForm, ImageRelatedItems, ImageRelatedUpdateForm, ImageUpdateForm
 } from "@/functions/adapter-http/impl/illust"
 import { QueryEndpointInstance } from "@/functions/utils/endpoints/query-endpoint"
-import { ObjectEndpoint, useObjectEndpoint } from "@/functions/utils/endpoints/object-endpoint"
+import { installObjectLazyObject, ObjectLazyObjectInjection, useObjectLazyObject } from "@/functions/utils/endpoints/object-lazy-endpoint"
 import { useHttpClient } from "@/functions/app"
 import { useNotification } from "@/functions/document/notification"
 import { installation } from "@/functions/utils/basic"
@@ -16,16 +15,11 @@ export interface DetailViewContext {
         metrics: Readonly<Ref<{ total: number, current: number }>>
         metricsOfCollection: Readonly<Ref<{ total: number, current: number } | null>>
         prev(): void
-        prevWholeIllust(): void
+        prevWholeIllust(count?: number): void
         next(): void
-        nextWholeIllust(): void
+        nextWholeIllust(count?: number): void
     }
-    detail: Targets & {
-        //TODO 优化为lazy load
-        metadata: ObjectEndpoint<DetailIllust, ImageUpdateForm>
-        relatedItems: ObjectEndpoint<ImageRelatedItems, ImageRelatedUpdateForm>
-        originData: ObjectEndpoint<ImageOriginData, ImageOriginUpdateForm>
-    }
+    detail: Targets
 }
 
 interface Targets {
@@ -44,15 +38,14 @@ export const [installDetailViewContext, useDetailViewContext] = installation(fun
 
     const path = computed(() => target.value?.id ?? null)
 
-    const detailEndpoints = useDetailEndpoints(path)
+    installDetailEndpoints(path)
 
     return {
         data,
         navigator,
         detail: {
             target,
-            collectionItems,
-            ...detailEndpoints
+            collectionItems
         }
     }
 })
@@ -128,9 +121,13 @@ function useNavigator(data: DataAccessor, initIndex: Ref<number>): DetailViewCon
             prevWholeIllust()
         }
     }
-    const prevWholeIllust = () => {
+    const prevWholeIllust = (count: number = 1) => {
         if(currentIndex.value > 0) {
-            currentIndex.value -= 1
+            if(currentIndex.value >= count) {
+                currentIndex.value -= count
+            }else{
+                currentIndex.value = 0
+            }
         }
     }
     const next = () => {
@@ -140,9 +137,14 @@ function useNavigator(data: DataAccessor, initIndex: Ref<number>): DetailViewCon
             nextWholeIllust()
         }
     }
-    const nextWholeIllust = () => {
-        if(currentIndex.value < data.count() - 1) {
-            currentIndex.value += 1
+    const nextWholeIllust = (count: number = 1) => {
+        const max = data.count() - 1
+        if(currentIndex.value < max) {
+            if(currentIndex.value <= data.count() - count) {
+                currentIndex.value += count
+            }else{
+                currentIndex.value = max
+            }
         }
     }
 
@@ -158,27 +160,46 @@ function useNavigator(data: DataAccessor, initIndex: Ref<number>): DetailViewCon
     }
 }
 
-function useDetailEndpoints(path: Ref<number | null>) {
-    const metadata = useObjectEndpoint({
+function installDetailEndpoints(path: Ref<number | null>) {
+    installObjectLazyObject(symbols.metadata, {
         path,
         get: httpClient => httpClient.illust.image.get,
         update: httpClient => httpClient.illust.image.update,
         delete: httpClient => httpClient.illust.image.delete
     })
 
-    const relatedItems = useObjectEndpoint({
+    installObjectLazyObject(symbols.relatedItems, {
         path,
         get: httpClient => id => httpClient.illust.image.relatedItems.get(id, {limit: 9}),
         update: httpClient => httpClient.illust.image.relatedItems.update
     })
 
-    const originData = useObjectEndpoint({
+    installObjectLazyObject(symbols.originData, {
         path,
         get: httpClient => httpClient.illust.image.originData.get,
         update: httpClient => httpClient.illust.image.originData.update
     })
 
-    return {metadata, relatedItems, originData}
+    installObjectLazyObject(symbols.fileInfo, {
+        path,
+        get: httpClient => httpClient.illust.image.fileInfo.get
+    })
+}
+
+export function useMetadataEndpoint() {
+    return useObjectLazyObject(symbols.metadata)
+}
+
+export function useRelatedItemsEndpoint() {
+    return useObjectLazyObject(symbols.relatedItems)
+}
+
+export function useOriginDataEndpoint() {
+    return useObjectLazyObject(symbols.originData)
+}
+
+export function useFileInfoEndpoint() {
+    return useObjectLazyObject(symbols.fileInfo)
 }
 
 function createDataAccessor(queryEndpoint: QueryEndpointInstance<Illust> | Illust[]): DataAccessor {
@@ -193,4 +214,11 @@ function createDataAccessor(queryEndpoint: QueryEndpointInstance<Illust> | Illus
             count: () => queryEndpoint.count()!
         }
     }
+}
+
+const symbols = {
+    metadata: Symbol() as InjectionKey<ObjectLazyObjectInjection<number, DetailIllust, ImageUpdateForm>>,
+    relatedItems: Symbol() as InjectionKey<ObjectLazyObjectInjection<number, ImageRelatedItems, ImageRelatedUpdateForm>>,
+    originData: Symbol() as InjectionKey<ObjectLazyObjectInjection<number, ImageOriginData, ImageOriginUpdateForm>>,
+    fileInfo: Symbol() as InjectionKey<ObjectLazyObjectInjection<number, ImageFileInfo, unknown>>
 }

@@ -2,9 +2,10 @@ import { defineComponent, TransitionGroup } from "vue"
 import { watchGlobalKeyEvent } from "@/functions/document/global-key"
 import { useViewStacks, installViewStacks, DetailViewInfo } from "./inject"
 import ImageDetailView from "./ImageDetailView"
+import BackspaceButton from "./BackspaceButton"
 import style from "./style.module.scss"
 
-export { useViewStacks, installViewStacks }
+export { useViewStacks, installViewStacks, BackspaceButton }
 
 export default defineComponent({
     setup() {

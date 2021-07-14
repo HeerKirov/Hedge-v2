@@ -13,14 +13,14 @@ import PopupMenuModule from "@/layouts/web-modules/PopupMenuModule"
 
 export default defineComponent({
     setup() {
-        installGlobalKey()
         installTitleWatcher()
         installNavigatorManager()
         installMessageBoxManager()
         installWebPopupMenuManager()
         const notification = installNotificationManager()
-        const { appState } = installAppService({ handleError: notification.handleError })
+        const { appInfo, appState } = installAppService({ handleError: notification.handleError })
         const initialized = computed(() => appState.state != null)
+        installGlobalKey(appInfo)
 
         return () => <>
             <MessageBoxModule/>

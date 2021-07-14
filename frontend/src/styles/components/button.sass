@@ -143,6 +143,69 @@ $button-size-map: ("small" ($font-size-8, $height-small, 0.9em), "medium" ($font
             &[disabled]
               color: toDarkenColor($color-dark, 30%)
 
+@media (prefers-color-scheme: light)
+  @each $name, $pair in $colors
+    $color: nth($pair, 1)
+    $color-invert: nth($pair, 2)
+    .has-button-#{$name}
+      .button
+        background-color: $color
+        color: $color-invert
+        &:hover:not([disabled])
+          background-color: toDarkenColor($color, 5%)
+          color: $color-invert
+        &:active:not([disabled])
+          background-color: toDarkenColor($color, 7.5%)
+          color: $color-invert
+        &[disabled]
+          color: toLightenColor($color-invert, 30%)
+          box-shadow: none
+        @if length($pair) >= 4
+          $color-light: nth($pair, 3)
+          $color-dark: nth($pair, 4)
+          &.is-light
+            background-color: $color-light
+            color: $color-dark
+            &:hover:not([disabled])
+              background-color: toDarkenColor($color-light, 2.5%)
+              color: $color-dark
+            &:active:not([disabled])
+              background-color: toDarkenColor($color-light, 5%)
+              color: $color-dark
+            &[disabled]
+              color: toLightenColor($color-dark, 30%)
+@media (prefers-color-scheme: dark)
+  @each $name, $pair in $colors-dark-mode
+    $color: nth($pair, 1)
+    $color-invert: nth($pair, 2)
+    .has-button-#{$name}
+      .button
+        background-color: $color
+        color: $color-invert
+        &:hover:not([disabled])
+          background-color: toLightenColor($color, 5%)
+          color: $color-invert
+        &:active:not([disabled])
+          background-color: toLightenColor($color, 7.5%)
+          color: $color-invert
+        &[disabled]
+          color: toDarkenColor($color-invert, 30%)
+          box-shadow: none
+        @if length($pair) >= 4
+          $color-light: nth($pair, 3)
+          $color-dark: nth($pair, 4)
+          &.is-light
+            background-color: $color-light
+            color: $color-dark
+            &:hover:not([disabled])
+              background-color: toLightenColor($color-light, 2.5%)
+              color: $color-dark
+            &:active:not([disabled])
+              background-color: toLightenColor($color-light, 5%)
+              color: $color-dark
+            &[disabled]
+              color: toDarkenColor($color-dark, 30%)
+
 .separator
   height: #{$height-std * 0.8}
   width: 0

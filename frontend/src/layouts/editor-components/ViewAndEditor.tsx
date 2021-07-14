@@ -16,7 +16,8 @@ export default defineComponent({
         onSetData: {type: null as any as PropType<SetDataFunction>, required: true},
         showEditButton: {type: Boolean, default: true},
         showSaveButton: {type: Boolean, default: true},
-        baseline: {type: null as any as PropType<"std" | "medium">, default: "std"}
+        baseline: {type: String as any as PropType<"std" | "medium">, default: "std"},
+        color: {type: String, default: "white"}
     },
     setup(props, { slots }) {
         const editMode = ref(false)
@@ -45,10 +46,10 @@ export default defineComponent({
         })
 
         return () => editMode.value ? <div class={style.root}>
-            {props.showSaveButton && <button class={["square", "button", "is-small", "is-white", "has-text-link", "float-right", style.button, baselineStyle[props.baseline]]} onClick={save}><span class="icon"><i class="fa fa-save"/></span></button>}
+            {props.showSaveButton && <button class={["square", "button", "is-small", `is-${props.color}`, "has-text-link", "float-right", style.button, baselineStyle[props.baseline]]} onClick={save}><span class="icon"><i class="fa fa-save"/></span></button>}
             {slots.editor?.({value: editorValue.value, setValue: setEditorValue, save})}
         </div> : props.showEditButton ? <div class={style.root} onMouseover={mouseover} onMouseleave={mouseleave}>
-            {hover.value && <button class={["square", "button", "is-small", "is-white", "has-text-link", "float-right", style.button, baselineStyle[props.baseline]]} onClick={edit}><span class="icon"><i class="fa fa-edit"/></span></button>}
+            {hover.value && <button class={["square", "button", "is-small", `is-${props.color}`, "has-text-link", "float-right", style.button, baselineStyle[props.baseline]]} onClick={edit}><span class="icon"><i class="fa fa-edit"/></span></button>}
             {slots.default?.({value: props.data, edit})}
         </div> : <div class={style.root}>
             {slots.default?.({value: props.data, edit})}

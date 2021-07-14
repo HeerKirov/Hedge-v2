@@ -101,7 +101,7 @@ export function createQueryEndpointInstance<T>(options: QueryEndpointInstanceOpt
         },
         async queryList(indexList: number[]): Promise<T[]> {
             const result: T[] = []
-            for await (const [i, index] of indexList.entries()) {
+            for (const [i, index] of indexList.entries()) {
                 const ok = await segments.loadData(index, 1)
                 if(ok) result[i] = datasource.data.buffer[index]
             }

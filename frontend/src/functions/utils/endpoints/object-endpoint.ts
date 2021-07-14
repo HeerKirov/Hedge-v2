@@ -17,7 +17,7 @@ export interface ObjectEndpoint<MODEL, FORM> {
     deleteData(): Promise<boolean>
 }
 
-interface ObjectEndpointOptions<PATH, MODEL, FORM> {
+export interface ObjectEndpointOptions<PATH, MODEL, FORM> {
     /**
      * 决定object的path属性。
      */

@@ -1,4 +1,6 @@
-import { onMounted, onUnmounted } from "vue"
+import { onBeforeMount, onMounted, onUnmounted } from "vue"
+import { useAppInfo } from "@/functions/app"
+import { AppInfo } from "@/functions/app/app-state"
 import { installation } from "@/functions/utils/basic"
 
 export interface GlobalKeyEvent {
@@ -7,7 +9,7 @@ export interface GlobalKeyEvent {
      */
     key: string
     /**
-     * 是否一同按下alt。
+     * 是否一同按下alt(win/linux)/option(mac)。
      */
     altKey: boolean
     /**
@@ -15,13 +17,9 @@ export interface GlobalKeyEvent {
      */
     shiftKey: boolean
     /**
-     * 是否一同按下meta。这个键指Win/Super/Cmd。
+     * 是否一同按下ctrl(win/linux)/cmd(mac)。这个属性整合了平台差异。
      */
     metaKey: boolean
-    /**
-     * 是否一同按下ctrl。
-     */
-    ctrlKey: boolean
     /**
      * 阻止按键事件继续传递到上一个注册者。
      */
@@ -38,7 +36,7 @@ export interface GlobalKeyEvent {
 export function watchGlobalKeyEvent(event: (e: GlobalKeyEvent) => void) {
     const { add, remove } = useGlobalKey()
 
-    onMounted(() => add(event))
+    onBeforeMount(() => add(event))
     onUnmounted(() => remove(event))
 }
 
@@ -55,7 +53,9 @@ export function interceptGlobalKey(keys: string[], event: (key: string) => void)
     })
 }
 
-const [installGlobalKey, useGlobalKey] = installation(function() {
+const [installGlobalKey, useGlobalKey] = installation(function(appInfo?: AppInfo) {
+    const { platform } = appInfo ?? useAppInfo()
+
     onMounted(() => document.addEventListener("keydown", keydown))
     onUnmounted(() => document.removeEventListener("keydown", keydown))
 
@@ -64,8 +64,7 @@ const [installGlobalKey, useGlobalKey] = installation(function() {
             key: keyboardEvent.key,
             altKey: keyboardEvent.altKey,
             shiftKey: keyboardEvent.shiftKey,
-            metaKey: keyboardEvent.metaKey,
-            ctrlKey: keyboardEvent.ctrlKey,
+            metaKey: (platform === "darwin" && keyboardEvent.metaKey) || (platform !== "darwin" && keyboardEvent.ctrlKey),
             stopPropagation() {
                 stopPropagation = true
             },

@@ -4,11 +4,26 @@ export const numbers = {
     round2decimal(n: number): number {
         return Math.round(n * 100) / 100
     },
+    roundNDecimal(n: number, len: number): number {
+        const x = Math.pow(10, len)
+        return Math.round(n * x) / x
+    },
     floorHalfDecimal(n: number): number {
         return Math.floor(n * 2) / 2
     },
     between(min: number, value: number, max: number): number {
         return value < min ? min : value > max ? max : value
+    },
+    toBytesDisplay(byteSize: number): string {
+        if(byteSize >= 1 << 30) {
+            return `${numbers.roundNDecimal(byteSize / (1 << 30), 3)} GiB`
+        }else if(byteSize >= 1 << 20) {
+            return `${numbers.roundNDecimal(byteSize / (1 << 20), 3)} MiB`
+        }else if(byteSize >= 1 << 10) {
+            return `${numbers.roundNDecimal(byteSize / (1 << 10), 3)} KiB`
+        }else{
+            return `${numbers.roundNDecimal(byteSize, 3)} B`
+        }
     }
 }
 

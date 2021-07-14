@@ -2,7 +2,7 @@ import { computed, defineComponent } from "vue"
 import Starlight from "@/components/elements/Starlight"
 import Select from "@/components/forms/Select"
 import { PaneBasicLayout } from "@/layouts/layouts/SplitPane"
-import { AnnotationEditor, ViewAndEditor } from "@/layouts/editor-components"
+import { AnnotationEditor, DescriptionEditor, ViewAndEditor } from "@/layouts/editor-components"
 import { DetailTag, IsGroup, TagType, TagUpdateForm } from "@/functions/adapter-http/impl/tag"
 import { SimpleAnnotation } from "@/functions/adapter-http/impl/annotations"
 import { useObjectEndpoint } from "@/functions/utils/endpoints/object-endpoint"
@@ -14,7 +14,7 @@ import { TAG_TYPE_SELECT_ITEMS } from "./define"
 import {
     TagGroupEditor, TagGroupDisplay, TagTypeDisplay, TagGroupMemberDisplay,
     NameAndOtherNamesEditor, NameAndOtherNameDisplay,
-    LinkDisplay, LinkEditor, DescriptionDisplay, DescriptionEditor
+    LinkDisplay, LinkEditor, DescriptionDisplay
 } from "./PaneComponents"
 import { useTagPaneContext, useTagListContext } from "./inject"
 import style from "./style.module.scss"

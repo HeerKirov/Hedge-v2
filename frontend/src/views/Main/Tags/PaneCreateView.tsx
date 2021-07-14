@@ -1,7 +1,7 @@
 import { computed, defineComponent, ref, watch } from "vue"
 import Select from "@/components/forms/Select"
 import { PaneBasicLayout } from "@/layouts/layouts/SplitPane"
-import { AnnotationEditor } from "@/layouts/editor-components"
+import { AnnotationEditor, DescriptionEditor } from "@/layouts/editor-components"
 import { IdResponse } from "@/functions/adapter-http/impl/generic"
 import { SimpleIllust } from "@/functions/adapter-http/impl/illust"
 import { SimpleAnnotation } from "@/functions/adapter-http/impl/annotations"
@@ -11,7 +11,7 @@ import { useMessageBox } from "@/functions/module"
 import { checkTagName } from "@/utils/check"
 import { TAG_TYPE_SELECT_ITEMS } from "./define"
 import { useTagListContext, useTagPaneContext } from "./inject"
-import { NameAndOtherNamesEditor, DescriptionEditor, TagGroupEditor, LinkEditor } from "./PaneComponents"
+import { NameAndOtherNamesEditor, TagGroupEditor, LinkEditor } from "./PaneComponents"
 import style from "./style.module.scss"
 
 export default defineComponent({

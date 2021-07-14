@@ -21,3 +21,16 @@ export default defineComponent({
         return () => <SideLayout v-slots={sideLayoutSlots}/>
     }
 })
+
+/* TODO 工作清单
+ *  为了更好地实现illust列表传递，为DataEndpoint实现一个新功能，
+ *      按照indexList映射一个符合DataEndpoint接口的代理对象，提供给detail view；
+ *      这样便可统一detail view的数据输入，并且detail view的更改能传递回上层。
+ *  完成顶栏UI/UX及实现
+ *  添加右上角菜单项
+ *  完成dashboard内容实现(大型工作)
+ *  完成Tag Editor模态框(大型工作)
+ *  完成origin data编辑项，包括无相关数据时的初始化编辑
+ *  添加Tag/orderTime等项的快捷操作
+ *  添加Tag的弹出信息框
+ */

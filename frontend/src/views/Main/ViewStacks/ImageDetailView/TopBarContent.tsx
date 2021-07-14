@@ -1,41 +1,96 @@
-import { defineComponent, inject } from "vue"
-import NumberInput from "@/components/forms/NumberInput"
+import { computed, defineComponent, inject } from "vue"
 import { dashboardZoomInjection } from "@/components/features/Dashboard"
-import { useViewStacks } from "../../ViewStacks"
+import { ImageUpdateForm } from "@/functions/adapter-http/impl/illust"
+import { watchGlobalKeyEvent } from "@/functions/document/global-key"
+import { useFastObjectEndpoint } from "@/functions/utils/endpoints/object-fast-endpoint"
 import { useDetailViewContext } from "./inject"
+import { BackspaceButton } from ".."
+import style from "./style.module.scss"
 
 export default defineComponent({
     setup() {
-        const viewStacks = useViewStacks()
-
-        const { navigator } = useDetailViewContext()
-
         const { zoom } = inject(dashboardZoomInjection)!
 
-        return () => <div class="middle-layout">
+        return () => <div class={["middle-layout", style.topBarContent]}>
             <div class="layout-container">
-                <button class="square button is-white no-drag" onClick={viewStacks.goBack}><span class="icon"><i class="fa fa-arrow-left"/></span></button>
+                <BackspaceButton/>
             </div>
             <div class="layout-container">
-                {/* test zoom */}
-                <NumberInput class="no-drag" value={zoom.value * 100} onUpdateValue={v => zoom.value = v / 100}/>
+                <Navigator/>
             </div>
             <div class="layout-container">
-                <button class="square button is-white no-drag" onClick={navigator.prevWholeIllust}><span class="icon"><i class="fa fa-angle-double-left"/></span></button>
-                <button class="square button is-white no-drag" onClick={navigator.prev}><span class="icon"><i class="fa fa-angle-left"/></span></button>
-                <span class="no-drag">
-                    {navigator.metrics.value.current + 1}/{navigator.metrics.value.total}
-                    {navigator.metricsOfCollection.value && <span>
-                        ({navigator.metricsOfCollection.value.current + 1}/{navigator.metricsOfCollection.value.total})
-                    </span>}
-                </span>
-                <button class="square button is-white no-drag" onClick={navigator.next}><span class="icon"><i class="fa fa-angle-right"/></span></button>
-                <button class="square button is-white no-drag" onClick={navigator.nextWholeIllust}><span class="icon"><i class="fa fa-angle-double-right"/></span></button>
-                <button class="square button is-white no-drag"><span class="icon has-text-danger"><i class="fa fa-heart"/></span></button>
+                <FavoriteButton/>
                 <button class="square button is-white no-drag"><span class="icon"><i class="fa fa-external-link-alt"/></span></button>
                 <button class="square button is-white no-drag"><span class="icon"><i class="fa fa-eye"/></span></button>
                 <button class="square button is-white no-drag"><span class="icon"><i class="fa fa-ellipsis-v"/></span></button>
             </div>
         </div>
+    }
+})
+
+const Navigator = defineComponent({
+    setup() {
+        const { navigator } = useDetailViewContext()
+
+        watchGlobalKeyEvent(e => {
+            if(e.key === "ArrowLeft" || e.key === "ArrowUp") {
+                if(e.shiftKey) {
+                    navigator.prevWholeIllust(5)
+                }else if(e.metaKey) {
+                    navigator.prevWholeIllust()
+                }else{
+                    navigator.prev()
+                }
+                e.stopPropagation()
+                e.preventDefault()
+            }else if(e.key === "ArrowRight" || e.key === "ArrowDown") {
+                if(e.shiftKey) {
+                    navigator.nextWholeIllust(5)
+                }else if(e.metaKey) {
+                    navigator.nextWholeIllust()
+                }else{
+                    navigator.next()
+                }
+                e.stopPropagation()
+                e.preventDefault()
+            }
+        })
+
+        return () => <>
+            <button class="square button is-white no-drag" onClick={navigator.prev}><span class="icon"><i class="fa fa-angle-left"/></span></button>
+            <span class={["no-drag", style.navigatorContent]}>
+                {navigator.metrics.value.current + 1} / {navigator.metrics.value.total}
+                {navigator.metricsOfCollection.value && <p class="is-size-small has-text-grey">
+                    {navigator.metricsOfCollection.value.current + 1} / {navigator.metricsOfCollection.value.total}
+                </p>}
+            </span>
+            <button class="square button is-white no-drag" onClick={navigator.next}><span class="icon"><i class="fa fa-angle-right"/></span></button>
+        </>
+    }
+})
+
+const FavoriteButton = defineComponent({
+    setup() {
+        const { detail: { target } } = useDetailViewContext()
+
+        const { setData } = useFastObjectEndpoint<number, unknown, ImageUpdateForm>({
+            update: httpClient => httpClient.illust.image.update
+        })
+
+        const favorite = computed(() => target.value?.favorite ?? null)
+
+        const click = async () => {
+            if(target.value !== null) {
+                const newFavoriteValue = !favorite.value
+                const ok = await setData(target.value.id, {favorite: newFavoriteValue})
+                if(ok) {
+                    target.value.favorite = newFavoriteValue
+                }
+            }
+        }
+
+        return () => <button class="square button is-white no-drag" onClick={click}>
+            <span class={`icon has-text-${favorite.value ? "danger" : "grey"}`}><i class="fa fa-heart"/></span>
+        </button>
     }
 })

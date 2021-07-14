@@ -18,7 +18,7 @@ export const sideBarWidthInjection: InjectionKey<Ref<number>> = Symbol()
 /**
  * 默认宽度。
  */
-export const DEFAULT_WIDTH = 225
+export const DEFAULT_WIDTH = 228
 
 /**
  * 主要页面的侧栏分栏结构。

@@ -1,4 +1,4 @@
-import { defineComponent, markRaw } from "vue"
+import { defineComponent, markRaw, watch } from "vue"
 import IllustGrid from "@/layouts/data/IllustGrid"
 import { Illust } from "@/functions/adapter-http/impl/illust"
 import { useDynamicPopupMenu } from "@/functions/module"
@@ -21,6 +21,7 @@ export default defineComponent({
             lastSelected.value = lastSelectedValue
         }
 
+        //TODO 完成菜单的功能
         const menu = useDynamicPopupMenu<Illust>(illust => [
             {type: "normal", label: "查看详情", click: illust => openDetail(illust.id)},
             illust.type === "COLLECTION" ? {type: "normal", label: "查看集合详情"} : null,
@@ -46,11 +47,38 @@ export default defineComponent({
         ])
 
         const openDetail = (illustId: number) => {
-            const currentIndex = dataView.proxy.syncOperations.find(i => i.id === illustId)
-            if(currentIndex !== undefined) {
-                viewStacks.openView({type: "image", data: endpoint.instance.value, currentIndex})
+            if(selected.value.length > 1) {
+                //选择项数量大于1时，只显示选择项列表
+                const data = selected.value
+                    .map(selectedId => dataView.proxy.syncOperations.find(i => i.id === selectedId))
+                    .filter(index => index !== undefined)
+                    .map(index => dataView.proxy.syncOperations.retrieve(index!!)!!)
+                const currentIndex = data.findIndex(i => i.id === illustId)
+                if(currentIndex === -1) {
+                    //特殊情况：在选择项之外的项上右键选择了预览。此时仍按全局显示
+                    const currentIndex = dataView.proxy.syncOperations.find(i => i.id === illustId)
+                    if(currentIndex !== undefined) {
+                        viewStacks.openView({type: "image", data: endpoint.instance.value, currentIndex})
+                    }
+                    return
+                }
+                viewStacks.openView({type: "image", data, currentIndex})
+            }else{
+                //否则显示全局
+                const currentIndex = dataView.proxy.syncOperations.find(i => i.id === illustId)
+                if(currentIndex !== undefined) {
+                    viewStacks.openView({type: "image", data: endpoint.instance.value, currentIndex})
+                }
             }
+
         }
+
+        //TODO test
+        watch(() => dataView.data.value.metrics.total, t => {
+            if(t !== undefined) {
+                openDetail(5)
+            }
+        })
 
         return () => <IllustGrid data={markRaw(dataView.data.value)} onDataUpdate={dataView.dataUpdate}
                                  fitType={fitType.value} columnNum={columnNum.value}

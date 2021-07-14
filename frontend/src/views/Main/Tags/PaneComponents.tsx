@@ -109,22 +109,6 @@ export const DescriptionDisplay = defineComponent({
     }
 })
 
-export const DescriptionEditor = defineComponent({
-    props: {
-        value: {type: String, required: true},
-        showSaveButton: {type: Boolean, default: false}
-    },
-    emits: ["updateValue", "save"],
-    setup(props, { emit }) {
-        const setValue = (v: string) => emit("updateValue", v)
-        const save = () => emit("save")
-        return () => <div>
-            <Textarea placeholder="标签描述" value={props.value} onUpdateValue={setValue} refreshOnInput={true} focusOnMounted={true}/>
-            {props.showSaveButton && <button class="button is-small has-text-link w-100" onClick={save}><span class="icon"><i class="fa fa-save"/></span></button>}
-        </div>
-    }
-})
-
 export const TagTypeDisplay = defineComponent({
     props: {
         value: {type: null as any as PropType<TagType>, required: true}
