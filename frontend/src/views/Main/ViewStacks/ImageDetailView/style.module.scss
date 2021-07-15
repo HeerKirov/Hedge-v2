@@ -8,6 +8,23 @@
     min-width: 4rem;
     text-align: center;
   }
+  .zoom {
+    position: relative;
+    > .zoom-picker {
+      left: 50%;
+      transform: translate(-50%, 1px);
+      z-index: 1;
+      position: absolute;
+      display: flex;
+      flex-wrap: nowrap;
+      > .number {
+        line-height: $height-std;
+        min-width: 1.5rem;
+        margin: 0 0.25rem;
+        align-items: center;
+      }
+    }
+  }
 }
 
 .detail-info-panel {

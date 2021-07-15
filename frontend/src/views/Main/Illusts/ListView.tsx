@@ -37,6 +37,7 @@ export default defineComponent({
             {type: "separator"},
             {type: "normal", label: "创建集合"},
             {type: "normal", label: "创建画集"},
+            {type: "normal", label: "创建关联组"},
             {type: "normal", label: "添加到文件夹"},
             {type: "normal", label: "添加到\"X\""},
             {type: "normal", label: "添加到临时文件夹"},
@@ -76,7 +77,7 @@ export default defineComponent({
         //TODO test
         watch(() => dataView.data.value.metrics.total, t => {
             if(t !== undefined) {
-                openDetail(5)
+                openDetail(51)
             }
         })
 

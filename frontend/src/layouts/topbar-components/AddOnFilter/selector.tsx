@@ -26,7 +26,7 @@ const LabelPicker = defineComponent({
         //如果使用exclude click，会在打开picker时同步触发一次exclude事件，从而导致这个picker永远也打不开
         return () => <>
             <div class={style.pickerBackground} onClick={() => emit("close")}/>
-            <div class={[style.picker, "is-overflow-hidden", "block", "is-light", "is-white", "has-border-more-deep-light"]}>
+            <div class={[style.picker, "is-overflow-hidden", "popup-block"]}>
                 {props.render()}
             </div>
         </>

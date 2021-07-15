@@ -24,18 +24,23 @@ export default defineComponent({
             }
         }
 
+        const keyEventPrevent = (e: KeyboardEvent) => {
+            e.stopPropagation()
+            e.stopImmediatePropagation()
+        }
+
         if(props.focusOnMounted) {
             const dom = ref<HTMLInputElement>()
 
             onMounted(() => dom.value?.focus())
 
             return () => {
-                const events = {[props.refreshOnInput ? "onInput" : "onChange"]: onUpdate}
+                const events = {[props.refreshOnInput ? "onInput" : "onChange"]: onUpdate, "onKeydown": keyEventPrevent}
                 return <input ref={dom} class="input" type="number" max={props.max} min={props.min} disabled={props.disabled} value={value.value} {...events} placeholder={props.placeholder}/>
             }
         }else{
             return () => {
-                const events = {[props.refreshOnInput ? "onInput" : "onChange"]: onUpdate}
+                const events = {[props.refreshOnInput ? "onInput" : "onChange"]: onUpdate, "onKeydown": keyEventPrevent}
                 return <input class="input" type="number" max={props.max} min={props.min} disabled={props.disabled} value={value.value} {...events} placeholder={props.placeholder}/>
             }
         }

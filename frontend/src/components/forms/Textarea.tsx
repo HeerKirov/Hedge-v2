@@ -19,18 +19,23 @@ export default defineComponent({
             emit('updateValue', value.value)
         }
 
+        const keyEventPrevent = (e: KeyboardEvent) => {
+            e.stopPropagation()
+            e.stopImmediatePropagation()
+        }
+
         if(props.focusOnMounted) {
             const dom = ref<HTMLInputElement>()
 
             onMounted(() => dom.value?.focus())
 
             return () => {
-                const events = {[props.refreshOnInput ? "onInput" : "onChange"]: onUpdate}
+                const events = {[props.refreshOnInput ? "onInput" : "onChange"]: onUpdate, "onKeydown": keyEventPrevent}
                 return <textarea ref={dom} class="textarea is-monaco" disabled={props.disabled} value={value.value} {...events} placeholder={props.placeholder}/>
             }
         }else{
             return () => {
-                const events = {[props.refreshOnInput ? "onInput" : "onChange"]: onUpdate}
+                const events = {[props.refreshOnInput ? "onInput" : "onChange"]: onUpdate, "onKeydown": keyEventPrevent}
                 return <textarea class="textarea is-monaco" value={value.value} disabled={props.disabled} {...events} placeholder={props.placeholder}/>
             }
         }

@@ -9,7 +9,7 @@ export default defineComponent({
     setup() {
         const { detail } = useDetailViewContext()
 
-        provide(dashboardZoomInjection, {zoom: ref(0.1)})
+        provide(dashboardZoomInjection, {zoom: ref(20)})
 
         const topBarLayoutSlots = {
             topBar() { return <TopBarContent/> },
