@@ -1,6 +1,6 @@
 import { defineComponent, provide, ref } from "vue"
 import Dashboard, { dashboardZoomInjection } from "@/layouts/data/Dashboard"
-import TopBarLayout from "@/layouts/layouts/TopBarLayout"
+import TopBarCollapseLayout from "@/layouts/layouts/TopBarCollapseLayout"
 import { assetsUrl } from "@/functions/app"
 import TopBarContent from "./TopBarContent"
 import { useDetailViewContext } from "./inject"
@@ -17,6 +17,6 @@ export default defineComponent({
                 return detail.target.value && <Dashboard src={assetsUrl(detail.target.value.file)}/>
             }
         }
-        return () => <TopBarLayout v-slots={topBarLayoutSlots}/>
+        return () => <TopBarCollapseLayout v-slots={topBarLayoutSlots}/>
     }
 })

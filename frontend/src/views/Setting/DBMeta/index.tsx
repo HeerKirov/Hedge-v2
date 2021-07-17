@@ -53,7 +53,7 @@ const MetaColorBoard = defineComponent({
             <div class="flex is-align-center">
                 <label class="mr-4">主题</label>
                 {TOPIC_TYPE_ENUMS.map(t => <>
-                    <StdColorSelector class="mr-2" value={props.topicColors[t]} onUpdateValue={onSetTopic(t)}/>
+                    <StdColorSelector class="mr-2 is-not-shrink" value={props.topicColors[t]} onUpdateValue={onSetTopic(t)}/>
                     <span class="icon mr-1"><i class={`fa fa-${TOPIC_TYPE_ICONS[t]}`}/></span>
                     <span class="mr-4 is-min-line-width-3">{TOPIC_TYPE_NAMES[t]}</span>
                 </>)}
@@ -61,7 +61,7 @@ const MetaColorBoard = defineComponent({
             <div class="flex is-align-center mt-1">
                 <label class="mr-4">作者</label>
                 {AUTHOR_TYPE_ENUMS.map(t => <>
-                    <StdColorSelector class="mr-2" value={props.authorColors[t]} onUpdateValue={onSetAuthor(t)}/>
+                    <StdColorSelector class="mr-2 is-not-shrink" value={props.authorColors[t]} onUpdateValue={onSetAuthor(t)}/>
                     <span class="icon mr-1"><i class={`fa fa-${AUTHOR_TYPE_ICONS[t]}`}/></span>
                     <span class="mr-4 is-min-line-width-3">{AUTHOR_TYPE_NAMES[t]}</span>
                 </>)}

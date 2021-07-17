@@ -99,8 +99,8 @@ export default defineComponent({
 
                     const minUpdateDelta = props.minUpdateDelta * columnCount
                     if(lastDataRequired.offset == undefined || lastDataRequired.limit == undefined
-                        || Math.abs(lastDataRequired.offset - offset) > minUpdateDelta
-                        || Math.abs(lastDataRequired.limit - limit) > minUpdateDelta) {
+                        || Math.abs(lastDataRequired.offset - offset) >= minUpdateDelta
+                        || Math.abs(lastDataRequired.limit - limit) >= minUpdateDelta) {
                         lastDataRequired.offset = offset
                         lastDataRequired.limit = limit
                         emit("update", offset, limit)

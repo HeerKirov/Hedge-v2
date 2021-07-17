@@ -89,7 +89,7 @@
 .top-bar {
   position: absolute;
   height: $title-bar-height;
-  top: 0; right: 0;
+  top: 0; right: 0; left: 0;
   transition: left 0.4s ease;
   &.background {
     background-color: $white;
@@ -98,10 +98,8 @@
     }
   }
 
-  //其他任意平台的内容区域布局
-  &:not(has-darwin-button) { left: 0; }
   //macOS平台的内容区域布局。左侧留出红绿灯的宽度
-  &.has-darwin-button { left: $macos-buttons-width; }
+  &.has-darwin-button { padding-left: $macos-buttons-width; }
   //左侧的折叠按钮
   > .collapse-button {
     margin-left: 0.5rem;
@@ -118,19 +116,26 @@
   }
 
   //顶栏内容区域的布局定位
+  $content-height: 30px;
+  $content-margin-size: ($title-bar-height - $content-height) / 2;
   > .content {
-    $height: 30px;
-    $margin-size: ($title-bar-height - $height) / 2;
     position: absolute;
-    top: $margin-size;
-    right: $margin-size;
-    height: $height;
+    top: $content-margin-size;
+    right: $content-margin-size;
+    height: $content-height;
     transition: left 0.4s ease;
     box-sizing: border-box;
-
+  }
+  &:not(.has-darwin-button) > .content {
     //在侧边栏折叠时，显示折叠按钮，需要留出左侧的空隙
-    &.has-cl-button { left: #{40px + $margin-size}; }
-    //在侧边栏展开时，不限时折叠按钮，不用留出空隙
-    &:not(.has-cl-button) { left: $margin-size; }
+    &.has-cl-button { left: #{40px + $content-margin-size}; }
+    //在侧边栏展开时，不显示折叠按钮，不用留出空隙
+    &:not(.has-cl-button) { left: $content-margin-size; }
+  }
+  &.has-darwin-button > .content {
+    //在侧边栏折叠时，显示折叠按钮，需要留出左侧的空隙
+    &.has-cl-button { left: #{40px + $content-margin-size + $macos-buttons-width}; }
+    //在侧边栏展开时，不显示折叠按钮，不用留出空隙
+    &:not(.has-cl-button) { left: #{$content-margin-size + $macos-buttons-width}; }
   }
 }
