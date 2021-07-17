@@ -7,7 +7,7 @@ import SideBarFileInfo from "./SideBarFileInfo"
 
 export default defineComponent({
     setup() {
-        const tab = ref<TabType>("file")
+        const tab = ref<TabType>("info")
         const updateTab = (v: TabType) => tab.value = v
 
         const sideBarSlots = {

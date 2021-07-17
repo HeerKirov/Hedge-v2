@@ -1,5 +1,5 @@
 import { defineComponent, provide, ref } from "vue"
-import Dashboard, { dashboardZoomInjection } from "@/components/features/Dashboard"
+import Dashboard, { dashboardZoomInjection } from "@/layouts/data/Dashboard"
 import TopBarLayout from "@/layouts/layouts/TopBarLayout"
 import { assetsUrl } from "@/functions/app"
 import TopBarContent from "./TopBarContent"

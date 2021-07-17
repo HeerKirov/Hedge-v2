@@ -1,5 +1,5 @@
 import { computed, defineComponent, inject, ref } from "vue"
-import { dashboardZoomInjection } from "@/components/features/Dashboard"
+import { dashboardZoomInjection, getDashboardType } from "@/layouts/data/Dashboard"
 import { ImageUpdateForm } from "@/functions/adapter-http/impl/illust"
 import { useElementPopupMenu } from "@/functions/module"
 import { watchGlobalKeyEvent } from "@/functions/document/global-key"
@@ -97,6 +97,8 @@ const FavoriteButton = defineComponent({
 
 const ZoomButton = defineComponent({
     setup() {
+        const { detail: { target } } = useDetailViewContext()
+
         const divRef = ref<HTMLElement>()
 
         const visible = ref(false)
@@ -105,8 +107,10 @@ const ZoomButton = defineComponent({
 
         watchElementExcludeClick(divRef, () => visible.value = false)
 
+        const disabled = computed(() => target.value !== null ? getDashboardType(target.value.file) !== "Image" : false)
+
         return () => <div ref={divRef} class={style.zoom}>
-            <button class="square button is-white no-drag" onClick={click}><span class="icon"><i class="fa fa-eye"/></span></button>
+            <button class="square button is-white no-drag" disabled={disabled.value} onClick={click}><span class="icon"><i class="fa fa-eye"/></span></button>
             {visible.value && <div class={[style.zoomPicker, "popup-block"]}>
                 <ZoomPickerContent/>
             </div>}

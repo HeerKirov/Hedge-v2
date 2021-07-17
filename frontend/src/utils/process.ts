@@ -1,6 +1,9 @@
 
 export type OSName = "win32" | "darwin" | "linux" | "others"
 
+/**
+ * 取得前端当前运行平台的名称。
+ */
 export function getOSName(): OSName {
     const userAgent = navigator.userAgent
 
@@ -13,4 +16,12 @@ export function getOSName(): OSName {
     }else{
         return "others"
     }
+}
+
+/**
+ * 线程睡眠一段时间。
+ * @param timeMs
+ */
+export async function sleep(timeMs: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, timeMs))
 }

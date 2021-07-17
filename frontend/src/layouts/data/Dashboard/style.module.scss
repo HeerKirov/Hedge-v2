@@ -1,0 +1,128 @@
+@import '@/styles/base/size.sass';
+@import '@/styles/base/color.scss';
+
+.image-dashboard {
+  width: 100%; height: 100%;
+  overflow: auto;
+  > .image-container {
+    > img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      object-position: center;
+    }
+  }
+}
+
+.video-dashboard {
+  position: relative;
+  width: 100%; height: 100%;
+  background-color: $black;
+  > video {
+    width: 100%;
+    height: 100%;
+  }
+  > .controls {
+    position: absolute;
+    bottom: 0; left: 0;
+    width: 100%;
+    height: 5rem;
+    &.visible {
+      background: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.9));
+    }
+
+    > .progress-span {
+      position: absolute;
+      right: 1.5rem;
+      bottom: 2.25rem;
+      text-align: right;
+      color: $white;
+    }
+
+    > .progress-bar {
+      position: absolute;
+      left: 1rem; right: 1rem;
+      bottom: 0.5rem; height: 0.25rem;
+      background-color: rgba(64, 64, 64, 0.5);
+      > .hidden-trigger-area {
+        position: absolute;
+        left: 0; bottom: -0.125rem;
+        width: 100%;
+        height: 0.5rem;
+      }
+      > .progressing {
+        height: 100%;
+        background-color: $blue;
+      }
+    }
+
+    > .play-button {
+      position: absolute;
+      left: 1.5rem;
+      bottom: 1.5rem;
+      width: 2.5rem; height: 2.5rem;
+      line-height: 2.5rem; text-align: center;
+      font-size: $font-size-medium;
+      color: $white;
+      border-radius: $radius-size-circle;
+      > i:global(.fa-play) {
+        transform: translate(1px, 1px);
+      }
+      > i:global(.fa-pause) {
+        transform: translateY(1px);
+      }
+      &:hover {
+        background-color: rgba(128, 128, 128, 0.5);
+      }
+    }
+
+    > .volume-control {
+      position: absolute;
+      right: 8rem; bottom: 2rem;
+      height: 1.5rem; width: 1.5rem;
+      line-height: 1.5rem;
+      color: $white;
+      border-radius: $radius-size-circle;
+      display: flex;
+      flex-wrap: nowrap;
+      justify-content: flex-end;
+      transition: all 0.4s;
+      &.visible {
+        width: 7.5rem;
+        background-color: rgba(48, 48, 48, 0.5);
+      }
+      > .num {
+        width: 2.5rem;
+        text-align: center;
+        flex: 0 0 auto;
+      }
+      > .volume-bar {
+        position: relative;
+        width: 100%; height: 0.25rem;
+        margin-top: 0.625rem;
+        margin-right: 0.25rem;
+        background-color: rgba(16, 16, 16, 0.5);
+        border-radius: $radius-size-circle;
+        > .hidden-trigger-area {
+          position: absolute;
+          left: 0; top: -0.625rem;
+          width: 100%; height: 1.5rem;
+        }
+        > .progressing {
+          height: 100%;
+          border-radius: $radius-size-circle;
+          background-color: $sidebar;
+          @media (prefers-color-scheme: dark) {
+            background-color: $sidebar-dm;
+          }
+        }
+      }
+      > .icon {
+        width: 1.5rem;
+        text-align: center;
+        flex: 0 0 auto;
+        transform: translateX(-1px);
+      }
+    }
+  }
+}

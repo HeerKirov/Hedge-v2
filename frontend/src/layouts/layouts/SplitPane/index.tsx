@@ -66,12 +66,12 @@ function useResizeBar(splitPaneRef: Ref<HTMLElement | undefined>, paneWidth: Ref
 
     const mouseUp = () => {
         document.removeEventListener('mousemove', mouseMove)
-        document.addEventListener('mouseup', mouseUp)
+        document.removeEventListener('mouseup', mouseUp)
     }
 
     onUnmounted(() => {
         document.removeEventListener('mousemove', mouseMove)
-        document.addEventListener('mouseup', mouseUp)
+        document.removeEventListener('mouseup', mouseUp)
     })
 
     return {resizeAreaMouseDown}
