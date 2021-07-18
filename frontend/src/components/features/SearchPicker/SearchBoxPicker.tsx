@@ -8,7 +8,7 @@ import { useMessageBox } from "@/functions/document/message-box"
 import { useHttpClient } from "@/functions/app"
 import { installation } from "@/functions/utils/basic"
 import { onKeyEnter } from "@/utils/events"
-import { sleep } from "@/utils/primitives"
+import { sleep } from "@/utils/process"
 import { installData, useData, SearchRequestFunction, SearchResultAttachItem } from "./inject"
 import style from "./style.module.scss"
 

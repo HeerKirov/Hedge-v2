@@ -12,7 +12,23 @@
     }
     > .main-content {
         position: absolute;
-        top: $title-bar-height;
-        left: 0; right: 0; bottom: 0;
+        top: 0; left: 0; right: 0; bottom: 0;
+        transition: top 0.3s;
+
+        &.fixed {
+            top: $title-bar-height;
+        }
+    }
+    > .top-bar-area {
+        > .top-bar-component {
+            transition: transform 0.3s;
+            &.hidden {
+                transform: translateY(#{-$title-bar-height});
+            }
+        }
+        > .top-bar-trigger-area {
+            position: absolute;
+            top: 0; left: 0; right: 0; height: $title-bar-height;
+        }
     }
 }

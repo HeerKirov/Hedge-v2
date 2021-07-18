@@ -77,7 +77,7 @@ export default defineComponent({
         //TODO test
         watch(() => dataView.data.value.metrics.total, t => {
             if(t !== undefined) {
-                openDetail(53)
+                openDetail(14)
             }
         })
 

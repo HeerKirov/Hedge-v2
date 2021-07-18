@@ -1,5 +1,7 @@
-import { defineComponent, inject } from "vue"
+import { defineComponent, inject, ref, watch } from "vue"
 import { TopBar, sideBarSwitchInjection } from "@/layouts/layouts/SideLayout"
+import { useMouseHover } from "@/functions/utils/element"
+import { sleep } from "@/utils/process"
 import style from "./style.module.scss"
 
 /**
@@ -10,15 +12,35 @@ import style from "./style.module.scss"
  */
 export default defineComponent({
     setup(_, { slots }) {
-        const sideBarSwitch = inject(sideBarSwitchInjection)!
+        const fixed = inject(sideBarSwitchInjection)!
+
+        const { hover, mouseover, mouseleave } = useMouseHover()
+
+        const hidden = ref(false)
+
+        watch(hover, async (v, _, onInvalidate) => {
+            if(v) {
+                hidden.value = true
+            }else{
+                let validate = true
+                onInvalidate(() => validate = false)
+                await sleep(500)
+                if(validate && !hover.value) {
+                    hidden.value = false
+                }
+            }
+        })
 
         return () => <div class={style.topBarLayout}>
-            {slots.default && <div class={{[style.mainContent]: true}}>
+            {slots.default && <div class={{[style.mainContent]: true, [style.fixed]: fixed.value}}>
                 {slots.default?.()}
             </div>}
-            {slots.topBar && <TopBar>
-                {slots.topBar?.()}
-            </TopBar>}
+            {slots.topBar && <div class={style.topBarArea} onMouseover={mouseover} onMouseleave={mouseleave}>
+                {!fixed.value && <div class={style.topBarTriggerArea}/>}
+                <TopBar class={{[style.topBarComponent]: true, [style.hidden]: !fixed.value && !hidden.value}}>
+                    {slots.topBar?.()}
+                </TopBar>
+            </div>}
         </div>
     }
 })

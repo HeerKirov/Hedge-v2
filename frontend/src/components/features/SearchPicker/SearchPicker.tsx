@@ -2,7 +2,7 @@ import { ComponentInternalInstance, computed, defineComponent, PropType, reactiv
 import Input from "@/components/forms/Input"
 import { KeyboardSelectorItem, useKeyboardSelector } from "@/functions/utils/element"
 import { onKeyEnter } from "@/utils/events"
-import { sleep } from "@/utils/primitives"
+import { sleep } from "@/utils/process"
 import { installData, useData, SearchRequestFunction } from "./inject"
 import style from "./style.module.scss"
 
