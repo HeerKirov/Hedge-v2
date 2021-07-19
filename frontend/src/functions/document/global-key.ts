@@ -45,7 +45,7 @@ export function watchGlobalKeyEvent(event: (e: GlobalKeyEvent) => void) {
  */
 export function interceptGlobalKey(keys: string[], event: (key: string) => void) {
     watchGlobalKeyEvent(e => {
-        if(keys.includes(e.key)) {
+        if(keys.includes(e.key) && !e.metaKey && !e.altKey && !e.shiftKey) {
             event(e.key)
             e.preventDefault()
             e.stopPropagation()

@@ -5,6 +5,7 @@ import { useElementPopupMenu } from "@/functions/module"
 import { watchGlobalKeyEvent } from "@/functions/document/global-key"
 import { useFastObjectEndpoint } from "@/functions/utils/endpoints/object-fast-endpoint"
 import { watchElementExcludeClick } from "@/functions/utils/element"
+import { numbers } from "@/utils/primitives"
 import { useDetailViewContext } from "./inject"
 import { BackspaceButton } from ".."
 import style from "./style.module.scss"
@@ -20,9 +21,8 @@ export default defineComponent({
             </div>
             <div class="layout-container">
                 <FavoriteButton/>
-                <button class="square button is-white no-drag"><span class="icon"><i class="fa fa-external-link-alt"/></span></button>
+                <ExternalButton/>
                 <ZoomButton/>
-                <MenuButton/>
             </div>
         </div>
     }
@@ -95,8 +95,26 @@ const FavoriteButton = defineComponent({
     }
 })
 
+const ExternalButton = defineComponent({
+    setup() {
+        const menu = useElementPopupMenu([
+            {type: "normal", label: "在新窗口中打开"},
+            {type: "separator"},
+            {type: "normal", label: "在预览中打开"},
+            {type: "normal", label: "在访达中显示"},
+            {type: "separator"},
+            {type: "normal", label: "导出"}
+        ], {position: "bottom", offsetY: 6})
+
+        return () => <button ref={menu.element} class="square button is-white no-drag" onClick={() => menu.popup()}><span class="icon"><i class="fa fa-external-link-alt"/></span></button>
+    }
+})
+
+const ZOOM_MIN = 20, ZOOM_MAX = 400, ZOOM_STEP = 20
+
 const ZoomButton = defineComponent({
     setup() {
+        const { zoom } = inject(dashboardZoomInjection)!
         const { detail: { target } } = useDetailViewContext()
 
         const divRef = ref<HTMLElement>()
@@ -109,29 +127,46 @@ const ZoomButton = defineComponent({
 
         const disabled = computed(() => target.value !== null ? getDashboardType(target.value.file) !== "Image" : false)
 
+        watchGlobalKeyEvent(e => {
+            if(e.metaKey && (e.key === "-" || e.key === "=" || e.key === "0")) {
+                if(e.key === "=") {
+                    if(zoom.value < ZOOM_MAX) zoom.value += ZOOM_STEP
+                }else if(e.key === "-") {
+                    if(zoom.value > ZOOM_MIN) zoom.value -= ZOOM_STEP
+                }else{
+                    zoom.value = 100
+                }
+                e.preventDefault()
+                e.stopPropagation()
+            }
+        })
+
         return () => <div ref={divRef} class={style.zoom}>
-            <button class="square button is-white no-drag" disabled={disabled.value} onClick={click}><span class="icon"><i class="fa fa-eye"/></span></button>
-            {visible.value && <div class={[style.zoomPicker, "popup-block"]}>
-                <ZoomPickerContent/>
+            {visible.value && <div class={style.zoomBar}>
+                <ZoomBar/>
             </div>}
+            <button class="button is-white no-drag" disabled={disabled.value} onClick={click}>
+                <span class="idp-icon"><i class="fa fa-eye"/></span>
+                <b class={style.zoomValue}>x{numbers.round2decimal((zoom.value / 100))}</b>
+            </button>
         </div>
     }
 })
 
-const ZoomPickerContent = defineComponent({
+const ZoomBar = defineComponent({
     setup() {
         const { zoom } = inject(dashboardZoomInjection)!
 
-        const can = computed(() => ({minus: zoom.value > 20, plus: zoom.value < 200}))
+        const can = computed(() => ({minus: zoom.value > ZOOM_MIN, plus: zoom.value < ZOOM_MAX}))
 
         const minus = () => {
             if(can.value.minus) {
-                zoom.value -= 20
+                zoom.value -= ZOOM_STEP
             }
         }
         const plus = () => {
             if(can.value.plus) {
-                zoom.value += 20
+                zoom.value += ZOOM_STEP
             }
         }
 
@@ -143,22 +178,3 @@ const ZoomPickerContent = defineComponent({
     }
 })
 
-const MenuButton = defineComponent({
-    setup() {
-        const menu = useElementPopupMenu([
-            {type: "normal", label: "在新窗口中打开"},
-            {type: "separator"},
-            {type: "normal", label: "加入剪贴板"},
-            {type: "separator"},
-            {type: "normal", label: "添加到文件夹"},
-            {type: "normal", label: "添加到\"X\""},
-            {type: "normal", label: "添加到临时文件夹"},
-            {type: "separator"},
-            {type: "normal", label: "导出"},
-            {type: "separator"},
-            {type: "normal", label: "删除此项目"}
-        ], {position: "bottom", offsetY: 6})
-
-        return () => <button ref={menu.element} class="square button is-white no-drag" onClick={() => menu.popup()}><span class="icon"><i class="fa fa-ellipsis-v"/></span></button>
-    }
-})

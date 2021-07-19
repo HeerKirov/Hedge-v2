@@ -40,7 +40,7 @@ export default defineComponent({
                 playOrPause()
                 e.preventDefault()
                 e.stopPropagation()
-            }else if((e.key === "ArrowLeft" || e.key === "ArrowRight") && !e.metaKey && !e.shiftKey && !e.altKey) {
+            }else if((e.key === "ArrowLeft" || e.key === "ArrowRight") && e.metaKey) {
                 if(e.key === "ArrowLeft") {
                     fastRewind()
                 }else{

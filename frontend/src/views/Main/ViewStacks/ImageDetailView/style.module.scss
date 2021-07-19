@@ -9,7 +9,23 @@
     text-align: center;
   }
   .zoom {
-    position: relative;
+    display: flex;
+    flex-wrap: nowrap;
+    > button {
+      width: 3.5rem;
+      padding: 0;
+      > :global(.idp-icon) {
+        margin-right: 0.25rem;
+      }
+      > .zoomValue {
+        display: inline-block;
+        text-align: center;
+        min-width: 1rem;
+      }
+    }
+    > .zoom-bar {
+
+    }
     > .zoom-picker {
       left: 50%;
       transform: translate(-50%, 1px);
