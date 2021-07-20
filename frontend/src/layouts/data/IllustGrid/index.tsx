@@ -17,7 +17,7 @@ export default defineComponent({
         lastSelected: {type: null as any as PropType<number | null>, default: null},
         queryEndpoint: Object as PropType<QueryEndpointInstance<Illust>>
     },
-    emits: ["dataUpdate", "select", "dblClick", "rightClick"],
+    emits: ["dataUpdate", "select", "enter", "dblClick", "rightClick"],
     setup(props, { emit }) {
         const selected = toRef(props, "selected")
         const lastSelected = toRef(props, "lastSelected")
@@ -25,7 +25,7 @@ export default defineComponent({
         const dataUpdate = (offset: number, limit: number) => emit("dataUpdate", offset, limit)
 
         const dblClick = (illustId: number) => emit("dblClick", illustId)
-
+        const enter = (illustId: number) => emit("enter", illustId)
         const rightClick = (illust: Illust) => emit("rightClick", illust)
 
         const emitSelect = (selected: number[], lastSelected: number | null) => emit("select", selected, lastSelected)
@@ -33,7 +33,8 @@ export default defineComponent({
         provide(selectContextInjection, {selected, lastSelected})
 
         return () => <div class={[style.root, FIT_TYPE_CLASS[props.fitType], COLUMN_NUMBER_CLASS[props.columnNum]]}>
-            <Content data={props.data} columnNum={props.columnNum} queryEndpoint={props.queryEndpoint} onDataUpdate={dataUpdate} onDblClick={dblClick} onRightClick={rightClick} onSelect={emitSelect}/>
+            <Content data={props.data} columnNum={props.columnNum} queryEndpoint={props.queryEndpoint}
+                     onDataUpdate={dataUpdate} onEnter={enter} onDblClick={dblClick} onRightClick={rightClick} onSelect={emitSelect}/>
             <OverLayer/>
         </div>
     }
@@ -57,7 +58,7 @@ const Content = defineComponent({
         columnNum: {type: Number, required: true},
         queryEndpoint: Object as PropType<QueryEndpointInstance<Illust>>
     },
-    emits: ["dataUpdate", "dblClick", "rightClick", "select"],
+    emits: ["dataUpdate", "enter", "dblClick", "rightClick", "select"],
     setup(props, { emit }) {
         const appInfo = useAppInfo()
 
@@ -67,6 +68,7 @@ const Content = defineComponent({
         const selector = useSelector(data, columnNum, props.queryEndpoint, (selected, lastSelected) => emit("select", selected, lastSelected))
 
         const dataUpdate = (offset: number, limit: number) => emit("dataUpdate", offset, limit)
+        const enter = (illustId: number) => emit("enter", illustId)
         const dblClick = (illustId: number) => emit("dblClick", illustId)
         const rightClick = (illust: Illust) => emit("rightClick", illust)
         const click = (illust: Illust, index: number, e: MouseEvent) => {
@@ -82,7 +84,7 @@ const Content = defineComponent({
             }
         }
 
-        useKeyboardEvents(selector, dblClick)
+        useKeyboardEvents(selector, enter)
 
         return () => <VirtualGrid {...data.value.metrics}
                                   onUpdate={dataUpdate} columnCount={columnNum.value}

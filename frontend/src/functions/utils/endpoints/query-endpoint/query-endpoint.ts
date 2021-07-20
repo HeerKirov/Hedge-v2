@@ -1,8 +1,8 @@
 import { shallowRef, Ref, watch, onUnmounted, onMounted } from "vue"
 import { objects } from "@/utils/primitives"
-import { createQueryEndpointInstance, ModifiedEvent, QueryEndpointArguments, QueryEndpointInstance } from "./instance"
 import { createEmitter, Emitter } from "@/utils/emitter"
-import { RefEmitter, useRefEmitter } from "@/functions/utils/emitter";
+import { RefEmitter, useRefEmitter } from "@/functions/utils/emitter"
+import { createQueryEndpointInstance, ModifiedEvent, QueryEndpointArguments, QueryEndpointInstance } from "./instance"
 
 export interface QueryEndpointOptions<T, K> extends QueryEndpointArguments {
     /**

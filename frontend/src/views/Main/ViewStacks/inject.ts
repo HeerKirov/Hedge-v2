@@ -1,6 +1,6 @@
 import { inject, InjectionKey, provide, ref, Ref } from "vue"
 import { Illust } from "@/functions/adapter-http/impl/illust"
-import { QueryEndpointInstance } from "@/functions/utils/endpoints/query-endpoint"
+import { SliceDataView } from "@/functions/utils/endpoints/query-endpoint"
 
 export interface ViewStacks {
     stacks: Readonly<Ref<DetailViewInfo[]>>
@@ -11,7 +11,7 @@ export interface ViewStacks {
 
 export type DetailViewInfo = {
     type: "image"
-    data: QueryEndpointInstance<Illust> | Illust[]
+    data: SliceDataView<Illust>
     currentIndex: number
 } | {
     type: "collection"

@@ -4,6 +4,7 @@ import { Illust } from "@/functions/adapter-http/impl/illust"
 import { useDynamicPopupMenu } from "@/functions/module"
 import { useViewStacks } from "../ViewStacks"
 import { useIllustContext } from "./inject"
+import { createSliceOfAll, createSliceOfList } from "@/functions/utils/endpoints/query-endpoint";
 
 export default defineComponent({
     setup() {
@@ -14,16 +15,14 @@ export default defineComponent({
             selector: { selected, lastSelected }
         } = useIllustContext()
 
-        const viewStacks = useViewStacks()
-
-        const emitSelect = (selectedValue: number[], lastSelectedValue: number | null) => {
+        const updateSelected = (selectedValue: number[], lastSelectedValue: number | null) => {
             selected.value = selectedValue
             lastSelected.value = lastSelectedValue
         }
 
         //TODO 完成菜单的功能
         const menu = useDynamicPopupMenu<Illust>(illust => [
-            {type: "normal", label: "查看详情", click: illust => openDetail(illust.id)},
+            {type: "normal", label: "查看详情", click: illust => clickToOpenDetail(illust.id)},
             illust.type === "COLLECTION" ? {type: "normal", label: "查看集合详情"} : null,
             {type: "separator"},
             {type: "normal", label: "显示预览"},
@@ -47,44 +46,69 @@ export default defineComponent({
             {type: "normal", label: "删除项目"}
         ])
 
-        const openDetail = (illustId: number) => {
-            if(selected.value.length > 1) {
-                //选择项数量大于1时，只显示选择项列表
-                const data = selected.value
-                    .map(selectedId => dataView.proxy.syncOperations.find(i => i.id === selectedId))
-                    .filter(index => index !== undefined)
-                    .map(index => dataView.proxy.syncOperations.retrieve(index!!)!!)
-                const currentIndex = data.findIndex(i => i.id === illustId)
-                if(currentIndex === -1) {
-                    //特殊情况：在选择项之外的项上右键选择了预览。此时仍按全局显示
-                    const currentIndex = dataView.proxy.syncOperations.find(i => i.id === illustId)
-                    if(currentIndex !== undefined) {
-                        viewStacks.openView({type: "image", data: endpoint.instance.value, currentIndex})
-                    }
-                    return
-                }
-                viewStacks.openView({type: "image", data, currentIndex})
-            }else{
-                //否则显示全局
-                const currentIndex = dataView.proxy.syncOperations.find(i => i.id === illustId)
-                if(currentIndex !== undefined) {
-                    viewStacks.openView({type: "image", data: endpoint.instance.value, currentIndex})
-                }
-            }
-
-        }
+        const { clickToOpenDetail, enterToOpenDetail } = useOpenDetail()
 
         //TODO test
         watch(() => dataView.data.value.metrics.total, t => {
             if(t !== undefined) {
-                openDetail(14)
+                clickToOpenDetail(14)
             }
         })
 
         return () => <IllustGrid data={markRaw(dataView.data.value)} onDataUpdate={dataView.dataUpdate}
                                  fitType={fitType.value} columnNum={columnNum.value}
-                                 selected={selected.value} lastSelected={lastSelected.value} onSelect={emitSelect}
+                                 selected={selected.value} lastSelected={lastSelected.value} onSelect={updateSelected}
                                  queryEndpoint={markRaw(endpoint.proxy)}
-                                 onRightClick={menu.popup} onDblClick={openDetail}/>
+                                 onRightClick={menu.popup} onDblClick={clickToOpenDetail} onEnter={enterToOpenDetail}/>
     }
 })
+
+function useOpenDetail() {
+    const { dataView, selector: { selected } } = useIllustContext()
+    const viewStacks = useViewStacks()
+
+    const openAll = (illustId: number) => {
+        const currentIndex = dataView.proxy.syncOperations.find(i => i.id === illustId)
+        if(currentIndex !== undefined) {
+            const data = createSliceOfAll(dataView.proxy)
+            viewStacks.openView({type: "image", data, currentIndex})
+        }
+    }
+
+    const openList = (selected: number[], currentIndex: number) => {
+        const indexList = selected
+            .map(selectedId => dataView.proxy.syncOperations.find(i => i.id === selectedId))
+            .filter(index => index !== undefined) as number[]
+        const data = createSliceOfList(dataView.proxy, indexList)
+
+        viewStacks.openView({type: "image", data, currentIndex})
+    }
+
+    const clickToOpenDetail = (illustId: number) => {
+        if(selected.value.length > 1) {
+            //选择项数量大于1时，只显示选择项列表
+            const currentIndex = selected.value.indexOf(illustId)
+            if(currentIndex <= -1) {
+                //特殊情况：在选择项之外的项上右键选择了预览。此时仍按全局显示
+                openAll(illustId)
+            }else{
+                openList(selected.value, currentIndex)
+            }
+        }else{
+            //否则显示全局
+            openAll(illustId)
+        }
+    }
+
+    const enterToOpenDetail = (illustId: number) => {
+        if(selected.value.length > 1) {
+            //选择项数量大于1时，只显示选择项列表，且进入模式是enter进入，默认不指定选择项，从头开始浏览
+            openList(selected.value, 0)
+        }else{
+            //否则显示全局
+            openAll(illustId)
+        }
+    }
+
+    return {clickToOpenDetail, enterToOpenDetail}
+}

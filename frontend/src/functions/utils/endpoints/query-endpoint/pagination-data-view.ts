@@ -1,7 +1,7 @@
 import { Ref, shallowRef, watch } from "vue"
+import { useListeningEvent } from "@/functions/utils/emitter"
 import { QueryEndpointResult } from "./query-endpoint"
 import { LoadedStatus, QueryEndpointInstance } from "./instance"
-import { useListeningEvent } from "@/functions/utils/emitter"
 
 export interface PaginationOptions {
     /**

@@ -3,14 +3,14 @@ import {
     Illust, DetailIllust, ImageFileInfo, ImageOriginData,
     ImageOriginUpdateForm, ImageRelatedItems, ImageRelatedUpdateForm, ImageUpdateForm
 } from "@/functions/adapter-http/impl/illust"
-import { QueryEndpointInstance } from "@/functions/utils/endpoints/query-endpoint"
+import { SliceDataView } from "@/functions/utils/endpoints/query-endpoint"
 import { installObjectLazyObject, ObjectLazyObjectInjection, useObjectLazyObject } from "@/functions/utils/endpoints/object-lazy-endpoint"
 import { useHttpClient } from "@/functions/app"
 import { useNotification } from "@/functions/document/notification"
 import { installation } from "@/functions/utils/basic"
 
 export interface DetailViewContext {
-    data: DataAccessor
+    data: SliceDataView<Illust>
     navigator: {
         metrics: Readonly<Ref<{ total: number, current: number }>>
         metricsOfCollection: Readonly<Ref<{ total: number, current: number } | null>>
@@ -32,8 +32,7 @@ interface DataAccessor {
     get(index: number): Promise<Illust | undefined>
 }
 
-export const [installDetailViewContext, useDetailViewContext] = installation(function (queryEndpoint: QueryEndpointInstance<Illust> | Illust[], initIndex: Ref<number>): DetailViewContext {
-    const data = createDataAccessor(queryEndpoint)
+export const [installDetailViewContext, useDetailViewContext] = installation(function (data: SliceDataView<Illust>, initIndex: Ref<number>): DetailViewContext {
     const { target, collectionItems, ...navigator } = useNavigator(data, initIndex)
 
     const path = computed(() => target.value?.id ?? null)
@@ -50,7 +49,7 @@ export const [installDetailViewContext, useDetailViewContext] = installation(fun
     }
 })
 
-function useNavigator(data: DataAccessor, initIndex: Ref<number>): DetailViewContext["navigator"] & Targets {
+function useNavigator(data: SliceDataView<Illust>, initIndex: Ref<number>): DetailViewContext["navigator"] & Targets {
     const { notify, handleException } = useNotification()
     const httpClient = useHttpClient()
 
@@ -200,20 +199,6 @@ export function useOriginDataEndpoint() {
 
 export function useFileInfoEndpoint() {
     return useObjectLazyObject(symbols.fileInfo)
-}
-
-function createDataAccessor(queryEndpoint: QueryEndpointInstance<Illust> | Illust[]): DataAccessor {
-    if(queryEndpoint instanceof Array) {
-        return {
-            get: async index => queryEndpoint[index],
-            count: () => queryEndpoint.length
-        }
-    }else{
-        return {
-            get: queryEndpoint.queryOne,
-            count: () => queryEndpoint.count()!
-        }
-    }
 }
 
 const symbols = {
