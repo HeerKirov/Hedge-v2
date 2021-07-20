@@ -484,15 +484,16 @@ class IllustService(private val data: DataRepository,
             val sourcePart = row[Illusts.sourcePart]
             val tagme = row[Illusts.tagme]!!
             if(form.source.isPresent || form.sourceId.isPresent || form.sourcePart.isPresent) {
+                val newSourcePart = form.sourcePart.unwrapOr { sourcePart }
                 val (newSourceImageId, newSource, newSourceId) = sourceManager.createOrUpdateSourceImage(
-                    form.source.unwrapOr { source }, form.sourceId.unwrapOr { sourceId }, form.sourcePart.unwrapOr { sourcePart },
+                    form.source.unwrapOr { source }, form.sourceId.unwrapOr { sourceId }, newSourcePart,
                     form.title, form.description, form.tags, form.pools, form.children, form.parents)
                 data.db.update(Illusts) {
                     where { it.id eq id }
                     set(it.sourceImageId, newSourceImageId)
                     set(it.source, newSource)
                     set(it.sourceId, newSourceId)
-                    set(it.sourcePart, sourcePart)
+                    set(it.sourcePart, newSourcePart)
                     if(data.metadata.meta.autoCleanTagme && Illust.Tagme.SOURCE in tagme) set(it.tagme, tagme - Illust.Tagme.SOURCE)
                 }
             }else{
