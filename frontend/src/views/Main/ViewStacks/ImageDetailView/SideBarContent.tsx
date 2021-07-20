@@ -1,5 +1,6 @@
 import { defineComponent, PropType, ref, toRef } from "vue"
 import { SideBar } from "@/layouts/layouts/SideLayout"
+import { watchGlobalKeyEvent } from "@/functions/document/global-key"
 import SideBarDetailInfo from "./SideBarDetailInfo"
 import SideBarOriginData from "./SideBarOriginData"
 import SideBarRelatedItems from "./SideBarRelatedItems"
@@ -9,6 +10,14 @@ export default defineComponent({
     setup() {
         const tab = ref<TabType>("info")
         const updateTab = (v: TabType) => tab.value = v
+
+        watchGlobalKeyEvent(e => {
+            if(e.metaKey && (e.key === "1" || e.key === "2" || e.key === "3" || e.key === "4")) {
+                updateTab(TAB_BUTTONS[parseInt(e.key) - 1].key)
+                e.stopPropagation()
+                e.preventDefault()
+            }
+        })
 
         const sideBarSlots = {
             default() {
