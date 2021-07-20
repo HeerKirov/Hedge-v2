@@ -1,7 +1,9 @@
 @import "../base/size"
 @import "../base/color.scss"
 
-input,
+input[type="text"],
+input[type="number"],
+input[type="password"],
 textarea
   -webkit-writing-mode: horizontal-tb !important
   text-rendering: auto
@@ -101,3 +103,29 @@ textarea
     height: initial
   &.has-fixed-size
     resize: none
+
+input[type="range"].range
+  $height: 0.4rem
+  $margin: ($height-std - $height) / 2
+  -webkit-appearance: none
+  margin: $margin 0.25rem
+  height: $height
+  width: 5rem
+  background: $sidebar
+  border: solid 1px $deep-sidebar
+  border-radius: $radius-size-circle
+  box-sizing: border-box
+
+  &::-webkit-slider-thumb
+    $size: 0.75rem
+    $hover-scale: 0.15
+    -webkit-appearance: none
+    background-color: $blue
+    border-radius: $radius-size-circle
+    width: $size
+    height: $size
+    transition: transform 0.15s
+    &:hover
+      transform: scale(#{1 + $hover-scale})
+    &:active
+      background-color: toDarkenColor($blue, 5%)

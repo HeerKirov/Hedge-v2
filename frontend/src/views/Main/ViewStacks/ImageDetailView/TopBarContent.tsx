@@ -1,13 +1,11 @@
-import { computed, defineComponent, inject, ref } from "vue"
-import { dashboardZoomInjection, getDashboardType } from "@/layouts/data/Dashboard"
+import { computed, defineComponent } from "vue"
+import { ZoomController } from "@/layouts/topbar-components"
 import { ImageUpdateForm } from "@/functions/adapter-http/impl/illust"
 import { useElementPopupMenu } from "@/functions/module"
 import { watchGlobalKeyEvent } from "@/functions/document/global-key"
 import { useFastObjectEndpoint } from "@/functions/utils/endpoints/object-fast-endpoint"
-import { watchElementExcludeClick } from "@/functions/utils/element"
-import { numbers } from "@/utils/primitives"
-import { useDetailViewContext } from "./inject"
 import { BackspaceButton } from ".."
+import { useDetailViewContext } from "./inject"
 import style from "./style.module.scss"
 
 export default defineComponent({
@@ -22,7 +20,7 @@ export default defineComponent({
             <div class="layout-container">
                 <FavoriteButton/>
                 <ExternalButton/>
-                <ZoomButton/>
+                <ZoomController/>
             </div>
         </div>
     }
@@ -107,74 +105,6 @@ const ExternalButton = defineComponent({
         ], {position: "bottom", offsetY: 6})
 
         return () => <button ref={menu.element} class="square button is-white no-drag" onClick={() => menu.popup()}><span class="icon"><i class="fa fa-external-link-alt"/></span></button>
-    }
-})
-
-const ZOOM_MIN = 20, ZOOM_MAX = 400, ZOOM_STEP = 20
-
-const ZoomButton = defineComponent({
-    setup() {
-        const { zoom } = inject(dashboardZoomInjection)!
-        const { detail: { target } } = useDetailViewContext()
-
-        const divRef = ref<HTMLElement>()
-
-        const visible = ref(false)
-
-        const click = () => visible.value = !visible.value
-
-        watchElementExcludeClick(divRef, () => visible.value = false)
-
-        const disabled = computed(() => target.value !== null ? getDashboardType(target.value.file) !== "Image" : false)
-
-        watchGlobalKeyEvent(e => {
-            if(e.metaKey && (e.key === "-" || e.key === "=" || e.key === "0")) {
-                if(e.key === "=") {
-                    if(zoom.value < ZOOM_MAX) zoom.value += ZOOM_STEP
-                }else if(e.key === "-") {
-                    if(zoom.value > ZOOM_MIN) zoom.value -= ZOOM_STEP
-                }else{
-                    zoom.value = 100
-                }
-                e.preventDefault()
-                e.stopPropagation()
-            }
-        })
-
-        return () => <div ref={divRef} class={style.zoom}>
-            {visible.value && <div class={style.zoomBar}>
-                <ZoomBar/>
-            </div>}
-            <button class="button is-white no-drag" disabled={disabled.value} onClick={click}>
-                <span class="idp-icon"><i class="fa fa-eye"/></span>
-                <b class={style.zoomValue}>x{numbers.round2decimal((zoom.value / 100))}</b>
-            </button>
-        </div>
-    }
-})
-
-const ZoomBar = defineComponent({
-    setup() {
-        const { zoom } = inject(dashboardZoomInjection)!
-
-        const can = computed(() => ({minus: zoom.value > ZOOM_MIN, plus: zoom.value < ZOOM_MAX}))
-
-        const minus = () => {
-            if(can.value.minus) {
-                zoom.value -= ZOOM_STEP
-            }
-        }
-        const plus = () => {
-            if(can.value.plus) {
-                zoom.value += ZOOM_STEP
-            }
-        }
-
-        return () => <>
-            <button class="square button is-white" disabled={!can.value.minus} onClick={minus}><span class="icon"><i class="fa fa-minus"/></span></button>
-            <span class={style.number}>{zoom.value}%</span>
-            <button class="square button is-white" disabled={!can.value.plus} onClick={plus}><span class="icon"><i class="fa fa-plus"/></span></button>
-        </>
     }
 })
 

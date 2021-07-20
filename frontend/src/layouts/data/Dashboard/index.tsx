@@ -1,7 +1,7 @@
-import { computed, defineComponent } from "vue"
-import { dashboardZoomInjection } from "./inject"
+import { computed, defineComponent, inject, watch } from "vue"
 import VideoDashboard from "./VideoDashboard"
 import ImageDashboard from "./ImageDashboard"
+import { dashboardZoomInjection } from "./inject"
 
 export { dashboardZoomInjection }
 
@@ -13,10 +13,15 @@ export default defineComponent({
         src: {type: String, required: true}
     },
     setup(props) {
+        const { enable } = inject(dashboardZoomInjection)!
+
+        const type = computed(() => getDashboardType(props.src))
+
+        watch(type, type => enable.value = type === "Image", {immediate: true})
+
         return () => {
-            const type = getDashboardType(props.src)
-            return type === "Image" ? <ImageDashboard src={props.src}/> :
-                type === "Video" ? <VideoDashboard src={props.src}/> : null
+            return type.value === "Image" ? <ImageDashboard src={props.src}/> :
+                type.value === "Video" ? <VideoDashboard src={props.src}/> : null
         }
     }
 })
@@ -29,7 +34,7 @@ function getExtension(src: string): string {
     return ""
 }
 
-export function getDashboardType(src: string): "Image" | "Video" | null {
+function getDashboardType(src: string): "Image" | "Video" | null {
     const extension = getExtension(src)
     return IMAGE_EXTENSIONS.includes(extension) ? "Image" : VIDEO_EXTENSIONS.includes(extension) ? "Video" : null
 }

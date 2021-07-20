@@ -40,11 +40,15 @@ export default defineComponent({
                 playOrPause()
                 e.preventDefault()
                 e.stopPropagation()
-            }else if((e.key === "ArrowLeft" || e.key === "ArrowRight") && e.metaKey) {
+            }else if((e.key === "ArrowLeft" || e.key === "ArrowRight" || e.key === "ArrowUp" || e.key === "ArrowDown") && e.metaKey) {
                 if(e.key === "ArrowLeft") {
                     fastRewind()
-                }else{
+                }else if(e.key === "ArrowRight") {
                     fastForward()
+                }else if(e.key === "ArrowUp") {
+                    updateVolume(state.volume + 10)
+                }else{
+                    updateVolume(state.volume - 10)
                 }
                 e.preventDefault()
                 e.stopPropagation()
@@ -261,7 +265,7 @@ function useVolumeControl(videoRef: Ref<HTMLMediaElement | undefined>, state: St
     state.muted = storage.value.muted
 
     const updateVolume = (volume: number) => {
-        state.volume = volume
+        state.volume = numbers.between(0, volume, 100)
     }
 
     const updateMuted = (muted: boolean) => {

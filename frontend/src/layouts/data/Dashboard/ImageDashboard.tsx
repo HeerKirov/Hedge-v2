@@ -21,7 +21,7 @@ export default defineComponent({
 
         const view = ref<Rect | null>(null)
         const aspect = ref<number | null>(null)
-        const zoom = useZoom()
+        const { zoom } = inject(dashboardZoomInjection)!
 
         watchElementResize(viewRef, rect => {
             //view的值变化/初始化。触发container重算。
@@ -66,16 +66,6 @@ export default defineComponent({
         </div>
     }
 })
-
-function useZoom() {
-    const dashboardZoomProps = inject(dashboardZoomInjection)
-    if(dashboardZoomProps !== undefined) {
-        const { zoom } = dashboardZoomProps
-        return zoom
-    }else{
-        return ref(100)
-    }
-}
 
 interface Rect { width: number, height: number }
 interface Margin { top: number, left: number }

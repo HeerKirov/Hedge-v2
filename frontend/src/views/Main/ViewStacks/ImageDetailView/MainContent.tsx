@@ -9,7 +9,7 @@ export default defineComponent({
     setup() {
         const { detail } = useDetailViewContext()
 
-        provide(dashboardZoomInjection, {zoom: ref(100)})
+        provide(dashboardZoomInjection, {zoom: ref(100), enable: ref(true)})
 
         const menu = usePopupMenu([
             {type: "normal", label: "在新窗口中打开"},
