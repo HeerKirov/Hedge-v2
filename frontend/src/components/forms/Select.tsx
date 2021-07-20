@@ -26,7 +26,7 @@ export default defineComponent({
             if(selectDom.value != undefined && props.items != undefined && props.items.length > 0) {
                 if(props.value != undefined) {
                     const idx = props.items.findIndex(item => item.value === props.value)
-                    if(idx >= 0) selectDom.value!.selectedIndex = idx
+                    if(idx >= 0) selectDom.value.selectedIndex = idx
                 }else{
                     emit("updateValue", props.items[0].value)
                 }

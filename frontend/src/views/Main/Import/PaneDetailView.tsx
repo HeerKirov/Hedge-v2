@@ -33,7 +33,12 @@ export default defineComponent({
 
         const setSourceInfo = async ({ source, sourceId, sourcePart }: { source: string | null, sourceId: number | null, sourcePart: number | null}) => {
             return (source === data.value?.source && sourceId === data.value?.sourceId && sourcePart === data.value?.sourcePart) || await setData({source, sourceId, sourcePart}, e => {
-                if(e.code === "PARAM_REQUIRED") {
+                if(e.code === "NOT_EXIST") {
+                    message.showOkMessage("error", `来源${source}不存在。`)
+                }else if(e.code === "PARAM_ERROR") {
+                    const target = e.info === "sourceId" ? "来源ID" : e.info === "sourcePart" ? "分P" : e.info
+                    message.showOkMessage("error", `${target}的值内容错误。`, "ID只能是自然数。")
+                }else if(e.code === "PARAM_REQUIRED") {
                     const target = e.info === "sourceId" ? "来源ID" : e.info === "sourcePart" ? "分P" : e.info
                     message.showOkMessage("error", `${target}属性缺失。`)
                 }else if(e.code === "PARAM_NOT_REQUIRED") {

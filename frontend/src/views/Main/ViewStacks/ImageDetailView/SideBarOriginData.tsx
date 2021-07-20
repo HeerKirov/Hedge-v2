@@ -1,10 +1,14 @@
-import { defineComponent } from "vue"
+import { defineComponent, ref } from "vue"
 import WrappedText from "@/components/elements/WrappedText"
+import { SourceEditor } from "@/layouts/editor-components"
+import { useSettingSite } from "@/functions/api/setting"
+import { useMessageBox } from "@/functions/document/message-box"
 import { useOriginDataEndpoint } from "./inject"
 import style from "./style.module.scss"
 
 export default defineComponent({
     setup() {
+        useSettingSite()
         const originData = useOriginDataEndpoint()
 
         return () => <div class={style.originDataPanel}>
@@ -40,9 +44,53 @@ export default defineComponent({
                         <a><b>{tag.name}</b>{tag.displayName !== null && ` (${tag.displayName})`}</a>
                     </p>)}
                 </div>
-            </> : <div class={style.noOriginData}>
-                <i>没有相关的来源数据</i>
-            </div>)}
+            </> : <NoOriginDataBoard/>)}
+        </div>
+    }
+})
+
+const NoOriginDataBoard = defineComponent({
+    setup() {
+        const message = useMessageBox()
+        const originData = useOriginDataEndpoint()
+
+        const createMode = ref(false)
+
+        const source = ref<{source: string | null, sourceId: number | null, sourcePart: number | null}>({source: null, sourceId: null, sourcePart: null})
+
+        const save = async () => {
+            const ok = await originData.setData({...source.value}, e => {
+                if(e.code === "NOT_EXIST") {
+                    message.showOkMessage("error", `来源${source}不存在。`)
+                }else if(e.code === "PARAM_ERROR") {
+                    const target = e.info === "sourceId" ? "来源ID" : e.info === "sourcePart" ? "分P" : e.info
+                    message.showOkMessage("error", `${target}的值内容错误。`, "ID只能是自然数。")
+                }else if(e.code === "PARAM_REQUIRED") {
+                    const target = e.info === "sourceId" ? "来源ID" : e.info === "sourcePart" ? "分P" : e.info
+                    message.showOkMessage("error", `${target}属性缺失。`)
+                }else if(e.code === "PARAM_NOT_REQUIRED") {
+                    if(e.info === "sourcePart") {
+                        message.showOkMessage("error", `分P属性不需要填写，因为选择的来源类型不支持分P。`)
+                    }else if(e.info === "sourceId/sourcePart") {
+                        message.showOkMessage("error", `来源ID/分P属性不需要填写，因为未指定来源类型。`)
+                    }else{
+                        message.showOkMessage("error", `${e.info}属性不需要填写。`)
+                    }
+                }else{
+                    return e
+                }
+            })
+            if(ok) {
+                createMode.value = false
+            }
+        }
+
+        return () => createMode.value ? <div>
+            <SourceEditor {...source.value} onUpdateValue={v => source.value = v}/>
+            <p class="mt-2"><a onClick={save}><i class="fa fa-save mr-1"/>创建或使用此来源数据项</a></p>
+        </div> : <div class={style.noOriginData}>
+            <i>没有相关的来源数据</i>
+            <p class="mt-2"><a onClick={() => createMode.value = true}><i class="fa fa-plus mr-1"/>添加来源数据项</a></p>
         </div>
     }
 })

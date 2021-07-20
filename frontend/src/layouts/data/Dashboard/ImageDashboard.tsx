@@ -1,4 +1,4 @@
-import { computed, defineComponent, inject, ref, watch } from "vue"
+import { computed, defineComponent, inject, nextTick, ref, toRaw, watch } from "vue"
 import { watchElementResize } from "@/functions/utils/element"
 import { numbers } from "@/utils/primitives"
 import { dashboardZoomInjection } from "./inject"
@@ -28,7 +28,7 @@ export default defineComponent({
             view.value = {width: rect.width, height: rect.height}
         })
 
-        const imageLoadedEvent = (e: Event) => {
+        const imageLoadedEvent = async (e: Event) => {
             //图像加载完成，用natural属性计算其aspect
             const el = e.target as HTMLImageElement
             aspect.value = el.naturalHeight > 0 && el.naturalWidth > 0 ? el.naturalWidth / el.naturalHeight : null
@@ -41,11 +41,12 @@ export default defineComponent({
             return null
         })
 
-        watch(zoom, (zoom, oldZoom) => {
+        watch(zoom, async (zoom, oldZoom) => {
             if(view.value !== null && aspect.value !== null && container.value !== null && viewRef.value !== undefined) {
                 const oldScroll = {top: viewRef.value.scrollTop, left: viewRef.value.scrollLeft}
                 const position = computeScrollPosition(view.value, container.value, zoom, oldZoom, oldScroll)
-                viewRef.value.scrollTo({...position, behavior: "smooth"})
+                await nextTick()
+                viewRef.value.scrollTo({...position, behavior: "auto"})
             }
         })
 
@@ -54,10 +55,7 @@ export default defineComponent({
             "height": `${container.value.height}px`,
             "margin-left": `${container.value.left}px`,
             "margin-top": `${container.value.top}px`
-        } : {
-            "max-width": "100%",
-            "max-height": "100%"
-        })
+        } : undefined)
 
         return () => <div ref={viewRef} class={style.imageDashboard}>
             <div ref={containerRef} class={style.imageContainer} style={containerStyle.value}>

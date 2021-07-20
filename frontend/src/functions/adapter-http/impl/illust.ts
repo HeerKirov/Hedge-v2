@@ -257,6 +257,10 @@ export interface IllustEndpoint {
             /**
              * 更改来源数据。
              * @exception NOT_FOUND
+             * @exception NOT_EXIST ("source", source) 此source不存在
+             * @exception PARAM_ERROR ("sourceId"/"sourcePart") 参数值错误，需要为自然数
+             * @exception PARAM_REQUIRED ("sourceId"/"sourcePart") 需要这些参数
+             * @exception PARAM_NOT_REQUIRED ("sourcePart"/"sourceId/sourcePart") 不需要这些参数
              */
             update(id: number, form: ImageOriginUpdateForm): Promise<Response<null>>
         }

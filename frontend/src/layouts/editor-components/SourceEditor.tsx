@@ -13,12 +13,12 @@ export default defineComponent({
     setup(props, { emit }) {
         const { data: siteList } = useSettingSite()
 
-        const siteSelectItems = computed(() => siteList.value.map(s => ({name: s.title, value: s.name})).concat(NOT_SELECT_ITEM))
+        const siteSelectItems = computed(() => [NOT_SELECT_ITEM, ...siteList.value.map(s => ({name: s.title, value: s.name}))])
 
         const site = computed(() => props.source != null ? siteList.value.find(s => s.name === props.source) ?? null : null)
 
         const updateSource = (v: string | undefined) => {
-            if(v === "" || v === undefined) {
+            if(v === "__UNDEFINED" || v === undefined) {
                 emit("updateValue", {source: null, sourceId: null, sourcePart: null})
             }else{
                 const site = siteList.value.find(s => s.name === v)
@@ -34,7 +34,7 @@ export default defineComponent({
 
         return () => <div>
             <p class="mb-1">
-                <Select items={siteSelectItems.value} value={props.source ?? ""} onUpdateValue={updateSource}/>
+                <Select items={siteSelectItems.value} value={props.source ?? "__UNDEFINED"} onUpdateValue={updateSource}/>
             </p>
             {props.source && <Input class="is-small is-width-small mr-1" placeholder="来源ID" value={props.sourceId?.toString()} onUpdateValue={updateId} refreshOnInput={true}/>}
             {site.value?.hasSecondaryId && <Input class="is-small is-width-one-third" placeholder="分P" value={props.sourcePart?.toString()} onUpdateValue={updatePart} refreshOnInput={true}/>}
@@ -42,4 +42,4 @@ export default defineComponent({
     }
 })
 
-const NOT_SELECT_ITEM = {name: "未选择", value: ""}
+const NOT_SELECT_ITEM = {name: "未选择", value: "__UNDEFINED"}
