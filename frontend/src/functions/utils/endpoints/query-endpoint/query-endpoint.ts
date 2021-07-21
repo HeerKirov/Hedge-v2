@@ -75,7 +75,11 @@ function useInstanceChange<T, K>(instance: Ref<QueryEndpointInstance<T>>, filter
         instance.value.syncOperations.modified.addEventListener(modified)
     }
     const refresh = () => changeInstance(filter?.value)
+
     if(filter !== undefined) watch(filter, changeInstance, {deep: true})
+
+    onMounted(() => instance.value.syncOperations.modified.addEventListener(modified))
+    onUnmounted(() => instance.value.syncOperations.modified.removeEventListener(modified))
 
     return {refresh}
 }
