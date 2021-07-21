@@ -457,7 +457,7 @@ export type ImageOriginData = {
     /**
      * 来源数据：标签。
      */
-    tags: {type: string, name: string, displayName: string | null}[]
+    tags: SourceTag[]
     /**
      * 来源数据：所属pool的标题列表。
      */
@@ -482,6 +482,8 @@ export type ImageOriginData = {
     children: null
     parents: null
 }
+
+export interface SourceTag {type: string, name: string, displayName: string | null}
 
 export interface Associate {
     /**

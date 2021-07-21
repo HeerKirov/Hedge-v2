@@ -64,13 +64,13 @@ export default defineComponent({
 })
 
 function useOpenDetail() {
-    const { dataView, selector: { selected } } = useIllustContext()
+    const { dataView, endpoint, selector: { selected } } = useIllustContext()
     const viewStacks = useViewStacks()
 
     const openAll = (illustId: number) => {
         const currentIndex = dataView.proxy.syncOperations.find(i => i.id === illustId)
         if(currentIndex !== undefined) {
-            const data = createSliceOfAll(dataView.proxy)
+            const data = createSliceOfAll(endpoint.instance.value)
             viewStacks.openView({type: "image", data, currentIndex})
         }
     }
@@ -79,7 +79,7 @@ function useOpenDetail() {
         const indexList = selected
             .map(selectedId => dataView.proxy.syncOperations.find(i => i.id === selectedId))
             .filter(index => index !== undefined) as number[]
-        const data = createSliceOfList(dataView.proxy, indexList)
+        const data = createSliceOfList(endpoint.instance.value, indexList)
 
         viewStacks.openView({type: "image", data, currentIndex})
     }

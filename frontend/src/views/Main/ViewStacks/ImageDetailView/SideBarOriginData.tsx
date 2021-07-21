@@ -1,49 +1,54 @@
 import { defineComponent, ref } from "vue"
 import WrappedText from "@/components/elements/WrappedText"
-import { SourceEditor } from "@/layouts/editor-components"
-import { useSettingSite } from "@/functions/api/setting"
+import Input from "@/components/forms/Input"
+import { SourceInfo } from "@/layouts/display-components"
+import { DescriptionEditor, SourceEditor, ViewAndEditor } from "@/layouts/editor-components"
+import { SourceTag } from "@/functions/adapter-http/impl/illust"
+import { installSettingSite } from "@/functions/api/setting"
 import { useMessageBox } from "@/functions/document/message-box"
 import { useOriginDataEndpoint } from "./inject"
 import style from "./style.module.scss"
 
 export default defineComponent({
     setup() {
-        useSettingSite()
-        const originData = useOriginDataEndpoint()
+        installSettingSite()
+        const { data, setData } = useOriginDataEndpoint()
+
+        const setTitle = async (title: string) => {
+            return title === data.value?.title || await setData({ title })
+        }
+        const setDescription = async (description: string) => {
+            return description === data.value?.description || await setData({ description })
+        }
+        const setRelations = async ({ parents, children, pools }: {parents: number[], children: number[], pools: string[]}) => {
+            const parentsEq = parents === data.value?.parents
+            const childrenEq = children === data.value?.children
+            const poolsEq = pools === data.value?.pools
+            return (parentsEq && childrenEq && poolsEq) || await setData({parents, children, pools})
+        }
+        const setTags = async (tags: SourceTag[]) => {
+            return tags === data.value?.tags || await setData({ tags })
+        }
 
         return () => <div class={style.originDataPanel}>
-            {originData.data.value && (originData.data.value.source !== null && originData.data.value.sourceId !== null ? <>
-                <p>
-                    <i class="fa fa-pager mr-2"/>
-                    <span class="can-be-selected">
-                        <span class="mr-1">{originData.data.value.sourceTitle ?? originData.data.value.source}</span>
-                        <b>{originData.data.value.sourceId}</b>
-                        {originData.data.value.sourcePart !== null && <b class="ml-1">p{originData.data.value.sourcePart}</b>}
-                    </span>
-                </p>
-                <div class="my-2">
-                    {originData.data.value.title !== null
-                        ? <h1>{originData.data.value.title}</h1>
-                        : <i class="has-text-grey">没有标题</i>}
-                </div>
-                <div class="my-2">
-                    {originData.data.value.description !== null
-                        ? <WrappedText value={originData.data.value.description}/>
-                        : <i class="has-text-grey">没有描述</i>}
-                </div>
-                <div class="my-2">
-                    {originData.data.value.parents.map(parent => <p><i class="fa fa-images mr-2"/>父项 <b>{parent}</b></p>)}
-                    {originData.data.value.children.map(child => <p><i class="fa fa-images mr-2"/>子项 <b>{child}</b></p>)}
-                </div>
-                <div class="my-2">
-                    {originData.data.value.pools.map(pool => <p><i class="fa fa-clone mr-2"/>Pool 《<b>{pool}</b>》</p>)}
-                </div>
-                <div class={[style.sourceTag, "can-be-selected"]}>
-                    {originData.data.value.tags.map(tag => <p class={style.tag}>
-                        <i class="fa fa-tag mr-2"/>
-                        <a><b>{tag.name}</b>{tag.displayName !== null && ` (${tag.displayName})`}</a>
-                    </p>)}
-                </div>
+            {data.value && (data.value.source !== null && data.value.sourceId !== null ? <>
+                <SourceInfo source={data.value.source} sourceId={data.value.sourceId} sourcePart={data.value.sourcePart}/>
+                <ViewAndEditor class="my-2" data={data.value.title} onSetData={setTitle} baseline="medium" v-slots={{
+                    default: ({ value }) => <TitleDisplay value={value}/>,
+                    editor: ({ value, setValue }) => <Input value={value} onUpdateValue={setValue} refreshOnInput={true} focusOnMounted={true}/>
+                }}/>
+                <ViewAndEditor class="my-2" data={data.value.description} onSetData={setDescription} showSaveButton={false} v-slots={{
+                    default: ({ value }) => <DescriptionDisplay value={value}/>,
+                    editor: ({ value, setValue, save }) => <DescriptionEditor value={value ?? ""} onUpdateValue={setValue} onSave={save} showSaveButton={true}/>
+                }}/>
+                <ViewAndEditor class="my-2" data={{parents: data.value.parents, children: data.value.children, pools: data.value.pools}} onSetData={setRelations} v-slots={{
+                    default: ({ value: { parents, children, pools } }: {value: {parents: number[], children: number[], pools: string[]}}) => <RelationsDisplay parents={parents} children={children} pools={pools}/>,
+                    editor: ({ value, setValue }) => undefined
+                }}/>
+                <ViewAndEditor class="my-2" data={data.value.tags} onSetData={setTags} v-slots={{
+                    default: ({ value }: {value: SourceTag[]}) => <SourceTagsDisplay value={value}/>,
+                    editor: ({ value, setValue }) => undefined
+                }}/>
             </> : <NoOriginDataBoard/>)}
         </div>
     }
@@ -52,14 +57,14 @@ export default defineComponent({
 const NoOriginDataBoard = defineComponent({
     setup() {
         const message = useMessageBox()
-        const originData = useOriginDataEndpoint()
+        const { setData } = useOriginDataEndpoint()
 
         const createMode = ref(false)
 
         const source = ref<{source: string | null, sourceId: number | null, sourcePart: number | null}>({source: null, sourceId: null, sourcePart: null})
 
         const save = async () => {
-            const ok = await originData.setData({...source.value}, e => {
+            const ok = await setData({...source.value}, e => {
                 if(e.code === "NOT_EXIST") {
                     message.showOkMessage("error", `来源${source}不存在。`)
                 }else if(e.code === "PARAM_ERROR") {
@@ -94,3 +99,40 @@ const NoOriginDataBoard = defineComponent({
         </div>
     }
 })
+
+function TitleDisplay({ value }: {value: string | null}) {
+    return value ? <p class="py-1 is-size-medium">{value}</p> : <i class="has-text-grey">没有标题</i>
+}
+
+function DescriptionDisplay({ value }: {value: string | null}) {
+    return value ? <WrappedText value={value}/> : <i class="has-text-grey">没有描述</i>
+}
+
+function RelationsDisplay({ parents, children, pools }: {parents: number[], children: number[], pools: string[]}) {
+    if(parents.length || children.length || pools.length) {
+        return <>
+            {(parents.length || children.length || null) && <div class="my-2">
+                {parents.map(parent => <p><i class="fa fa-images mr-2"/>父项 <b>{parent}</b></p>)}
+                {children.map(child => <p><i class="fa fa-images mr-2"/>子项 <b>{child}</b></p>)}
+            </div>}
+            {(pools.length || null) && <div class="my-2">
+                {pools.map(pool => <p><i class="fa fa-clone mr-2"/>Pool 《<b>{pool}</b>》</p>)}
+            </div>}
+        </>
+    }else{
+        return <div class="my-2">
+            <i class="has-text-grey">没有关联项目</i>
+        </div>
+    }
+}
+
+function SourceTagsDisplay({ value }: {value: SourceTag[]}) {
+    return value.length ? <div class={[style.sourceTag, "can-be-selected"]}>
+        {value.map(tag => <p class={style.tag}>
+            <i class="fa fa-tag mr-2"/>
+            <a><b>{tag.name}</b>{tag.displayName !== null && ` (${tag.displayName})`}</a>
+        </p>)}
+    </div> : <div>
+        <i class="has-text-grey">没有原始标签</i>
+    </div>
+}

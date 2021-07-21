@@ -5,7 +5,7 @@ import { useMessageBox } from "@/functions/document/message-box"
 import { simpleInstallation } from "@/functions/utils/basic"
 import { Site } from "@/functions/adapter-http/impl/setting-source"
 
-export const useSettingSite = simpleInstallation(function() {
+export const [installSettingSite, useSettingSite] = simpleInstallation(function() {
     const httpClient = useHttpClient()
     const notification = useNotification()
     const messageBox = useMessageBox()

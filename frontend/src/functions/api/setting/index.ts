@@ -10,7 +10,7 @@ import { QueryOption } from "@/functions/adapter-http/impl/setting-query"
 import { Site, SpiderOption, SpiderRule } from "@/functions/adapter-http/impl/setting-source"
 import { maps } from "@/utils/collections"
 
-export { useSettingSite } from "./site"
+export { installSettingSite, useSettingSite } from "./site"
 
 export function useSettingWeb() {
     return useReactiveEndpoint<WebOption>({

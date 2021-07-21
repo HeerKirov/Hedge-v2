@@ -54,7 +54,7 @@ export function simpleInstallation<F extends (...args: any[]) => any>(func: F) {
 
     const injection: InjectionKey<R> = Symbol()
 
-    return ((...args: P) => {
+    const use = ((...args: P) => {
         function factory() {
             const d = func(...args)
             provide(injection, d)
@@ -63,4 +63,12 @@ export function simpleInstallation<F extends (...args: any[]) => any>(func: F) {
 
         return inject(injection, factory, true)
     }) as (...args: P) => R
+
+    const install = ((...args: P) => {
+        const d = func(...args)
+        provide(injection, d)
+        return d
+    }) as (...args: P) => R
+
+    return [install, use]
 }

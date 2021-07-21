@@ -46,7 +46,7 @@ export function useQueryEndpoint<T, K = undefined>(options: QueryEndpointOptions
 
     const instance: Ref<QueryEndpointInstance<T>> = shallowRef(createInstance(options.filter?.value))
 
-    const { modified, modifiedEvent} = useModifiedEvent<T>()
+    const { modified, modifiedEvent } = useModifiedEvent<T>()
 
     const { refresh } = useInstanceChange<T, K>(instance, options.filter, createInstance, modified.emit)
 

@@ -18,6 +18,7 @@
   > .zoom-bar {
     position: absolute;
     top: -1px; right: -1px;
+    padding-left: 0.125rem;
     border-radius: $radius-size-std;
     border: solid 1px $deep-sidebar;
     background-color: $bg;
