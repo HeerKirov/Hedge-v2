@@ -23,28 +23,25 @@ export interface DetailViewContext {
 }
 
 interface Targets {
+    id: Readonly<Ref<number | null>>
     target: Readonly<Ref<Illust | null>>
     collectionItems: Readonly<Ref<Illust[] | null>>
-}
-
-interface DataAccessor {
-    count(): number
-    get(index: number): Promise<Illust | undefined>
+    setTargetData(newData: Illust): void
 }
 
 export const [installDetailViewContext, useDetailViewContext] = installation(function (data: SliceDataView<Illust>, initIndex: Ref<number>): DetailViewContext {
-    const { target, collectionItems, ...navigator } = useNavigator(data, initIndex)
+    const { id, target, collectionItems, setTargetData, ...navigator } = useNavigator(data, initIndex)
 
-    const path = computed(() => target.value?.id ?? null)
-
-    installDetailEndpoints(path)
+    installDetailEndpoints(id)
 
     return {
         data,
         navigator,
         detail: {
+            id,
             target,
-            collectionItems
+            collectionItems,
+            setTargetData
         }
     }
 })
@@ -86,7 +83,7 @@ function useNavigator(data: SliceDataView<Illust>, initIndex: Ref<number>): Deta
         }
         if(res.type === "IMAGE") {
             //新的illust项是个image项
-            target.value = res
+            target.value = {...res}
         }else{
             //新的illust项是个collection项，此时需要异步请求collection项的image列表
             const imagesRes = await httpClient.illust.collection.images.get(res.id, {})
@@ -106,13 +103,33 @@ function useNavigator(data: SliceDataView<Illust>, initIndex: Ref<number>): Deta
      */
     watch(currentIndexOfCollection, index => {
         if(index !== null && collectionItems.value !== null) {
-            target.value = collectionItems.value[index]
+            target.value = {...collectionItems.value[index]}
         }
     })
 
+    const id = computed(() => target.value?.id ?? null)
     const metrics = computed(() => ({total: data.count(), current: currentIndex.value}))
     const metricsOfCollection = computed(() => collectionItems.value !== null && currentIndexOfCollection.value !== null ? {total: collectionItems.value.length, current: currentIndexOfCollection.value} : null)
 
+    const { prev, prevWholeIllust, next, nextWholeIllust } = useNavigatorFunc(data, currentIndex, currentIndexOfCollection, collectionItems)
+
+    const setTargetData = useSetTargetData(data, currentIndex, currentIndexOfCollection, target)
+
+    return {
+        metrics,
+        metricsOfCollection,
+        prev,
+        prevWholeIllust,
+        next,
+        nextWholeIllust,
+        id,
+        target,
+        collectionItems,
+        setTargetData
+    }
+}
+
+function useNavigatorFunc(data: SliceDataView<Illust>, currentIndex: Ref<number>, currentIndexOfCollection: Ref<number | null>, collectionItems: Ref<Illust[] | null>) {
     const prev = () => {
         if(currentIndexOfCollection.value !== null && collectionItems.value !== null && currentIndexOfCollection.value > 0) {
             currentIndexOfCollection.value -= 1
@@ -147,15 +164,17 @@ function useNavigator(data: SliceDataView<Illust>, initIndex: Ref<number>): Deta
         }
     }
 
-    return {
-        metrics,
-        metricsOfCollection,
-        prev,
-        prevWholeIllust,
-        next,
-        nextWholeIllust,
-        target,
-        collectionItems
+    return {prev, prevWholeIllust, next, nextWholeIllust}
+}
+
+function useSetTargetData(data: SliceDataView<Illust>, currentIndex: Ref<number>, currentIndexOfCollection: Ref<number | null>, target: Ref<Illust | null>) {
+    return (newData: Illust) => {
+        if(target !== null) {
+            target.value = newData
+            if(currentIndexOfCollection.value === null) {
+                data.syncOperations.modify(currentIndex.value, {...target.value})
+            }
+        }
     }
 }
 

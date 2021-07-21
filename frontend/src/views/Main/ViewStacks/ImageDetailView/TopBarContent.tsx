@@ -69,7 +69,7 @@ const Navigator = defineComponent({
 
 const FavoriteButton = defineComponent({
     setup() {
-        const { detail: { target } } = useDetailViewContext()
+        const { detail: { target, setTargetData } } = useDetailViewContext()
 
         const { setData } = useFastObjectEndpoint<number, unknown, ImageUpdateForm>({
             update: httpClient => httpClient.illust.image.update
@@ -82,7 +82,7 @@ const FavoriteButton = defineComponent({
                 const newFavoriteValue = !favorite.value
                 const ok = await setData(target.value.id, {favorite: newFavoriteValue})
                 if(ok) {
-                    target.value.favorite = newFavoriteValue
+                    setTargetData({...target.value, favorite: newFavoriteValue})
                 }
             }
         }
