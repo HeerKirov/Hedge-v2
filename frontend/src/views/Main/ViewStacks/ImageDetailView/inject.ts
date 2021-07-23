@@ -20,6 +20,9 @@ export interface DetailViewContext {
         nextWholeIllust(count?: number): void
     }
     detail: Targets
+    ui: {
+        drawerTab: Ref<"metaTag" | undefined>
+    }
 }
 
 interface Targets {
@@ -34,6 +37,8 @@ export const [installDetailViewContext, useDetailViewContext] = installation(fun
 
     installDetailEndpoints(id)
 
+    const drawerTab = ref<"metaTag">()
+
     return {
         data,
         navigator,
@@ -42,6 +47,9 @@ export const [installDetailViewContext, useDetailViewContext] = installation(fun
             target,
             collectionItems,
             setTargetData
+        },
+        ui: {
+            drawerTab
         }
     }
 })

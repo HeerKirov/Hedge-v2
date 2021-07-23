@@ -1,4 +1,4 @@
-import { defineComponent } from "vue"
+import { computed, defineComponent, PropType } from "vue"
 import WrappedText from "@/components/elements/WrappedText"
 import Starlight from "@/components/elements/Starlight"
 import { TagmeInfo } from "@/layouts/display-components"
@@ -10,13 +10,14 @@ import {
 import { SimpleAuthor } from "@/functions/adapter-http/impl/author"
 import { SimpleTopic } from "@/functions/adapter-http/impl/topic"
 import { SimpleTag } from "@/functions/adapter-http/impl/tag"
-import { date, datetime, LocalDateTime } from "@/utils/datetime"
+import { usePopupMenu } from "@/functions/module"
+import { date, datetime, LocalDate, LocalDateTime } from "@/utils/datetime"
 import { useDetailViewContext, useMetadataEndpoint } from "./inject"
 import style from "./style.module.scss"
 
 export default defineComponent({
     setup() {
-        const { detail: { target } } = useDetailViewContext()
+        const { detail: { target }, ui: { drawerTab } } = useDetailViewContext()
         const { data, setData } = useMetadataEndpoint()
 
         const setDescription = async (description: string) => {
@@ -32,6 +33,8 @@ export default defineComponent({
             return orderTime.timestamp === data.value?.orderTime?.timestamp || await setData({orderTime})
         }
 
+        const openMetaTagEditor = () => drawerTab.value = "metaTag"
+
         return () => <div class={style.detailInfoPanel}>
             <p><i class="fa fa-id-card mr-2"/><b class="can-be-selected">{target.value?.id}</b></p>
             {data.value && <>
@@ -43,12 +46,12 @@ export default defineComponent({
                     default: ({ value }) => <StarlightDisplay class="pt-1" value={value}/>,
                     editor: ({ value, setValue }) => <StarlightEditor value={value} onUpdateValue={setValue}/>
                 }}/>
-                <ViewAndEditable class="mt-3">
+                <ViewAndEditable class="mt-3" onEdit={openMetaTagEditor}>
                     {data.value.tagme.length > 0 && <TagmeInfo class="is-white" value={data.value.tagme}/>}
                     <MetaTagDisplay authors={data.value.authors} topics={data.value.topics} tags={data.value.tags}/>
                 </ViewAndEditable>
                 <ViewAndEditor class="mt-2" data={data.value.partitionTime} onSetData={setPartitionTime} baseline="medium" v-slots={{
-                    default: ({ value }) => <p class="pt-1 has-text-grey">时间分区 {date.toISOString(value)}</p>,
+                    default: ({ value }) => <PartitionTimeDisplay partitionTime={value}/>,
                     editor: ({ value, setValue }) => <DateEditor value={value} onUpdateValue={setValue}/>
                 }}/>
                 <ViewAndEditor class="mt-1" data={[data.value.orderTime, data.value.createTime, data.value.updateTime]} onSetData={setOrderTime} baseline="medium" v-slots={{
@@ -78,12 +81,50 @@ function TimeDisplay(props: {orderTime: LocalDateTime, createTime: LocalDateTime
     </div>
 }
 
-function MetaTagDisplay(props: {authors: SimpleAuthor[], topics: SimpleTopic[], tags: SimpleTag[]}) {
-    return !props.tags.length && !props.authors.length && !props.topics.length ? <div class="has-text-grey mt-1">
-        <i>没有元数据标签</i>
-    </div> : <div class={style.metaTag}>
-        {props.authors.map(author => <div><span class={`tag is-${author.color}`}>{author.name}</span></div>)}
-        {props.topics.map(topic => <div><span class={`tag is-${topic.color}`}>{topic.name}</span></div>)}
-        {props.tags.map(tags => <div><span class={`tag is-${tags.color}`}>{tags.name}</span></div>)}
-    </div>
+const PartitionTimeDisplay = defineComponent({
+    props: {
+        partitionTime: {type: null as any as PropType<LocalDate>, required: true}
+    },
+    setup(props) {
+        const text = computed(() => date.toISOString(props.partitionTime))
+
+        //TODO 完成orderTime popup menu的功能
+        const menu = usePopupMenu([
+            {type: "normal", "label": `查看时间分区`},
+            {type: "normal", "label": `在新窗口中打开时间分区`}
+        ])
+
+        return () => <p class="pt-1 has-text-grey" onContextmenu={() => menu.popup()}>时间分区 {text.value}</p>
+    }
+})
+
+const MetaTagDisplay = defineComponent({
+    props: {
+        authors: {type: Array as PropType<SimpleAuthor[]>, required: true},
+        topics: {type: Array as PropType<SimpleTopic[]>, required: true},
+        tags: {type: Array as PropType<SimpleTag[]>, required: true},
+    },
+    setup(props) {
+        //TODO 完成tag popup menu的功能
+        const menu = usePopupMenu([
+            {type: "normal", "label": "查看标签详情页"},
+            {type: "normal", "label": "在新窗口中打开标签详情页"},
+            {type: "separator"},
+            {type: "normal", "label": "在图库中搜索"},
+            {type: "normal", "label": "在画集中搜索"},
+            {type: "normal", "label": "复制此标签的全名"},
+        ])
+
+        return () => !props.tags.length && !props.authors.length && !props.topics.length ? <div class="has-text-grey mt-1">
+            <i>没有元数据标签</i>
+        </div> : <div class={style.metaTag}>
+            {props.authors.map(author => <MetaTagDisplayItem value={author} onContextmenu={() => menu.popup()}/>)}
+            {props.topics.map(topic => <MetaTagDisplayItem value={topic} onContextmenu={() => menu.popup()}/>)}
+            {props.tags.map(tag => <MetaTagDisplayItem value={tag} onContextmenu={() => menu.popup()}/>)}
+        </div>
+    }
+})
+
+function MetaTagDisplayItem({ value }: {value: {name: string, color: string | null}}) {
+    return <div><span class={`tag is-${value.color}`}>{value.name}</span></div>
 }

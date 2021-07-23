@@ -1,13 +1,15 @@
 import { defineComponent, provide, ref } from "vue"
+import SideDrawer from "@/layouts/layouts/SideDrawer"
 import Dashboard, { dashboardZoomInjection } from "@/layouts/data/Dashboard"
 import TopBarCollapseLayout from "@/layouts/layouts/TopBarCollapseLayout"
 import { assetsUrl, usePopupMenu } from "@/functions/app"
 import TopBarContent from "./TopBarContent"
+import PanelOfMetaTag from "./PanelOfMetaTag"
 import { useDetailViewContext } from "./inject"
 
 export default defineComponent({
     setup() {
-        const { detail } = useDetailViewContext()
+        const { detail, ui: { drawerTab } } = useDetailViewContext()
 
         provide(dashboardZoomInjection, {zoom: ref(100), enable: ref(true)})
 
@@ -31,6 +33,11 @@ export default defineComponent({
                 return detail.target.value && <Dashboard src={assetsUrl(detail.target.value.file)} onContextmenu={() => menu.popup()}/>
             }
         }
-        return () => <TopBarCollapseLayout v-slots={topBarLayoutSlots}/>
+        return () => <>
+            <TopBarCollapseLayout v-slots={topBarLayoutSlots}/>
+            <SideDrawer tab={drawerTab.value} onClose={() => drawerTab.value = undefined} v-slots={{
+                "metaTag": () => <PanelOfMetaTag/>
+            }}/>
+        </>
     }
 })

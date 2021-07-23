@@ -24,8 +24,7 @@ export default defineComponent({
 
 /* TODO 工作清单
  *  完成Tag Editor模态框(大型工作)
- *  完成origin data编辑项，包括无相关数据时的初始化编辑
- *  添加Tag/orderTime等项的快捷操作
+ *  完成origin data编辑项
  *  添加Tag的弹出信息框
  *  添加一个点击顶栏的data router，弹出的collection快速导航的功能
  */

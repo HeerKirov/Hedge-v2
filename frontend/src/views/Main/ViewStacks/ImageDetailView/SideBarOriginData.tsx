@@ -1,4 +1,4 @@
-import { defineComponent, ref } from "vue"
+import { defineComponent, PropType, ref } from "vue"
 import WrappedText from "@/components/elements/WrappedText"
 import Input from "@/components/forms/Input"
 import { SourceInfo } from "@/layouts/display-components"
@@ -46,8 +46,8 @@ export default defineComponent({
                     editor: ({ value, setValue }) => undefined
                 }}/>
                 <ViewAndEditor class="my-2" data={data.value.tags} onSetData={setTags} v-slots={{
-                    default: ({ value }: {value: SourceTag[]}) => <SourceTagsDisplay value={value}/>,
-                    editor: ({ value, setValue }) => undefined
+                    default: ({ value }: {value: SourceTag[]}) => <SourceTagDisplay value={value}/>,
+                    editor: ({ value, setValue }) => <SourceTagEditor value={value} onUpdateValue={setValue}/>
                 }}/>
             </> : <NoOriginDataBoard/>)}
         </div>
@@ -101,22 +101,22 @@ const NoOriginDataBoard = defineComponent({
 })
 
 function TitleDisplay({ value }: {value: string | null}) {
-    return value ? <p class="py-1 is-size-medium">{value}</p> : <i class="has-text-grey">没有标题</i>
+    return value ? <p class="py-1 is-size-medium can-be-selected">{value}</p> : <i class="has-text-grey">没有标题</i>
 }
 
 function DescriptionDisplay({ value }: {value: string | null}) {
-    return value ? <WrappedText value={value}/> : <i class="has-text-grey">没有描述</i>
+    return value ? <WrappedText class="can-be-selected" value={value}/> : <i class="has-text-grey">没有描述</i>
 }
 
 function RelationsDisplay({ parents, children, pools }: {parents: number[], children: number[], pools: string[]}) {
     if(parents.length || children.length || pools.length) {
         return <>
             {(parents.length || children.length || null) && <div class="my-2">
-                {parents.map(parent => <p><i class="fa fa-images mr-2"/>父项 <b>{parent}</b></p>)}
-                {children.map(child => <p><i class="fa fa-images mr-2"/>子项 <b>{child}</b></p>)}
+                {parents.map(parent => <p><i class="fa fa-images mr-2"/>父项 <b class="can-be-selected">{parent}</b></p>)}
+                {children.map(child => <p><i class="fa fa-images mr-2"/>子项 <b class="can-be-selected">{child}</b></p>)}
             </div>}
             {(pools.length || null) && <div class="my-2">
-                {pools.map(pool => <p><i class="fa fa-clone mr-2"/>Pool 《<b>{pool}</b>》</p>)}
+                {pools.map(pool => <p><i class="fa fa-clone mr-2"/>Pool 《<b class="can-be-selected">{pool}</b>》</p>)}
             </div>}
         </>
     }else{
@@ -126,13 +126,36 @@ function RelationsDisplay({ parents, children, pools }: {parents: number[], chil
     }
 }
 
-function SourceTagsDisplay({ value }: {value: SourceTag[]}) {
+function SourceTagDisplay({ value }: {value: SourceTag[]}) {
     return value.length ? <div class={[style.sourceTag, "can-be-selected"]}>
-        {value.map(tag => <p class={style.tag}>
-            <i class="fa fa-tag mr-2"/>
-            <a><b>{tag.name}</b>{tag.displayName !== null && ` (${tag.displayName})`}</a>
-        </p>)}
+        {value.map(tag => <SourceTagDisplayItem value={tag}/>)}
     </div> : <div>
         <i class="has-text-grey">没有原始标签</i>
     </div>
+}
+
+function SourceTagDisplayItem({ value }: {value: SourceTag}) {
+    return <p class={style.tag}>
+        <i class="fa fa-tag mr-2"/>
+        <a><b>{value.name}</b>{value.displayName !== null && ` (${value.displayName})`}</a>
+    </p>
+}
+
+const SourceTagEditor = defineComponent({
+    props: {
+        value: {type: Array as PropType<SourceTag[]>, required: true}
+    },
+    emits: ["updateValue"],
+    setup(props, { emit }) {
+        return () => <div class={[style.sourceTag, "can-be-selected"]}>
+            {props.value.map(tag => <SourceTagEditorItem value={tag}/>)}
+        </div>
+    }
+})
+
+function SourceTagEditorItem({ value }: {value: SourceTag}) {
+    return <p class={style.tag}>
+        <i class="fa fa-tag mr-2"/>
+        <a><b>{value.name}</b>{value.displayName !== null && ` (${value.displayName})`}</a>
+    </p>
 }

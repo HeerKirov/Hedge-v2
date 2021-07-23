@@ -1,0 +1,54 @@
+@import '@/styles/base/color.scss';
+@import '@/styles/base/size.sass';
+
+.side-drawer {
+  position: absolute;
+  left: 0; top: 0;
+  max-width: 1280px;
+  width: 100%;
+  height: 100%;
+  border-top-right-radius: $radius-size-large;
+  border-bottom-right-radius: $radius-size-large;
+  overflow: hidden;
+  border-right: solid 1px $sidebar;
+  @media (prefers-color-scheme: dark) {
+    border-right-color: $sidebar-dm;
+  }
+
+  &.transition-enter-from {
+    transform: translateX(-100%);
+  }
+  &.transition-leave-to {
+    transform: translateX(-100%);
+  }
+  &.transition-enter-active {
+    transition: transform 0.15s ease-out;
+  }
+  &.transition-leave-active {
+    transition: transform 0.3s ease-in;
+  }
+
+  background-color: $bg;
+  @media (prefers-color-scheme: dark) {
+    background-color: $bg-dm;
+  }
+}
+
+.side-drawer-background {
+  position: absolute;
+  width: 100%; height: 100%;
+
+  background-color: rgba(0, 0, 0, 0.5);
+  &.transition-enter-from,
+  &.transition-leave-to {
+    opacity: 0;
+  }
+  &.transition-enter-active {
+    transition: opacity 0.15s;
+    backface-visibility: hidden;
+  }
+  &.transition-leave-active {
+    transition: opacity 0.3s;
+    backface-visibility: hidden;
+  }
+}
