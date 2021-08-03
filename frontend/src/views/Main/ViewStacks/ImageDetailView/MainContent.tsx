@@ -27,6 +27,10 @@ export default defineComponent({
             {type: "normal", label: "删除此项目"}
         ])
 
+        const closeDrawerTab = () => {
+            drawerTab.value = undefined
+        }
+
         const topBarLayoutSlots = {
             topBar() { return <TopBarContent/> },
             default() {
@@ -35,7 +39,7 @@ export default defineComponent({
         }
         return () => <>
             <TopBarCollapseLayout v-slots={topBarLayoutSlots}/>
-            <SideDrawer tab={drawerTab.value} onClose={() => drawerTab.value = undefined} v-slots={{
+            <SideDrawer tab={drawerTab.value} onClose={closeDrawerTab} v-slots={{
                 "metaTag": () => <PanelOfMetaTag/>
             }}/>
         </>

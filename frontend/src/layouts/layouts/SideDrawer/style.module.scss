@@ -1,11 +1,12 @@
 @import '@/styles/base/color.scss';
 @import '@/styles/base/size.sass';
+@import '@/styles/variable.sass';
 
 .side-drawer {
   position: absolute;
   left: 0; top: 0;
   max-width: 1280px;
-  width: 100%;
+  width: 95%;
   height: 100%;
   border-top-right-radius: $radius-size-large;
   border-bottom-right-radius: $radius-size-large;
@@ -31,6 +32,20 @@
   background-color: $bg;
   @media (prefers-color-scheme: dark) {
     background-color: $bg-dm;
+  }
+
+  > .top-bar {
+    $content-height: 30px;
+    $content-margin-size: ($title-bar-height - $content-height) / 2;
+
+    height: #{$title-bar-height - $content-margin-size * 2};
+    width: calc(100% - #{$content-margin-size * 2});
+    margin: $content-margin-size;
+  }
+  > .content {
+    height: calc(100% - #{$title-bar-height});
+    width: 100%;
+    box-sizing: border-box;
   }
 }
 
