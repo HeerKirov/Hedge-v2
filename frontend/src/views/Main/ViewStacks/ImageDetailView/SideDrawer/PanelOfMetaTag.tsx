@@ -1,9 +1,14 @@
 import { defineComponent } from "vue"
-import TopBarLayout from "@/layouts/layouts/TopBarLayout"
+import style from "./style.module.scss"
 
 export default defineComponent({
     setup() {
-        return () => <TopBarLayout/>
+        return () => <div class={style.panelOfMetaTag}>
+            <TopColumn/>
+            <LeftColumn/>
+            <RightColumn/>
+            <div class={style.midGap}/>
+        </div>
     }
 })
 
@@ -19,3 +24,42 @@ export default defineComponent({
     - 推荐。根据相关项(collection/associate/album关联)、最近编辑过的项目，给出推荐列表。
     - 推导。根据source tag，推导出可能需要的tag。这个页面也需要能显示source tag列表。
  */
+
+const TopColumn = defineComponent({
+    props: {
+
+    },
+    emits: [],
+    setup(props, { emit }) {
+        return () => <div class={style.top}>
+            <button class="button is-small is-link mr-1">
+                <span class="icon"><i class="fa fa-tag"/></span>
+                <span>标签</span>
+            </button>
+            <button class="button is-small is-white mr-1">
+                <span class="icon"><i class="fa fa-user-tag"/></span>
+                <span>作者</span>
+            </button>
+            <button class="button is-small is-white mr-1">
+                <span class="icon"><i class="fa fa-hashtag"/></span>
+                <span>主题</span>
+            </button>
+        </div>
+    }
+})
+
+const LeftColumn = defineComponent({
+    setup() {
+        return () => <div class={style.left}>
+
+        </div>
+    }
+})
+
+const RightColumn = defineComponent({
+    setup() {
+        return () => <div class={style.right}>
+
+        </div>
+    }
+})

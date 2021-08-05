@@ -12,16 +12,6 @@ export default defineComponent({
 
         const close = () => emit("close")
 
-        watchGlobalKeyEvent(e => {
-            if(tab.value) {
-                if(e.key === "Escape") {
-                    close()
-                }
-                //截断按键事件继续向前传播，使按键事件只能作用在side drawer内
-                e.stopPropagation()
-            }
-        })
-
         return () => <>
             <Transition enterFromClass={style.transitionEnterFrom} leaveToClass={style.transitionLeaveTo}
                         enterActiveClass={style.transitionEnterActive} leaveActiveClass={style.transitionLeaveActive}>
@@ -39,6 +29,14 @@ const SideDrawerContent = defineComponent({
     emits: ["close"],
     setup(_, { emit, slots }) {
         const close = () => emit("close")
+
+        watchGlobalKeyEvent(e => {
+            if(e.key === "Escape") {
+                close()
+            }
+            //截断按键事件继续向前传播，使按键事件只能作用在side drawer内
+            e.stopPropagation()
+        })
 
         return () => <div class={style.sideDrawer}>
             <div class={style.topBar}>

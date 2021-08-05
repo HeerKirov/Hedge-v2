@@ -12,7 +12,7 @@ import { SimpleTopic } from "@/functions/adapter-http/impl/topic"
 import { SimpleTag } from "@/functions/adapter-http/impl/tag"
 import { usePopupMenu } from "@/functions/module"
 import { date, datetime, LocalDate, LocalDateTime } from "@/utils/datetime"
-import { useDetailViewContext, useMetadataEndpoint } from "./inject"
+import { useDetailViewContext, useMetadataEndpoint } from "../inject"
 import style from "./style.module.scss"
 
 export default defineComponent({
@@ -33,7 +33,7 @@ export default defineComponent({
             return orderTime.timestamp === data.value?.orderTime?.timestamp || await setData({orderTime})
         }
 
-        const openMetaTagEditor = () => drawerTab.value = drawerTab.value !== "metaTag" ? "metaTag" : undefined
+        const openMetaTagEditor = () => drawerTab.value = drawerTab.value = "metaTag"
 
         return () => <div class={style.detailInfoPanel}>
             <p><i class="fa fa-id-card mr-2"/><b class="can-be-selected">{target.value?.id}</b></p>

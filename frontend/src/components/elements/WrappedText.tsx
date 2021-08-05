@@ -7,9 +7,10 @@ export default defineComponent({
     props: {
         value: String
     },
-    setup(props) {
+    inheritAttrs: false,
+    setup(props, { attrs }) {
         return () => props.value ? <>
-            {props.value.split('\n').map(line => <p>{line}</p>)}
-        </> : <p/>
+            {props.value.split('\n').map(line => <p {...attrs}>{line}</p>)}
+        </> : <p {...attrs}/>
     }
 })

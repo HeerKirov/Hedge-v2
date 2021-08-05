@@ -17,7 +17,7 @@ export default defineComponent({
         const { hover, mouseover, mouseleave } = useMouseHover()
 
         return () => <div class={style.root} onMouseover={mouseover} onMouseleave={mouseleave}>
-            {hover.value && <button class={["square", "button", "is-small", `is-${props.color}`, "has-text-link", "float-right", style.button, baselineStyle[props.baseline]]} onClick={edit}><span class="icon"><i class="fa fa-edit"/></span></button>}
+            {hover.value && <button class={["square", "button", "is-small", `is-${props.color}`, "has-text-link", "float-right", style.button, baselineStyle[props.baseline]]} onClick={edit}><span class="icon"><i class="fa fa-feather-alt"/></span></button>}
             {slots.default?.()}
         </div>
     }

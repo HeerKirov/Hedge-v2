@@ -4,7 +4,7 @@ import Dashboard, { dashboardZoomInjection } from "@/layouts/data/Dashboard"
 import TopBarCollapseLayout from "@/layouts/layouts/TopBarCollapseLayout"
 import { assetsUrl, usePopupMenu } from "@/functions/app"
 import TopBarContent from "./TopBarContent"
-import PanelOfMetaTag from "./PanelOfMetaTag"
+import PanelOfMetaTag from "./SideDrawer/PanelOfMetaTag"
 import { useDetailViewContext } from "./inject"
 
 export default defineComponent({

@@ -6,7 +6,7 @@ import { DescriptionEditor, SourceEditor, ViewAndEditor } from "@/layouts/editor
 import { SourceTag } from "@/functions/adapter-http/impl/illust"
 import { installSettingSite } from "@/functions/api/setting"
 import { useMessageBox } from "@/functions/document/message-box"
-import { useOriginDataEndpoint } from "./inject"
+import { useOriginDataEndpoint } from "../inject"
 import style from "./style.module.scss"
 
 export default defineComponent({

@@ -56,7 +56,7 @@ export default defineComponent({
         })
 
         return () => <div class={style.videoDashboard}>
-            <video ref={videoRef} key="video" loop src={props.src}
+            <video ref={videoRef} key="video" autoplay loop src={props.src}
                    onClick={playOrPause} onPause={pausedEvent} onPlaying={playingEvent}
                    onDurationchange={durationChangeEvent} onTimeupdate={timeUpdateEvent}/>
             <VideoControls {...state} onPlayOrPause={playOrPause} onSeek={seek} onUpdateVolume={updateVolume} onUpdateMuted={updateMuted}/>

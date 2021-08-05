@@ -24,7 +24,7 @@ export default defineComponent({
             }else{
                 let validate = true
                 onInvalidate(() => validate = false)
-                await sleep(500)
+                await sleep(250)
                 if(validate && !hover.value) {
                     hidden.value = false
                 }

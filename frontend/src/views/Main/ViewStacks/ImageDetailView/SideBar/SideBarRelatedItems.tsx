@@ -1,6 +1,6 @@
 import { defineComponent } from "vue"
 import { assetsUrl } from "@/functions/app"
-import { useRelatedItemsEndpoint } from "./inject"
+import { useRelatedItemsEndpoint } from "../inject"
 import style from "./style.module.scss"
 
 export default defineComponent({

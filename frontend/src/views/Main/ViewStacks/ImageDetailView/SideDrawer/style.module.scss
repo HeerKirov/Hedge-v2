@@ -1,0 +1,31 @@
+@import '@/styles/base/color.scss';
+@import '@/styles/base/size.sass';
+
+.panel-of-meta-tag {
+  position: relative;
+  width: 100%; height: 100%;
+  box-sizing: border-box;
+
+  $padding: 0.75rem;
+  $top-height: 3rem;
+  > .top {
+    $real-height: 2.5rem;
+    position: absolute;
+    top: #{$padding + $top-height - $real-height}; left: $padding; right: $padding; height: $real-height;
+    box-sizing: border-box;
+    border-bottom: solid 1px $deep-sidebar;
+  }
+  > .left {
+    position: absolute;
+    top: #{$top-height + $padding}; left: $padding; right: 50%; bottom: 0;
+  }
+  > .mid-gap {
+    position: absolute;
+    border-left: solid 1px $deep-sidebar;
+    top: #{$top-height + $padding}; left: 50%; width: 0; bottom: $padding;
+  }
+  > .right {
+    position: absolute;
+    top: #{$top-height + $padding}; right: $padding; left: 50%; bottom: 0;
+  }
+}
