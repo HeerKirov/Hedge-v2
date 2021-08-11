@@ -26,9 +26,6 @@ export default defineComponent({
  */
 
 const TopColumn = defineComponent({
-    props: {
-
-    },
     emits: [],
     setup(props, { emit }) {
         return () => <div class={style.top}>

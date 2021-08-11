@@ -32,9 +32,7 @@ export default defineComponent({
          */
         minUpdateDelta: {type: Number, default: 0}
     },
-    emits: {
-        update: (_offset: number, _limit: number) => true
-    },
+    emits: ["update"],
     setup(props, { emit, slots }) {
         const { propose, actual, padding, render, setViewState, watchViewNavigation } = useBasicVirtualComponent({
             props: {

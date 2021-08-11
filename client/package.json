@@ -7,7 +7,7 @@
   "scripts": {
     "compile": "tsc",
     "start": "electron .",
-    "debug": "electron . $(sh debug.args.local.sh)",
+    "dev": "electron . $(sh debug.args.local.sh)",
     "build": "node build/common/build.js"
   },
   "dependencies": {
