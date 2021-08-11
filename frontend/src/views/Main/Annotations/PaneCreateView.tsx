@@ -9,7 +9,7 @@ import { PaneBasicLayout } from "@/layouts/layouts/SplitPane"
 import Input from "@/components/forms/Input"
 import Select from "@/components/forms/Select"
 import { AnnotationTargetEditor } from "./PaneComponents"
-import { CAN_BE_EXPORTED_SELECT_ITEMS } from "./define"
+import { CAN_BE_EXPORTED_SELECT_ITEMS } from "@/definitions/annotation"
 import { useAnnotationContext } from "./inject"
 import style from "./style.module.scss"
 

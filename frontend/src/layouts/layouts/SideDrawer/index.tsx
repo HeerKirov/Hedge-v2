@@ -1,6 +1,7 @@
-import { defineComponent, inject, InjectionKey, Ref, toRef, Transition } from "vue"
+import { defineComponent, toRef, Transition } from "vue"
 import style from "./style.module.scss"
 import { watchGlobalKeyEvent } from "@/functions/document/global-key";
+import { TopBar } from "@/layouts/layouts/SideLayout"
 
 export default defineComponent({
     props: {
@@ -39,11 +40,11 @@ const SideDrawerContent = defineComponent({
         })
 
         return () => <div class={style.sideDrawer}>
-            <div class={style.topBar}>
+            <TopBar>
                 <button class="square button is-white" onClick={close}>
                     <span class="icon"><i class="fa fa-times"/></span>
                 </button>
-            </div>
+            </TopBar>
             <div class={style.content}>
                 {slots.default?.()}
             </div>

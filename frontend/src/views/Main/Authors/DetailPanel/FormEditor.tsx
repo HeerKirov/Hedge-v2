@@ -6,7 +6,7 @@ import { AnnotationTarget, SimpleAnnotation } from "@/functions/adapter-http/imp
 import { AnnotationEditor, LinkEditor, OtherNameEditor, StarlightEditor } from "@/layouts/editor-components"
 import { AuthorType } from "@/functions/adapter-http/impl/author"
 import { Link } from "@/functions/adapter-http/impl/generic"
-import { AUTHOR_TYPE_ENUMS, AUTHOR_TYPE_ICONS, AUTHOR_TYPE_NAMES } from "../define"
+import { AUTHOR_TYPE_ENUMS, AUTHOR_TYPE_ICONS, AUTHOR_TYPE_NAMES } from "@/definitions/author"
 import { arrays } from "@/utils/collections"
 
 export default defineComponent({

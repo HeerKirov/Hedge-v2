@@ -3,7 +3,7 @@ import { SearchPicker, SearchRequestFunction } from "@/components/features/Searc
 import { DataRouter, SearchBox, AddOnFilter, AddOnTemplate } from "@/layouts/topbar-components"
 import { AuthorQueryFilter, AuthorType } from "@/functions/adapter-http/impl/author"
 import { SimpleAnnotation } from "@/functions/adapter-http/impl/annotations"
-import { AUTHOR_TYPE_ENUMS_WITHOUT_UNKNOWN, AUTHOR_TYPE_ICONS, AUTHOR_TYPE_NAMES } from "../define"
+import { AUTHOR_TYPE_ENUMS_WITHOUT_UNKNOWN, AUTHOR_TYPE_ICONS, AUTHOR_TYPE_NAMES } from "@/definitions/author"
 import { useAuthorContext } from "../inject"
 
 export default defineComponent({

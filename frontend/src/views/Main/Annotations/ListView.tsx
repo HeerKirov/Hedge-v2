@@ -4,7 +4,7 @@ import { useMessageBox } from "@/functions/module"
 import { usePopupMenu } from "@/functions/app"
 import { useFastObjectEndpoint } from "@/functions/utils/endpoints/object-fast-endpoint"
 import { VirtualRow } from "@/components/features/VirtualScrollView"
-import { TARGET_TYPE_ICONS } from "./define"
+import { TARGET_TYPE_ICONS } from "@/definitions/annotation"
 import { useAnnotationContext } from "./inject"
 
 /**

@@ -11,7 +11,7 @@ import { AnnotationTargetEditor, AnnotationTargetDisplay } from "./PaneComponent
 import { onKeyEnter } from "@/utils/events"
 import { checkTagName } from "@/utils/check"
 import { objects } from "@/utils/primitives"
-import { CAN_BE_EXPORTED_SELECT_ITEMS } from "./define"
+import { CAN_BE_EXPORTED_SELECT_ITEMS } from "@/definitions/annotation"
 import style from "./style.module.scss"
 
 export default defineComponent({

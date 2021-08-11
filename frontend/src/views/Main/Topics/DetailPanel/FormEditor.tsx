@@ -6,7 +6,7 @@ import { AnnotationTarget, SimpleAnnotation } from "@/functions/adapter-http/imp
 import { AnnotationEditor, LinkEditor, OtherNameEditor, StarlightEditor, TopicEditor } from "@/layouts/editor-components"
 import { ParentTopic, TopicType } from "@/functions/adapter-http/impl/topic"
 import { Link } from "@/functions/adapter-http/impl/generic"
-import { TOPIC_TYPE_ENUMS, TOPIC_TYPE_ICONS, TOPIC_TYPE_NAMES } from "@/views/Main/Topics/define"
+import { TOPIC_TYPE_ENUMS, TOPIC_TYPE_ICONS, TOPIC_TYPE_NAMES } from "@/definitions/topic"
 import { arrays } from "@/utils/collections"
 
 export default defineComponent({

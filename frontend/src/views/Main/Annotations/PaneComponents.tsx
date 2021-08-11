@@ -1,7 +1,7 @@
 import { computed, defineComponent, PropType, ref, watch } from "vue"
 import CheckBox from "@/components/forms/CheckBox"
 import { AnnotationTarget } from "@/functions/adapter-http/impl/annotations"
-import { TARGET_TYPE_ICONS } from "./define"
+import { TARGET_TYPE_ICONS } from "@/definitions/annotation"
 import style from "./style.module.scss"
 
 const ANNOTATION_TARGET_DEFINITIONS: {type: AnnotationTarget, title: string, sub?: {type: AnnotationTarget, title: string}[]}[] = [

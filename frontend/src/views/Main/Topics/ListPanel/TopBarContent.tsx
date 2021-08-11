@@ -4,7 +4,7 @@ import { DataRouter, SearchBox, AddOnFilter, AddOnTemplate } from "@/layouts/top
 import { ParentTopic, TopicQueryFilter, TopicType } from "@/functions/adapter-http/impl/topic"
 import { SimpleAnnotation } from "@/functions/adapter-http/impl/annotations"
 import { watchNavigatorEvent } from "@/functions/navigator"
-import { TOPIC_TYPE_ENUMS_WITHOUT_UNKNOWN, TOPIC_TYPE_ICONS, TOPIC_TYPE_NAMES } from "../define"
+import { TOPIC_TYPE_ENUMS_WITHOUT_UNKNOWN, TOPIC_TYPE_ICONS, TOPIC_TYPE_NAMES } from "@/definitions/topic"
 import { useTopicContext } from "../inject"
 
 export default defineComponent({

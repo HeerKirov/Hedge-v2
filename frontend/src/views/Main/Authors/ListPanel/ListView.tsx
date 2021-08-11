@@ -7,7 +7,7 @@ import { SimpleAnnotation } from "@/functions/adapter-http/impl/annotations"
 import { Author, AuthorType } from "@/functions/adapter-http/impl/author"
 import { VirtualRow } from "@/components/features/VirtualScrollView"
 import { arrays } from "@/utils/collections"
-import { AUTHOR_TYPE_ENUMS, AUTHOR_TYPE_ICONS, AUTHOR_TYPE_NAMES } from "../define"
+import { AUTHOR_TYPE_ENUMS, AUTHOR_TYPE_ICONS, AUTHOR_TYPE_NAMES } from "@/definitions/author"
 import { useAuthorContext } from "../inject"
 import style from "./style.module.scss"
 

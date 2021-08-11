@@ -38,15 +38,15 @@ export default defineComponent({
         return () => <div class={style.detailInfoPanel}>
             <p><i class="fa fa-id-card mr-2"/><b class="can-be-selected">{target.value?.id}</b></p>
             {data.value && <>
-                <ViewAndEditor class="mt-2" data={data.value.description} onSetData={setDescription} showSaveButton={false} v-slots={{
+                <ViewAndEditor class="mt-3" data={data.value.description} onSetData={setDescription} showSaveButton={false} v-slots={{
                     default: ({ value }) => <DescriptionDisplay value={value}/>,
                     editor: ({ value, setValue, save }) => <DescriptionEditor value={value} onUpdateValue={setValue} onSave={save} showSaveButton={true}/>
                 }}/>
-                <ViewAndEditor class="mt-2" data={data.value.score} onSetData={setScore} baseline="medium" v-slots={{
+                <ViewAndEditor class="mt-3" data={data.value.score} onSetData={setScore} baseline="medium" v-slots={{
                     default: ({ value }) => <StarlightDisplay class="pt-1" value={value}/>,
                     editor: ({ value, setValue }) => <StarlightEditor value={value} onUpdateValue={setValue}/>
                 }}/>
-                <ViewAndEditable class="mt-3" onEdit={openMetaTagEditor}>
+                <ViewAndEditable class="mt-4" onEdit={openMetaTagEditor}>
                     {data.value.tagme.length > 0 && <TagmeInfo class="is-white" value={data.value.tagme}/>}
                     <MetaTagDisplay authors={data.value.authors} topics={data.value.topics} tags={data.value.tags}/>
                 </ViewAndEditable>

@@ -34,15 +34,9 @@
     background-color: $bg-dm;
   }
 
-  > .top-bar {
-    $content-height: 30px;
-    $content-margin-size: ($title-bar-height - $content-height) / 2;
-
-    height: #{$title-bar-height - $content-margin-size * 2};
-    width: calc(100% - #{$content-margin-size * 2});
-    margin: $content-margin-size;
-  }
   > .content {
+    position: absolute;
+    top: $title-bar-height;
     height: calc(100% - #{$title-bar-height});
     width: 100%;
     box-sizing: border-box;
