@@ -1,4 +1,4 @@
-import { defineComponent, watch, watchEffect } from "vue"
+import { defineComponent, watch } from "vue"
 import { useRouter } from "vue-router"
 import { useAppState } from "@/functions/app"
 import { State } from "@/functions/adapter-ipc"
