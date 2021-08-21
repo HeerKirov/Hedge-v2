@@ -1,4 +1,4 @@
-import { ComponentInternalInstance, computed, defineComponent, PropType, reactive, readonly, ref, toRef, watch } from "vue"
+import { ComponentPublicInstance, computed, defineComponent, PropType, ref, toRef, watch } from "vue"
 import Input from "@/components/forms/Input"
 import { KeyboardSelectorItem, useKeyboardSelector } from "@/functions/utils/element"
 import { onKeyEnter } from "@/utils/events"
@@ -87,7 +87,7 @@ const SearchResultContent = defineComponent({
             return elements
         }))
 
-        const setRef = (i: number | string) => (el: Element | ComponentInternalInstance | null) => {
+        const setRef = (i: number | string) => (el: Element | ComponentPublicInstance | null) => {
             if(el) elements.value[i] = el as Element
         }
         return () => {

@@ -1,4 +1,4 @@
-import { ComponentInternalInstance, computed, defineComponent, PropType, reactive, readonly, Ref, ref, toRef, watch } from "vue"
+import { ComponentPublicInstance, computed, defineComponent, PropType, reactive, readonly, Ref, ref, toRef, watch } from "vue"
 import Input from "@/components/forms/Input"
 import { AnnotationTarget, SimpleAnnotation } from "@/functions/adapter-http/impl/annotations"
 import { KeyboardSelectorItem, useKeyboardSelector, watchElementExcludeClick } from "@/functions/utils/element"
@@ -118,7 +118,7 @@ const SearchResultContent = defineComponent({
             return elements
         }))
 
-        const setRef = (i: number | string) => (el: Element | ComponentInternalInstance | null) => {
+        const setRef = (i: number | string) => (el: Element | ComponentPublicInstance | null) => {
             if(el) elements.value[i] = el as Element
         }
         return () => {
