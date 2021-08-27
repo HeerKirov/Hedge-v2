@@ -1,6 +1,6 @@
 import { computed, Ref, ref, watch } from "vue"
 import { TagTreeNode } from "@/functions/adapter-http/impl/tag"
-import { useLocalStorage } from "@/functions/app"
+import { useLocalStorageWithDefault } from "@/functions/app"
 import { installation } from "@/functions/utils/basic"
 import { TagListContext, useTagListContext } from "./inject-data"
 
@@ -52,11 +52,7 @@ export function useExpandedValue(key: Ref<number>) {
 }
 
 export const [installEditLock, useEditLock] = installation(function() {
-    const storage = useLocalStorage<boolean>("tag-list-editLock")
-    return computed<boolean>({
-        get: () => storage.value ?? false,
-        set: value => storage.value = value
-    })
+    return useLocalStorageWithDefault<boolean>("tag-list/edit-lock", false)
 })
 
 export interface SearchService {

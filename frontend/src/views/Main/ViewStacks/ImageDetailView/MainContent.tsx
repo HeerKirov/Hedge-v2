@@ -4,7 +4,7 @@ import Dashboard, { dashboardZoomInjection } from "@/layouts/data/Dashboard"
 import TopBarCollapseLayout from "@/layouts/layouts/TopBarCollapseLayout"
 import { assetsUrl, usePopupMenu } from "@/functions/app"
 import TopBarContent from "./TopBarContent"
-import PanelOfMetaTag from "./SideDrawer/PanelOfMetaTag"
+import MetaTagPanel from "./SideDrawer/MetaTagPanel"
 import { useDetailViewContext } from "./inject"
 
 export default defineComponent({
@@ -40,7 +40,7 @@ export default defineComponent({
         return () => <>
             <TopBarCollapseLayout v-slots={topBarLayoutSlots}/>
             <SideDrawer tab={drawerTab.value} onClose={closeDrawerTab} v-slots={{
-                "metaTag": () => <PanelOfMetaTag/>
+                "metaTag": () => <MetaTagPanel/>
             }}/>
         </>
     }

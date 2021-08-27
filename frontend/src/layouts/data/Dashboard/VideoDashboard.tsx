@@ -259,7 +259,7 @@ function usePlayControl(videoRef: Ref<HTMLMediaElement | undefined>, state: Stat
 }
 
 function useVolumeControl(videoRef: Ref<HTMLMediaElement | undefined>, state: State) {
-    const storage = useLocalStorageWithDefault("dashboard-video-volume", {volume: 1, muted: false})
+    const storage = useLocalStorageWithDefault("dashboard/video/volume", {volume: 1, muted: false})
 
     state.volume = storage.value.volume
     state.muted = storage.value.muted

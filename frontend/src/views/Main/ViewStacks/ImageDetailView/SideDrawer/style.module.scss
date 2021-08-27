@@ -18,7 +18,7 @@
       border-bottom-color: $deep-sidebar-dm;
     }
   }
-  > .left {
+  > .left-column {
     position: absolute;
     top: #{$top-height + $padding}; left: $padding; right: 50%; bottom: 0;
     overflow-y: auto;
@@ -35,9 +35,16 @@
     }
     top: #{$top-height + $padding}; left: 50%; width: 0; bottom: $padding;
   }
-  > .right {
+  > .right-column {
     position: absolute;
     top: #{$top-height + $padding}; right: $padding; left: 50%; bottom: 0;
-    padding: 0.25rem;
+    > .buttons {
+      height: $height-small;
+      margin: 0.25rem;
+    }
+    > .content {
+      height: calc(100% - #{$height-small + 0.25rem * 2});
+      width: 100%;
+    }
   }
 }

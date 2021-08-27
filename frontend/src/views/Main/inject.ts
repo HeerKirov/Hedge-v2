@@ -63,7 +63,7 @@ function useSubItems(maxCount: number) {
 }
 
 function useScopeStatus() {
-    const storage = useLocalStorage<{[scopeName: string]: boolean}>("sidebar-scope-status")
+    const storage = useLocalStorage<{[scopeName: string]: boolean}>("side-bar/scope-status")
 
     const scopeStatus = reactive(storage.value ?? {})
 
