@@ -3,7 +3,7 @@ import { RouterView } from "vue-router"
 import { clientMode } from "@/functions/adapter-ipc"
 import { windowManager } from "@/functions/module"
 import SideLayout, { SideBar } from "@/layouts/layouts/SideLayout"
-import { useViewStacks } from "./ViewStacks"
+import { useViewStacks } from "./view-stacks"
 import SideBarContent from "./SideBarContent"
 import style from "./style.module.scss"
 

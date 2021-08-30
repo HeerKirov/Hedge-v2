@@ -1,13 +1,12 @@
-import { defineComponent, PropType, ref, Ref, watch } from "vue"
-import { DetailIllust } from "@/functions/adapter-http/impl/illust"
-import { SimpleTag } from "@/functions/adapter-http/impl/tag"
-import { SimpleTopic, TopicType } from "@/functions/adapter-http/impl/topic"
-import { AuthorType, SimpleAuthor } from "@/functions/adapter-http/impl/author"
-import { useLocalStorageWithDefault } from "@/functions/app"
+import { defineComponent, PropType } from "vue"
+import { TopicType } from "@/functions/adapter-http/impl/topic"
+import { AuthorType } from "@/functions/adapter-http/impl/author"
 import { AUTHOR_TYPE_ICONS } from "@/definitions/author"
 import { TOPIC_TYPE_ICONS } from "@/definitions/topic"
-import { installation, splitRef } from "@/functions/utils/basic"
-import { useMetadataEndpoint } from "../inject"
+import RightColumnMetaDatabase from "./RightColumnMetaDatabase"
+import RightColumnSuggest from "./RightColumnSuggest"
+import RightColumnSourceDerive from "./RightColumnSourceDerive"
+import { installPanelContext, usePanelContext } from "./inject"
 import style from "./style.module.scss"
 
 export default defineComponent({
@@ -38,13 +37,14 @@ export default defineComponent({
 
 const TopColumn = defineComponent({
     setup() {
-        const { typeFilter } = usePanelContext()
+        const { typeFilter, rightColumnData: { tab, tabDbType } } = usePanelContext()
 
         const clickAuthor = () => {
             if(typeFilter.value.author && !typeFilter.value.tag && !typeFilter.value.topic) {
                 typeFilter.value = {author: true, tag: true, topic: true}
             }else{
                 typeFilter.value = {author: true, tag: false, topic: false}
+                if(tab.value === "db") tabDbType.value = "author"
             }
         }
         const clickTopic = () => {
@@ -52,6 +52,7 @@ const TopColumn = defineComponent({
                 typeFilter.value = {author: true, tag: true, topic: true}
             }else{
                 typeFilter.value = {author: false, tag: false, topic: true}
+                if(tab.value === "db") tabDbType.value = "topic"
             }
         }
         const clickTag = () => {
@@ -59,6 +60,7 @@ const TopColumn = defineComponent({
                 typeFilter.value = {author: true, tag: true, topic: true}
             }else{
                 typeFilter.value = {author: false, tag: true, topic: false}
+                if(tab.value === "db") tabDbType.value = "tag"
             }
         }
         const rightClickAuthor = () => {
@@ -129,7 +131,7 @@ const RightColumn = defineComponent({
         const { rightColumnData: { tab }} = usePanelContext()
 
         return () => <div class={style.rightColumn}>
-            <div class={style.buttons}>
+            <div class="m-1">
                 <button class={`button is-small is-${tab.value === "db" ? "link" : "white"} mr-1`} onClick={() => tab.value = "db"}>
                     <span class="icon"><i class="fa fa-database"/></span>
                     <span>元数据库</span>
@@ -138,106 +140,18 @@ const RightColumn = defineComponent({
                     <span class="icon"><i class="fa fa-adjust"/></span>
                     <span>建议项目</span>
                 </button>
-                <button class={`button is-small is-${tab.value === "source" ? "link" : "white"} mr-1`} onClick={() => tab.value = "source"}>
+                <button class={`button is-small is-${tab.value === "source" ? "link" : "white"}`} onClick={() => tab.value = "source"}>
                     <span class="icon"><i class="fa fa-file-invoice"/></span>
                     <span>来源推导</span>
                 </button>
             </div>
-            <div class={style.content}>
-                {tab.value === "db"
-                    ? <RightColumnMetaDatabase/>
-                : tab.value === "suggest"
-                    ? <RightColumnSuggest/>
-                : //source
-                    <RightColumnSourceDerive/>
-                }
-            </div>
+            {tab.value === "db"
+                ? <RightColumnMetaDatabase/>
+            : tab.value === "suggest"
+                ? <RightColumnSuggest/>
+            : //source
+                <RightColumnSourceDerive/>
+            }
         </div>
     }
 })
-
-const RightColumnMetaDatabase = defineComponent({
-    setup() {
-        const { rightColumnData: { tabDbType }} = usePanelContext()
-
-        return () => <div>
-            <button class={`button is-small is-${tabDbType.value === "author" ? "link" : "white"} ml-1`} onClick={() => tabDbType.value = "author"}>
-                <span class="icon"><i class="fa fa-user-tag"/></span>
-                <span>作者</span>
-            </button>
-            <button class={`button is-small is-${tabDbType.value === "topic" ? "link" : "white"} ml-1`} onClick={() => tabDbType.value = "topic"}>
-                <span class="icon"><i class="fa fa-hashtag"/></span>
-                <span>主题</span>
-            </button>
-            <button class={`button is-small is-${tabDbType.value === "tag" ? "link" : "white"} ml-1`} onClick={() => tabDbType.value = "tag"}>
-                <span class="icon"><i class="fa fa-tag"/></span>
-                <span>标签</span>
-            </button>
-        </div>
-    }
-})
-
-const RightColumnSuggest = defineComponent({
-    setup() {
-        return () => undefined
-    }
-})
-
-const RightColumnSourceDerive = defineComponent({
-    setup() {
-        return () => undefined
-    }
-})
-
-const [installPanelContext, usePanelContext] = installation(function() {
-    const { data, setData } = useMetadataEndpoint()
-
-    const typeFilter = useLocalStorageWithDefault("detail-view/meta-tag-editor/type-filter", {tag: true, author: true, topic: true})
-
-    const editorData = useEditorData(data)
-
-    const rightColumnData = useRightColumnData(typeFilter)
-
-    return {typeFilter, editorData, rightColumnData}
-})
-
-function useEditorData(data: Ref<DetailIllust | null>) {
-    const tags = ref<SimpleTag[]>([])
-    const topics = ref<SimpleTopic[]>([])
-    const authors = ref<SimpleAuthor[]>([])
-
-    watch(data, d => {
-        tags.value = d?.tags?.filter(t => !t.isExported) ?? []
-        topics.value = d?.topics?.filter(t => !t.isExported) ?? []
-        authors.value = d?.authors?.filter(t => !t.isExported) ?? []
-    }, {immediate: true})
-
-    const removeAt = (type: "tag" | "topic" | "author", index: number) => {
-        if(type === "tag") {
-            tags.value.splice(index, 1)
-        }else if(type === "topic") {
-            topics.value.splice(index, 1)
-        }else if(type === "author") {
-            authors.value.splice(index, 1)
-        }else{
-            throw new Error(`Unsupported type ${type}.`)
-        }
-    }
-
-    return {tags, topics, authors, removeAt}
-}
-
-function useRightColumnData(typeFilter: Ref<{tag: boolean, author: boolean, topic: boolean}>) {
-    const storage = useLocalStorageWithDefault<{
-        tab: "db" | "suggest" | "source",
-        tabDbType: "author" | "topic" | "tag"
-    }>("detail-view/meta-tag-editor/data", {
-        tab: "db",
-        tabDbType: "author"
-    })
-
-    const tab = splitRef(storage, "tab")
-    const tabDbType = splitRef(storage, "tabDbType")
-
-    return {tab, tabDbType}
-}
