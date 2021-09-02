@@ -5,21 +5,21 @@ import { TypeDefinition } from "./definition"
  * 它提供一组函数，用于直接实现拖拽功能，同时还负责自动注入拖拽的传递数据。
  */
 export function useDraggable<T extends keyof TypeDefinition>(type: T | Ref<T>, data: Ref<TypeDefinition[T]>) {
-    const dragstart = (e: DragEvent) => {
+    const onDragstart = (e: DragEvent) => {
         if(e.dataTransfer) {
             e.dataTransfer.setData("type", unref(type))
             e.dataTransfer.setData("data", JSON.stringify(data.value))
         }
     }
 
-    const dragend = (e: DragEvent) => {
+    const onDragend = (e: DragEvent) => {
         if(e.dataTransfer) {
             e.dataTransfer.clearData("type")
             e.dataTransfer.clearData("data")
         }
     }
 
-    return {dragstart, dragend}
+    return {onDragstart, onDragend}
 }
 
 /**
@@ -27,10 +27,10 @@ export function useDraggable<T extends keyof TypeDefinition>(type: T | Ref<T>, d
  */
 export function useDroppable<T extends keyof TypeDefinition>(event: (type: T, data: TypeDefinition[T]) => void) {
     const isDragover = ref(false)
-    const dragenter = () => isDragover.value = true
-    const dragleave = () => isDragover.value = false
+    const onDragenter = () => isDragover.value = true
+    const onDragleave = () => isDragover.value = false
 
-    const drop = (e: DragEvent) => {
+    const onDrop = (e: DragEvent) => {
         e.preventDefault()
         if(e.dataTransfer) {
             const type = <T>e.dataTransfer.getData("type")
@@ -40,11 +40,11 @@ export function useDroppable<T extends keyof TypeDefinition>(event: (type: T, da
         isDragover.value = false
     }
 
-    const dragover = (e: DragEvent) => {
+    const onDragover = (e: DragEvent) => {
         e.preventDefault()
     }
 
-    return {active: readonly(isDragover), dragenter, dragleave, drop, dragover}
+    return {isDragover: readonly(isDragover), onDragenter, onDragleave, onDrop, onDragover}
 }
 
 /**
@@ -57,3 +57,4 @@ export function useDroppableBy<T extends keyof TypeDefinition>(byType: T, event:
         }
     })
 }
+

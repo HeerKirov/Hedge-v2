@@ -2,9 +2,9 @@ import { date, datetime, LocalDate, LocalDateTime } from "@/utils/datetime"
 import { HttpInstance, Response } from "../server"
 import { IdResponse, LimitAndOffsetFilter, LimitFilter, ListResult, OrderList } from "./generic"
 import { SimpleAlbum } from "./album"
-import { SimpleTopic } from "./topic"
-import { SimpleAuthor } from "./author"
-import { SimpleTag } from "./tag"
+import { DepsTopic } from "./topic"
+import { DepsAuthor } from "./author"
+import { DepsTag } from "./tag"
 
 export function createIllustEndpoint(http: HttpInstance): IllustEndpoint {
     return {
@@ -81,9 +81,9 @@ function mapToDetailIllust(data: any): DetailIllust {
     return {
         ...mapToIllust(data),
         fileId: <number>data["fileId"],
-        topics: <SimpleTopic[]>data["topics"],
-        authors: <SimpleAuthor[]>data["authors"],
-        tags: <SimpleTag[]>data["tags"],
+        topics: <DepsTopic[]>data["topics"],
+        authors: <DepsAuthor[]>data["authors"],
+        tags: <DepsTag[]>data["tags"],
         description: <string>data["description"],
         originDescription: <string>data["originDescription"],
         originScore: <number | null>data["originScore"],
@@ -353,15 +353,15 @@ export interface DetailIllust extends IllustPublicPart {
     /**
      * 主题。
      */
-    topics: SimpleTopic[]
+    topics: DepsTopic[]
     /**
      * 作者。
      */
-    authors: SimpleAuthor[]
+    authors: DepsAuthor[]
     /**
      * 标签。
      */
-    tags: SimpleTag[]
+    tags: DepsTag[]
     /**
      * 描述。可能由手写描述或父集合导出。
      */

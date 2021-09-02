@@ -132,8 +132,11 @@ export interface SimpleTopic {
     id: number
     name: string
     type: TopicType
-    isExported: boolean
     color: string | null
+}
+
+export interface DepsTopic extends SimpleTopic {
+    isExported: boolean
 }
 
 export interface TopicCreateForm {

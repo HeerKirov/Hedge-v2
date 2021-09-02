@@ -117,8 +117,11 @@ export interface SimpleAuthor {
     id: number
     name: string
     type: AuthorType
-    isExported: boolean
     color: string | null
+}
+
+export interface DepsAuthor extends SimpleAuthor {
+    isExported: boolean
 }
 
 export interface AuthorCreateForm {

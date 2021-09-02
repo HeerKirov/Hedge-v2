@@ -45,7 +45,7 @@
           > .gap {
             width: 0.25rem;
             height: 2em;
-            &.active {
+            &.is-dragover {
               @include gap-active
             }
           }
@@ -56,7 +56,7 @@
 
           > .gap {
             height: 0.25rem;
-            &.active {
+            &.is-dragover {
               @include gap-active
             }
           }
@@ -67,7 +67,7 @@
   //节点之间的空隙
   > .gap {
     height: 0.25rem;
-    &.active {
+    &.is-dragover {
       @include gap-active
     }
   }
@@ -83,7 +83,7 @@
       bottom: 0;
       left: 0;
       text-align: center;
-      &.active {
+      &.is-dragover {
         background-color: rgba(0, 0, 0, 0.25);
       }
       > :global(.fa) {

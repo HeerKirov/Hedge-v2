@@ -60,14 +60,13 @@ const RootNode = defineComponent({
         const isExpanded = useExpandedValue(id)
         const switchExpanded = () => { isExpanded.value = !isExpanded.value }
 
-        const { dragstart, dragend } = useTagDrag(data)
+        const dragEvents = useTagDrag(data)
 
         const menu = useListMenu(id)
 
         return () => <div class={[style.rootNode, "box"]}>
             <p onContextmenu={menu.popup}>
-                <a class={props.value.color ? `has-text-${props.value.color}` : "has-text-dark"} onClick={click}
-                   draggable={!editLock.value} onDragstart={dragstart} onDragend={dragend}>
+                <a class={props.value.color ? `has-text-${props.value.color}` : "has-text-dark"} onClick={click} draggable={!editLock.value} {...dragEvents}>
                     <b>{props.value.name}</b>
                 </a>
                 <ExpandButton class="ml-2 mr-1" isExpanded={isExpanded.value} color={props.value.color ?? undefined} parentId={id.value} hasWhiteBg={true} onClick={switchExpanded}/>
@@ -131,9 +130,9 @@ const Gap = defineComponent({
     },
     setup(props) {
         const { parentId, ordinal } = toRefs(props)
-        const { active, dragenter, dragleave, dragover, drop } = useTagDrop(parentId, ordinal)
+        const { isDragover, ...dropEvents } = useTagDrop(parentId, ordinal)
 
-        return () => <div class={{[style.gap]: true, [style.active]: active.value}} onDragenter={dragenter} onDragleave={dragleave} onDrop={drop} onDragover={dragover}/>
+        return () => <div class={{[style.gap]: true, [style.isDragover]: isDragover.value}} {...dropEvents}/>
     }
 })
 
@@ -167,14 +166,14 @@ const ExpandButton = defineComponent({
     emits: ["click", "rightClick"],
     setup(props, { emit }) {
         const parentId = toRef(props, "parentId")
-        const { active, dragenter, dragleave, dragover, drop } = useTagDrop(parentId, null)
+        const { isDragover, ...dropEvents } = useTagDrop(parentId, null)
 
         const click = () => emit("click")
         const rightClick = () => emit("rightClick")
-        return () => <a class={{"tag": true, "is-light": !active.value, "has-bg-white": props.hasWhiteBg && !active.value, [`is-${props.color}`]: !!props.color}}
+        return () => <a class={{"tag": true, "is-light": !isDragover.value, "has-bg-white": props.hasWhiteBg && !isDragover.value, [`is-${props.color}`]: !!props.color}}
                         onClick={click} onContextmenu={rightClick}>
             <i class={`fa fa-angle-${props.isExpanded ? "down" : "right"}`}/>
-            <div class={style.area} onDragenter={dragenter} onDragleave={dragleave} onDragover={dragover} onDrop={drop}/>
+            <div class={style.area} {...dropEvents}/>
         </a>
     }
 })
@@ -190,7 +189,7 @@ const TagElement = defineComponent({
         const click = () => openDetailPane(props.value.id)
 
         const data = toRef(props, "value")
-        const { dragstart, dragend } = useTagDrag(data)
+        const dragEvents = useTagDrag(data)
 
         return () => {
             const isAddr = props.value.type !== "TAG"
@@ -198,8 +197,7 @@ const TagElement = defineComponent({
             const isForced = props.value.group === "FORCE" || props.value.group === "FORCE_AND_SEQUENCE"
             const isGroup = props.value.group !== "NO"
 
-            return <a class={["tag", props.color ? `is-${props.color}` : null, isAddr ? "is-light" : null]} onClick={click}
-                      draggable={!editLock.value} onDragstart={dragstart} onDragend={dragend}>
+            return <a class={["tag", props.color ? `is-${props.color}` : null, isAddr ? "is-light" : null]} onClick={click} draggable={!editLock.value} {...dragEvents}>
                 {isSequenced && <i class="fa fa-sort-alpha-down mr-1"/>}
                 {isForced && <b class="mr-1">!</b>}
                 {isGroup ? <>
@@ -219,11 +217,11 @@ const TagElementDropArea = defineComponent({
     },
     setup(props) {
         const parentId = toRef(props, "parentId")
-        const { active, dragenter, dragleave, dragover, drop } = useTagDrop(parentId, null)
+        const { isDragover, ...dropEvents } = useTagDrop(parentId, null)
 
-        return () => <div class={{[style.dropArea]: true, [style.active]: active.value}}>
-            <i class="fa fa-angle-down" v-show={active.value}/>
-            <div class={style.area} onDragenter={dragenter} onDragleave={dragleave} onDragover={dragover} onDrop={drop}/>
+        return () => <div class={{[style.dropArea]: true, [style.isDragover]: isDragover.value}}>
+            <i class="fa fa-angle-down" v-show={isDragover.value}/>
+            <div class={style.area} {...dropEvents}/>
         </div>
     }
 })

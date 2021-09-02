@@ -4,6 +4,7 @@ import { AuthorType } from "@/functions/adapter-http/impl/author"
 import { TopicType } from "@/functions/adapter-http/impl/topic"
 import { AUTHOR_TYPE_ICONS } from "@/definitions/author"
 import { TOPIC_TYPE_ICONS } from "@/definitions/topic"
+import { useDraggable } from "@/functions/drag"
 import { useMetaDatabaseAuthorData, useMetaDatabaseTopicData, usePanelContext } from "./inject"
 import style from "./style.module.scss"
 
@@ -56,7 +57,7 @@ const AuthorTab = defineComponent({
         watch(search, () => authorData.refresh())
 
         return () => <div class={[style.metaDatabase, style.author]}>
-            {authorData.data.value.result.map(item => <MetaTagSelectorItem name={item.name} color={item.color} type={item.type}/>)}
+            {authorData.data.value.result.map(item => <AuthorSelectorItem id={item.id} name={item.name} color={item.color} type={item.type}/>)}
             {showMore.value && <button class="button is-small is-white mt-1" onClick={authorData.next}>加载更多…</button>}
         </div>
     }
@@ -75,7 +76,7 @@ const TopicTab = defineComponent({
         watch(search, () => topicData.refresh())
 
         return () => <div class={[style.metaDatabase, style.topic]}>
-            {topicData.data.value.result.map(item => <MetaTagSelectorItem name={item.name} color={item.color} type={item.type}/>)}
+            {topicData.data.value.result.map(item => <TopicSelectorItem key={item.id} id={item.id} name={item.name} color={item.color} type={item.type}/>)}
             {showMore.value && <button class="button is-small is-white mt-1" onClick={topicData.next}>加载更多…</button>}
         </div>
     }
@@ -90,24 +91,48 @@ const TagTab = defineComponent({
     }
 })
 
-const MetaTagSelectorItem = defineComponent({
+const AuthorSelectorItem = defineComponent({
     props: {
+        id: {type: Number, required: true},
         name: {type: String, required: true},
         color: {type: null as any as PropType<string | null>, required: true},
-        type: String as PropType<AuthorType | TopicType>
+        type: {type: String as PropType<AuthorType>, required: true}
     },
-    emits: ["add"],
-    setup(props, { emit }) {
-        function findIcon(type: AuthorType | TopicType): string {
-            return AUTHOR_TYPE_ICONS[type] ?? TOPIC_TYPE_ICONS[type]
-        }
+    setup(props) {
+        const dragEvents = useDraggable("author", computed(() => ({
+            id: props.id,
+            name: props.name,
+            color: props.color,
+            type: props.type
+        })))
 
         return () => <div class={style.tagItem}>
-            <a class={`tag is-${props.color} is-light`}>
-                <i class="fa fa-plus"/>
-            </a>
-            <span class={`tag is-${props.color}`}>
-                {props.type && <i class={`fa fa-${findIcon(props.type)} mr-1`}/>}
+            <span class={`tag is-${props.color}`} draggable={true} {...dragEvents}>
+                {props.type && <i class={`fa fa-${AUTHOR_TYPE_ICONS[props.type]} mr-1`}/>}
+                {props.name}
+            </span>
+        </div>
+    }
+})
+
+const TopicSelectorItem = defineComponent({
+    props: {
+        id: {type: Number, required: true},
+        name: {type: String, required: true},
+        color: {type: null as any as PropType<string | null>, required: true},
+        type: {type: String as PropType<TopicType>, required: true}
+    },
+    setup(props) {
+        const dragEvents = useDraggable("topic", computed(() => ({
+            id: props.id,
+            name: props.name,
+            color: props.color,
+            type: props.type
+        })))
+
+        return () => <div class={style.tagItem}>
+            <span class={`tag is-${props.color}`} draggable={true} {...dragEvents}>
+                {props.type && <i class={`fa fa-${TOPIC_TYPE_ICONS[props.type]} mr-1`}/>}
                 {props.name}
             </span>
         </div>

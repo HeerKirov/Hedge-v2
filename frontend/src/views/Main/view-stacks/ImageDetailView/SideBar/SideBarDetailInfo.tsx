@@ -7,9 +7,6 @@ import {
     DescriptionEditor, StarlightEditor,
     ViewAndEditor, ViewAndEditable
 } from "@/layouts/editor-components"
-import { SimpleAuthor } from "@/functions/adapter-http/impl/author"
-import { SimpleTopic } from "@/functions/adapter-http/impl/topic"
-import { SimpleTag } from "@/functions/adapter-http/impl/tag"
 import { usePopupMenu } from "@/functions/module"
 import { date, datetime, LocalDate, LocalDateTime } from "@/utils/datetime"
 import { useDetailViewContext, useMetadataEndpoint } from "../inject"
@@ -100,9 +97,9 @@ const PartitionTimeDisplay = defineComponent({
 
 const MetaTagDisplay = defineComponent({
     props: {
-        authors: {type: Array as PropType<SimpleAuthor[]>, required: true},
-        topics: {type: Array as PropType<SimpleTopic[]>, required: true},
-        tags: {type: Array as PropType<SimpleTag[]>, required: true},
+        authors: {type: Array as PropType<{name: string, color: string | null}[]>, required: true},
+        topics: {type: Array as PropType<{name: string, color: string | null}[]>, required: true},
+        tags: {type: Array as PropType<{name: string, color: string | null}[]>, required: true},
     },
     setup(props) {
         //TODO 完成tag popup menu的功能

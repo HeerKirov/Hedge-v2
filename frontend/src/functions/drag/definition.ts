@@ -1,28 +1,9 @@
-import { AuthorType } from "@/functions/adapter-http/impl/author"
-import { TopicType } from "@/functions/adapter-http/impl/topic"
+import { SimpleAuthor } from "@/functions/adapter-http/impl/author"
+import { SimpleTopic } from "@/functions/adapter-http/impl/topic"
+import { SimpleTag } from "@/functions/adapter-http/impl/tag"
 
 export interface TypeDefinition {
-    tag: StandardTag
-    topic: StandardTopic
-    author: StandardAuthor
-}
-
-interface StandardTag {
-    id: number
-    name: string
-    color: string | null
-}
-
-interface StandardAuthor {
-    id: number
-    name: string
-    type: AuthorType
-    color: string | null
-}
-
-interface StandardTopic {
-    id: number
-    name: string
-    type: TopicType
-    color: string | null
+    tag: SimpleTag
+    topic: SimpleTopic
+    author: SimpleAuthor
 }

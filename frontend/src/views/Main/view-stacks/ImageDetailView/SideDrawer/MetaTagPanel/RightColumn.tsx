@@ -1,0 +1,36 @@
+import { defineComponent } from "vue"
+import RightColumnMetaDatabase from "./RightColumnMetaDatabase"
+import RightColumnSuggest from "./RightColumnSuggest"
+import RightColumnSourceDerive from "./RightColumnSourceDerive"
+import { usePanelContext } from "./inject"
+import style from "./style.module.scss"
+
+export default defineComponent({
+    setup() {
+        const { rightColumnData: { tab }} = usePanelContext()
+
+        return () => <div class={style.rightColumn}>
+            <div class="m-1">
+                <button class={`button is-${tab.value === "db" ? "link" : "white"} mr-1`} onClick={() => tab.value = "db"}>
+                    <span class="icon"><i class="fa fa-database"/></span>
+                    <span>元数据库</span>
+                </button>
+                <button class={`button is-${tab.value === "suggest" ? "link" : "white"} mr-1`} onClick={() => tab.value = "suggest"}>
+                    <span class="icon"><i class="fa fa-adjust"/></span>
+                    <span>建议项目</span>
+                </button>
+                <button class={`button is-${tab.value === "source" ? "link" : "white"}`} onClick={() => tab.value = "source"}>
+                    <span class="icon"><i class="fa fa-file-invoice"/></span>
+                    <span>来源推导</span>
+                </button>
+            </div>
+            {tab.value === "db"
+                ? <RightColumnMetaDatabase/>
+                : tab.value === "suggest"
+                    ? <RightColumnSuggest/>
+                    : //source
+                    <RightColumnSourceDerive/>
+            }
+        </div>
+    }
+})
