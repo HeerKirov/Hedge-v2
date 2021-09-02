@@ -1,6 +1,7 @@
-import { defineComponent, PropType, Transition, computed, toRef, toRefs, Ref, ref, readonly } from "vue"
+import { defineComponent, PropType, Transition, computed, toRef, toRefs, Ref } from "vue"
 import { TagTreeNode } from "@/functions/adapter-http/impl/tag"
 import { useMessageBox, usePopupMenu } from "@/functions/module"
+import { useDraggable, useDroppableBy } from "@/functions/drag"
 import { installation } from "@/functions/utils/basic"
 import {
     useTagListContext,
@@ -55,10 +56,11 @@ const RootNode = defineComponent({
         const click = () => openDetailPane(props.value.id)
 
         const id = computed(() => props.value.id)
+        const data = toRef(props, "value")
         const isExpanded = useExpandedValue(id)
         const switchExpanded = () => { isExpanded.value = !isExpanded.value }
 
-        const { dragstart, dragend } = useDraggable(id)
+        const { dragstart, dragend } = useTagDrag(data)
 
         const menu = useListMenu(id)
 
@@ -129,7 +131,7 @@ const Gap = defineComponent({
     },
     setup(props) {
         const { parentId, ordinal } = toRefs(props)
-        const { active, dragenter, dragleave, dragover, drop } = useDroppable(parentId, ordinal)
+        const { active, dragenter, dragleave, dragover, drop } = useTagDrop(parentId, ordinal)
 
         return () => <div class={{[style.gap]: true, [style.active]: active.value}} onDragenter={dragenter} onDragleave={dragleave} onDrop={drop} onDragover={dragover}/>
     }
@@ -165,7 +167,7 @@ const ExpandButton = defineComponent({
     emits: ["click", "rightClick"],
     setup(props, { emit }) {
         const parentId = toRef(props, "parentId")
-        const { active, dragenter, dragleave, dragover, drop } = useDroppable(parentId, null)
+        const { active, dragenter, dragleave, dragover, drop } = useTagDrop(parentId, null)
 
         const click = () => emit("click")
         const rightClick = () => emit("rightClick")
@@ -187,8 +189,8 @@ const TagElement = defineComponent({
         const { openDetailPane } = useTagPaneContext()
         const click = () => openDetailPane(props.value.id)
 
-        const id = computed(() => props.value.id)
-        const { dragstart, dragend } = useDraggable(id)
+        const data = toRef(props, "value")
+        const { dragstart, dragend } = useTagDrag(data)
 
         return () => {
             const isAddr = props.value.type !== "TAG"
@@ -205,7 +207,7 @@ const TagElement = defineComponent({
                     {props.value.name}
                     <b class="ml-1">{'}'}</b>
                 </> : props.value.name}
-                <TagElementDropArea parentId={id.value}/>
+                <TagElementDropArea parentId={data.value.id}/>
             </a>
         }
     }
@@ -217,7 +219,7 @@ const TagElementDropArea = defineComponent({
     },
     setup(props) {
         const parentId = toRef(props, "parentId")
-        const { active, dragenter, dragleave, dragover, drop } = useDroppable(parentId, null)
+        const { active, dragenter, dragleave, dragover, drop } = useTagDrop(parentId, null)
 
         return () => <div class={{[style.dropArea]: true, [style.active]: active.value}}>
             <i class="fa fa-angle-down" v-show={active.value}/>
@@ -284,45 +286,17 @@ function useListMenu(id: Ref<number>) {
     return {popup}
 }
 
-function useDraggable(id: Ref<number>) {
-    const dragstart = (e: DragEvent) => {
-        if(e.dataTransfer) {
-            e.dataTransfer.setData("type", "tag")
-            e.dataTransfer.setData("id", id.value.toString())
-        }
-    }
-
-    const dragend = (e: DragEvent) => {
-        if(e.dataTransfer) {
-            e.dataTransfer.clearData("type")
-            e.dataTransfer.clearData("id")
-        }
-    }
-
-    return {dragstart, dragend}
+function useTagDrag(tag: Ref<TagTreeNode>) {
+    return useDraggable("tag", computed(() => ({
+        id: tag.value.id,
+        name: tag.value.name,
+        color: tag.value.color
+    })))
 }
 
-function useDroppable(parentId: Ref<number | null>, ordinal: Ref<number | null> | null) {
+function useTagDrop(parentId: Ref<number | null>, ordinal: Ref<number | null> | null) {
     const { move } = useMoveFeature()
-
-    const active = ref(false)
-    const dragenter = () => active.value = true
-    const dragleave = () => active.value = false
-
-    const drop = (e: DragEvent) => {
-        e.preventDefault()
-        if(e.dataTransfer?.getData("type") === "tag") {
-            const sourceId = parseInt(e.dataTransfer.getData("id"))
-            move(sourceId, parentId.value, ordinal?.value ?? null)
-        }
-        active.value = false
-    }
-
-    const dragover = (e: DragEvent) => {
-        e.preventDefault()
-    }
-
-    return {active: readonly(active), dragenter, dragleave, drop, dragover}
+    return useDroppableBy("tag", tag => move(tag.id, parentId.value, ordinal?.value ?? null))
 }
 
 function useMoveFeature() {

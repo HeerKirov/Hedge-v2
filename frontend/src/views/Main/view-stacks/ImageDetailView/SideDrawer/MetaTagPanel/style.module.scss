@@ -18,6 +18,7 @@
       border-bottom-color: $deep-sidebar-dm;
     }
   }
+
   > .left-column {
     position: absolute;
     top: #{$top-height + $padding}; left: $padding; right: 50%; bottom: 0;
@@ -27,6 +28,7 @@
       margin-bottom: 0.125rem;
     }
   }
+
   > .mid-gap {
     position: absolute;
     border-left: solid 1px $deep-sidebar;
@@ -35,6 +37,7 @@
     }
     top: #{$top-height + $padding}; left: 50%; width: 0; bottom: $padding;
   }
+
   > .right-column {
     position: absolute;
     top: #{$top-height + $padding}; right: $padding; left: 50%; bottom: 0;
@@ -42,8 +45,18 @@
     flex-wrap: nowrap;
     flex-direction: column;
 
-    > .meta-database {
+    > .meta-database.author,
+    > .meta-database.topic {
+      height: 100%;
+      overflow-y: auto;
+      padding: 0.75rem 0 0.75rem 0.75rem;
 
+      > .tag-item {
+        margin-bottom: 0.125rem;
+        > :first-child {
+          margin-right: 0.125rem;
+        }
+      }
     }
   }
 }

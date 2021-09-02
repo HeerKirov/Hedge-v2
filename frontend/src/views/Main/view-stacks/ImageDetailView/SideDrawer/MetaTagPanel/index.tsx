@@ -74,15 +74,15 @@ const TopColumn = defineComponent({
         }
 
         return () => <div class={style.top}>
-            <button class={`button is-small is-white has-text-${typeFilter.value.author ? "link" : "grey"} mr-1`} onClick={clickAuthor} onContextmenu={rightClickAuthor}>
+            <button class={`button is-white has-text-${typeFilter.value.author ? "link" : "grey"} mr-1`} onClick={clickAuthor} onContextmenu={rightClickAuthor}>
                 <span class="icon"><i class="fa fa-user-tag"/></span>
                 <span>作者</span>
             </button>
-            <button class={`button is-small is-white has-text-${typeFilter.value.topic ? "link" : "grey"} mr-1`} onClick={clickTopic} onContextmenu={rightClickTopic}>
+            <button class={`button is-white has-text-${typeFilter.value.topic ? "link" : "grey"} mr-1`} onClick={clickTopic} onContextmenu={rightClickTopic}>
                 <span class="icon"><i class="fa fa-hashtag"/></span>
                 <span>主题</span>
             </button>
-            <button class={`button is-small is-white has-text-${typeFilter.value.tag ? "link" : "grey"} mr-1`} onClick={clickTag} onContextmenu={rightClickTag}>
+            <button class={`button is-white has-text-${typeFilter.value.tag ? "link" : "grey"} mr-1`} onClick={clickTag} onContextmenu={rightClickTag}>
                 <span class="icon"><i class="fa fa-tag"/></span>
                 <span>标签</span>
             </button>
@@ -132,15 +132,15 @@ const RightColumn = defineComponent({
 
         return () => <div class={style.rightColumn}>
             <div class="m-1">
-                <button class={`button is-small is-${tab.value === "db" ? "link" : "white"} mr-1`} onClick={() => tab.value = "db"}>
+                <button class={`button is-${tab.value === "db" ? "link" : "white"} mr-1`} onClick={() => tab.value = "db"}>
                     <span class="icon"><i class="fa fa-database"/></span>
                     <span>元数据库</span>
                 </button>
-                <button class={`button is-small is-${tab.value === "suggest" ? "link" : "white"} mr-1`} onClick={() => tab.value = "suggest"}>
+                <button class={`button is-${tab.value === "suggest" ? "link" : "white"} mr-1`} onClick={() => tab.value = "suggest"}>
                     <span class="icon"><i class="fa fa-adjust"/></span>
                     <span>建议项目</span>
                 </button>
-                <button class={`button is-small is-${tab.value === "source" ? "link" : "white"}`} onClick={() => tab.value = "source"}>
+                <button class={`button is-${tab.value === "source" ? "link" : "white"}`} onClick={() => tab.value = "source"}>
                     <span class="icon"><i class="fa fa-file-invoice"/></span>
                     <span>来源推导</span>
                 </button>

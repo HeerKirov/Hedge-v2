@@ -1,10 +1,12 @@
 import { ref, Ref, watch } from "vue"
 import { DetailIllust } from "@/functions/adapter-http/impl/illust"
 import { SimpleTag } from "@/functions/adapter-http/impl/tag"
-import { SimpleTopic } from "@/functions/adapter-http/impl/topic"
-import { SimpleAuthor } from "@/functions/adapter-http/impl/author"
+import { SimpleTopic, Topic } from "@/functions/adapter-http/impl/topic"
+import { Author, SimpleAuthor } from "@/functions/adapter-http/impl/author"
+import { useNotification } from "@/functions/document/notification"
+import { useHttpClient, useLocalStorageWithDefault } from "@/functions/app"
+import { useContinuousEndpoint } from "@/functions/utils/endpoints/continuous-endpoint"
 import { installation, splitRef } from "@/functions/utils/basic"
-import { useLocalStorageWithDefault } from "@/functions/app"
 import { useMetadataEndpoint } from "../../inject"
 
 export const [installPanelContext, usePanelContext] = installation(function() {
@@ -53,9 +55,44 @@ function useRightColumnData() {
         tab: "db",
         tabDbType: "author"
     })
-
     const tab = splitRef(storage, "tab")
     const tabDbType = splitRef(storage, "tabDbType")
 
     return {tab, tabDbType}
+}
+
+export function useMetaDatabaseAuthorData(search: Ref<string>) {
+    const httpClient = useHttpClient()
+    const { handleError } = useNotification()
+
+    return useContinuousEndpoint<Author>({
+        async request(offset: number, limit: number): Promise<{ ok: true; total: number; result: Author[] } | { ok: false; message: string }> {
+            const res = await httpClient.author.list({ offset, limit, search: search.value, order: "-updateTime" })
+            return res.ok ? { ok: true, ...res.data } : {
+                ok: false,
+                message: res.exception?.message ?? "unknown error"
+            }
+        },
+        handleError,
+        initSize: 40,
+        continueSize: 20
+    })
+}
+
+export function useMetaDatabaseTopicData(search: Ref<string>) {
+    const httpClient = useHttpClient()
+    const { handleError } = useNotification()
+
+    return useContinuousEndpoint<Topic>({
+        async request(offset: number, limit: number): Promise<{ ok: true; total: number; result: Topic[] } | { ok: false; message: string }> {
+            const res = await httpClient.topic.list({ offset, limit, search: search.value, order: "-updateTime" })
+            return res.ok ? { ok: true, ...res.data } : {
+                ok: false,
+                message: res.exception?.message ?? "unknown error"
+            }
+        },
+        handleError,
+        initSize: 40,
+        continueSize: 20
+    })
 }
