@@ -11,11 +11,9 @@ import style from "./style.module.scss"
 export default defineComponent({
     setup() {
         const { rightColumnData: { tabDbType }} = usePanelContext()
-        const searchBox = reactive({author: "", topic: "", tag: ""})
 
-        const updateSearchBox = (value: string) => {
-            searchBox[tabDbType.value] = value
-        }
+        const searchBox = reactive({author: "", topic: "", tag: ""})
+        const updateSearchBox = (value: string) => searchBox[tabDbType.value] = value
 
         return () => <>
             <div class="mx-1">

@@ -48,7 +48,7 @@ export default defineComponent({
             <div class={style.content} style={{"left": `${sideBarSwitch.value ? sideBarWidth.value : 0}px`}}>
                 {slots.default?.()}
             </div>
-            <div class={style.sideContent} style={{"width": `${sideBarWidth.value}px`, "transform": `translateX(${sideBarSwitch.value ? '0' : '-101%'})`}}>
+            <div class={style.sideContent} style={{"width": `${sideBarWidth.value}px`, "transform": `translateX(${sideBarSwitch.value ? '0' : '-101%'})`, "visibility": sideBarSwitch.value ? "visible" : "hidden"}}>
                 {slots.side?.()}
             </div>
             {sideBarSwitch.value && <div class={style.resizeContent} style={{"left": `${sideBarWidth.value}px`}} onMousedown={resizeAreaMouseDown}/>}

@@ -16,17 +16,17 @@
     border-right-color: $sidebar-dm;
   }
 
-  &.transition-enter-from {
-    transform: translateX(-100%);
-  }
+  &.transition-enter-from,
   &.transition-leave-to {
     transform: translateX(-100%);
   }
   &.transition-enter-active {
     transition: transform 0.15s ease-out;
+    backface-visibility: hidden;
   }
   &.transition-leave-active {
     transition: transform 0.3s ease-in;
+    backface-visibility: hidden;
   }
 
   background-color: $bg;
