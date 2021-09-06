@@ -75,8 +75,11 @@ class MetaManager(private val data: DataRepository) {
 
     /**
      * 对tag进行导出。
+     * @param conflictingMembersCheck 对冲突组进行检查，并抛出异常。
+     * @param onlyForceConflicting 只检查强制冲突组，而忽略非强制。
+     * @exception ConflictingGroupMembersError 发现冲突组时，抛出此异常。
      */
-    fun exportTag(tags: List<Tag>, conflictingMembersCheck: Boolean = true): List<Pair<Int, Boolean>> {
+    fun exportTag(tags: List<Tag>, conflictingMembersCheck: Boolean = true, onlyForceConflicting: Boolean = true): List<Pair<Int, Boolean>> {
         //记下所有访问过的节点父子关系
         val childrenMap = HashMap<Int, MutableSet<Int>>().apply { for (tag in tags) if(tag.parentId != null) computeIfAbsent(tag.parentId) { mutableSetOf() }.apply { add(tag.id) } }
         //已经访问过的节点。原tags列表的节点直接进去了
@@ -103,19 +106,26 @@ class MetaManager(private val data: DataRepository) {
             }
         }
 
-        val result = (tags.asSequence().map { it to false } + exportedTags.asSequence().map { it to true }).toList()
+        val result = (tags.asSequence().map { it to false } + exportedTags.asSequence().map { it to true }).map { (tag, isExported) -> tag.id to isExported }.toList()
 
         if(conflictingMembersCheck) {
+            val isExportedMap = result.toMap()
+            val condition: (Tag.IsGroup) -> Boolean = if(onlyForceConflicting) { { it == Tag.IsGroup.FORCE || it == Tag.IsGroup.FORCE_AND_SEQUENCE } } else { { it != Tag.IsGroup.NO } }
             //筛选出所有的强制冲突组
             val conflictingMembers = childrenMap.asSequence()
-                .filter { (id, members) -> members.size > 1 && been[id]!!.isGroup.let { it == Tag.IsGroup.FORCE || it == Tag.IsGroup.FORCE_AND_SEQUENCE } }
-                .map { (groupId, members) -> groupId to members.map { ConflictingGroupMembersError.ConflictingMember(it, been[it]!!.name) } }
-                .toMap()
+                .filter { (id, members) -> members.size > 1 && been[id]!!.isGroup.let(condition) }
+                .map { (groupId, members) ->
+                    val groupTag = been[groupId]!!
+                    val groupMember = ConflictingGroupMembersError.Member(groupTag.id, groupTag.name, groupTag.color, isExportedMap.getOrDefault(groupId, true))
+                    val force = groupTag.isGroup == Tag.IsGroup.FORCE || groupTag.isGroup == Tag.IsGroup.FORCE_AND_SEQUENCE
+                    ConflictingGroupMembersError.ConflictingMembers(groupMember, force, members.map { ConflictingGroupMembersError.Member(it, been[it]!!.name, been[it]!!.color, isExportedMap.getOrDefault(it, true)) })
+                }
+                .toList()
             //检查存在冲突成员时，抛出强制冲突异常
             if(conflictingMembers.isNotEmpty()) throw ConflictingGroupMembersError(conflictingMembers)
         }
 
-        return result.map { (tag, isExported) -> tag.id to isExported }
+        return result
     }
 
     /**

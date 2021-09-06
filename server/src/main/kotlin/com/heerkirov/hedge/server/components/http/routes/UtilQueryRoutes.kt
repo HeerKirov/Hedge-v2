@@ -8,10 +8,10 @@ import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder.*
 import io.javalin.http.Context
 
-class QueryRoutes(private val queryService: QueryService) : Endpoints {
+class UtilQueryRoutes(private val queryService: QueryService) : Endpoints {
     override fun handle(javalin: Javalin) {
         javalin.routes {
-            path("api/util/query") {
+            path("api/utils/query") {
                 post("schema", ::schema)
             }
         }

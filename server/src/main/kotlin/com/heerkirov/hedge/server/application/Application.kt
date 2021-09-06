@@ -54,6 +54,7 @@ fun runApplication(options: ApplicationOptions) {
             val tagKit = TagKit(repo, annotationManager)
             val tagExporter = define { TagExporterImpl(repo) }
             val metaManager = MetaManager(repo)
+            val metaService = MetaService(repo, metaManager)
 
             val partitionManager = PartitionManager(repo)
 
@@ -103,7 +104,8 @@ fun runApplication(options: ApplicationOptions) {
                 settingImportService,
                 settingSiteService,
                 settingSpiderService,
-                queryService
+                queryService,
+                metaService
             )
         }
 

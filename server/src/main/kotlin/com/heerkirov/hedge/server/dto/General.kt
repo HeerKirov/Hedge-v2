@@ -12,8 +12,6 @@ data class IdRes(val id: Int)
 
 data class IdResWithWarnings(val id: Int, val warnings: List<ErrorResult>)
 
-data class WarningsRes(val warnings: List<ErrorResult>)
-
 data class LimitAndOffsetFilter(@Limit val limit: Int,
                                 @Offset val offset: Int)
 

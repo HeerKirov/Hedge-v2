@@ -11,7 +11,6 @@ import com.heerkirov.hedge.server.components.http.routes.*
 import com.heerkirov.hedge.server.components.lifetime.Lifetime
 import com.heerkirov.hedge.server.components.service.AllServices
 import com.heerkirov.hedge.server.library.framework.StatefulComponent
-import com.heerkirov.hedge.server.enums.LoadStatus
 import com.heerkirov.hedge.server.utils.Net
 import com.heerkirov.hedge.server.utils.Token
 import com.heerkirov.hedge.server.utils.objectMapper
@@ -80,7 +79,8 @@ class HttpServerImpl(private val allServices: AllServices,
                 allServices.settingSource,
                 allServices.settingSpider,
                 allServices.settingAppdata))
-            .handle(QueryRoutes(allServices.queryService))
+            .handle(UtilQueryRoutes(allServices.queryService))
+            .handle(UtilMetaRoutes(allServices.metaService))
             .handle(IllustRoutes(allServices.illust, allServices.associate))
             .handle(AlbumRoutes(allServices.album))
             .handle(FolderRoutes(allServices.folder))

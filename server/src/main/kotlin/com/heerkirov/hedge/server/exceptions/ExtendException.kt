@@ -58,9 +58,10 @@ class IllegalConstraintError(paramName: String, relation: String, relationValue:
  * - 设定illust的tags时
  * @param conflictingMembers 发生冲突的组成员。外层Map指代组，内层List指代同一个组下冲突的组员。
  */
-class ConflictingGroupMembersError(conflictingMembers: Map<Int, List<ConflictingMember>>) : BadRequestException("CONFLICTING_GROUP_MEMBERS",
-    "Tags ${conflictingMembers.entries.joinToString { (groupId, members) -> "$groupId: [${members.joinToString { "${it.member}(${it.memberId})" }}]" }} are in same conflicting group.", conflictingMembers) {
-    data class ConflictingMember(val memberId: Int, val member: String)
+class ConflictingGroupMembersError(conflictingMembers: List<ConflictingMembers>) : BadRequestException("CONFLICTING_GROUP_MEMBERS",
+    "Tags ${conflictingMembers.joinToString { (groupId, _, members) -> "$groupId: [${members.joinToString { "${it.name}(${it.id})" }}]" }} are in same conflicting group.", conflictingMembers) {
+    data class ConflictingMembers(val group: Member, val force: Boolean, val members: List<Member>)
+    data class Member(val id: Int, val name: String, val color: String?, val isExported: Boolean)
 }
 
 /**
