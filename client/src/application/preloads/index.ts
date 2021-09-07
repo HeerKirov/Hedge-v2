@@ -1,4 +1,5 @@
-import { ipcRenderer, remote, shell, contextBridge } from "electron"
+import { ipcRenderer, contextBridge } from "electron"
+import { MenuTemplate, Menu, OpenDialogOptions, MessageOptions } from "./define"
 
 /**
  * 定义在client，但实际上要注入页面在前端运行的脚本。
@@ -55,101 +56,66 @@ interface RemoteClientAdapter {
     }
 }
 
-type MenuTemplate = NormalMenuTemplate | CheckboxMenuTemplate | RadioMenuTemplate | SeparatorMenuTemplate | SubMenuTemplate
-interface NormalMenuTemplate {
-    label: string
-    enabled?: boolean
-    type: "normal"
-    click?(): void
-}
-interface CheckboxMenuTemplate {
-    label: string
-    enabled?: boolean
-    type: "checkbox"
-    checked?: boolean
-    click?(): void
-}
-interface RadioMenuTemplate {
-    label: string
-    enabled?: boolean
-    type: "radio"
-    checked?: boolean
-    click?(): void
-}
-interface SeparatorMenuTemplate {
-    type: "separator"
-}
-interface SubMenuTemplate {
-    label: string
-    enabled?: boolean
-    type: "submenu"
-    submenu: MenuTemplate[]
-}
-interface Menu {
-    popup(options?: {x: number, y: number}): void
-}
-
-interface OpenDialogOptions {
-    title?: string
-    defaultPath?: string
-    filters?: {name: string, extensions: string[]}[]
-    properties?: ("openFile" | "openDirectory" | "multiSelections" | "createDirectory"/*macOS*/)[]
-}
-
-interface MessageOptions {
-    type: "none"|"info"|"error"|"question"
-    buttons?: string[]
-    defaultButtonId?: number
-    title?: string
-    message: string
-    detail?: string
-}
-
 function createRemoteClientAdapter(): RemoteClientAdapter {
-    const window = remote.getCurrentWindow()
+    let popupRequestId = 0
+
     return {
         fullscreen: {
             isFullscreen() {
-                return window.isFullScreen()
+                return ipcRenderer.sendSync("/remote/fullscreen")
             },
             onFullscreenChanged(event: (fullscreen: boolean) => void) {
-                window.on("enter-full-screen", () => event(true))
-                window.on("leave-full-screen", () => event(false))
+                ipcRenderer.on("/remote/fullscreen/onChanged", (_, arg: boolean) => event(arg))
             },
             setFullscreen(fullscreen: boolean) {
-                window.setFullScreen(fullscreen)
+                ipcRenderer.send("/remote/fullscreen/set", fullscreen)
             }
         },
         menu: {
             createPopup(items: MenuTemplate[]) {
-                const menu = remote.Menu.buildFromTemplate(items)
-                return {
-                    popup(options) {
-                        if(options && options.x && options.y) {
-                            menu.popup({window, ...options})
-                        }else{
-                            menu.popup({window})
+                const callbacks: (() => void)[] = []
+
+                const refItems = items.map(item => {
+                    if((item.type === "normal" || item.type === "radio" || item.type === "checkbox") && item.click !== undefined) {
+                        const { click, ...leave } = item
+                        callbacks.push(click)
+                        return {
+                            ...leave,
+                            eventId: callbacks.length - 1
                         }
+                    }else{
+                        return item
+                    }
+                })
+                return {
+                    popup(options?: { x: number; y: number }) {
+                        const requestId = ++popupRequestId
+                        ipcRenderer.send("/remote/menu/popup", {requestId, items: refItems, options: options && options.x != null && options.y != null ? options : undefined})
+                        ipcRenderer.once(`/remote/menu/popup/response/${requestId}`, (_, eventId: number | undefined) => {
+                            if(eventId != undefined) {
+                                callbacks[eventId]?.()
+                            }
+                        })
                     }
                 }
             }
         },
         dialog: {
-            async openDialog(options: OpenDialogOptions): Promise<string[] | null> {
-                const result = await remote.dialog.showOpenDialog(window, options)
+            async openDialog(options: OpenDialogOptions) {
+                const result = await ipcRenderer.invoke("/remote/dialog/openDialog", options)
                 return result.canceled || result.filePaths.length <= 0 ? null : result.filePaths
             },
-            async showMessage(options: MessageOptions): Promise<number> {
-                const result = await remote.dialog.showMessageBox(window, options)
+            async showMessage(options: MessageOptions) {
+                const result = await ipcRenderer.invoke("/remote/dialog/showMessage", options)
                 return result.response
             },
             showError(title: string, message: string) {
-                remote.dialog.showErrorBox(title, message)
+                ipcRenderer.send("/remote/dialog/showError", {title, message})
             }
         },
         shell: {
             openExternal(url: string) {
-                shell.openExternal(url).catch(reason => remote.dialog.showErrorBox("打开链接时发生错误", reason))
+                ipcRenderer.send("/remote/shell/openExternal", url)
             }
         }
     }

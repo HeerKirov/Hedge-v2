@@ -1,5 +1,7 @@
-import { ipcMain, BrowserWindow } from "electron"
+import { ipcMain, dialog, shell, Menu, BrowserWindow, OpenDialogOptions, MessageBoxOptions } from "electron"
 import { Service } from "../components/service"
+import { sleep } from "../utils/process"
+import { MenuTemplateInIpc } from "./preloads/define"
 
 /**
  * 通过ipc信道与前端进行服务通信的controller。将service的功能暴露给前端使用。
@@ -54,4 +56,68 @@ function ipcEvent<T>(channel: string, on: (event: (f: T) => void) => void) {
             window.webContents.send(channel, args)
         }
     })
+}
+
+/**
+ * 通过ipc信道，向前端注册remote类功能。将窗口和app相关的功能暴露给前端使用。
+ */
+export function registerIpcRemoteHandle() {
+    ipcMain.on("/remote/fullscreen", (e) => {
+        e.returnValue = BrowserWindow.fromWebContents(e.sender)!.isFullScreen()
+    })
+    ipcMain.on("/remote/fullscreen/set", (e, value: boolean) => {
+        BrowserWindow.fromWebContents(e.sender)!.setFullScreen(value)
+    })
+    ipcMain.handle("/remote/dialog/openDialog", async (e, value: OpenDialogOptions) => {
+        return await dialog.showOpenDialog(BrowserWindow.fromWebContents(e.sender)!, value)
+    })
+    ipcMain.handle("/remote/dialog/showMessage", async (e, value: MessageBoxOptions) => {
+        return await dialog.showMessageBox(BrowserWindow.fromWebContents(e.sender)!, value)
+    })
+    ipcMain.on("/remote/dialog/showError", (e, { title, message }: {title: string, message: string}) => {
+        dialog.showErrorBox(title, message)
+    })
+    ipcMain.on("/remote/menu/popup", async (e, { requestId, items, options }: {requestId: number, items: MenuTemplateInIpc[], options?: { x: number; y: number }}) => {
+        let clicked = false
+        const finalItems = items.map(item => {
+            if((item.type === "normal" || item.type === "radio" || item.type === "checkbox") && item.eventId != undefined) {
+                const { eventId, ...leave } = item
+                return {
+                    ...leave,
+                    click() {
+                        clicked = true
+                        e.sender.send(`/remote/menu/popup/response/${requestId}`, eventId)
+                    }
+                }
+            }else{
+                return item
+            }
+        })
+
+        const menu = Menu.buildFromTemplate(finalItems)
+        menu.once("menu-will-close", async () => {
+            await sleep(500)
+            if(!clicked) {
+                //在延时之后检测是否clicked，如果没有就发送一个内容为undefined的事件，防止渲染端内存泄露
+                e.sender.send(`/remote/menu/popup/response/${requestId}`, undefined)
+            }
+        })
+        const window = BrowserWindow.fromWebContents(e.sender)!
+        if(options) {
+            menu.popup({window, ...options})
+        }else{
+            menu.popup({window})
+        }
+    })
+    ipcMain.handle("/remote/shell/openExternal", (e, url: string) => {
+        shell.openExternal(url).catch(reason => dialog.showErrorBox("打开链接时发生错误", reason))
+    })
+}
+
+/**
+ * 通过ipc信道，向前端注册remote类功能。此函数调用以对每个window注册响应事件。
+ */
+export function registerIpcRemoteEvent(win: BrowserWindow) {
+    win.on("enter-full-screen", () => win.webContents.send("/remote/fullscreen/onChanged", true))
+    win.on("leave-full-screen", () => win.webContents.send("/remote/fullscreen/onChanged", false))
 }

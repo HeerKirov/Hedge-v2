@@ -9,7 +9,7 @@ import { createChannel } from "../components/channel"
 import { createResourceManager } from "../components/resource"
 import { createServerManager, ServerManager } from "../components/server"
 import { createService } from "../components/service"
-import { registerIpcTransformer } from "./ipc-transformer"
+import { registerIpcRemoteHandle, registerIpcTransformer } from "./ipc-transformer"
 import { registerAppMenu } from "./menu"
 import { registerDockMenu } from "./dock"
 import { createThemeManager } from "./theme-manager"
@@ -90,6 +90,7 @@ export async function createApplication(options?: AppOptions) {
 
         registerAppEvents(windowManager, serverManager, platform)
         registerIpcTransformer(service)
+        registerIpcRemoteHandle()
 
         await promiseAll(appDataDriver.load(), configurationDriver.load(), resourceManager.load(), app.whenReady())
         await themeManager.load()

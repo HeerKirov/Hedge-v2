@@ -3,6 +3,7 @@ import { BrowserWindow, BrowserWindowConstructorOptions, nativeTheme } from "ele
 import { Platform } from "../utils/process"
 import { State, StateManager } from "../components/state"
 import { APP_FILE, RESOURCE_FILE } from "../definitions/file"
+import { registerIpcRemoteEvent } from "./ipc-transformer"
 
 /**
  * electron的窗口管理器。管控窗口的建立。
@@ -54,12 +55,13 @@ export function createWindowManager(state: StateManager, options: WindowManagerO
             titleBarStyle: "hiddenInset",
             webPreferences: {
                 devTools: !!options.debug,
-                enableRemoteModule: true,
                 preload: path.join(__dirname, 'preloads/index.js')
             },
             backgroundColor: nativeTheme.shouldUseDarkColors ? "#212121" : "#FFFFFF",
             ...configure
         })
+
+        registerIpcRemoteEvent(win)
 
         if(options.debug?.frontendFromURL) {
             win.loadURL(options.debug.frontendFromURL + (hashURL ? `#/${hashURL}` : '')).finally(() => {})
