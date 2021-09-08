@@ -15,6 +15,7 @@ import { createAuthorEndpoint, AuthorEndpoint } from "./impl/author"
 import { createTopicEndpoint, TopicEndpoint } from "./impl/topic"
 import { createPartitionEndpoint, PartitionEndpoint } from "./impl/partition"
 import { createImportEndpoint, ImportEndpoint } from "./impl/import"
+import { createUtilMetaEndpoint, UtilMetaEndpoint } from "./impl/util-meta"
 
 export { HttpInstance, HttpInstanceConfig, Response, ResponseOk, ResponseError, ResponseConnectionError, ResponseEmpty, createHttpInstance }
 
@@ -34,6 +35,7 @@ export interface HttpClient {
     topic: TopicEndpoint
     annotation: AnnotationEndpoint
     import: ImportEndpoint
+    utilMeta: UtilMetaEndpoint
 }
 
 export function createHttpClient(http: HttpInstance): HttpClient {
@@ -52,6 +54,7 @@ export function createHttpClient(http: HttpInstance): HttpClient {
         author: createAuthorEndpoint(http),
         topic: createTopicEndpoint(http),
         annotation: createAnnotationEndpoint(http),
-        import: createImportEndpoint(http)
+        import: createImportEndpoint(http),
+        utilMeta: createUtilMetaEndpoint(http)
     }
 }

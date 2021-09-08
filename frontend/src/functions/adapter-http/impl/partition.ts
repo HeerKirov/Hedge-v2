@@ -21,7 +21,7 @@ function mapToPartition(data: any): Partition {
 }
 
 /**
- * 注解。
+ * 分区。
  */
 export interface PartitionEndpoint {
     /**

@@ -82,7 +82,7 @@ export const [installSearchService, useSearchService] = installation(function({ 
 
             function searchInNode(node: TagTreeNode, parentAddress: string | null) {
                 const address = parentAddress !== null ? `${parentAddress}.${node.name}` : node.name
-                if(condition(node, text)) {
+                if(condition(node, trimText)) {
                     //当前节点满足搜索条件
                     ret.push({
                         id: node.id,

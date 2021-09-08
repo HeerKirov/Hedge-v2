@@ -22,8 +22,11 @@ export default defineComponent({
         }
 
         const keyEventPrevent = (e: KeyboardEvent) => {
-            e.stopPropagation()
-            e.stopImmediatePropagation()
+            if(e.key !== "Enter" || !(e.metaKey || e.ctrlKey || e.altKey || e.shiftKey)) {
+                //忽略enter加附加键相关的阻拦
+                e.stopPropagation()
+                e.stopImmediatePropagation()
+            }
         }
 
         if(props.focusOnMounted) {

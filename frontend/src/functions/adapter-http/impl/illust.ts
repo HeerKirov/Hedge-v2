@@ -170,6 +170,9 @@ export interface IllustEndpoint {
          * 更改collection的元数据。
          * @exception NOT_FOUND
          * @exception PARAM_ERROR ("score") score超出范围
+         * @exception NOT_EXIST ("tags"|"topics"|"authors", number[]) 选择的关联资源并不存在
+         * @exception NOT_SUITABLE ("tags", number[]) 选择的资源不适用。tag: 不能选择addr类型的tag
+         * @exception CONFLICTING_GROUP_MEMBERS ({[id: number]: {memberId: number, member: string}[]}) 违反tag冲突组约束。参数值是每一项冲突组的tagId，以及这个组下有冲突的tag的id和name列表
          */
         update(id: number, form: CollectionUpdateForm): Promise<Response<null>>
         /**
@@ -222,6 +225,9 @@ export interface IllustEndpoint {
          * 更改image的元数据。
          * @exception NOT_FOUND
          * @exception PARAM_ERROR ("score") score超出范围
+         * @exception NOT_EXIST ("tags"|"topics"|"authors", number[]) 选择的关联资源并不存在
+         * @exception NOT_SUITABLE ("tags", number[]) 选择的资源不适用。tag: 不能选择addr类型的tag
+         * @exception CONFLICTING_GROUP_MEMBERS ({[id: number]: {memberId: number, member: string}[]}) 违反tag冲突组约束。参数值是每一项冲突组的tagId，以及这个组下有冲突的tag的id和name列表
          */
         update(id: number, form: ImageUpdateForm): Promise<Response<null>>
         /**

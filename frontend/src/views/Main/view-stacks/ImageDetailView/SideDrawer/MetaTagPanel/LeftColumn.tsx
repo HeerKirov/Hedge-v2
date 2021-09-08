@@ -10,31 +10,9 @@ import style from "./style.module.scss"
 
 export default defineComponent({
     setup() {
-        const { editorData: { authors, tags, topics } } = usePanelContext()
+        const { editorData } = usePanelContext()
 
-        //TODO tags在列表中时需要几项验证: 类型不能为addr; 相同冲突组标签不能同时存在(警告或错误)。
-        //      这个行为需要在inject中完成。为了完成这些验证，需要依赖一颗完整的标签树。
-        //      标签树，加上接下来的标签浏览器，可能与tag list中的内容有大量可复用代码，尝试抽象。
-
-        const { isDragover: _, ...dropEvents } = useDroppable((type, data) => {
-            //拖放标签时，加入此标签
-            if(type === "tag") {
-                const tag = data as SimpleTag
-                if(!tags.value.find(i => i.id === tag.id)) {
-                    tags.value.splice(tags.value.length, 0, tag)
-                }
-            }else if(type === "author") {
-                const author = data as SimpleAuthor
-                if(!authors.value.find(i => i.id === author.id)) {
-                    authors.value.splice(authors.value.length, 0, author)
-                }
-            }else if(type === "topic") {
-                const topic = data as SimpleTopic
-                if(!topics.value.find(i => i.id === topic.id)) {
-                    topics.value.splice(topics.value.length, 0, topic)
-                }
-            }
-        })
+        const { isDragover: _, ...dropEvents } = useDroppable(editorData.add)
 
         return () => <div class={style.leftColumn} {...dropEvents}>
             <AuthorItems/>
