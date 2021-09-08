@@ -15,9 +15,23 @@ export default defineComponent({
         const { isDragover: _, ...dropEvents } = useDroppable(editorData.add)
 
         return () => <div class={style.leftColumn} {...dropEvents}>
-            <AuthorItems/>
-            <TopicItems/>
-            <TagItems/>
+            <div class={style.tagList}>
+                <AuthorItems/>
+                <TopicItems/>
+                <TagItems/>
+            </div>
+            <ValidationResult/>
+            <div class={style.toolBar}>
+                <button class="button is-white has-text-link">
+                    <span class="icon"><i class="fa fa-undo"/></span><span>撤销</span>
+                </button>
+                <button class="button is-white has-text-link">
+                    <span class="icon"><i class="fa fa-redo"/></span><span>重做</span>
+                </button>
+                <button class="button is-link float-right">
+                    <span class="icon"><i class="fa fa-save"/></span><span>保存</span>
+                </button>
+            </div>
         </div>
     }
 })
@@ -75,6 +89,16 @@ const MetaTagEditorItem = defineComponent({
                 {props.name}
                 <a class="has-text-white ml-2" onClick={close}><i class="fa fa-times"/></a>
             </span>
+        </div>
+    }
+})
+
+const ValidationResult = defineComponent({
+    setup() {
+        const { editorData: { validation: { tagValidationResults } } } = usePanelContext()
+
+        return () => <div class={style.notificationList}>
+
         </div>
     }
 })

@@ -22,11 +22,22 @@
   > .left-column {
     position: absolute;
     top: #{$top-height + $padding}; left: $padding; right: 50%; bottom: 0;
-    overflow-y: auto;
-    padding: 1rem;
-    width: 100%; height: 100%;
-    > .tag-item {
-      margin-bottom: 0.125rem;
+    display: flex;
+    flex-wrap: nowrap;
+    flex-direction: column;
+    > .tag-list {
+      height: 100%;
+      overflow-y: auto;
+      padding: 1rem 0 1rem 1rem;
+      > .tag-item {
+        margin-bottom: 0.125rem;
+      }
+    }
+    > .notification-list {
+
+    }
+    > .tool-bar {
+      margin: $spacing-1 $spacing-4 $spacing-4 $spacing-1;
     }
   }
 

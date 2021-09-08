@@ -1,4 +1,4 @@
-import { readonly, ref, Ref, watch } from "vue"
+import { h, readonly, ref, Ref, watch } from "vue"
 import { DetailIllust } from "@/functions/adapter-http/impl/illust"
 import { SimpleTag } from "@/functions/adapter-http/impl/tag"
 import { SimpleTopic, Topic } from "@/functions/adapter-http/impl/topic"
@@ -8,6 +8,7 @@ import { useHttpClient, useLocalStorageWithDefault } from "@/functions/app"
 import { useContinuousEndpoint } from "@/functions/utils/endpoints/continuous-endpoint"
 import { installation, splitRef } from "@/functions/utils/basic"
 import { useMetadataEndpoint } from "../../inject"
+import { MetaTagValidation } from "@/functions/adapter-http/impl/util-meta";
 
 export const [installPanelContext, usePanelContext] = installation(function() {
     const { data, setData } = useMetadataEndpoint()
@@ -38,10 +39,6 @@ function useEditorData(data: Ref<DetailIllust | null>) {
         author: SimpleAuthor
     }
 
-    //TODO tags在列表中时需要几项验证: 类型不能为addr; 相同冲突组标签不能同时存在(警告或错误)。
-    //      这个行为需要在inject中完成。为了完成这些验证，需要依赖一颗完整的标签树。
-    //      标签树，加上接下来的标签浏览器，可能与tag list中的内容有大量可复用代码，尝试抽象。
-
     function add<T extends keyof MetaTagReflection>(type: T, metaTag: MetaTagReflection[T]) {
         if(type === "tag") {
             const tag = metaTag as SimpleTag
@@ -71,7 +68,30 @@ function useEditorData(data: Ref<DetailIllust | null>) {
         }
     }
 
-    return {tags: readonly(tags), topics: readonly(topics), authors: readonly(authors), add, removeAt}
+    const validation = useEditorDataValidation(tags)
+
+    return {tags: readonly(tags), topics: readonly(topics), authors: readonly(authors), add, removeAt, validation}
+}
+
+function useEditorDataValidation(tags: Ref<SimpleTag[]>) {
+    const httpClient = useHttpClient()
+    const notification = useNotification()
+
+    const tagValidationResults = ref<MetaTagValidation>()
+
+    watch(tags, async (tags) => {
+        tagValidationResults.value = undefined
+        if(tags.length) {
+            const res = await httpClient.utilMeta.validateTag(tags.map(t => t.id))
+            if(res.ok) {
+                tagValidationResults.value = res.data
+            }else if(res.exception) {
+                notification.handleException(res.exception)
+            }
+        }
+    }, {immediate: true, deep: true})
+
+    return {tagValidationResults}
 }
 
 function useRightColumnData() {

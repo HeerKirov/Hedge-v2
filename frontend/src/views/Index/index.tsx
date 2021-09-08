@@ -22,13 +22,14 @@ export default defineComponent({
             }
         }, {immediate: true})
 
-        return () => <div>
+        return () => <>
+            <div class="title-bar line has-text-centered is-size-large"/>
             {state.value && <div class="fixed center has-text-centered">
                 <i class="fa fa-3x fa-code-branch"/>
                 <p class="mt-4 is-size-medium">{loadingMessage[state.value] ?? ""}</p>
                 <ProgressFlag class="mt-2" showDelay={500}/>
             </div>}
-        </div>
+        </>
     }
 })
 
