@@ -21,17 +21,7 @@ export default defineComponent({
                 <TagItems/>
             </div>
             <ValidationResult/>
-            <div class={style.toolBar}>
-                <button class="button is-white has-text-link">
-                    <span class="icon"><i class="fa fa-undo"/></span><span>撤销</span>
-                </button>
-                <button class="button is-white has-text-link">
-                    <span class="icon"><i class="fa fa-redo"/></span><span>重做</span>
-                </button>
-                <button class="button is-link float-right">
-                    <span class="icon"><i class="fa fa-save"/></span><span>保存</span>
-                </button>
-            </div>
+            <ToolBar/>
         </div>
     }
 })
@@ -97,8 +87,43 @@ const ValidationResult = defineComponent({
     setup() {
         const { editorData: { validation: { tagValidationResults } } } = usePanelContext()
 
-        return () => <div class={style.notificationList}>
+        return () => tagValidationResults.value && <div class={style.notificationList}>
+            {tagValidationResults.value.notSuitable.map(item => <div class="mb-1">
+                <i class="fa fa-exclamation has-text-danger mr-1"/>
+                标签
+                <span class={`tag is-${item.color} is-light mx-1`}>{item.name}</span>
+                不能被用作关联对象，它的类型是地址段。
+            </div>)}
+            {tagValidationResults.value.forceConflictingMembers.map(item => <div class="mb-1">
+                <i class="fa fa-exclamation has-text-danger mr-1"/>
+                <span class="mr-1">标签</span>
+                {item.members.map(member => <span class={`tag is-${member.color} mr-1`}>{member.name}</span>)}
+                不能被同时应用于一个项目，它们隶属同一个强制冲突组<span class={`tag is-${item.group.color} mr-1`}>{item.group.name}</span>。
+            </div>)}
+            {tagValidationResults.value.conflictingMembers.map(item => <div class="mb-1">
+                <i class="fa fa-exclamation has-text-warning mr-1"/>
+                <span class="mr-1">标签</span>
+                {item.members.map(member => <span class={`tag is-${member.color} mr-1`}>{member.name}</span>)}
+                不建议同时应用于一个项目，它们隶属同一个冲突组<span class={`tag is-${item.group.color} mr-1`}>{item.group.name}</span>。
+            </div>)}
+        </div>
+    }
+})
 
+const ToolBar = defineComponent({
+    setup() {
+        const { editorData: { history, canSave, save } } = usePanelContext()
+
+        return () => <div class={style.toolBar}>
+            <button class={`button is-white has-text-${history.canUndo.value ? "link" : "grey"}`} disabled={!history.canUndo.value} onClick={history.undo}>
+                <span class="icon"><i class="fa fa-undo"/></span><span>撤销</span>
+            </button>
+            <button class={`button is-white has-text-${history.canRedo.value ? "link" : "grey"}`} disabled={!history.canRedo.value} onClick={history.redo}>
+                <span class="icon"><i class="fa fa-redo"/></span><span>重做</span>
+            </button>
+            <button class="button is-link float-right" disabled={!canSave.value} onClick={save}>
+                <span class="icon"><i class="fa fa-save"/></span><span>保存</span>
+            </button>
         </div>
     }
 })

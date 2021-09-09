@@ -34,7 +34,9 @@
       }
     }
     > .notification-list {
-
+      max-height: 5rem;
+      overflow-y: auto;
+      font-size: $font-size-small;
     }
     > .tool-bar {
       margin: $spacing-1 $spacing-4 $spacing-4 $spacing-1;
