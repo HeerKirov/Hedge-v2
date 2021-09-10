@@ -1,17 +1,19 @@
 import { computed, reactive, readonly, ref, Ref, watch } from "vue"
-import { DetailIllust } from "@/functions/adapter-http/impl/illust"
+import { HttpClient } from "@/functions/adapter-http"
+import { DetailIllust, Tagme } from "@/functions/adapter-http/impl/illust"
 import { SimpleTag } from "@/functions/adapter-http/impl/tag"
 import { SimpleTopic, Topic } from "@/functions/adapter-http/impl/topic"
 import { Author, SimpleAuthor } from "@/functions/adapter-http/impl/author"
 import { MetaTagValidation } from "@/functions/adapter-http/impl/util-meta"
-import { useNotification } from "@/functions/document/notification"
+import { watchGlobalKeyEvent } from "@/functions/document/global-key"
+import { NotificationManager, useNotification } from "@/functions/document/notification"
 import { useMessageBox } from "@/functions/document/message-box"
 import { useHttpClient, useLocalStorageWithDefault } from "@/functions/app"
 import { useContinuousEndpoint } from "@/functions/utils/endpoints/continuous-endpoint"
 import { installation, splitRef } from "@/functions/utils/basic"
+import { installExpandedInfo, installSearchService, installTagListContext } from "@/functions/api/tag-tree"
 import { sleep } from "@/utils/process"
 import { useDetailViewContext, useMetadataEndpoint } from "../../inject"
-import { watchGlobalKeyEvent } from "@/functions/document/global-key";
 
 export const [installPanelContext, usePanelContext] = installation(function() {
     const { data } = useMetadataEndpoint()
@@ -29,21 +31,29 @@ function useEditorData(data: Ref<DetailIllust | null>) {
     const tags = ref<SimpleTag[]>([])
     const topics = ref<SimpleTopic[]>([])
     const authors = ref<SimpleAuthor[]>([])
-    const changed = reactive({tag: false, topic: false, author: false})
+    const tagme = ref<Tagme[]>([])
+    const changed = reactive({tag: false, topic: false, author: false, tagme: false})
 
     watch(data, d => {
         tags.value = d?.tags?.filter(t => !t.isExported) ?? []
         topics.value = d?.topics?.filter(t => !t.isExported) ?? []
         authors.value = d?.authors?.filter(t => !t.isExported) ?? []
+        tagme.value = d?.tagme ?? []
         changed.tag = false
         changed.topic = false
         changed.author = false
+        changed.tagme = false
     }, {immediate: true})
 
     interface MetaTagReflection {
         tag: SimpleTag
         topic: SimpleTopic
         author: SimpleAuthor
+    }
+
+    const setTagme = (value: Tagme[]) => {
+        tagme.value = value
+        changed.tagme = true
     }
 
     function add<T extends keyof MetaTagReflection>(type: T, metaTag: MetaTagReflection[T]) {
@@ -91,18 +101,18 @@ function useEditorData(data: Ref<DetailIllust | null>) {
 
     const { record: addHistoryRecord, ...history } = useEditorDataHistory(tags, topics, authors, data)
 
-    const { canSave, save } = useSaveFunction(tags, topics, authors, changed, validation)
+    const { canSave, save } = useSaveFunction(tags, topics, authors, tagme, changed, validation)
 
-    return {tags: readonly(tags), topics: readonly(topics), authors: readonly(authors), add, removeAt, canSave, save, validation, history}
+    return {tags: readonly(tags), topics: readonly(topics), authors: readonly(authors), tagme: readonly(tagme), setTagme, add, removeAt, canSave, save, validation, history}
 }
 
-function useSaveFunction(tags: Ref<SimpleTag[]>, topics: Ref<SimpleTopic[]>, authors: Ref<SimpleAuthor[]>, changed: {tag: boolean, topic: boolean, author: boolean}, validation: ReturnType<typeof useEditorDataValidation>) {
+function useSaveFunction(tags: Ref<SimpleTag[]>, topics: Ref<SimpleTopic[]>, authors: Ref<SimpleAuthor[]>, tagme: Ref<Tagme[]>, changed: {tag: boolean, topic: boolean, author: boolean, tagme: boolean}, validation: ReturnType<typeof useEditorDataValidation>) {
     const message = useMessageBox()
     const { setData } = useMetadataEndpoint()
     const { ui: { drawerTab } } = useDetailViewContext()
 
     const canSave = computed(() =>
-        (changed.tag || changed.topic || changed.author) &&
+        (changed.tag || changed.topic || changed.author || changed.tagme) &&
         (validation.tagValidationResults.value == undefined ||
             (!validation.tagValidationResults.value.forceConflictingMembers.length && !validation.tagValidationResults.value.notSuitable.length))
     )
@@ -112,7 +122,8 @@ function useSaveFunction(tags: Ref<SimpleTag[]>, topics: Ref<SimpleTopic[]>, aut
             const ok = await setData({
                 tags: changed.tag ? tags.value.map(i => i.id) : undefined,
                 topics: changed.topic ? topics.value.map(i => i.id) : undefined,
-                authors: changed.author ? authors.value.map(i => i.id) : undefined
+                authors: changed.author ? authors.value.map(i => i.id) : undefined,
+                tagme: changed.tagme ? tagme.value : undefined
             }, e => {
                 if(e.code === "NOT_EXIST") {
                     const [type, list] = e.info
@@ -292,11 +303,25 @@ function useRightColumnData() {
     return {tab, tabDbType}
 }
 
-export function useMetaDatabaseAuthorData(search: Ref<string>) {
+const [installMetaDatabaseContext, useMetaDatabaseContext] = installation(function() {
     const httpClient = useHttpClient()
-    const { handleError } = useNotification()
+    const notification = useNotification()
 
-    return useContinuousEndpoint<Author>({
+    const author = installMetaDatabaseAuthorContext(httpClient, notification)
+    const topic = installMetaDatabaseTopicContext(httpClient, notification)
+
+    //安装tag tree功能
+    const tagListContent = installTagListContext()
+    installSearchService(tagListContent)
+    installExpandedInfo(tagListContent)
+
+    return {author, topic}
+})
+
+function installMetaDatabaseAuthorContext(httpClient: HttpClient, { handleError }: NotificationManager) {
+    const search = ref<string>()
+
+    const data = useContinuousEndpoint<Author>({
         async request(offset: number, limit: number): Promise<{ ok: true; total: number; result: Author[] } | { ok: false; message: string }> {
             const res = await httpClient.author.list({ offset, limit, search: search.value, order: "-updateTime" })
             return res.ok ? { ok: true, ...res.data } : {
@@ -308,13 +333,16 @@ export function useMetaDatabaseAuthorData(search: Ref<string>) {
         initSize: 40,
         continueSize: 20
     })
+
+    watch(search, () => data.refresh())
+
+    return {search, data}
 }
 
-export function useMetaDatabaseTopicData(search: Ref<string>) {
-    const httpClient = useHttpClient()
-    const { handleError } = useNotification()
+function installMetaDatabaseTopicContext(httpClient: HttpClient, { handleError }: NotificationManager) {
+    const search = ref<string>()
 
-    return useContinuousEndpoint<Topic>({
+    const data = useContinuousEndpoint<Topic>({
         async request(offset: number, limit: number): Promise<{ ok: true; total: number; result: Topic[] } | { ok: false; message: string }> {
             const res = await httpClient.topic.list({ offset, limit, search: search.value, order: "-updateTime" })
             return res.ok ? { ok: true, ...res.data } : {
@@ -326,4 +354,20 @@ export function useMetaDatabaseTopicData(search: Ref<string>) {
         initSize: 40,
         continueSize: 20
     })
+
+    watch(search, () => data.refresh())
+
+    return {search, data}
+}
+
+export { installMetaDatabaseContext }
+
+export function useMetaDatabaseAuthorContext() {
+    const { author } = useMetaDatabaseContext()
+    return author
+}
+
+export function useMetaDatabaseTopicContext() {
+    const { topic } = useMetaDatabaseContext()
+    return topic
 }

@@ -1,9 +1,12 @@
-import { readonly, Ref, ref } from "vue"
+import { computed, readonly, Ref, ref } from "vue"
 import { installation } from "@/functions/utils/basic"
-export { installExpandedInfo, installEditLock, installSearchService, useEditLock, useSearchService, useExpandedValue } from "./inject-state"
-export { installTagListContext, useTagListContext, useDescriptionValue } from "./inject-data"
-export type { ExpandedInfoContext } from "./inject-state"
-export type { TagListContext, IndexedInfo } from "./inject-data"
+import { useLocalStorageWithDefault } from "@/functions/app"
+import { useTagListContext } from "@/functions/api/tag-tree"
+export {
+    installTagListContext, installExpandedInfo, installSearchService,
+    useTagListContext, useSearchService, useExpandedValue,
+    TagListContext, IndexedInfo, ExpandedInfoContext
+} from "@/functions/api/tag-tree"
 
 export interface TagPaneContext {
     detailMode: Readonly<Ref<number | null>>
@@ -54,3 +57,19 @@ export const [installTagPaneContext, useTagPaneContext] = installation(function(
         openCreatePane, openDetailPane, openSearchPane, closePane
     }
 })
+
+export const [installEditLock, useEditLock] = installation(function() {
+    return useLocalStorageWithDefault<boolean>("tag-list/edit-lock", false)
+})
+
+export function useDescriptionValue(key: Ref<number>) {
+    const { descriptionCache } = useTagListContext()
+    return computed<string | undefined>({
+        get: () => descriptionCache.get(key.value),
+        set(value) {
+            if(value != undefined) {
+                descriptionCache.set(key.value, value)
+            }
+        }
+    })
+}

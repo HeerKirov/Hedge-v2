@@ -1,6 +1,5 @@
 import { computed, defineComponent, PropType } from "vue"
 import Input from "@/components/forms/Input"
-import Textarea from "@/components/forms/Textarea"
 import CheckBox from "@/components/forms/CheckBox"
 import StdColorSelector from "@/components/forms/StdColorSelector"
 import WrappedText from "@/components/elements/WrappedText"

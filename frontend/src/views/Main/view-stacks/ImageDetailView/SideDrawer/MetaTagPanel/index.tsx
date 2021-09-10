@@ -1,4 +1,6 @@
-import { defineComponent } from "vue"
+import { computed, defineComponent } from "vue"
+import { Tagme } from "@/functions/adapter-http/impl/illust"
+import CheckBox from "@/components/forms/CheckBox"
 import LeftColumn from "./LeftColumn"
 import RightColumn from "./RightColumn"
 import { installPanelContext, usePanelContext } from "./inject"
@@ -77,6 +79,36 @@ const TopColumn = defineComponent({
                 <span class="icon"><i class="fa fa-tag"/></span>
                 <span>标签</span>
             </button>
+            <TagmeEditor/>
+        </div>
+    }
+})
+
+const TagmeEditor = defineComponent({
+    setup() {
+        const { tagme, setTagme } = usePanelContext().editorData
+
+        const isEnabled = computed<{[key in Tagme]: boolean}>(() => ({
+            TAG: tagme.value.includes("TAG"),
+            TOPIC: tagme.value.includes("TOPIC"),
+            AUTHOR: tagme.value.includes("AUTHOR"),
+            SOURCE: tagme.value.includes("SOURCE")
+        }))
+
+        const onUpdate = (key: Tagme) => (value: boolean) => {
+            if(value) {
+                setTagme([...tagme.value, key])
+            }else{
+                setTagme(tagme.value.filter(v => v !== key))
+            }
+        }
+
+        return () => <div class={style.tagmeEditor}>
+            <span class="has-text-link">Tagme</span>
+            <CheckBox class={`has-text-${isEnabled.value.AUTHOR ? "link" : "grey"}`} value={isEnabled.value.AUTHOR} onUpdateValue={onUpdate("AUTHOR")}><i class="fa fa-user-tag mr-1"/>作者</CheckBox>
+            <CheckBox class={`has-text-${isEnabled.value.TOPIC ? "link" : "grey"}`} value={isEnabled.value.TOPIC} onUpdateValue={onUpdate("TOPIC")}><i class="fa fa-hashtag mr-1"/>主题</CheckBox>
+            <CheckBox class={`has-text-${isEnabled.value.TAG ? "link" : "grey"}`} value={isEnabled.value.TAG} onUpdateValue={onUpdate("TAG")}><i class="fa fa-tag mr-1"/>标签</CheckBox>
+            <CheckBox class={`has-text-${isEnabled.value.SOURCE ? "link" : "grey"}`} value={isEnabled.value.SOURCE} onUpdateValue={onUpdate("SOURCE")}><i class="fa fa-pager mr-1"/>来源</CheckBox>
         </div>
     }
 })

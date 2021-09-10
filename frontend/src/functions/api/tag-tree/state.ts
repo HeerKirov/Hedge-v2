@@ -1,8 +1,7 @@
 import { computed, Ref, ref, watch } from "vue"
 import { TagTreeNode } from "@/functions/adapter-http/impl/tag"
-import { useLocalStorageWithDefault } from "@/functions/app"
 import { installation } from "@/functions/utils/basic"
-import { TagListContext, useTagListContext } from "./inject-data"
+import { TagListContext, useTagListContext } from "./data"
 
 export interface ExpandedInfoContext {
     /**
@@ -19,8 +18,8 @@ export interface ExpandedInfoContext {
     setAllForChildren(key: number, value: boolean): void
 }
 
-export const [installExpandedInfo, useExpandedInfo] = installation(function(): ExpandedInfoContext {
-    const { indexedInfo } = useTagListContext()
+export const [installExpandedInfo, useExpandedInfo] = installation(function(context?: TagListContext): ExpandedInfoContext {
+    const { indexedInfo } = context ?? useTagListContext()
 
     const expandedInfo = ref<{[key: number]: boolean}>({})
 
@@ -50,10 +49,6 @@ export function useExpandedValue(key: Ref<number>) {
         set: value => set(key.value, value)
     })
 }
-
-export const [installEditLock, useEditLock] = installation(function() {
-    return useLocalStorageWithDefault<boolean>("tag-list/edit-lock", false)
-})
 
 export interface SearchService {
     result: Ref<SearchResultItem[]>,

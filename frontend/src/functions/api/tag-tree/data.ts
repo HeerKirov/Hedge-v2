@@ -413,15 +413,3 @@ function useDescriptionCache(endpoint: ObjectEndpoint<number, DetailTag, unknown
 
     return {get, set}
 }
-
-export function useDescriptionValue(key: Ref<number>) {
-    const { descriptionCache } = useTagListContext()
-    return computed<string | undefined>({
-        get: () => descriptionCache.get(key.value),
-        set(value) {
-            if(value != undefined) {
-                descriptionCache.set(key.value, value)
-            }
-        }
-    })
-}

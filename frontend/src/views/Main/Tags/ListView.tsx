@@ -4,13 +4,8 @@ import { useMessageBox, usePopupMenu } from "@/functions/module"
 import { useDraggable, useDroppableBy } from "@/functions/drag"
 import { installation } from "@/functions/utils/basic"
 import {
-    useTagListContext,
-    useTagPaneContext,
-    useEditLock,
-    installExpandedInfo,
-    useExpandedValue,
-    useDescriptionValue,
-    ExpandedInfoContext
+    useTagListContext, useTagPaneContext, useEditLock, installExpandedInfo,
+    useExpandedValue, useDescriptionValue, ExpandedInfoContext
 } from "./inject"
 import style from "./style.module.scss"
 

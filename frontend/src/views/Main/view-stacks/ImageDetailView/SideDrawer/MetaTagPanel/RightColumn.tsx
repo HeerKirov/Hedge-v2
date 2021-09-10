@@ -2,11 +2,12 @@ import { defineComponent } from "vue"
 import RightColumnMetaDatabase from "./RightColumnMetaDatabase"
 import RightColumnSuggest from "./RightColumnSuggest"
 import RightColumnSourceDerive from "./RightColumnSourceDerive"
-import { usePanelContext } from "./inject"
+import { installMetaDatabaseContext, usePanelContext } from "./inject"
 import style from "./style.module.scss"
 
 export default defineComponent({
     setup() {
+        installMetaDatabaseContext()
         const { rightColumnData: { tab }} = usePanelContext()
 
         return () => <div class={style.rightColumn}>
