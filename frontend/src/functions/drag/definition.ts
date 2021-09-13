@@ -1,6 +1,4 @@
-import { SimpleAuthor } from "@/functions/adapter-http/impl/author"
-import { SimpleTopic } from "@/functions/adapter-http/impl/topic"
-import { SimpleTag } from "@/functions/adapter-http/impl/tag"
+import { SimpleAuthor, SimpleTopic, SimpleTag } from "@/functions/adapter-http/impl/all"
 
 export interface TypeDefinition {
     tag: SimpleTag

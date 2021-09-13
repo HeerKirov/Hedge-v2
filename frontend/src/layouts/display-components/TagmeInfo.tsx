@@ -1,6 +1,9 @@
 import { defineComponent, PropType } from "vue"
 import { Tagme } from "@/functions/adapter-http/impl/illust"
 
+/**
+ * 用于Tagme展示。形态是一个简短的tag，每种tagme显示为一个icon。适合表单、侧边栏、顶栏。
+ */
 export default defineComponent({
     props: {
         value: null as any as PropType<Tagme[]>

@@ -21,7 +21,7 @@ export default defineComponent({
         const openSideBar = () => { sideBarSwitch.value = true }
 
         return () => <div class={{[style.topBar]: true, [style.background]: !props.transparent, [style.hasDarwinButton]: hasDarwinButton.value, "title-bar": true}}>
-            <Transition name="v-collapse-button">
+            <Transition enterFromClass={style.transactionEnterFrom} leaveToClass={style.transactionLeaveTo} enterActiveClass={style.transactionEnterActive} leaveActiveClass={style.transactionLeaveActive}>
                 {!sideBarSwitch.value && <button class={[style.collapseButton, "no-drag", "button", "square", "is-white"]} onClick={openSideBar}><span class="icon"><i class="fa fa-lg fa-bars"/></span></button>}
             </Transition>
             <div class={{[style.content]: true, [style.hasClButton]: !sideBarSwitch.value}}>

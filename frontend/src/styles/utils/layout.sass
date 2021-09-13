@@ -99,6 +99,26 @@
     .my-m#{$name}
         margin-top: #{-$size}
         margin-bottom: #{-$size}
-    .gap-#{$name}
+    .gap-mr-#{$name}
         > *:not(:last-child)
             margin-right: $size
+    .gap-ml-#{$name}
+        > *:not(:last-child)
+            margin-left: $size
+    .gap-mt-#{$name}
+        > *:not(:last-child)
+            margin-top: $size
+    .gap-mb-#{$name}
+        > *:not(:last-child)
+            margin-bottom: $size
+    .gap-mx-#{$name}
+        > *:not(:last-child)
+            margin-left: $size
+            margin-right: $size
+    .gap-my-#{$name}
+        > *:not(:last-child)
+            margin-top: $size
+            margin-bottom: $size
+    .gap-m-#{$name}
+        > *:not(:last-child)
+            margin: $size

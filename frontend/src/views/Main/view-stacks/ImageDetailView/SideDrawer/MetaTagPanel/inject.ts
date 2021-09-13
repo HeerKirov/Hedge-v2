@@ -3,7 +3,8 @@ import { HttpClient } from "@/functions/adapter-http"
 import { DetailIllust, Tagme } from "@/functions/adapter-http/impl/illust"
 import { SimpleTag } from "@/functions/adapter-http/impl/tag"
 import { SimpleTopic, Topic } from "@/functions/adapter-http/impl/topic"
-import { Author, SimpleAuthor } from "@/functions/adapter-http/impl/author"
+import { SimpleAuthor, Author } from "@/functions/adapter-http/impl/author"
+import { MetaTagTypeValues } from "@/functions/adapter-http/impl/all"
 import { MetaTagValidation } from "@/functions/adapter-http/impl/util-meta"
 import { watchGlobalKeyEvent } from "@/functions/document/global-key"
 import { NotificationManager, useNotification } from "@/functions/document/notification"
@@ -189,8 +190,7 @@ function useEditorDataValidation(tags: Ref<SimpleTag[]>, data: Ref<DetailIllust 
 
 function useEditorDataHistory(tags: Ref<SimpleTag[]>, topics: Ref<SimpleTopic[]>, authors: Ref<SimpleAuthor[]>, data: Ref<DetailIllust | null>) {
     type Action = {action: "add"} | {action: "remove", index: number}
-    type TypeValue = {type: "tag", value: SimpleTag} | {type: "topic", value: SimpleTopic} | {type: "author", value: SimpleAuthor}
-    type Record = Action & TypeValue
+    type Record = Action & MetaTagTypeValues
 
     const undoStack = ref<Record[]>([])
     const redoStack = ref<Record[]>([])

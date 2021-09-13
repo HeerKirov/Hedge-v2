@@ -1,12 +1,10 @@
 import { computed, defineComponent, PropType, reactive, watch } from "vue"
 import Input from "@/components/forms/Input"
+import { MetaTagElement, TagTreeElement } from "@/layouts/display-components"
 import { AuthorType } from "@/functions/adapter-http/impl/author"
 import { TopicType } from "@/functions/adapter-http/impl/topic"
 import { TagTreeNode } from "@/functions/adapter-http/impl/tag"
-import { AUTHOR_TYPE_ICONS } from "@/definitions/author"
-import { TOPIC_TYPE_ICONS } from "@/definitions/topic"
 import { usePopupMenu } from "@/functions/module"
-import { useDraggable } from "@/functions/drag"
 import { installation } from "@/functions/utils/basic"
 import { ExpandedInfoContext, useExpandedInfo, useExpandedValue, useTagListContext } from "@/functions/api/tag-tree"
 import { useMetaDatabaseAuthorContext, useMetaDatabaseTopicContext, usePanelContext } from "./inject"
@@ -103,18 +101,15 @@ const AuthorItem = defineComponent({
         type: {type: String as PropType<AuthorType>, required: true}
     },
     setup(props) {
-        const dragEvents = useDraggable("author", computed(() => ({
+        const data = computed(() => ({
             id: props.id,
             name: props.name,
             color: props.color,
             type: props.type
-        })))
+        }))
 
         return () => <div class={style.tagItem}>
-            <span class={`tag is-${props.color}`} draggable={true} {...dragEvents}>
-                {props.type && <i class={`fa fa-${AUTHOR_TYPE_ICONS[props.type]} mr-1`}/>}
-                {props.name}
-            </span>
+            <MetaTagElement type="author" value={data.value} clickable={true} draggable={true}/>
         </div>
     }
 })
@@ -127,18 +122,15 @@ const TopicItem = defineComponent({
         type: {type: String as PropType<TopicType>, required: true}
     },
     setup(props) {
-        const dragEvents = useDraggable("topic", computed(() => ({
+        const data = computed(() => ({
             id: props.id,
             name: props.name,
             color: props.color,
             type: props.type
-        })))
+        }))
 
         return () => <div class={style.tagItem}>
-            <span class={`tag is-${props.color}`} draggable={true} {...dragEvents}>
-                {props.type && <i class={`fa fa-${TOPIC_TYPE_ICONS[props.type]} mr-1`}/>}
-                {props.name}
-            </span>
+            <MetaTagElement type="topic" value={data.value} clickable={true} draggable={true}/>
         </div>
     }
 })
@@ -172,13 +164,15 @@ const TagItem = defineComponent({
         const menu = useTagExpandMenu()
         const popup = () => menu.popup(id.value)
 
+        const draggable = computed(() => props.value.type === "TAG")
+
         return () => !!props.value.children?.length ? <>
             <p>
-                <TagItemElement value={props.value} color={props.color} onContextmenu={popup}/>
+                <TagTreeElement value={props.value} color={props.color} onContextmenu={popup} draggable={draggable.value}/>
                 <ExpandButton class="ml-1" isExpanded={isExpanded.value} color={props.color} parentId={id.value} onClick={switchExpanded} onContextmenu={popup}/>
             </p>
             {isExpanded.value && <TagItemList class="ml-6" value={props.value.children ?? []} color={props.color}/>}
-        </> : <TagItemElement value={props.value} color={props.color} onContextmenu={popup}/>
+        </> : <TagTreeElement value={props.value} color={props.color} onContextmenu={popup} draggable={draggable.value}/>
     }
 })
 
@@ -192,37 +186,6 @@ const ExpandButton = defineComponent({
         return () => <a class={{"tag": true, "is-light": true, [`is-${props.color}`]: !!props.color}}>
             <i class={`fa fa-angle-${props.isExpanded ? "down" : "right"}`}/>
         </a>
-    }
-})
-
-const TagItemElement = defineComponent({
-    props: {
-        value: {type: null as any as PropType<TagTreeNode>, required: true},
-        color: String,
-    },
-    setup(props) {
-        const dragEvents = useDraggable("tag", computed(() => ({
-            id: props.value.id,
-            name: props.value.name,
-            color: props.value.color
-        })))
-
-        return () => {
-            const isAddr = props.value.type !== "TAG"
-            const isSequenced = props.value.group === "SEQUENCE" || props.value.group === "FORCE_AND_SEQUENCE"
-            const isForced = props.value.group === "FORCE" || props.value.group === "FORCE_AND_SEQUENCE"
-            const isGroup = props.value.group !== "NO"
-
-            return <a class={["tag", props.color ? `is-${props.color}` : null, isAddr ? "is-light" : null]} draggable={true} {...dragEvents}>
-                {isSequenced && <i class="fa fa-sort-alpha-down mr-1"/>}
-                {isForced && <b class="mr-1">!</b>}
-                {isGroup ? <>
-                    <b class="mr-1">{'{'}</b>
-                    {props.value.name}
-                    <b class="ml-1">{'}'}</b>
-                </> : props.value.name}
-            </a>
-        }
     }
 })
 

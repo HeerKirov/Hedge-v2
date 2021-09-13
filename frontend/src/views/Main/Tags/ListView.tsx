@@ -1,5 +1,6 @@
 import { defineComponent, PropType, Transition, computed, toRef, toRefs, Ref } from "vue"
 import { TagTreeNode } from "@/functions/adapter-http/impl/tag"
+import { TagTreeElement } from "@/layouts/display-components"
 import { useMessageBox, usePopupMenu } from "@/functions/module"
 import { useDraggable, useDroppableBy } from "@/functions/drag"
 import { installation } from "@/functions/utils/basic"
@@ -55,7 +56,11 @@ const RootNode = defineComponent({
         const isExpanded = useExpandedValue(id)
         const switchExpanded = () => { isExpanded.value = !isExpanded.value }
 
-        const dragEvents = useTagDrag(data)
+        const dragEvents = useDraggable("tag", computed(() => ({
+            id: data.value.id,
+            name: data.value.name,
+            color: data.value.color
+        })))
 
         const menu = useListMenu(id)
 
@@ -143,11 +148,21 @@ const ChildNode = defineComponent({
 
         const menu = useListMenu(id)
 
+        const editLock = useEditLock()
+        const { openDetailPane } = useTagPaneContext()
+        const click = () => openDetailPane(props.value.id)
+
+        const data = toRef(props, "value")
+
         return () => !!props.value.children?.length ? <>
-            <TagElement value={props.value} color={props.color} onContextmenu={menu.popup}/>
+            <TagTreeElement value={props.value} color={props.color} onClick={click} onContextmenu={menu.popup} draggable={!editLock.value}>
+                <TagElementDropArea parentId={data.value.id}/>
+            </TagTreeElement>
             <ExpandButton class="ml-1" isExpanded={isExpanded.value} color={props.color} parentId={id.value} onClick={switchExpanded} onRightClick={menu.popup}/>
             {isExpanded.value && <ChildNodeList class="ml-6" parentId={id.value} value={props.value.children ?? []} color={props.color}/>}
-        </> : <TagElement value={props.value} color={props.color} onContextmenu={menu.popup}/>
+        </> : <TagTreeElement value={props.value} color={props.color} onClick={click} onContextmenu={menu.popup} draggable={!editLock.value}>
+            <TagElementDropArea parentId={data.value.id}/>
+        </TagTreeElement>
     }
 })
 
@@ -170,39 +185,6 @@ const ExpandButton = defineComponent({
             <i class={`fa fa-angle-${props.isExpanded ? "down" : "right"}`}/>
             <div class={style.area} {...dropEvents}/>
         </a>
-    }
-})
-
-const TagElement = defineComponent({
-    props: {
-        value: {type: null as any as PropType<TagTreeNode>, required: true},
-        color: String,
-    },
-    setup(props) {
-        const editLock = useEditLock()
-        const { openDetailPane } = useTagPaneContext()
-        const click = () => openDetailPane(props.value.id)
-
-        const data = toRef(props, "value")
-        const dragEvents = useTagDrag(data)
-
-        return () => {
-            const isAddr = props.value.type !== "TAG"
-            const isSequenced = props.value.group === "SEQUENCE" || props.value.group === "FORCE_AND_SEQUENCE"
-            const isForced = props.value.group === "FORCE" || props.value.group === "FORCE_AND_SEQUENCE"
-            const isGroup = props.value.group !== "NO"
-
-            return <a class={["tag", props.color ? `is-${props.color}` : null, isAddr ? "is-light" : null]} onClick={click} draggable={!editLock.value} {...dragEvents}>
-                {isSequenced && <i class="fa fa-sort-alpha-down mr-1"/>}
-                {isForced && <b class="mr-1">!</b>}
-                {isGroup ? <>
-                    <b class="mr-1">{'{'}</b>
-                    {props.value.name}
-                    <b class="ml-1">{'}'}</b>
-                </> : props.value.name}
-                <TagElementDropArea parentId={data.value.id}/>
-            </a>
-        }
     }
 })
 
@@ -277,14 +259,6 @@ function useListMenu(id: Ref<number>) {
     const popup = () => menu.popup(id.value)
 
     return {popup}
-}
-
-function useTagDrag(tag: Ref<TagTreeNode>) {
-    return useDraggable("tag", computed(() => ({
-        id: tag.value.id,
-        name: tag.value.name,
-        color: tag.value.color
-    })))
 }
 
 function useTagDrop(parentId: Ref<number | null>, ordinal: Ref<number | null> | null) {

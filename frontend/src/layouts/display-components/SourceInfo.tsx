@@ -1,6 +1,10 @@
 import { computed, defineComponent, PropType } from "vue"
 import { useSettingSite } from "@/functions/api/setting"
 
+/**
+ * 来源信息展示条。显示来源site、id和part。适用于侧边栏。
+ * 自动使用{useSettingSite}获取site title。
+ */
 export default defineComponent({
     props: {
         source: null as any as PropType<string | null>,

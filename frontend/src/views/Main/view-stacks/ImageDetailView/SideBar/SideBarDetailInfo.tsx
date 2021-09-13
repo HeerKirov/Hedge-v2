@@ -1,7 +1,8 @@
 import { computed, defineComponent, PropType } from "vue"
 import WrappedText from "@/components/elements/WrappedText"
 import Starlight from "@/components/elements/Starlight"
-import { TagmeInfo } from "@/layouts/display-components"
+import { MetaTagElement, TagmeInfo } from "@/layouts/display-components"
+import { SimpleAuthor, SimpleTopic, SimpleTag } from "@/functions/adapter-http/impl/all"
 import {
     DateEditor, DateTimeEditor,
     DescriptionEditor, StarlightEditor,
@@ -97,9 +98,9 @@ const PartitionTimeDisplay = defineComponent({
 
 const MetaTagDisplay = defineComponent({
     props: {
-        authors: {type: Array as PropType<{name: string, color: string | null}[]>, required: true},
-        topics: {type: Array as PropType<{name: string, color: string | null}[]>, required: true},
-        tags: {type: Array as PropType<{name: string, color: string | null}[]>, required: true},
+        authors: {type: Array as PropType<SimpleAuthor[]>, required: true},
+        topics: {type: Array as PropType<SimpleTopic[]>, required: true},
+        tags: {type: Array as PropType<SimpleTag[]>, required: true},
     },
     setup(props) {
         //TODO 完成tag popup menu的功能
@@ -115,13 +116,9 @@ const MetaTagDisplay = defineComponent({
         return () => !props.tags.length && !props.authors.length && !props.topics.length ? <div class="has-text-grey mt-1">
             <i>没有元数据标签</i>
         </div> : <div class={style.metaTag}>
-            {props.authors.map(author => <MetaTagDisplayItem value={author} onContextmenu={() => menu.popup()}/>)}
-            {props.topics.map(topic => <MetaTagDisplayItem value={topic} onContextmenu={() => menu.popup()}/>)}
-            {props.tags.map(tag => <MetaTagDisplayItem value={tag} onContextmenu={() => menu.popup()}/>)}
+            {props.authors.map(author => <MetaTagElement key={`author-${author.id}`} type="author" value={author} onContextmenu={() => menu.popup()} wrappedByDiv={true}/>)}
+            {props.topics.map(topic => <MetaTagElement key={`topic-${topic.id}`} type="topic" value={topic} onContextmenu={() => menu.popup()} wrappedByDiv={true}/>)}
+            {props.tags.map(tag => <MetaTagElement key={`tag-${tag.id}`} type="tag" value={tag} onContextmenu={() => menu.popup()} wrappedByDiv={true}/>)}
         </div>
     }
 })
-
-function MetaTagDisplayItem({ value }: {value: {name: string, color: string | null}}) {
-    return <div><span class={`tag is-${value.color}`}>{value.name}</span></div>
-}

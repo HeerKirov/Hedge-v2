@@ -20,8 +20,9 @@ export default defineComponent({
         }
 
         const keyEventPrevent = (e: KeyboardEvent) => {
-            if(e.key !== "Enter" || !(e.metaKey || e.ctrlKey || e.altKey || e.shiftKey)) {
-                //忽略enter加附加键相关的阻拦
+            if(e.key === "Enter" && e.metaKey) {
+                //ignore
+            }else{
                 e.stopPropagation()
                 e.stopImmediatePropagation()
             }

@@ -1,5 +1,7 @@
 @import "@/styles/variable.sass";
 
+$transaction-time: 0.4s;
+
 .side-layout {
   position: relative;
   width: 100%;
@@ -10,7 +12,7 @@
     top: 0;
     bottom: 0;
     right: 0;
-    transition: left 0.4s ease;
+    transition: left $transaction-time ease;
   }
   //侧边栏内容区域的布局定位
   > .side-content {
@@ -18,7 +20,7 @@
     top: 0;
     bottom: 0;
     left: 0;
-    transition: transform 0.4s ease, visibility 0.4s;
+    transition: transform $transaction-time ease, visibility $transaction-time;
   }
   //拖拽区域的布局定位
   > .resize-content {
@@ -90,7 +92,7 @@
   position: absolute;
   height: $title-bar-height;
   top: 0; right: 0; left: 0;
-  transition: left 0.4s ease;
+  transition: padding-left $transaction-time ease;
   &.background {
     background-color: $white;
     @media (prefers-color-scheme: dark) {
@@ -105,12 +107,12 @@
     margin-left: 0.5rem;
     margin-top: 5px;
     //折叠按钮进出的vue变换
-    &:global(.v-collapse-button-enter-active),
-    &:global(.v-collapse-button-leave-active) {
-      transition: transform 0.4s ease;
+    &.transaction-enter-active,
+    &.transaction-leave-active {
+      transition: transform $transaction-time ease;
     }
-    &:global(.v-collapse-button-enter-from),
-    &:global(.v-collapse-button-leave-to) {
+    &.transaction-enter-from,
+    &.transaction-leave-to {
       transform: translateX(-200%);
     }
   }
@@ -123,7 +125,7 @@
     top: $content-margin-size;
     right: $content-margin-size;
     height: $content-height;
-    transition: left 0.4s ease;
+    transition: left $transaction-time ease;
     box-sizing: border-box;
   }
   &:not(.has-darwin-button) > .content {

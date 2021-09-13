@@ -29,7 +29,7 @@ export default defineComponent({
         return () => <span ref={pickerRef} class={style.editor}>
             <span class="mr-1" onClick={switchShow}>
                 <span class={["tag", "is-light", props.value?.color ? `is-${props.value.color}` : undefined]}>
-                    {props.value?.type ? <span class="icon"><i class={`fa fa-${TOPIC_TYPE_ICONS[props.value.type]}`}/></span> : null}
+                    {props.value?.type ? <span class="icon mr-1"><i class={`fa fa-${TOPIC_TYPE_ICONS[props.value.type]}`}/></span> : null}
                     {props.value?.name ?? "未选择"}
                 </span>
             </span>
