@@ -1,9 +1,10 @@
-import { defineComponent, PropType, ref } from "vue"
+import { computed, defineComponent, PropType, ref } from "vue"
 import Input from "@/components/forms/Input"
 import { PaneBasicLayout } from "@/layouts/layouts/SplitPane"
 import { onKeyEnter } from "@/utils/events"
 import { useTagPaneContext, useSearchService } from "./inject"
 import style from "./style.module.scss"
+import { useKeyboardSelector } from "@/functions/utils/element";
 
 export default defineComponent({
     setup() {
@@ -33,21 +34,39 @@ const SearchTextBox = defineComponent({
         const { searchText } = useSearchService()
 
         const searchBoxText = ref<string>(searchText.value ?? "")
-        const enterForSearch = () => searchText.value = searchBoxText.value
+        const enterForSearch = (e: KeyboardEvent) => {
+            const newValue = searchBoxText.value.trim()
+            if(searchText.value !== newValue) {
+                searchText.value = newValue
+                e.stopPropagation()
+                e.stopImmediatePropagation()
+            }
+        }
 
         return () => <Input class={style.searchInputBox} placeholder="搜索标签名称或别名" value={searchBoxText.value}
-                            onUpdateValue={v => searchBoxText.value = v} onKeypress={onKeyEnter(enterForSearch)}
+                            onUpdateValue={v => searchBoxText.value = v} onKeydown={onKeyEnter(enterForSearch)}
                             focusOnMounted={true} refreshOnInput={true}/>
     }
 })
 
 const SearchResult = defineComponent({
     setup() {
+        const { openDetailPane } = useTagPaneContext()
         const { result } = useSearchService()
 
-        return () => <div class={style.resultBox}>
-            {result.value.map(item => <SearchResultItem key={item.id} {...item}/>)}
-        </div>
+        const { selectedKey, setElement, clearElement } = useKeyboardSelector(computed(() => {
+            return result.value.map(item => ({
+                key: item.id,
+                event: () => openDetailPane(item.id)
+            }))
+        }))
+
+        return () => {
+            clearElement()
+            return <div class={style.resultBox}>
+                {result.value.map(item => <SearchResultItem ref={el => setElement(item.id, el)} key={item.id} {...item} selected={selectedKey.value === item.id}/>)}
+            </div>
+        }
     }
 })
 
@@ -55,17 +74,29 @@ const SearchResultItem = defineComponent({
     props: {
         color: {type: null as any as PropType<string | null>, required: true},
         address: {type: String, required: true},
-        id: {type: Number, required: true}
+        id: {type: Number, required: true},
+        selected: Boolean
     },
-    setup(props) {
+    setup(props, { expose }) {
+        let elementRef: Element | null = null
+
         const { openDetailPane } = useTagPaneContext()
 
         const click = () => openDetailPane(props.id)
 
-        return () => <div class={style.resultItem}>
-            <a class={["tag", "is-light", props.color ? `is-${props.color}` : undefined]} onClick={click}>
-                {props.address}
-            </a>
-        </div>
+        expose({
+            "scrollIntoView"() {
+                elementRef?.scrollIntoView({block: "nearest"})
+            }
+        })
+
+        return () => {
+            elementRef = null
+            return <div ref={el => elementRef = el as Element} class={style.resultItem}>
+                <a class={["tag", props.selected ? undefined : "is-light", props.color ? `is-${props.color}` : undefined]} onClick={click}>
+                    {props.address}
+                </a>
+            </div>
+        }
     }
 })

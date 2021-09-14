@@ -1,5 +1,5 @@
 import { ComponentPublicInstance, onMounted, onUnmounted, reactive, readonly, ref, Ref, toRef, watch } from "vue"
-import { interceptGlobalKey } from "@/functions/document/global-key"
+import { watchGlobalKeyEvent } from "@/functions/document/global-key"
 
 /**
  * 提供一个observer，监视一个Element的Resize事件。
@@ -63,43 +63,52 @@ export function useMouseHover() {
  * 选择器的列表项。
  */
 export interface KeyboardSelectorItem {
-    key: number | string, event(): void
+    /**
+     * 此列表项在setElement时，对应的key值。
+     */
+    key: number | string
+    /**
+     * 当在此列表项上确认时，触发执行事件。
+     */
+    event(): void
 }
 
 /**
  * 提供使用Up/Down/Enter进行选择的按键选择器。
  */
 export function useKeyboardSelector(items: Ref<KeyboardSelectorItem[]>) {
-    interceptGlobalKey(["ArrowUp", "ArrowDown"], key => {
+    watchGlobalKeyEvent(e => {
         if(items.value.length) {
-            if(key === "ArrowUp") {
-                if(selected.index === null || selected.index === 0) {
-                    selected.index = items.value.length - 1
-                }else{
-                    selected.index -= 1
+            if(e.key === "ArrowUp" || e.key === "ArrowDown") {
+                if(e.key === "ArrowUp") {
+                    if(selected.index === null || selected.index === 0) {
+                        selected.index = items.value.length - 1
+                    }else{
+                        selected.index -= 1
+                    }
+                }else if(e.key === "ArrowDown") {
+                    if(selected.index === null || selected.index === items.value.length - 1) {
+                        selected.index = 0
+                    }else{
+                        selected.index += 1
+                    }
                 }
-            }else if(key === "ArrowDown") {
-                if(selected.index === null || selected.index === items.value.length - 1) {
+                selected.key = items.value[selected.index!]?.key ?? null
+
+                const el = selected.index !== null && elements[selected.key]
+                if(el) {
+                    if(typeof (el as any).scrollIntoView === "function") {
+                        (el as any).scrollIntoView({block: "nearest"})
+                    }
+                }
+            }else if(e.key === "Enter") {
+                if(selected.index === null) {
                     selected.index = 0
+                    selected.key = items.value[0]?.key ?? null
                 }else{
-                    selected.index += 1
+                    items.value[selected.index]?.event()
                 }
             }
-            selected.key = items.value[selected.index!]?.key ?? null
-
-            const el = selected.index !== null && elements[selected.key]
-            if(el) {
-                el.scrollIntoView({block: "nearest"})
-            }
-        }
-    })
-
-    interceptGlobalKey(["Enter"], () => {
-        if(selected.index === null) {
-            selected.index = 0
-            selected.key = items.value[0]?.key ?? null
-        }else{
-            items.value[selected.index]?.event()
         }
     })
 
@@ -112,14 +121,14 @@ export function useKeyboardSelector(items: Ref<KeyboardSelectorItem[]>) {
         }
     }, {deep: true})
 
-    const elements: {[key in string | number]: Element} = {}
+    const elements: {[key in string | number]: Element | ComponentPublicInstance} = {}
 
     const selected = reactive<{key: string | number | null, index: number | null}>({key: null, index: null})
 
     const selectedKey = toRef(selected, "key")
 
     const setElement = (i: number | string, el: Element | ComponentPublicInstance | null) => {
-        if(el) elements[i] = el as Element
+        if(el) elements[i] = el as Element | ComponentPublicInstance
     }
 
     const clearElement = () => {

@@ -27,7 +27,12 @@ export default defineComponent({
 
         const textBox = ref("")
 
-        const enter = () => updateSearch(textBox.value.trim())
+        const enter = (e: KeyboardEvent) => {
+            if(updateSearch(textBox.value.trim())) {
+                e.stopPropagation()
+                e.stopImmediatePropagation()
+            }
+        }
 
         const pick = (v: any) => {
             emit("pick", v)
@@ -170,74 +175,3 @@ function useBoard() {
 
     return {pickerRef, showBoard, focus}
 }
-
-const [_, __] = installation(function(target: Ref<AnnotationTarget | undefined>, pick: (a: SimpleAnnotation) => void) {
-    const httpClient = useHttpClient()
-    const message = useMessageBox()
-    const { handleError, handleException } = useNotification()
-
-    const search = ref("")
-    const updateSearch = (text: string) => {
-        if(search.value !== text) {
-            search.value = text
-        }
-    }
-
-    const endpoint = useContinuousEndpoint({
-        async request(offset: number, limit: number) {
-            const res = await httpClient.annotation.list({offset, limit, search: search.value, target: target.value, order: "-createTime"})
-            return res.ok ? {ok: true, ...res.data} : {ok: false, message: res.exception?.message ?? "unknown error"}
-        },
-        handleError,
-        initSize: 4,
-        continueSize: 2
-    })
-
-    const showMore = computed(() => !endpoint.loading.value && endpoint.data.value.total > endpoint.data.value.result.length)
-
-    const searchData = reactive({...endpoint, showMore})
-
-    const contentType = ref<"recent" | "search">("recent")
-
-    watch(search, value => {
-        if(value.length) {
-            //有搜索内容时执行搜索
-            contentType.value = "search"
-            endpoint.refresh()
-        }else{
-            //无搜索内容时切换至recent
-            contentType.value = "recent"
-            endpoint.clear()
-        }
-    })
-
-    const create = async () => {
-        const name = search.value
-        const existRes = await httpClient.annotation.list({name, limit: 1})
-        if(!existRes.ok) {
-            if(existRes.exception) handleException(existRes.exception)
-            return
-        }
-
-        if(existRes.data.total) {
-            //找到已存在的记录
-            if(await message.showYesNoMessage("confirm", `注解"${name}"是已存在的。`, "是否选择将其直接添加到注解列表？")) {
-                const annotation = existRes.data.result[0]
-                pick({id: annotation.id, name: annotation.name})
-            }
-        }else{
-            //没有已存在的记录
-            if(await message.showYesNoMessage("confirm", `确定创建新的注解"${name}"?`)) {
-                const idRes = await httpClient.annotation.create({name, canBeExported: false, target: []})
-                if(!idRes.ok) {
-                    if(idRes.exception) handleException(idRes.exception)
-                    return
-                }
-                const { id } = idRes.data
-                pick({id, name})
-            }
-        }
-    }
-
-    return {updateSearch, contentType, searchData, create, search: readonly(search)}
-})

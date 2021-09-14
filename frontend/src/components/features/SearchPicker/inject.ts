@@ -29,7 +29,9 @@ export const [installData, useData] = installation(function({ initSize, continue
     const updateSearch = (text: string) => {
         if(search.value !== text) {
             search.value = text
+            return true
         }
+        return false
     }
 
     const endpoint = useContinuousEndpoint({
