@@ -1,4 +1,4 @@
-import { onMounted, onUnmounted, reactive, readonly, ref, Ref, toRef, watch } from "vue"
+import { ComponentPublicInstance, onMounted, onUnmounted, reactive, readonly, ref, Ref, toRef, watch } from "vue"
 import { interceptGlobalKey } from "@/functions/document/global-key"
 
 /**
@@ -87,7 +87,7 @@ export function useKeyboardSelector(items: Ref<KeyboardSelectorItem[]>) {
             }
             selected.key = items.value[selected.index!]?.key ?? null
 
-            const el = selected.index !== null && elements.value[selected.key]
+            const el = selected.index !== null && elements[selected.key]
             if(el) {
                 el.scrollIntoView({block: "nearest"})
             }
@@ -112,11 +112,21 @@ export function useKeyboardSelector(items: Ref<KeyboardSelectorItem[]>) {
         }
     }, {deep: true})
 
-    const elements = ref<{[key in string | number]: Element}>({})
+    const elements: {[key in string | number]: Element} = {}
 
     const selected = reactive<{key: string | number | null, index: number | null}>({key: null, index: null})
 
     const selectedKey = toRef(selected, "key")
 
-    return {elements, selectedKey: readonly(selectedKey)}
+    const setElement = (i: number | string, el: Element | ComponentPublicInstance | null) => {
+        if(el) elements[i] = el as Element
+    }
+
+    const clearElement = () => {
+        for (const key of Object.keys(elements)) {
+            delete elements[key]
+        }
+    }
+
+    return {setElement, clearElement, selectedKey: readonly(selectedKey)}
 }

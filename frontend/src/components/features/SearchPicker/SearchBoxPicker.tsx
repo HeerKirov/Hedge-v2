@@ -102,7 +102,7 @@ const SearchResultContent = defineComponent({
             click() { item.click?.({search: search.value, pick, httpClient, handleException}) }
         })) ?? [])
 
-        const { elements, selectedKey } = useKeyboardSelector(computed(() => {
+        const { selectedKey, setElement, clearElement } = useKeyboardSelector(computed(() => {
             const elements: KeyboardSelectorItem[] = searchData.data.result.map((item, i) => ({
                 key: i,
                 event: onPick(item)
@@ -118,11 +118,9 @@ const SearchResultContent = defineComponent({
             return elements
         }))
 
-        const setRef = (i: number | string) => (el: Element | ComponentPublicInstance | null) => {
-            if(el) elements.value[i] = el as Element
-        }
+        const setRef = (i: number | string) => (el: Element | ComponentPublicInstance | null) => setElement(i, el)
         return () => {
-            elements.value = {}
+            clearElement()
 
             return <div class={style.searchBoardContent}>
                 <div class={style.scrollContent}>
