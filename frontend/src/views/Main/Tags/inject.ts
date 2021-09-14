@@ -2,7 +2,10 @@ import { computed, readonly, Ref, ref } from "vue"
 import { installation } from "@/functions/utils/basic"
 import { useLocalStorageWithDefault } from "@/functions/app"
 import { useTagListContext } from "@/functions/api/tag-tree"
-export { installTagListContext, installExpandedInfo, installSearchService, useTagListContext, useSearchService, useExpandedValue } from "@/functions/api/tag-tree"
+export {
+    installTagListContext, installExpandedInfo, installSearchService, installExpandedViewerContext, useExpandedInfo,
+    useTagListContext, useExpandedViewer, useExpandedViewerImpl, useSearchService, useExpandedValue
+} from "@/functions/api/tag-tree"
 export type { TagListContext, IndexedInfo, ExpandedInfoContext } from "@/functions/api/tag-tree"
 
 export interface TagPaneContext {

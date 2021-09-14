@@ -6,12 +6,17 @@ import TopBarContent from "./TopBarContent"
 import PaneCreateView from "./PaneCreateView"
 import PaneDetailView from "./PaneDetailView"
 import PaneSearchView from "./PaneSearchView"
-import { installTagPaneContext, installTagListContext, installEditLock, installSearchService } from "./inject"
+import {
+    installTagPaneContext, installTagListContext, installEditLock,
+    installSearchService, installExpandedViewerContext, installExpandedInfo
+} from "./inject"
 
 export default defineComponent({
     setup() {
         const { createMode, detailMode, searchMode } = installTagPaneContext()
         const tagListContext = installTagListContext()
+        const expandedInfo = installExpandedInfo(tagListContext)
+        installExpandedViewerContext(expandedInfo)
         installSearchService(tagListContext)
         installEditLock()
 

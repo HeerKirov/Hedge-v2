@@ -2,7 +2,7 @@ import { computed, defineComponent, PropType, ref } from "vue"
 import Input from "@/components/forms/Input"
 import { PaneBasicLayout } from "@/layouts/layouts/SplitPane"
 import { onKeyEnter } from "@/utils/events"
-import { useTagPaneContext, useSearchService } from "./inject"
+import { useTagPaneContext, useSearchService, useExpandedViewer } from "./inject"
 import style from "./style.module.scss"
 import { useKeyboardSelector } from "@/functions/utils/element";
 
@@ -53,11 +53,12 @@ const SearchResult = defineComponent({
     setup() {
         const { openDetailPane } = useTagPaneContext()
         const { result } = useSearchService()
+        const { scrollIntoView } = useExpandedViewer()
 
         const { selectedKey, setElement, clearElement } = useKeyboardSelector(computed(() => {
             return result.value.map(item => ({
                 key: item.id,
-                event: () => openDetailPane(item.id)
+                event: () => scrollIntoView(item.id)
             }))
         }))
 
@@ -81,8 +82,9 @@ const SearchResultItem = defineComponent({
         let elementRef: Element | null = null
 
         const { openDetailPane } = useTagPaneContext()
+        const { scrollIntoView } = useExpandedViewer()
 
-        const click = () => openDetailPane(props.id)
+        const click = () => scrollIntoView(props.id)
 
         expose({
             "scrollIntoView"() {

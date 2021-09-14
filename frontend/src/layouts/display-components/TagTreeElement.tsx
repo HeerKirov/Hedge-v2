@@ -12,6 +12,8 @@ export default defineComponent({
         draggable: Boolean
     },
     setup(props, { slots }) {
+        let elementRef: Element | null = null
+
         const dragEvents = useDraggable("tag", computed(() => ({
             id: props.value.id,
             name: props.value.name,
@@ -19,12 +21,13 @@ export default defineComponent({
         })))
 
         return () => {
+            elementRef = null
             const isAddr = props.value.type !== "TAG"
             const isSequenced = props.value.group === "SEQUENCE" || props.value.group === "FORCE_AND_SEQUENCE"
             const isForced = props.value.group === "FORCE" || props.value.group === "FORCE_AND_SEQUENCE"
             const isGroup = props.value.group !== "NO"
 
-            return <a class={["tag", props.color ? `is-${props.color}` : null, isAddr ? "is-light" : null]} draggable={props.draggable} {...dragEvents}>
+            return <a ref={el => elementRef = el as Element} class={["tag", props.color ? `is-${props.color}` : null, isAddr ? "is-light" : null]} draggable={props.draggable} {...dragEvents}>
                 {isSequenced && <i class="fa fa-sort-alpha-down mr-1"/>}
                 {isForced && <b class="mr-1">!</b>}
                 {isGroup ? <>

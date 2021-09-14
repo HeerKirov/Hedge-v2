@@ -1,7 +1,7 @@
 import { ref, Ref, watch } from "vue"
 import { TagTreeNode } from "@/functions/adapter-http/impl/tag"
-import { TagListContext } from "@/functions/api/tag-tree/data"
 import { installation } from "@/functions/utils/basic"
+import { TagListContext } from "./data"
 
 export interface SearchService {
     result: Ref<SearchResultItem[]>,

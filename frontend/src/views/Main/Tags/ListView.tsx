@@ -5,16 +5,20 @@ import { useMessageBox, usePopupMenu } from "@/functions/module"
 import { useDraggable, useDroppableBy } from "@/functions/drag"
 import { installation } from "@/functions/utils/basic"
 import {
-    useTagListContext, useTagPaneContext, useEditLock, installExpandedInfo,
-    useExpandedValue, useDescriptionValue, ExpandedInfoContext
+    useTagListContext,
+    useTagPaneContext,
+    useEditLock,
+    useExpandedInfo,
+    useExpandedValue,
+    useDescriptionValue,
+    useExpandedViewerImpl
 } from "./inject"
 import style from "./style.module.scss"
 
 export default defineComponent({
     setup() {
         const { loading, data } = useTagListContext()
-        const expandedInfo = installExpandedInfo()
-        installListMenuContext(expandedInfo)
+        installListMenuContext()
 
         return () => <div class={style.listView}>
             {loading.value ? null
@@ -142,18 +146,22 @@ const ChildNode = defineComponent({
         color: String,
     },
     setup(props) {
+        const data = toRef(props, "value")
         const id = computed(() => props.value.id)
+
         const isExpanded = useExpandedValue(id)
         const switchExpanded = () => isExpanded.value = !isExpanded.value
+        const expandedViewerImpl = useExpandedViewerImpl()
 
         const menu = useListMenu(id)
-
         const editLock = useEditLock()
+
         const { openDetailPane } = useTagPaneContext()
         const click = () => openDetailPane(props.value.id)
 
-        const data = toRef(props, "value")
-
+        //TODO 实现expanded跳转功能
+        //TODO 把tag tree整体抽离成组件
+        //TODO 整合expanded info和expanded viewer，减少inject
         return () => !!props.value.children?.length ? <>
             <TagTreeElement value={props.value} color={props.color} onClick={click} onContextmenu={menu.popup} draggable={!editLock.value}>
                 <TagElementDropArea parentId={data.value.id}/>
@@ -203,10 +211,11 @@ const TagElementDropArea = defineComponent({
     }
 })
 
-const [installListMenuContext, useListMenuContext] = installation(function(expandedInfo: ExpandedInfoContext) {
+const [installListMenuContext, useListMenuContext] = installation(function() {
     const messageBox = useMessageBox()
     const { openCreatePane, openDetailPane, closePane, detailMode } = useTagPaneContext()
     const { fastEndpoint, indexedInfo, syncDeleteTag } = useTagListContext()
+    const expandedInfo = useExpandedInfo()
 
     const expandChildren = (id: number) => expandedInfo.setAllForChildren(id, true)
     const collapseChildren = (id: number) => expandedInfo.setAllForChildren(id, false)
