@@ -11,7 +11,7 @@ export default defineComponent({
         color: String,
         draggable: Boolean
     },
-    setup(props, { slots }) {
+    setup(props, { slots, expose }) {
         let elementRef: Element | null = null
 
         const dragEvents = useDraggable("tag", computed(() => ({
@@ -19,6 +19,12 @@ export default defineComponent({
             name: props.value.name,
             color: props.value.color
         })))
+
+        expose({
+            "scrollIntoView"(arg?: boolean | ScrollIntoViewOptions) {
+                elementRef?.scrollIntoView(arg)
+            }
+        })
 
         return () => {
             elementRef = null

@@ -87,8 +87,8 @@ const SearchResultItem = defineComponent({
         const click = () => scrollIntoView(props.id)
 
         expose({
-            "scrollIntoView"() {
-                elementRef?.scrollIntoView({block: "nearest"})
+            "scrollIntoView"(arg?: boolean | ScrollIntoViewOptions) {
+                elementRef?.scrollIntoView(arg)
             }
         })
 

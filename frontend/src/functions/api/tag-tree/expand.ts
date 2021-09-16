@@ -37,7 +37,7 @@ export interface ExpandedViewerImpl {
     /**
      * 向控制器汇报target的element，以通知跳转和事件完成。
      */
-    targetImplement(el: Element): void
+    targetImplement(el: Element | ComponentPublicInstance | null): void
 }
 
 export const [installExpandedInfo, useExpandedInfo] = installation(function(context?: TagListContext): ExpandedInfoContext {

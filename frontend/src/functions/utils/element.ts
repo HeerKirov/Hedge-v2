@@ -101,6 +101,9 @@ export function useKeyboardSelector(items: Ref<KeyboardSelectorItem[]>) {
                         (el as any).scrollIntoView({block: "nearest"})
                     }
                 }
+
+                e.stopPropagation()
+                e.preventDefault()
             }else if(e.key === "Enter") {
                 if(selected.index === null) {
                     selected.index = 0
@@ -108,6 +111,9 @@ export function useKeyboardSelector(items: Ref<KeyboardSelectorItem[]>) {
                 }else{
                     items.value[selected.index]?.event()
                 }
+
+                e.stopPropagation()
+                e.preventDefault()
             }
         }
     })

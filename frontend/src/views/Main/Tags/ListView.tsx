@@ -1,4 +1,15 @@
-import { defineComponent, PropType, Transition, computed, toRef, toRefs, Ref } from "vue"
+import {
+    defineComponent,
+    PropType,
+    Transition,
+    computed,
+    toRef,
+    toRefs,
+    Ref,
+    ref,
+    ComponentPublicInstance,
+    watch, onMounted
+} from "vue"
 import { TagTreeNode } from "@/functions/adapter-http/impl/tag"
 import { TagTreeElement } from "@/layouts/display-components"
 import { useMessageBox, usePopupMenu } from "@/functions/module"
@@ -151,7 +162,7 @@ const ChildNode = defineComponent({
 
         const isExpanded = useExpandedValue(id)
         const switchExpanded = () => isExpanded.value = !isExpanded.value
-        const expandedViewerImpl = useExpandedViewerImpl()
+        const { target, targetImplement } = useExpandedViewerImpl()
 
         const menu = useListMenu(id)
         const editLock = useEditLock()
@@ -159,18 +170,37 @@ const ChildNode = defineComponent({
         const { openDetailPane } = useTagPaneContext()
         const click = () => openDetailPane(props.value.id)
 
-        //TODO 实现expanded跳转功能
-        //TODO 把tag tree整体抽离成组件
+        let elementRef: ComponentPublicInstance | null = null
+
+        watch(target, triggerTargetImpl)
+        onMounted(() => triggerTargetImpl(target.value))
+        function triggerTargetImpl(target: number | null) {
+            if(target !== null && target === id.value && elementRef !== null) {
+                targetImplement(elementRef)
+            }
+        }
+        //TODO expanded跳转实现效果不好，又和动画效果有冲突了。需要重新考虑一下这个功能的实现方向
+        //      感觉tag tree需要代码重构了，这个整体结构可真是又乱又恶心
+        //      把tag tree整体抽离成组件
         //TODO 整合expanded info和expanded viewer，减少inject
-        return () => !!props.value.children?.length ? <>
-            <TagTreeElement value={props.value} color={props.color} onClick={click} onContextmenu={menu.popup} draggable={!editLock.value}>
-                <TagElementDropArea parentId={data.value.id}/>
-            </TagTreeElement>
-            <ExpandButton class="ml-1" isExpanded={isExpanded.value} color={props.color} parentId={id.value} onClick={switchExpanded} onRightClick={menu.popup}/>
-            {isExpanded.value && <ChildNodeList class="ml-6" parentId={id.value} value={props.value.children ?? []} color={props.color}/>}
-        </> : <TagTreeElement value={props.value} color={props.color} onClick={click} onContextmenu={menu.popup} draggable={!editLock.value}>
-            <TagElementDropArea parentId={data.value.id}/>
-        </TagTreeElement>
+        return () =>
+            !!props.value.children?.length ? (<>
+                <TagTreeElement ref={el => elementRef = el as ComponentPublicInstance}
+                                value={props.value} color={props.color} draggable={!editLock.value}
+                                onClick={click} onContextmenu={menu.popup}>
+                    <TagElementDropArea parentId={data.value.id}/>
+                </TagTreeElement>
+                <ExpandButton class="ml-1" isExpanded={isExpanded.value} color={props.color} parentId={id.value}
+                              onClick={switchExpanded} onRightClick={menu.popup}/>
+                {isExpanded.value && <ChildNodeList class="ml-6" parentId={id.value} value={props.value.children ?? []}
+                                                    color={props.color}/>}
+            </>) : (
+                <TagTreeElement ref={el => elementRef = el as ComponentPublicInstance}
+                                value={props.value} color={props.color} draggable={!editLock.value}
+                                onClick={click} onContextmenu={menu.popup}>
+                    <TagElementDropArea parentId={data.value.id}/>
+                </TagTreeElement>
+            )
     }
 })
 
