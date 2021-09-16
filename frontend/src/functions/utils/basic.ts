@@ -27,7 +27,7 @@ export function splitRef<T extends object, K extends keyof T>(ref: Ref<T>, key: 
  * 产生依赖注入机制中的install函数和use函数。
  * 该方法的产物需要在上游install，并在下游调用use使用注入结果。
  */
-export function installation<F extends (...args: any[]) => any>(func: F) {
+export function installation<F extends (...args: any[]) => any>(func: F, defaultValue?: () => any) {
     type P = Parameters<typeof func>
     type R = ReturnType<typeof func>
 
@@ -39,7 +39,7 @@ export function installation<F extends (...args: any[]) => any>(func: F) {
         return d
     }
 
-    const use = () => inject(injection)!!
+    const use = () => defaultValue ? inject(injection, defaultValue, true)!! : inject(injection)!!
 
     return [install, use] as [(...args: P) => R, () => R]
 }
