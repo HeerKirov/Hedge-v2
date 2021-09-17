@@ -57,8 +57,8 @@ const TagItems = defineComponent({
 })
 
 function EditorItem(props: MetaTagTypeValues, { emit }: SetupContext) {
-    return <MetaTagElement class="flex mb-half" {...props} wrappedByDiv={true} v-slots={{
-        backOfWrap: () => <a class={`tag is-${props.value.color} ml-half`} onClick={() => emit("close")}><i class="fa fa-times"/></a>
+    return <MetaTagElement class={style.tagItem} {...props} wrappedByDiv={true} v-slots={{
+        backOfWrap: () => <a class={["tag", `is-${props.value.color}`, style.closeButton]} onClick={() => emit("close")}><i class="fa fa-times"/></a>
     }}/>
 }
 

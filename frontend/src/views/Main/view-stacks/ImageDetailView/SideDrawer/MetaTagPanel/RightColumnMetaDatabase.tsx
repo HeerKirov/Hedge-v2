@@ -1,13 +1,11 @@
 import { computed, defineComponent, PropType, reactive, watch } from "vue"
 import Input from "@/components/forms/Input"
-import { MetaTagElement, TagTreeElement } from "@/layouts/display-components"
+import { MetaTagElement } from "@/layouts/display-components"
 import { AuthorType } from "@/functions/adapter-http/impl/author"
 import { TopicType } from "@/functions/adapter-http/impl/topic"
-import { TagTreeNode } from "@/functions/adapter-http/impl/tag"
-import { usePopupMenu } from "@/functions/module"
-import { installation } from "@/functions/utils/basic"
-import { ExpandedInfoContext, useExpandedInfo, useExpandedValue, useTagListContext } from "@/functions/api/tag-tree"
-import { useMetaDatabaseAuthorContext, useMetaDatabaseTopicContext, usePanelContext } from "./inject"
+import { NodeList } from "@/layouts/data/TagTree"
+import { useTagListContext, useSearchService } from "@/functions/api/tag-tree"
+import { useMetaDatabaseAuthorData, useMetaDatabaseTopicData, usePanelContext } from "./inject"
 import style from "./style.module.scss"
 
 export default defineComponent({
@@ -49,7 +47,7 @@ const AuthorTab = defineComponent({
         search: {type: String, required: true}
     },
     setup(props) {
-        const { data, search } = useMetaDatabaseAuthorContext()
+        const { data, search } = useMetaDatabaseAuthorData()
         const showMore = computed(() => !data.loading.value && data.data.value.total > data.data.value.result.length)
 
         watch(() => props.search, s => search.value = s, {immediate: true})
@@ -66,7 +64,7 @@ const TopicTab = defineComponent({
         search: {type: String, required: true}
     },
     setup(props) {
-        const { data, search } = useMetaDatabaseTopicContext()
+        const { data, search } = useMetaDatabaseTopicData()
         const showMore = computed(() => !data.loading.value && data.data.value.total > data.data.value.result.length)
 
         watch(() => props.search, s => search.value = s, {immediate: true})
@@ -84,11 +82,9 @@ const TagTab = defineComponent({
     },
     setup() {
         const { loading, data } = useTagListContext()
-        const expandedInfo = useExpandedInfo()
-        installTagExpandMenu(expandedInfo)
 
         return () => <div class={[style.metaDatabase, style.tag]}>
-            {loading.value ? null : <TagItemList value={data.value} multiLine={true}/>}
+            {loading.value ? null : <NodeList items={data.value} multiLine={true}/>}
         </div>
     }
 })
@@ -133,72 +129,4 @@ const TopicItem = defineComponent({
             <MetaTagElement type="topic" value={data.value} clickable={true} draggable={true}/>
         </div>
     }
-})
-
-const TagItemList = defineComponent({
-    props: {
-        value: {type: null as any as PropType<TagTreeNode[]>, required: true},
-        color: String,
-        multiLine: Boolean
-    },
-    setup(props) {
-        return () => (props.multiLine || props.value.some(t => !!t.children?.length))
-            ? <div class={style.childNodeList}>
-                {props.value.map(tag => <div class={style.child} key={tag.id}><TagItem value={tag} color={props.color ?? tag.color ?? undefined}/></div>)}
-            </div> : <div class={[style.childNodeList, style.inline]}>
-                {props.value.map(tag => <TagItem class={style.child} key={tag.id} value={tag} color={props.color ?? tag.color ?? undefined}/>)}
-            </div>
-    }
-})
-
-const TagItem = defineComponent({
-    props: {
-        value: {type: null as any as PropType<TagTreeNode>, required: true},
-        color: String
-    },
-    setup(props) {
-        const id = computed(() => props.value.id)
-        const isExpanded = useExpandedValue(id)
-        const switchExpanded = () => isExpanded.value = !isExpanded.value
-
-        const menu = useTagExpandMenu()
-        const popup = () => menu.popup(id.value)
-
-        const draggable = computed(() => props.value.type === "TAG")
-
-        return () => !!props.value.children?.length ? <>
-            <p>
-                <TagTreeElement value={props.value} color={props.color} onContextmenu={popup} draggable={draggable.value}/>
-                <ExpandButton class="ml-1" isExpanded={isExpanded.value} color={props.color} parentId={id.value} onClick={switchExpanded} onContextmenu={popup}/>
-            </p>
-            {isExpanded.value && <TagItemList class="ml-6" value={props.value.children ?? []} color={props.color}/>}
-        </> : <TagTreeElement value={props.value} color={props.color} onContextmenu={popup} draggable={draggable.value}/>
-    }
-})
-
-const ExpandButton = defineComponent({
-    props: {
-        isExpanded: Boolean,
-        color: String,
-        parentId: {type: null as any as PropType<number | null>, required: true}
-    },
-    setup(props) {
-        return () => <a class={{"tag": true, "is-light": true, [`is-${props.color}`]: !!props.color}}>
-            <i class={`fa fa-angle-${props.isExpanded ? "down" : "right"}`}/>
-        </a>
-    }
-})
-
-const [installTagExpandMenu, useTagExpandMenu] = installation(function (expandedInfo: ExpandedInfoContext) {
-    const expandChildren = (id: number) => expandedInfo.setAllForChildren(id, true)
-    const collapseChildren = (id: number) => expandedInfo.setAllForChildren(id, false)
-
-    const menu = usePopupMenu<number>([
-        {type: "normal", label: "折叠全部标签", click: collapseChildren},
-        {type: "normal", label: "展开全部标签", click: expandChildren}
-    ])
-
-    const popup = (id: number) => menu.popup(id)
-
-    return {popup}
 })

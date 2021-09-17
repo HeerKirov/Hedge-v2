@@ -1,8 +1,8 @@
 import { inject, InjectionKey, readonly, ref, Ref } from "vue"
-import { AppEnv, ClientPlatform, IpcService, State } from "../adapter-ipc/ipc"
-import { HttpClient, HttpInstanceConfig } from "../adapter-http"
+import { AppEnv, ClientPlatform, IpcService, State } from "@/functions/adapter-ipc/ipc"
+import { HttpClient, HttpInstanceConfig } from "@/functions/adapter-http"
+import { getOSName, OSName } from "@/utils/process"
 import { useLocalStorage } from "./app-storage"
-import { getOSName, OSName } from "@/utils/process";
 
 
 /**

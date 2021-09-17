@@ -1,7 +1,7 @@
 import { defineComponent, toRef, Transition } from "vue"
-import style from "./style.module.scss"
-import { watchGlobalKeyEvent } from "@/functions/document/global-key";
+import { watchGlobalKeyEvent } from "@/functions/document/global-key"
 import { TopBar } from "@/layouts/layouts/SideLayout"
+import style from "./style.module.scss"
 
 export default defineComponent({
     props: {

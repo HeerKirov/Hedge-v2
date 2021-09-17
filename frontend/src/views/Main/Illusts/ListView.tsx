@@ -1,10 +1,10 @@
 import { defineComponent, markRaw, watch } from "vue"
 import IllustGrid from "@/layouts/data/IllustGrid"
 import { Illust } from "@/functions/adapter-http/impl/illust"
+import { createSliceOfAll, createSliceOfList } from "@/functions/utils/endpoints/query-endpoint"
 import { useDynamicPopupMenu } from "@/functions/module"
 import { useViewStacks } from "../view-stacks"
 import { useIllustContext } from "./inject"
-import { createSliceOfAll, createSliceOfList } from "@/functions/utils/endpoints/query-endpoint";
 
 export default defineComponent({
     setup() {

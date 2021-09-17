@@ -9,12 +9,15 @@ import { MetaTagValidation } from "@/functions/adapter-http/impl/util-meta"
 import { watchGlobalKeyEvent } from "@/functions/document/global-key"
 import { NotificationManager, useNotification } from "@/functions/document/notification"
 import { useMessageBox } from "@/functions/document/message-box"
-import { useHttpClient, useLocalStorageWithDefault } from "@/functions/app"
+import { createPopupMenu, useHttpClient, useLocalStorageWithDefault } from "@/functions/app"
 import { useContinuousEndpoint } from "@/functions/utils/endpoints/continuous-endpoint"
 import { installation, splitRef } from "@/functions/utils/basic"
-import { installExpandedInfo, installSearchService, installTagListContext } from "@/functions/api/tag-tree"
+import { installSearchService, installTagListContext, useTagListContext, useSearchService } from "@/functions/api/tag-tree"
+import { installTagTreeContext } from "@/layouts/data/TagTree"
 import { sleep } from "@/utils/process"
 import { useDetailViewContext, useMetadataEndpoint } from "../../inject"
+
+export { useTagListContext, useSearchService }
 
 export const [installPanelContext, usePanelContext] = installation(function() {
     const { data } = useMetadataEndpoint()
@@ -307,18 +310,14 @@ const [installMetaDatabaseContext, useMetaDatabaseContext] = installation(functi
     const httpClient = useHttpClient()
     const notification = useNotification()
 
-    const author = installMetaDatabaseAuthorContext(httpClient, notification)
-    const topic = installMetaDatabaseTopicContext(httpClient, notification)
-
-    //安装tag tree功能
-    const tagListContent = installTagListContext()
-    installSearchService(tagListContent)
-    installExpandedInfo(tagListContent)
+    const author = useMetaDatabaseAuthorContext(httpClient, notification)
+    const topic = useMetaDatabaseTopicContext(httpClient, notification)
+    useMetaDatabaseTagContext()
 
     return {author, topic}
 })
 
-function installMetaDatabaseAuthorContext(httpClient: HttpClient, { handleError }: NotificationManager) {
+function useMetaDatabaseAuthorContext(httpClient: HttpClient, { handleError }: NotificationManager) {
     const search = ref<string>()
 
     const data = useContinuousEndpoint<Author>({
@@ -339,7 +338,7 @@ function installMetaDatabaseAuthorContext(httpClient: HttpClient, { handleError 
     return {search, data}
 }
 
-function installMetaDatabaseTopicContext(httpClient: HttpClient, { handleError }: NotificationManager) {
+function useMetaDatabaseTopicContext(httpClient: HttpClient, { handleError }: NotificationManager) {
     const search = ref<string>()
 
     const data = useContinuousEndpoint<Topic>({
@@ -360,14 +359,31 @@ function installMetaDatabaseTopicContext(httpClient: HttpClient, { handleError }
     return {search, data}
 }
 
+function useMetaDatabaseTagContext() {
+    const tagListContext = installTagListContext()
+    installTagTreeContext({
+        tagListContext,
+        draggable(tag) {
+            return tag.type === "TAG"
+        },
+        rightClick(tag, context) {
+            createPopupMenu([
+                {type: "normal", label: "折叠全部标签", click: context.collapseItem},
+                {type: "normal", label: "展开全部标签", click: context.expandItem},
+            ])(undefined)
+        }
+    })
+    installSearchService(tagListContext)
+}
+
 export { installMetaDatabaseContext }
 
-export function useMetaDatabaseAuthorContext() {
+export function useMetaDatabaseAuthorData() {
     const { author } = useMetaDatabaseContext()
     return author
 }
 
-export function useMetaDatabaseTopicContext() {
+export function useMetaDatabaseTopicData() {
     const { topic } = useMetaDatabaseContext()
     return topic
 }

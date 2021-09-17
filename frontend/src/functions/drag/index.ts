@@ -22,11 +22,19 @@ export function useDraggable<T extends keyof TypeDefinition>(type: T | Ref<T>, d
     return {onDragstart, onDragend}
 }
 
+interface Droppable {
+    isDragover: Readonly<Ref<boolean>>
+    onDragenter(): void
+    onDragleave(): void
+    onDrop(e: DragEvent): void
+    onDragover(e: DragEvent): void
+}
+
 /**
  * 提供一组对应的函数，用于直接实现拖放功能，同时还负责解析拖放获得的传递数据。
  */
-export function useDroppable<T extends keyof TypeDefinition>(event: (type: T, data: TypeDefinition[T]) => void) {
-    const isDragover = ref(false)
+export function useDroppable<T extends keyof TypeDefinition>(event: (type: T, data: TypeDefinition[T]) => void): Droppable {
+    const isDragover: Ref<boolean> = ref(false)
     const onDragenter = () => isDragover.value = true
     const onDragleave = () => isDragover.value = false
 

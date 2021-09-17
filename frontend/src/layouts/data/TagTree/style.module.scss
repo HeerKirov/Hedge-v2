@@ -2,100 +2,88 @@
 @import "@/styles/base/color.scss";
 @import "@/styles/base/size.sass";
 
-.list-view {
-  width: 100%;
-  height: 100%;
-  overflow-y: auto;
-  padding: 0.5rem 2rem;
-  box-sizing: border-box;
+//根节点
+.root-node-item {
+  > .expanded-box {
+    //列表区域的展开收起动画
+    @mixin expand-transition-state($e) {
+      transition: max-height 0.15s $e;
+      overflow: hidden;
+      max-height: 150px;
+    }
+    &.expand-transition-enter-active {
+      @include expand-transition-state(ease-in);
+    }
+    &.expand-transition-leave-active {
+      @include expand-transition-state(ease-out);
+    }
+    &.expand-transition-enter-from,
+    &.expand-transition-leave-to {
+      max-height: 0;
+    }
+  }
+}
 
-  @mixin gap-active {
+//节点列表
+.node-list {
+  padding-top: 0.125rem;
+  display: flex;
+  &.inline {
+    flex-wrap: wrap;
+
+    > .child {
+      margin-top: 0.125rem;
+      margin-bottom: 0.125rem;
+    }
+    > .gap {
+      width: 0.25rem;
+      height: 2em;
+      &:first-child {
+        margin-left: -0.25rem;
+      }
+    }
+  }
+  &:not(.inline) {
+    flex-wrap: nowrap;
+    flex-direction: column;
+
+    > .child {
+      > p {
+        display: inline-flex;
+      }
+    }
+  }
+}
+
+//节点之间的空隙
+.gap {
+  height: 0.25rem;
+  &.is-dragover {
     background-color: rgba(127, 127, 127, 0.5);
   }
+}
 
-  > .root-node {
-    > .expanded-box {
-      //列表区域的展开收起动画
-      @mixin expand-transition-state($e) {
-        transition: max-height 0.15s $e;
-        overflow: hidden;
-        max-height: 150px;
-      }
-      &.expand-transition-enter-active {
-        @include expand-transition-state(ease-in);
-      }
-      &.expand-transition-leave-active {
-        @include expand-transition-state(ease-out);
-      }
-      &.expand-transition-enter-from,
-      &.expand-transition-leave-to {
-        max-height: 0;
-      }
-
-      .child-node-list {
-        padding-top: 0.125rem;
-        display: flex;
-        &.inline {
-          flex-wrap: wrap;
-
-          > .child {
-            margin-top: 0.125rem;
-            margin-bottom: 0.125rem;
-          }
-          > .gap {
-            width: 0.25rem;
-            height: 2em;
-            &.is-dragover {
-              @include gap-active
-            }
-          }
-        }
-        &:not(.inline) {
-          flex-wrap: nowrap;
-          flex-direction: column;
-
-          > .gap {
-            height: 0.25rem;
-            &.is-dragover {
-              @include gap-active
-            }
-          }
-        }
-      }
-    }
+//标签节点中的drop area内容
+.drop-area {
+  border-bottom-left-radius: $radius-size-small;
+  border-bottom-right-radius: $radius-size-small;
+  position: absolute;
+  width: 100%;
+  height: 35%;
+  bottom: 0;
+  left: 0;
+  text-align: center;
+  &.is-dragover {
+    background-color: rgba(0, 0, 0, 0.25);
   }
-  //节点之间的空隙
-  > .gap {
-    height: 0.25rem;
-    &.is-dragover {
-      @include gap-active
-    }
+  > :global(.fa) {
+    transform: translateY(-0.4em);
   }
-
-  //标签节点中的drop area内容
-  :global(.tag) {
-    > .drop-area {
-      border-bottom-left-radius: $radius-size-small;
-      border-bottom-right-radius: $radius-size-small;
-      position: absolute;
-      width: 100%;
-      height: 35%;
-      bottom: 0;
-      left: 0;
-      text-align: center;
-      &.is-dragover {
-        background-color: rgba(0, 0, 0, 0.25);
-      }
-      > :global(.fa) {
-        transform: translateY(-0.4em);
-      }
-    }
-    .area {
-      position: absolute;
-      border-radius: $radius-size-small;
-      left: 0; top: 0;
-      width: 100%;
-      height: 100%;
-    }
-  }
+}
+.transparent-hit-area {
+  position: absolute;
+  border-radius: $radius-size-small;
+  left: 0; top: 0;
+  width: 100%;
+  height: 100%;
 }

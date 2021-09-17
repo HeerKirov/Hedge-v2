@@ -6,19 +6,16 @@ import TopBarContent from "./TopBarContent"
 import PaneCreateView from "./PaneCreateView"
 import PaneDetailView from "./PaneDetailView"
 import PaneSearchView from "./PaneSearchView"
-import {
-    installTagPaneContext, installTagListContext, installEditLock,
-    installSearchService, installExpandedViewerContext, installExpandedInfo
-} from "./inject"
+import { installLocalTagDataContext, installTagPaneContext, installTagListContext, installSearchService } from "./inject"
 
 export default defineComponent({
     setup() {
-        const { createMode, detailMode, searchMode } = installTagPaneContext()
+        const tagPaneContext = installTagPaneContext()
         const tagListContext = installTagListContext()
-        const expandedInfo = installExpandedInfo(tagListContext)
-        installExpandedViewerContext(expandedInfo)
+        installLocalTagDataContext(tagPaneContext, tagListContext)
         installSearchService(tagListContext)
-        installEditLock()
+
+        const { createMode, detailMode, searchMode } = tagPaneContext
 
         return () => <TopBarLayout v-slots={{
             topBar: () => <TopBarContent/>,

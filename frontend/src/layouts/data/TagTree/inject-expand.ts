@@ -22,24 +22,6 @@ export interface ExpandedInfoContext {
     setAllForChildren(key: number, value: boolean): void
 }
 
-export interface ExpandedViewerController {
-    /**
-     * 将一个元素滚动到视野内。如果此元素被折叠，则先展开此元素的所有父元素。
-     */
-    scrollIntoView(key: number): void
-}
-
-export interface ExpandedViewerImpl {
-    /**
-     * 实现元素监听此target的变化，以得知此控制器的滚动目标通知。
-     */
-    target: Ref<number | null>
-    /**
-     * 向控制器汇报target的element，以通知跳转和事件完成。
-     */
-    targetImplement(el: Element | ComponentPublicInstance | null): void
-}
-
 export function useExpandedInfo(context?: TagListContext): ExpandedInfoContext {
     const { indexedInfo } = context ?? useTagListContext()
 
@@ -81,30 +63,3 @@ export function useExpandedInfo(context?: TagListContext): ExpandedInfoContext {
 
     return {get, set, setAllForParent, setAllForChildren}
 }
-
-export function useExpandedValue(key: Ref<number>) {
-    const { get, set } = useExpandedInfo()
-    return computed<boolean>({
-        get: () => get(key.value),
-        set: value => set(key.value, value)
-    })
-}
-
-const [installExpandedViewerContext, useExpandedViewerContext] = installation(function(expandedInfo: ExpandedInfoContext): ExpandedViewerController & ExpandedViewerImpl {
-    const target = ref<number | null>(null)
-
-    return {
-        target,
-        async targetImplement(el: Element | ComponentPublicInstance | null) {
-            await nextTick()
-            if(typeof (el as any).scrollIntoView === "function") {
-                (el as any).scrollIntoView({block: "nearest"})
-            }
-            target.value = null
-        },
-        scrollIntoView(key: number) {
-            target.value = key
-            expandedInfo.setAllForParent(key, true)
-        }
-    }
-})

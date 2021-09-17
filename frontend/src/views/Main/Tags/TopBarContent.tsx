@@ -1,5 +1,5 @@
 import { defineComponent } from "vue"
-import { useEditLock, useTagPaneContext } from "./inject"
+import { useEditable, useTagPaneContext } from "./inject"
 
 export default defineComponent({
     setup() {
@@ -24,11 +24,11 @@ export default defineComponent({
 
 const EditLockButton = defineComponent({
     setup() {
-        const editLock = useEditLock()
-        const click = () => editLock.value = !editLock.value
+        const editable = useEditable()
+        const click = () => editable.value = !editable.value
 
         return () => <button class="square button no-drag radius-large is-white" onClick={click}>
-            <span class="icon"><i class={`fa fa-${editLock.value ? "lock" : "unlock"}`}/></span>
+            <span class="icon"><i class={`fa fa-${editable.value ? "unlock" : "lock"}`}/></span>
         </button>
     }
 })

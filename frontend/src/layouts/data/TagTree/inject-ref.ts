@@ -1,5 +1,6 @@
 import { ComponentPublicInstance, nextTick } from "vue"
 import { ExpandedInfoContext } from "./inject-expand"
+import { sleep } from "@/utils/process";
 
 export interface ElementRefContext {
     /**
@@ -18,16 +19,18 @@ export function useElementRefContext(expandedInfo: ExpandedInfoContext): Element
 
     let targetKey: number | null = null
 
+    function scrollIntoView(el: Element | ComponentPublicInstance | null) {
+        if(typeof (el as any).scrollIntoView === "function") {
+            (el as any).scrollIntoView({block: "nearest"})
+        }
+    }
+
     return {
         scrollIntoView(key: number) {
             const el = elements[key]
             if(el) {
                 //目前已经存在目标的ref，则直接采取操作
-                nextTick(() => {
-                    if(typeof (el as any).scrollIntoView === "function") {
-                        (el as any).scrollIntoView({block: "nearest"})
-                    }
-                }).finally()
+                nextTick(() => scrollIntoView(el)).finally()
             }else{
                 //不存在目标的ref，则尝试展开目标的折叠，同时把target存起来，等待异步完成
                 targetKey = key
@@ -39,11 +42,11 @@ export function useElementRefContext(expandedInfo: ExpandedInfoContext): Element
                 elements[key] = el
                 if(targetKey === key) {
                     //目前存在操作目标，那么采取操作
-                    nextTick(() => {
-                        if(typeof (el as any).scrollIntoView === "function") {
-                            (el as any).scrollIntoView({block: "nearest"})
-                        }
+                    nextTick(async () => {
                         targetKey = null
+                        //sleep是等待是为了等待目标展开的动画结束。这是一个magic行为
+                        await sleep(150)
+                        scrollIntoView(el)
                     }).finally()
                 }
             }else{
