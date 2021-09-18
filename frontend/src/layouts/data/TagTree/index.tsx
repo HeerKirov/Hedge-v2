@@ -153,7 +153,7 @@ const NodeItemElement = defineComponent({
     },
     setup(props) {
         const id = computed(() => props.node.id)
-        const { isDraggable, elementRef } = useTagTreeContext()
+        const { isDraggable, elementRef, isCursorPointer } = useTagTreeContext()
 
         const draggable = computed(() => isDraggable(props.node))
         const dragEvents = useDraggable("tag", computed(() => ({
@@ -171,7 +171,7 @@ const NodeItemElement = defineComponent({
             const isGroup = props.node.group !== "NO"
 
             return <a ref={el => elementRef.setElement(id.value, el)} draggable={draggable.value} {...dragEvents}
-                      class={["tag", props.node.color ? `is-${props.node.color}` : null, isAddr ? "is-light" : null]}>
+                      class={{"tag": true, [`is-${props.node.color}`]: props.node.color, "is-light": isAddr, [style.notCursorPointer]: !isCursorPointer}}>
                 {isSequenced && <i class="fa fa-sort-alpha-down mr-1"/>}
                 {isForced && <b class="mr-1">!</b>}
                 {isGroup ? <>

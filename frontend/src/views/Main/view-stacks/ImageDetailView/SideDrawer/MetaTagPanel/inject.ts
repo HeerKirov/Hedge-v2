@@ -371,7 +371,8 @@ function useMetaDatabaseTagContext() {
                 {type: "normal", label: "折叠全部标签", click: context.collapseItem},
                 {type: "normal", label: "展开全部标签", click: context.expandItem},
             ])(undefined)
-        }
+        },
+        isCursorPointer: false
     })
     installSearchService(tagListContext)
 }

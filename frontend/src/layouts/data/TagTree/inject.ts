@@ -14,6 +14,7 @@ interface TagTreeContext {
         click(tag: TagTreeNode)
         rightClick(tag: TagTreeNode)
     },
+    isCursorPointer: boolean
     expandedInfo: ExpandedInfoContext
     elementRef: ElementRefContext
 }
@@ -42,6 +43,11 @@ interface InstallTagTreeContext {
      */
     draggable?(tag: TagTreeNode): boolean
     /**
+     * 是否显示选择指针。
+     * 不指定此参数时，此参数的值与click的存在与否挂钩。
+     */
+    isCursorPointer?: boolean
+    /**
      * 单击时发生的事件。
      */
     click?(tag: TagTreeNode, context: TagTreeEventCallbackContext)
@@ -63,6 +69,7 @@ export function installTagTreeContext(context: InstallTagTreeContext) {
     const editable = context.editable
     const isEditable = isRef(editable) ? editable : editable ?? false
     const isDraggable = context.draggable ?? (isRef(editable) ? (() => editable.value) : editable ? (() => true) : (() => false))
+    const isCursorPointer = context.isCursorPointer ?? !!context.click
 
     function createEventContext(tag: TagTreeNode): TagTreeEventCallbackContext {
         return {
@@ -103,6 +110,7 @@ export function installTagTreeContext(context: InstallTagTreeContext) {
                 }
             }
         },
+        isCursorPointer,
         expandedInfo,
         elementRef
     })

@@ -1,4 +1,4 @@
-import { computed, defineComponent, PropType, reactive, watch } from "vue"
+import { computed, defineComponent, PropType, reactive, ref, watch } from "vue"
 import Input from "@/components/forms/Input"
 import { MetaTagElement } from "@/layouts/display-components"
 import { AuthorType } from "@/functions/adapter-http/impl/author"
@@ -12,6 +12,7 @@ export default defineComponent({
     setup() {
         const { rightColumnData: { tabDbType }} = usePanelContext()
 
+        const searchBoxFocus = ref(false)
         const searchBox = reactive({author: "", topic: "", tag: ""})
         const updateSearchBox = (value: string) => searchBox[tabDbType.value] = value
 
@@ -29,14 +30,16 @@ export default defineComponent({
                     <span class="icon"><i class="fa fa-tag"/></span>
                     <span>标签</span>
                 </button>
-                <Input class="is-small is-width-medium mb-1" placeholder="搜索项目" value={searchBox[tabDbType.value]} onUpdateValue={updateSearchBox}/>
+                <Input class="is-small is-width-medium mb-1" placeholder="搜索项目"
+                       value={searchBox[tabDbType.value]} onUpdateValue={updateSearchBox}
+                       onfocus={() => searchBoxFocus.value = true} onblur={() => searchBoxFocus.value = false}/>
             </div>
             {tabDbType.value === "author"
                 ? <AuthorTab search={searchBox.author}/>
             : tabDbType.value === "topic"
                 ? <TopicTab search={searchBox.topic}/>
             : //tag
-                <TagTab search={searchBox.tag}/>
+                <TagTab search={searchBox.tag} searchFocus={searchBoxFocus.value}/>
             }
         </>
     }
@@ -78,14 +81,40 @@ const TopicTab = defineComponent({
 
 const TagTab = defineComponent({
     props: {
-        search: {type: String, required: true}
+        search: {type: String, required: true},
+        searchFocus: {type: Boolean, required: true}
     },
-    setup() {
+    setup(props) {
         const { loading, data } = useTagListContext()
+
+        const showSearchPanel = ref(false)
+        watch(() => props.searchFocus, focus => {
+            if(focus && props.search) {
+                showSearchPanel.value = true
+            }
+        })
+        watch(() => props.search, search => {
+            if(search) {
+                showSearchPanel.value = true
+            }
+        })
 
         return () => <div class={[style.metaDatabase, style.tag]}>
             {loading.value ? null : <NodeList items={data.value} multiLine={true}/>}
+            {showSearchPanel.value && <TagTabSearchPanel search={props.search} onClose={() => showSearchPanel.value = false}/>}
         </div>
+    }
+})
+
+const TagTabSearchPanel = defineComponent({
+    props: {
+        search: {type: String, required: true}
+    },
+    emits: ["close"],
+    setup(props, { emit }) {
+        const { result, searchText } = useSearchService()
+
+        return () => undefined
     }
 })
 
