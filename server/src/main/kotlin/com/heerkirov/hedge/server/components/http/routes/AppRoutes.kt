@@ -20,7 +20,7 @@ class AppRoutes(private val lifetime: Lifetime, private val appdata: AppDataDriv
                 post("signal", ::signal)
                 path("lifetime") {
                     post(::addLifetime)
-                    path(":id") {
+                    path("{id}") {
                         put(::updateLifetime)
                         delete(::deleteLifetime)
                     }
@@ -63,8 +63,6 @@ class AppRoutes(private val lifetime: Lifetime, private val appdata: AppDataDriv
         val form = ctx.bodyAsForm<SignalForm>()
         this.lifetime.signal(form.interval)
     }
-
-    data class InitForm(val dbPath: String)
 
     data class SignalForm(val interval: Long)
 

@@ -3,10 +3,7 @@ package com.heerkirov.hedge.server.components.http
 import com.heerkirov.hedge.server.components.appdata.AppDataDriver
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.health.Health
-import com.heerkirov.hedge.server.components.http.modules.Aspect
-import com.heerkirov.hedge.server.components.http.modules.Authentication
-import com.heerkirov.hedge.server.components.http.modules.ErrorHandler
-import com.heerkirov.hedge.server.components.http.modules.WebAccessor
+import com.heerkirov.hedge.server.components.http.modules.*
 import com.heerkirov.hedge.server.components.http.routes.*
 import com.heerkirov.hedge.server.components.lifetime.Lifetime
 import com.heerkirov.hedge.server.components.service.AllServices
@@ -15,7 +12,9 @@ import com.heerkirov.hedge.server.utils.Net
 import com.heerkirov.hedge.server.utils.Token
 import com.heerkirov.hedge.server.utils.objectMapper
 import io.javalin.Javalin
+import io.javalin.http.ContentType
 import io.javalin.plugin.json.JavalinJackson
+import io.javalin.plugin.json.JsonMapper
 import java.net.BindException
 
 interface HttpServer : StatefulComponent {
@@ -59,18 +58,19 @@ class HttpServerImpl(private val allServices: AllServices,
     private val web = WebAccessor(appdata, webController, options.frontendPath)
 
     override fun load() {
-        JavalinJackson.configure(objectMapper())
-
         val aspect = Aspect(appdata, repo)
         val authentication = Authentication(token, web, webController)
         val errorHandler = ErrorHandler()
+        val encoding = Encoding()
 
         server = Javalin
             .create {
+                it.showJavalinBanner = false
                 it.enableCorsForAllOrigins()
+                it.jsonMapper(JavalinJackson(objectMapper()))
                 web.configure(it)
             }
-            .handle(aspect, authentication, web, errorHandler)
+            .handle(aspect, authentication, web, errorHandler, encoding)
             .handle(AppRoutes(lifetime, appdata, repo))
             .handle(SettingRoutes(
                 allServices.settingMeta,

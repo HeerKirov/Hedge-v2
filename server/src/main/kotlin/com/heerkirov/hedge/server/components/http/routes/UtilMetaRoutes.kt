@@ -17,7 +17,7 @@ class UtilMetaRoutes(private val metaService: MetaService) : Endpoints {
     }
 
     private fun validateTags(ctx: Context) {
-        val tags = try { ctx.body<List<Int>>() } catch (e: Exception) {
+        val tags = try { ctx.bodyAsClass<List<Int>>() } catch (e: Exception) {
             throw ParamTypeError("tags", e.message ?: "cannot convert to List<Int>")
         }
         ctx.json(metaService.validateTags(tags))

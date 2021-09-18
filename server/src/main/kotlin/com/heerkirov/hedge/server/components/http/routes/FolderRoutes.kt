@@ -18,12 +18,12 @@ class FolderRoutes(private val folderService: FolderService) : Endpoints {
                 post(::create)
                 path("pin") {
                     get(::pinList)
-                    path(":id") {
+                    path("{id}") {
                         put(::pinUpdate)
                         delete(::pinDelete)
                     }
                 }
-                path(":id") {
+                path("{id}") {
                     get(::get)
                     patch(::update)
                     delete(::delete)
@@ -49,38 +49,38 @@ class FolderRoutes(private val folderService: FolderService) : Endpoints {
     }
 
     private fun get(ctx: Context) {
-        val id = ctx.pathParam<Int>("id").get()
+        val id = ctx.pathParamAsClass<Int>("id").get()
         ctx.json(folderService.get(id))
     }
 
     private fun update(ctx: Context) {
-        val id = ctx.pathParam<Int>("id").get()
+        val id = ctx.pathParamAsClass<Int>("id").get()
         val form = ctx.bodyAsForm<FolderUpdateForm>()
         folderService.update(id, form)
     }
 
     private fun delete(ctx: Context) {
-        val id = ctx.pathParam<Int>("id").get()
+        val id = ctx.pathParamAsClass<Int>("id").get()
         folderService.delete(id)
         ctx.status(204)
     }
 
     private fun listImages(ctx: Context) {
-        val id = ctx.pathParam<Int>("id").get()
+        val id = ctx.pathParamAsClass<Int>("id").get()
         val filter = ctx.queryAsFilter<FolderImagesFilter>()
         ctx.json(folderService.getImages(id, filter))
     }
 
     private fun updateImages(ctx: Context) {
-        val id = ctx.pathParam<Int>("id").get()
-        val images = try { ctx.body<List<Int>>() }catch (e: Exception) {
+        val id = ctx.pathParamAsClass<Int>("id").get()
+        val images = try { ctx.bodyAsClass<List<Int>>() } catch (e: Exception) {
             throw ParamTypeError("images", e.message ?: "cannot convert to List<Int>")
         }
         folderService.updateImages(id, images)
     }
 
     private fun partialUpdateImages(ctx: Context) {
-        val id = ctx.pathParam<Int>("id").get()
+        val id = ctx.pathParamAsClass<Int>("id").get()
         val form = ctx.bodyAsForm<FolderImagesPartialUpdateForm>()
         folderService.partialUpdateImages(id, form)
     }
@@ -90,13 +90,13 @@ class FolderRoutes(private val folderService: FolderService) : Endpoints {
     }
 
     private fun pinUpdate(ctx: Context) {
-        val id = ctx.pathParam<Int>("id").get()
+        val id = ctx.pathParamAsClass<Int>("id").get()
         val form = ctx.bodyAsForm<FolderPinForm>()
         folderService.updatePinFolder(id, form)
     }
 
     private fun pinDelete(ctx: Context) {
-        val id = ctx.pathParam<Int>("id").get()
+        val id = ctx.pathParamAsClass<Int>("id").get()
         folderService.deletePinFolder(id)
     }
 }

@@ -18,7 +18,7 @@ class AnnotationRoutes(private val annotationService: AnnotationService) : Endpo
             path("api/annotations") {
                 get(::list)
                 post(::create)
-                path(":id") {
+                path("{id}") {
                     get(::get)
                     patch(::update)
                     delete(::delete)
@@ -39,18 +39,18 @@ class AnnotationRoutes(private val annotationService: AnnotationService) : Endpo
     }
 
     private fun get(ctx: Context) {
-        val id = ctx.pathParam<Int>("id").get()
+        val id = ctx.pathParamAsClass<Int>("id").get()
         ctx.json(annotationService.get(id))
     }
 
     private fun update(ctx: Context) {
-        val id = ctx.pathParam<Int>("id").get()
+        val id = ctx.pathParamAsClass<Int>("id").get()
         val form = ctx.bodyAsForm<AnnotationUpdateForm>()
         annotationService.update(id, form)
     }
 
     private fun delete(ctx: Context) {
-        val id = ctx.pathParam<Int>("id").get()
+        val id = ctx.pathParamAsClass<Int>("id").get()
         annotationService.delete(id)
         ctx.status(204)
     }

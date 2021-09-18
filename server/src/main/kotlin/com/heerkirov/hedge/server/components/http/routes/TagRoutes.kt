@@ -16,7 +16,7 @@ class TagRoutes(private val tagService: TagService) : Endpoints {
                 get(::list)
                 post(::create)
                 get("tree", ::tree)
-                path(":id") {
+                path("{id}") {
                     get(::get)
                     get("indexed-info", ::getIndexedInfo)
                     patch(::update)
@@ -45,23 +45,23 @@ class TagRoutes(private val tagService: TagService) : Endpoints {
     }
 
     private fun get(ctx: Context) {
-        val id = ctx.pathParam<Int>("id").get()
+        val id = ctx.pathParamAsClass<Int>("id").get()
         ctx.json(tagService.get(id))
     }
 
     private fun getIndexedInfo(ctx: Context) {
-        val id = ctx.pathParam<Int>("id").get()
+        val id = ctx.pathParamAsClass<Int>("id").get()
         ctx.json(tagService.getIndexedInfo(id))
     }
 
     private fun update(ctx: Context) {
-        val id = ctx.pathParam<Int>("id").get()
+        val id = ctx.pathParamAsClass<Int>("id").get()
         val form = ctx.bodyAsForm<TagUpdateForm>()
         tagService.update(id, form)
     }
 
     private fun delete(ctx: Context) {
-        val id = ctx.pathParam<Int>("id").get()
+        val id = ctx.pathParamAsClass<Int>("id").get()
         tagService.delete(id)
         ctx.status(204)
     }

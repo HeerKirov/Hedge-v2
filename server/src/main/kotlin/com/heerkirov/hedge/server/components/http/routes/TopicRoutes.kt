@@ -15,7 +15,7 @@ class TopicRoutes(private val topicService: TopicService) : Endpoints {
             path("api/topics") {
                 get(::list)
                 post(::create)
-                path(":id") {
+                path("{id}") {
                     get(::get)
                     patch(::update)
                     delete(::delete)
@@ -36,18 +36,18 @@ class TopicRoutes(private val topicService: TopicService) : Endpoints {
     }
 
     private fun get(ctx: Context) {
-        val id = ctx.pathParam<Int>("id").get()
+        val id = ctx.pathParamAsClass<Int>("id").get()
         ctx.json(topicService.get(id))
     }
 
     private fun update(ctx: Context) {
-        val id = ctx.pathParam<Int>("id").get()
+        val id = ctx.pathParamAsClass<Int>("id").get()
         val form = ctx.bodyAsForm<TopicUpdateForm>()
         topicService.update(id, form)
     }
 
     private fun delete(ctx: Context) {
-        val id = ctx.pathParam<Int>("id").get()
+        val id = ctx.pathParamAsClass<Int>("id").get()
         topicService.delete(id)
         ctx.status(204)
     }

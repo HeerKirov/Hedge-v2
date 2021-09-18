@@ -24,6 +24,7 @@ class Authentication(private val baseToken: String, private val webAccessor: Web
     }
 
     private fun authenticate(ctx: Context) {
+        //对于OPTIONS method放行; 对于/api/imports/import放行，因为它由另一个处理器处理
         if(ctx.method() == "OPTIONS" || ctx.path() == "/api/imports/import") return
         val bearer = ctx.header("Authorization") ?: throw NoToken()
         val userToken = if(bearer.substring(0, prefixBearer.length).lowercase() == prefixBearer) bearer.substring(prefixBearer.length) else throw NoToken()

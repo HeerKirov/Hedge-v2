@@ -18,7 +18,7 @@ class AuthorRoutes(private val authorService: AuthorService) : Endpoints {
             path("api/authors") {
                 get(::list)
                 post(::create)
-                path(":id") {
+                path("{id}") {
                     get(::get)
                     patch(::update)
                     delete(::delete)
@@ -39,18 +39,18 @@ class AuthorRoutes(private val authorService: AuthorService) : Endpoints {
     }
 
     private fun get(ctx: Context) {
-        val id = ctx.pathParam<Int>("id").get()
+        val id = ctx.pathParamAsClass<Int>("id").get()
         ctx.json(authorService.get(id))
     }
 
     private fun update(ctx: Context) {
-        val id = ctx.pathParam<Int>("id").get()
+        val id = ctx.pathParamAsClass<Int>("id").get()
         val form = ctx.bodyAsForm<AuthorUpdateForm>()
         authorService.update(id, form)
     }
 
     private fun delete(ctx: Context) {
-        val id = ctx.pathParam<Int>("id").get()
+        val id = ctx.pathParamAsClass<Int>("id").get()
         authorService.delete(id)
         ctx.status(204)
     }

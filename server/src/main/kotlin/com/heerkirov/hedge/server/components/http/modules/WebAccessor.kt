@@ -36,14 +36,22 @@ class WebAccessor(private val appdata: AppDataDriver, private val webController:
      * 初始化，并给javalin添加几项配置项。
      */
     fun configure(javalinConfig: JavalinConfig) {
-        if(!Fs.exists(frontendPath)) {
-            isResourceExists = false
+        if(Fs.exists(frontendPath)) {
+            javalinConfig.addStaticFiles {
+                it.hostedPath = "/${Filename.STATIC_FOLDER}"
+                it.directory = "${frontendPath}/${Filename.STATIC_FOLDER}"
+                it.location = Location.EXTERNAL
+            }
+            javalinConfig.addStaticFiles {
+                it.hostedPath = "/${Filename.FAVICON_ICO}"
+                it.directory = "${frontendPath}/${Filename.FAVICON_ICO}"
+                it.location = Location.EXTERNAL
+            }
         }else{
-            javalinConfig.addStaticFiles("/${Filename.STATIC_FOLDER}", "${frontendPath}/${Filename.STATIC_FOLDER}", Location.EXTERNAL)
-            javalinConfig.addStaticFiles("/${Filename.FAVICON_ICO}", "${frontendPath}/${Filename.FAVICON_ICO}", Location.EXTERNAL)
+            isResourceExists = false
         }
 
-        if(if(appdata.status == LoadStatus.LOADED) { appdata.data.web.autoWebAccess }else{ false }) {
+        if(appdata.status == LoadStatus.LOADED && appdata.data.web.autoWebAccess) {
             webController.isAccess = true
         }
     }

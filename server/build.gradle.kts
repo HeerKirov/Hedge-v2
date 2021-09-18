@@ -1,22 +1,22 @@
 plugins {
     application
-    kotlin("jvm").version("1.5.20")
+    kotlin("jvm").version("1.5.30")
     id("com.github.johnrengelman.shadow").version("4.0.3")
-    id("org.beryx.jlink").version("2.24.0")
+    id("org.beryx.jlink").version("2.24.1")
 }
 
 group = "com.heerkirov.hedge.server"
 version = "0.1.0"
 
 dependencies {
-    val kotlinVersion = "1.5.20"
-    val javalinVersion = "3.13.8"
+    val kotlinVersion = "1.5.30"
+    val javalinVersion = "4.0.0"
     val ktormVersion = "3.4.1"
     val sqliteVersion = "3.36.0"
     val jacksonVersion = "2.11.4" //fk, how to upgrade it?
-    val javeVersion = "3.1.1"
+    val javeVersion = "3.2.0"
     val plistVersion = "1.23"
-    val slf4jVersion = "1.7.31"
+    val slf4jVersion = "1.7.32"
     val junitVersion = "4.13.2"
 
     implementation(group = "org.jetbrains.kotlin", name = "kotlin-stdlib-jdk8", version = kotlinVersion)

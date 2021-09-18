@@ -46,7 +46,7 @@ class SettingRoutes(settingMetaService: SettingMetaService,
                     path("sites") {
                         get(site::list)
                         post(site::create)
-                        path(":name") {
+                        path("{name}") {
                             get(site::get)
                             put(site::update)
                             delete(site::delete)

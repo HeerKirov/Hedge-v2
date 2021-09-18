@@ -20,7 +20,7 @@ class ImportRoutes(private val importService: ImportService) : Endpoints {
                 post("analyse-meta", ::analyseMeta)
                 post("batch-update", ::batchUpdate)
                 post("save", ::save)
-                path(":id") {
+                path("{id}") {
                     get(::get)
                     patch(::update)
                     delete(::delete)
@@ -47,18 +47,18 @@ class ImportRoutes(private val importService: ImportService) : Endpoints {
     }
 
     private fun get(ctx: Context) {
-        val id = ctx.pathParam<Int>("id").get()
+        val id = ctx.pathParamAsClass<Int>("id").get()
         ctx.json(importService.get(id))
     }
 
     private fun update(ctx: Context) {
-        val id = ctx.pathParam<Int>("id").get()
+        val id = ctx.pathParamAsClass<Int>("id").get()
         val form = ctx.bodyAsForm<ImportUpdateForm>()
         importService.update(id, form)
     }
 
     private fun delete(ctx: Context) {
-        val id = ctx.pathParam<Int>("id").get()
+        val id = ctx.pathParamAsClass<Int>("id").get()
         importService.delete(id)
         ctx.status(204)
     }

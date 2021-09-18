@@ -17,7 +17,7 @@ class PartitionRoutes(private val partitionService: PartitionService) : Endpoint
             path("api/partitions") {
                 get(::list)
                 get("months", ::listMonths)
-                get(":date", ::get)
+                get("{date}", ::get)
             }
         }
     }
