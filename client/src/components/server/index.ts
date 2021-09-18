@@ -289,7 +289,7 @@ function createNativeServerManager(options: ServerManagerOptions): ServerManager
 
 function startServerProcess(channelPath: string, frontendPath: string, debugMode: boolean, serverLogPath: string, serverBinPath: string) {
     const baseArgs = ['--channel-path', channelPath, '--frontend-path', frontendPath]
-    const debugModeArgs = debugMode ? ['--debug-mode'] : []
+    const debugModeArgs = debugMode ? ['--force-token', 'dev'] : []
     const out = openSync(serverLogPath, "w")
     const s = spawn(serverBinPath, [...baseArgs, ...debugModeArgs], {
         detached: true,
