@@ -3,7 +3,7 @@ import Input from "@/components/forms/Input"
 import { MetaTagElement } from "@/layouts/display-components"
 import { AuthorType } from "@/functions/adapter-http/impl/author"
 import { TopicType } from "@/functions/adapter-http/impl/topic"
-import { NodeList } from "@/layouts/data/TagTree"
+import { NodeList, useTagTreeAccessor } from "@/layouts/data/TagTree"
 import { useTagListContext, useSearchService } from "@/functions/api/tag-tree"
 import { useMetaDatabaseAuthorData, useMetaDatabaseTopicData, usePanelContext } from "./inject"
 import style from "./style.module.scss"
@@ -14,7 +14,7 @@ export default defineComponent({
 
         const searchBoxFocus = ref(false)
         const searchBox = reactive({author: "", topic: "", tag: ""})
-        const updateSearchBox = (value: string) => searchBox[tabDbType.value] = value
+        const updateSearchBox = (value: string) => searchBox[tabDbType.value] = value.trim()
 
         return () => <>
             <div class="mx-1">
@@ -87,15 +87,20 @@ const TagTab = defineComponent({
     setup(props) {
         const { loading, data } = useTagListContext()
 
+        const { searchText } = useSearchService()
         const showSearchPanel = ref(false)
         watch(() => props.searchFocus, focus => {
-            if(focus && props.search) {
+            if(focus && searchText.value) {
                 showSearchPanel.value = true
             }
         })
         watch(() => props.search, search => {
             if(search) {
+                searchText.value = search
                 showSearchPanel.value = true
+            }else{
+                searchText.value = null
+                showSearchPanel.value = false
             }
         })
 
@@ -112,9 +117,37 @@ const TagTabSearchPanel = defineComponent({
     },
     emits: ["close"],
     setup(props, { emit }) {
-        const { result, searchText } = useSearchService()
+        const { scrollIntoView } = useTagTreeAccessor()
+        const { result } = useSearchService()
 
-        return () => undefined
+        const onClick = (id: number) => () => {
+            scrollIntoView(id)
+            emit("close")
+        }
+
+        return () => <div class={style.searchPanel}>
+            {result.value.map(item => <TagTabSearchPanelItem {...item} onClick={onClick(item.id)}/>)}
+        </div>
+    }
+})
+
+const TagTabSearchPanelItem = defineComponent({
+    props: {
+        color: {type: null as any as PropType<string | null>, required: true},
+        address: {type: String, required: true},
+        id: {type: Number, required: true}
+    },
+    emits: ["click"],
+    setup(props, { emit }) {
+        const { scrollIntoView } = useTagTreeAccessor()
+
+        const click = () => emit("click")
+
+        return () => <div class={style.searchItem}>
+            <a class={["tag", props.color ? `is-${props.color}` : undefined, "is-light"]} onClick={click}>
+                {props.address}
+            </a>
+        </div>
     }
 })
 
