@@ -1,6 +1,6 @@
 import { ComponentPublicInstance, nextTick } from "vue"
+import { sleep } from "@/utils/process"
 import { ExpandedInfoContext } from "./inject-expand"
-import { sleep } from "@/utils/process";
 
 export interface ElementRefContext {
     /**

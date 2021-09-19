@@ -6,6 +6,7 @@ import { useFastObjectEndpoint } from "@/functions/utils/endpoints/object-fast-e
 import { SimpleAnnotation } from "@/functions/adapter-http/impl/annotations"
 import { Author, AuthorType } from "@/functions/adapter-http/impl/author"
 import { VirtualRow } from "@/components/features/VirtualScrollView"
+import { AnnotationElement } from "@/layouts/display-components"
 import { arrays } from "@/utils/collections"
 import { AUTHOR_TYPE_ENUMS, AUTHOR_TYPE_ICONS, AUTHOR_TYPE_NAMES } from "@/definitions/author"
 import { useAuthorContext } from "../inject"
@@ -135,9 +136,7 @@ const AnnotationAndKeywordList = defineComponent({
     },
     setup(props) {
         return () => <div class={style.ankList}>
-            {props.annotations.map(annotation => <span class="tag mr-1">
-                <b>[</b><span class="mx-1">{annotation.name}</span><b>]</b>
-            </span>)}
+            {props.annotations.map(annotation => <AnnotationElement value={annotation} class="mr-1"/>)}
             {props.keywords.map(keyword => <span class="tag mr-1">{keyword}</span>)}
         </div>
     }

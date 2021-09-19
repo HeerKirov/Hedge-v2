@@ -6,6 +6,7 @@ import { useFastObjectEndpoint } from "@/functions/utils/endpoints/object-fast-e
 import { SimpleAnnotation } from "@/functions/adapter-http/impl/annotations"
 import { Topic, TopicType } from "@/functions/adapter-http/impl/topic"
 import { VirtualRow } from "@/components/features/VirtualScrollView"
+import { AnnotationElement } from "@/layouts/display-components"
 import { arrays } from "@/utils/collections"
 import { TOPIC_TYPE_ENUMS, TOPIC_TYPE_ICONS, TOPIC_TYPE_NAMES } from "@/definitions/topic"
 import { useTopicContext } from "../inject"
@@ -186,9 +187,7 @@ const AnnotationAndKeywordsList = defineComponent({
         })
 
         return () => <>
-            {annotations.value.map(annotation => <span class="tag mr-1">
-                <b>[</b><span class="mx-1">{annotation.name}</span><b>]</b>
-            </span>)}
+            {annotations.value.map(annotation => <AnnotationElement value={annotation} class="mr-1"/>)}
             {keywords.value.map(keyword => <span class="tag mr-1">{keyword}</span>)}
             {more.value && <span class="tag mr-1">...</span>}
         </>

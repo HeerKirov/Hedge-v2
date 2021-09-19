@@ -1,5 +1,6 @@
 import { defineComponent, PropType } from "vue"
 import { SearchBoxPicker, SearchRequestFunction, SearchResultAttachItem } from "@/components/features/SearchPicker"
+import { AnnotationElement } from "@/layouts/display-components"
 import { AnnotationTarget, SimpleAnnotation } from "@/functions/adapter-http/impl/annotations"
 import { HttpClient } from "@/functions/adapter-http"
 import { NotificationManager } from "@/functions/document/notification"
@@ -69,16 +70,13 @@ export default defineComponent({
         ]
 
         const slots = {
-            default: (topic: SimpleAnnotation) => <span class="tag">
-                <b>[</b><span class="mx-1">{topic.name}</span><b>]</b>
-            </span>
+            default: (a: SimpleAnnotation) => <AnnotationElement value={a}/>
         }
 
         return () => <div>
-            {props.value.map((annotation, i) => <span class="tag mr-1 mb-1">
-                <b class="mr-1">[</b>{annotation.name}<b class="ml-1">]</b>
-                <a class="tag-button" onClick={onRemoveItem(i)}><i class="fa fa-times"/></a>
-            </span>)}
+            {props.value.map((annotation, i) => <AnnotationElement value={annotation} class="mr-1 mb-1" v-slots={{
+                backOfTag: () => <a class="tag-button" onClick={onRemoveItem(i)}><i class="fa fa-times"/></a>
+            }}/>)}
             <SearchBoxPicker placeholder="搜索注解" request={request} searchResultAttachItems={attachItems} onPick={pick} v-slots={slots}/>
         </div>
     }

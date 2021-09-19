@@ -1,7 +1,7 @@
 import { computed, defineComponent, PropType } from "vue"
 import WrappedText from "@/components/elements/WrappedText"
 import Starlight from "@/components/elements/Starlight"
-import { MetaTagElement, TagmeInfo } from "@/layouts/display-components"
+import { SimpleMetaTagElement, TagmeInfo } from "@/layouts/display-components"
 import { SimpleAuthor, SimpleTopic, SimpleTag } from "@/functions/adapter-http/impl/all"
 import {
     DateEditor, DateTimeEditor,
@@ -116,9 +116,9 @@ const MetaTagDisplay = defineComponent({
         return () => !props.tags.length && !props.authors.length && !props.topics.length ? <div class="has-text-grey mt-1">
             <i>没有元数据标签</i>
         </div> : <div class={style.metaTag}>
-            {props.authors.map(author => <MetaTagElement key={`author-${author.id}`} type="author" value={author} onContextmenu={() => menu.popup()} wrappedByDiv={true}/>)}
-            {props.topics.map(topic => <MetaTagElement key={`topic-${topic.id}`} type="topic" value={topic} onContextmenu={() => menu.popup()} wrappedByDiv={true}/>)}
-            {props.tags.map(tag => <MetaTagElement key={`tag-${tag.id}`} type="tag" value={tag} onContextmenu={() => menu.popup()} wrappedByDiv={true}/>)}
+            {props.authors.map(author => <SimpleMetaTagElement key={`author-${author.id}`} type="author" value={author} onContextmenu={() => menu.popup()} wrappedByDiv={true}/>)}
+            {props.topics.map(topic => <SimpleMetaTagElement key={`topic-${topic.id}`} type="topic" value={topic} onContextmenu={() => menu.popup()} wrappedByDiv={true}/>)}
+            {props.tags.map(tag => <SimpleMetaTagElement key={`tag-${tag.id}`} type="tag" value={tag} onContextmenu={() => menu.popup()} wrappedByDiv={true}/>)}
         </div>
     }
 })

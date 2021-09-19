@@ -1,5 +1,6 @@
 import { defineComponent, ref, watch } from "vue"
 import { SearchPicker, SearchRequestFunction } from "@/components/features/SearchPicker"
+import { AnnotationElement } from "@/layouts/display-components"
 import { DataRouter, SearchBox, AddOnFilter, AddOnTemplate } from "@/layouts/topbar-components"
 import { ParentTopic, TopicQueryFilter, TopicType } from "@/functions/adapter-http/impl/topic"
 import { SimpleAnnotation } from "@/functions/adapter-http/impl/annotations"
@@ -153,9 +154,7 @@ const AnnotationSelector = defineComponent({
         const pick = (v: SimpleAnnotation) => emit("pick", v)
 
         const slots = {
-            default: (topic: SimpleAnnotation) => <span class="tag">
-                <b>[</b><span class="mx-1">{topic.name}</span><b>]</b>
-            </span>
+            default: (a: SimpleAnnotation) => <AnnotationElement value={a}/>
         }
 
         return () => <SearchPicker placeholder="搜索注解" request={request} onPick={pick} v-slots={slots}/>

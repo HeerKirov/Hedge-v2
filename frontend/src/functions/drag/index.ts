@@ -33,7 +33,19 @@ interface Droppable {
 /**
  * 提供一组对应的函数，用于直接实现拖放功能，同时还负责解析拖放获得的传递数据。
  */
-export function useDroppable<T extends keyof TypeDefinition>(event: (type: T, data: TypeDefinition[T]) => void): Droppable {
+export function useDroppable<T extends keyof TypeDefinition>(byType: T | T[], event: (data: TypeDefinition[T], type: T) => void) {
+    return useDroppableInternal<T>(typeof byType === "string" ? (data, type) => {
+        if(byType === type) {
+            event(<TypeDefinition[T]>data, type)
+        }
+    } : (data, type) => {
+        if(byType.includes(type)) {
+            event(<TypeDefinition[T]>data, type)
+        }
+    })
+}
+
+function useDroppableInternal<T extends keyof TypeDefinition>(event: (data: TypeDefinition[T], type: T) => void): Droppable {
     const isDragover: Ref<boolean> = ref(false)
     const onDragenter = () => isDragover.value = true
     const onDragleave = () => isDragover.value = false
@@ -43,7 +55,7 @@ export function useDroppable<T extends keyof TypeDefinition>(event: (type: T, da
         if(e.dataTransfer) {
             const type = <T>e.dataTransfer.getData("type")
             const data = JSON.parse(e.dataTransfer?.getData("data"))
-            event(type, data)
+            event(data, type)
         }
         isDragover.value = false
     }
@@ -54,15 +66,3 @@ export function useDroppable<T extends keyof TypeDefinition>(event: (type: T, da
 
     return {isDragover: readonly(isDragover), onDragenter, onDragleave, onDrop, onDragover}
 }
-
-/**
- * 捕获固定拖放数据类型的拖放功能组。
- */
-export function useDroppableBy<T extends keyof TypeDefinition>(byType: T, event: (data: TypeDefinition[T]) => void) {
-    return useDroppable((type, data) => {
-        if(type === byType) {
-            event(<TypeDefinition[T]>data)
-        }
-    })
-}
-

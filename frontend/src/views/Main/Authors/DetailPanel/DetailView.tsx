@@ -1,6 +1,7 @@
 import { defineComponent, PropType, watch } from "vue"
 import WrappedText from "@/components/elements/WrappedText"
 import Starlight from "@/components/elements/Starlight"
+import { AnnotationElement } from "@/layouts/display-components"
 import TopBarTransparentLayout from "@/layouts/layouts/TopBarTransparentLayout"
 import { Link } from "@/functions/adapter-http/impl/generic"
 import { DetailAuthor, AuthorType } from "@/functions/adapter-http/impl/author"
@@ -128,7 +129,7 @@ const MainContent = defineComponent({
             </p>
             <p class="mt-6"/>
             <p class="mt-1">
-                {props.data.annotations.map(annotation => <span class="tag mr-1 mb-1"><b>[</b><span class="mx-1 can-be-selected">{annotation.name}</span><b>]</b></span>)}
+                {props.data.annotations.map(annotation => <AnnotationElement value={annotation} class="mr-1 mb-1" canBeSelected={true}/>)}
             </p>
             <p>
                 {props.data.keywords.map(keyword => <span class="can-be-selected tag mr-1 mb-1">{keyword}</span>)}

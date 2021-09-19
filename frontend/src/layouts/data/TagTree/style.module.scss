@@ -64,12 +64,6 @@
 }
 
 :global(.tag) {
-  &.not-cursor-pointer {
-    cursor: default;
-  }
-  &:not(.not-cursor-pointer) {
-    cursor: pointer;
-  }
   //标签节点中的drop area内容
   .drop-area {
     border-bottom-left-radius: $radius-size-small;

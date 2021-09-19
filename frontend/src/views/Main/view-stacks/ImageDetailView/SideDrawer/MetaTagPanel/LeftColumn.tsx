@@ -1,5 +1,5 @@
 import { defineComponent, SetupContext } from "vue"
-import { MetaTagElement } from "@/layouts/display-components"
+import { SimpleMetaTagElement } from "@/layouts/display-components"
 import { MetaTagTypeValues } from "@/functions/adapter-http/impl/all"
 import { useDroppable } from "@/functions/drag"
 import { usePanelContext } from "./inject"
@@ -9,7 +9,7 @@ export default defineComponent({
     setup() {
         const { editorData } = usePanelContext()
 
-        const { isDragover: _, ...dropEvents } = useDroppable(editorData.add)
+        const { isDragover: _, ...dropEvents } = useDroppable(["tag", "topic", "author"], (value, type) => editorData.add(type, value))
 
         return () => <div class={style.leftColumn} {...dropEvents}>
             <div class={style.tagList}>
@@ -57,7 +57,7 @@ const TagItems = defineComponent({
 })
 
 function EditorItem(props: MetaTagTypeValues, { emit }: SetupContext) {
-    return <MetaTagElement class={style.tagItem} {...props} wrappedByDiv={true} v-slots={{
+    return <SimpleMetaTagElement class={style.tagItem} {...props} wrappedByDiv={true} v-slots={{
         backOfWrap: () => <a class={["tag", `is-${props.value.color}`, style.closeButton]} onClick={() => emit("close")}><i class="fa fa-times"/></a>
     }}/>
 }

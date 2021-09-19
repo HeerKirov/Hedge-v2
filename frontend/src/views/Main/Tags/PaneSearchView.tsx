@@ -1,6 +1,8 @@
 import { computed, defineComponent, PropType, ref } from "vue"
 import Input from "@/components/forms/Input"
+import { TagAddressElement } from "@/layouts/display-components/MetaTagElement"
 import { PaneBasicLayout } from "@/layouts/layouts/SplitPane"
+import { TagAddress } from "@/functions/api/tag-tree"
 import { useKeyboardSelector } from "@/functions/utils/element"
 import { onKeyEnter } from "@/utils/events"
 import { useTagPaneContext, useSearchService, useTagTreeAccessor } from "./inject"
@@ -65,7 +67,7 @@ const SearchResult = defineComponent({
         return () => {
             clearElement()
             return <div class={style.resultBox}>
-                {result.value.map(item => <SearchResultItem ref={el => setElement(item.id, el)} key={item.id} {...item} selected={selectedKey.value === item.id}/>)}
+                {result.value.map(item => <SearchResultItem ref={el => setElement(item.id, el)} key={item.id} node={item} selected={selectedKey.value === item.id}/>)}
             </div>
         }
     }
@@ -73,18 +75,17 @@ const SearchResult = defineComponent({
 
 const SearchResultItem = defineComponent({
     props: {
-        color: {type: null as any as PropType<string | null>, required: true},
-        address: {type: String, required: true},
-        id: {type: Number, required: true},
+        node: {type: Object as PropType<TagAddress>, required: true},
         selected: Boolean
     },
     setup(props, { expose }) {
         let elementRef: Element | null = null
 
+        //TODO 想要双击直接打开detail。怎么区分单击和双击？
         const { openDetailPane } = useTagPaneContext()
         const { scrollIntoView } = useTagTreeAccessor()
 
-        const click = () => scrollIntoView(props.id)
+        const click = () => scrollIntoView(props.node.id)
 
         expose({
             "scrollIntoView"(arg?: boolean | ScrollIntoViewOptions) {
@@ -95,9 +96,7 @@ const SearchResultItem = defineComponent({
         return () => {
             elementRef = null
             return <div ref={el => elementRef = el as Element} class={style.resultItem}>
-                <a class={["tag", props.selected ? undefined : "is-light", props.color ? `is-${props.color}` : undefined]} onClick={click}>
-                    {props.address}
-                </a>
+                <TagAddressElement address={props.node} clickable={true} draggable={true} onClick={click}/>
             </div>
         }
     }

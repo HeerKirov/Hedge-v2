@@ -5,6 +5,7 @@ import StdColorSelector from "@/components/forms/StdColorSelector"
 import WrappedText from "@/components/elements/WrappedText"
 import { OtherNameEditor } from "@/layouts/editor-components"
 import { IsGroup, TagType, TagTreeNode } from "@/functions/adapter-http/impl/tag"
+import { useDroppable } from "@/functions/drag"
 import { useMouseHover } from "@/functions/utils/element"
 import { onKeyEnter } from "@/utils/events"
 import { useTagListContext, useTagPaneContext } from "./inject"
@@ -240,18 +241,9 @@ export const LinkEditor = defineComponent({
 const LinkEditorDropArea = defineComponent({
     emits: ["add"],
     setup(_, { emit }) {
-        const add = (id: number) => emit("add", id)
+        const { isDragover: __, ...dropEvents } = useDroppable("tag", tag => emit("add", tag.id))
 
-        const dragover = (e: DragEvent) => {
-            e.preventDefault()
-        }
-        const drop = (e: DragEvent) => {
-            e.preventDefault()
-            if(e.dataTransfer?.getData("type") === "tag") {
-                add(parseInt(e.dataTransfer.getData("id")))
-            }
-        }
-        return () => <p class="flex" onDragover={dragover} onDrop={drop}>
+        return () => <p class="flex" {...dropEvents}>
             <span class="tag mr-1"><i class="fa fa-plus"/></span>
             <span class="tag">拖动标签到此处以添加链接</span>
         </p>

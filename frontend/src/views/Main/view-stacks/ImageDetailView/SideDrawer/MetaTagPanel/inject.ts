@@ -229,7 +229,7 @@ function useEditorDataHistory(tags: Ref<SimpleTag[]>, topics: Ref<SimpleTopic[]>
                     authors.value.splice(i, 1)
                 }else{
                     if(!authors.value.find(i => i.id === record.value.id)) {
-                        tags.value.splice(record.index, 0, record.value)
+                        authors.value.splice(record.index, 0, record.value)
                     }
                 }
             }

@@ -14,6 +14,21 @@ export const arrays = {
         }
         return result
     },
+    insertGap<T, G>(arr: T[], gap: () => G): (T | G)[] {
+        const result: (T | G)[] = []
+
+        let first = true
+        for (const item of arr) {
+            if(first) {
+                first = false
+            }else{
+                result.push(gap())
+            }
+            result.push(item)
+        }
+
+        return result
+    },
     window<T>(arr: T[], size: number): T[][] {
         const result: T[][] = []
         let beginIndex = 0

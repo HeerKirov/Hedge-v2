@@ -1,6 +1,7 @@
 import { computed, defineComponent } from "vue"
 import Starlight from "@/components/elements/Starlight"
 import Select from "@/components/forms/Select"
+import { AnnotationElement } from "@/layouts/display-components"
 import { PaneBasicLayout } from "@/layouts/layouts/SplitPane"
 import { AnnotationEditor, DescriptionEditor, ViewAndEditor } from "@/layouts/editor-components"
 import { DetailTag, IsGroup, TagType, TagUpdateForm } from "@/functions/adapter-http/impl/tag"
@@ -143,9 +144,7 @@ export default defineComponent({
                 </div>
                 <p class={style.separator}/>
                 <ViewAndEditor class={style.annotations} data={data.value.annotations} onSetData={setAnnotations} v-slots={{
-                    default: ({ value }: {value: SimpleAnnotation[]}) => value.length ? value.map(a => <span key={a.id} class="tag">
-                        <b>[</b><span class="mx-1">{a.name}</span><b>]</b>
-                    </span>) : <span class="tag"><i class="has-text-grey">没有注解</i></span>,
+                    default: ({ value }: {value: SimpleAnnotation[]}) => value.length ? value.map(a => <AnnotationElement key={a.id} value={a}/>) : <span class="tag"><i class="has-text-grey">没有注解</i></span>,
                     editor: ({ value, setValue }: {value: SimpleAnnotation[], setValue(v: SimpleAnnotation[]): void}) => <AnnotationEditor class="mb-1" value={value} onUpdateValue={setValue} target="TAG"/>
                 }}/>
                 <ViewAndEditor data={data.value.description} onSetData={setDescription} showEditButton={false} showSaveButton={false} v-slots={{

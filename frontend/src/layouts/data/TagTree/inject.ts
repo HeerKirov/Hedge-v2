@@ -2,7 +2,7 @@ import { computed, inject, InjectionKey, isRef, provide, ref, Ref, shallowRef } 
 import { TagTreeNode } from "@/functions/adapter-http/impl/tag"
 import { TagListContext, useTagListContext } from "@/functions/api/tag-tree"
 import { useMessageBox } from "@/functions/document/message-box"
-import { useDroppableBy } from "@/functions/drag"
+import { useDroppable } from "@/functions/drag"
 import { ExpandedInfoContext, useExpandedInfo } from "./inject-expand"
 import { ElementRefContext, useElementRefContext } from "./inject-ref"
 
@@ -227,17 +227,17 @@ export function useTagDrop(parentId: Ref<number | null>, ordinal: Ref<number | n
     }
 
     if(isRef(isEditable)) {
-        const { isDragover: originIsDragover, ...dragEvents } = useDroppableBy("tag", tag => {
+        const { isDragover: originIsDragover, ...dropEvents } = useDroppable("tag", tag => {
             if(isEditable.value) {
                 move(tag.id, parentId.value, ordinal?.value ?? null)
             }
         })
         const isDragover: Ref<boolean> = computed(() => isEditable.value && originIsDragover.value)
 
-        return {isDragover, ...dragEvents}
+        return {isDragover, ...dropEvents}
 
     }else if(isEditable) {
-        return useDroppableBy("tag", tag => move(tag.id, parentId.value, ordinal?.value ?? null))
+        return useDroppable("tag", tag => move(tag.id, parentId.value, ordinal?.value ?? null))
 
     }else{
         return {isDragover: ref(false)}

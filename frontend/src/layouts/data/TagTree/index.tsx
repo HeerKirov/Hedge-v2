@@ -1,4 +1,5 @@
-import { computed, defineComponent, onBeforeUnmount, PropType, toRef, toRefs, Transition } from "vue"
+import { ComponentPublicInstance, computed, defineComponent, onBeforeUnmount, PropType, toRef, toRefs, Transition } from "vue"
+import { TagNodeElement } from "@/layouts/display-components"
 import { TagTreeNode } from "@/functions/adapter-http/impl/tag"
 import { useDraggable } from "@/functions/drag"
 import { useExpandedValue, useTagTreeContext, useDescriptionValue, useTagDrop, useTagTreeAccessor, installTagTreeContext } from "./inject"
@@ -124,65 +125,31 @@ const NodeItem = defineComponent({
     setup(props) {
         const node = toRef(props, "node")
 
-        const { event } = useTagTreeContext()
+        const { event, isDraggable, isCursorPointer, elementRef } = useTagTreeContext()
 
         const isExpanded = useExpandedValue(computed(() => props.node.id))
+        const draggable = computed(() => isDraggable(props.node))
 
         const click = () => event.click(node.value)
         const rightClick = () => event.rightClick(node.value)
+        const setRef = (el: Element | ComponentPublicInstance | null) => elementRef.setElement(props.node.id, el)
+
+        onBeforeUnmount(() => elementRef.setElement(props.node.id, undefined))
 
         return () => !!props.node.children?.length ? (<>
             <p>
-                <NodeItemElement node={props.node} onClick={click} onContextmenu={rightClick}/>
+                <TagNodeElement setRef={setRef} node={props.node} clickable={isCursorPointer} draggable={draggable.value} onClick={click} onContextmenu={rightClick}>
+                    <NodeItemDropArea parentId={props.node.id}/>
+                </TagNodeElement>
                 <NodeItemExpandButton class="ml-1" isExpanded={isExpanded.value} color={props.node.color ?? undefined} parentId={props.node.id}
                                       onClick={() => isExpanded.value = !isExpanded.value} onContextmenu={rightClick}/>
             </p>
             {isExpanded.value && <NodeList class="ml-6" parentId={props.node.id} items={props.node.children ?? []} color={props.node.color}/>}
         </>) : (
-            <NodeItemElement node={props.node} onClick={click} onContextmenu={rightClick}/>
-        )
-    }
-})
-
-/**
- * 节点中tag元素的实现组件。
- */
-const NodeItemElement = defineComponent({
-    props: {
-        node: {type: Object as PropType<TagTreeNode>, required: true}
-    },
-    setup(props) {
-        const id = computed(() => props.node.id)
-        const { isDraggable, elementRef, isCursorPointer } = useTagTreeContext()
-
-        const draggable = computed(() => isDraggable(props.node))
-        const dragEvents = useDraggable("tag", computed(() => ({
-            id: props.node.id,
-            name: props.node.name,
-            color: props.node.color
-        })))
-
-        onBeforeUnmount(() => elementRef.setElement(id.value, undefined))
-
-        return () => {
-            const isAddr = props.node.type !== "TAG"
-            const isSequenced = props.node.group === "SEQUENCE" || props.node.group === "FORCE_AND_SEQUENCE"
-            const isForced = props.node.group === "FORCE" || props.node.group === "FORCE_AND_SEQUENCE"
-            const isGroup = props.node.group !== "NO"
-
-            return <a ref={el => elementRef.setElement(id.value, el)} draggable={draggable.value} {...dragEvents}
-                      class={{"tag": true, [`is-${props.node.color}`]: props.node.color, "is-light": isAddr, [style.notCursorPointer]: !isCursorPointer}}>
-                {isSequenced && <i class="fa fa-sort-alpha-down mr-1"/>}
-                {isForced && <b class="mr-1">!</b>}
-                {isGroup ? <>
-                    <b class="mr-1">{'{'}</b>
-                    {props.node.name}
-                    <b class="ml-1">{'}'}</b>
-                </> : props.node.name}
-
+            <TagNodeElement setRef={setRef} node={props.node} clickable={isCursorPointer} draggable={draggable.value} onClick={click} onContextmenu={rightClick}>
                 <NodeItemDropArea parentId={props.node.id}/>
-            </a>
-        }
+            </TagNodeElement>
+        )
     }
 })
 

@@ -1,10 +1,10 @@
 import { computed, defineComponent, PropType, reactive, ref, watch } from "vue"
 import Input from "@/components/forms/Input"
-import { MetaTagElement } from "@/layouts/display-components"
+import { SimpleMetaTagElement, TagAddressElement } from "@/layouts/display-components"
 import { AuthorType } from "@/functions/adapter-http/impl/author"
 import { TopicType } from "@/functions/adapter-http/impl/topic"
 import { NodeList, useTagTreeAccessor } from "@/layouts/data/TagTree"
-import { useTagListContext, useSearchService } from "@/functions/api/tag-tree"
+import { useTagListContext, useSearchService, TagAddress } from "@/functions/api/tag-tree"
 import { useMetaDatabaseAuthorData, useMetaDatabaseTopicData, usePanelContext } from "./inject"
 import style from "./style.module.scss"
 
@@ -126,27 +126,21 @@ const TagTabSearchPanel = defineComponent({
         }
 
         return () => <div class={style.searchPanel}>
-            {result.value.map(item => <TagTabSearchPanelItem {...item} onClick={onClick(item.id)}/>)}
+            {result.value.map(item => <TagTabSearchPanelItem key={item.id} node={item} onClick={onClick(item.id)}/>)}
         </div>
     }
 })
 
 const TagTabSearchPanelItem = defineComponent({
     props: {
-        color: {type: null as any as PropType<string | null>, required: true},
-        address: {type: String, required: true},
-        id: {type: Number, required: true}
+        node: {type: Object as PropType<TagAddress>, required: true}
     },
     emits: ["click"],
     setup(props, { emit }) {
-        const { scrollIntoView } = useTagTreeAccessor()
-
         const click = () => emit("click")
 
         return () => <div class={style.searchItem}>
-            <a class={["tag", props.color ? `is-${props.color}` : undefined, "is-light"]} onClick={click}>
-                {props.address}
-            </a>
+            <TagAddressElement address={props.node} clickable={true} draggable={true} onClick={click}/>
         </div>
     }
 })
@@ -167,7 +161,7 @@ const AuthorItem = defineComponent({
         }))
 
         return () => <div class={style.tagItem}>
-            <MetaTagElement type="author" value={data.value} clickable={true} draggable={true}/>
+            <SimpleMetaTagElement type="author" value={data.value} draggable={true}/>
         </div>
     }
 })
@@ -188,7 +182,7 @@ const TopicItem = defineComponent({
         }))
 
         return () => <div class={style.tagItem}>
-            <MetaTagElement type="topic" value={data.value} clickable={true} draggable={true}/>
+            <SimpleMetaTagElement type="topic" value={data.value} draggable={true}/>
         </div>
     }
 })
