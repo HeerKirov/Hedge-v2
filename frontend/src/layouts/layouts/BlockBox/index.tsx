@@ -2,6 +2,9 @@ import { defineComponent, Transition } from "vue"
 import { watchGlobalKeyEvent } from "@/functions/document/global-key"
 import style from "./style.module.scss"
 
+/**
+ * 全局覆盖的message box，用来提示消息和确认下一步行动。
+ */
 export default defineComponent({
     props: {
         visible: Boolean
@@ -23,6 +26,9 @@ export default defineComponent({
     }
 })
 
+/**
+ * box dom对象。
+ */
 const Box = defineComponent({
     emits: ["esc", "enter"],
     setup(_, { slots, emit }) {

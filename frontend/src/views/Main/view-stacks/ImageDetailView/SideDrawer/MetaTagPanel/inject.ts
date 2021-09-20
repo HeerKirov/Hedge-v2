@@ -16,6 +16,7 @@ import { installSearchService, installTagListContext, useTagListContext, useSear
 import { installTagTreeContext } from "@/layouts/data/TagTree"
 import { sleep } from "@/utils/process"
 import { useDetailViewContext, useMetadataEndpoint } from "../../inject"
+import { useMetaTagCallout } from "@/layouts/data/MetaTagCallout";
 
 export { useTagListContext, useSearchService }
 
@@ -361,10 +362,14 @@ function useMetaDatabaseTopicContext(httpClient: HttpClient, { handleError }: No
 
 function useMetaDatabaseTagContext() {
     const tagListContext = installTagListContext()
+    const metaTagCallout = useMetaTagCallout()
     installTagTreeContext({
         tagListContext,
         draggable(tag) {
             return tag.type === "TAG"
+        },
+        click(tag, _, e) {
+            metaTagCallout.open((e.currentTarget as Element).getBoundingClientRect(), "tag", tag.id)
         },
         rightClick(tag, context) {
             createPopupMenu([

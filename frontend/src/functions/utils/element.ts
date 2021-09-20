@@ -1,5 +1,6 @@
 import { ComponentPublicInstance, onMounted, onUnmounted, reactive, readonly, ref, Ref, toRef, watch } from "vue"
 import { watchGlobalKeyEvent } from "@/functions/document/global-key"
+import { sleep } from "@/utils/process"
 
 /**
  * 提供一个observer，监视一个Element的Resize事件。
@@ -30,7 +31,10 @@ export function watchElementResize(ref: Ref<HTMLElement | undefined>, event: (re
  * @param event 事件
  */
 export function watchElementExcludeClick(ref: Ref<HTMLElement | undefined>, event: (e: MouseEvent) => void) {
-    onMounted(() => {
+    onMounted(async() => {
+        //tips: 一个magic用法：如果某个click事件造成了此VCA挂载，但click target又不属于ref，那这次click事件仍会传递至本次click事件中
+        //  因此，制造一个微小的延迟，使挂载click事件晚于可能的触发事件
+        await sleep(1)
         document.addEventListener("click", clickDocument)
     })
 

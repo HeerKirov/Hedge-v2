@@ -2,7 +2,7 @@ import { computed, defineComponent, PropType } from "vue"
 import WrappedText from "@/components/elements/WrappedText"
 import Starlight from "@/components/elements/Starlight"
 import { SimpleMetaTagElement, TagmeInfo } from "@/layouts/display-components"
-import { SimpleAuthor, SimpleTopic, SimpleTag } from "@/functions/adapter-http/impl/all"
+import { MetaTagTypes, SimpleAuthor, SimpleTopic, SimpleTag } from "@/functions/adapter-http/impl/all"
 import {
     DateEditor, DateTimeEditor,
     DescriptionEditor, StarlightEditor,
@@ -12,6 +12,7 @@ import { usePopupMenu } from "@/functions/module"
 import { date, datetime, LocalDate, LocalDateTime } from "@/utils/datetime"
 import { useDetailViewContext, useMetadataEndpoint } from "../inject"
 import style from "./style.module.scss"
+import { useMetaTagCallout } from "@/layouts/data/MetaTagCallout";
 
 export default defineComponent({
     setup() {
@@ -103,6 +104,7 @@ const MetaTagDisplay = defineComponent({
         tags: {type: Array as PropType<SimpleTag[]>, required: true},
     },
     setup(props) {
+        const metaTagCallout = useMetaTagCallout()
         //TODO 完成tag popup menu的功能
         const menu = usePopupMenu([
             {type: "normal", "label": "查看标签详情页"},
@@ -113,12 +115,17 @@ const MetaTagDisplay = defineComponent({
             {type: "normal", "label": "复制此标签的全名"},
         ])
 
+        const onClick = (type: MetaTagTypes, id: number) => (e: MouseEvent) => {
+            const el = (e.currentTarget as Element)
+            metaTagCallout.open(el.getBoundingClientRect(), type, id)
+        }
+
         return () => !props.tags.length && !props.authors.length && !props.topics.length ? <div class="has-text-grey mt-1">
             <i>没有元数据标签</i>
         </div> : <div class={style.metaTag}>
-            {props.authors.map(author => <SimpleMetaTagElement key={`author-${author.id}`} type="author" value={author} onContextmenu={() => menu.popup()} wrappedByDiv={true}/>)}
-            {props.topics.map(topic => <SimpleMetaTagElement key={`topic-${topic.id}`} type="topic" value={topic} onContextmenu={() => menu.popup()} wrappedByDiv={true}/>)}
-            {props.tags.map(tag => <SimpleMetaTagElement key={`tag-${tag.id}`} type="tag" value={tag} onContextmenu={() => menu.popup()} wrappedByDiv={true}/>)}
+            {props.authors.map(author => <SimpleMetaTagElement key={`author-${author.id}`} type="author" value={author} onClick={onClick("author", author.id)} onContextmenu={() => menu.popup()} wrappedByDiv={true}/>)}
+            {props.topics.map(topic => <SimpleMetaTagElement key={`topic-${topic.id}`} type="topic" value={topic} onClick={onClick("topic", topic.id)} onContextmenu={() => menu.popup()} wrappedByDiv={true}/>)}
+            {props.tags.map(tag => <SimpleMetaTagElement key={`tag-${tag.id}`} type="tag" value={tag} onClick={onClick("tag", tag.id)} onContextmenu={() => menu.popup()} wrappedByDiv={true}/>)}
         </div>
     }
 })

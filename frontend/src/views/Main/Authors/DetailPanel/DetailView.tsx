@@ -187,5 +187,4 @@ const ExampleContent = defineComponent({
     }
 })
 
-const TYPE_ITEM_ELEMENTS: {[type in AuthorType]: JSX.Element} =
-    arrays.toMap(AUTHOR_TYPE_ENUMS, type => <><i class={`fa fa-${AUTHOR_TYPE_ICONS[type]} mr-2`}/><span class="mr-2">{AUTHOR_TYPE_NAMES[type]}</span></>)
+const TYPE_ITEM_ELEMENTS: {[type in AuthorType]: JSX.Element} = arrays.toMap(AUTHOR_TYPE_ENUMS, type => <><i class={`fa fa-${AUTHOR_TYPE_ICONS[type]} mr-2`}/><span class="mr-2">{AUTHOR_TYPE_NAMES[type]}</span></>)

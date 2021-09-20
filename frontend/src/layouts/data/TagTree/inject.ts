@@ -11,8 +11,8 @@ interface TagTreeContext {
     isEditable: Ref<boolean> | boolean
     isDraggable(tag: TagTreeNode): boolean
     event: {
-        click(tag: TagTreeNode)
-        rightClick(tag: TagTreeNode)
+        click(tag: TagTreeNode, e: MouseEvent)
+        rightClick(tag: TagTreeNode, e: MouseEvent)
     },
     isCursorPointer: boolean
     expandedInfo: ExpandedInfoContext
@@ -50,11 +50,11 @@ interface InstallTagTreeContext {
     /**
      * 单击时发生的事件。
      */
-    click?(tag: TagTreeNode, context: TagTreeEventCallbackContext)
+    click?(tag: TagTreeNode, context: TagTreeEventCallbackContext, e: MouseEvent)
     /**
      * 右键单击时发生的事件。
      */
-    rightClick?(tag: TagTreeNode, context: TagTreeEventCallbackContext)
+    rightClick?(tag: TagTreeNode, context: TagTreeEventCallbackContext, e: MouseEvent)
 }
 
 const tagTreeContextInjectionKey: InjectionKey<TagTreeContext> = Symbol()
@@ -99,14 +99,14 @@ export function installTagTreeContext(context: InstallTagTreeContext) {
         isEditable,
         isDraggable,
         event: {
-            click(tag: TagTreeNode) {
+            click(tag: TagTreeNode, e: MouseEvent) {
                 if(context.click) {
-                    context.click(tag, createEventContext(tag))
+                    context.click(tag, createEventContext(tag), e)
                 }
             },
-            rightClick(tag: TagTreeNode) {
+            rightClick(tag: TagTreeNode, e: MouseEvent) {
                 if(context.rightClick) {
-                    context.rightClick(tag, createEventContext(tag))
+                    context.rightClick(tag, createEventContext(tag), e)
                 }
             }
         },

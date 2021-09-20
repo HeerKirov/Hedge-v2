@@ -1,5 +1,6 @@
 import { computed, defineComponent, PropType, reactive, ref, watch } from "vue"
 import Input from "@/components/forms/Input"
+import { useMetaTagCallout } from "@/layouts/data/MetaTagCallout"
 import { SimpleMetaTagElement, TagAddressElement } from "@/layouts/display-components"
 import { AuthorType } from "@/functions/adapter-http/impl/author"
 import { TopicType } from "@/functions/adapter-http/impl/topic"
@@ -159,9 +160,11 @@ const AuthorItem = defineComponent({
             color: props.color,
             type: props.type
         }))
+        const metaTagCallout = useMetaTagCallout()
+        const click = (e: MouseEvent) => metaTagCallout.open((e.currentTarget as Element).getBoundingClientRect(), "author", props.id)
 
         return () => <div class={style.tagItem}>
-            <SimpleMetaTagElement type="author" value={data.value} draggable={true}/>
+            <SimpleMetaTagElement type="author" value={data.value} draggable={true} onClick={click}/>
         </div>
     }
 })
@@ -180,9 +183,11 @@ const TopicItem = defineComponent({
             color: props.color,
             type: props.type
         }))
+        const metaTagCallout = useMetaTagCallout()
+        const click = (e: MouseEvent) => metaTagCallout.open((e.currentTarget as Element).getBoundingClientRect(), "topic", props.id)
 
         return () => <div class={style.tagItem}>
-            <SimpleMetaTagElement type="topic" value={data.value} draggable={true}/>
+            <SimpleMetaTagElement type="topic" value={data.value} draggable={true} onClick={click}/>
         </div>
     }
 })

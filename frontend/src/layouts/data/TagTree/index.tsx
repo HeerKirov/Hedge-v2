@@ -44,8 +44,8 @@ const RootNodeItem = defineComponent({
             name: node.value.name,
             color: node.value.color
         })))
-        const click = () => event.click(node.value)
-        const rightClick = () => event.rightClick(node.value)
+        const click = (e: MouseEvent) => event.click(node.value, e)
+        const rightClick = (e: MouseEvent) => event.rightClick(node.value, e)
 
         onBeforeUnmount(() => elementRef.setElement(id.value, undefined))
 
@@ -130,8 +130,8 @@ const NodeItem = defineComponent({
         const isExpanded = useExpandedValue(computed(() => props.node.id))
         const draggable = computed(() => isDraggable(props.node))
 
-        const click = () => event.click(node.value)
-        const rightClick = () => event.rightClick(node.value)
+        const click = (e: MouseEvent) => event.click(node.value, e)
+        const rightClick = (e: MouseEvent) => event.rightClick(node.value, e)
         const setRef = (el: Element | ComponentPublicInstance | null) => elementRef.setElement(props.node.id, el)
 
         onBeforeUnmount(() => elementRef.setElement(props.node.id, undefined))

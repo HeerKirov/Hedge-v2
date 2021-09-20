@@ -1,4 +1,5 @@
-import { defineComponent, SetupContext } from "vue"
+import { defineComponent, PropType } from "vue"
+import { useMetaTagCallout } from "@/layouts/data/MetaTagCallout"
 import { SimpleMetaTagElement } from "@/layouts/display-components"
 import { MetaTagTypeValues } from "@/functions/adapter-http/impl/all"
 import { useDroppable } from "@/functions/drag"
@@ -28,7 +29,7 @@ const AuthorItems = defineComponent({
         const { typeFilter, editorData } = usePanelContext()
 
         return () => typeFilter.value.author ? editorData.authors.value.map((author, i) => (
-            <EditorItem key={author.id} type="author" value={author}
+            <EditorItem key={author.id} value={{type: "author", value: author}}
                         onClose={() => editorData.removeAt("author", i)}/>
         )) : undefined
     }
@@ -39,7 +40,7 @@ const TopicItems = defineComponent({
         const { typeFilter, editorData } = usePanelContext()
 
         return () => typeFilter.value.topic ? editorData.topics.value.map((topic, i) => (
-            <EditorItem key={topic.id} type="topic" value={topic}
+            <EditorItem key={topic.id} value={{type: "topic", value: topic}}
                         onClose={() => editorData.removeAt("topic", i)}/>
         )) : undefined
     }
@@ -50,17 +51,29 @@ const TagItems = defineComponent({
         const { typeFilter, editorData } = usePanelContext()
 
         return () => typeFilter.value.tag ? editorData.tags.value.map((tag, i) => (
-            <EditorItem key={tag.id} type="tag" value={tag}
+            <EditorItem key={tag.id} value={{type: "tag", value: tag}}
                         onClose={() => editorData.removeAt("tag", i)}/>
         )) : undefined
     }
 })
 
-function EditorItem(props: MetaTagTypeValues, { emit }: SetupContext) {
-    return <SimpleMetaTagElement class={style.tagItem} {...props} wrappedByDiv={true} v-slots={{
-        backOfWrap: () => <a class={["tag", `is-${props.value.color}`, style.closeButton]} onClick={() => emit("close")}><i class="fa fa-times"/></a>
-    }}/>
-}
+const EditorItem = defineComponent({
+    props: {
+        value: {type: Object as PropType<MetaTagTypeValues>, required: true}
+    },
+    emits: ["close"],
+    setup(props, { emit }) {
+        const metaTagCallout = useMetaTagCallout()
+
+        const click = (e: MouseEvent) => {
+            metaTagCallout.open((e.currentTarget as Element).getBoundingClientRect(), props.value.type, props.value.value.id)
+        }
+
+        return () => <SimpleMetaTagElement class={style.tagItem} {...props.value} wrappedByDiv={true} onClick={click} v-slots={{
+            backOfWrap: () => <a class={["tag", `is-${props.value.value.color}`, style.closeButton]} onClick={() => emit("close")}><i class="fa fa-times"/></a>
+        }}/>
+    }
+})
 
 const ValidationResult = defineComponent({
     setup() {

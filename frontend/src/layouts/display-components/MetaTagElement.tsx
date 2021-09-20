@@ -38,15 +38,18 @@ export const SimpleMetaTagElement = defineComponent({
          */
         canBeSelected: Boolean
     },
-    setup(props, { slots }) {
+    emits: ["click"],
+    setup(props, { emit, slots }) {
         const type = toRef(props, "type")
         const data = toRef(props, "value")
         const dragEvents = useDraggable(type, data)
 
+        const click = (e: MouseEvent) => emit("click", e)
+
         function renderElement() {
             const icon = props.type === "author" ? AUTHOR_TYPE_ICONS[(props.value as SimpleAuthor).type] : props.type === "topic" ? TOPIC_TYPE_ICONS[(props.value as SimpleTopic).type] : undefined
 
-            return <span class={`tag is-${props.value.color} is-cursor-${props.clickable ? "pointer" : "default"}`} draggable={props.draggable} {...dragEvents}>
+            return <span class={`tag is-${props.value.color} is-cursor-${props.clickable ? "pointer" : "default"}`} draggable={props.draggable} {...dragEvents} onClick={click}>
                 {[
                     slots.frontOfTag?.(),
                     icon && <i class={`fa fa-${icon} mr-1`}/>,

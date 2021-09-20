@@ -53,7 +53,6 @@ const SearchTextBox = defineComponent({
 
 const SearchResult = defineComponent({
     setup() {
-        const { openDetailPane } = useTagPaneContext()
         const { result } = useSearchService()
         const { scrollIntoView } = useTagTreeAccessor()
 
@@ -81,8 +80,6 @@ const SearchResultItem = defineComponent({
     setup(props, { expose }) {
         let elementRef: Element | null = null
 
-        //TODO 想要双击直接打开detail。怎么区分单击和双击？
-        const { openDetailPane } = useTagPaneContext()
         const { scrollIntoView } = useTagTreeAccessor()
 
         const click = () => scrollIntoView(props.node.id)
