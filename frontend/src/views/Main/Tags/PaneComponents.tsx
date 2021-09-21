@@ -3,12 +3,13 @@ import Input from "@/components/forms/Input"
 import CheckBox from "@/components/forms/CheckBox"
 import StdColorSelector from "@/components/forms/StdColorSelector"
 import WrappedText from "@/components/elements/WrappedText"
+import { TagLinkElement } from "@/layouts/display-components"
 import { OtherNameEditor } from "@/layouts/editor-components"
-import { IsGroup, TagType, TagTreeNode } from "@/functions/adapter-http/impl/tag"
+import { IsGroup, TagLink } from "@/functions/adapter-http/impl/tag"
 import { useDroppable } from "@/functions/drag"
 import { useMouseHover } from "@/functions/utils/element"
 import { onKeyEnter } from "@/utils/events"
-import { useTagListContext, useTagPaneContext } from "./inject"
+import { useTagListContext } from "./inject"
 import style from "./style.module.scss"
 
 export const TagGroupEditor = defineComponent({
@@ -96,7 +97,9 @@ export const DescriptionDisplay = defineComponent({
     props: {
         value: {type: String, required: true}
     },
-    emits: ["edit"],
+    emits: {
+        edit: () => true
+    },
     setup(props, { emit }) {
         const edit = () => emit("edit")
 
@@ -109,87 +112,34 @@ export const DescriptionDisplay = defineComponent({
     }
 })
 
-export const LinkDisplay = defineComponent({
+export const TagLinkEditor = defineComponent({
     props: {
-        value: {type: Array as any as PropType<number[]>, required: true}
+        value: {type: Array as any as PropType<TagLink[]>, required: true}
     },
-    setup(props) {
-        const { indexedInfo } = useTagListContext()
-        const tags = computed(() => props.value.map(link => indexedInfo.value[link]).filter(i => i != undefined).map(i => i.tag))
-
-        return () => tags.value.length
-            ? tags.value.map(link => <LinkElement key={link.id} value={link}/>)
-            : <p class="flex">
-                <span class="tag mr-1">
-                    <i class="fa fa-link"/>
-                </span>
-                <span class="tag">
-                    没有链接项
-                </span>
-            </p>
-    }
-})
-
-export const LinkElement = defineComponent({
-    props: {
-        value: {type: null as any as PropType<TagTreeNode>, required: true},
-        showCloseButton: Boolean
+    emits: {
+        updateValue: (_: TagLink[]) => true
     },
-    emits: ["delete"],
     setup(props, { emit }) {
-        const { openDetailPane } = useTagPaneContext()
-        const click = () => openDetailPane(props.value.id)
-        const del = () => emit("delete")
+        const { indexedInfo } = useTagListContext()
 
-        return () => {
-            const isAddr = props.value.type !== "TAG"
-            const isSequenced = props.value.group === "SEQUENCE" || props.value.group === "FORCE_AND_SEQUENCE"
-            const isForced = props.value.group === "FORCE" || props.value.group === "FORCE_AND_SEQUENCE"
-            const isGroup = props.value.group !== "NO"
-
-            return <p class="flex mb-1">
-                <span class="tag mr-1">
-                    <i class="fa fa-link"/>
-                </span>
-                <a class={["tag", props.value.color ? `is-${props.value.color}` : null, isAddr ? "is-light" : null]} onClick={click}>
-                    {isSequenced && <i class="fa fa-sort-alpha-down mr-1"/>}
-                    {isForced && <b class="mr-1">!</b>}
-                    {isGroup ? <>
-                        <b class="mr-1">{'{'}</b>
-                        {props.value.name}
-                        <b class="ml-1">{'}'}</b>
-                    </> : props.value.name}
-                </a>
-                {props.showCloseButton && <a class="tag ml-1" onClick={del}>
-                    <i class="fa fa-times"/>
-                </a>}
-            </p>
+        const add = (id: number) => {
+            const tag = indexedInfo.value[id].tag
+            emit("updateValue", [...props.value, {id: tag.id, name: tag.name, type: tag.type, group: tag.group, color: tag.color}])
         }
-    }
-})
-
-export const LinkEditor = defineComponent({
-    props: {
-        value: {type: Array as any as PropType<number[]>, required: true}
-    },
-    emits: ["updateValue"],
-    setup(props, { emit }) {
-        const { indexedInfo } = useTagListContext()
-        const tags = computed(() => props.value.map(link => indexedInfo.value[link]).filter(i => i != undefined).map(i => i.tag))
-
-        const add = (id: number) => emit("updateValue", [...props.value, id])
 
         const onDelete = (index: number) => () => emit("updateValue", [...props.value.slice(0, index), ...props.value.slice(index + 1)])
 
         return () => <div>
-            {tags.value.map((link, index) => <LinkElement key={link.id} value={link} showCloseButton={true} onDelete={onDelete(index)}/>)}
+            {props.value.map((link, index) => <TagLinkElement key={link.id} value={link} showCloseButton={true} onDelete={onDelete(index)}/>)}
             <LinkEditorDropArea onAdd={add}/>
         </div>
     }
 })
 
 const LinkEditorDropArea = defineComponent({
-    emits: ["add"],
+    emits: {
+        add: (_: number) => true
+    },
     setup(_, { emit }) {
         const { isDragover: __, ...dropEvents } = useDroppable("tag", tag => emit("add", tag.id))
 

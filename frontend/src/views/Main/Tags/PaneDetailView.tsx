@@ -1,10 +1,10 @@
 import { computed, defineComponent } from "vue"
 import Starlight from "@/components/elements/Starlight"
 import Select from "@/components/forms/Select"
-import { AnnotationElement, TagGroupDisplay, TagTypeDisplay, TagGroupMemberDisplay } from "@/layouts/display-components"
+import { AnnotationElement, TagGroupDisplay, TagTypeDisplay, TagGroupMemberDisplay, TagLinkDisplay } from "@/layouts/display-components"
 import { PaneBasicLayout } from "@/layouts/layouts/SplitPane"
 import { AnnotationEditor, DescriptionEditor, ViewAndEditor } from "@/layouts/editor-components"
-import { DetailTag, IsGroup, TagType, TagUpdateForm } from "@/functions/adapter-http/impl/tag"
+import { DetailTag, IsGroup, TagLink, TagType, TagUpdateForm } from "@/functions/adapter-http/impl/tag"
 import { SimpleAnnotation } from "@/functions/adapter-http/impl/annotations"
 import { useObjectEndpoint } from "@/functions/utils/endpoints/object-endpoint"
 import { useMessageBox } from "@/functions/module"
@@ -13,17 +13,18 @@ import { objects } from "@/utils/primitives"
 import { checkTagName } from "@/utils/check"
 import { TAG_TYPE_SELECT_ITEMS } from "./define"
 import {
-    TagGroupEditor, NameAndOtherNamesEditor, LinkEditor,
-    NameAndOtherNameDisplay, LinkDisplay, DescriptionDisplay
+    TagGroupEditor, NameAndOtherNamesEditor, TagLinkEditor,
+    NameAndOtherNameDisplay, DescriptionDisplay
 } from "./PaneComponents"
-import { useTagPaneContext, useTagListContext } from "./inject"
+import { useTagPaneContext, useTagListContext, useTagTreeAccessor } from "./inject"
 import style from "./style.module.scss"
 
 export default defineComponent({
     setup() {
         const message = useMessageBox()
         const { detailMode, closePane } = useTagPaneContext()
-        const { indexedInfo, descriptionCache, syncUpdateTag } = useTagListContext()
+        const { descriptionCache, syncUpdateTag } = useTagListContext()
+        const { scrollIntoView } = useTagTreeAccessor()
 
         const { data, setData } = useObjectEndpoint<number, DetailTag, TagUpdateForm>({
             path: detailMode,
@@ -37,16 +38,16 @@ export default defineComponent({
             }
         })
 
-        const attachedInfo = computed<{address: string | null, member: boolean, memberIndex: number | null}>(() => {
-            const info = detailMode.value != null ? indexedInfo.value[detailMode.value] : null
-            return info ? {
-                address: info.address.length ? info.address.map(i => i.name).join(".") : null,
-                member: info.isGroupMember !== "NO",
-                memberIndex: info.isGroupMember === "SEQUENCE" ? info.ordinal + 1 : null
-            } : {
-                address: null,
-                member: false,
-                memberIndex: null
+        const computedInfo = computed<{address: string | null, member: boolean, memberIndex: number | null}>(() => {
+            if(data.value !== null && data.value.parents.length) {
+                const address = data.value.parents.map(i => i.name).join(".")
+                const parent = data.value.parents[data.value.parents.length - 1]
+                const member = parent.group !== "NO"
+                const memberIndex = parent.group === "SEQUENCE" ? data.value.ordinal + 1 : null
+
+                return {address, member, memberIndex}
+            }else{
+                return {address: null, member: false, memberIndex: null}
             }
         })
 
@@ -111,11 +112,18 @@ export default defineComponent({
             return group === data.value?.group || await setData({ group })
         }
 
-        const setLinks = async (links: number[]) => {
-            return objects.deepEquals(links, data.value?.links) || await setData({ links }, e => {
+        const setLinks = async (links: TagLink[]) => {
+            return objects.deepEquals(links, data.value?.links) || await setData({ links: links.map(i => i.id) }, e => {
                 if(e.code === "NOT_EXIST") {
                     const [, id] = e.info
                     message.showOkMessage("error", "选择的作为链接的标签不存在。", `错误项: ${id}`)
+                }else if(e.code === "NOT_SUITABLE") {
+                    const [, id] = e.info
+                    const content = typeof id === "number" ? links.find(i => i.id === id)?.name ?? "unknown"
+                        : typeof id === "object" ? id.map(id => links.find(i => i.id === id)?.name ?? "unknown").join(", ")
+                            : id
+
+                    message.showOkMessage("error", "选择的作为链接的标签不可用。", `虚拟地址段不能用作链接。错误项: ${content}`)
                 }else{
                     return e
                 }
@@ -125,7 +133,7 @@ export default defineComponent({
         return () => <PaneBasicLayout onClose={closePane} class={style.paneDetailContent}>
             {data.value && <>
                 <p class={style.top}/>
-                {attachedInfo.value.address && <p class="can-be-selected">{attachedInfo.value.address}</p>}
+                {computedInfo.value.address && <p class="can-be-selected">{computedInfo.value.address}</p>}
                 <ViewAndEditor class={[style.title, "can-be-selected"]} baseline="medium" data={[data.value.name, data.value.otherNames, data.value.color]} onSetData={setName} v-slots={{
                     default: ({ value: [name, otherNames, color] }) => <NameAndOtherNameDisplay name={name} otherNames={otherNames} color={color}/>,
                     editor: ({ value: [name, otherNames, color], setValue, save }) => <NameAndOtherNamesEditor name={name} otherNames={otherNames} color={color} enableToSetColor={isRootNode.value} onSetValue={setValue} onSave={save}/>
@@ -139,12 +147,12 @@ export default defineComponent({
                         default: ({ value }) => <TagGroupDisplay value={value}/>,
                         editor: ({ value, setValue }) => <TagGroupEditor value={value} onUpdateValue={setValue}/>
                     }}/>
-                    <TagGroupMemberDisplay class="mt-1" member={attachedInfo.value.member} memberIndex={attachedInfo.value.memberIndex ?? undefined}/>
+                    <TagGroupMemberDisplay class="mt-1" member={computedInfo.value.member} memberIndex={computedInfo.value.memberIndex ?? undefined}/>
                 </div>
                 <p class={style.separator}/>
                 <ViewAndEditor class={style.annotations} data={data.value.annotations} onSetData={setAnnotations} v-slots={{
                     default: ({ value }: {value: SimpleAnnotation[]}) => value.length ? value.map(a => <AnnotationElement key={a.id} value={a}/>) : <span class="tag"><i class="has-text-grey">没有注解</i></span>,
-                    editor: ({ value, setValue }: {value: SimpleAnnotation[], setValue(v: SimpleAnnotation[]): void}) => <AnnotationEditor class="mb-1" value={value} onUpdateValue={setValue} target="TAG"/>
+                    editor: ({ value, setValue }: {value: SimpleAnnotation[], setValue(v: SimpleAnnotation[])}) => <AnnotationEditor class="mb-1" value={value} onUpdateValue={setValue} target="TAG"/>
                 }}/>
                 <ViewAndEditor data={data.value.description} onSetData={setDescription} showEditButton={false} showSaveButton={false} v-slots={{
                     default: ({ value, edit }) => <DescriptionDisplay value={value} onEdit={edit}/>,
@@ -152,8 +160,8 @@ export default defineComponent({
                 }}/>
                 <div class={style.links}>
                     <ViewAndEditor data={data.value.links} onSetData={setLinks} v-slots={{
-                        default: ({ value }: {value: number[]}) => <LinkDisplay value={value}/>,
-                        editor: ({ value, setValue }) => <LinkEditor value={value} onUpdateValue={setValue}/>
+                        default: ({ value }: {value: TagLink[]}) => <TagLinkDisplay value={value} onClick={scrollIntoView}/>,
+                        editor: ({ value, setValue }: {value: TagLink[], setValue(v: TagLink[])}) => <TagLinkEditor value={value} onUpdateValue={setValue}/>
                     }}/>
                 </div>
                 <div class={style.score}>

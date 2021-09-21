@@ -5,13 +5,13 @@ import { AnnotationEditor, DescriptionEditor } from "@/layouts/editor-components
 import { IdResponse } from "@/functions/adapter-http/impl/generic"
 import { SimpleIllust } from "@/functions/adapter-http/impl/illust"
 import { SimpleAnnotation } from "@/functions/adapter-http/impl/annotations"
-import { IsGroup, TagCreateForm, TagType } from "@/functions/adapter-http/impl/tag"
+import { IsGroup, TagCreateForm, TagLink, TagType } from "@/functions/adapter-http/impl/tag"
 import { useObjectCreator } from "@/functions/utils/endpoints/object-creator"
 import { useMessageBox } from "@/functions/module"
 import { checkTagName } from "@/utils/check"
 import { TAG_TYPE_SELECT_ITEMS } from "./define"
 import { useTagListContext, useTagPaneContext } from "./inject"
-import { NameAndOtherNamesEditor, TagGroupEditor, LinkEditor } from "./PaneComponents"
+import { NameAndOtherNamesEditor, TagGroupEditor, TagLinkEditor } from "./PaneComponents"
 import style from "./style.module.scss"
 
 export default defineComponent({
@@ -85,6 +85,13 @@ export default defineComponent({
                             : id
 
                         message.showOkMessage("error", "选择的注解不可用。", `选择的注解的导出目标设置使其无法导出至标签。错误项: ${content}`)
+                    }else if(type === "links") {
+                        const [, id] = e.info
+                        const content = typeof id === "number" ? form.value.links.find(i => i.id === id)?.name ?? "unknown"
+                            : typeof id === "object" ? id.map(id => form.value.links.find(i => i.id === id)?.name ?? "unknown").join(", ")
+                                : id
+
+                        message.showOkMessage("error", "选择的作为链接的标签不可用。", `虚拟地址段不能用作链接。错误项: ${content}`)
                     }else{
                         message.showOkMessage("prompt", `指定的资源${type}不适用。`)
                     }
@@ -117,7 +124,7 @@ export default defineComponent({
             </div>
             <DescriptionEditor value={form.value.description} onUpdateValue={v => form.value.description = v}/>
             <div class={style.links}>
-                <LinkEditor value={form.value.links} onUpdateValue={v => form.value.links = v}/>
+                <TagLinkEditor value={form.value.links} onUpdateValue={v => form.value.links = v}/>
             </div>
         </PaneBasicLayout>
     }
@@ -130,7 +137,7 @@ interface FormData {
     type: TagType
     otherNames: string[],
     group: IsGroup,
-    links: number[],
+    links: TagLink[],
     annotations: SimpleAnnotation[],
     description: string,
     color: string | null,
@@ -161,7 +168,7 @@ function mapToCreateForm(form: FormData): TagCreateForm {
         type: form.type,
         otherNames: form.otherNames,
         group: form.group,
-        links: form.links,
+        links: form.links.map(i => i.id),
         annotations: form.annotations.map(a => a.id),
         description: form.description,
         color: form.color,

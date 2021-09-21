@@ -77,6 +77,10 @@ export interface SimpleAnnotation {
     name: string
 }
 
+export interface DepsAnnotation extends SimpleAnnotation {
+    canBeExported: boolean
+}
+
 export interface AnnotationCreateForm {
     name: string
     canBeExported: boolean

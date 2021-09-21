@@ -1,8 +1,8 @@
-import { defineComponent, toRef } from "vue"
+import { computed, defineComponent, toRef } from "vue"
 import Starlight from "@/components/elements/Starlight"
 import WrappedText from "@/components/elements/WrappedText"
 import CalloutBox from "@/layouts/layouts/CalloutBox"
-import { AnnotationElement, TagGroupDisplay, TagGroupMemberDisplay, TagTypeDisplay } from "@/layouts/display-components"
+import { AnnotationElement, TagGroupDisplay, TagGroupMemberDisplay, TagLinkDisplay } from "@/layouts/display-components"
 import { TOPIC_TYPE_ENUMS, TOPIC_TYPE_ICONS, TOPIC_TYPE_NAMES } from "@/definitions/topic"
 import { AUTHOR_TYPE_ENUMS, AUTHOR_TYPE_ICONS, AUTHOR_TYPE_NAMES } from "@/definitions/author"
 import { useObjectEndpoint } from "@/functions/utils/endpoints/object-endpoint"
@@ -119,8 +119,21 @@ const TagDetail = defineComponent({
             get: httpClient => httpClient.tag.get
         })
 
+        const computedInfo = computed<{address: string | null, member: boolean, memberIndex: number | null}>(() => {
+            if(data.value !== null && data.value.parents.length) {
+                const address = data.value.parents.map(i => i.name).join(".")
+                const parent = data.value.parents[data.value.parents.length - 1]
+                const member = parent.group !== "NO"
+                const memberIndex = parent.group === "SEQUENCE" ? data.value.ordinal + 1 : null
+
+                return {address, member, memberIndex}
+            }else{
+                return {address: null, member: false, memberIndex: null}
+            }
+        })
+
         return () => data.value && <>
-            {/* TODO 需要调整API，从detail API中获得parent list，以构建address */}
+            {computedInfo.value.address && <p class="can-be-selected">{computedInfo.value.address}</p>}
             <p>
                 <span class={["icon", "is-size-medium", `has-text-${data.value.color}`, "mr-1"]}><i class="fa fa-tag"/></span>
                 <span class="can-be-selected">
@@ -128,15 +141,17 @@ const TagDetail = defineComponent({
                     <i class="ml-1 has-text-grey">{data.value.otherNames.join(" / ")}</i>
                 </span>
             </p>
-            <TagGroupDisplay class="mt-1" value={data.value.group}/>
-            <TagGroupMemberDisplay class="mt-1" member={false} memberIndex={undefined}/>{/* TODO 同样，需要调整API，从detail API中获得group member信息 */}
-            {(data.value.annotations.length || null) && <p class="mt-1">
+            {(data.value.group !== "NO" || null) && <TagGroupDisplay class="mt-1" value={data.value.group}/>}
+            <TagGroupMemberDisplay class="mt-1" member={computedInfo.value.member} memberIndex={computedInfo.value.memberIndex ?? undefined}/>
+            {(data.value.annotations.length || null) && <div class="mt-1">
                 {data.value.annotations.map(a => <AnnotationElement key={a.id} value={a}/>)}
-            </p>}
+            </div>}
             {(data.value.description || null) && <div class="py-2">
                 <WrappedText value={data.value.description}/>
             </div>}
-            {/* TODO 同样，需要调整API，从detail API中获得完整的tag link信息而不必查缓存。此外将TagLinkDisplay抽离为公共组件 */}
+            {(data.value.links.length || null) && <div class="mt-2">
+                <TagLinkDisplay value={data.value.links}/>
+            </div>}
             {data.value.score ? <p class="mt-2"><Starlight value={data.value.score} showText={true}/></p> : null}
         </>
     }

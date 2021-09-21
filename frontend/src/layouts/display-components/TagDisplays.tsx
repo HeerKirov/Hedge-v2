@@ -1,5 +1,6 @@
 import { defineComponent, PropType } from "vue"
-import { IsGroup, TagType } from "@/functions/adapter-http/impl/tag"
+import { TagNodeElement } from "@/layouts/display-components/MetaTagElement"
+import { IsGroup, TagLink, TagType } from "@/functions/adapter-http/impl/tag"
 
 export const TagTypeDisplay = defineComponent({
     props: {
@@ -47,6 +48,44 @@ export const TagGroupMemberDisplay = defineComponent({
         return () => <p>
             {props.member ? <><i class="fa fa-object-ungroup mr-1"/><span class="mr-3">组成员</span></> : null}
             {props.memberIndex ? <><i class="fa fa-sort-alpha-down mr-1"/><span class="mr-1">序列化顺位</span><b>{props.memberIndex}</b></> : null}
+        </p>
+    }
+})
+
+export const TagLinkDisplay = defineComponent({
+    props: {
+        value: {type: Array as any as PropType<TagLink[]>, required: true}
+    },
+    emits: {
+        click: (_: number) => true
+    },
+    setup(props, { emit }) {
+        return () => props.value.length
+            ? props.value.map(link => <TagLinkElement key={link.id} value={link} onClick={() => emit("click", link.id)}/>)
+            : <p class="flex">
+                <span class="tag mr-1"><i class="fa fa-link"/></span>
+                <span class="tag">没有链接项</span>
+            </p>
+    }
+})
+
+export const TagLinkElement = defineComponent({
+    props: {
+        value: {type: null as any as PropType<TagLink>, required: true},
+        showCloseButton: Boolean
+    },
+    emits: {
+        click: () => true,
+        delete: () => true
+    },
+    setup(props, { emit }) {
+        const click = () => emit("click")
+        const del = () => emit("delete")
+
+        return () => <p class="flex mb-1">
+            <span class="tag mr-1"><i class="fa fa-link"/></span>
+            <TagNodeElement node={props.value} onClick={click}/>
+            {props.showCloseButton && <a class="tag ml-1" onClick={del}><i class="fa fa-times"/></a>}
         </p>
     }
 })

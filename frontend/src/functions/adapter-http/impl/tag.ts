@@ -1,5 +1,6 @@
 import { HttpInstance, Response } from "../server"
 import { IdResponse, LimitAndOffsetFilter, ListResult, OrderList } from "./generic"
+import { DepsAnnotation } from "./annotations"
 import { SimpleIllust } from "./illust"
 
 export function createTagEndpoint(http: HttpInstance): TagEndpoint {
@@ -96,9 +97,13 @@ export interface Tag {
 
 export interface DetailTag extends Tag {
     /**
+     * 此标签的父标签列表。根节点在最前，直接父节点在最后。
+     */
+    parents: TagParent[]
+    /**
      * 标签链接的其他标签的tag id。
      */
-    links: number[]
+    links: TagLink[]
     /**
      * 标签的描述内容。
      */
@@ -110,7 +115,7 @@ export interface DetailTag extends Tag {
     /**
      * 标签的注解。
      */
-    annotations: {id: number, name: string, canBeExported: boolean}[]
+    annotations: DepsAnnotation[]
     /**
      * 标签关联的项目的平均分。
      */
@@ -139,6 +144,21 @@ export interface SimpleTag {
 
 export interface DepsTag extends SimpleTag {
     isExported: boolean
+}
+
+export interface TagLink {
+    id: number
+    name: string
+    type: TagType
+    group: IsGroup
+    color: string | null
+}
+
+export interface TagParent {
+    id: number
+    name: string
+    type: TagType
+    group: IsGroup
 }
 
 export interface TagCreateForm {

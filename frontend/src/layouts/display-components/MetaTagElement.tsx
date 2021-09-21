@@ -1,7 +1,7 @@
 import { ComponentPublicInstance, computed, defineComponent, PropType, toRef } from "vue"
 import { MetaTagTypes, MetaTagValues, SimpleAuthor, SimpleTopic } from "@/functions/adapter-http/impl/all"
 import { SimpleAnnotation } from "@/functions/adapter-http/impl/annotations"
-import { IsGroup, TagTreeNode, TagType } from "@/functions/adapter-http/impl/tag"
+import { IsGroup, TagType } from "@/functions/adapter-http/impl/tag"
 import { AUTHOR_TYPE_ICONS } from "@/definitions/author"
 import { TOPIC_TYPE_ICONS } from "@/definitions/topic"
 import { useDraggable } from "@/functions/drag"
@@ -76,7 +76,7 @@ export const TagNodeElement = defineComponent({
         /**
          * 值。
          */
-        node: {type: Object as PropType<TagTreeNode>, required: true},
+        node: {type: Object as PropType<{id: number, name: string, color: string | null, type: TagType, group: IsGroup}>, required: true},
         /**
          * 自动处理拖拽。会拖拽标准的meta tag对象。
          */
