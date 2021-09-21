@@ -156,16 +156,20 @@ class TagService(private val data: DataRepository,
             .where { Illusts.id inList tag.examples }
             .map { IllustSimpleRes(it[Illusts.id]!!, takeThumbnailFilepath(it)) }
 
-        return newTagDetailRes(tag, annotations, examples)
+        val links = if(tag.links.isNullOrEmpty()) emptyList() else data.db.sequenceOf(Tags).filter { it.id inList tag.links }.map { TagDetailRes.Link(it.id, it.name, it.type, it.isGroup, it.color) }
+
+        val parents = kit.getAllParents(tag).map { TagDetailRes.Parent(it.id, it.name, it.type, it.isGroup) }
+
+        return newTagDetailRes(tag, parents, links, annotations, examples)
     }
 
+    @Deprecated("虽然写了但没有被用到的API，预计不会用到了")
     fun getIndexedInfo(id: Int): TagIndexedInfoRes {
         val tag = data.db.sequenceOf(Tags).firstOrNull { it.id eq id } ?: throw NotFound()
 
         return if(tag.parentId != null) {
-            val parentTag = data.db.sequenceOf(Tags).first { it.id eq tag.parentId }
-
-            val address = kit.getAllParents(parentTag)
+            val address = kit.getAllParents(tag)
+            val parentTag = address.last()
 
             val member = parentTag.isGroup != Tag.IsGroup.NO
             val memberIndex = if(parentTag.isGroup == Tag.IsGroup.FORCE_AND_SEQUENCE || parentTag.isGroup == Tag.IsGroup.SEQUENCE) tag.ordinal else null

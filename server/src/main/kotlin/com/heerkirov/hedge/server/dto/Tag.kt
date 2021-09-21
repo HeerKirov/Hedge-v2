@@ -18,13 +18,17 @@ data class TagTreeNode(val id: Int, val name: String, val otherNames: List<Strin
                        val type: Tag.Type, val group: Tag.IsGroup, val color: String?,
                        val children: List<TagTreeNode>?)
 
-data class TagDetailRes(val id: Int, val ordinal: Int, val parentId: Int?,
+data class TagDetailRes(val id: Int, val ordinal: Int, val parentId: Int?, val parents: List<Parent>,
                         val name: String, val otherNames: List<String>,
-                        val type: Tag.Type, val group: Tag.IsGroup, val links: List<Int>,
+                        val type: Tag.Type, val group: Tag.IsGroup, val links: List<Link>,
                         val description: String, val color: String?,
                         val examples: List<IllustSimpleRes>, val annotations: List<Annotation>,
                         val score: Int?, val count: Int) {
     data class Annotation(val id: Int, val name: String, val canBeExported: Boolean)
+
+    data class Link(val id: Int, val name: String, val type: Tag.Type, val group: Tag.IsGroup, val color: String?)
+
+    data class Parent(val id: Int, val name: String, val type: Tag.Type, val group: Tag.IsGroup)
 }
 
 data class TagIndexedInfoRes(val id: Int, val name: String, val otherNames: List<String>,
@@ -74,11 +78,11 @@ fun newTagRes(tag: Tag) = TagRes(tag.id, tag.ordinal, tag.parentId, tag.name, ta
 
 fun newTagTreeNode(tag: Tag, children: List<TagTreeNode>?) = TagTreeNode(tag.id, tag.name, tag.otherNames, tag.type, tag.isGroup, tag.color, children)
 
-fun newTagDetailRes(tag: Tag, annotations: List<TagDetailRes.Annotation>, examples: List<IllustSimpleRes>) = TagDetailRes(tag.id, tag.ordinal, tag.parentId,
-    tag.name, tag.otherNames,
-    tag.type, tag.isGroup, tag.links ?: emptyList(), tag.description, tag.color,
-    examples, annotations,
-    tag.exportedScore, tag.cachedCount)
+fun newTagDetailRes(tag: Tag, parents: List<TagDetailRes.Parent>, links: List<TagDetailRes.Link>, annotations: List<TagDetailRes.Annotation>, examples: List<IllustSimpleRes>) = TagDetailRes(
+    tag.id, tag.ordinal, tag.parentId, parents,
+    tag.name, tag.otherNames, tag.type, tag.isGroup,
+    links, tag.description, tag.color,
+    examples, annotations, tag.exportedScore, tag.cachedCount)
 
 fun newTagIndexedInfoRes(tag: Tag, address: List<Tag>, member: Boolean, memberIndex: Int?) = TagIndexedInfoRes(
     tag.id, tag.name, tag.otherNames, tag.type, tag.isGroup, tag.description, tag.color,

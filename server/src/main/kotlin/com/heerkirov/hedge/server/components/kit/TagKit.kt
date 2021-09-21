@@ -52,7 +52,7 @@ class TagKit(private val data: DataRepository, private val annotationManager: An
 
             val wrongLinks = links.filter { it.type === Tag.Type.VIRTUAL_ADDR }
             if(wrongLinks.isNotEmpty()) {
-                throw ResourceNotSuitable("links", wrongLinks)
+                throw ResourceNotSuitable("links", wrongLinks.map { it.id })
             }
 
             newLinks
@@ -105,11 +105,14 @@ class TagKit(private val data: DataRepository, private val annotationManager: An
     }
 
     /**
-     * 从给出的tag开始向上请求，拿到整个address。最终结果包括初始tag。
+     * 从给出的tag开始向上请求，拿到它的所有parent address。最终结果不包括初始tag。address的顺序是root在最前，直接父标签在最后。
      */
     fun getAllParents(tag: Tag): List<Tag> {
-        val ret = LinkedList<Tag>().also { it.add(tag) }
+        if(tag.parentId == null) {
+            return emptyList()
+        }
 
+        val ret = LinkedList<Tag>()
         var current = tag
         while (current.parentId != null) {
             val next = data.db.sequenceOf(Tags).first { it.id eq current.parentId!! }
