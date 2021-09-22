@@ -3,13 +3,17 @@ import Input from "@/components/forms/Input"
 import Select from "@/components/forms/Select"
 import { useSettingSite } from "@/functions/api/setting"
 
+export interface SourceIdentity {source: string | null, sourceId: number | null, sourcePart: number | null}
+
 export default defineComponent({
     props: {
-        source: null as any as PropType<string | null>,
-        sourceId: null as any as PropType<number | null>,
-        sourcePart: null as any as PropType<number | null>
+        source: {type: null as any as PropType<string | null>, required: true},
+        sourceId: {type: null as any as PropType<number | null>, required: true},
+        sourcePart: {type: null as any as PropType<number | null>, required: true}
     },
-    emits: ["updateValue"],
+    emits: {
+        updateValue: (_: SourceIdentity) => true
+    },
     setup(props, { emit }) {
         const { data: siteList } = useSettingSite()
 

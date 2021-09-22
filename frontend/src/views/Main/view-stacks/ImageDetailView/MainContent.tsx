@@ -5,6 +5,7 @@ import TopBarCollapseLayout from "@/layouts/layouts/TopBarCollapseLayout"
 import { assetsUrl, usePopupMenu } from "@/functions/app"
 import TopBarContent from "./TopBarContent"
 import MetaTagPanel from "./SideDrawer/MetaTagPanel"
+import SourcePanel from "./SideDrawer/SourcePanel"
 import { useDetailViewContext } from "./inject"
 
 export default defineComponent({
@@ -40,7 +41,8 @@ export default defineComponent({
         return () => <>
             <TopBarCollapseLayout v-slots={topBarLayoutSlots}/>
             <SideDrawer tab={drawerTab.value} onClose={closeDrawerTab} v-slots={{
-                "metaTag": () => <MetaTagPanel/>
+                "metaTag": () => <MetaTagPanel/>,
+                "source": () => <SourcePanel/>
             }}/>
         </>
     }

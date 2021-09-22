@@ -1,5 +1,6 @@
 import { defineComponent, PropType, ref, toRef } from "vue"
 import { SideBar } from "@/layouts/layouts/SideLayout"
+import { useLocalStorageWithDefault } from "@/functions/app"
 import { watchGlobalKeyEvent } from "@/functions/document/global-key"
 import SideBarDetailInfo from "./SideBarDetailInfo"
 import SideBarOriginData from "./SideBarOriginData"
@@ -8,7 +9,7 @@ import SideBarFileInfo from "./SideBarFileInfo"
 
 export default defineComponent({
     setup() {
-        const tab = ref<TabType>("info")
+        const tab = useLocalStorageWithDefault<TabType>("detail-view/side-bar/tab", "info")
         const updateTab = (v: TabType) => tab.value = v
 
         watchGlobalKeyEvent(e => {

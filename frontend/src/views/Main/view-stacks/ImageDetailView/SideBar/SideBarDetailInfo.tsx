@@ -32,7 +32,7 @@ export default defineComponent({
             return orderTime.timestamp === data.value?.orderTime?.timestamp || await setData({orderTime})
         }
 
-        const openMetaTagEditor = () => drawerTab.value = drawerTab.value = "metaTag"
+        const openMetaTagEditor = () => drawerTab.value = "metaTag"
 
         return () => <div class={style.detailInfoPanel}>
             <p><i class="fa fa-id-card mr-2"/><b class="can-be-selected">{target.value?.id}</b></p>

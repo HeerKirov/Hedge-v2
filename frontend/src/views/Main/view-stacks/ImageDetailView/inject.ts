@@ -21,7 +21,7 @@ export interface DetailViewContext {
     }
     detail: Targets
     ui: {
-        drawerTab: Ref<"metaTag" | undefined>
+        drawerTab: Ref<"metaTag" | "source" | undefined>
     }
 }
 

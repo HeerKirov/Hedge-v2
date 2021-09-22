@@ -1,19 +1,43 @@
 import { defineComponent, PropType, ref } from "vue"
 import WrappedText from "@/components/elements/WrappedText"
-import Input from "@/components/forms/Input"
 import { SourceInfo } from "@/layouts/display-components"
-import { DescriptionEditor, SourceEditor, ViewAndEditor } from "@/layouts/editor-components"
+import { SourceEditor, ViewAndEditable, ViewAndEditor, SourceIdentity } from "@/layouts/editor-components"
 import { SourceTag } from "@/functions/adapter-http/impl/illust"
 import { installSettingSite } from "@/functions/api/setting"
 import { useMessageBox } from "@/functions/document/message-box"
-import { useOriginDataEndpoint } from "../inject"
+import { useDetailViewContext, useOriginDataEndpoint } from "../inject"
 import style from "./style.module.scss"
 
 export default defineComponent({
     setup() {
         installSettingSite()
+        const message = useMessageBox()
+        const { ui: { drawerTab } } = useDetailViewContext()
         const { data, setData } = useOriginDataEndpoint()
 
+        const setSourceIdentity = async (value: SourceIdentity) => {
+            return (value.source === data.value?.source && value.sourceId === data.value?.sourceId && value.sourcePart === data.value?.sourcePart) || await setData(value, e => {
+                if(e.code === "NOT_EXIST") {
+                    message.showOkMessage("error", `来源${value.source}不存在。`)
+                }else if(e.code === "PARAM_ERROR") {
+                    const target = e.info === "sourceId" ? "来源ID" : e.info === "sourcePart" ? "分P" : e.info
+                    message.showOkMessage("error", `${target}的值内容错误。`, "ID只能是自然数。")
+                }else if(e.code === "PARAM_REQUIRED") {
+                    const target = e.info === "sourceId" ? "来源ID" : e.info === "sourcePart" ? "分P" : e.info
+                    message.showOkMessage("error", `${target}属性缺失。`)
+                }else if(e.code === "PARAM_NOT_REQUIRED") {
+                    if(e.info === "sourcePart") {
+                        message.showOkMessage("error", `分P属性不需要填写，因为选择的来源类型不支持分P。`)
+                    }else if(e.info === "sourceId/sourcePart") {
+                        message.showOkMessage("error", `来源ID/分P属性不需要填写，因为未指定来源类型。`)
+                    }else{
+                        message.showOkMessage("error", `${e.info}属性不需要填写。`)
+                    }
+                }else{
+                    return e
+                }
+            })
+        }
         const setTitle = async (title: string) => {
             return title === data.value?.title || await setData({ title })
         }
@@ -30,25 +54,20 @@ export default defineComponent({
             return tags === data.value?.tags || await setData({ tags })
         }
 
+        const openSourceEditor = () => drawerTab.value = "source"
+
         return () => <div class={style.originDataPanel}>
             {data.value && (data.value.source !== null && data.value.sourceId !== null ? <>
-                <SourceInfo source={data.value.source} sourceId={data.value.sourceId} sourcePart={data.value.sourcePart}/>
-                <ViewAndEditor class="my-2" data={data.value.title} onSetData={setTitle} baseline="medium" v-slots={{
-                    default: ({ value }) => <TitleDisplay value={value}/>,
-                    editor: ({ value, setValue }) => <Input value={value} onUpdateValue={setValue} refreshOnInput={true} focusOnMounted={true}/>
+                <ViewAndEditor data={{source: data.value.source, sourceId: data.value.sourceId, sourcePart: data.value.sourcePart}} onSetData={setSourceIdentity} v-slots={{
+                    default: ({ value}: {value: SourceIdentity}) => <SourceInfo {...value}/>,
+                    editor: ({ value, setValue }: {value: SourceIdentity, setValue(_: SourceIdentity)}) => <SourceEditor {...value} onUpdateValue={setValue}/>
                 }}/>
-                <ViewAndEditor class="my-2" data={data.value.description} onSetData={setDescription} showSaveButton={false} v-slots={{
-                    default: ({ value }) => <DescriptionDisplay value={value}/>,
-                    editor: ({ value, setValue, save }) => <DescriptionEditor value={value ?? ""} onUpdateValue={setValue} onSave={save} showSaveButton={true}/>
-                }}/>
-                <ViewAndEditor class="my-2" data={{parents: data.value.parents, children: data.value.children, pools: data.value.pools}} onSetData={setRelations} v-slots={{
-                    default: ({ value: { parents, children, pools } }: {value: {parents: number[], children: number[], pools: string[]}}) => <RelationsDisplay parents={parents} children={children} pools={pools}/>,
-                    editor: ({ value, setValue }) => undefined
-                }}/>
-                <ViewAndEditor class="my-2" data={data.value.tags} onSetData={setTags} v-slots={{
-                    default: ({ value }: {value: SourceTag[]}) => <SourceTagDisplay value={value}/>,
-                    editor: ({ value, setValue }) => <SourceTagEditor value={value} onUpdateValue={setValue}/>
-                }}/>
+                <ViewAndEditable class="mt-2" onEdit={openSourceEditor}>
+                    <TitleDisplay value={data.value.title}/>
+                    <DescriptionDisplay value={data.value.description}/>
+                    <RelationsDisplay parents={data.value.parents} children={data.value.children} pools={data.value.pools}/>
+                    <SourceTagDisplay value={data.value.tags}/>
+                </ViewAndEditable>
             </> : <NoOriginDataBoard/>)}
         </div>
     }
@@ -61,7 +80,7 @@ const NoOriginDataBoard = defineComponent({
 
         const createMode = ref(false)
 
-        const source = ref<{source: string | null, sourceId: number | null, sourcePart: number | null}>({source: null, sourceId: null, sourcePart: null})
+        const source = ref<SourceIdentity>({source: null, sourceId: null, sourcePart: null})
 
         const save = async () => {
             const ok = await setData({...source.value}, e => {
