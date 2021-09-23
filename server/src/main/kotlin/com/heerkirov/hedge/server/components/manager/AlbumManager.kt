@@ -5,21 +5,20 @@ import com.heerkirov.hedge.server.components.kit.AlbumKit
 import com.heerkirov.hedge.server.dao.album.AlbumImageRelations
 import com.heerkirov.hedge.server.dao.album.Albums
 import com.heerkirov.hedge.server.dao.illust.Illusts
-import com.heerkirov.hedge.server.model.album.Album
 import com.heerkirov.hedge.server.utils.DateTime
-import com.heerkirov.hedge.server.utils.ktorm.first
 import org.ktorm.dsl.*
 import org.ktorm.entity.filter
-import org.ktorm.entity.map
 import org.ktorm.entity.sequenceOf
+import org.ktorm.entity.toList
 
 class AlbumManager(private val data: DataRepository, private val kit: AlbumKit) {
     /**
      * 从所有的albums中平滑移除一个image项。将数量统计-1。如果删掉的image是封面，重新获得下一张封面。
      */
     fun removeItemInAllAlbums(imageId: Int) {
-        val relations = data.db.sequenceOf(AlbumImageRelations).filter { it.imageId eq imageId }
-        val albumIds = relations.map { it.albumId }
+        val relations = data.db.sequenceOf(AlbumImageRelations).filter { it.imageId eq imageId }.toList()
+        val albumIds = relations.asSequence().map { it.albumId }.toSet()
+
         for ((albumId, _, ordinal) in relations) {
             data.db.update(AlbumImageRelations) {
                 where { (it.albumId eq albumId) and (it.ordinal greater ordinal) }

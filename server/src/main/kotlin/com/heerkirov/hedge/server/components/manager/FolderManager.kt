@@ -7,16 +7,17 @@ import com.heerkirov.hedge.server.dao.collection.Folders
 import com.heerkirov.hedge.server.utils.DateTime
 import org.ktorm.dsl.*
 import org.ktorm.entity.filter
-import org.ktorm.entity.map
 import org.ktorm.entity.sequenceOf
+import org.ktorm.entity.toList
 
 class FolderManager(private val data: DataRepository, private val kit: FolderKit) {
     /**
      * 从所有的folders中平滑移除一个image项。
      */
     fun removeItemInAllFolders(imageId: Int) {
-        val relations = data.db.sequenceOf(FolderImageRelations).filter { it.imageId eq imageId }
-        val folderIds = relations.map { it.folderId }
+        val relations = data.db.sequenceOf(FolderImageRelations).filter { it.imageId eq imageId }.toList()
+        val folderIds = relations.asSequence().map { it.folderId }.toSet()
+
         for ((folderId, _, ordinal) in relations) {
             data.db.update(FolderImageRelations) {
                 where { (it.folderId eq folderId) and (it.ordinal greater ordinal) }
