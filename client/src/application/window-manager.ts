@@ -17,7 +17,7 @@ export interface WindowManager {
     /**
      * 创建一个承载一般业务的普通窗口。
      */
-    createWindow(routeName?: string, routeParam?: any): BrowserWindow | null
+    createWindow(url?: string): BrowserWindow | null
     /**
      * 打开guide窗口。
      */
@@ -64,7 +64,7 @@ export function createWindowManager(state: StateManager, options: WindowManagerO
         registerIpcRemoteEvent(win)
 
         if(options.debug?.frontendFromURL) {
-            win.loadURL(options.debug.frontendFromURL + (hashURL ? `#/${hashURL}` : '')).finally(() => {})
+            win.loadURL(options.debug.frontendFromURL + (hashURL ? `#${hashURL}` : '')).finally(() => {})
         }else if(options.debug?.frontendFromFolder) {
             win.loadFile(path.join(options.debug.frontendFromFolder, RESOURCE_FILE.FRONTEND.INDEX), {hash: hashURL}).finally(() => {})
         }else{
@@ -78,7 +78,7 @@ export function createWindowManager(state: StateManager, options: WindowManagerO
         ready = true
     }
 
-    function createWindow(routeName?: string, routeParam?: any): BrowserWindow | null {
+    function createWindow(url?: string): BrowserWindow | null {
         if(!ready || state.state() !== State.LOADED) {
             //在未登录时，只允许开启一个主要窗口。开启第二窗口只会去唤醒已有窗口。
             for (let window of getAllWindows()) {
@@ -88,10 +88,8 @@ export function createWindowManager(state: StateManager, options: WindowManagerO
                 }
             }
         }
-        if(routeName) {
-            const param = routeParam ? `&param=${encodeURIComponent(JSON.stringify(routeParam))}` : ''
-            const hashURL = `?route=${encodeURIComponent(routeName)}${param}`
-            return newBrowserWindow(hashURL)
+        if(url) {
+            return newBrowserWindow(url)
         }
         return newBrowserWindow("")
     }
@@ -101,7 +99,7 @@ export function createWindowManager(state: StateManager, options: WindowManagerO
             return null
         }
         if(settingWindow == null) {
-            settingWindow = newBrowserWindow('setting', {titleBarStyle: "hidden", width: 820, height: 640, fullscreenable: false})
+            settingWindow = newBrowserWindow('/setting', {titleBarStyle: "hidden", width: 820, height: 640, fullscreenable: false})
             settingWindow.on("closed", () => {
                 settingWindow = null
             })
@@ -116,7 +114,7 @@ export function createWindowManager(state: StateManager, options: WindowManagerO
             return null
         }
         if(guideWindow == null) {
-            guideWindow = newBrowserWindow('guide', {titleBarStyle: "hidden", width: 875})
+            guideWindow = newBrowserWindow('/guide', {titleBarStyle: "hidden", width: 875})
             guideWindow.on("closed", () => {
                 guideWindow = null
             })

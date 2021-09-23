@@ -86,8 +86,8 @@ export function createService(appdata: AppDataDriver, configuration: Configurati
             }
         },
         window: {
-            async openNewWindow(form?: NewWindowOptions): Promise<void> {
-                window.createWindow(form?.routeName, form?.routeParam)
+            async openNewWindow(url?: string): Promise<void> {
+                window.createWindow(url)
             },
             async openSetting(): Promise<void> {
                 window.openSettingWindow()
