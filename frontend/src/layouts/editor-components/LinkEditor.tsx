@@ -1,7 +1,7 @@
 import { defineComponent, PropType, reactive } from "vue"
 import Input from "@/components/forms/Input"
 import { Link } from "@/functions/adapter-http/impl/generic"
-import { useMessageBox } from "@/functions/document/message-box"
+import { useMessageBox } from "@/functions/module/message-box"
 import { onKeyEnter } from "@/utils/events"
 
 

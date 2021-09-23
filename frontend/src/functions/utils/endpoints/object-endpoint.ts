@@ -2,7 +2,7 @@ import { ref, Ref, watch } from "vue"
 import { HttpClient, Response } from "@/functions/adapter-http"
 import { HttpException } from "@/functions/adapter-http/exception"
 import { useHttpClient } from "@/functions/app"
-import { useNotification } from "@/functions/module"
+import { useToast } from "@/functions/module/toast"
 
 /* 此处提供了VCA形态的rest api端点调用器。目标是处理更复杂的detail对象。
     它的目标是处理支持retrieve, patch, delete的更复杂的模型，且支持path变更。
@@ -70,7 +70,7 @@ export interface ErrorHandler {
 
 export function useObjectEndpoint<PATH, MODEL, FORM>(options: ObjectEndpointOptions<PATH, MODEL, FORM>): ObjectEndpoint<MODEL, FORM> {
     const httpClient = useHttpClient()
-    const notification = useNotification()
+    const notification = useToast()
 
     const method = {
         get: options.get(httpClient),

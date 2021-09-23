@@ -1,8 +1,8 @@
 import { computed, defineComponent, inject, InjectionKey, PropType, provide, Ref, toRef } from "vue"
 import { useScrollView, VirtualGrid } from "@/components/features/VirtualScrollView"
 import { Illust } from "@/functions/adapter-http/impl/illust"
-import { useNotification } from "@/functions/document/notification"
-import { watchGlobalKeyEvent } from "@/functions/document/global-key"
+import { useToast } from "@/functions/module/toast"
+import { watchGlobalKeyEvent } from "@/functions/feature/keyboard"
 import { PaginationData, QueryEndpointInstance } from "@/functions/utils/endpoints/query-endpoint"
 import { assetsUrl, useAppInfo } from "@/functions/app"
 import { arrays } from "@/utils/collections"
@@ -130,7 +130,7 @@ const Item = defineComponent({
 
 function useSelector(data: Ref<PaginationData<Illust>>, columnNum: Ref<number>, queryEndpoint: QueryEndpointInstance<Illust> | undefined, emitSelectEvent: EmitSelectFunction) {
     const scrollView = useScrollView()
-    const { notify } = useNotification()
+    const { toast } = useToast()
     const { selected, lastSelected } = inject(selectContextInjection)!
 
     const select = (index: number, illustId: number) => {
@@ -147,7 +147,7 @@ function useSelector(data: Ref<PaginationData<Illust>>, columnNum: Ref<number>, 
             emitSelectEvent([...selected.value.slice(0, find), ...selected.value.slice(find + 1)], null)
         }else{
             if(selected.value.length + 1 > SELECTED_MAX) {
-                notify("选择上限", "warning", `选择的数量超过上限: 最多可选择${SELECTED_MAX}项。`)
+                toast("选择上限", "warning", `选择的数量超过上限: 最多可选择${SELECTED_MAX}项。`)
                 return
             }
             emitSelectEvent([...selected.value, illustId], illustId)
@@ -164,7 +164,7 @@ function useSelector(data: Ref<PaginationData<Illust>>, columnNum: Ref<number>, 
             if(queryEndpoint !== undefined) {
                 const result = await getShiftSelectItems(queryEndpoint, illustId, lastSelected.value)
                 if(result === null) {
-                    notify("选择失败", "warning", "内部错误: 无法正确获取选择项。")
+                    toast("选择失败", "warning", "内部错误: 无法正确获取选择项。")
                     return
                 }
                 const ret: number[] = []
@@ -176,7 +176,7 @@ function useSelector(data: Ref<PaginationData<Illust>>, columnNum: Ref<number>, 
                 ret.push(...result)
 
                 if(ret.length > SELECTED_MAX) {
-                    notify("选择上限", "warning", `选择的数量超过上限: 最多可选择${SELECTED_MAX}项。`)
+                    toast("选择上限", "warning", `选择的数量超过上限: 最多可选择${SELECTED_MAX}项。`)
                     return
                 }
                 emitSelectEvent(ret, illustId)

@@ -17,7 +17,7 @@ export interface IpcService {
         webAccessUrls(): Promise<string[]>
     }
     window: {
-        openNewWindow(form?: NewWindowOptions): Promise<void>
+        openNewWindow(url?: string): Promise<void>
         openSetting(): Promise<void>
         openGuide(): Promise<void>
     }

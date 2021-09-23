@@ -3,8 +3,8 @@ import { SearchBoxPicker, SearchRequestFunction, SearchResultAttachItem } from "
 import { AnnotationElement } from "@/layouts/display-components"
 import { AnnotationTarget, SimpleAnnotation } from "@/functions/adapter-http/impl/annotations"
 import { HttpClient } from "@/functions/adapter-http"
-import { NotificationManager } from "@/functions/document/notification"
-import { useMessageBox } from "@/functions/document/message-box"
+import { ToastManager } from "@/functions/module/toast"
+import { useMessageBox } from "@/functions/module/message-box"
 
 export default defineComponent({
     props: {
@@ -28,7 +28,7 @@ export default defineComponent({
         const request: SearchRequestFunction = (httpClient, offset, limit, search) =>
             httpClient.annotation.list({offset, limit, search, order: "-createTime", target: props.target})
 
-        const create = async (name: string, httpClient: HttpClient, handleException: NotificationManager["handleException"]): Promise<SimpleAnnotation | null> => {
+        const create = async (name: string, httpClient: HttpClient, handleException: ToastManager["handleException"]): Promise<SimpleAnnotation | null> => {
             const existRes = await httpClient.annotation.list({name, limit: 1})
             if(!existRes.ok) {
                 if(existRes.exception) handleException(existRes.exception)

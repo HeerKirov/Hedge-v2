@@ -1,6 +1,6 @@
 import { defineComponent, inject, InjectionKey, provide, Ref, ref } from "vue"
 import { ImportOption, TimeType } from "@/functions/adapter-http/impl/setting-import"
-import { dialogManager } from "@/functions/module"
+import { dialogManager } from "@/functions/module/dialog"
 import { usePropertySot } from "@/functions/utils/properties/setter-property"
 import Input from "@/components/forms/Input"
 import CheckBox from "@/components/forms/CheckBox"

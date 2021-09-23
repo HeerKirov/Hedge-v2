@@ -1,5 +1,5 @@
 import { computed, defineComponent, onUnmounted, reactive, Ref, ref, watch } from "vue"
-import { watchGlobalKeyEvent } from "@/functions/document/global-key"
+import { watchGlobalKeyEvent } from "@/functions/feature/keyboard"
 import { useMouseHover } from "@/functions/utils/element"
 import { useLocalStorageWithDefault } from "@/functions/app"
 import { numbers } from "@/utils/primitives"

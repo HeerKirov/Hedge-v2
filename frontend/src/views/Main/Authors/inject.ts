@@ -1,7 +1,7 @@
 import { Ref, ref } from "vue"
 import { DetailAuthor, Author, AuthorQueryFilter } from "@/functions/adapter-http/impl/author"
 import { useHttpClient } from "@/functions/app"
-import { useNotification } from "@/functions/module"
+import { useToast } from "@/functions/module/toast"
 import { useScrollView, ScrollView } from "@/components/features/VirtualScrollView"
 import { PaginationDataView, QueryEndpointResult, usePaginationDataView, useQueryEndpoint } from "@/functions/utils/endpoints/query-endpoint"
 import { useRouterQueryNumber } from "@/functions/utils/properties/router-property"
@@ -29,7 +29,7 @@ export const [installAuthorContext, useAuthorContext] = installation(function():
 
 function useAuthorList() {
     const httpClient = useHttpClient()
-    const { handleError } = useNotification()
+    const { handleError } = useToast()
 
     const queryFilter = ref<AuthorQueryFilter>({})
 

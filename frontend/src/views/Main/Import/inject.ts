@@ -3,7 +3,7 @@ import { ScrollView, useScrollView } from "@/components/features/VirtualScrollVi
 import { ImportImage } from "@/functions/adapter-http/impl/import"
 import { PaginationDataView, QueryEndpointResult, usePaginationDataView, useQueryEndpoint } from "@/functions/utils/endpoints/query-endpoint"
 import { useHttpClient } from "@/functions/app"
-import { useNotification } from "@/functions/document/notification"
+import { useToast } from "@/functions/module/toast"
 import { useImportService } from "@/functions/api/import"
 import { installation } from "@/functions/utils/basic"
 
@@ -55,7 +55,7 @@ function usePaneContext() {
 
 function useImportListContext() {
     const httpClient = useHttpClient()
-    const { handleError } = useNotification()
+    const { handleError } = useToast()
     const { isProgressing } = useImportService()
     const scrollView = useScrollView()
 
@@ -79,7 +79,7 @@ function useImportListContext() {
 
 function useImportOperationContext(dataView: PaginationDataView<ImportImage>, endpoint: QueryEndpointResult<ImportImage>, pane: ReturnType<typeof usePaneContext>) {
     const httpClient = useHttpClient()
-    const { handleException, notify } = useNotification()
+    const { handleException, toast } = useToast()
 
     const canSave = computed(() => dataView.data.value.metrics.total != undefined && dataView.data.value.metrics.total > 0)
 
@@ -89,9 +89,9 @@ function useImportOperationContext(dataView: PaginationDataView<ImportImage>, en
             if (res.ok) {
                 const { total, succeed } = res.data
                 if (succeed < total) {
-                    notify("导入结果", "warning", `${succeed}个项目已导入图库，${total - succeed}个项目导入失败。`)
+                    toast("导入结果", "warning", `${succeed}个项目已导入图库，${total - succeed}个项目导入失败。`)
                 } else {
-                    notify("导入结果", "success", `${total}个项目已导入图库。`)
+                    toast("导入结果", "success", `${total}个项目已导入图库。`)
                 }
                 endpoint.refresh()
                 pane.closePane()

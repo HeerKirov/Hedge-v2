@@ -1,7 +1,7 @@
 import { defineComponent, PropType, ref, toRef } from "vue"
 import { SideBar } from "@/layouts/layouts/SideLayout"
 import { useLocalStorageWithDefault } from "@/functions/app"
-import { watchGlobalKeyEvent } from "@/functions/document/global-key"
+import { watchGlobalKeyEvent } from "@/functions/feature/keyboard"
 import SideBarDetailInfo from "./SideBarDetailInfo"
 import SideBarOriginData from "./SideBarOriginData"
 import SideBarRelatedItems from "./SideBarRelatedItems"

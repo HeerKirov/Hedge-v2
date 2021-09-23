@@ -1,5 +1,5 @@
 import { ComponentPublicInstance, onMounted, onUnmounted, reactive, readonly, ref, Ref, toRef, watch } from "vue"
-import { watchGlobalKeyEvent } from "@/functions/document/global-key"
+import { watchGlobalKeyEvent } from "@/functions/feature/keyboard"
 import { sleep } from "@/utils/process"
 
 /**

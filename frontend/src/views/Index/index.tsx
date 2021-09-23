@@ -1,13 +1,15 @@
 import { defineComponent, watch } from "vue"
 import { useRouter } from "vue-router"
-import { useAppState } from "@/functions/app"
-import { State } from "@/functions/adapter-ipc"
 import ProgressFlag from "@/components/elements/ProgressFlag"
+import { State } from "@/functions/adapter-ipc"
+import { useAppState } from "@/functions/app"
+import { useNavigatorAnalyzer } from "@/functions/feature/navigator"
 
 export default defineComponent({
     setup() {
         const router = useRouter()
         const { state } = useAppState()
+        const { analyseForNewWindow } = useNavigatorAnalyzer()
 
         watch(state, async () => {
             if(state.value === State.NOT_INIT) {
@@ -17,8 +19,12 @@ export default defineComponent({
                 //如果处于未登录的状态，跳转到login
                 await router.push({name: "Login"})
             }else if(state.value === State.LOADED) {
-                //否则跳转到main
-                await router.push({name: "MainIndex"})
+                //已经加载的状态，则首先查看是否存在route navigator参数
+                const navigated = analyseForNewWindow()
+                //最后，默认跳转到main index首页
+                if(!navigated) {
+                    await router.push({name: "MainIndex"})
+                }
             }
         }, {immediate: true})
 

@@ -7,7 +7,7 @@ import { AnnotationEditor, DescriptionEditor, ViewAndEditor } from "@/layouts/ed
 import { DetailTag, IsGroup, TagLink, TagType, TagUpdateForm } from "@/functions/adapter-http/impl/tag"
 import { SimpleAnnotation } from "@/functions/adapter-http/impl/annotations"
 import { useObjectEndpoint } from "@/functions/utils/endpoints/object-endpoint"
-import { useMessageBox } from "@/functions/module"
+import { useMessageBox } from "@/functions/module/message-box"
 import { assetsUrl } from "@/functions/app"
 import { objects } from "@/utils/primitives"
 import { checkTagName } from "@/utils/check"

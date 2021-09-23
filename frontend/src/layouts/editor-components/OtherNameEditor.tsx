@@ -1,6 +1,6 @@
 import { defineComponent, PropType, ref } from "vue"
 import Input from "@/components/forms/Input"
-import { useMessageBox } from "@/functions/document/message-box"
+import { useMessageBox } from "@/functions/module/message-box"
 import { checkTagName } from "@/utils/check"
 import { onKeyEnter } from "@/utils/events"
 

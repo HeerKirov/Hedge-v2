@@ -1,7 +1,7 @@
 import { computed, defineComponent } from "vue"
 import { DataRouter } from "@/layouts/topbar-components"
 import { useImportService } from "@/functions/api/import"
-import { useElementPopupMenu } from "@/functions/module"
+import { useElementPopupMenu } from "@/functions/module/popup-menu"
 import { useImportContext } from "./inject"
 import style from "./style.module.scss"
 

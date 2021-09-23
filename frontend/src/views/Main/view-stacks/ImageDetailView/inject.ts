@@ -6,7 +6,7 @@ import {
 import { SliceDataView } from "@/functions/utils/endpoints/query-endpoint"
 import { installObjectLazyObject, ObjectLazyObjectInjection, useObjectLazyObject } from "@/functions/utils/endpoints/object-lazy-endpoint"
 import { useHttpClient } from "@/functions/app"
-import { useNotification } from "@/functions/document/notification"
+import { useToast } from "@/functions/module/toast"
 import { installation } from "@/functions/utils/basic"
 
 export interface DetailViewContext {
@@ -55,7 +55,7 @@ export const [installDetailViewContext, useDetailViewContext] = installation(fun
 })
 
 function useNavigator(data: SliceDataView<Illust>, initIndex: Ref<number>): DetailViewContext["navigator"] & Targets {
-    const { notify, handleException } = useNotification()
+    const { toast, handleException } = useToast()
     const httpClient = useHttpClient()
 
     //illust级索引
@@ -86,7 +86,7 @@ function useNavigator(data: SliceDataView<Illust>, initIndex: Ref<number>): Deta
 
         const res = await data.get(currentIllustIndex)
         if(res === undefined) {
-            notify("错误", "danger", `无法找到索引为${currentIllustIndex}的项目。`)
+            toast("错误", "danger", `无法找到索引为${currentIllustIndex}的项目。`)
             return
         }
         if(res.type === "IMAGE") {

@@ -2,7 +2,7 @@ import { Ref, ref } from "vue"
 import { HttpClient, Response } from "@/functions/adapter-http"
 import { HttpException } from "@/functions/adapter-http/exception"
 import { useHttpClient } from "@/functions/app"
-import { useNotification } from "@/functions/module"
+import { useToast } from "@/functions/module/toast"
 
 interface ObjectCreator<FORM> {
     save(): Promise<boolean>
@@ -18,7 +18,7 @@ interface ObjectCreatorOptions<FORM, RESULT> {
 
 export function useObjectCreator<FORM, RESULT>(options: ObjectCreatorOptions<FORM, RESULT>): ObjectCreator<FORM> {
     const httpClient = useHttpClient()
-    const notification = useNotification()
+    const notification = useToast()
 
     const method = options.create(httpClient)
 

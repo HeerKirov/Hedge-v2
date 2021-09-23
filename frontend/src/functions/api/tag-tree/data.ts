@@ -3,7 +3,7 @@ import { DetailTag, TagTreeNode, TagUpdateForm } from "@/functions/adapter-http/
 import { ObjectEndpoint, useFastObjectEndpoint } from "@/functions/utils/endpoints/object-fast-endpoint"
 import { installation } from "@/functions/utils/basic"
 import { useHttpClient } from "@/functions/app"
-import { useNotification } from "@/functions/document/notification"
+import { useToast } from "@/functions/module/toast"
 import { objects } from "@/utils/primitives"
 
 export interface TagListContext {
@@ -173,7 +173,7 @@ export const [installTagListContext, useTagListContext] = installation(function(
 
 function useTagTreeEndpoint() {
     const httpClient = useHttpClient()
-    const { handleException } = useNotification()
+    const { handleException } = useToast()
 
     const loading = ref(true)
     const data = ref<TagTreeNode[]>([])

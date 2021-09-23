@@ -1,5 +1,5 @@
 import { defineComponent, Transition } from "vue"
-import { watchGlobalKeyEvent } from "@/functions/document/global-key"
+import { watchGlobalKeyEvent } from "@/functions/feature/keyboard"
 import style from "./style.module.scss"
 
 /**

@@ -1,13 +1,13 @@
 import { onMounted, ref } from "vue"
 import { useHttpClient } from "@/functions/app"
-import { useNotification } from "@/functions/document/notification"
-import { useMessageBox } from "@/functions/document/message-box"
+import { useToast } from "@/functions/module/toast"
+import { useMessageBox } from "@/functions/module/message-box"
 import { simpleInstallation } from "@/functions/utils/basic"
 import { Site } from "@/functions/adapter-http/impl/setting-source"
 
 export const [installSettingSite, useSettingSite] = simpleInstallation(function() {
     const httpClient = useHttpClient()
-    const notification = useNotification()
+    const notification = useToast()
     const messageBox = useMessageBox()
 
     const data = ref<Site[]>([])

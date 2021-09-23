@@ -1,7 +1,7 @@
 import { clientMode, OpenDialogOptions, remote } from "@/functions/adapter-ipc"
 
 
-export interface DialogManager {
+export interface Dialog {
     openDialog(options: OpenDialogOptions): Promise<string[] | null>
 }
 

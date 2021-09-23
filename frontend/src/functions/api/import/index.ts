@@ -1,6 +1,7 @@
 import { computed, reactive, Ref } from "vue"
 import { useHttpClient } from "@/functions/app"
-import { dialogManager, useNotification } from "@/functions/module"
+import { dialogManager } from "@/functions/module/dialog"
+import { useToast } from "@/functions/module/toast"
 import { installation } from "@/functions/utils/basic"
 
 export interface ImportService {
@@ -14,7 +15,7 @@ export interface ImportService {
 
 export const [installImportService, useImportService] = installation(function(): ImportService {
     const httpClient = useHttpClient()
-    const notification = useNotification()
+    const notification = useToast()
 
     const progress = reactive({value: 0, max: 0})
 
@@ -46,9 +47,9 @@ export const [installImportService, useImportService] = installation(function():
                     }
                 }else if(res.exception) {
                     if(res.exception.code === "FILE_NOT_FOUND") {
-                        notification.notify("错误", "danger", `文件${filepath}不存在。`)
+                        notification.toast("错误", "danger", `文件${filepath}不存在。`)
                     }else if(res.exception.code === "ILLEGAL_FILE_EXTENSION") {
-                        notification.notify("错误", "danger", `文件${filepath}的类型不适用。`)
+                        notification.toast("错误", "danger", `文件${filepath}的类型不适用。`)
                     }else{
                         notification.handleException(res.exception)
                     }
@@ -62,9 +63,9 @@ export const [installImportService, useImportService] = installation(function():
 
                 if(warningList.length) {
                     if(warningList.length > 3) {
-                        notification.notify("来源信息分析失败", "warning", `超过${warningList.length}个文件的来源信息分析失败，可能是因为正则表达式内容错误。`)
+                        notification.toast("来源信息分析失败", "warning", `超过${warningList.length}个文件的来源信息分析失败，可能是因为正则表达式内容错误。`)
                     }else{
-                        notification.notify("来源信息分析失败", "warning", ["存在文件的来源信息分析失败，可能是因为正则表达式内容错误。", ...warningList.map(i => i.filepath)])
+                        notification.toast("来源信息分析失败", "warning", ["存在文件的来源信息分析失败，可能是因为正则表达式内容错误。", ...warningList.map(i => i.filepath)])
                     }
                     warningList.splice(0, warningList.length)
                 }

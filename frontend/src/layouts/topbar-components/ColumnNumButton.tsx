@@ -1,7 +1,7 @@
 import { defineComponent } from "vue"
-import style from "./ColumnNumButton.module.scss"
-import { useElementPopupMenu } from "@/functions/module"
+import { useElementPopupMenu } from "@/functions/module/popup-menu"
 import { arrays } from "@/utils/collections"
+import style from "./ColumnNumButton.module.scss"
 
 export default defineComponent({
     props: {

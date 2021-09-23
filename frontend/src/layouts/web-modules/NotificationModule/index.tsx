@@ -1,12 +1,12 @@
 import { computed, defineComponent } from "vue"
-import { useNotificationConsumer } from "@/functions/document/notification"
+import { useToastConsumer } from "@/functions/module/toast"
 import style from "./style.module.scss"
 
 export default defineComponent({
     setup() {
-        const { notifications } = useNotificationConsumer()
+        const { toasts } = useToastConsumer()
 
-        const items = computed(() => notifications.slice(0, 5).map(n => ({
+        const items = computed(() => toasts.slice(0, 5).map(n => ({
             title: n.title,
             content: n.content,
             style: n.type === "plain" ? undefined : `is-${n.type}`,
@@ -14,7 +14,7 @@ export default defineComponent({
         })))
 
         const onClose = (index: number) => () => {
-            notifications.splice(index, 1)
+            toasts.splice(index, 1)
         }
 
         return () => <div class={style.root}>

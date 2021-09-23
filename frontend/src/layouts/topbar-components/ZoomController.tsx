@@ -1,6 +1,6 @@
 import { computed, defineComponent, inject, ref } from "vue"
 import RangeInput from "@/components/forms/RangeInput"
-import { watchGlobalKeyEvent } from "@/functions/document/global-key"
+import { watchGlobalKeyEvent } from "@/functions/feature/keyboard"
 import { dashboardZoomInjection } from "@/layouts/data/Dashboard"
 import { watchElementExcludeClick } from "@/functions/utils/element"
 import { numbers } from "@/utils/primitives"

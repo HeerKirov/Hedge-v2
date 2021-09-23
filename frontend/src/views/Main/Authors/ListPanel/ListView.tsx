@@ -1,6 +1,6 @@
 import { defineComponent, PropType } from "vue"
-import { useMessageBox } from "@/functions/module"
-import { usePopupMenu } from "@/functions/app"
+import { useMessageBox } from "@/functions/module/message-box"
+import { usePopupMenu } from "@/functions/module/popup-menu"
 import { useMouseHover } from "@/functions/utils/element"
 import { useFastObjectEndpoint } from "@/functions/utils/endpoints/object-fast-endpoint"
 import { SimpleAnnotation } from "@/functions/adapter-http/impl/annotations"

@@ -1,10 +1,10 @@
 import { Ref, ref } from "vue"
 import { DetailTopic, Topic, TopicQueryFilter } from "@/functions/adapter-http/impl/topic"
 import { useHttpClient } from "@/functions/app"
-import { useNotification } from "@/functions/module"
-import { useScrollView, ScrollView } from "@/components/features/VirtualScrollView"
+import { useToast } from "@/functions/module/toast"
 import { PaginationDataView, QueryEndpointResult, usePaginationDataView, useQueryEndpoint } from "@/functions/utils/endpoints/query-endpoint"
 import { useRouterQueryNumber } from "@/functions/utils/properties/router-property"
+import { useScrollView, ScrollView } from "@/components/features/VirtualScrollView"
 import { installation } from "@/functions/utils/basic"
 
 export interface TopicContext {
@@ -29,7 +29,7 @@ export const [installTopicContext, useTopicContext] = installation(function(): T
 
 function useTopicList() {
     const httpClient = useHttpClient()
-    const { handleError } = useNotification()
+    const { handleError } = useToast()
 
     const queryFilter = ref<TopicQueryFilter>({})
 

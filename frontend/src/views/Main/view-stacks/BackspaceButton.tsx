@@ -1,5 +1,5 @@
 import { defineComponent } from "vue"
-import { interceptGlobalKey } from "@/functions/document/global-key"
+import { interceptGlobalKey } from "@/functions/feature/keyboard"
 import { useViewStacks } from "./inject"
 
 export default defineComponent({

@@ -1,7 +1,7 @@
-import { Ref, ref, watch } from "vue"
+import { Ref, ref } from "vue"
 import { Annotation, AnnotationQueryFilter } from "@/functions/adapter-http/impl/annotations"
 import { useHttpClient } from "@/functions/app"
-import { useNotification } from "@/functions/module"
+import { useToast } from "@/functions/module/toast"
 import { useScrollView, ScrollView } from "@/components/features/VirtualScrollView"
 import { PaginationDataView, QueryEndpointResult, usePaginationDataView, useQueryEndpoint } from "@/functions/utils/endpoints/query-endpoint"
 import { installation } from "@/functions/utils/basic"
@@ -28,7 +28,7 @@ export const [installAnnotationContext, useAnnotationContext] = installation(fun
 
 function useAnnotationList() {
     const httpClient = useHttpClient()
-    const { handleError } = useNotification()
+    const { handleError } = useToast()
 
     const queryFilter = ref<AnnotationQueryFilter>({})
 

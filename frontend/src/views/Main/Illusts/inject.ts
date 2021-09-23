@@ -4,7 +4,7 @@ import { FitType } from "@/layouts/data/IllustGrid"
 import { PaginationDataView, QueryEndpointResult, usePaginationDataView, useQueryEndpoint } from "@/functions/utils/endpoints/query-endpoint"
 import { Illust, IllustQueryFilter } from "@/functions/adapter-http/impl/illust"
 import { useHttpClient, useLocalStorageWithDefault } from "@/functions/app"
-import { useNotification } from "@/functions/document/notification"
+import { useToast } from "@/functions/module/toast"
 import { installation, splitRef } from "@/functions/utils/basic"
 
 export interface IllustContext {
@@ -34,7 +34,7 @@ export const [installIllustContext, useIllustContext] = installation(function():
 
 function useListContext(collectionMode: Ref<boolean>) {
     const httpClient = useHttpClient()
-    const { handleError } = useNotification()
+    const { handleError } = useToast()
     const scrollView = useScrollView()
 
     const queryFilter = ref<IllustQueryFilter>({

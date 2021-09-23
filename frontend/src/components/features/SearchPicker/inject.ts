@@ -2,7 +2,7 @@ import { computed, reactive, readonly, ref, watch } from "vue"
 import { HttpClient, Response } from "@/functions/adapter-http"
 import { ListResult } from "@/functions/adapter-http/impl/generic"
 import { useContinuousEndpoint } from "@/functions/utils/endpoints/continuous-endpoint"
-import { useNotification, NotificationManager } from "@/functions/document/notification"
+import { useToast, ToastManager } from "@/functions/module/toast"
 import { useHttpClient } from "@/functions/app"
 import { installation } from "@/functions/utils/basic"
 
@@ -12,7 +12,7 @@ export interface SearchResultAttachItem {
     key: string
     title: string | ((search: string) => string)
     icon?: string
-    click?(configuration: {search: string, pick(v: any): void, httpClient: HttpClient, handleException: NotificationManager["handleException"]}): void
+    click?(configuration: {search: string, pick(v: any): void, httpClient: HttpClient, handleException: ToastManager["handleException"]}): void
 }
 
 interface DataOptions {
@@ -23,7 +23,7 @@ interface DataOptions {
 
 export const [installData, useData] = installation(function({ initSize, continueSize, request } : DataOptions) {
     const httpClient = useHttpClient()
-    const { handleError, handleException } = useNotification()
+    const { handleError, handleException } = useToast()
 
     const search = ref("")
     const updateSearch = (text: string) => {

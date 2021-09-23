@@ -6,17 +6,18 @@ import { SimpleTopic, Topic } from "@/functions/adapter-http/impl/topic"
 import { SimpleAuthor, Author } from "@/functions/adapter-http/impl/author"
 import { MetaTagTypeValues } from "@/functions/adapter-http/impl/all"
 import { MetaTagValidation } from "@/functions/adapter-http/impl/util-meta"
-import { watchGlobalKeyEvent } from "@/functions/document/global-key"
-import { NotificationManager, useNotification } from "@/functions/document/notification"
-import { useMessageBox } from "@/functions/document/message-box"
-import { createPopupMenu, useHttpClient, useLocalStorageWithDefault } from "@/functions/app"
+import { watchGlobalKeyEvent } from "@/functions/feature/keyboard"
+import { useToast, ToastManager } from "@/functions/module/toast"
+import { useMessageBox } from "@/functions/module/message-box"
+import { createPopupMenu } from "@/functions/module/popup-menu"
+import { useHttpClient, useLocalStorageWithDefault } from "@/functions/app"
 import { useContinuousEndpoint } from "@/functions/utils/endpoints/continuous-endpoint"
 import { installation, splitRef } from "@/functions/utils/basic"
+import { useMetaTagCallout } from "@/layouts/data/MetaTagCallout"
 import { installSearchService, installTagListContext, useTagListContext, useSearchService } from "@/functions/api/tag-tree"
 import { installTagTreeContext } from "@/layouts/data/TagTree"
 import { sleep } from "@/utils/process"
 import { useDetailViewContext, useMetadataEndpoint } from "../../inject"
-import { useMetaTagCallout } from "@/layouts/data/MetaTagCallout";
 
 export { useTagListContext, useSearchService }
 
@@ -163,7 +164,7 @@ function useSaveFunction(tags: Ref<SimpleTag[]>, topics: Ref<SimpleTopic[]>, aut
 
 function useEditorDataValidation(tags: Ref<SimpleTag[]>, data: Ref<DetailIllust | null>) {
     const httpClient = useHttpClient()
-    const notification = useNotification()
+    const notification = useToast()
 
     const tagValidationResults = ref<MetaTagValidation>()
 
@@ -309,7 +310,7 @@ function useRightColumnData() {
 
 const [installMetaDatabaseContext, useMetaDatabaseContext] = installation(function() {
     const httpClient = useHttpClient()
-    const notification = useNotification()
+    const notification = useToast()
 
     const author = useMetaDatabaseAuthorContext(httpClient, notification)
     const topic = useMetaDatabaseTopicContext(httpClient, notification)
@@ -318,7 +319,7 @@ const [installMetaDatabaseContext, useMetaDatabaseContext] = installation(functi
     return {author, topic}
 })
 
-function useMetaDatabaseAuthorContext(httpClient: HttpClient, { handleError }: NotificationManager) {
+function useMetaDatabaseAuthorContext(httpClient: HttpClient, { handleError }: ToastManager) {
     const search = ref<string>()
 
     const data = useContinuousEndpoint<Author>({
@@ -339,7 +340,7 @@ function useMetaDatabaseAuthorContext(httpClient: HttpClient, { handleError }: N
     return {search, data}
 }
 
-function useMetaDatabaseTopicContext(httpClient: HttpClient, { handleError }: NotificationManager) {
+function useMetaDatabaseTopicContext(httpClient: HttpClient, { handleError }: ToastManager) {
     const search = ref<string>()
 
     const data = useContinuousEndpoint<Topic>({
@@ -375,7 +376,7 @@ function useMetaDatabaseTagContext() {
             createPopupMenu([
                 {type: "normal", label: "折叠全部标签", click: context.collapseItem},
                 {type: "normal", label: "展开全部标签", click: context.expandItem},
-            ])(undefined)
+            ])()
         },
         isCursorPointer: false
     })

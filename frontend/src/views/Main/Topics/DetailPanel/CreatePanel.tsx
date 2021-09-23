@@ -1,6 +1,6 @@
 import { defineComponent, ref, watch } from "vue"
 import TopBarTransparentLayout from "@/layouts/layouts/TopBarTransparentLayout"
-import { useMessageBox } from "@/functions/document/message-box"
+import { useMessageBox } from "@/functions/module/message-box"
 import { DetailTopic, TopicCreateForm } from "@/functions/adapter-http/impl/topic"
 import { IdResponse } from "@/functions/adapter-http/impl/generic"
 import { useObjectCreator } from "@/functions/utils/endpoints/object-creator"

@@ -1,6 +1,6 @@
 import { defineComponent, PropType, ref, watch } from "vue"
 import BlockBox from "@/layouts/layouts/BlockBox"
-import { MessageBoxButton, MessageTask, useMessageBoxConsumer } from "@/functions/document/message-box"
+import { MessageBoxButton, MessageTask, useMessageBoxConsumer } from "@/functions/module/message-box"
 import style from "./style.module.scss"
 
 export default defineComponent({

@@ -26,7 +26,6 @@ export function installViewStacks(): ViewStacks {
 
     const viewStacks = {
         openView(info: DetailViewInfo) {
-            //TODO optimize: 当prev与info同类型且同界定值时，直接回退到上一页
             stacks.value.push(info)
         },
         goBack() {

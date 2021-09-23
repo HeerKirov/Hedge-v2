@@ -1,6 +1,6 @@
 import { onMounted, ref, watch, toRaw, computed, onUnmounted, readonly } from "vue"
 import { AppearanceSetting, clientMode, ipc, ResourceStatus, AuthSetting } from "@/functions/adapter-ipc"
-import { useNotification } from "@/functions/module"
+import { useToast } from "@/functions/module/toast"
 import { useAppInfo } from "./app-state"
 
 export function useAuthSetting() {
@@ -25,7 +25,7 @@ export function useCliController() {
     if(!clientMode) {
         throw new Error("Cannot access appearance in web.")
     }
-    const notification = useNotification()
+    const notification = useToast()
 
     const status = ref<ResourceStatus>(ResourceStatus.LATEST)
 

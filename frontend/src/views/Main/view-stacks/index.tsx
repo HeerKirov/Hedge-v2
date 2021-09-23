@@ -1,5 +1,5 @@
 import { defineComponent, TransitionGroup } from "vue"
-import { watchGlobalKeyEvent } from "@/functions/document/global-key"
+import { watchGlobalKeyEvent } from "@/functions/feature/keyboard"
 import { useViewStacks, installViewStacks, DetailViewInfo } from "./inject"
 import ImageDetailView from "./ImageDetailView"
 import BackspaceButton from "./BackspaceButton"

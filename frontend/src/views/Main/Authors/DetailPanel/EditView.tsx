@@ -1,7 +1,7 @@
 import { defineComponent } from "vue"
 import TopBarTransparentLayout from "@/layouts/layouts/TopBarTransparentLayout"
 import { AuthorUpdateForm } from "@/functions/adapter-http/impl/author"
-import { useMessageBox } from "@/functions/document/message-box"
+import { useMessageBox } from "@/functions/module/message-box"
 import { useMutableComputed } from "@/functions/utils/basic"
 import { objects } from "@/utils/primitives"
 import { checkTagName } from "@/utils/check"

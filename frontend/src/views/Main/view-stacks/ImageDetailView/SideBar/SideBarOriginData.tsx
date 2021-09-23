@@ -4,7 +4,7 @@ import { SourceInfo } from "@/layouts/display-components"
 import { SourceEditor, ViewAndEditable, ViewAndEditor, SourceIdentity } from "@/layouts/editor-components"
 import { SourceTag } from "@/functions/adapter-http/impl/illust"
 import { installSettingSite } from "@/functions/api/setting"
-import { useMessageBox } from "@/functions/document/message-box"
+import { useMessageBox } from "@/functions/module/message-box"
 import { useDetailViewContext, useOriginDataEndpoint } from "../inject"
 import style from "./style.module.scss"
 
@@ -38,12 +38,6 @@ export default defineComponent({
                 }
             })
         }
-        const setTitle = async (title: string) => {
-            return title === data.value?.title || await setData({ title })
-        }
-        const setDescription = async (description: string) => {
-            return description === data.value?.description || await setData({ description })
-        }
         const setRelations = async ({ parents, children, pools }: {parents: number[], children: number[], pools: string[]}) => {
             const parentsEq = parents === data.value?.parents
             const childrenEq = children === data.value?.children
@@ -62,7 +56,7 @@ export default defineComponent({
                     default: ({ value}: {value: SourceIdentity}) => <SourceInfo {...value}/>,
                     editor: ({ value, setValue }: {value: SourceIdentity, setValue(_: SourceIdentity)}) => <SourceEditor {...value} onUpdateValue={setValue}/>
                 }}/>
-                <ViewAndEditable class="mt-2" onEdit={openSourceEditor}>
+                <ViewAndEditable class="mt-2" baseline="medium" onEdit={openSourceEditor}>
                     <TitleDisplay value={data.value.title}/>
                     <DescriptionDisplay value={data.value.description}/>
                     <RelationsDisplay parents={data.value.parents} children={data.value.children} pools={data.value.pools}/>
@@ -146,7 +140,7 @@ function RelationsDisplay({ parents, children, pools }: {parents: number[], chil
 }
 
 function SourceTagDisplay({ value }: {value: SourceTag[]}) {
-    return value.length ? <div class={[style.sourceTag, "can-be-selected"]}>
+    return value.length ? <div class="can-be-selected">
         {value.map(tag => <SourceTagDisplayItem value={tag}/>)}
     </div> : <div>
         <i class="has-text-grey">没有原始标签</i>
@@ -154,26 +148,7 @@ function SourceTagDisplay({ value }: {value: SourceTag[]}) {
 }
 
 function SourceTagDisplayItem({ value }: {value: SourceTag}) {
-    return <p class={style.tag}>
-        <i class="fa fa-tag mr-2"/>
-        <a><b>{value.name}</b>{value.displayName !== null && ` (${value.displayName})`}</a>
-    </p>
-}
-
-const SourceTagEditor = defineComponent({
-    props: {
-        value: {type: Array as PropType<SourceTag[]>, required: true}
-    },
-    emits: ["updateValue"],
-    setup(props, { emit }) {
-        return () => <div class={[style.sourceTag, "can-be-selected"]}>
-            {props.value.map(tag => <SourceTagEditorItem value={tag}/>)}
-        </div>
-    }
-})
-
-function SourceTagEditorItem({ value }: {value: SourceTag}) {
-    return <p class={style.tag}>
+    return <p class="mt-half">
         <i class="fa fa-tag mr-2"/>
         <a><b>{value.name}</b>{value.displayName !== null && ` (${value.displayName})`}</a>
     </p>

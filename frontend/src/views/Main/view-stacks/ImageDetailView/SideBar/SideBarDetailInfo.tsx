@@ -2,17 +2,15 @@ import { computed, defineComponent, PropType } from "vue"
 import WrappedText from "@/components/elements/WrappedText"
 import Starlight from "@/components/elements/Starlight"
 import { SimpleMetaTagElement, TagmeInfo } from "@/layouts/display-components"
-import { MetaTagTypes, SimpleAuthor, SimpleTopic, SimpleTag } from "@/functions/adapter-http/impl/all"
-import {
-    DateEditor, DateTimeEditor,
-    DescriptionEditor, StarlightEditor,
-    ViewAndEditor, ViewAndEditable
-} from "@/layouts/editor-components"
-import { usePopupMenu } from "@/functions/module"
+import { MetaTagTypes, SimpleAuthor, SimpleTopic, SimpleTag, MetaTagTypeValues } from "@/functions/adapter-http/impl/all"
+import { DateEditor, DateTimeEditor, DescriptionEditor, StarlightEditor, ViewAndEditor, ViewAndEditable } from "@/layouts/editor-components"
+import { useMetaTagCallout } from "@/layouts/data/MetaTagCallout"
+import { useNavigator } from "@/functions/feature/navigator"
+import { usePopupMenu } from "@/functions/module/popup-menu"
+import { writeClipboard } from "@/functions/module/others"
 import { date, datetime, LocalDate, LocalDateTime } from "@/utils/datetime"
 import { useDetailViewContext, useMetadataEndpoint } from "../inject"
 import style from "./style.module.scss"
-import { useMetaTagCallout } from "@/layouts/data/MetaTagCallout";
 
 export default defineComponent({
     setup() {
@@ -85,12 +83,18 @@ const PartitionTimeDisplay = defineComponent({
         partitionTime: {type: null as any as PropType<LocalDate>, required: true}
     },
     setup(props) {
+        const navigator = useNavigator()
         const text = computed(() => date.toISOString(props.partitionTime))
 
-        //TODO 完成orderTime popup menu的功能
+        const openPartition = () => {
+            navigator.goto.main.partitions.detail(props.partitionTime)
+        }
+        const openPartitionInNewWindow = () => {
+            navigator.newWindow.main.partitions.detail(props.partitionTime)
+        }
         const menu = usePopupMenu([
-            {type: "normal", "label": `查看时间分区`},
-            {type: "normal", "label": `在新窗口中打开时间分区`}
+            {type: "normal", "label": "查看时间分区", click: openPartition},
+            {type: "normal", "label": "在新窗口中打开时间分区", click: openPartitionInNewWindow}
         ])
 
         return () => <p class="pt-1 has-text-grey" onContextmenu={() => menu.popup()}>时间分区 {text.value}</p>
@@ -105,14 +109,38 @@ const MetaTagDisplay = defineComponent({
     },
     setup(props) {
         const metaTagCallout = useMetaTagCallout()
-        //TODO 完成tag popup menu的功能
-        const menu = usePopupMenu([
-            {type: "normal", "label": "查看标签详情页"},
-            {type: "normal", "label": "在新窗口中打开标签详情页"},
+        const navigator = useNavigator()
+
+        const openMetaTagDetail = ({ type, value }: MetaTagTypeValues) => {
+            if(type === "tag") navigator.goto.main.tags.detail(value.id)
+            else if(type === "topic") navigator.goto.main.topics.detail(value.id)
+            else if(type === "author") navigator.goto.main.authors.detail(value.id)
+        }
+        const openMetaTagDetailInNewWindow = ({ type, value }: MetaTagTypeValues) => {
+            if(type === "tag") navigator.newWindow.main.tags.detail(value.id)
+            else if(type === "topic") navigator.newWindow.main.topics.detail(value.id)
+            else if(type === "author") navigator.newWindow.main.authors.detail(value.id)
+        }
+        const searchInIllusts = ({ type, value }: MetaTagTypeValues) => {
+            if(type === "tag") navigator.goto.main.illusts({tagName: value.name})
+            else if(type === "topic") navigator.goto.main.illusts({topicName: value.name})
+            else if(type === "author") navigator.goto.main.illusts({authorName: value.name})
+        }
+        const searchInAlbums = ({ type, value }: MetaTagTypeValues) => {
+            if(type === "tag") navigator.goto.main.albums({tagName: value.name})
+            else if(type === "topic") navigator.goto.main.albums({topicName: value.name})
+            else if(type === "author") navigator.goto.main.albums({authorName: value.name})
+        }
+        const copyMetaTagName = ({ value }: MetaTagTypeValues) => {
+            writeClipboard(value.name)
+        }
+        const menu = usePopupMenu<MetaTagTypeValues>([
+            {type: "normal", "label": "查看标签详情页", click: openMetaTagDetail},
+            {type: "normal", "label": "在新窗口中打开标签详情页", click: openMetaTagDetailInNewWindow},
             {type: "separator"},
-            {type: "normal", "label": "在图库中搜索"},
-            {type: "normal", "label": "在画集中搜索"},
-            {type: "normal", "label": "复制此标签的全名"},
+            {type: "normal", "label": "在图库中搜索", click: searchInIllusts},
+            {type: "normal", "label": "在画集中搜索", click: searchInAlbums},
+            {type: "normal", "label": "复制此标签的名称", click: copyMetaTagName},
         ])
 
         const onClick = (type: MetaTagTypes, id: number) => (e: MouseEvent) => {
@@ -123,9 +151,9 @@ const MetaTagDisplay = defineComponent({
         return () => !props.tags.length && !props.authors.length && !props.topics.length ? <div class="has-text-grey mt-1">
             <i>没有元数据标签</i>
         </div> : <div class={style.metaTag}>
-            {props.authors.map(author => <SimpleMetaTagElement key={`author-${author.id}`} type="author" value={author} onClick={onClick("author", author.id)} onContextmenu={() => menu.popup()} wrappedByDiv={true}/>)}
-            {props.topics.map(topic => <SimpleMetaTagElement key={`topic-${topic.id}`} type="topic" value={topic} onClick={onClick("topic", topic.id)} onContextmenu={() => menu.popup()} wrappedByDiv={true}/>)}
-            {props.tags.map(tag => <SimpleMetaTagElement key={`tag-${tag.id}`} type="tag" value={tag} onClick={onClick("tag", tag.id)} onContextmenu={() => menu.popup()} wrappedByDiv={true}/>)}
+            {props.authors.map(author => <SimpleMetaTagElement key={`author-${author.id}`} type="author" value={author} onClick={onClick("author", author.id)} onContextmenu={() => menu.popup({type: "author", value: author})} wrappedByDiv={true}/>)}
+            {props.topics.map(topic => <SimpleMetaTagElement key={`topic-${topic.id}`} type="topic" value={topic} onClick={onClick("topic", topic.id)} onContextmenu={() => menu.popup({type: "topic", value: topic})} wrappedByDiv={true}/>)}
+            {props.tags.map(tag => <SimpleMetaTagElement key={`tag-${tag.id}`} type="tag" value={tag} onClick={onClick("tag", tag.id)} onContextmenu={() => menu.popup({type: "tag", value: tag})} wrappedByDiv={true}/>)}
         </div>
     }
 })

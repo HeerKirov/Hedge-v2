@@ -32,7 +32,7 @@ interface SubMenuItem<P> {
     enabled?: boolean
     submenu: MenuItem<P>[]
 }
-type ClickFunction<T> = T extends undefined ? () => void : (args: T) => void
+type ClickFunction<T> = (args: T) => void
 
 //== 二级包装的popup menu: 提供元素定位 ==
 
@@ -43,12 +43,20 @@ export interface ElementPopupMenuOptions {
     offsetY?: number
 }
 
+export function useElementPopupMenu(items: MenuItem<undefined>[] | Ref<MenuItem<undefined>[]> | (() => MenuItem<undefined>[]), options?: ElementPopupMenuOptions): {
+    element: Ref<HTMLElement>
+    popup(): void
+}
+export function useElementPopupMenu<P>(items: MenuItem<P>[] | Ref<MenuItem<P>[]> | (() => MenuItem<P>[]), options?: ElementPopupMenuOptions): {
+    element: Ref<HTMLElement>
+    popup(args: P): void
+}
 export function useElementPopupMenu<P = undefined>(items: MenuItem<P>[] | Ref<MenuItem<P>[]> | (() => MenuItem<P>[]), options?: ElementPopupMenuOptions) {
     const element = ref<HTMLElement>()
 
     const menu = usePopupMenu(items)
 
-    const popup = <(P extends undefined ? () => void : (args: P) => void)>function popup(args?: P) {
+    const popup = function popup(args?: P) {
         const rect = element.value?.getBoundingClientRect()
         if(rect) {
             const x = Math.floor(rect.left) + (options?.align === "center" ? Math.floor(rect.width / 2) : 0) + (options?.offsetX ?? 0)
@@ -62,7 +70,7 @@ export function useElementPopupMenu<P = undefined>(items: MenuItem<P>[] | Ref<Me
     return {element, popup}
 }
 
-//== 一级包装的popup menu: 提供响应元素变化的菜单项
+//== 一级包装的popup menu: 提供根据popup参数动态生成的菜单 ==
 export function useDynamicPopupMenu<P>(generator: (value: P) => (MenuItem<P> | null | undefined)[]) {
     function popup(args: P, options?: PopupOptions) {
         const items = generator(args).filter(item => item != null) as MenuItem<P>[]
@@ -72,24 +80,32 @@ export function useDynamicPopupMenu<P>(generator: (value: P) => (MenuItem<P> | n
     return {popup}
 }
 
-//== 一级包装的popup menu: 提供VCA形式调用 ==
+//== 一级包装的popup menu: 提供根据响应式变化生成的菜单 ==
+
+export function usePopupMenu(items: MenuItem<undefined>[] | Ref<MenuItem<undefined>[]> | (() => MenuItem<undefined>[])): {
+    popup(args?: undefined, options?: PopupOptions): void
+}
+
+export function usePopupMenu<P>(items: MenuItem<P>[] | Ref<MenuItem<P>[]> | (() => MenuItem<P>[])): {
+    popup(args: P, options?: PopupOptions): void
+}
 
 export function usePopupMenu<P = undefined>(items: MenuItem<P>[] | Ref<MenuItem<P>[]> | (() => MenuItem<P>[])) {
-    let popupFunction: PopupFunction<P>
+    let popupFunction: (options: PopupOptions | undefined, args: P) => void
 
     if(typeof items === "function") {
         const data = computed(items)
         popupFunction = createPopupMenu(data.value)
         watch(data, value => popupFunction = createPopupMenu(value))
     }else if(isReactive(items) || isRef(items)) {
-        popupFunction = <PopupFunction<P>>function(_: PopupOptions) {}
+        popupFunction = <(options: PopupOptions | undefined, args: P) => void>function(_: PopupOptions) {}
         watchEffect(() => popupFunction = createPopupMenu(unref(items)))
     }else{
         popupFunction = createPopupMenu(unref(items))
     }
 
-    const popup = <(P extends undefined ? (args?: P, options?: PopupOptions) => void : (args: P, options?: PopupOptions) => void)>function popup(args?: P, options?: PopupOptions) {
-        popupFunction(options, args!)
+    const popup = function (args: P, options?: PopupOptions) {
+        popupFunction(options, args)
     }
 
     return {popup}
@@ -102,15 +118,15 @@ interface PopupOptions {
     y: number
 }
 
-type PopupFunction<T> = T extends undefined ? (options: PopupOptions | undefined) => void : (options: PopupOptions | undefined, args: T) => void
-
-export function createPopupMenu<P = undefined>(menuItems: MenuItem<P>[]): PopupFunction<P> {
+export function createPopupMenu(menuItems: MenuItem<undefined>[]): (options?: PopupOptions) => void
+export function createPopupMenu<P = undefined>(menuItems: MenuItem<P>[]): (options: PopupOptions | undefined, args: P) => void
+export function createPopupMenu<P = undefined>(menuItems: MenuItem<P>[]) {
     return createNativePopupMenu(menuItems)
 }
 
 //== 基础popup menu的electron实现
 
-function createNativePopupMenu<P>(menuItems: MenuItem<P>[]): PopupFunction<P> {
+function createNativePopupMenu<P>(menuItems: MenuItem<P>[]) {
     let localArgument: P | undefined = undefined
 
     function mapMenuItems(menuItems: MenuItem<P>[]): MenuTemplate[] {
@@ -136,7 +152,7 @@ function createNativePopupMenu<P>(menuItems: MenuItem<P>[]): PopupFunction<P> {
 
     const menu = remote.menu.createPopup(mapMenuItems(menuItems))
 
-    return <PopupFunction<P>>function(options: PopupOptions, args: P) {
+    return function(options: PopupOptions, args: P) {
         localArgument = args
         menu.popup(options)
     }

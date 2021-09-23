@@ -1,7 +1,7 @@
 import { computed, ComputedRef, defineComponent, Ref, ref, toRef, watch } from "vue"
 import { useRoute, useRouter } from "vue-router"
+import { usePopupMenu } from "@/functions/module/popup-menu"
 import { installation } from "@/functions/utils/basic"
-import { usePopupMenu } from "@/functions/module"
 import { useSideBarContext } from "./inject"
 
 /**

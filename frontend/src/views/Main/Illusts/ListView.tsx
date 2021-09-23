@@ -1,10 +1,13 @@
 import { defineComponent, markRaw, watch } from "vue"
 import IllustGrid from "@/layouts/data/IllustGrid"
 import { Illust } from "@/functions/adapter-http/impl/illust"
-import { createSliceOfAll, createSliceOfList } from "@/functions/utils/endpoints/query-endpoint"
-import { useDynamicPopupMenu } from "@/functions/module"
+import { useNavigator } from "@/functions/feature/navigator"
+import { createSliceOfAll, createSliceOfList, QueryEndpointInstance } from "@/functions/utils/endpoints/query-endpoint"
+import { useFastObjectEndpoint } from "@/functions/utils/endpoints/object-fast-endpoint"
+import { useDynamicPopupMenu } from "@/functions/module/popup-menu"
 import { useViewStacks } from "../view-stacks"
 import { useIllustContext } from "./inject"
+import { useMessageBox } from "@/functions/module/message-box";
 
 export default defineComponent({
     setup() {
@@ -20,35 +23,11 @@ export default defineComponent({
             lastSelected.value = lastSelectedValue
         }
 
-        //TODO 完成菜单的功能
-        const menu = useDynamicPopupMenu<Illust>(illust => [
-            {type: "normal", label: "查看详情", click: illust => clickToOpenDetail(illust.id)},
-            illust.type === "COLLECTION" ? {type: "normal", label: "查看集合详情"} : null,
-            {type: "separator"},
-            {type: "normal", label: "显示预览"},
-            {type: "normal", label: "在新窗口中打开"},
-            {type: "separator"},
-            illust.favorite
-                ? {type: "normal", label: "取消标记为收藏"}
-                : {type: "normal", label: "标记为收藏"},
-            {type: "separator"},
-            {type: "normal", label: "加入剪贴板"},
-            {type: "separator"},
-            {type: "normal", label: "创建集合"},
-            {type: "normal", label: "创建画集"},
-            {type: "normal", label: "创建关联组"},
-            {type: "normal", label: "添加到文件夹"},
-            {type: "normal", label: "添加到\"X\""},
-            {type: "normal", label: "添加到临时文件夹"},
-            {type: "separator"},
-            {type: "normal", label: "导出"},
-            {type: "separator"},
-            {type: "normal", label: "删除项目"}
-        ])
-
         const { clickToOpenDetail, enterToOpenDetail } = useOpenDetail()
 
-        //TODO test
+        const menu = useContextmenu(dataView.proxy, clickToOpenDetail)
+
+        //TODO 测试代码，用后删掉
         watch(() => dataView.data.value.metrics.total, t => {
             if(t !== undefined) {
                 clickToOpenDetail(23)
@@ -62,6 +41,80 @@ export default defineComponent({
                                  onRightClick={menu.popup} onDblClick={clickToOpenDetail} onEnter={enterToOpenDetail}/>
     }
 })
+
+function useContextmenu(endpoint: QueryEndpointInstance<Illust>, clickToOpenDetail: (id: number) => void) {
+    const messageBox = useMessageBox()
+    const navigator = useNavigator()
+    const imageFastEndpoint = useFastObjectEndpoint({
+        update: httpClient => httpClient.illust.image.update,
+        delete: httpClient => httpClient.illust.image.delete
+    })
+    const collectionFastEndpoint = useFastObjectEndpoint({
+        update: httpClient => httpClient.illust.image.update,
+        delete: httpClient => httpClient.illust.image.delete
+    })
+
+    //TODO 完成illust右键菜单的功能
+    const menu = useDynamicPopupMenu<Illust>(illust => [
+        {type: "normal", label: "查看详情", click: illust => clickToOpenDetail(illust.id)},
+        illust.type === "COLLECTION" ? {type: "normal", label: "查看集合详情"} : null,
+        {type: "separator"},
+        {type: "normal", label: "显示预览"},
+        {type: "normal", label: "在新窗口中打开", click: openInNewWindow},
+        {type: "separator"},
+        illust.favorite
+            ? {type: "normal", label: "取消标记为收藏", click: illust => switchFavorite(illust, false)}
+            : {type: "normal", label: "标记为收藏", click: illust => switchFavorite(illust, true)},
+        {type: "separator"},
+        {type: "normal", label: "加入剪贴板"},
+        {type: "separator"},
+        {type: "normal", label: "创建集合"},
+        {type: "normal", label: "创建画集"},
+        {type: "normal", label: "创建关联组"},
+        {type: "normal", label: "添加到文件夹"},
+        {type: "normal", label: "添加到\"X\""},
+        {type: "normal", label: "添加到临时文件夹"},
+        {type: "separator"},
+        {type: "normal", label: "导出"},
+        {type: "separator"},
+        {type: "normal", label: "删除项目", click: del}
+    ])
+
+    const openInNewWindow = (illust: Illust) => {
+        if(illust.type === "IMAGE") navigator.newWindow.preferences.image(illust.id)
+        else navigator.newWindow.preferences.collection(illust.id)
+    }
+
+    const switchFavorite = async (illust: Illust, favorite: boolean) => {
+        const ok = illust.type === "IMAGE"
+            ? await imageFastEndpoint.setData(illust.id, { favorite })
+            : await collectionFastEndpoint.setData(illust.id, { favorite })
+
+        if(ok) {
+            const index = endpoint.syncOperations.find(i => i.id === illust.id)
+            if(index !== undefined) {
+                endpoint.syncOperations.modify(index, {...illust, favorite})
+            }
+        }
+    }
+
+    const del = async (illust: Illust) => {
+        if(await messageBox.showYesNoMessage("warn", "确定要删除此项吗？", "此操作不可撤回。")) {
+            const ok = illust.type === "IMAGE"
+                ? await imageFastEndpoint.deleteData(illust.id)
+                : await collectionFastEndpoint.deleteData(illust.id)
+
+            if(ok) {
+                const index = endpoint.syncOperations.find(i => i.id === illust.id)
+                if(index !== undefined) {
+                    endpoint.syncOperations.remove(index)
+                }
+            }
+        }
+    }
+
+    return menu
+}
 
 function useOpenDetail() {
     const { dataView, endpoint, selector: { selected } } = useIllustContext()

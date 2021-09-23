@@ -1,5 +1,5 @@
 import { defineComponent, PropType, ref } from "vue"
-import { watchGlobalKeyEvent } from "@/functions/document/global-key"
+import { watchGlobalKeyEvent } from "@/functions/feature/keyboard"
 import { useMouseHover } from "@/functions/utils/element"
 import { objects } from "@/utils/primitives"
 import style from "./ViewAndEditor.module.scss"
