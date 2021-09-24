@@ -37,7 +37,7 @@ export const [installDetailViewContext, useDetailViewContext] = installation(fun
 
     installDetailEndpoints(id)
 
-    const drawerTab = ref<"metaTag">()
+    const drawerTab = ref<"metaTag" | "source">()
 
     return {
         data,

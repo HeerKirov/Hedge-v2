@@ -20,7 +20,7 @@ export default defineComponent({
         theme: {type: String as PropType<"rectangle" | "element">, default: "rectangle"}
     },
     emits: {
-        updateValue(_: StdColor) { return true }
+        updateValue: (_: StdColor) => true
     },
     setup(props, { emit }) {
         const rootRef = ref<HTMLElement>()

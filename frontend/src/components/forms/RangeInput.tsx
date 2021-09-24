@@ -9,7 +9,9 @@ export default defineComponent({
         refreshOnInput: {type: Boolean, default: false},
         disabled: {type: Boolean, default: false}
     },
-    emits: ['updateValue'],
+    emits: {
+        updateValue: (_: number) => true
+    },
     setup(props, { emit }) {
         const value: Ref<number | undefined> = ref(props.value)
 

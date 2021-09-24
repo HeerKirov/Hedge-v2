@@ -2,7 +2,7 @@ import { defineComponent, PropType } from "vue"
 import { useMetaTagCallout } from "@/layouts/data/MetaTagCallout"
 import { SimpleMetaTagElement } from "@/layouts/display-components"
 import { MetaTagTypeValues } from "@/functions/adapter-http/impl/all"
-import { useDroppable } from "@/functions/drag"
+import { useDroppable } from "@/functions/feature/drag"
 import { usePanelContext } from "./inject"
 import style from "./style.module.scss"
 

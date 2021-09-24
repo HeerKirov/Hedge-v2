@@ -5,7 +5,9 @@ export default defineComponent({
         value: Boolean,
         disabled: {type: Boolean, default: false}
     },
-    emits: ['updateValue'],
+    emits: {
+        updateValue: (_: boolean) => true
+    },
     setup(props, { emit, slots }) {
         const value = ref(props.value ?? false)
 

@@ -1,7 +1,7 @@
 import { ComponentPublicInstance, computed, defineComponent, onBeforeUnmount, PropType, toRef, toRefs, Transition } from "vue"
 import { TagNodeElement } from "@/layouts/display-components"
 import { TagTreeNode } from "@/functions/adapter-http/impl/tag"
-import { useDraggable } from "@/functions/drag"
+import { useDraggable } from "@/functions/feature/drag"
 import { useExpandedValue, useTagTreeContext, useDescriptionValue, useTagDrop, useTagTreeAccessor, installTagTreeContext } from "./inject"
 import type { TagTreeEventCallbackContext } from "./inject"
 import style from "./style.module.scss"

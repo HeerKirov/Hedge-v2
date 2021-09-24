@@ -1,3 +1,4 @@
+@import "../base/size"
 /**
  * 与元素显示效果相关的CSS原子类。
  */
@@ -20,3 +21,8 @@
   cursor: default
 .is-cursor-text
   cursor: text
+
+//自订圆角
+@each $name, $size in $radius-size-map
+  .has-radius-#{$name}
+    border-radius: $size

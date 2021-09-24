@@ -7,6 +7,7 @@ import AnnotationEditor from "./AnnotationEditor"
 import TopicEditor from "./TopicEditor"
 import TagmeEditor from "./TagmeEditor"
 import SourceEditor, { SourceIdentity } from "./SourceEditor"
+import { SourceTagEditor, SourcePoolEditor, SourceRelationEditor } from "./SourceEditors"
 import DateTimeEditor from "./DateTimeEditor"
 import DateEditor from "./DateEditor"
 import DescriptionEditor from "./DescriptionEditor"
@@ -15,5 +16,5 @@ export { ViewAndEditor, ViewAndEditable }
 export { StarlightEditor }
 export { OtherNameEditor, LinkEditor, DescriptionEditor }
 export { AnnotationEditor, TopicEditor }
-export { TagmeEditor, SourceEditor, DateTimeEditor, DateEditor }
+export { TagmeEditor, SourceEditor, SourceTagEditor, SourcePoolEditor, SourceRelationEditor, DateTimeEditor, DateEditor }
 export type { SourceIdentity }

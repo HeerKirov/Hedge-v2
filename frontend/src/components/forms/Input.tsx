@@ -9,7 +9,9 @@ export default defineComponent({
         focusOnMounted: {type: Boolean, default: false},
         disabled: {type: Boolean, default: false}
     },
-    emits: ['updateValue'],
+    emits: {
+        updateValue: (_: string) => true
+    },
     setup(props, { emit }) {
         const type = toRef(props, 'type')
         const value = ref(props.value)
