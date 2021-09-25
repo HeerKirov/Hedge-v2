@@ -4,10 +4,10 @@ import { Illust } from "@/functions/adapter-http/impl/illust"
 import { useNavigator } from "@/functions/feature/navigator"
 import { createSliceOfAll, createSliceOfList, QueryEndpointInstance } from "@/functions/utils/endpoints/query-endpoint"
 import { useFastObjectEndpoint } from "@/functions/utils/endpoints/object-fast-endpoint"
+import { useMessageBox } from "@/functions/module/message-box"
 import { useDynamicPopupMenu } from "@/functions/module/popup-menu"
 import { useViewStacks } from "../view-stacks"
 import { useIllustContext } from "./inject"
-import { useMessageBox } from "@/functions/module/message-box";
 
 export default defineComponent({
     setup() {

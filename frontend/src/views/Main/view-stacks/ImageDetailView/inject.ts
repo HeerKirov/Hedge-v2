@@ -4,57 +4,101 @@ import {
     ImageOriginUpdateForm, ImageRelatedItems, ImageRelatedUpdateForm, ImageUpdateForm
 } from "@/functions/adapter-http/impl/illust"
 import { SliceDataView } from "@/functions/utils/endpoints/query-endpoint"
-import { installObjectLazyObject, ObjectLazyObjectInjection, useObjectLazyObject } from "@/functions/utils/endpoints/object-lazy-endpoint"
+import { installObjectLazyObject, useObjectLazyObject, ObjectLazyObjectInjection } from "@/functions/utils/endpoints/object-lazy-endpoint"
+import { useFastObjectEndpoint } from "@/functions/utils/endpoints/object-fast-endpoint"
 import { useHttpClient } from "@/functions/app"
 import { useToast } from "@/functions/module/toast"
 import { installation } from "@/functions/utils/basic"
+import { useViewStacks } from "../../view-stacks"
 
 export interface DetailViewContext {
+    /**
+     * 当前详情视图中，引用的数据列表的列表视图。
+     */
     data: SliceDataView<Illust>
     navigator: {
+        /**
+         * 当前一级数据列表的导航视图。
+         */
         metrics: Readonly<Ref<{ total: number, current: number }>>
+        /**
+         * 如果当前项是集合，那么在二级列表的项的导航视图。
+         */
         metricsOfCollection: Readonly<Ref<{ total: number, current: number } | null>>
+        /**
+         * 二级列表的上一项。
+         */
         prev(): void
+        /**
+         * 一级列表向前几项。
+         */
         prevWholeIllust(count?: number): void
+        /**
+         * 二级列表的下一项。
+         */
         next(): void
+        /**
+         * 一级列表向后几项。
+         */
         nextWholeIllust(count?: number): void
     }
+    /**
+     * 当前二级列表所引用的image对象，就是正在显示的项目。
+     */
     detail: Targets
     ui: {
+        /**
+         * 当前抽屉正在显示的tab。
+         */
         drawerTab: Ref<"metaTag" | "source" | undefined>
     }
 }
 
 interface Targets {
+    /**
+     * 当前项的id。
+     */
     id: Readonly<Ref<number | null>>
+    /**
+     * 当前项的数据内容。
+     */
     target: Readonly<Ref<Illust | null>>
+    /**
+     * 如果当前项是一个集合的二级列表，那么给出这个集合的所有项的列表。
+     */
     collectionItems: Readonly<Ref<Illust[] | null>>
-    setTargetData(newData: Illust): void
+    /**
+     * 对target的数据进行修改。很少需要调用此方法。
+     */
+    setTargetData(form: TargetDataForm): Promise<boolean>
+    /**
+     * 删除target所指的项，将指针指向下一个项目。
+     */
+    deleteTarget(): Promise<boolean>
+}
+
+interface TargetDataForm {
+    favorite?: boolean
 }
 
 export const [installDetailViewContext, useDetailViewContext] = installation(function (data: SliceDataView<Illust>, initIndex: Ref<number>): DetailViewContext {
-    const { id, target, collectionItems, setTargetData, ...navigator } = useNavigator(data, initIndex)
+    const { navigator, detail } = useNavigatorAndTarget(data, initIndex)
 
-    installDetailEndpoints(id)
+    installSideBarEndpoints(detail.id)
 
     const drawerTab = ref<"metaTag" | "source">()
 
     return {
         data,
         navigator,
-        detail: {
-            id,
-            target,
-            collectionItems,
-            setTargetData
-        },
+        detail,
         ui: {
             drawerTab
         }
     }
 })
 
-function useNavigator(data: SliceDataView<Illust>, initIndex: Ref<number>): DetailViewContext["navigator"] & Targets {
+function useNavigatorAndTarget(data: SliceDataView<Illust>, initIndex: Ref<number>): {navigator: DetailViewContext["navigator"], detail: Targets} {
     const { toast, handleException } = useToast()
     const httpClient = useHttpClient()
 
@@ -68,25 +112,16 @@ function useNavigator(data: SliceDataView<Illust>, initIndex: Ref<number>): Deta
     const target: Ref<Illust | null> = ref(null)
 
     /**
-     * 当组件根层次的初始索引变化时，将当前illust索引修改为初始索引的值。
+     * 根据current index加载target。
      */
-    watch(initIndex, initIndex => {
-        if(initIndex !== currentIndex.value) {
-            currentIndex.value = initIndex
-        }
-    })
-
-    /**
-     * 当当前illust索引变化时，查询对应的illust项目。
-     */
-    watch(currentIndex, async (currentIllustIndex, old) => {
+    const refreshByCurrentIndex = async (currentIndex: number, old?: number) => {
         target.value = null
         collectionItems.value = null
         currentIndexOfCollection.value = null
 
-        const res = await data.get(currentIllustIndex)
+        const res = await data.get(currentIndex)
         if(res === undefined) {
-            toast("错误", "danger", `无法找到索引为${currentIllustIndex}的项目。`)
+            toast("错误", "danger", `无法找到索引为${currentIndex}的项目。`)
             return
         }
         if(res.type === "IMAGE") {
@@ -98,46 +133,66 @@ function useNavigator(data: SliceDataView<Illust>, initIndex: Ref<number>): Deta
             if(imagesRes.ok) {
                 collectionItems.value = imagesRes.data.result
                 //根据当前illust index与上一次的变化对比确定是在前进还是后退，从而决定显示collection的第一项还是最后一项
-                currentIndexOfCollection.value = old === undefined || currentIllustIndex > old ? 0 : collectionItems.value.length - 1
+                currentIndexOfCollection.value = (old === undefined || currentIndex > old) ? 0 : (collectionItems.value.length - 1)
                 //不需要设置currentTarget，这交给下面的watch完成
             }else if(imagesRes.exception) {
                 handleException(imagesRes.exception)
             }
         }
-    }, {immediate: true})
+    }
+
+    /**
+     * 根据collection current index加载target。
+     */
+    const refreshByCollectionIndex = (currentIndexOfCollection: number | null) => {
+        if(currentIndexOfCollection !== null && collectionItems.value !== null) {
+            target.value = {...collectionItems.value[currentIndexOfCollection]}
+        }
+    }
+
+    /**
+     * 当组件根层次的初始索引变化时，将当前illust索引修改为初始索引的值。
+     */
+    watch(initIndex, initIndex => {
+        if(initIndex !== currentIndex.value) {
+            currentIndex.value = initIndex
+        }
+    })
+
+    /**
+     * 当当前illust索引变化时，查询对应的illust项目。
+     */
+    watch(currentIndex, refreshByCurrentIndex, {immediate: true})
 
     /**
      * 当当前collection选中项索引发生变化时，替换target。
      */
-    watch(currentIndexOfCollection, index => {
-        if(index !== null && collectionItems.value !== null) {
-            target.value = {...collectionItems.value[index]}
-        }
-    })
+    watch(currentIndexOfCollection, refreshByCollectionIndex)
 
     const id = computed(() => target.value?.id ?? null)
     const metrics = computed(() => ({total: data.count(), current: currentIndex.value}))
     const metricsOfCollection = computed(() => collectionItems.value !== null && currentIndexOfCollection.value !== null ? {total: collectionItems.value.length, current: currentIndexOfCollection.value} : null)
 
-    const { prev, prevWholeIllust, next, nextWholeIllust } = useNavigatorFunc(data, currentIndex, currentIndexOfCollection, collectionItems)
+    const navigatorMethod = useNavigatorMethod(data, currentIndex, currentIndexOfCollection, collectionItems)
 
-    const setTargetData = useSetTargetData(data, currentIndex, currentIndexOfCollection, target)
+    const targetUpdater = useTargetUpdater(data, target, currentIndex, currentIndexOfCollection, collectionItems, refreshByCurrentIndex, refreshByCollectionIndex)
 
     return {
-        metrics,
-        metricsOfCollection,
-        prev,
-        prevWholeIllust,
-        next,
-        nextWholeIllust,
-        id,
-        target,
-        collectionItems,
-        setTargetData
+        navigator: {
+            metrics,
+            metricsOfCollection,
+            ...navigatorMethod
+        },
+        detail: {
+            id,
+            target,
+            collectionItems,
+            ...targetUpdater
+        }
     }
 }
 
-function useNavigatorFunc(data: SliceDataView<Illust>, currentIndex: Ref<number>, currentIndexOfCollection: Ref<number | null>, collectionItems: Ref<Illust[] | null>) {
+function useNavigatorMethod(data: SliceDataView<Illust>, currentIndex: Ref<number>, currentIndexOfCollection: Ref<number | null>, collectionItems: Ref<Illust[] | null>) {
     const prev = () => {
         if(currentIndexOfCollection.value !== null && collectionItems.value !== null && currentIndexOfCollection.value > 0) {
             currentIndexOfCollection.value -= 1
@@ -175,18 +230,97 @@ function useNavigatorFunc(data: SliceDataView<Illust>, currentIndex: Ref<number>
     return {prev, prevWholeIllust, next, nextWholeIllust}
 }
 
-function useSetTargetData(data: SliceDataView<Illust>, currentIndex: Ref<number>, currentIndexOfCollection: Ref<number | null>, target: Ref<Illust | null>) {
-    return (newData: Illust) => {
-        if(target !== null) {
-            target.value = newData
-            if(currentIndexOfCollection.value === null) {
-                data.syncOperations.modify(currentIndex.value, {...target.value})
+function useTargetUpdater(data: SliceDataView<Illust>, target: Ref<Illust | null>,
+                          currentIndex: Ref<number>, currentIndexOfCollection: Ref<number | null>, collectionItems: Ref<Illust[] | null>,
+                          refreshByIndex: (index: number) => void, refreshByCollectionIndex: (index: number) => void) {
+    const { goBack } = useViewStacks()
+    const { setData, deleteData } = useFastObjectEndpoint<number, unknown, ImageUpdateForm>({
+        update: httpClient => httpClient.illust.image.update,
+        delete: httpClient => httpClient.illust.image.delete
+    })
+
+    const setTargetData = async (form: TargetDataForm) => {
+        if(target.value !== null) {
+            const ok = await setData(target.value.id, form)
+            if(ok) {
+                if(form.favorite !== undefined) target.value.favorite = form.favorite
+                if(currentIndexOfCollection.value === null) {
+                    //index为null，表示这个illust项直接在上级列表显示，因此需要更新上级列表
+                    data.syncOperations.modify(currentIndex.value, {...target.value})
+                }
             }
+            return ok
+        }else{
+            return false
         }
     }
+    const deleteTarget = async () => {
+        if(target.value !== null) {
+            const ok = await deleteData(target.value.id)
+            if(ok) {
+                if(currentIndexOfCollection.value === null) {
+                    //如果是一级image项，从dataView中移除此项
+                    data.syncOperations.remove(currentIndex.value)
+
+                    if(data.count() <= 0) {
+                        //如果整个列表已净空，那么回退到上一层级
+                        goBack()
+                    }else if(currentIndex.value >= data.count()) {
+                        //如果当前项已是最后一项，那么使currentIndex -= 1，这会自动触发target刷新
+                        currentIndex.value -= 1
+                    }else{
+                        //如果还不是最后一项，那么强制刷新target以更新到新的illust
+                        refreshByIndex(currentIndex.value)
+                    }
+                }else{
+                    //如果是二级collection项，从项列表移除此项
+                    collectionItems.value!.splice(currentIndexOfCollection.value, 1)
+
+                    if(collectionItems.value!.length <= 0) {
+                        //如果collection被净空，那么从dataView将此collection移除，并继续对一级项的判断
+                        data.syncOperations.remove(currentIndex.value)
+                        if(data.count() <= 0) {
+                            goBack()
+                        }else if(currentIndex.value >= data.count()) {
+                            currentIndex.value -= 1
+                        }else{
+                            refreshByIndex(currentIndex.value)
+                        }
+                    }else{
+                        if(currentIndexOfCollection.value >= collectionItems.value!.length) {
+                            //如果当前项已是最后一项，那么使currentIndexOfCollection -= 1，这会自动触发target刷新
+                            currentIndexOfCollection.value -= 1
+                        }else{
+                            //如果还不是最后一项，那么强制刷新target以更新到新的image
+                            refreshByCollectionIndex(currentIndexOfCollection.value)
+                        }
+
+                        const col = await data.get(currentIndex.value)
+                        if(col !== undefined) {
+                            //在dataView中修改此项的children count，减少1
+                            const newIllust: Illust = {...col, childrenCount: col.childrenCount! - 1}
+                            //如果被移除的项是第一项，那么collection的cover需要顺延至下一个
+                            if(currentIndexOfCollection.value === 0) {
+                                const nextCover = collectionItems.value![0]
+                                newIllust.file = nextCover.file
+                                newIllust.thumbnailFile = nextCover.thumbnailFile
+                            }
+
+                            data.syncOperations.modify(currentIndex.value, newIllust)
+                        }
+                    }
+                }
+            }
+            return ok
+        }else{
+            return false
+        }
+    }
+
+    return {setTargetData, deleteTarget}
 }
 
-function installDetailEndpoints(path: Ref<number | null>) {
+function installSideBarEndpoints(path: Ref<number | null>) {
     installObjectLazyObject(symbols.metadata, {
         path,
         get: httpClient => httpClient.illust.image.get,

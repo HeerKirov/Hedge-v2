@@ -1,9 +1,7 @@
 import { computed, defineComponent } from "vue"
 import { ZoomController } from "@/layouts/topbar-components"
-import { ImageUpdateForm } from "@/functions/adapter-http/impl/illust"
 import { useElementPopupMenu } from "@/functions/module/popup-menu"
 import { watchGlobalKeyEvent } from "@/functions/feature/keyboard"
-import { useFastObjectEndpoint } from "@/functions/utils/endpoints/object-fast-endpoint"
 import { BackspaceButton } from ".."
 import { useDetailViewContext } from "./inject"
 import style from "./style.module.scss"
@@ -71,21 +69,9 @@ const FavoriteButton = defineComponent({
     setup() {
         const { detail: { target, setTargetData } } = useDetailViewContext()
 
-        const { setData } = useFastObjectEndpoint<number, unknown, ImageUpdateForm>({
-            update: httpClient => httpClient.illust.image.update
-        })
+        const favorite = computed(() => target.value?.favorite ?? false)
 
-        const favorite = computed(() => target.value?.favorite ?? null)
-
-        const click = async () => {
-            if(target.value !== null) {
-                const newFavoriteValue = !favorite.value
-                const ok = await setData(target.value.id, {favorite: newFavoriteValue})
-                if(ok) {
-                    setTargetData({...target.value, favorite: newFavoriteValue})
-                }
-            }
-        }
+        const click = () => setTargetData({ favorite: !favorite.value })
 
         return () => <button class="square button is-white no-drag" onClick={click}>
             <span class={`icon has-text-${favorite.value ? "danger" : "grey"}`}><i class="fa fa-heart"/></span>
