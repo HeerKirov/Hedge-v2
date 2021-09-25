@@ -31,6 +31,10 @@ export interface TagListContext {
      */
     fastEndpoint: ObjectEndpoint<number, DetailTag, TagUpdateForm>
     /**
+     * 刷新以重新加载标签树。
+     */
+    refresh(): void
+    /**
      * 添加新的tag。通过此方法添加不会重载数据，在前端同步完成所有处理，以减少开销。
      */
     syncAddTag(id: number): void
@@ -64,7 +68,7 @@ export interface IndexedInfo {
 type IsGroupMember = "YES" | "SEQUENCE" | "NO"
 
 export const [installTagListContext, useTagListContext] = installation(function(): TagListContext {
-    const { loading, data: requestedData } = useTagTreeEndpoint()
+    const { loading, data: requestedData, refresh: endpointRefresh } = useTagTreeEndpoint()
 
     const { data, indexedInfo, add, remove, move } = useIndexedData(requestedData)
 
@@ -75,6 +79,11 @@ export const [installTagListContext, useTagListContext] = installation(function(
     })
 
     const descriptionCache = useDescriptionCache(fastEndpoint)
+
+    const refresh = () => {
+        descriptionCache.clear()
+        endpointRefresh().finally()
+    }
 
     const syncAddTag = (id: number) => {
         fastEndpoint.getData(id).then(tag => {
@@ -168,7 +177,7 @@ export const [installTagListContext, useTagListContext] = installation(function(
 
     const syncDeleteTag = remove
 
-    return {loading, data, indexedInfo, descriptionCache, fastEndpoint, syncAddTag, syncUpdateTag, syncMoveTag, syncDeleteTag}
+    return {loading, data, indexedInfo, descriptionCache, fastEndpoint, refresh, syncAddTag, syncUpdateTag, syncMoveTag, syncDeleteTag}
 })
 
 function useTagTreeEndpoint() {
@@ -411,5 +420,9 @@ function useDescriptionCache(endpoint: ObjectEndpoint<number, DetailTag, unknown
         }
     }
 
-    return {get, set}
+    const clear = () => {
+        descriptions.value = {}
+    }
+
+    return {get, set, clear}
 }

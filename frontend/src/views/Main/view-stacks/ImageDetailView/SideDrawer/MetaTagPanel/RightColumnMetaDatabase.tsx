@@ -1,4 +1,4 @@
-import { computed, defineComponent, PropType, reactive, ref, watch } from "vue"
+import { computed, defineComponent, PropType, reactive, ref, watch, ComponentPublicInstance } from "vue"
 import Input from "@/components/forms/Input"
 import { useMetaTagCallout } from "@/layouts/data/MetaTagCallout"
 import { SimpleMetaTagElement, TagAddressElement } from "@/layouts/display-components"
@@ -17,6 +17,14 @@ export default defineComponent({
         const searchBox = reactive({author: "", topic: "", tag: ""})
         const updateSearchBox = (value: string) => searchBox[tabDbType.value] = value.trim()
 
+        const tabRef = ref<ComponentPublicInstance>()
+        const refresh = () => {
+            //向tab组件发出刷新指令
+            if(tabRef.value) {
+                tabRef.value["refresh"]()
+            }
+        }
+
         return () => <>
             <div class="mx-1">
                 <button class={`button is-small is-${tabDbType.value === "author" ? "link" : "white"} mr-1 mb-1`} onClick={() => tabDbType.value = "author"}>
@@ -31,16 +39,19 @@ export default defineComponent({
                     <span class="icon"><i class="fa fa-tag"/></span>
                     <span>标签</span>
                 </button>
-                <Input class="is-small is-width-medium mb-1" placeholder="搜索项目"
+                <Input class="is-small is-width-medium mr-1 mb-1" placeholder="搜索项目"
                        value={searchBox[tabDbType.value]} onUpdateValue={updateSearchBox}
                        onfocus={() => searchBoxFocus.value = true} onblur={() => searchBoxFocus.value = false}/>
+                <button class="button is-small is-white has-text-link mb-1" onClick={refresh}>
+                    <span class="icon"><i class="fa fa-sync-alt"/></span>
+                </button>
             </div>
             {tabDbType.value === "author"
-                ? <AuthorTab search={searchBox.author}/>
+                ? <AuthorTab ref={tabRef} search={searchBox.author}/>
             : tabDbType.value === "topic"
-                ? <TopicTab search={searchBox.topic}/>
+                ? <TopicTab ref={tabRef} search={searchBox.topic}/>
             : //tag
-                <TagTab search={searchBox.tag} searchFocus={searchBoxFocus.value}/>
+                <TagTab ref={tabRef} search={searchBox.tag} searchFocus={searchBoxFocus.value}/>
             }
         </>
     }
@@ -50,11 +61,17 @@ const AuthorTab = defineComponent({
     props: {
         search: {type: String, required: true}
     },
-    setup(props) {
+    setup(props, { expose }) {
         const { data, search } = useMetaDatabaseAuthorData()
         const showMore = computed(() => !data.loading.value && data.data.value.total > data.data.value.result.length)
 
         watch(() => props.search, s => search.value = s, {immediate: true})
+
+        expose({
+            refresh() {
+                data.refresh()
+            }
+        })
 
         return () => <div class={[style.metaDatabase, style.author]}>
             {data.data.value.result.map(item => <AuthorItem id={item.id} name={item.name} color={item.color} type={item.type}/>)}
@@ -67,11 +84,17 @@ const TopicTab = defineComponent({
     props: {
         search: {type: String, required: true}
     },
-    setup(props) {
+    setup(props, { expose }) {
         const { data, search } = useMetaDatabaseTopicData()
         const showMore = computed(() => !data.loading.value && data.data.value.total > data.data.value.result.length)
 
         watch(() => props.search, s => search.value = s, {immediate: true})
+
+        expose({
+            refresh() {
+                data.refresh()
+            }
+        })
 
         return () => <div class={[style.metaDatabase, style.topic]}>
             {data.data.value.result.map(item => <TopicItem key={item.id} id={item.id} name={item.name} color={item.color} type={item.type}/>)}
@@ -85,8 +108,8 @@ const TagTab = defineComponent({
         search: {type: String, required: true},
         searchFocus: {type: Boolean, required: true}
     },
-    setup(props) {
-        const { loading, data } = useTagListContext()
+    setup(props, { expose }) {
+        const { loading, data, refresh } = useTagListContext()
 
         const { searchText } = useSearchService()
         const showSearchPanel = ref(false)
@@ -102,6 +125,12 @@ const TagTab = defineComponent({
             }else{
                 searchText.value = null
                 showSearchPanel.value = false
+            }
+        })
+
+        expose({
+            refresh() {
+                refresh()
             }
         })
 
