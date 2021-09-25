@@ -27,7 +27,7 @@ export const [installIllustContext, useIllustContext] = installation(function():
 
     const list = useListContext(viewController.collectionMode)
 
-    const selector = useSelector()
+    const selector = useSelector(list.endpoint)
 
     return {...list, viewController, selector}
 })
@@ -70,9 +70,15 @@ function useViewController() {
     }
 }
 
-function useSelector() {
+function useSelector(endpoint: QueryEndpointResult<Illust>) {
     const selected = ref<number[]>([])
     const lastSelected = ref<number | null>(null)
+
+    watch(endpoint.instance, () => {
+        //在更新实例时，清空已选择项
+        selected.value = []
+        lastSelected.value = null
+    })
 
     return {selected, lastSelected}
 }

@@ -164,7 +164,7 @@ function useSaveFunction(tags: Ref<SimpleTag[]>, topics: Ref<SimpleTopic[]>, aut
 
 function useEditorDataValidation(tags: Ref<SimpleTag[]>, data: Ref<DetailIllust | null>) {
     const httpClient = useHttpClient()
-    const notification = useToast()
+    const toast = useToast()
 
     const tagValidationResults = ref<MetaTagValidation>()
 
@@ -183,7 +183,7 @@ function useEditorDataValidation(tags: Ref<SimpleTag[]>, data: Ref<DetailIllust 
                 tagValidationResults.value = res.data
             }else if(res.exception) {
                 tagValidationResults.value = undefined
-                notification.handleException(res.exception)
+                toast.handleException(res.exception)
             }
         }
     }, {immediate: true, deep: true})
@@ -310,10 +310,10 @@ function useRightColumnData() {
 
 const [installMetaDatabaseContext, useMetaDatabaseContext] = installation(function() {
     const httpClient = useHttpClient()
-    const notification = useToast()
+    const toast = useToast()
 
-    const author = useMetaDatabaseAuthorContext(httpClient, notification)
-    const topic = useMetaDatabaseTopicContext(httpClient, notification)
+    const author = useMetaDatabaseAuthorContext(httpClient, toast)
+    const topic = useMetaDatabaseTopicContext(httpClient, toast)
     useMetaDatabaseTagContext()
 
     return {author, topic}

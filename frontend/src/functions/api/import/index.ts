@@ -15,7 +15,7 @@ export interface ImportService {
 
 export const [installImportService, useImportService] = installation(function(): ImportService {
     const httpClient = useHttpClient()
-    const notification = useToast()
+    const toast = useToast()
 
     const progress = reactive({value: 0, max: 0})
 
@@ -47,11 +47,11 @@ export const [installImportService, useImportService] = installation(function():
                     }
                 }else if(res.exception) {
                     if(res.exception.code === "FILE_NOT_FOUND") {
-                        notification.toast("错误", "danger", `文件${filepath}不存在。`)
+                        toast.toast("错误", "danger", `文件${filepath}不存在。`)
                     }else if(res.exception.code === "ILLEGAL_FILE_EXTENSION") {
-                        notification.toast("错误", "danger", `文件${filepath}的类型不适用。`)
+                        toast.toast("错误", "danger", `文件${filepath}的类型不适用。`)
                     }else{
-                        notification.handleException(res.exception)
+                        toast.handleException(res.exception)
                     }
                 }
                 progress.value += 1
@@ -63,9 +63,9 @@ export const [installImportService, useImportService] = installation(function():
 
                 if(warningList.length) {
                     if(warningList.length > 3) {
-                        notification.toast("来源信息分析失败", "warning", `超过${warningList.length}个文件的来源信息分析失败，可能是因为正则表达式内容错误。`)
+                        toast.toast("来源信息分析失败", "warning", `超过${warningList.length}个文件的来源信息分析失败，可能是因为正则表达式内容错误。`)
                     }else{
-                        notification.toast("来源信息分析失败", "warning", ["存在文件的来源信息分析失败，可能是因为正则表达式内容错误。", ...warningList.map(i => i.filepath)])
+                        toast.toast("来源信息分析失败", "warning", ["存在文件的来源信息分析失败，可能是因为正则表达式内容错误。", ...warningList.map(i => i.filepath)])
                     }
                     warningList.splice(0, warningList.length)
                 }

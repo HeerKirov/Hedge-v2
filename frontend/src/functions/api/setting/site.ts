@@ -7,7 +7,7 @@ import { Site } from "@/functions/adapter-http/impl/setting-source"
 
 export const [installSettingSite, useSettingSite] = simpleInstallation(function() {
     const httpClient = useHttpClient()
-    const notification = useToast()
+    const toast = useToast()
     const messageBox = useMessageBox()
 
     const data = ref<Site[]>([])
@@ -29,7 +29,7 @@ export const [installSettingSite, useSettingSite] = simpleInstallation(function(
             if(res.exception.code === "ALREADY_EXISTS") {
                 messageBox.showOkMessage("prompt", "已经存在同名的站点。")
             }else{
-                notification.handleException(res.exception)
+                toast.handleException(res.exception)
             }
         }
         return false
@@ -40,7 +40,7 @@ export const [installSettingSite, useSettingSite] = simpleInstallation(function(
             await refreshData()
             return true
         }else if(res.exception) {
-            notification.handleException(res.exception)
+            toast.handleException(res.exception)
         }
         return false
     }
@@ -60,7 +60,7 @@ export const [installSettingSite, useSettingSite] = simpleInstallation(function(
                 }[res.exception.info]
                 messageBox.showOkMessage("prompt", "无法删除此站点。", `此站点仍存在关联的${resourceName}，请先清理关联项，确保没有意外的级联删除。`)
             }else{
-                notification.handleException(res.exception)
+                toast.handleException(res.exception)
             }
         }
         return false

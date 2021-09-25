@@ -23,7 +23,7 @@ interface ObjectEndpointOptions<PATH, MODEL, FORM> {
 
 export function useFastObjectEndpoint<PATH, MODEL, FORM>(options: ObjectEndpointOptions<PATH, MODEL, FORM>): ObjectEndpoint<PATH, MODEL, FORM> {
     const httpClient = useHttpClient()
-    const notification = useToast()
+    const toast = useToast()
 
     const method = {
         get: options.get?.(httpClient),
@@ -40,7 +40,7 @@ export function useFastObjectEndpoint<PATH, MODEL, FORM>(options: ObjectEndpoint
         }else if(res.exception) {
             //首先尝试让上层处理错误，上层拒绝处理则自行处理
             const e = options.handleUpdateError ? options.handleUpdateError(res.exception) : res.exception
-            if(e != undefined) notification.handleException(e)
+            if(e != undefined) toast.handleException(e)
         }
         return undefined
     }
@@ -54,7 +54,7 @@ export function useFastObjectEndpoint<PATH, MODEL, FORM>(options: ObjectEndpoint
         }else if(res.exception) {
             //首先尝试让上层处理错误，上层拒绝处理则自行处理
             const e = handleError ? handleError(res.exception) : options.handleUpdateError ? options.handleUpdateError(res.exception) : res.exception
-            if(e != undefined) notification.handleException(e)
+            if(e != undefined) toast.handleException(e)
         }
         return false
     }
@@ -67,7 +67,7 @@ export function useFastObjectEndpoint<PATH, MODEL, FORM>(options: ObjectEndpoint
         }else if(res.exception) {
             //首先尝试让上层处理错误，上层拒绝处理则自行处理
             const e = handleError ? handleError(res.exception) : options.handleDeleteError ? options.handleDeleteError(res.exception) : res.exception
-            if(e != undefined) notification.handleException(e)
+            if(e != undefined) toast.handleException(e)
         }
         return false
     }

@@ -25,7 +25,7 @@ export function useCliController() {
     if(!clientMode) {
         throw new Error("Cannot access appearance in web.")
     }
-    const notification = useToast()
+    const toast = useToast()
 
     const status = ref<ResourceStatus>(ResourceStatus.LATEST)
 
@@ -37,7 +37,7 @@ export function useCliController() {
                 status.value = ResourceStatus.LATEST
             }else{
                 status.value = ResourceStatus.NOT_INIT
-                notification.handleError("CLI部署失败", res.errorMessage)
+                toast.handleError("CLI部署失败", res.errorMessage)
                 console.error(res.errorMessage)
             }
         }

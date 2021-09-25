@@ -24,7 +24,7 @@ interface ReactiveEndpointOptions<T> {
 
 export function useReactiveEndpoint<T>(options: ReactiveEndpointOptions<T>): ReactiveEndpoint<T> {
     const httpClient = useHttpClient()
-    const notification = useToast()
+    const toast = useToast()
 
     const loading = ref(true)
     const updateLoading = ref(false)
@@ -43,7 +43,7 @@ export function useReactiveEndpoint<T>(options: ReactiveEndpointOptions<T>): Rea
             updateLoading.value = true
             const res = await options.update(httpClient)(toRaw(data.value))
             if(!res.ok && res.exception) {
-                notification.handleException(res.exception)
+                toast.handleException(res.exception)
             }
             updateLoading.value = false
         }

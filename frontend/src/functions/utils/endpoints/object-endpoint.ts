@@ -70,7 +70,7 @@ export interface ErrorHandler {
 
 export function useObjectEndpoint<PATH, MODEL, FORM>(options: ObjectEndpointOptions<PATH, MODEL, FORM>): ObjectEndpoint<MODEL, FORM> {
     const httpClient = useHttpClient()
-    const notification = useToast()
+    const toast = useToast()
 
     const method = {
         get: options.get(httpClient),
@@ -105,7 +105,7 @@ export function useObjectEndpoint<PATH, MODEL, FORM>(options: ObjectEndpointOpti
                 options.afterGet?.(path, data.value)
             }else if(res.exception && res.exception.code !== "NOT_FOUND") {
                 //not found类错误会被包装，因此不会抛出
-                notification.handleException(res.exception)
+                toast.handleException(res.exception)
             }
             loading.value = false
         }
@@ -131,7 +131,7 @@ export function useObjectEndpoint<PATH, MODEL, FORM>(options: ObjectEndpointOpti
                             options.afterUpdate?.(path.value, data.value)
                         }else if(res.exception) {
                             if(res.exception.code !== "NOT_FOUND") {
-                                notification.handleException(res.exception)
+                                toast.handleException(res.exception)
                             }
                             data.value = null
                         }
@@ -139,7 +139,7 @@ export function useObjectEndpoint<PATH, MODEL, FORM>(options: ObjectEndpointOpti
                 }else if(res.exception) {
                     //首先尝试让上层处理错误，上层拒绝处理则自行处理
                     const e = handleError ? handleError(res.exception) : options.handleUpdateError ? options.handleUpdateError(res.exception) : res.exception
-                    if(e != undefined) notification.handleException(e)
+                    if(e != undefined) toast.handleException(e)
                     return false
                 }
             }finally{
@@ -161,7 +161,7 @@ export function useObjectEndpoint<PATH, MODEL, FORM>(options: ObjectEndpointOpti
                 }else if(res.exception) {
                     //首先尝试让上层处理错误，上层拒绝处理则自行处理
                     const e = options.handleDeleteError ? options.handleDeleteError(res.exception) : res.exception
-                    if(e != undefined) notification.handleException(e)
+                    if(e != undefined) toast.handleException(e)
                     return false
                 }
             }finally{

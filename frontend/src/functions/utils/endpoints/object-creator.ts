@@ -18,7 +18,7 @@ interface ObjectCreatorOptions<FORM, RESULT> {
 
 export function useObjectCreator<FORM, RESULT>(options: ObjectCreatorOptions<FORM, RESULT>): ObjectCreator<FORM> {
     const httpClient = useHttpClient()
-    const notification = useToast()
+    const toast = useToast()
 
     const method = options.create(httpClient)
 
@@ -39,7 +39,7 @@ export function useObjectCreator<FORM, RESULT>(options: ObjectCreatorOptions<FOR
                 }else if(res.exception) {
                     //首先尝试让上层处理错误，上层拒绝处理则自行处理
                     const e = options.handleError ? options.handleError(res.exception) : res.exception
-                    if(e != undefined) notification.handleException(e)
+                    if(e != undefined) toast.handleException(e)
                     return false
                 }
             }finally{
