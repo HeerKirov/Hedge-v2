@@ -8,6 +8,15 @@ fun <T> Iterable<T>.duplicateCount(): Map<T, Int> {
     return map
 }
 
+inline fun <T> Sequence<T>.filterInto(condition: (T) -> Boolean): Pair<List<T>, List<T>> {
+    val a = ArrayList<T>()
+    val b = ArrayList<T>()
+    for (t in this) {
+        if(condition(t)) a.add(t) else b.add(t)
+    }
+    return a to b
+}
+
 inline fun <T, R> Iterator<T>.map (transform: (T) -> R): List<R> {
     val list = arrayListOf<R>()
     this.forEach { list.add(transform(it)) }

@@ -466,7 +466,7 @@ class IllustService(private val data: DataRepository,
                     }
                     if(illust.parentId != null) {
                         //处理旧parent
-                        illustManager.processRemoveItemFromCollection(illust.parentId, illust, now)
+                        illustManager.processRemoveItemFromCollection(illust.parentId, listOf(illust), now)
                     }
                 }
             }
@@ -527,7 +527,7 @@ class IllustService(private val data: DataRepository,
                 //关联的partition的计数-1
                 partitionManager.deleteItemInPartition(illust.partitionTime)
                 //存在parent时，执行parent重导出处理。
-                if(illust.parentId != null) illustManager.processRemoveItemFromCollection(illust.parentId, illust)
+                if(illust.parentId != null) illustManager.processRemoveItemFromCollection(illust.parentId, listOf(illust))
                 //删除关联的file。无法撤销的删除放到最后，这样不必回滚
                 fileManager.trashFile(illust.fileId)
             }else{

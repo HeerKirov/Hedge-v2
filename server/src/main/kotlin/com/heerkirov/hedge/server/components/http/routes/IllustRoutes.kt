@@ -10,7 +10,6 @@ import com.heerkirov.hedge.server.library.form.queryAsFilter
 import com.heerkirov.hedge.server.model.illust.Illust
 import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder.*
-import io.javalin.http.ContentType
 import io.javalin.http.Context
 
 class IllustRoutes(private val illustService: IllustService, private val associateService: AssociateService) : Endpoints {

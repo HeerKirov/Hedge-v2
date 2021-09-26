@@ -12,9 +12,7 @@ import com.heerkirov.hedge.server.utils.Net
 import com.heerkirov.hedge.server.utils.Token
 import com.heerkirov.hedge.server.utils.objectMapper
 import io.javalin.Javalin
-import io.javalin.http.ContentType
 import io.javalin.plugin.json.JavalinJackson
-import io.javalin.plugin.json.JsonMapper
 import java.net.BindException
 
 interface HttpServer : StatefulComponent {
@@ -81,6 +79,7 @@ class HttpServerImpl(private val allServices: AllServices,
                 allServices.settingAppdata))
             .handle(UtilQueryRoutes(allServices.queryService))
             .handle(UtilMetaRoutes(allServices.metaService))
+            .handle(UtilIllustRoutes(allServices.illustUtilService))
             .handle(IllustRoutes(allServices.illust, allServices.associate))
             .handle(AlbumRoutes(allServices.album))
             .handle(FolderRoutes(allServices.folder))

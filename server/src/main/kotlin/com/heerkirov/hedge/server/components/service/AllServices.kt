@@ -19,4 +19,5 @@ class AllServices(val illust: IllustService,
                   val settingSource: SettingSourceService,
                   val settingSpider: SettingSpiderService,
                   val queryService: QueryService,
-                  val metaService: MetaService) : Component
+                  val metaService: MetaService,
+                  val illustUtilService: IllustUtilService) : Component

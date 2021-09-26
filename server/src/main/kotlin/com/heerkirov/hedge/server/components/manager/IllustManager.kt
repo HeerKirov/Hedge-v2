@@ -167,13 +167,14 @@ class IllustManager(private val data: DataRepository,
                 set(it.exportedScore, thisScore)
             }
         }
+
         val now = DateTime.now()
-        for (image in images) {
-            if(image.parentId != null && image.parentId != thisId) {
-                //此image有旧的parent，需要对旧parent做重新导出
-                processRemoveItemFromCollection(image.parentId, image, now)
-            }
-        }
+        //这些image有旧的parent，需要对旧parent做重新导出
+        images.asSequence()
+            .filter { it.parentId != null && it.parentId != thisId }
+            .groupBy { it.parentId!! }
+            .forEach { (parentId, images) -> processRemoveItemFromCollection(parentId, images, now) }
+
         //将被从列表移除的images加入重导出任务
         illustMetaExporter.appendNewTask(deleteIds.map { ImageExporterTask(it, exportDescription = true, exportScore = true, exportMeta = true) })
     }
@@ -201,16 +202,19 @@ class IllustManager(private val data: DataRepository,
     /**
      * 从collection中移除了一个子项(由于删除子项或移动子项)，对此collection做快速重导出，如有必要，放入metaExporter。
      */
-    fun processRemoveItemFromCollection(collectionId: Int, removedImage: Illust, currentTime: LocalDateTime? = null) {
+    fun processRemoveItemFromCollection(collectionId: Int, removedImages: List<Illust>, currentTime: LocalDateTime? = null) {
         //关键属性(fileId, partitionTime, orderTime)的重导出不延后到metaExporter，在事务内立即完成
         val parent = data.db.sequenceOf(Illusts).first { it.id eq collectionId }
-        val firstImage = data.db.sequenceOf(Illusts).filter { (it.parentId eq collectionId) and (it.id notEq removedImage.id) }.sortedBy { it.orderTime }.firstOrNull()
+        val firstImage = data.db.sequenceOf(Illusts)
+            .filter { (it.parentId eq collectionId) and (it.id notInList removedImages.map(Illust::id)) }
+            .sortedBy { it.orderTime }
+            .firstOrNull()
         if(firstImage != null) {
             data.db.update(Illusts) {
                 where { it.id eq collectionId }
-                if(firstImage.orderTime >= removedImage.orderTime) {
-                    //只有当剩余列表的第一项的排序顺位>=被取出的当前项时，才发起更新。
-                    //这个项肯定不是当前项，如果顺位<当前项，那么旧parent的封面肯定是这个第一项而不是当前项，就不需要更新。
+                if(firstImage.orderTime >= removedImages.minOf(Illust::orderTime)) {
+                    //只有被移除的项存在任意项的排序顺位<=当剩余列表的第一项时，才发起更新。
+                    //因为如果移除项顺位<当前第一项，那么旧parent的封面肯定是这个第一项而不是移除的项，就不需要更新。
                     set(it.fileId, firstImage.fileId)
                     set(it.partitionTime, firstImage.partitionTime)
                     set(it.orderTime, firstImage.orderTime)

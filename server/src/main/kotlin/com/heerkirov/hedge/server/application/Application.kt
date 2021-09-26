@@ -80,6 +80,8 @@ fun runApplication(options: ApplicationOptions) {
             val topicService = TopicService(repo, topicKit, queryManager, illustMetaExporter)
             val importService = ImportService(repo, fileManager, importManager, illustManager, sourceManager, importMetaManager, thumbnailGenerator)
 
+            val illustUtilService = IllustUtilService(repo)
+
             val settingAppdataService = SettingAppdataService(appdata, webController)
             val settingMetaService = SettingMetaService(repo)
             val settingQueryService = SettingQueryService(repo)
@@ -105,7 +107,8 @@ fun runApplication(options: ApplicationOptions) {
                 settingSiteService,
                 settingSpiderService,
                 queryService,
-                metaService
+                metaService,
+                illustUtilService
             )
         }
 

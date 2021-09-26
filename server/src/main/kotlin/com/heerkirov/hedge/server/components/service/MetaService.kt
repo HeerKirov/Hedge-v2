@@ -14,6 +14,10 @@ import org.ktorm.entity.sequenceOf
 import org.ktorm.entity.toList
 
 class MetaService(private val data: DataRepository, private val metaManager: MetaManager) {
+    /**
+     * 对tag列表做内容校验。它实际上是metaTag保存流程的一部分。
+     * 这个API用于metaTag编辑器，实时对tag列表做验证，避免错误关系。
+     */
     fun validateTags(tagIds: List<Int>): MetaTagValidateRes {
         val tags = data.db.sequenceOf(Tags).filter { it.id inList tagIds }.toList()
         if(tags.size < tags.size) {

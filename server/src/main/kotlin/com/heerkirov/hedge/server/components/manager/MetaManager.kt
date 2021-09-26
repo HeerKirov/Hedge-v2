@@ -84,8 +84,8 @@ class MetaManager(private val data: DataRepository) {
         val childrenMap = HashMap<Int, MutableSet<Int>>().apply { for (tag in tags) if(tag.parentId != null) computeIfAbsent(tag.parentId) { mutableSetOf() }.apply { add(tag.id) } }
         //已经访问过的节点。原tags列表的节点直接进去了
         val been = HashMap<Int, Tag?>(tags.size * 2).apply { tags.forEach { put(it.id, it) } }
-        //等待访问的队列。将原tags列表的parent加进去
-        val queue = LinkedList<Int>().apply { addAll(tags.mapNotNull { it.parentId }) }
+        //等待访问的队列。将原tags列表的parent和links直接加进去
+        val queue = LinkedList<Int>().apply { addAll(tags.mapNotNull { it.parentId }) }.apply { addAll(tags.flatMap { it.links ?: emptyList() }) }
         //导出的项的结果
         val exportedTags = LinkedList<Tag>()
 

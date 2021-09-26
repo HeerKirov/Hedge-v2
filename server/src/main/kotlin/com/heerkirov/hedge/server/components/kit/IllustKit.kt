@@ -13,6 +13,7 @@ import com.heerkirov.hedge.server.model.illust.Illust
 import com.heerkirov.hedge.server.model.meta.Annotation
 import com.heerkirov.hedge.server.utils.business.checkScore
 import com.heerkirov.hedge.server.utils.DateTime
+import com.heerkirov.hedge.server.utils.filterInto
 import com.heerkirov.hedge.server.utils.ktorm.asSequence
 import com.heerkirov.hedge.server.utils.types.Opt
 import com.heerkirov.hedge.server.utils.types.union
@@ -20,6 +21,8 @@ import org.ktorm.dsl.*
 import org.ktorm.dsl.where
 import org.ktorm.entity.*
 import java.time.LocalDate
+import java.util.*
+import kotlin.collections.ArrayList
 import kotlin.math.roundToInt
 
 class IllustKit(private val data: DataRepository,
@@ -315,9 +318,23 @@ class IllustKit(private val data: DataRepository,
      */
     fun validateSubImages(imageIds: List<Int>): Tuple5<List<Illust>, Int, Int?, LocalDate, Long> {
         if(imageIds.isEmpty()) throw ParamRequired("images")
-        val images = data.db.sequenceOf(Illusts).filter { (it.id inList imageIds) and (it.type notEq Illust.Type.COLLECTION) }.toList()
-        //数量不够表示有imageId不存在(或类型是collection，被一同判定为不存在)
-        if(images.size < imageIds.size) throw ResourceNotExist("images", imageIds.toSet() - images.asSequence().map { it.id }.toSet())
+        val result = data.db.sequenceOf(Illusts).filter { it.id inList imageIds }.toList()
+        //数量不够表示有imageId不存在
+        if(result.size < imageIds.size) throw ResourceNotExist("images", imageIds.toSet() - result.asSequence().map { it.id }.toSet())
+
+        val images = ArrayList<Illust>(result.size).run {
+            for (item in result) {
+                //按照type分类处理
+                if(item.type == Illust.Type.COLLECTION) {
+                    //对于collection，做一个易用性处理，将它们的所有子项包括在images列表中
+                    addAll(data.db.sequenceOf(Illusts).filter { it.parentId eq item.id }.asKotlinSequence())
+                }else{
+                    //对于image/image_with_parent，直接加入images列表
+                    add(item)
+                }
+            }
+            distinct()
+        }
 
         val firstImage = images.minByOrNull { it.orderTime }!!
         val fileId = firstImage.fileId
