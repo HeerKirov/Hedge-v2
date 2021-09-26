@@ -178,7 +178,7 @@ export default defineComponent({
 
         watchElementExcludeClick(divRef, () => emit("close"))
 
-        return () => <div ref={divRef} style={css.value} class={style.calloutBox}>
+        return () => <div ref={divRef} style={css.value} class={style.popupBox}>
             {slots.default?.()}
         </div>
     }

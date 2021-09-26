@@ -1,7 +1,7 @@
 import { computed, defineComponent, toRef } from "vue"
 import Starlight from "@/components/elements/Starlight"
 import WrappedText from "@/components/elements/WrappedText"
-import CalloutBox from "@/layouts/layouts/CalloutBox"
+import PopupBox from "@/layouts/layouts/PopupBox"
 import { AnnotationElement, TagGroupDisplay, TagGroupMemberDisplay, TagLinkDisplay } from "@/layouts/display-components"
 import { TOPIC_TYPE_ENUMS, TOPIC_TYPE_ICONS, TOPIC_TYPE_NAMES } from "@/definitions/topic"
 import { AUTHOR_TYPE_ENUMS, AUTHOR_TYPE_ICONS, AUTHOR_TYPE_NAMES } from "@/definitions/author"
@@ -20,9 +20,9 @@ export default defineComponent({
     setup() {
         const context = useMetaTagCallout()
 
-        return () => context.base.value && <CalloutBox base={context.base.value} onClose={context.close}
-                                                       position="right-top" width={WIDTH} height={HEIGHT}
-                                                       alignOffset={16} directionOffset={32} directionOffsetMin={16}>
+        return () => context.base.value && <PopupBox base={context.base.value} onClose={context.close}
+                                                     position="right-top" width={WIDTH} height={HEIGHT}
+                                                     alignOffset={16} directionOffset={32} directionOffsetMin={16}>
             <div class="popup-block is-overflow-y-auto p-3" style={css}>
                 {context.target.value!.type === "topic" ?
                     <TopicDetail id={context.target.value!.id}/>
@@ -32,7 +32,7 @@ export default defineComponent({
                     <TagDetail id={context.target.value!.id}/>
                 }
             </div>
-        </CalloutBox>
+        </PopupBox>
     }
 })
 

@@ -30,9 +30,8 @@ export default defineComponent({
         const menu = useContextmenu(clickToOpenDetail)
 
         return () => <IllustGrid data={markRaw(dataView.data.value)} onDataUpdate={dataView.dataUpdate}
-                                 fitType={fitType.value} columnNum={columnNum.value}
+                                 queryEndpoint={markRaw(endpoint.proxy)} fitType={fitType.value} columnNum={columnNum.value}
                                  selected={selected.value} lastSelected={lastSelected.value} onSelect={updateSelected}
-                                 queryEndpoint={markRaw(endpoint.proxy)}
                                  onRightClick={menu.popup} onDblClick={clickToOpenDetail} onEnter={enterToOpenDetail}/>
     }
 })
@@ -56,7 +55,7 @@ function useContextmenu(clickToOpenDetail: (id: number) => void) {
         {type: "separator"},
         {type: "normal", label: "加入剪贴板"},
         {type: "separator"},
-        {type: "normal", label: "创建集合", click: illust => createCollection(illust.id)},
+        {type: "normal", label: "创建图库项目集合", click: illust => createCollection(illust.id)},
         {type: "normal", label: "创建画集"},
         {type: "normal", label: "创建关联组"},
         {type: "normal", label: "添加到文件夹"},

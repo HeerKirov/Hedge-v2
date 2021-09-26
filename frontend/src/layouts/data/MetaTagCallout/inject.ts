@@ -1,7 +1,7 @@
 import { readonly, ref } from "vue"
 import { installation } from "@/functions/utils/basic"
 import { MetaTagTypes } from "@/functions/adapter-http/impl/all"
-import { Rect } from "@/layouts/layouts/CalloutBox"
+import { Rect } from "@/layouts/layouts/PopupBox"
 import { sleep } from "@/utils/process"
 
 export const [installMetaTagCallout, useMetaTagCallout] = installation(function () {

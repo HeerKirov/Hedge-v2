@@ -176,7 +176,7 @@ function useEditorDataValidation(tags: Ref<SimpleTag[]>, data: Ref<DetailIllust 
             await sleep(1000)
             if(invalidate) return
 
-            const res = await httpClient.utilMeta.validateTag(tags.map(t => t.id))
+            const res = await httpClient.metaUtil.validateTag(tags.map(t => t.id))
             if(invalidate) return
 
             if(res.ok) {
