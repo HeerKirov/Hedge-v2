@@ -44,6 +44,7 @@ export function usePaginationDataView<T>(endpoint: QueryEndpointResult<T>, optio
     })
 
     let currentQueryId = 0
+    let lastDataUpdateParams: {offset: number, limit: number} | null = null
     let cacheTimer: number | null = null
 
     const dataUpdate = async (offset: number, limit: number) => {
@@ -51,6 +52,8 @@ export function usePaginationDataView<T>(endpoint: QueryEndpointResult<T>, optio
         const queryId = ++currentQueryId
         //每次调用此方法都会清空上次的缓冲区
         if(cacheTimer !== null) clearTimeout(cacheTimer)
+        //记录下最后一次查询的理论参数
+        lastDataUpdateParams = { offset, limit }
 
         //首先判断请求的数据是否已完全加载
         if(endpoint.proxy.isRangeLoaded(offset, limit) === LoadedStatus.LOADED) {
@@ -80,21 +83,29 @@ export function usePaginationDataView<T>(endpoint: QueryEndpointResult<T>, optio
             metrics: {total: undefined, offset: 0, limit: 0},
             result: []
         }
+        lastDataUpdateParams = null
     }
 
     const proxy = useProxy(endpoint.proxy, data)
 
     //在引用的query endpoint实例更换时，触发一次数据重刷
     //此处调用dataUpdate而不是reset来重刷，是因为希望保持上层应用不会完全刷新列表滚动位置(scrollView插件根据total的重置来判断列表重置)
-    watch(endpoint.instance, () => dataUpdate(data.value.metrics.offset, data.value.metrics.limit))
+    watch(endpoint.instance, () => {
+        if(lastDataUpdateParams) {
+            //需要记录上次请求的数据范围，并用在此处重刷数据
+            //因为如果沿用实际metrics的值的话，数据总量有可能增加，那么limit的值可能会比需要的值更小，因此需要记忆理论值
+            dataUpdate(lastDataUpdateParams.offset, lastDataUpdateParams.limit).finally()
+        }
+    })
 
     //在endpoint的内容变更，且变更对象在影响范围内时，对数据进行更新
     useListeningEvent(endpoint.modifiedEvent, e => {
+        //modified事件的更新按照当前实际的metrics就可以。因为数据总量只会增加不会减少，不会造成什么bug
         if(e.type === "modify") {
             if(e.index >= data.value.metrics.offset && e.index < data.value.metrics.offset + data.value.metrics.limit) {
                 dataUpdate(data.value.metrics.offset, data.value.metrics.limit).finally()
             }
-        }else{
+        }else{ //delete
             if(e.index < data.value.metrics.offset + data.value.metrics.limit) {
                 dataUpdate(data.value.metrics.offset, data.value.metrics.limit).finally()
             }
