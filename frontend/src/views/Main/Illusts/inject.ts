@@ -45,10 +45,7 @@ function useListContext(collectionMode: Ref<boolean>) {
 
     const endpoint = useQueryEndpoint({
         filter: queryFilter,
-        async request(offset: number, limit: number, filter: IllustQueryFilter) {
-            const res = await httpClient.illust.list({offset, limit, ...filter})
-            return res.ok ? {ok: true, ...res.data} : {ok: false, message: res.exception?.message ?? "unknown error"}
-        },
+        request: (offset, limit, filter) => httpClient.illust.list({offset, limit, ...filter}),
         handleError
     })
     const dataView = usePaginationDataView(endpoint)

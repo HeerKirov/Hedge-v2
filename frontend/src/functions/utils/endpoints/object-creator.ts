@@ -1,6 +1,6 @@
 import { Ref, ref } from "vue"
 import { HttpClient, Response } from "@/functions/adapter-http"
-import { HttpException } from "@/functions/adapter-http/exception"
+import { BasicException } from "@/functions/adapter-http/exception"
 import { useHttpClient } from "@/functions/app"
 import { useToast } from "@/functions/module/toast"
 
@@ -8,15 +8,20 @@ interface ObjectCreator<FORM> {
     save(): Promise<boolean>
 }
 
-interface ObjectCreatorOptions<FORM, RESULT> {
+interface ObjectCreatorOptions<FORM, OUTPUT, RESULT, CE extends BasicException> {
     form: Ref<FORM>,
-    create(httpClient: HttpClient): (form: FORM) => Promise<Response<RESULT>>
+    mapForm(form: FORM): OUTPUT
+    create(httpClient: HttpClient): (form: OUTPUT) => Promise<Response<RESULT, CE>>
     beforeCreate?(form: FORM): boolean | void
     afterCreate?(result: RESULT)
-    handleError?(e: HttpException): HttpException | void
+    handleError?: ErrorHandler<CE>
 }
 
-export function useObjectCreator<FORM, RESULT>(options: ObjectCreatorOptions<FORM, RESULT>): ObjectCreator<FORM> {
+interface ErrorHandler<E extends BasicException> {
+    (e: E): E | void
+}
+
+export function useObjectCreator<FORM, OUTPUT, RESULT, CE extends BasicException>(options: ObjectCreatorOptions<FORM, OUTPUT, RESULT, CE>): ObjectCreator<FORM> {
     const httpClient = useHttpClient()
     const toast = useToast()
 
@@ -33,7 +38,7 @@ export function useObjectCreator<FORM, RESULT>(options: ObjectCreatorOptions<FOR
                 if(!validated) {
                     return false
                 }
-                const res = await method(form)
+                const res = await method(options.mapForm(form))
                 if(res.ok) {
                     options.afterCreate?.(res.data)
                 }else if(res.exception) {

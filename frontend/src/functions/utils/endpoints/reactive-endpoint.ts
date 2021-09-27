@@ -2,6 +2,7 @@ import { onMounted, ref, Ref, watch, toRaw } from "vue"
 import { HttpClient, Response } from "@/functions/adapter-http"
 import { useHttpClient } from "@/functions/app"
 import { useToast } from "@/functions/module/toast"
+import { BasicException } from "@/functions/adapter-http/exception";
 
 /* 此处提供了VCA形态的rest api端点调用器。目标是处理符合标准object模型的对象。
     它的目标是处理简单模型，即整个rest api可被描述为简单的object模型的api。
@@ -18,8 +19,8 @@ interface ReactiveEndpoint<T> {
 }
 
 interface ReactiveEndpointOptions<T> {
-    get(httpClient: HttpClient): () => Promise<Response<T>>
-    update(httpClient: HttpClient): (form: T) => Promise<Response<unknown>>
+    get(httpClient: HttpClient): () => Promise<Response<T, BasicException>>
+    update(httpClient: HttpClient): (form: T) => Promise<Response<unknown, BasicException>>
 }
 
 export function useReactiveEndpoint<T>(options: ReactiveEndpointOptions<T>): ReactiveEndpoint<T> {

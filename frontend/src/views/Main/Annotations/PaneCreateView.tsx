@@ -29,6 +29,7 @@ export default defineComponent({
         const creator = useObjectCreator({
             form,
             create: httpClient => httpClient.annotation.create,
+            mapForm: f => f,
             beforeCreate(form): boolean | void {
                 if(!checkTagName(form.name)) {
                     message.showOkMessage("prompt", "不合法的名称。", "名称不能为空，且不能包含 ` \" ' . | 字符。")

@@ -60,10 +60,7 @@ function useImportListContext() {
     const scrollView = useScrollView()
 
     const endpoint = useQueryEndpoint({
-        async request(offset: number, limit: number) {
-            const res = await httpClient.import.list({offset, limit, order: "+id"})
-            return res.ok ? {ok: true, ...res.data} : {ok: false, message: res.exception?.message ?? "unknown error"}
-        },
+        request: (offset, limit) => httpClient.import.list({offset, limit, order: "+id"}),
         handleError
     })
     const dataView = usePaginationDataView(endpoint)

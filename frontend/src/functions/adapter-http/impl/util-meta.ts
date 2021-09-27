@@ -1,5 +1,6 @@
 import { HttpInstance, Response } from "@/functions/adapter-http"
-import { DepsTag } from "@/functions/adapter-http/impl/tag"
+import { ConflictingGroupMembersError, ResourceNotExist } from "../exception"
+import { DepsTag } from "./tag"
 
 export function createUtilMetaEndpoint(http: HttpInstance): UtilMetaEndpoint {
     return {
@@ -16,7 +17,7 @@ export interface UtilMetaEndpoint {
      * 校验内容包括tag的类型匹配和冲突组情况。
      * 此API用于在tag editor中，实时对tag list的内容做校验，并提出警告和错误信息。
      */
-    validateTag(tags: number[]): Promise<Response<MetaTagValidation>>
+    validateTag(tags: number[]): Promise<Response<MetaTagValidation, ConflictingGroupMembersError | ResourceNotExist<"tags", number[]>>>
 }
 
 export interface MetaTagValidation {

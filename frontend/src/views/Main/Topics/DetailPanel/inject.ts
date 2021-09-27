@@ -1,13 +1,13 @@
 import { ref, Ref } from "vue"
 import { ListResult } from "@/functions/adapter-http/impl/generic"
 import { Illust } from "@/functions/adapter-http/impl/illust"
-import { DetailTopic, Topic, TopicUpdateForm } from "@/functions/adapter-http/impl/topic"
+import { DetailTopic, Topic, TopicExceptions, TopicUpdateForm } from "@/functions/adapter-http/impl/topic"
 import { ObjectEndpoint, useObjectEndpoint } from "@/functions/utils/endpoints/object-endpoint"
 import { installation } from "@/functions/utils/basic"
 import { useTopicContext } from "../inject"
 
 
-type Endpoint = ObjectEndpoint<DetailTopic, TopicUpdateForm>
+type Endpoint = ObjectEndpoint<DetailTopic, TopicUpdateForm, TopicExceptions["update"]>
 
 export interface TopicDetailContext {
     data: Endpoint["data"]
@@ -21,12 +21,12 @@ export interface TopicDetailContext {
 export const [installTopicDetailContext, useTopicDetailContext] = installation(function(): TopicDetailContext {
     const { dataView, detailMode } = useTopicContext()
 
-    const { data, setData, deleteData } = useObjectEndpoint<number, DetailTopic, TopicUpdateForm>({
+    const { data, setData, deleteData } = useObjectEndpoint({
         path: detailMode,
         get: httpClient => httpClient.topic.get,
         update: httpClient => httpClient.topic.update,
         delete: httpClient => httpClient.topic.delete,
-        afterUpdate(id, data) {
+        afterUpdate(id, data: DetailTopic) {
             const index = dataView.proxy.syncOperations.find(topic => topic.id === id)
             if(index != undefined) dataView.proxy.syncOperations.modify(index, data)
         }
@@ -40,12 +40,12 @@ export const [installTopicDetailContext, useTopicDetailContext] = installation(f
 })
 
 function useAttachDetailData(detailMode: Ref<number | null>) {
-    const { data: subThemeData } = useObjectEndpoint<number, ListResult<Topic>, unknown>({
+    const { data: subThemeData } = useObjectEndpoint({
         path: detailMode,
         get: httpClient => async (path: number) => await httpClient.topic.list({limit: SUB_THEME_LIMIT, parentId: path, order: "-updateTime"})
     })
 
-    const { data: exampleData } = useObjectEndpoint<number, ListResult<Illust>, unknown>({
+    const { data: exampleData } = useObjectEndpoint({
         path: detailMode,
         get: httpClient => async (topic: number) => await httpClient.illust.list({limit: EXAMPLE_LIMIT, topic, type: "IMAGE", order: "-orderTime"})
     })

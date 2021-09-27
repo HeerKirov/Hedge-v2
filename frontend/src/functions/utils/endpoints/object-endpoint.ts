@@ -1,6 +1,6 @@
 import { ref, Ref, watch } from "vue"
 import { HttpClient, Response } from "@/functions/adapter-http"
-import { HttpException } from "@/functions/adapter-http/exception"
+import { BasicException, NotFound } from "@/functions/adapter-http/exception"
 import { useHttpClient } from "@/functions/app"
 import { useToast } from "@/functions/module/toast"
 
@@ -8,16 +8,16 @@ import { useToast } from "@/functions/module/toast"
     它的目标是处理支持retrieve, patch, delete的更复杂的模型，且支持path变更。
  */
 
-export interface ObjectEndpoint<MODEL, FORM> {
+export interface ObjectEndpoint<MODEL, FORM, UE extends BasicException> {
     loading: Ref<Boolean>
     updating: Ref<Boolean>
     deleting: Ref<Boolean>
     data: Ref<MODEL | null>
-    setData(form: FORM, handleError?: ErrorHandler): Promise<boolean>
+    setData(form: FORM, handleError?: ErrorHandler<UE>): Promise<boolean>
     deleteData(): Promise<boolean>
 }
 
-export interface ObjectEndpointOptions<PATH, MODEL, FORM> {
+export interface ObjectEndpointOptions<PATH, MODEL, FORM, GE extends BasicException, UE extends BasicException, DE extends BasicException> {
     /**
      * 决定object的path属性。
      */
@@ -25,15 +25,15 @@ export interface ObjectEndpointOptions<PATH, MODEL, FORM> {
     /**
      * retrieve操作的函数。
      */
-    get(httpClient: HttpClient): (path: PATH) => Promise<Response<MODEL>>
+    get(httpClient: HttpClient): (path: PATH) => Promise<Response<MODEL, GE | NotFound>>
     /**
      * update操作的函数。
      */
-    update?(httpClient: HttpClient): (path: PATH, form: FORM) => Promise<Response<MODEL | null>>
+    update?(httpClient: HttpClient): (path: PATH, form: FORM) => Promise<Response<MODEL | null, UE>>
     /**
      * delete操作的函数。
      */
-    delete?(httpClient: HttpClient): (path: PATH) => Promise<Response<unknown>>
+    delete?(httpClient: HttpClient): (path: PATH) => Promise<Response<unknown, DE>>
     /**
      * 在path变化之前发生调用的事件。
      */
@@ -57,18 +57,18 @@ export interface ObjectEndpointOptions<PATH, MODEL, FORM> {
     /**
      * update过程中发生错误时的捕获函数。
      */
-    handleUpdateError?: ErrorHandler
+    handleUpdateError?: ErrorHandler<UE>
     /**
      * delete过程中发生错误时的捕获函数。
      */
-    handleDeleteError?: ErrorHandler
+    handleDeleteError?: ErrorHandler<DE>
 }
 
-export interface ErrorHandler {
-    (e: HttpException): HttpException | void
+interface ErrorHandler<E extends BasicException> {
+    (e: E): E | void
 }
 
-export function useObjectEndpoint<PATH, MODEL, FORM>(options: ObjectEndpointOptions<PATH, MODEL, FORM>): ObjectEndpoint<MODEL, FORM> {
+export function useObjectEndpoint<PATH, MODEL, FORM, GE extends BasicException, UE extends BasicException, DE extends BasicException>(options: ObjectEndpointOptions<PATH, MODEL, FORM, GE, UE, DE>): ObjectEndpoint<MODEL, FORM, UE> {
     const httpClient = useHttpClient()
     const toast = useToast()
 
@@ -114,7 +114,7 @@ export function useObjectEndpoint<PATH, MODEL, FORM>(options: ObjectEndpointOpti
         }
     }, {immediate: true})
 
-    const setData = async (form: FORM, handleError?: (e: HttpException) => HttpException | void): Promise<boolean> => {
+    const setData = async (form: FORM, handleError?: (e: UE) => UE | void): Promise<boolean> => {
         if(method.update && !updating.value && path.value != null) {
             updating.value = true
             try {

@@ -15,11 +15,11 @@ function installAppService(options: AppServiceOptions): {appInfo: AppInfo, appSt
 
     const baseUrl = process.env.NODE_ENV === 'development' ? <string>process.env.VUE_APP_BASE_URL : undefined
 
-    const errorHandler = useErrorHandler(options.handleError)
+    const { processHttpClientError: handleError } = useErrorHandler(options.handleError)
     const httpClientConfig = reactive<HttpInstanceConfig>({
         baseUrl,
         token: undefined,
-        handleError: errorHandler.processHttpClientError
+        handleError
     })
     const httpClient = createHttpClient(createHttpInstance(httpClientConfig))
     const { appInfo, appState } = useAppStateInjection(clientMode, ipc, httpClient, httpClientConfig)

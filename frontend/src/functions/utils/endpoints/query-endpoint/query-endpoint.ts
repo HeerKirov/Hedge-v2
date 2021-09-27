@@ -2,6 +2,8 @@ import { shallowRef, Ref, watch, onUnmounted, onMounted } from "vue"
 import { objects } from "@/utils/primitives"
 import { createEmitter, Emitter } from "@/utils/emitter"
 import { RefEmitter, useRefEmitter } from "@/functions/utils/emitter"
+import { Response } from "@/functions/adapter-http/server"
+import { ListResult } from "@/functions/adapter-http/impl/generic"
 import { createQueryEndpointInstance, ModifiedEvent, QueryEndpointArguments, QueryEndpointInstance } from "./instance"
 
 export interface QueryEndpointOptions<T, K> extends QueryEndpointArguments {
@@ -12,7 +14,7 @@ export interface QueryEndpointOptions<T, K> extends QueryEndpointArguments {
     /**
      * 通过此函数回调数据源的查询结果。
      */
-    request(offset: number, limit: number, filter: K): Promise<{ok: true, total: number, result: T[]} | {ok: false, message: string}>
+    request(offset: number, limit: number, filter: K): Promise<Response<ListResult<T>>>
 }
 
 export interface QueryEndpointResult<T> {

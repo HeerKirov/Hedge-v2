@@ -3,7 +3,7 @@ import Input from "@/components/forms/Input"
 import Select from "@/components/forms/Select"
 import { PaneBasicLayout } from "@/layouts/layouts/SplitPane"
 import { ViewAndEditor } from "@/layouts/editor-components"
-import { Annotation, AnnotationTarget, AnnotationUpdateForm } from "@/functions/adapter-http/impl/annotations"
+import { Annotation, AnnotationTarget } from "@/functions/adapter-http/impl/annotations"
 import { useObjectEndpoint } from "@/functions/utils/endpoints/object-endpoint"
 import { useMessageBox } from "@/functions/module/message-box"
 import { useAnnotationContext } from "@/views/Main/Annotations/inject"
@@ -19,11 +19,11 @@ export default defineComponent({
         const message = useMessageBox()
         const { dataView, detailMode, closePane } = useAnnotationContext()
 
-        const { data, setData } = useObjectEndpoint<number, Annotation, AnnotationUpdateForm>({
+        const { data, setData } = useObjectEndpoint({
             path: detailMode,
             get: httpClient => httpClient.annotation.get,
             update: httpClient => httpClient.annotation.update,
-            afterUpdate(id, data) {
+            afterUpdate(id, data: Annotation) {
                 const index = dataView.proxy.syncOperations.find(annotation => annotation.id === id)
                 if(index != undefined) dataView.proxy.syncOperations.modify(index, data)
             }

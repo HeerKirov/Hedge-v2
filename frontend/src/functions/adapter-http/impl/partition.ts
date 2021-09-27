@@ -1,4 +1,5 @@
 import { HttpInstance, Response } from "../server"
+import { NotFound } from "../exception"
 import { LimitAndOffsetFilter } from "./generic"
 import { date, LocalDate } from "@/utils/datetime"
 
@@ -32,7 +33,7 @@ export interface PartitionEndpoint {
      * 查看分区。
      * @exception NOT_FOUND
      */
-    get(id: LocalDate): Promise<Response<Partition>>
+    get(id: LocalDate): Promise<Response<Partition, NotFound>>
 }
 
 export interface Partition {

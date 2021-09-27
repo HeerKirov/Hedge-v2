@@ -1,4 +1,4 @@
-import { defineComponent, PropType, ref } from "vue"
+import { defineComponent, ref } from "vue"
 import WrappedText from "@/components/elements/WrappedText"
 import { SourceInfo } from "@/layouts/display-components"
 import { SourceEditor, ViewAndEditable, ViewAndEditor, SourceIdentity } from "@/layouts/editor-components"
@@ -37,15 +37,6 @@ export default defineComponent({
                     return e
                 }
             })
-        }
-        const setRelations = async ({ parents, children, pools }: {parents: number[], children: number[], pools: string[]}) => {
-            const parentsEq = parents === data.value?.parents
-            const childrenEq = children === data.value?.children
-            const poolsEq = pools === data.value?.pools
-            return (parentsEq && childrenEq && poolsEq) || await setData({parents, children, pools})
-        }
-        const setTags = async (tags: SourceTag[]) => {
-            return tags === data.value?.tags || await setData({ tags })
         }
 
         const openSourceEditor = () => drawerTab.value = "source"

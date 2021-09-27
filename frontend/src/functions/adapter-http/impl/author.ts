@@ -1,4 +1,5 @@
 import { HttpInstance, Response } from "../server"
+import { AlreadyExists, NotFound, ResourceNotExist, ResourceNotSuitable } from "../exception"
 import { IdResponse, LimitAndOffsetFilter, Link, ListResult, mapFromOrderList, OrderList } from "./generic"
 import { SimpleAnnotation } from "./annotations"
 
@@ -36,12 +37,12 @@ export interface AuthorEndpoint {
      * @exception NOT_EXISTS ("annotations", id) 指定的资源不存在
      * @exception NOT_SUITABLE ("annotations", id) 指定的资源不适用。对于annotations，此注解的target要求不能应用于此种类的tag
      */
-    create(form: AuthorCreateForm): Promise<Response<IdResponse>>
+    create(form: AuthorCreateForm): Promise<Response<IdResponse, AuthorExceptions["create"]>>
     /**
      * 查看作者。
      * @exception NOT_FOUND
      */
-    get(id: number): Promise<Response<DetailAuthor>>
+    get(id: number): Promise<Response<DetailAuthor, NotFound>>
     /**
      * 更改作者。
      * @exception NOT_FOUND
@@ -49,12 +50,17 @@ export interface AuthorEndpoint {
      * @exception NOT_EXISTS ("annotations", id) 指定的资源不存在
      * @exception NOT_SUITABLE ("annotations", id) 指定的资源不适用。对于annotations，此注解的target要求不能应用于此种类的tag
      */
-    update(id: number, form: AuthorUpdateForm): Promise<Response<null>>
+    update(id: number, form: AuthorUpdateForm): Promise<Response<null, AuthorExceptions["update"]>>
     /**
      * 删除作者。
      * @exception NOT_FOUND
      */
-    delete(id: number): Promise<Response<null>>
+    delete(id: number): Promise<Response<null, NotFound>>
+}
+
+export interface AuthorExceptions {
+    "create": AlreadyExists<"Author", "name", string> | ResourceNotExist<"annotations", number[]> | ResourceNotSuitable<"annotations", number[]>
+    "update": NotFound | AlreadyExists<"Author", "name", string> | ResourceNotExist<"annotations", number[]> | ResourceNotSuitable<"annotations", number[]>
 }
 
 export type AuthorType = "UNKNOWN" | "ARTIST" | "STUDIO" | "PUBLISH"

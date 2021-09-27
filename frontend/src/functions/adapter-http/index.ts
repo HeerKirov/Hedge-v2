@@ -1,4 +1,4 @@
-import type { HttpInstance, HttpInstanceConfig, Response, ResponseOk, ResponseError, ResponseConnectionError, ResponseEmpty } from "./server"
+import type { HttpInstance, HttpInstanceConfig, Response, ResponseOk, ResponseError, ResponseConnectionError } from "./server"
 import { createHttpInstance } from "./server"
 import { createWebEndpoint, WebEndpoint } from "./impl/web"
 import { createSettingWebEndpoint, SettingWebEndpoint } from "./impl/setting-web"
@@ -18,7 +18,7 @@ import { createImportEndpoint, ImportEndpoint } from "./impl/import"
 import { createUtilMetaEndpoint, UtilMetaEndpoint } from "./impl/util-meta"
 import { createUtilIllustEndpoint, UtilIllustEndpoint } from "./impl/util-illust"
 
-export { HttpInstance, HttpInstanceConfig, Response, ResponseOk, ResponseError, ResponseConnectionError, ResponseEmpty, createHttpInstance }
+export { HttpInstance, HttpInstanceConfig, Response, ResponseOk, ResponseError, ResponseConnectionError, createHttpInstance }
 
 export interface HttpClient {
     web: WebEndpoint

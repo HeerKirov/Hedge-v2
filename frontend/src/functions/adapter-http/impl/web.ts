@@ -1,4 +1,5 @@
 import { HttpInstance, Response } from "../server"
+import { PasswordWrong } from "../exception"
 
 export function createWebEndpoint(http: HttpInstance): WebEndpoint {
     return {
@@ -20,7 +21,7 @@ export interface WebEndpoint {
     /**
      * web mode登录。
      */
-    login(form: LoginForm): Promise<Response<TokenForm>>
+    login(form: LoginForm): Promise<Response<TokenForm, PasswordWrong>>
     /**
      * 验证一个web mode的token是否是有效的。
      * 因为token可以被存储到storage中下次使用，因此下次使用之前要先确定它仍然是有效的。

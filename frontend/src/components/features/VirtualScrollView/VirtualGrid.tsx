@@ -37,7 +37,9 @@ export default defineComponent({
          */
         minUpdateDelta: {type: Number, default: 0}
     },
-    emits: ["update"],
+    emits: {
+        update: (_: number, __: number) => true
+    },
     setup(props, { emit, slots }) {
         const { propose, actual, padding, render, scrollTo, setViewState, watchViewNavigation } = useBasicVirtualComponent({
             props: {

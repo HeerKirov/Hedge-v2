@@ -35,10 +35,7 @@ function useAuthorList() {
 
     const endpoint = useQueryEndpoint({
         filter: queryFilter,
-        async request(offset: number, limit: number, filter: AuthorQueryFilter) {
-            const res = await httpClient.author.list({offset, limit, ...filter})
-            return res.ok ? {ok: true, ...res.data} : {ok: false, message: res.exception?.message ?? "unknown error"}
-        },
+        request: (offset, limit, filter) => httpClient.author.list({offset, limit, ...filter}),
         handleError
     })
     const dataView = usePaginationDataView(endpoint)

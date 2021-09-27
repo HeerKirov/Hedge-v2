@@ -1,7 +1,7 @@
 import { defineComponent, ref, watch } from "vue"
 import TopBarTransparentLayout from "@/layouts/layouts/TopBarTransparentLayout"
 import { useMessageBox } from "@/functions/module/message-box"
-import { DetailAuthor, AuthorCreateForm } from "@/functions/adapter-http/impl/author"
+import { DetailAuthor, AuthorCreateForm, AuthorExceptions } from "@/functions/adapter-http/impl/author"
 import { IdResponse } from "@/functions/adapter-http/impl/generic"
 import { useObjectCreator } from "@/functions/utils/endpoints/object-creator"
 import { checkTagName } from "@/utils/check"
@@ -31,7 +31,8 @@ export default defineComponent({
 
         const creator = useObjectCreator({
             form,
-            create: httpClient => form => httpClient.author.create(mapFromCreatorData(form)),
+            create: httpClient => httpClient.author.create,
+            mapForm: mapFromCreatorData,
             beforeCreate(form) {
                 if(!checkTagName(form.name)) {
                     message.showOkMessage("prompt", "不合法的名称。", "名称不能为空，且不能包含 ` \" ' . | 字符。")
@@ -53,22 +54,15 @@ export default defineComponent({
                 openDetailPane(result.id)
                 endpoint.refresh()
             },
-            handleError(e) {
+            handleError(e: AuthorExceptions["create"]) {
                 if(e.code === "ALREADY_EXISTS") {
                     message.showOkMessage("prompt", "该名称已存在。")
                 }else if(e.code === "NOT_EXIST") {
-                    const [type, id] = e.info
-                    if(type === "annotations") {
-                        message.showOkMessage("error", "选择的注解不存在。", `错误项: ${id}`)
-                    }else{
-                        message.showOkMessage("error", `选择的资源${type}不存在。`, `错误项: ${id}`)
-                    }
-                }else if(e.code === "NOT_SUITABLE") {
                     const [, id] = e.info
-                    const content = typeof id === "number" ? form.value.annotations?.find(i => i.id === id)?.name ?? "unknown"
-                        : typeof id === "object" ? id.map(id => form.value.annotations?.find(i => i.id === id)?.name ?? "unknown").join(", ")
-                            : id
-
+                    message.showOkMessage("error", "选择的注解不存在。", `错误项: ${id}`)
+                }else if(e.code === "NOT_SUITABLE") {
+                    const [, ids] = e.info
+                    const content = ids.map(id => form.value.annotations?.find(i => i.id === id)?.name ?? "unknown").join(", ")
                     message.showOkMessage("error", "选择的注解不可用。", `选择的注解的导出目标设置使其无法导出至当前主题类型。错误项: ${content}`)
                 }else{
                     return e

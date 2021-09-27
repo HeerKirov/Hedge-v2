@@ -1,6 +1,12 @@
 import { HttpInstance, Response } from "../server"
 import { IdResponse, LimitAndOffsetFilter, Link, ListResult, mapFromOrderList, OrderList } from "./generic"
 import { SimpleAnnotation } from "./annotations"
+import {
+    AlreadyExists, IllegalConstraintError, NotFound,
+    RecursiveParentError,
+    ResourceNotExist,
+    ResourceNotSuitable
+} from "../exception"
 
 export function createTopicEndpoint(http: HttpInstance): TopicEndpoint {
     return {
@@ -38,12 +44,12 @@ export interface TopicEndpoint {
      * @exception RECURSIVE_PARENT 在父标签检查中发现了闭环
      * @exception ILLEGAL_CONSTRAINT ("type", "parent", parentType) 当前主题的类型和父主题的类型不能兼容
      */
-    create(form: TopicCreateForm): Promise<Response<IdResponse>>
+    create(form: TopicCreateForm): Promise<Response<IdResponse, TopicExceptions["create"]>>
     /**
      * 查看主题。
      * @exception NOT_FOUND
      */
-    get(id: number): Promise<Response<DetailTopic>>
+    get(id: number): Promise<Response<DetailTopic, NotFound>>
     /**
      * 更改主题。
      * @exception NOT_FOUND
@@ -53,12 +59,17 @@ export interface TopicEndpoint {
      * @exception RECURSIVE_PARENT 在父标签检查中发现了闭环
      * @exception ILLEGAL_CONSTRAINT ("type", "parent", parentType) 当前主题的类型和父主题的类型不能兼容
      */
-    update(id: number, form: TopicUpdateForm): Promise<Response<null>>
+    update(id: number, form: TopicUpdateForm): Promise<Response<null, TopicExceptions["update"]>>
     /**
      * 删除主题。
      * @exception NOT_FOUND
      */
-    delete(id: number): Promise<Response<null>>
+    delete(id: number): Promise<Response<null, NotFound>>
+}
+
+export interface TopicExceptions {
+    "create": AlreadyExists<"Topic", "name", string> | ResourceNotExist<"parentId", number> | ResourceNotExist<"annotations", number[]> | ResourceNotSuitable<"annotations", number[]> | RecursiveParentError | IllegalConstraintError<"type", "parent", TopicType[]>
+    "update": NotFound | AlreadyExists<"Topic", "name", string> | ResourceNotExist<"parentId", number> | ResourceNotExist<"annotations", number[]> | ResourceNotSuitable<"annotations", number[]> | RecursiveParentError | IllegalConstraintError<"type", "parent" | "children", TopicType[]>
 }
 
 export type TopicType = "UNKNOWN" | "COPYRIGHT" | "WORK" | "CHARACTER"

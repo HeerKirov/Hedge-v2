@@ -1,4 +1,5 @@
 import { HttpInstance, Response } from "../server"
+import { AlreadyExists, CascadeResourceExists, NotFound } from "../exception"
 
 export function createSettingSourceEndpoint(http: HttpInstance): SettingSourceEndpoint {
     return {
@@ -34,12 +35,12 @@ export interface SettingSourceEndpoint {
          * 新增一个来源网站。
          * @exception ALREADY_EXISTS
          */
-        create(form: SiteCreateForm): Promise<Response<unknown>>
+        create(form: SiteCreateForm): Promise<Response<unknown, AlreadyExists<"site", "name", string>>>
         /**
          * 查看单个项。
          * @exception NOT_FOUND 此项不存在。
          */
-        get(name: string): Promise<Response<Site>>
+        get(name: string): Promise<Response<Site, NotFound>>
         /**
          * 更改项。
          * @exception NOT_FOUND 此项不存在。
@@ -50,7 +51,7 @@ export interface SettingSourceEndpoint {
          * @exception NOT_FOUND 此项不存在。
          * @exception CASCADE_RESOURCE_EXISTS("Illust"|"ImportImage"|"SourceAnalyseRule"|"SpiderRule") 存在级联资源，无法删除。
          */
-        delete(name: string): Promise<Response<unknown>>
+        delete(name: string): Promise<Response<unknown, CascadeResourceExists<"Illust" | "ImportImage" | "SourceAnalyseRule" | "SpiderRule">>>
     }
     /**
      * 爬虫选项。

@@ -1,4 +1,12 @@
 import { date, datetime, LocalDate, LocalDateTime } from "@/utils/datetime"
+import {
+    FileNotFoundError,
+    IllegalFileExtensionError,
+    NotFound,
+    ParamError, ParamNotRequired,
+    ParamRequired,
+    ResourceNotExist
+} from "../exception"
 import { HttpInstance, Response } from "../server"
 import { ErrorResult, IdResponseWithWarnings, LimitAndOffsetFilter, ListResult, mapFromOrderList, OrderList } from "./generic"
 import { Tagme } from "./illust"
@@ -83,19 +91,19 @@ export interface ImportEndpoint {
      * @exception ILLEGAL_FILE_EXTENSION 不受支持的文件扩展名。
      * @exception:warning INVALID_REGEX (regex) 解析错误，解析规则的正则表达式有误。
      */
-    import(form: ImportForm): Promise<Response<IdResponseWithWarnings>>
+    import(form: ImportForm): Promise<Response<IdResponseWithWarnings, FileNotFoundError | IllegalFileExtensionError>>
     /**
      * 通过file upload远程上传新项目。
      * @exception ILLEGAL_FILE_EXTENSION 不受支持的文件扩展名。
      * @exception:warning INVALID_REGEX (regex) 解析错误，解析规则的正则表达式有误。
      */
-    upload(file: File): Promise<Response<IdResponseWithWarnings>>
+    upload(file: File): Promise<Response<IdResponseWithWarnings, IllegalFileExtensionError>>
     /**
      * 查看导入项目。
      * @exception NOT_FOUND
      * @exception PARAM_NOT_REQUIRED ("sourceId/sourcePart") source未填写时，不能填写更详细的id/part信息
      */
-    get(id: number): Promise<Response<DetailImportImage>>
+    get(id: number): Promise<Response<DetailImportImage, NotFound>>
     /**
      * 更改导入项目的元数据。
      * @exception NOT_EXIST ("source", source) 此source不存在
@@ -104,21 +112,21 @@ export interface ImportEndpoint {
      * @exception PARAM_NOT_REQUIRED ("sourcePart"/"sourceId/sourcePart") 不需要这些参数
      * @exception NOT_FOUND
      */
-    update(id: number, form: ImportUpdateForm): Promise<Response<null>>
+    update(id: number, form: ImportUpdateForm): Promise<Response<null, NotFound | ResourceNotExist<"source", string> | ParamError | ParamRequired | ParamNotRequired>>
     /**
      * 删除导入项目。
      * @exception NOT_FOUND
      */
-    delete(id: number): Promise<Response<null>>
+    delete(id: number): Promise<Response<null, NotFound>>
     /**
      * 分析导入项目的元数据。
      * @exception:warning INVALID_REGEX (regex) 解析错误，解析规则的正则表达式有误。
      */
-    analyseMeta(form: AnalyseMetaForm): Promise<Response<AnalyseMetaResponse>>
+    analyseMeta(form: AnalyseMetaForm): Promise<Response<AnalyseMetaResponse, ResourceNotExist<"target", number[]>>>
     /**
      * 批量更新导入项目的元数据。
      */
-    batchUpdate(form: ImportBatchUpdateForm): Promise<Response<null>>
+    batchUpdate(form: ImportBatchUpdateForm): Promise<Response<null, ResourceNotExist<"target", number[]>>>
     /**
      * 确认导入，将所有项目导入到图库。
      * @exception:warning PARAM_REQUIRED ("sourceId"/"sourcePart") 需要这些参数

@@ -35,10 +35,7 @@ export const [installData, useData] = installation(function({ initSize, continue
     }
 
     const endpoint = useContinuousEndpoint({
-        async request(offset: number, limit: number) {
-            const res = await request(httpClient, offset, limit, search.value)
-            return res.ok ? {ok: true, ...res.data} : {ok: false, message: res.exception?.message ?? "unknown error"}
-        },
+        request: (offset, limit) => request(httpClient, offset, limit, search.value),
         handleError,
         initSize,
         continueSize

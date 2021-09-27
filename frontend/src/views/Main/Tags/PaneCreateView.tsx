@@ -5,7 +5,7 @@ import { AnnotationEditor, DescriptionEditor } from "@/layouts/editor-components
 import { IdResponse } from "@/functions/adapter-http/impl/generic"
 import { SimpleIllust } from "@/functions/adapter-http/impl/illust"
 import { SimpleAnnotation } from "@/functions/adapter-http/impl/annotations"
-import { IsGroup, TagCreateForm, TagLink, TagType } from "@/functions/adapter-http/impl/tag"
+import { IsGroup, TagCreateForm, TagExceptions, TagLink, TagType } from "@/functions/adapter-http/impl/tag"
 import { useObjectCreator } from "@/functions/utils/endpoints/object-creator"
 import { useMessageBox } from "@/functions/module/message-box"
 import { checkTagName } from "@/utils/check"
@@ -39,7 +39,8 @@ export default defineComponent({
 
         const creator = useObjectCreator({
             form,
-            create: httpClient => form => httpClient.tag.create(mapToCreateForm(form)),
+            create: httpClient => httpClient.tag.create,
+            mapForm: mapToCreateForm,
             beforeCreate(form) {
                 if(!checkTagName(form.name)) {
                     message.showOkMessage("prompt", "不合法的名称。", "名称不能为空，且不能包含 ` \" ' . | 字符。")
@@ -56,41 +57,33 @@ export default defineComponent({
                 syncAddTag(result.id)
                 openDetailPane(result.id)
             },
-            handleError(e) {
+            handleError(e: TagExceptions["create"]) {
                 if(e.code === "ALREADY_EXISTS") {
                     message.showOkMessage("prompt", "该名称已存在。")
                 }else if(e.code === "NOT_EXIST") {
-                    const [type, id] = e.info
+                    const [type, ids] = e.info
                     if(type === "parentId") {
-                        message.showOkMessage("error", "选择的作为父标签的标签不存在。", `错误项: ${id}`)
+                        message.showOkMessage("error", "选择的作为父标签的标签不存在。", `错误项: ${ids}`)
                     }else if(type === "links") {
-                        message.showOkMessage("error", "选择的作为链接的标签不存在。", `错误项: ${id}`)
+                        message.showOkMessage("error", "选择的作为链接的标签不存在。", `错误项: ${ids}`)
                     }else if(type === "examples") {
-                        message.showOkMessage("error", "选择的示例项不存在。", `错误项: ${id}`)
+                        message.showOkMessage("error", "选择的示例项不存在。", `错误项: ${ids}`)
                     }else if(type === "annotations") {
-                        message.showOkMessage("error", "选择的注解不存在。", `错误项: ${id}`)
+                        message.showOkMessage("error", "选择的注解不存在。", `错误项: ${ids}`)
                     }else{
-                        message.showOkMessage("error", `选择的资源${type}不存在。`, `错误项: ${id}`)
+                        message.showOkMessage("error", `选择的资源${type}不存在。`, `错误项: ${ids}`)
                     }
                 }else if(e.code === "CANNOT_GIVE_COLOR") {
                     message.showOkMessage("prompt", "不能设置非根节点的颜色。它们的颜色始终跟随根节点。")
                 }else if(e.code === "NOT_SUITABLE") {
-                    const [type, id] = e.info
+                    const [type, ids] = e.info
                     if(type === "examples") {
                         message.showOkMessage("error", "选择的示例不可用。", `只能选择图像而非集合类型的项目作为示例。`)
                     }else if(type === "annotations") {
-                        const content
-                            = typeof id === "number" ? form.value.annotations?.find(i => i.id === id)?.name ?? "unknown"
-                            : typeof id === "object" ? id.map(id => form.value.annotations?.find(i => i.id === id)?.name ?? "unknown").join(", ")
-                            : id
-
+                        const content = ids.map(id => form.value.annotations?.find(i => i.id === id)?.name ?? "unknown").join(", ")
                         message.showOkMessage("error", "选择的注解不可用。", `选择的注解的导出目标设置使其无法导出至标签。错误项: ${content}`)
                     }else if(type === "links") {
-                        const [, id] = e.info
-                        const content = typeof id === "number" ? form.value.links.find(i => i.id === id)?.name ?? "unknown"
-                            : typeof id === "object" ? id.map(id => form.value.links.find(i => i.id === id)?.name ?? "unknown").join(", ")
-                                : id
-
+                        const content = ids.map(id => form.value.links?.find(i => i.id === id)?.name ?? "unknown").join(", ")
                         message.showOkMessage("error", "选择的作为链接的标签不可用。", `虚拟地址段不能用作链接。错误项: ${content}`)
                     }else{
                         message.showOkMessage("prompt", `指定的资源${type}不适用。`)

@@ -1,11 +1,14 @@
 import { arrays } from "@/utils/collections"
 import { createEmitter, Emitter } from "@/utils/emitter"
+import { Response } from "@/functions/adapter-http"
+import { ListResult } from "@/functions/adapter-http/impl/generic"
+import { BasicException } from "@/functions/adapter-http/exception"
 
-export interface QueryEndpointInstanceOptions<T> extends QueryEndpointArguments {
+export interface QueryEndpointInstanceOptions<T, E extends BasicException> extends QueryEndpointArguments {
     /**
      * 通过此函数回调数据源的查询结果。因为实例与查询条件一一对应，此函数应闭包查询条件，其查询参数只能分页。
      */
-    request(offset: number, limit: number): Promise<{ok: true, total: number, result: T[]} | {ok: false, message: string}>
+    request(offset: number, limit: number): Promise<Response<ListResult<T>, E>>
 }
 
 export interface QueryEndpointArguments {
@@ -81,7 +84,7 @@ export interface SyncOperations<T> {
     modified: Emitter<ModifiedEvent<T>>
 }
 
-export function createQueryEndpointInstance<T>(options: QueryEndpointInstanceOptions<T>): QueryEndpointInstance<T> {
+export function createQueryEndpointInstance<T, E extends BasicException>(options: QueryEndpointInstanceOptions<T, E>): QueryEndpointInstance<T> {
     const segmentSize = options.segmentSize ?? 100
 
     const datasource = createDatasource(options.request, options.handleError)
@@ -335,19 +338,19 @@ function createSegments({ data, pull }: ReturnType<typeof createDatasource>, seg
     return {getSegments, loadData, isDataLoaded}
 }
 
-function createDatasource<T>(request: QueryEndpointInstanceOptions<T>["request"], handleError: QueryEndpointInstanceOptions<T>["handleError"]) {
+function createDatasource<T, E extends BasicException>(request: QueryEndpointInstanceOptions<T, E>["request"], handleError: QueryEndpointInstanceOptions<T, E>["handleError"]) {
     const data = <{buffer: T[], total: number | null}>{buffer: [], total: null}
 
     const pull = async (offset: number, limit: number): Promise<boolean> => {
         const res = await request(offset, limit)
         if(res.ok) {
-            data.total = res.total
-            for(let i = 0; i < res.result.length; ++i) {
-                data.buffer[offset + i] = res.result[i]
+            data.total = res.data.total
+            for(let i = 0; i < res.data.result.length; ++i) {
+                data.buffer[offset + i] = res.data.result[i]
             }
             return true
         }else{
-            handleError?.("Error Occurred", res.message)
+            handleError?.(`Error occurred: ${res.exception.code}`, res.exception.message)
             return false
         }
     }

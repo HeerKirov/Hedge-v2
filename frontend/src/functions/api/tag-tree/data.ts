@@ -1,5 +1,5 @@
-import { computed, onMounted, ref, Ref, toRaw, watch } from "vue"
-import { DetailTag, TagTreeNode, TagUpdateForm } from "@/functions/adapter-http/impl/tag"
+import { onMounted, ref, Ref, toRaw, watch } from "vue"
+import { DetailTag, TagExceptions, TagTreeNode, TagUpdateForm } from "@/functions/adapter-http/impl/tag"
 import { ObjectEndpoint, useFastObjectEndpoint } from "@/functions/utils/endpoints/object-fast-endpoint"
 import { installation } from "@/functions/utils/basic"
 import { useHttpClient } from "@/functions/app"
@@ -29,7 +29,7 @@ export interface TagListContext {
     /**
      * API快速访问。
      */
-    fastEndpoint: ObjectEndpoint<number, DetailTag, TagUpdateForm>
+    fastEndpoint: ObjectEndpoint<number, DetailTag, TagUpdateForm, TagExceptions["update"], TagExceptions["delete"]>
     /**
      * 刷新以重新加载标签树。
      */
@@ -395,7 +395,7 @@ function useIndexedData(requestedData: Ref<TagTreeNode[]>) {
     return {data, indexedInfo, add, remove, move}
 }
 
-function useDescriptionCache(endpoint: ObjectEndpoint<number, DetailTag, unknown>) {
+function useDescriptionCache(endpoint: TagListContext["fastEndpoint"]) {
     const descriptions: Ref<{[key: number]: string}> = ref({})
 
     const loadDescription = async (key: number) => {

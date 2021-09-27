@@ -11,8 +11,11 @@ export default defineComponent({
             async request(offset: number, limit: number) {
                 return {
                     ok: true,
-                    total: mockedTotal,
-                    result: mockedData.slice(offset, offset + limit)
+                    status: 200,
+                    data: {
+                        total: mockedTotal,
+                        result: mockedData.slice(offset, offset + limit)
+                    }
                 }
             }
         })

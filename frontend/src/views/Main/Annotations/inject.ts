@@ -34,10 +34,7 @@ function useAnnotationList() {
 
     const endpoint = useQueryEndpoint({
         filter: queryFilter,
-        async request(offset: number, limit: number) {
-            const res = await httpClient.annotation.list({offset, limit, ...queryFilter.value})
-            return res.ok ? {ok: true, ...res.data} : {ok: false, message: res.exception?.message ?? "unknown error"}
-        },
+        request: (offset, limit, filter) => httpClient.annotation.list({ offset, limit, ...filter }),
         handleError
     })
     const dataView = usePaginationDataView(endpoint)

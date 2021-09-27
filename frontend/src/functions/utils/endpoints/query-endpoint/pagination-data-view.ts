@@ -85,7 +85,8 @@ export function usePaginationDataView<T>(endpoint: QueryEndpointResult<T>, optio
     const proxy = useProxy(endpoint.proxy, data)
 
     //在引用的query endpoint实例更换时，触发一次数据重刷
-    watch(endpoint.instance, reset)
+    //此处调用dataUpdate而不是reset来重刷，是因为希望保持上层应用不会完全刷新列表滚动位置(scrollView插件根据total的重置来判断列表重置)
+    watch(endpoint.instance, () => dataUpdate(data.value.metrics.offset, data.value.metrics.limit))
 
     //在endpoint的内容变更，且变更对象在影响范围内时，对数据进行更新
     useListeningEvent(endpoint.modifiedEvent, e => {

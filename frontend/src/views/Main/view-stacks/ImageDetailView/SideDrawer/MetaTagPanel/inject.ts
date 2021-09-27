@@ -2,8 +2,8 @@ import { computed, reactive, readonly, ref, Ref, watch } from "vue"
 import { HttpClient } from "@/functions/adapter-http"
 import { DetailIllust, Tagme } from "@/functions/adapter-http/impl/illust"
 import { SimpleTag } from "@/functions/adapter-http/impl/tag"
-import { SimpleTopic, Topic } from "@/functions/adapter-http/impl/topic"
-import { SimpleAuthor, Author } from "@/functions/adapter-http/impl/author"
+import { SimpleTopic } from "@/functions/adapter-http/impl/topic"
+import { SimpleAuthor } from "@/functions/adapter-http/impl/author"
 import { MetaTagTypeValues } from "@/functions/adapter-http/impl/all"
 import { MetaTagValidation } from "@/functions/adapter-http/impl/util-meta"
 import { watchGlobalKeyEvent } from "@/functions/feature/keyboard"
@@ -133,7 +133,7 @@ function useSaveFunction(tags: Ref<SimpleTag[]>, topics: Ref<SimpleTopic[]>, aut
             }, e => {
                 if(e.code === "NOT_EXIST") {
                     const [type, list] = e.info
-                    const typeName = type === "tag" ? "标签" : type === "topic" ? "主题" : "作者"
+                    const typeName = type === "tags" ? "标签" : type === "topics" ? "主题" : "作者"
                     message.showOkMessage("error", `选择的部分${typeName}不存在。`, `错误项: ${list}`)
                 }else if(e.code === "NOT_SUITABLE") {
                     message.showOkMessage("prompt", "选择的部分标签不适用。", "请参阅下方的约束提示修改内容。")
@@ -168,6 +168,7 @@ function useEditorDataValidation(tags: Ref<SimpleTag[]>, data: Ref<DetailIllust 
 
     const tagValidationResults = ref<MetaTagValidation>()
 
+    //TODO 为校验功能添加Link和Exported项的标记提示，告诉用户这些项是哪儿来的，以免摸不着头脑
     watch(tags, async (tags, _, onInvalidate) => {
         if(tags.length) {
             let invalidate = false
@@ -185,6 +186,8 @@ function useEditorDataValidation(tags: Ref<SimpleTag[]>, data: Ref<DetailIllust 
                 tagValidationResults.value = undefined
                 toast.handleException(res.exception)
             }
+        }else{
+            tagValidationResults.value = undefined
         }
     }, {immediate: true, deep: true})
 
@@ -322,14 +325,8 @@ const [installMetaDatabaseContext, useMetaDatabaseContext] = installation(functi
 function useMetaDatabaseAuthorContext(httpClient: HttpClient, { handleError }: ToastManager) {
     const search = ref<string>()
 
-    const data = useContinuousEndpoint<Author>({
-        async request(offset: number, limit: number): Promise<{ ok: true; total: number; result: Author[] } | { ok: false; message: string }> {
-            const res = await httpClient.author.list({ offset, limit, search: search.value, order: "-updateTime" })
-            return res.ok ? { ok: true, ...res.data } : {
-                ok: false,
-                message: res.exception?.message ?? "unknown error"
-            }
-        },
+    const data = useContinuousEndpoint({
+        request: (offset, limit) => httpClient.author.list({ offset, limit, search: search.value, order: "-updateTime" }),
         handleError,
         initSize: 40,
         continueSize: 20
@@ -343,14 +340,8 @@ function useMetaDatabaseAuthorContext(httpClient: HttpClient, { handleError }: T
 function useMetaDatabaseTopicContext(httpClient: HttpClient, { handleError }: ToastManager) {
     const search = ref<string>()
 
-    const data = useContinuousEndpoint<Topic>({
-        async request(offset: number, limit: number): Promise<{ ok: true; total: number; result: Topic[] } | { ok: false; message: string }> {
-            const res = await httpClient.topic.list({ offset, limit, search: search.value, order: "-updateTime" })
-            return res.ok ? { ok: true, ...res.data } : {
-                ok: false,
-                message: res.exception?.message ?? "unknown error"
-            }
-        },
+    const data = useContinuousEndpoint({
+        request: (offset, limit) => httpClient.topic.list({ offset, limit, search: search.value, order: "-updateTime" }),
         handleError,
         initSize: 40,
         continueSize: 20

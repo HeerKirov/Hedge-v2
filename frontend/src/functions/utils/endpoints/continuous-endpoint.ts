@@ -1,14 +1,17 @@
 import { ref, Ref } from "vue"
+import { Response } from "@/functions/adapter-http"
+import { ListResult } from "@/functions/adapter-http/impl/generic"
+import { BasicException } from "@/functions/adapter-http/exception"
 
 /* 此处提供了VCA形态的连续型数据查询端点。
  * 它提供了一个连续查询模型，供使用者在一次查询中不断加载新的内容，并在查询参数变化时重置查询。
  */
 
-interface ContinuousEndpointOptions<T> {
+interface ContinuousEndpointOptions<T, E extends BasicException> {
     /**
      * 根据offset和limit取数据。结果可异步返回。此函数应该直接对接查询API。
      */
-    request(offset: number, limit: number): Promise<{ok: true, total: number, result: T[]} | {ok: false, message: string}>
+    request(offset: number, limit: number): Promise<Response<ListResult<T>, E>>
     /**
      * 捕获请求过程中抛出的错误。
      */
@@ -51,7 +54,7 @@ export interface ContinuousEndpointData<T> {
     result: T[]
 }
 
-export function useContinuousEndpoint<T>(options: ContinuousEndpointOptions<T>): ContinuousEndpointResult<T> {
+export function useContinuousEndpoint<T, E extends BasicException>(options: ContinuousEndpointOptions<T, E>): ContinuousEndpointResult<T> {
     let version = 0
 
     const data: Ref<ContinuousEndpointData<T>> = ref({total: 0, result: []})
@@ -71,9 +74,9 @@ export function useContinuousEndpoint<T>(options: ContinuousEndpointOptions<T>):
             return
         }
         if(res.ok) {
-            data.value = {total: res.total, result: res.result}
+            data.value = {total: res.data.total, result: res.data.result}
         }else{
-            options.handleError?.("Error Occurred", res.message)
+            options.handleError?.(`Error occurred: ${res.exception.code}`, res.exception.message)
         }
         loading.value = false
     }
@@ -93,10 +96,10 @@ export function useContinuousEndpoint<T>(options: ContinuousEndpointOptions<T>):
             return
         }
         if(res.ok) {
-            data.value.total = res.total
-            data.value.result.push(...res.result)
+            data.value.total = res.data.total
+            data.value.result.push(...res.data.result)
         }else{
-            options.handleError?.("Error Occurred", res.message)
+            options.handleError?.(`Error occurred: ${res.exception.code}`, res.exception.message)
         }
         loading.value = false
     }

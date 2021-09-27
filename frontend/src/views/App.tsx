@@ -17,8 +17,8 @@ export default defineComponent({
         installNavigatorManager()
         installMessageBoxManager()
         installWebPopupMenuManager()
-        const notification = installToastManager()
-        const { appInfo, appState } = installAppService({ handleError: notification.handleError })
+        const { handleError } = installToastManager()
+        const { appInfo, appState } = installAppService({handleError})
         const initialized = computed(() => appState.state != null)
         installGlobalKey(appInfo)
 

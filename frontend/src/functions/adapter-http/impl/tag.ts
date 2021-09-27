@@ -2,6 +2,12 @@ import { HttpInstance, Response } from "../server"
 import { IdResponse, LimitAndOffsetFilter, ListResult, OrderList } from "./generic"
 import { DepsAnnotation } from "./annotations"
 import { SimpleIllust } from "./illust"
+import {
+    AlreadyExists,
+    CannotGiveColorError, NotFound, RecursiveParentError,
+    ResourceNotExist,
+    ResourceNotSuitable
+} from "../exception"
 
 export function createTagEndpoint(http: HttpInstance): TagEndpoint {
     return {
@@ -33,12 +39,12 @@ export interface TagEndpoint {
      * @exception CANNOT_GIVE_COLOR 只有创建顶层标签时才能指定颜色
      * @exception ALREADY_EXISTS ("Tag", "name", name) 标签重名。addr类型的标签在同一个parent下禁止重名，tag类型的标签除上一条外还禁止与全局其他tag类型的标签重名
      */
-    create(form: TagCreateForm): Promise<Response<IdResponse>>
+    create(form: TagCreateForm): Promise<Response<IdResponse, TagExceptions["create"]>>
     /**
      * 查看标签。
      * @exception NOT_FOUND
      */
-    get(id: number): Promise<Response<DetailTag>>
+    get(id: number): Promise<Response<DetailTag, NotFound>>
     /**
      * 更改标签。
      * @exception NOT_FOUND
@@ -48,13 +54,19 @@ export interface TagEndpoint {
      * @exception CANNOT_GIVE_COLOR 只有顶层标签才能指定颜色
      * @exception ALREADY_EXISTS ("Tag", "name", name) 标签重名。addr类型的标签在同一个parent下禁止重名，tag类型的标签除上一条外还禁止与全局其他tag类型的标签重名
      */
-    update(id: number, form: TagUpdateForm): Promise<Response<null>>
+    update(id: number, form: TagUpdateForm): Promise<Response<null, TagExceptions["update"]>>
     /**
      * 删除标签。
      * @exception NOT_FOUND
      *
      */
-    delete(id: number): Promise<Response<null>>
+    delete(id: number): Promise<Response<null, TagExceptions["delete"]>>
+}
+
+export interface TagExceptions {
+    "create": AlreadyExists<"Tag", "name", string> | CannotGiveColorError | ResourceNotExist<"parentId", number> | ResourceNotExist<"links" | "examples" | "annotations", number[]> | ResourceNotSuitable<"links" | "examples" | "annotations", number[]>
+    "update": NotFound | RecursiveParentError | AlreadyExists<"Tag", "name", string> | CannotGiveColorError | ResourceNotExist<"parentId", number> | ResourceNotExist<"links" | "examples" | "annotations", number[]> | ResourceNotSuitable<"links" | "examples" | "annotations", number[]>
+    "delete": NotFound
 }
 
 export type TagType = "TAG" | "ADDR" | "VIRTUAL_ADDR"

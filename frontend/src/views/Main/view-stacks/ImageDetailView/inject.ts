@@ -1,7 +1,7 @@
 import { computed, InjectionKey, ref, Ref, watch } from "vue"
 import {
     Illust, DetailIllust, ImageFileInfo, ImageOriginData,
-    ImageOriginUpdateForm, ImageRelatedItems, ImageRelatedUpdateForm, ImageUpdateForm
+    ImageOriginUpdateForm, ImageRelatedItems, ImageRelatedUpdateForm, ImageUpdateForm, IllustExceptions
 } from "@/functions/adapter-http/impl/illust"
 import { SliceDataView } from "@/functions/utils/endpoints/query-endpoint"
 import { installObjectLazyObject, useObjectLazyObject, ObjectLazyObjectInjection } from "@/functions/utils/endpoints/object-lazy-endpoint"
@@ -234,7 +234,7 @@ function useTargetUpdater(data: SliceDataView<Illust>, target: Ref<Illust | null
                           currentIndex: Ref<number>, currentIndexOfCollection: Ref<number | null>, collectionItems: Ref<Illust[] | null>,
                           refreshByIndex: (index: number) => void, refreshByCollectionIndex: (index: number) => void) {
     const { goBack } = useViewStacks()
-    const { setData, deleteData } = useFastObjectEndpoint<number, unknown, ImageUpdateForm>({
+    const { setData, deleteData } = useFastObjectEndpoint({
         update: httpClient => httpClient.illust.image.update,
         delete: httpClient => httpClient.illust.image.delete
     })
@@ -363,8 +363,8 @@ export function useFileInfoEndpoint() {
 }
 
 const symbols = {
-    metadata: Symbol() as InjectionKey<ObjectLazyObjectInjection<number, DetailIllust, ImageUpdateForm>>,
-    relatedItems: Symbol() as InjectionKey<ObjectLazyObjectInjection<number, ImageRelatedItems, ImageRelatedUpdateForm>>,
-    originData: Symbol() as InjectionKey<ObjectLazyObjectInjection<number, ImageOriginData, ImageOriginUpdateForm>>,
-    fileInfo: Symbol() as InjectionKey<ObjectLazyObjectInjection<number, ImageFileInfo, unknown>>
+    metadata: Symbol() as InjectionKey<ObjectLazyObjectInjection<number, DetailIllust, ImageUpdateForm, IllustExceptions["image.update"]>>,
+    relatedItems: Symbol() as InjectionKey<ObjectLazyObjectInjection<number, ImageRelatedItems, ImageRelatedUpdateForm, IllustExceptions["relatedItems.update"]>>,
+    originData: Symbol() as InjectionKey<ObjectLazyObjectInjection<number, ImageOriginData, ImageOriginUpdateForm, IllustExceptions["originData.update"]>>,
+    fileInfo: Symbol() as InjectionKey<ObjectLazyObjectInjection<number, ImageFileInfo, unknown, never>>
 }

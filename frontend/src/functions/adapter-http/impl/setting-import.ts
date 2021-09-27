@@ -1,4 +1,5 @@
 import { HttpInstance, Response } from "../server"
+import { InvalidRuleIndexError, ResourceNotExist } from "@/functions/adapter-http/exception";
 
 export function createSettingImportEndpoint(http: HttpInstance): SettingImportEndpoint {
     return {
@@ -21,7 +22,7 @@ export interface SettingImportEndpoint {
      * @exception NOT_EXIST("site", siteName) rules[].site不在sites列表中存在时报告此错误。
      * @exception INVALID_RULE_INDEX rules[].secondaryIdIndex与对应的site的hasSecondaryId配置不匹配时报告此错误。
      */
-    update(form: ImportOptionUpdateForm): Promise<Response<unknown>>
+    update(form: ImportOptionUpdateForm): Promise<Response<unknown, ResourceNotExist<"site", string> | InvalidRuleIndexError>>
 }
 
 export interface ImportOption {

@@ -145,11 +145,6 @@ function useAppStateInWebMode(api: HttpClient, httpClientConfig: HttpInstanceCon
     async function load() {
         const webAccess = await api.web.access()
         if(!webAccess.ok) {
-            if(webAccess.exception) {
-                console.error(`Error ${webAccess.exception.status} ${webAccess.exception.code}: ${webAccess.exception.message}`)
-            }else{
-                console.error("Web server connection error.")
-            }
             return
         }else if(!webAccess.data.access) {
             console.error("Web access is disabled.")
@@ -161,7 +156,6 @@ function useAppStateInWebMode(api: HttpClient, httpClientConfig: HttpInstanceCon
         if(ls.value != null) {
             const verify = await api.web.verifyToken({token: ls.value.token})
             if(!verify.ok) {
-                console.error(verify.exception?.message)
                 return
             }else if(verify.data.ok) {
                 httpClientConfig.token = ls.value.token

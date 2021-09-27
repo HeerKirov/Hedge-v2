@@ -1,4 +1,5 @@
 import { HttpInstance, Response } from "../server"
+import { AlreadyExists, NotFound } from "../exception"
 import { IdResponse, LimitAndOffsetFilter, ListResult, mapFromOrderList, OrderList } from "./generic"
 
 export function createAnnotationEndpoint(http: HttpInstance): AnnotationEndpoint {
@@ -32,23 +33,23 @@ export interface AnnotationEndpoint {
      * 新建注解。
      * @exception ALREADY_EXISTS ("Annotation", "name", name) 注解重名
      */
-    create(form: AnnotationCreateForm): Promise<Response<IdResponse>>
+    create(form: AnnotationCreateForm): Promise<Response<IdResponse, AlreadyExists<"Annotation", "name", string>>>
     /**
      * 查看注解。
      * @exception NOT_FOUND
      */
-    get(id: number): Promise<Response<Annotation>>
+    get(id: number): Promise<Response<Annotation, NotFound>>
     /**
      * 更改注解。
      * @exception NOT_FOUND
      * @exception ALREADY_EXISTS ("Annotation", "name", name) 注解重名
      */
-    update(id: number, form: AnnotationUpdateForm): Promise<Response<null>>
+    update(id: number, form: AnnotationUpdateForm): Promise<Response<null, NotFound | AlreadyExists<"Annotation", "name", string>>>
     /**
      * 删除注解。
      * @exception NOT_FOUND
      */
-    delete(id: number): Promise<Response<null>>
+    delete(id: number): Promise<Response<null, NotFound>>
 }
 
 export type AnnotationTarget = "TAG" | "AUTHOR" | "TOPIC" | "ARTIST" | "STUDIO" | "PUBLISH" | "COPYRIGHT" | "WORK" | "CHARACTER"

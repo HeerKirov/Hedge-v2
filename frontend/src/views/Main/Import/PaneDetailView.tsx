@@ -4,7 +4,7 @@ import { SourceInfo, TagmeInfo } from "@/layouts/display-components"
 import { PaneBasicLayout } from "@/layouts/layouts/SplitPane"
 import { useMessageBox } from "@/functions/module/message-box"
 import { useObjectEndpoint } from "@/functions/utils/endpoints/object-endpoint"
-import { DetailImportImage, ImportUpdateForm } from "@/functions/adapter-http/impl/import"
+import { DetailImportImage } from "@/functions/adapter-http/impl/import"
 import { Tagme } from "@/functions/adapter-http/impl/illust"
 import { assetsUrl } from "@/functions/app"
 import { objects } from "@/utils/primitives"
@@ -17,11 +17,11 @@ export default defineComponent({
         const message = useMessageBox()
         const { pane: { detailMode, closePane }, list: { dataView } } = useImportContext()
 
-        const { data, setData } = useObjectEndpoint<number, DetailImportImage, ImportUpdateForm>({
+        const { data, setData } = useObjectEndpoint({
             path: detailMode,
             get: httpClient => httpClient.import.get,
             update: httpClient => httpClient.import.update,
-            afterUpdate(id, data) {
+            afterUpdate(id, data: DetailImportImage) {
                 const index = dataView.proxy.syncOperations.find(annotation => annotation.id === id)
                 if(index != undefined) dataView.proxy.syncOperations.modify(index, data)
             }
