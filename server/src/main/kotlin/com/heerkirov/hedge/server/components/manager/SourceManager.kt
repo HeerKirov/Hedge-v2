@@ -6,10 +6,7 @@ import com.heerkirov.hedge.server.dao.source.SourceImages
 import com.heerkirov.hedge.server.dao.source.SourceTagRelations
 import com.heerkirov.hedge.server.dao.source.SourceTags
 import com.heerkirov.hedge.server.dto.SourceTagDto
-import com.heerkirov.hedge.server.exceptions.ParamError
-import com.heerkirov.hedge.server.exceptions.ParamNotRequired
-import com.heerkirov.hedge.server.exceptions.ParamRequired
-import com.heerkirov.hedge.server.exceptions.ResourceNotExist
+import com.heerkirov.hedge.server.exceptions.*
 import com.heerkirov.hedge.server.model.source.SourceImage
 import com.heerkirov.hedge.server.model.source.SourceTag
 import com.heerkirov.hedge.server.utils.types.Opt
@@ -24,24 +21,26 @@ import org.ktorm.entity.toList
 class SourceManager(private val data: DataRepository, private val queryManager: QueryManager) {
     /**
      * 检查source key。主要检查source是否是已注册的site，检查part是否存在，检查id/part是否为非负数。
+     * @throws ResourceNotExist ("source", string) 给出的source不存在
      */
     fun checkSource(source: String?, sourceId: Long?, sourcePart: Int?) {
         if(source != null) {
-            val site = data.metadata.source.sites.firstOrNull { it.name.equals(source, ignoreCase = true) } ?: throw ResourceNotExist("source", source)
+            val site = data.metadata.source.sites.firstOrNull { it.name.equals(source, ignoreCase = true) } ?: throw be(ResourceNotExist("source", source))
 
-            if(sourceId == null) throw ParamRequired("sourceId")
-            else if(sourceId < 0) throw ParamError("sourceId")
+            if(sourceId == null) throw be(ParamRequired("sourceId"))
+            else if(sourceId < 0) throw be(ParamError("sourceId"))
 
-            if(site.hasSecondaryId && sourcePart == null) throw ParamRequired("sourcePart")
-            else if(!site.hasSecondaryId && sourcePart != null) throw ParamNotRequired("sourcePart")
+            if(site.hasSecondaryId && sourcePart == null) throw be(ParamRequired("sourcePart"))
+            else if(!site.hasSecondaryId && sourcePart != null) throw be(ParamNotRequired("sourcePart"))
 
-            if(sourcePart != null && sourcePart < 0) throw ParamError("sourcePart")
+            if(sourcePart != null && sourcePart < 0) throw be(ParamError("sourcePart"))
         }
     }
 
     /**
      * 检查source key是否存在。如果存在，检查目标sourceImage是否存在并创建对应的记录。在创建之前自动检查source key。
      * @return 返回在sourceImage中实际存储的key。
+     * @throws ResourceNotExist ("source", string) 给出的source不存在
      */
     fun validateAndCreateSourceImageIfNotExist(source: String?, sourceId: Long?, sourcePart: Int?): Triple<Int?, String?, Long?> {
         if(source == null) return Triple(null, null, null)
@@ -70,6 +69,7 @@ class SourceManager(private val data: DataRepository, private val queryManager: 
     /**
      * 检查source key是否存在，创建对应记录，并手动更新内容。
      * @return 返回在sourceImage中实际存储的key。
+     * @throws ResourceNotExist ("source", string) 给出的source不存在
      */
     fun createOrUpdateSourceImage(source: String?, sourceId: Long?, sourcePart: Int?,
                                   title: Opt<String?> = undefined(),

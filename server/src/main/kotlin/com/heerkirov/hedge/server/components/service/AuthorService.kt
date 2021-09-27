@@ -11,8 +11,8 @@ import com.heerkirov.hedge.server.dao.album.AlbumAuthorRelations
 import com.heerkirov.hedge.server.dao.illust.IllustAuthorRelations
 import com.heerkirov.hedge.server.dao.meta.AuthorAnnotationRelations
 import com.heerkirov.hedge.server.dao.meta.Authors
-import com.heerkirov.hedge.server.exceptions.NotFound
 import com.heerkirov.hedge.server.dto.*
+import com.heerkirov.hedge.server.exceptions.*
 import com.heerkirov.hedge.server.utils.DateTime
 import com.heerkirov.hedge.server.utils.ktorm.OrderTranslator
 import com.heerkirov.hedge.server.utils.ktorm.orderBy
@@ -58,6 +58,11 @@ class AuthorService(private val data: DataRepository,
             .toListResult { newAuthorRes(Authors.createEntity(it), authorColors) }
     }
 
+    /**
+     * @throws AlreadyExists ("Author", "name", string) 此名称的author已存在
+     * @throws ResourceNotExist ("annotations", number[]) 有annotation不存在时，抛出此异常。给出不存在的annotation id列表
+     * @throws ResourceNotSuitable ("annotations", number[]) 指定target类型且有元素不满足此类型时，抛出此异常。给出不适用的annotation id列表
+     */
     fun create(form: AuthorCreateForm): Int {
         data.db.transaction {
             val name = kit.validateName(form.name)
@@ -88,15 +93,24 @@ class AuthorService(private val data: DataRepository,
         }
     }
 
+    /**
+     * @throws NotFound 请求对象不存在
+     */
     fun get(id: Int): AuthorDetailRes {
         return data.db.sequenceOf(Authors).firstOrNull { it.id eq id }
             ?.let { newAuthorDetailRes(it, data.metadata.meta.authorColors) }
-            ?: throw NotFound()
+            ?: throw be(NotFound())
     }
 
+    /**
+     * @throws NotFound 请求对象不存在
+     * @throws AlreadyExists ("Author", "name", string) 此名称的author已存在
+     * @throws ResourceNotExist ("annotations", number[]) 有annotation不存在时，抛出此异常。给出不存在的annotation id列表
+     * @throws ResourceNotSuitable ("annotations", number[]) 指定target类型且有元素不满足此类型时，抛出此异常。给出不适用的annotation id列表
+     */
     fun update(id: Int, form: AuthorUpdateForm) {
         data.db.transaction {
-            val record = data.db.sequenceOf(Authors).firstOrNull { it.id eq id } ?: throw NotFound()
+            val record = data.db.sequenceOf(Authors).firstOrNull { it.id eq id } ?: throw be(NotFound())
 
             val newName = form.name.letOpt { kit.validateName(it, id) }
             val newOtherNames = form.otherNames.letOpt { kit.validateOtherNames(it) }
@@ -139,10 +153,13 @@ class AuthorService(private val data: DataRepository,
         }
     }
 
+    /**
+     * @throws NotFound 请求对象不存在
+     */
     fun delete(id: Int) {
         data.db.transaction {
             data.db.delete(Authors) { it.id eq id }.let {
-                if(it <= 0) throw NotFound()
+                if(it <= 0) throw be(NotFound())
             }
             data.db.delete(IllustAuthorRelations) { it.authorId eq id }
             data.db.delete(AlbumAuthorRelations) { it.authorId eq id }

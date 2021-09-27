@@ -1,6 +1,7 @@
 package com.heerkirov.hedge.server.utils.ktorm
 
 import com.heerkirov.hedge.server.exceptions.ParamTypeError
+import com.heerkirov.hedge.server.exceptions.be
 import com.heerkirov.hedge.server.utils.types.OrderItem
 import org.ktorm.dsl.*
 import org.ktorm.expression.OrderByExpression
@@ -38,7 +39,7 @@ class OrderTranslator(private val orderFieldName: String = "order", initializer:
     }
 
     operator fun get(field: String, direction: Int): OrderByExpression {
-        val column = map[field] ?: throw ParamTypeError(orderFieldName, "cannot accept value '$field'.")
+        val column = map[field] ?: throw be(ParamTypeError(orderFieldName, "cannot accept value '$field'."))
         return if(direction > 0) {
             column.column.asc()
         }else{
@@ -51,7 +52,7 @@ class OrderTranslator(private val orderFieldName: String = "order", initializer:
     }
 
     fun orderFor(order: OrderItem): List<OrderByExpression> {
-        val column = map[order.name] ?: throw ParamTypeError(orderFieldName, "cannot accept value '${order.name}'.")
+        val column = map[order.name] ?: throw be(ParamTypeError(orderFieldName, "cannot accept value '${order.name}'."))
         val orderByExpression = if(order.desc) {
             column.column.desc()
         }else{

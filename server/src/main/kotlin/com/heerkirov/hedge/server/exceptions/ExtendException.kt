@@ -1,65 +1,71 @@
 package com.heerkirov.hedge.server.exceptions
 
+import com.heerkirov.hedge.server.utils.tuples.Tuple2
+import com.heerkirov.hedge.server.utils.tuples.Tuple3
+import com.heerkirov.hedge.server.utils.tuples.t2
+import com.heerkirov.hedge.server.utils.tuples.t3
+
 /**
  * 当指定导入的文件不可访问时，抛出此异常。
  * 抛出位置：
  * - import从本地导入
  */
-class FileNotFoundError : BadRequestException("FILE_NOT_FOUND", "Target file is not found or not accessible.")
+class FileNotFoundError : BadRequestException<Nothing?>("FILE_NOT_FOUND", "Target file is not found or not accessible.", null)
 
 /**
  * 当指定的文件的扩展名不受支持时，抛出此异常。
  * 抛出位置：
  * - upload/import导入时
+ * info: string: 扩展名
  */
-class IllegalFileExtensionError(extension: String) : BadRequestException("ILLEGAL_FILE_EXTENSION", "Extension type '$extension' is illegal.", extension)
+class IllegalFileExtensionError(extension: String) : BadRequestException<String>("ILLEGAL_FILE_EXTENSION", "Extension type '$extension' is illegal.", extension)
 
 /**
  * 当尝试保存一个还未导入完成的文件时，抛出此异常。
  * 抛出位置：
  * - save文件时
  */
-class NotReadyFileError : BadRequestException("FILE_NOT_READY", "File is not ready.")
+class NotReadyFileError : BadRequestException<Nothing?>("FILE_NOT_READY", "File is not ready.", null)
 
 /**
- * 当parentId出现闭环时，抛出此异常。parentId为自己也构成闭环。
+ * 当parentId出现闭环时，抛出此异常。parentId为自己时也构成闭环。
  * 抛出位置：
  * - 更新tag的parentId
  * - 更新topic的parentId
  */
-class RecursiveParentError : BadRequestException("RECURSIVE_PARENT", "Param 'parentId' has recursive.")
-
-/**
- * 当给出的排序顺位超出可用的范围时，抛出此异常。
- * 抛出位置：
- * - 设定album的subtitles
- * - 修改album的子项
- */
-class OrdinalOutOfBoundsError(paramName: String) : BadRequestException("ORDINAL_OUT_OF_BOUNDS", "Param '$paramName': ordinal is out of bounds.", paramName)
+class RecursiveParentError : BadRequestException<Nothing?>("RECURSIVE_PARENT", "Param 'parentId' has recursive.", null)
 
 /**
  * 当将color赋值给一个非根的tag时，抛出此异常。
  * 抛出位置：
  * - 设定tag的color
+ * info: string: 扩展名
  */
-class CannotGiveColorError : BadRequestException("CANNOT_GIVE_COLOR", "Cannot give 'color' for a not root tag.")
+class CannotGiveColorError : BadRequestException<Nothing?>("CANNOT_GIVE_COLOR", "Cannot give 'color' for a not root tag.", null)
 
 /**
  * 当参数的值违反其他关系带来的约束时，抛出此异常。
  * 抛出位置：
  * - 设定topic的type，且type与parent不适用时
  * - 更新topic的type，且type与任意children不适用时
+ * info: (string, string, V[]): 发生问题的参数名称, 发生冲突的约束参数名称, 不满足此约束的约束对象
  */
-class IllegalConstraintError(paramName: String, relation: String, relationValue: Any?) : BadRequestException("ILLEGAL_CONSTRAINT", "Param '$paramName' is illegal for constraint of $relation with $paramName $relationValue.", listOf(paramName, relation, relationValue))
+class IllegalConstraintError<V>(paramName: String, relation: String, relationValue: Collection<V>) : BadRequestException<Tuple3<String, String, Collection<V>>>("ILLEGAL_CONSTRAINT", "Param '$paramName' is illegal for constraint of $relation with $paramName $relationValue.", t3(paramName, relation, relationValue))
 
 /**
  * 当给出的tag组中，直接存在或间接导出了具有强制属性的同一冲突组下的至少两个成员时，抛出此异常。
  * 抛出位置：
  * - 设定illust的tags时
+ *
+ * info: ConflictingMembers[]: 发生冲突的组(包括它下属的冲突成员)
+ *
  * @param conflictingMembers 发生冲突的组成员。外层Map指代组，内层List指代同一个组下冲突的组员。
  */
-class ConflictingGroupMembersError(conflictingMembers: List<ConflictingMembers>) : BadRequestException("CONFLICTING_GROUP_MEMBERS",
-    "Tags ${conflictingMembers.joinToString { (groupId, _, members) -> "$groupId: [${members.joinToString { "${it.name}(${it.id})" }}]" }} are in same conflicting group.", conflictingMembers) {
+class ConflictingGroupMembersError(conflictingMembers: List<ConflictingMembers>) : BadRequestException<List<ConflictingGroupMembersError.ConflictingMembers>>(
+    "CONFLICTING_GROUP_MEMBERS",
+    "Tags ${conflictingMembers.joinToString { (groupId, _, members) -> "$groupId: [${members.joinToString { "${it.name}(${it.id})" }}]" }} are in same conflicting group.",
+    conflictingMembers) {
+
     data class ConflictingMembers(val group: Member, val force: Boolean, val members: List<Member>)
     data class Member(val id: Int, val name: String, val color: String?, val isExported: Boolean)
 }
@@ -69,20 +75,26 @@ class ConflictingGroupMembersError(conflictingMembers: List<ConflictingMembers>)
  * 抛出位置：
  * - 导入新的项目，且开启自动source meta解析时
  * - 调用source meta解析工具时
+ *
+ * info: string: regex内容
  */
-class InvalidRegexError(regex: String, msg: String): BadRequestException("INVALID_REGEX", "Regex $regex may has some error because an exception was thrown: $msg", regex)
+class InvalidRegexError(regex: String, msg: String): BadRequestException<String>("INVALID_REGEX", "Regex $regex may has some error because an exception was thrown: $msg", regex)
 
 /**
  * 当编写的rule的index与site的规则不匹配时，抛出此异常。
  * 指secondaryId存在/不存在而与site的规则要求相反时的情况。
  * 抛出位置：
  * - 更新import rule列表时
+ *
+ * info: (string, string): site名称, regex内容
  */
-class InvalidRuleIndexError(site: String, regex: String) : BadRequestException("INVALID_RULE_INDEX", "Rule [$site] $regex has secondaryId config which not suit to site config.", listOf(site, regex))
+class InvalidRuleIndexError(site: String, regex: String) : BadRequestException<Tuple2<String, String>>("INVALID_RULE_INDEX", "Rule [$site] $regex has secondaryId config which not suit to site config.", t2(site, regex))
 
 /**
  * 当业务所需的某种选项内容不支持当前业务时，抛出此异常。
  * 抛出位置：
  * - 当使用SystemDownloadHistory解析source但未设置systemDownloadHistoryPath时
+ *
+ * info: string: 发生错误的选项名称
  */
-class InvalidOptionError(option: String, msg: String) : BadRequestException("INVALID_OPTION", "Option '$option' is invalid: $msg", option)
+class InvalidOptionError(option: String, msg: String) : BadRequestException<String>("INVALID_OPTION", "Option '$option' is invalid: $msg", option)

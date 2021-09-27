@@ -4,6 +4,7 @@ import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.database.ImportOption
 import com.heerkirov.hedge.server.exceptions.InvalidOptionError
 import com.heerkirov.hedge.server.exceptions.InvalidRegexError
+import com.heerkirov.hedge.server.exceptions.be
 import com.heerkirov.hedge.server.library.quarantine.LSQuarantineDatabase
 import com.heerkirov.hedge.server.utils.tools.AutoCloseableComponent
 import java.time.LocalDateTime
@@ -13,6 +14,8 @@ import java.util.regex.Pattern
 class ImportMetaManager(private val data: DataRepository) {
     /**
      * 对一条import记录的内容进行解析，得到source元数据。
+     * @throws InvalidRegexError (regex) 执行正则表达式时发生错误，怀疑是表达式或相关参数没写对
+     * @throws InvalidOptionError ("import.systemDownloadHistoryPath") 试图使用系统下载数据库，但没有配置数据库路径
      */
     fun analyseSourceMeta(filename: String?, fromSource: List<String>?, createTime: LocalDateTime?): Triple<String?, Long?, Int?> {
         for (rule in data.metadata.import.sourceAnalyseRules) {
@@ -29,6 +32,9 @@ class ImportMetaManager(private val data: DataRepository) {
         return Triple(null, null, null)
     }
 
+    /**
+     * @throws InvalidRegexError (regex) 执行正则表达式时发生错误，怀疑是表达式或相关参数没写对
+     */
     private fun analyseSourceMetaByName(rule: ImportOption.SourceAnalyseRuleByName, filename: String?): Pair<Long, Int?>? {
         if(filename == null) return null
         val text = getFilenameWithoutExtension(filename)
@@ -41,14 +47,17 @@ class ImportMetaManager(private val data: DataRepository) {
             val secondaryId = rule.secondaryIdIndex?.let { matcher.group(it) }?.toInt()
             return Pair(id, secondaryId)
         }catch(e: IndexOutOfBoundsException) {
-            throw InvalidRegexError(rule.regex, "Specified index of id/secondaryId is out of bounds of matches.")
+            throw be(InvalidRegexError(rule.regex, "Specified index of id/secondaryId is out of bounds of matches."))
         }catch(e: NumberFormatException) {
-            throw InvalidRegexError(rule.regex, "Value of id/secondaryId cannot be convert to number.")
+            throw be(InvalidRegexError(rule.regex, "Value of id/secondaryId cannot be convert to number."))
         }catch(e: Exception) {
-            throw InvalidRegexError(rule.regex, e.message ?: e::class.simpleName ?: "Unnamed exception.")
+            throw be(InvalidRegexError(rule.regex, e.message ?: e::class.simpleName ?: "Unnamed exception."))
         }
     }
 
+    /**
+     * @throws InvalidRegexError (regex) 执行正则表达式时发生错误，怀疑是表达式或相关参数没写对
+     */
     private fun analyseSourceMetaByFromMeta(rule: ImportOption.SourceAnalyseRuleByFromMeta, fromSource: List<String>?): Pair<Long, Int?>? {
         if(fromSource.isNullOrEmpty()) return null
         val pattern = patterns.computeIfAbsent(rule.regex) { Pattern.compile(it) }
@@ -61,22 +70,26 @@ class ImportMetaManager(private val data: DataRepository) {
                     val secondaryId = rule.secondaryIdIndex?.let { matcher.group(it) }?.toInt()
                     return Pair(id, secondaryId)
                 }catch(e: IndexOutOfBoundsException) {
-                    throw InvalidRegexError(rule.regex, "Specified index of id/secondaryId is out of bounds of matches.")
+                    throw be(InvalidRegexError(rule.regex, "Specified index of id/secondaryId is out of bounds of matches."))
                 }catch(e: NumberFormatException) {
-                    throw InvalidRegexError(rule.regex, "Value of id/secondaryId cannot be convert to number.")
+                    throw be(InvalidRegexError(rule.regex, "Value of id/secondaryId cannot be convert to number."))
                 }catch(e: Exception) {
-                    throw InvalidRegexError(rule.regex, e.message ?: e::class.simpleName ?: "Unnamed exception.")
+                    throw be(InvalidRegexError(rule.regex, e.message ?: e::class.simpleName ?: "Unnamed exception."))
                 }
             }
         }
         return null
     }
 
+    /**
+     * @throws InvalidRegexError (regex) 执行正则表达式时发生错误，怀疑是表达式或相关参数没写对
+     * @throws InvalidOptionError ("import.systemDownloadHistoryPath") 试图使用系统下载数据库，但没有配置数据库路径
+     */
     private fun analyseSourceMetaBySystemHistory(rule: ImportOption.SourceAnalyseRuleBySystemHistory, createTime: LocalDateTime?, filename: String?): Pair<Long, Int?>? {
         if(createTime == null || filename == null) return null
 
         if(data.metadata.import.systemDownloadHistoryPath.isNullOrEmpty()) {
-            throw InvalidOptionError("import.systemDownloadHistoryPath", "systemDownloadHistoryPath cannot be null or empty.")
+            throw be(InvalidOptionError("import.systemDownloadHistoryPath", "systemDownloadHistoryPath cannot be null or empty."))
         }
         val db = if(data.metadata.import.systemDownloadHistoryPath != systemDownloadHistoryPath) {
             systemDownloadHistoryPath = data.metadata.import.systemDownloadHistoryPath
@@ -94,11 +107,11 @@ class ImportMetaManager(private val data: DataRepository) {
             val secondaryId = rule.secondaryIdIndex?.let { matcher.group(it) }?.toInt()
             return Pair(id, secondaryId)
         }catch(e: IndexOutOfBoundsException) {
-            throw InvalidRegexError(rule.regex, "Specified index of id/secondaryId is out of bounds of matches.")
+            throw be(InvalidRegexError(rule.regex, "Specified index of id/secondaryId is out of bounds of matches."))
         }catch(e: NumberFormatException) {
-            throw InvalidRegexError(rule.regex, "Value of id/secondaryId cannot be convert to number.")
+            throw be(InvalidRegexError(rule.regex, "Value of id/secondaryId cannot be convert to number."))
         }catch(e: Exception) {
-            throw InvalidRegexError(rule.regex, e.message ?: e::class.simpleName ?: "Unnamed exception.")
+            throw be(InvalidRegexError(rule.regex, e.message ?: e::class.simpleName ?: "Unnamed exception."))
         }
     }
 

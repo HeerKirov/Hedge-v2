@@ -6,6 +6,7 @@ import com.heerkirov.hedge.server.dto.*
 import com.heerkirov.hedge.server.library.form.bodyAsForm
 import com.heerkirov.hedge.server.library.form.queryAsFilter
 import com.heerkirov.hedge.server.components.service.ImportService
+import com.heerkirov.hedge.server.exceptions.be
 import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder.*
 import io.javalin.http.Context
@@ -41,7 +42,7 @@ class ImportRoutes(private val importService: ImportService) : Endpoints {
     }
 
     private fun upload(ctx: Context) {
-        val form = ctx.uploadedFile("file")?.let { UploadForm(it.content, it.filename, it.extension) } ?: throw ParamRequired("file")
+        val form = ctx.uploadedFile("file")?.let { UploadForm(it.content, it.filename, it.extension) } ?: throw be(ParamRequired("file"))
         val (id, warnings) = importService.upload(form)
         ctx.status(201).json(IdResWithWarnings(id, warnings.map { ErrorResult(it) }))
     }

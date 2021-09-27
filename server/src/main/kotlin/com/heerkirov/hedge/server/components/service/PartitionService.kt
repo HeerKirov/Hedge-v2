@@ -6,6 +6,7 @@ import com.heerkirov.hedge.server.exceptions.NotFound
 import com.heerkirov.hedge.server.dto.PartitionFilter
 import com.heerkirov.hedge.server.dto.PartitionMonthRes
 import com.heerkirov.hedge.server.dto.PartitionRes
+import com.heerkirov.hedge.server.exceptions.be
 import com.heerkirov.hedge.server.utils.ktorm.firstOrNull
 import com.heerkirov.hedge.server.utils.types.ListResult
 import com.heerkirov.hedge.server.utils.types.toListResult
@@ -27,12 +28,15 @@ class PartitionService(private val data: DataRepository) {
             .toListResult { PartitionRes(it[Partitions.date]!!, it[Partitions.cachedCount]!!) }
     }
 
+    /**
+     * @throws NotFound 请求对象不存在
+     */
     fun get(date: LocalDate): PartitionRes {
         return data.db.from(Partitions).select()
             .where { (Partitions.date eq date) and (Partitions.cachedCount greater 0) }
             .firstOrNull()
             ?.let { PartitionRes(it[Partitions.date]!!, it[Partitions.cachedCount]!!) }
-            ?: throw NotFound()
+            ?: throw be(NotFound())
     }
 
     fun listMonths(): List<PartitionMonthRes> {

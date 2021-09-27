@@ -4,8 +4,7 @@ import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.manager.AnnotationManager
 import com.heerkirov.hedge.server.dao.meta.AuthorAnnotationRelations
 import com.heerkirov.hedge.server.dao.meta.Authors
-import com.heerkirov.hedge.server.exceptions.AlreadyExists
-import com.heerkirov.hedge.server.exceptions.ParamError
+import com.heerkirov.hedge.server.exceptions.*
 import com.heerkirov.hedge.server.model.meta.Annotation
 import com.heerkirov.hedge.server.model.meta.Author
 import com.heerkirov.hedge.server.utils.business.checkTagName
@@ -19,13 +18,14 @@ class AuthorKit(private val data: DataRepository, private val annotationManager:
     /**
      * 校验并纠正name，同时对name进行查重。
      * @param thisId 指定此参数时，表示是在对一个项进行更新，此时绕过此id的记录的重名。
+     * @throws AlreadyExists ("Author", "name", string) 此名称的author已存在
      */
     fun validateName(newName: String, thisId: Int? = null): String {
         val trimName = newName.trim()
 
-        if(!checkTagName(trimName)) throw ParamError("name")
+        if(!checkTagName(trimName)) throw be(ParamError("name"))
         if(data.db.sequenceOf(Authors).any { (it.name eq trimName).runIf(thisId != null) { and (it.id notEq thisId!!) } })
-            throw AlreadyExists("Author", "name", trimName)
+            throw be(AlreadyExists("Author", "name", trimName))
 
         return trimName
     }
@@ -35,7 +35,7 @@ class AuthorKit(private val data: DataRepository, private val annotationManager:
      */
     fun validateOtherNames(newOtherNames: List<String>?): List<String> {
         return newOtherNames.let { if(it.isNullOrEmpty()) emptyList() else it.map(String::trim) }.apply {
-            if(any { !checkTagName(it) }) throw ParamError("otherNames")
+            if(any { !checkTagName(it) }) throw be(ParamError("otherNames"))
         }
     }
 
@@ -44,12 +44,14 @@ class AuthorKit(private val data: DataRepository, private val annotationManager:
      */
     fun validateKeywords(newKeywords: List<String>?): List<String> {
         return newKeywords.let { if(it.isNullOrEmpty()) emptyList() else it.map(String::trim) }.apply {
-            if(any { !checkTagName(it) }) throw ParamError("keywords")
+            if(any { !checkTagName(it) }) throw be(ParamError("keywords"))
         }
     }
 
     /**
      * 检验给出的annotations参数的正确性，返回全量表。
+     * @throws ResourceNotExist ("annotations", number[]) 有annotation不存在时，抛出此异常。给出不存在的annotation id列表
+     * @throws ResourceNotSuitable ("annotations", number[]) 指定target类型且有元素不满足此类型时，抛出此异常。给出不适用的annotation id列表
      */
     fun validateAnnotations(newAnnotations: List<Any>?, type: Author.Type): List<Author.CachedAnnotation> {
         return if(newAnnotations != null) annotationManager.analyseAnnotationParam(newAnnotations, target = when(type) {

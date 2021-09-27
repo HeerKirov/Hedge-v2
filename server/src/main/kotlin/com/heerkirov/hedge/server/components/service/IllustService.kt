@@ -18,9 +18,8 @@ import com.heerkirov.hedge.server.dao.source.FileRecords
 import com.heerkirov.hedge.server.dao.source.SourceImages
 import com.heerkirov.hedge.server.dao.source.SourceTagRelations
 import com.heerkirov.hedge.server.dao.source.SourceTags
-import com.heerkirov.hedge.server.exceptions.NotFound
-import com.heerkirov.hedge.server.exceptions.ResourceNotExist
 import com.heerkirov.hedge.server.dto.*
+import com.heerkirov.hedge.server.exceptions.*
 import com.heerkirov.hedge.server.model.illust.Illust
 import com.heerkirov.hedge.server.model.meta.Tag
 import com.heerkirov.hedge.server.utils.business.*
@@ -101,6 +100,9 @@ class IllustService(private val data: DataRepository,
             }
     }
 
+    /**
+     * @throws NotFound 请求对象不存在
+     */
     fun get(id: Int, type: Illust.IllustType): IllustDetailRes {
         val row = data.db.from(Illusts)
             .innerJoin(FileRecords, FileRecords.id eq Illusts.fileId)
@@ -110,7 +112,7 @@ class IllustService(private val data: DataRepository,
                 Illusts.partitionTime, Illusts.orderTime, Illusts.createTime, Illusts.updateTime)
             .where { retrieveCondition(id, type) }
             .firstOrNull()
-            ?: throw NotFound()
+            ?: throw be(NotFound())
 
         val fileId = row[FileRecords.id]!!
         val (file, thumbnailFile) = takeAllFilepath(row)
@@ -167,12 +169,15 @@ class IllustService(private val data: DataRepository,
         )
     }
 
+    /**
+     * @throws NotFound 请求对象不存在
+     */
     fun getCollectionRelatedItems(id: Int, filter: LimitFilter): IllustCollectionRelatedRes {
         val row = data.db.from(Illusts)
             .select(Illusts.associateId)
             .where { retrieveCondition(id, Illust.IllustType.COLLECTION) }
             .firstOrNull()
-            ?: throw NotFound()
+            ?: throw be(NotFound())
 
         val associateId = row[Illusts.associateId]
 
@@ -201,12 +206,15 @@ class IllustService(private val data: DataRepository,
             }
     }
 
+    /**
+     * @throws NotFound 请求对象不存在
+     */
     fun getImageRelatedItems(id: Int, filter: LimitFilter): IllustImageRelatedRes {
         val row = data.db.from(Illusts)
             .select(Illusts.associateId, Illusts.parentId)
             .where { retrieveCondition(id, Illust.IllustType.IMAGE) }
             .firstOrNull()
-            ?: throw NotFound()
+            ?: throw be(NotFound())
         val parentId = row[Illusts.parentId]
         val associateId = row[Illusts.associateId]
 
@@ -228,12 +236,15 @@ class IllustService(private val data: DataRepository,
         return IllustImageRelatedRes(parent, albums, associate)
     }
 
+    /**
+     * @throws NotFound 请求对象不存在
+     */
     fun getImageOriginData(id: Int): IllustImageOriginRes {
         val row = data.db.from(Illusts)
             .select(Illusts.source, Illusts.sourceId, Illusts.sourcePart)
             .where { retrieveCondition(id, Illust.IllustType.IMAGE) }
             .firstOrNull()
-            ?: throw NotFound()
+            ?: throw be(NotFound())
 
         val source = row[Illusts.source]
         val sourceId = row[Illusts.sourceId]
@@ -264,13 +275,16 @@ class IllustService(private val data: DataRepository,
         }
     }
 
+    /**
+     * @throws NotFound 请求对象不存在
+     */
     fun getImageFileInfo(id: Int): IllustImageFileInfoRes {
         val row = data.db.from(Illusts)
             .innerJoin(FileRecords, FileRecords.id eq Illusts.fileId)
             .select(FileRecords.columns)
             .where { retrieveCondition(id, Illust.IllustType.IMAGE) }
             .firstOrNull()
-            ?: throw NotFound()
+            ?: throw be(NotFound())
 
         val file = takeFilepath(row)
         val fileRecord = FileRecords.createEntity(row)
@@ -281,6 +295,9 @@ class IllustService(private val data: DataRepository,
             fileRecord.createTime)
     }
 
+    /**
+     * @throws ResourceNotExist ("images", number[]) 给出的部分images不存在。给出不存在的image id列表
+     */
     fun createCollection(form: IllustCollectionCreateForm): Int {
         if(form.score != null) kit.validateScore(form.score)
         data.db.transaction {
@@ -288,9 +305,17 @@ class IllustService(private val data: DataRepository,
         }
     }
 
+    /**
+     * @throws NotFound 请求对象不存在
+     * @throws ResourceNotExist ("topics", number[]) 部分topics资源不存在。给出不存在的topic id列表
+     * @throws ResourceNotExist ("authors", number[]) 部分authors资源不存在。给出不存在的author id列表
+     * @throws ResourceNotExist ("tags", number[]) 部分tags资源不存在。给出不存在的tag id列表
+     * @throws ResourceNotSuitable ("tags", number[]) 部分tags资源不适用。地址段不适用于此项。给出不适用的tag id列表
+     * @throws ConflictingGroupMembersError 发现标签冲突组
+     */
     fun updateCollection(id: Int, form: IllustCollectionUpdateForm) {
         data.db.transaction {
-            val illust = data.db.sequenceOf(Illusts).firstOrNull { retrieveCondition(id, Illust.IllustType.COLLECTION) } ?: throw NotFound()
+            val illust = data.db.sequenceOf(Illusts).firstOrNull { retrieveCondition(id, Illust.IllustType.COLLECTION) } ?: throw be(NotFound())
 
             form.score.alsoOpt {
                 if(it != null) kit.validateScore(it)
@@ -343,9 +368,13 @@ class IllustService(private val data: DataRepository,
         }
     }
 
+    /**
+     * @throws NotFound 请求对象不存在
+     * @throws ResourceNotExist ("associateId", number) 新id指定的associate不存在。给出id
+     */
     fun updateCollectionRelatedItems(id: Int, form: IllustCollectionRelatedUpdateForm) {
         data.db.transaction {
-            val illust = data.db.sequenceOf(Illusts).firstOrNull { retrieveCondition(id, Illust.IllustType.COLLECTION) } ?: throw NotFound()
+            val illust = data.db.sequenceOf(Illusts).firstOrNull { retrieveCondition(id, Illust.IllustType.COLLECTION) } ?: throw be(NotFound())
 
             form.associateId.alsoOpt { newAssociateId ->
                 if(illust.associateId != newAssociateId) {
@@ -355,9 +384,13 @@ class IllustService(private val data: DataRepository,
         }
     }
 
+    /**
+     * @throws NotFound 请求对象不存在
+     * @throws ResourceNotExist ("images", number[]) 给出的部分images不存在。给出不存在的image id列表
+     */
     fun updateCollectionImages(id: Int, imageIds: List<Int>) {
         data.db.transaction {
-            val illust = data.db.sequenceOf(Illusts).filter { retrieveCondition(id, Illust.IllustType.COLLECTION) }.firstOrNull() ?: throw NotFound()
+            val illust = data.db.sequenceOf(Illusts).filter { retrieveCondition(id, Illust.IllustType.COLLECTION) }.firstOrNull() ?: throw be(NotFound())
 
             val (images, fileId, scoreFromSub, partitionTime, orderTime) = kit.validateSubImages(imageIds)
             val now = DateTime.now()
@@ -376,9 +409,17 @@ class IllustService(private val data: DataRepository,
         }
     }
 
+    /**
+     * @throws NotFound 请求对象不存在
+     * @throws ResourceNotExist ("topics", number[]) 部分topics资源不存在。给出不存在的topic id列表
+     * @throws ResourceNotExist ("authors", number[]) 部分authors资源不存在。给出不存在的author id列表
+     * @throws ResourceNotExist ("tags", number[]) 部分tags资源不存在。给出不存在的tag id列表
+     * @throws ResourceNotSuitable ("tags", number[]) 部分tags资源不适用。地址段不适用于此项。给出不适用的tag id列表
+     * @throws ConflictingGroupMembersError 发现标签冲突组
+     */
     fun updateImage(id: Int, form: IllustImageUpdateForm) {
         data.db.transaction {
-            val illust = data.db.sequenceOf(Illusts).firstOrNull { retrieveCondition(id, Illust.IllustType.IMAGE) } ?: throw NotFound()
+            val illust = data.db.sequenceOf(Illusts).firstOrNull { retrieveCondition(id, Illust.IllustType.IMAGE) } ?: throw be(NotFound())
 
             val parent by lazy { if(illust.parentId == null) null else
                 data.db.sequenceOf(Illusts).first { (Illusts.type eq Illust.Type.COLLECTION) and (Illusts.id eq illust.parentId) }
@@ -437,9 +478,14 @@ class IllustService(private val data: DataRepository,
         }
     }
 
+    /**
+     * @throws NotFound 请求对象不存在
+     * @throws ResourceNotExist ("collectionId", number) 新id指定的parent不存在。给出collection id
+     * @throws ResourceNotExist ("associateId", number) 新id指定的associate不存在。给出id
+     */
     fun updateImageRelatedItems(id: Int, form: IllustImageRelatedUpdateForm) {
         data.db.transaction {
-            val illust = data.db.sequenceOf(Illusts).firstOrNull { retrieveCondition(id, Illust.IllustType.IMAGE) } ?: throw NotFound()
+            val illust = data.db.sequenceOf(Illusts).firstOrNull { retrieveCondition(id, Illust.IllustType.IMAGE) } ?: throw be(NotFound())
 
             form.associateId.alsoOpt { newAssociateId ->
                 if(illust.associateId != newAssociateId) {
@@ -452,7 +498,7 @@ class IllustService(private val data: DataRepository,
                     val newParent = if(newParentId == null) null else {
                         data.db.sequenceOf(Illusts)
                             .firstOrNull { (it.id eq newParentId) and (it.type eq Illust.Type.COLLECTION) }
-                            ?: throw ResourceNotExist("collectionId", newParentId)
+                            ?: throw be(ResourceNotExist("collectionId", newParentId))
                     }
                     data.db.update(Illusts) {
                         where { it.id eq id }
@@ -473,12 +519,16 @@ class IllustService(private val data: DataRepository,
         }
     }
 
+    /**
+     * @throws NotFound 请求对象不存在
+     * @throws ResourceNotExist ("source", string) 给出的source不存在
+     */
     fun updateImageOriginData(id: Int, form: IllustImageOriginUpdateForm) {
         data.db.transaction {
             val row = data.db.from(Illusts).select(Illusts.source, Illusts.sourceId, Illusts.sourcePart, Illusts.tagme)
                 .where { retrieveCondition(id, Illust.IllustType.IMAGE) }
                 .firstOrNull()
-                ?: throw NotFound()
+                ?: throw be(NotFound())
             val source = row[Illusts.source]
             val sourceId = row[Illusts.sourceId]
             val sourcePart = row[Illusts.sourcePart]
@@ -502,13 +552,16 @@ class IllustService(private val data: DataRepository,
         }
     }
 
+    /**
+     * @throws NotFound 请求对象不存在
+     */
     fun delete(id: Int, type: Illust.IllustType) {
         data.db.transaction {
             val illust = data.db.from(Illusts).select()
                 .where { retrieveCondition(id, type) }
                 .firstOrNull()
                 ?.let { Illusts.createEntity(it) }
-                ?: throw NotFound()
+                ?: throw be(NotFound())
 
             val anyNotExportedMeta = type == Illust.IllustType.COLLECTION && kit.anyNotExportedMeta(id)
 

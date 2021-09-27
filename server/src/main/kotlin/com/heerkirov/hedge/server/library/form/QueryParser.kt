@@ -2,6 +2,7 @@ package com.heerkirov.hedge.server.library.form
 
 import com.heerkirov.hedge.server.exceptions.ParamRequired
 import com.heerkirov.hedge.server.exceptions.ParamTypeError
+import com.heerkirov.hedge.server.exceptions.be
 import com.heerkirov.hedge.server.utils.DateTime.parseDate
 import com.heerkirov.hedge.server.utils.DateTime.parseDateTime
 import com.heerkirov.hedge.server.utils.types.Composition
@@ -77,7 +78,7 @@ private fun parseOrderParameter(annotation: Order, parameter: KParameter, parame
 
             val arraylist = splitIntoList(parameterValue, annotation.delimiter).map(::OrderItem).runIf(options != null) {
                 map {
-                    val match = options!![it.name.lowercase()] ?: throw ParamTypeError(parameter.name!!, "must be one of [${options.values.joinToString(", ")}].")
+                    val match = options!![it.name.lowercase()] ?: throw be(ParamTypeError(parameter.name!!, "must be one of [${options.values.joinToString(", ")}]."))
                     OrderItem(match, it.desc)
                 }
             }
@@ -85,7 +86,7 @@ private fun parseOrderParameter(annotation: Order, parameter: KParameter, parame
             Pair(parameter, arraylist)
         }
         parameter.isOptional -> null
-        else -> throw ParamRequired(parameter.name!!)
+        else -> throw be(ParamRequired(parameter.name!!))
     }
 }
 
@@ -95,12 +96,12 @@ private fun parseGeneralParameter(parameter: KParameter, parameterValue: String?
             val value = try {
                 mapAnyFromString(parameterValue, parameter.type)
             }catch (e: ClassCastException) {
-                throw ParamTypeError(parameter.name!!, e.message?.let { "type cast error: $it" } ?: "type cast failed.")
+                throw be(ParamTypeError(parameter.name!!, e.message?.let { "type cast error: $it" } ?: "type cast failed."))
             }
             Pair(parameter, value)
         }
         parameter.isOptional -> null
-        else -> throw ParamRequired(parameter.name!!)
+        else -> throw be(ParamRequired(parameter.name!!))
     }
 }
 

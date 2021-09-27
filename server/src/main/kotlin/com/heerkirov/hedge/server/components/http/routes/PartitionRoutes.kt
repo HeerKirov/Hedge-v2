@@ -4,6 +4,7 @@ import com.heerkirov.hedge.server.components.http.Endpoints
 import com.heerkirov.hedge.server.components.service.PartitionService
 import com.heerkirov.hedge.server.exceptions.ParamError
 import com.heerkirov.hedge.server.dto.PartitionFilter
+import com.heerkirov.hedge.server.exceptions.be
 import com.heerkirov.hedge.server.library.form.queryAsFilter
 import com.heerkirov.hedge.server.utils.DateTime.parseDate
 import io.javalin.Javalin
@@ -30,7 +31,7 @@ class PartitionRoutes(private val partitionService: PartitionService) : Endpoint
     private fun get(ctx: Context) {
         val dateStr = ctx.pathParam("date")
         val date = try { dateStr.parseDate() }catch (e: Exception) {
-            throw ParamError("date")
+            throw be(ParamError("date"))
         }
         ctx.json(partitionService.get(date))
     }

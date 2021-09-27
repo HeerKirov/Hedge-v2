@@ -12,13 +12,12 @@ import org.ktorm.entity.toList
 class AnnotationManager(private val data: DataRepository) {
     /**
      * 解析一个由string和int组成的annotations列表，对其校验、纠错，并返回一个等价的、包含id和name的集合。
-     * @throws ParamTypeError 存在元素不是int或string时，抛出此异常。
-     * @throws ResourceNotExist 有元素不存在时，抛出此异常。
-     * @throws ResourceNotSuitable 指定target类型且有元素不满足此类型时，抛出此异常。
+     * @throws ResourceNotExist (paramName, number[]) 有annotation不存在时，抛出此异常。给出不存在的annotation id列表
+     * @throws ResourceNotSuitable (paramName, number[]) 指定target类型且有元素不满足此类型时，抛出此异常。给出不适用的annotation id列表
      */
     fun analyseAnnotationParam(annotations: List<Any>, target: Annotation.AnnotationTarget? = null, paramName: String = "annotations"): Map<Int, String> {
         if(annotations.any { it !is Int && it !is String }) {
-            throw ParamTypeError(paramName, " must be id(Int) or name(String).")
+            throw be(ParamTypeError(paramName, " must be id(Int) or name(String)."))
         }
         val ids = annotations.filterIsInstance<Int>()
         val names = annotations.filterIsInstance<String>()
@@ -29,11 +28,11 @@ class AnnotationManager(private val data: DataRepository) {
             .also { rows ->
                 if(rows.size < ids.size) {
                     val minus = ids.toSet() - rows.asSequence().map { it.id }.toSet()
-                    throw ResourceNotExist(paramName, minus)
+                    throw be(ResourceNotExist(paramName, minus))
                 }
             }.also { rows ->
                 rows.filter { target != null && !it.target.isEmpty() && !it.target.any(target) }.takeIf { it.isNotEmpty() }?.let {
-                    throw ResourceNotSuitable(paramName, it.map { a -> a.id })
+                    throw be(ResourceNotSuitable(paramName, it.map { a -> a.id }))
                 }
             }.map { Pair(it.id, it.name) }
 
@@ -43,11 +42,11 @@ class AnnotationManager(private val data: DataRepository) {
             .also { rows ->
                 if(rows.size < names.size) {
                     val minus = names.toSet() - rows.asSequence().map { it.name }.toSet()
-                    throw ResourceNotExist(paramName, minus)
+                    throw be(ResourceNotExist(paramName, minus))
                 }
             }.also { rows ->
                 rows.filter { target != null && !it.target.isEmpty() && target !in it.target }.takeIf { it.isNotEmpty() }?.let {
-                    throw ResourceNotSuitable(paramName, it.map { a -> a.id })
+                    throw be(ResourceNotSuitable(paramName, it.map { a -> a.id }))
                 }
             }
             .map { Pair(it.id, it.name) }

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.JsonNodeType
 import com.heerkirov.hedge.server.exceptions.ParamRequired
 import com.heerkirov.hedge.server.exceptions.ParamTypeError
+import com.heerkirov.hedge.server.exceptions.be
 import com.heerkirov.hedge.server.utils.*
 import com.heerkirov.hedge.server.utils.types.Composition
 import com.heerkirov.hedge.server.utils.types.CompositionGenerator
@@ -223,9 +224,9 @@ fun <T : Any> mapForm(jsonNode: JsonNode, formClass: KClass<T>): T {
                 val value = try {
                     mapAny<Any>(node, parameter.type)
                 }catch (e: ClassCastException) {
-                    throw ParamTypeError(name, e.message?.let { "type cast error: $it" } ?: "type cast failed.")
+                    throw be(ParamTypeError(name, e.message?.let { "type cast error: $it" } ?: "type cast failed."))
                 }catch (e: NullPointerException) {
-                    throw ParamTypeError(name, "cannot be null.")
+                    throw be(ParamTypeError(name, "cannot be null."))
                 }
 
                 if(value is Opt<*>) {
@@ -233,7 +234,7 @@ fun <T : Any> mapForm(jsonNode: JsonNode, formClass: KClass<T>): T {
                         try {
                             analyseValidation(parameter.annotations, value.value as Any)
                         }catch (e: Exception) {
-                            throw ParamTypeError(name, e.message ?: "validation failed.")
+                            throw be(ParamTypeError(name, e.message ?: "validation failed."))
                         }
                     }
                 }else{
@@ -241,7 +242,7 @@ fun <T : Any> mapForm(jsonNode: JsonNode, formClass: KClass<T>): T {
                         try {
                             analyseValidation(parameter.annotations, value)
                         }catch (e: Exception) {
-                            throw ParamTypeError(name, e.message ?: "validation failed.")
+                            throw be(ParamTypeError(name, e.message ?: "validation failed."))
                         }
                     }
                 }
@@ -255,7 +256,7 @@ fun <T : Any> mapForm(jsonNode: JsonNode, formClass: KClass<T>): T {
                 //Opt类型会自动解析为undefined值
                 Pair(parameter, undefined<Any?>())
             }else{
-                throw ParamRequired(name)
+                throw be(ParamRequired(name))
             }
         }
     }.toMap()

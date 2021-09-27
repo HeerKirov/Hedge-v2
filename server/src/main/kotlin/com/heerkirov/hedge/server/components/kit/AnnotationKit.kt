@@ -4,6 +4,7 @@ import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.dao.meta.*
 import com.heerkirov.hedge.server.exceptions.AlreadyExists
 import com.heerkirov.hedge.server.exceptions.ParamError
+import com.heerkirov.hedge.server.exceptions.be
 import com.heerkirov.hedge.server.utils.business.checkTagName
 import com.heerkirov.hedge.server.utils.ktorm.asSequence
 import com.heerkirov.hedge.server.utils.runIf
@@ -15,13 +16,14 @@ class AnnotationKit(private val data: DataRepository) {
     /**
      * 校验并纠正name，同时对name进行查重。
      * @param thisId 指定此参数时，表示是在对一个项进行更新，此时绕过此id的记录的重名。
+     * @throws AlreadyExists ("Annotation", "name", string) 此名称的annotation已存在
      */
     fun validateName(newName: String, thisId: Int? = null): String {
         val trimName = newName.trim()
 
-        if(!checkTagName(trimName)) throw ParamError("name")
+        if(!checkTagName(trimName)) throw be(ParamError("name"))
         if(data.db.sequenceOf(Annotations).any { (it.name eq trimName).runIf(thisId != null) { and (it.id notEq thisId!!) } })
-            throw AlreadyExists("Annotation", "name", trimName)
+            throw be(AlreadyExists("Annotation", "name", trimName))
 
         return trimName
     }

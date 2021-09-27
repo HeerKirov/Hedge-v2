@@ -6,14 +6,11 @@ import com.heerkirov.hedge.server.dao.illust.*
 import com.heerkirov.hedge.server.dao.meta.*
 import com.heerkirov.hedge.server.dao.types.EntityMetaRelationTable
 import com.heerkirov.hedge.server.dao.types.MetaTag
-import com.heerkirov.hedge.server.exceptions.ParamError
-import com.heerkirov.hedge.server.exceptions.ParamRequired
-import com.heerkirov.hedge.server.exceptions.ResourceNotExist
+import com.heerkirov.hedge.server.exceptions.*
 import com.heerkirov.hedge.server.model.illust.Illust
 import com.heerkirov.hedge.server.model.meta.Annotation
 import com.heerkirov.hedge.server.utils.business.checkScore
 import com.heerkirov.hedge.server.utils.DateTime
-import com.heerkirov.hedge.server.utils.filterInto
 import com.heerkirov.hedge.server.utils.ktorm.asSequence
 import com.heerkirov.hedge.server.utils.types.Opt
 import com.heerkirov.hedge.server.utils.types.union
@@ -21,7 +18,6 @@ import org.ktorm.dsl.*
 import org.ktorm.dsl.where
 import org.ktorm.entity.*
 import java.time.LocalDate
-import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.math.roundToInt
 
@@ -31,13 +27,18 @@ class IllustKit(private val data: DataRepository,
      * 检查score的值，不允许其超出范围。
      */
     fun validateScore(score: Int) {
-        if(!checkScore(score)) throw ParamError("score")
+        if(!checkScore(score)) throw be(ParamError("score"))
     }
 
     /**
      * 检验给出的tags/topics/authors的正确性，处理导出，并应用其更改。此外，annotations的更改也会被一并导出处理。
      * @param copyFromParent 当当前对象没有任何meta tag关联时，从parent复制tag，并提供parent的id
      * @param copyFromChildren 当当前对象没有任何meta tag关联时，从children复制tag
+     * @throws ResourceNotExist ("topics", number[]) 部分topics资源不存在。给出不存在的topic id列表
+     * @throws ResourceNotExist ("authors", number[]) 部分authors资源不存在。给出不存在的author id列表
+     * @throws ResourceNotExist ("tags", number[]) 部分tags资源不存在。给出不存在的tag id列表
+     * @throws ResourceNotSuitable ("tags", number[]) 部分tags资源不适用。地址段不适用于此项。给出不适用的tag id列表
+     * @throws ConflictingGroupMembersError 发现标签冲突组
      */
     fun processAllMeta(thisId: Int, newTags: Opt<List<Int>>, newTopics: Opt<List<Int>>, newAuthors: Opt<List<Int>>,
                        creating: Boolean = false, copyFromParent: Int? = null, copyFromChildren: Boolean = false) {
@@ -316,12 +317,13 @@ class IllustKit(private val data: DataRepository,
      * 校验collection的images列表的正确性。
      * 要求必须存在至少一项，检查是否有不存在或不合法的项。
      * @return 导出那些exported属性(fileId, score, partitionTime, orderTime)
+     * @throws ResourceNotExist ("images", number[]) 给出的部分images不存在。给出不存在的image id列表
      */
     fun validateSubImages(imageIds: List<Int>): Tuple5<List<Illust>, Int, Int?, LocalDate, Long> {
-        if(imageIds.isEmpty()) throw ParamRequired("images")
+        if(imageIds.isEmpty()) throw be(ParamRequired("images"))
         val result = data.db.sequenceOf(Illusts).filter { it.id inList imageIds }.toList()
         //数量不够表示有imageId不存在
-        if(result.size < imageIds.size) throw ResourceNotExist("images", imageIds.toSet() - result.asSequence().map { it.id }.toSet())
+        if(result.size < imageIds.size) throw be(ResourceNotExist("images", imageIds.toSet() - result.asSequence().map { it.id }.toSet()))
 
         val images = ArrayList<Illust>(result.size).run {
             for (item in result) {

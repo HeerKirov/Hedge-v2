@@ -5,7 +5,7 @@ import com.heerkirov.hedge.server.library.form.Limit
 import com.heerkirov.hedge.server.library.form.Offset
 
 data class ErrorResult(val code: String, val message: String?, val info: Any?) {
-    constructor(e: BaseException): this(e.code, e.message, e.info)
+    constructor(e: BaseException<*>): this(e.code, e.message, e.info)
 }
 
 data class IdRes(val id: Int)

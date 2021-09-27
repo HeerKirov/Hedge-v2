@@ -8,11 +8,13 @@ import com.heerkirov.hedge.server.dao.meta.Tags
 import com.heerkirov.hedge.server.exceptions.ParamError
 import com.heerkirov.hedge.server.exceptions.ResourceNotSuitable
 import com.heerkirov.hedge.server.exceptions.ResourceNotExist
+import com.heerkirov.hedge.server.exceptions.be
 import com.heerkirov.hedge.server.model.meta.Annotation
 import com.heerkirov.hedge.server.model.illust.Illust
 import com.heerkirov.hedge.server.model.meta.Tag
 import com.heerkirov.hedge.server.utils.business.checkTagName
 import com.heerkirov.hedge.server.utils.ktorm.asSequence
+import com.heerkirov.hedge.server.utils.letIf
 import org.ktorm.dsl.*
 import org.ktorm.entity.filter
 import org.ktorm.entity.first
@@ -26,7 +28,7 @@ class TagKit(private val data: DataRepository, private val annotationManager: An
      */
     fun validateName(newName: String): String {
         return newName.trim().apply {
-            if(!checkTagName(this)) throw ParamError("name")
+            if(!checkTagName(this)) throw be(ParamError("name"))
         }
     }
 
@@ -35,24 +37,26 @@ class TagKit(private val data: DataRepository, private val annotationManager: An
      */
     fun validateOtherNames(newOtherNames: List<String>?): List<String> {
         return newOtherNames.let { if(it.isNullOrEmpty()) emptyList() else it.map(String::trim) }.apply {
-            if(any { !checkTagName(it) }) throw ParamError("otherNames")
+            if(any { !checkTagName(it) }) throw be(ParamError("otherNames"))
         }
     }
 
     /**
      * 校验并纠正links。tag的link必须是非虚拟的。
+     * @throws ResourceNotExist ("links", number[]) links中给出的tag不存在。给出不存在的link id列表
+     * @throws ResourceNotSuitable ("links", number[]) links中给出的部分资源不适用，虚拟地址段是不能被link的。给出不适用的link id列表
      */
     fun validateLinks(newLinks: List<Int>?): List<Int>? {
         return if(newLinks.isNullOrEmpty()) null else {
             val links = data.db.sequenceOf(Tags).filter { it.id inList newLinks }.toList()
 
             if(links.size < newLinks.size) {
-                throw ResourceNotExist("links", newLinks.toSet() - links.asSequence().map { it.id }.toSet())
+                throw be(ResourceNotExist("links", newLinks.toSet() - links.asSequence().map { it.id }.toSet()))
             }
 
             val wrongLinks = links.filter { it.type === Tag.Type.VIRTUAL_ADDR }
             if(wrongLinks.isNotEmpty()) {
-                throw ResourceNotSuitable("links", wrongLinks.map { it.id })
+                throw be(ResourceNotSuitable("links", wrongLinks.map { it.id }))
             }
 
             newLinks
@@ -61,24 +65,29 @@ class TagKit(private val data: DataRepository, private val annotationManager: An
 
     /**
      * 校验并纠正examples。
+     * @throws ResourceNotExist ("examples", number[]) examples中给出的image不存在。给出不存在的image id列表
+     * @throws ResourceNotSuitable ("examples", number[]) examples中给出的部分资源不适用，collection不能用作example。给出不适用的link id列表
      */
     fun validateExamples(newExamples: List<Int>?): List<Int>? {
         return if(newExamples.isNullOrEmpty()) null else {
             val examples = data.db.sequenceOf(Illusts).filter { it.id inList newExamples }.toList()
             if (examples.size < newExamples.size) {
-                throw ResourceNotExist("examples", newExamples.toSet() - examples.asSequence().map { it.id }.toSet())
+                throw be(ResourceNotExist("examples", newExamples.toSet() - examples.asSequence().map { it.id }.toSet()))
             }
-            for (example in examples) {
-                if (example.type == Illust.Type.COLLECTION) {
-                    throw ResourceNotSuitable("examples", example.id)
+            examples.filter { it.type == Illust.Type.COLLECTION }.let {
+                if(it.isNotEmpty()) {
+                    throw be(ResourceNotSuitable("examples", it.map { i -> i.id }))
                 }
             }
+
             newExamples
         }
     }
 
     /**
      * 检验给出的annotations参数的正确性，根据需要add/delete。
+     * @throws ResourceNotExist ("annotations", number[]) 有annotation不存在时，抛出此异常。给出不存在的annotation id列表
+     * @throws ResourceNotSuitable ("annotations", number[]) 指定target类型且有元素不满足此类型时，抛出此异常。给出不适用的annotation id列表
      */
     fun processAnnotations(thisId: Int, newAnnotations: List<Any>?, creating: Boolean = false) {
         val annotationIds = if(newAnnotations != null) annotationManager.analyseAnnotationParam(newAnnotations, Annotation.AnnotationTarget.TAG) else emptyMap()

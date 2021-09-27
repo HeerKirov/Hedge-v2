@@ -10,6 +10,7 @@ import com.heerkirov.hedge.server.exceptions.NotFound
 import com.heerkirov.hedge.server.exceptions.ParamError
 import com.heerkirov.hedge.server.dto.IllustRes
 import com.heerkirov.hedge.server.dto.LimitAndOffsetFilter
+import com.heerkirov.hedge.server.exceptions.be
 import com.heerkirov.hedge.server.model.illust.Illust
 import com.heerkirov.hedge.server.utils.business.takeAllFilepath
 import com.heerkirov.hedge.server.utils.DateTime.parseDateTime
@@ -20,7 +21,7 @@ import org.ktorm.dsl.*
 class AssociateService(private val data: DataRepository, private val associateManager: AssociateManager) {
 
     fun create(illusts: List<Int>): Int {
-        if(illusts.isEmpty()) throw ParamError("illusts")
+        if(illusts.isEmpty()) throw be(ParamError("illusts"))
         data.db.transaction {
             val id = data.db.insertAndGenerateKey(Associates) {
                 set(it.cachedCount, illusts.size)
@@ -37,6 +38,9 @@ class AssociateService(private val data: DataRepository, private val associateMa
         }
     }
 
+    /**
+     * @throws NotFound 请求对象不存在
+     */
     fun get(associateId: Int, filter: LimitAndOffsetFilter): ListResult<IllustRes> {
         return data.db.from(Illusts)
             .innerJoin(FileRecords, Illusts.fileId eq FileRecords.id)
@@ -56,12 +60,15 @@ class AssociateService(private val data: DataRepository, private val associateMa
                 val childrenCount = it[Illusts.cachedChildrenCount]!!.takeIf { type == Illust.IllustType.COLLECTION }
                 IllustRes(id, type, childrenCount, file, thumbnailFile, score, favorite, tagme, orderTime)
             }.also {
-                if(it.total <= 0) throw NotFound()
+                if(it.total <= 0) throw be(NotFound())
             }
     }
 
+    /**
+     * @throws NotFound 请求对象不存在
+     */
     fun update(associateId: Int, illusts: List<Int>) {
-        if(illusts.isEmpty()) throw ParamError("illusts")
+        if(illusts.isEmpty()) throw be(ParamError("illusts"))
 
         data.db.transaction {
 
@@ -69,7 +76,7 @@ class AssociateService(private val data: DataRepository, private val associateMa
                 .where { Illusts.associateId eq associateId }
                 .map { it[Illusts.id]!! }
 
-            if(currentIllusts.isEmpty()) throw NotFound()
+            if(currentIllusts.isEmpty()) throw be(NotFound())
 
             //清空移除的关联项的associateId
             val remove = currentIllusts - illusts

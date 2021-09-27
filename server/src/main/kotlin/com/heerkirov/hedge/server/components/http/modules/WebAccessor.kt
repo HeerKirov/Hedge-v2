@@ -7,6 +7,7 @@ import com.heerkirov.hedge.server.definitions.Filename
 import com.heerkirov.hedge.server.enums.LoadStatus
 import com.heerkirov.hedge.server.exceptions.PasswordWrong
 import com.heerkirov.hedge.server.exceptions.Reject
+import com.heerkirov.hedge.server.exceptions.be
 import com.heerkirov.hedge.server.library.form.bodyAsForm
 import com.heerkirov.hedge.server.utils.Fs
 import com.heerkirov.hedge.server.utils.Resources
@@ -82,7 +83,7 @@ class WebAccessor(private val appdata: AppDataDriver, private val webController:
     }
 
     private fun webLogin(ctx: Context) {
-        if(!webController.isAccess) { throw Reject("Web access is not open.") }
+        if(!webController.isAccess) { throw be(Reject("Web access is not open.")) }
         val form = ctx.bodyAsForm<LoginForm>()
         val password = appdata.data.web.password
         if(form.password == password) {
@@ -90,12 +91,12 @@ class WebAccessor(private val appdata: AppDataDriver, private val webController:
 
             ctx.json(TokenForm(token = token))
         }else{
-            throw PasswordWrong()
+            throw be(PasswordWrong())
         }
     }
 
     private fun webVerifyToken(ctx: Context) {
-        if(!webController.isAccess) { throw Reject("Web access is not open.") }
+        if(!webController.isAccess) { throw be(Reject("Web access is not open.")) }
 
         val form = ctx.bodyAsForm<TokenForm>()
 

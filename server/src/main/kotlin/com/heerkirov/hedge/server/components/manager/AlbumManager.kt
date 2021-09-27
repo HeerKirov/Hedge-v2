@@ -5,6 +5,7 @@ import com.heerkirov.hedge.server.components.kit.AlbumKit
 import com.heerkirov.hedge.server.dao.album.AlbumImageRelations
 import com.heerkirov.hedge.server.dao.album.Albums
 import com.heerkirov.hedge.server.dao.illust.Illusts
+import com.heerkirov.hedge.server.exceptions.ResourceNotExist
 import com.heerkirov.hedge.server.utils.DateTime
 import org.ktorm.dsl.*
 import org.ktorm.entity.filter
@@ -46,6 +47,7 @@ class AlbumManager(private val data: DataRepository, private val kit: AlbumKit) 
 
     /**
      * 新建一个album。
+     * @throws ResourceNotExist ("images", number[]) image项不存在。给出imageId列表
      */
     fun newAlbum(formImages: List<Int>, formTitle: String = "", formDescription: String = "", formScore: Int? = null, formFavorite: Boolean = false): Int {
         val (images, imageCount, fileId) = kit.validateSubImages(formImages)

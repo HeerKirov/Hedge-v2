@@ -2,10 +2,7 @@ package com.heerkirov.hedge.server.components.http.modules
 
 import com.heerkirov.hedge.server.components.http.Endpoints
 import com.heerkirov.hedge.server.components.http.WebController
-import com.heerkirov.hedge.server.exceptions.NoToken
-import com.heerkirov.hedge.server.exceptions.OnlyForClient
-import com.heerkirov.hedge.server.exceptions.RemoteDisabled
-import com.heerkirov.hedge.server.exceptions.TokenWrong
+import com.heerkirov.hedge.server.exceptions.*
 import io.javalin.Javalin
 import io.javalin.http.Context
 
@@ -26,39 +23,39 @@ class Authentication(private val baseToken: String, private val webAccessor: Web
     private fun authenticate(ctx: Context) {
         //对于OPTIONS method放行; 对于/api/imports/import放行，因为它由另一个处理器处理
         if(ctx.method() == "OPTIONS" || ctx.path() == "/api/imports/import") return
-        val bearer = ctx.header("Authorization") ?: throw NoToken()
-        val userToken = if(bearer.substring(0, prefixBearer.length).lowercase() == prefixBearer) bearer.substring(prefixBearer.length) else throw NoToken()
+        val bearer = ctx.header("Authorization") ?: throw be(NoToken())
+        val userToken = if(bearer.substring(0, prefixBearer.length).lowercase() == prefixBearer) bearer.substring(prefixBearer.length) else throw be(NoToken())
 
         if(baseToken == userToken) {
             //通过baseToken的验证
             if(ctx.req.remoteHost !in localhost) {
-                throw RemoteDisabled()
+                throw be(RemoteDisabled())
             }
             return
         }else if(webController.isAccess && userToken in webAccessor.tokens) {
             //web访问开启且通过webToken验证
             return
         }else{
-            throw TokenWrong()
+            throw be(TokenWrong())
         }
     }
 
     private fun authenticateOnlyForClient(ctx: Context) {
         if(ctx.method() == "OPTIONS") return
-        val bearer = ctx.header("Authorization") ?: throw NoToken()
-        val userToken = if(bearer.substring(0, prefixBearer.length).lowercase() == prefixBearer) bearer.substring(prefixBearer.length) else throw NoToken()
+        val bearer = ctx.header("Authorization") ?: throw be(NoToken())
+        val userToken = if(bearer.substring(0, prefixBearer.length).lowercase() == prefixBearer) bearer.substring(prefixBearer.length) else throw be(NoToken())
 
         if(baseToken == userToken) {
             //通过baseToken的验证
             if(ctx.req.remoteHost !in localhost) {
-                throw RemoteDisabled()
+                throw be(RemoteDisabled())
             }
             return
         }else if(webController.isAccess && userToken in webAccessor.tokens) {
             //web访问开启且通过webToken验证，但是此API不提供给web访问
-            throw OnlyForClient()
+            throw be(OnlyForClient())
         }else{
-            throw TokenWrong()
+            throw be(TokenWrong())
         }
     }
 }

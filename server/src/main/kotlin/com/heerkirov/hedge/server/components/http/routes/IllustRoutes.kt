@@ -5,6 +5,7 @@ import com.heerkirov.hedge.server.components.service.AssociateService
 import com.heerkirov.hedge.server.components.service.IllustService
 import com.heerkirov.hedge.server.exceptions.ParamTypeError
 import com.heerkirov.hedge.server.dto.*
+import com.heerkirov.hedge.server.exceptions.be
 import com.heerkirov.hedge.server.library.form.bodyAsForm
 import com.heerkirov.hedge.server.library.form.queryAsFilter
 import com.heerkirov.hedge.server.model.illust.Illust
@@ -114,7 +115,7 @@ class IllustRoutes(private val illustService: IllustService, private val associa
     private fun updateCollectionImages(ctx: Context) {
         val id = ctx.pathParamAsClass<Int>("id").get()
         val images = try { ctx.bodyAsClass<List<Int>>() } catch (e: Exception) {
-            throw ParamTypeError("images", e.message ?: "cannot convert to List<Int>")
+            throw be(ParamTypeError("images", e.message ?: "cannot convert to List<Int>"))
         }
         illustService.updateCollectionImages(id, images)
     }
@@ -166,7 +167,7 @@ class IllustRoutes(private val illustService: IllustService, private val associa
 
     private fun createAssociate(ctx: Context) {
         val illusts = try { ctx.bodyAsClass<List<Int>>() } catch (e: Exception) {
-            throw ParamTypeError("illusts", e.message ?: "cannot convert to List<Int>")
+            throw be(ParamTypeError("illusts", e.message ?: "cannot convert to List<Int>"))
         }
         val id = associateService.create(illusts)
         ctx.status(201).json(IdRes(id))
@@ -181,7 +182,7 @@ class IllustRoutes(private val illustService: IllustService, private val associa
     private fun updateAssociate(ctx: Context) {
         val id = ctx.pathParamAsClass<Int>("id").get()
         val illusts = try { ctx.bodyAsClass<List<Int>>() } catch (e: Exception) {
-            throw ParamTypeError("illusts", e.message ?: "cannot convert to List<Int>")
+            throw be(ParamTypeError("illusts", e.message ?: "cannot convert to List<Int>"))
         }
         associateService.update(id, illusts)
     }

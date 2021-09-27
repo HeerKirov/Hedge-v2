@@ -57,11 +57,15 @@ class ImportService(private val data: DataRepository,
             }
     }
 
-    fun import(form: ImportForm): Pair<Int, List<BaseException>> = defer {
+    /**
+     * @throws IllegalFileExtensionError (extension) 此文件扩展名不受支持
+     * @throws FileNotFoundError 此文件不存在
+     */
+    fun import(form: ImportForm): Pair<Int, List<BaseException<*>>> = defer {
         val file = File(form.filepath).applyReturns {
             if(form.removeOriginFile) deleteIfExists()
         }
-        if(!file.exists() || !file.canRead()) throw FileNotFoundError()
+        if(!file.exists() || !file.canRead()) throw be(FileNotFoundError())
 
         val fileId = data.db.transaction { fileManager.newFile(file) }.alsoExcept { fileId ->
             fileManager.revertNewFile(fileId)
@@ -74,7 +78,10 @@ class ImportService(private val data: DataRepository,
         }
     }
 
-    fun upload(form: UploadForm): Pair<Int, List<BaseException>> = defer {
+    /**
+     * @throws IllegalFileExtensionError (extension) 此文件扩展名不受支持
+     */
+    fun upload(form: UploadForm): Pair<Int, List<BaseException<*>>> = defer {
         val file = Fs.temp(form.extension).applyDefer {
             deleteIfExists()
         }.also { file ->
@@ -92,12 +99,15 @@ class ImportService(private val data: DataRepository,
         }
     }
 
+    /**
+     * @throws NotFound 请求对象不存在
+     */
     fun get(id: Int): ImportImageDetailRes {
         val row = data.db.from(ImportImages)
             .innerJoin(FileRecords, FileRecords.id eq ImportImages.fileId)
             .select()
             .where { ImportImages.id eq id }
-            .firstOrNull() ?: throw NotFound()
+            .firstOrNull() ?: throw be(NotFound())
 
         val (file, thumbnailFile) = takeAllFilepathOrNull(row)
 
@@ -111,22 +121,26 @@ class ImportService(private val data: DataRepository,
         )
     }
 
+    /**
+     * @throws NotFound 请求对象不存在
+     * @throws ResourceNotExist ("source", string) 给出的source不存在
+     */
     fun update(id: Int, form: ImportUpdateForm) {
         data.db.transaction {
-            val record = data.db.sequenceOf(ImportImages).firstOrNull { it.id eq id } ?: throw NotFound()
+            val record = data.db.sequenceOf(ImportImages).firstOrNull { it.id eq id } ?: throw be(NotFound())
 
             //source更新检查
             val (newSource, newSourceId, newSourcePart) = if(form.source.isPresent) {
                 val source = form.source.value
                 if(source == null) {
-                    if(form.sourceId.unwrapOr { null } != null || form.sourcePart.unwrapOr { null } != null) throw ParamNotRequired("sourceId/sourcePart")
+                    if(form.sourceId.unwrapOr { null } != null || form.sourcePart.unwrapOr { null } != null) throw be(ParamNotRequired("sourceId/sourcePart"))
                     else Triple(Opt(null), Opt(null), Opt(null))
                 }else{
                     sourceManager.checkSource(source, form.sourceId.unwrapOr { record.sourceId }, form.sourcePart.unwrapOr { record.sourcePart })
                     Triple(form.source, form.sourceId, form.sourcePart)
                 }
             }else if(form.sourceId.unwrapOr { null } != null || form.sourcePart.unwrapOr { null } != null) {
-                if(record.source == null) throw ParamNotRequired("sourceId/sourcePart")
+                if(record.source == null) throw be(ParamNotRequired("sourceId/sourcePart"))
                 else{
                     sourceManager.checkSource(record.source, form.sourceId.unwrapOr { record.sourceId }, form.sourcePart.unwrapOr { record.sourcePart })
                     Triple(undefined(), form.sourceId, form.sourcePart)
@@ -149,14 +163,22 @@ class ImportService(private val data: DataRepository,
         }
     }
 
+    /**
+     * @throws NotFound 请求对象不存在
+     */
     fun delete(id: Int) {
         data.db.transaction {
-            val row = data.db.from(ImportImages).select(ImportImages.fileId).where { ImportImages.id eq id }.firstOrNull() ?: throw NotFound()
+            val row = data.db.from(ImportImages).select(ImportImages.fileId).where { ImportImages.id eq id }.firstOrNull() ?: throw be(NotFound())
             data.db.delete(ImportImages) { it.id eq id }
             fileManager.trashFile(row[ImportImages.fileId]!!)
         }
     }
 
+    /**
+     * @throws ResourceNotExist ("target", number[]) 要进行解析的对象不存在。给出不存在的source image id列表
+     * @warn InvalidRegexError (regex) 执行正则表达式时发生错误，怀疑是表达式或相关参数没写对
+     * @warn InvalidOptionError ("import.systemDownloadHistoryPath") 试图使用系统下载数据库，但没有配置数据库路径
+     */
     fun analyseMeta(form: AnalyseMetaForm): AnalyseMetaRes {
         data.db.transaction {
             val records = if(form.target.isNullOrEmpty()) {
@@ -164,7 +186,7 @@ class ImportService(private val data: DataRepository,
             }else{
                 data.db.sequenceOf(ImportImages).filter { ImportImages.id inList form.target }.toList().also { records ->
                     if(records.size < form.target.size) {
-                        throw ResourceNotExist("target", form.target.toSet() - records.asSequence().map { it.id }.toSet())
+                        throw be(ResourceNotExist("target", form.target.toSet() - records.asSequence().map { it.id }.toSet()))
                     }
                 }
             }
@@ -176,8 +198,8 @@ class ImportService(private val data: DataRepository,
             for(record in records) {
                 val (source, sourceId, sourcePart) = try {
                     importMetaManager.analyseSourceMeta(record.fileName, record.fileFromSource, record.fileCreateTime)
-                }catch (e: BaseException) {
-                    errors[record.id] = ErrorResult(e)
+                }catch (e: BusinessException) {
+                    errors[record.id] = ErrorResult(e.exception)
                     continue
                 }
                 if(source != null) {
@@ -204,6 +226,11 @@ class ImportService(private val data: DataRepository,
         }
     }
 
+    /**
+     * @throws ResourceNotExist ("target", number[]) 要进行解析的对象不存在。给出不存在的source image id列表
+     * @warn InvalidRegexError (regex) 执行正则表达式时发生错误，怀疑是表达式或相关参数没写对
+     * @warn InvalidOptionError ("import.systemDownloadHistoryPath") 试图使用系统下载数据库，但没有配置数据库路径
+     */
     fun batchUpdate(form: ImportBatchUpdateForm) {
         data.db.transaction {
             val records = if(form.target.isNullOrEmpty()) {
@@ -211,7 +238,7 @@ class ImportService(private val data: DataRepository,
             }else{
                 data.db.sequenceOf(ImportImages).filter { ImportImages.id inList form.target }.toList().also { records ->
                     if(records.size < form.target.size) {
-                        throw ResourceNotExist("target", form.target.toSet() - records.map { it.id }.toSet())
+                        throw be(ResourceNotExist("target", form.target.toSet() - records.map { it.id }.toSet()))
                     }
                 }
             }
@@ -244,6 +271,9 @@ class ImportService(private val data: DataRepository,
         }
     }
 
+    /**
+     * @warn ResourceNotExist ("parentId", number) 给定的parent不存在，或者它不是一个collection。给出id
+     */
     fun save(): ImportSaveRes {
         data.db.transaction {
             val records = data.db.from(ImportImages)
@@ -266,8 +296,8 @@ class ImportService(private val data: DataRepository,
                             partitionTime = record.partitionTime,
                             orderTime = record.orderTime,
                             createTime = record.createTime)
-                    }catch (e: BaseException) {
-                        errors[record.id] = ErrorResult(e)
+                    }catch (e: BusinessException) {
+                        errors[record.id] = ErrorResult(e.exception)
                         continue
                     }
                     succeeds.add(record.id)

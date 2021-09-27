@@ -146,7 +146,7 @@ class LifetimeImpl(private val context: FrameworkContext, private val options: L
                 //不存在就进入存续期
                 continuous += 1
                 //在存续期进入N次都没有新的信号后，退出阻塞线程，程序终止
-                if(continuous > options.threadContinuousCount) { break }
+                if(continuous > options.threadContinuousCount) break
             }
         }
     }

@@ -10,6 +10,7 @@ import com.heerkirov.hedge.server.utils.DateTime.parseDate
 import com.heerkirov.hedge.server.utils.DateTime.parseDateTime
 import com.heerkirov.hedge.server.utils.DateTime.toDateString
 import com.heerkirov.hedge.server.utils.DateTime.toDateTimeString
+import com.heerkirov.hedge.server.utils.tuples.Tuple
 import com.heerkirov.hedge.server.utils.types.Composition
 import com.heerkirov.hedge.server.utils.types.CompositionGenerator
 import java.time.LocalDate
@@ -27,6 +28,7 @@ private val objectMapper = jacksonObjectMapper()
         addSerializer(LocalDate::class.java, LocalDateSerializer)
         addDeserializer(LocalDate::class.java, LocalDateDeserializer)
         addSerializer(Composition::class.java, CompositionSerializer)
+        addSerializer(Tuple::class.java, TupleSerializer)
     })
 
 
@@ -97,5 +99,13 @@ object CompositionSerializer : JsonSerializer<Composition<*>>() {
         val generator = CompositionGenerator.getGenerator(element::class)
         val result = generator.exportedElementsOfGeneric(element).map { it.toString() }
         jsonGenerator.writeObject(result)
+    }
+}
+
+object TupleSerializer : JsonSerializer<Tuple>() {
+    override fun serialize(value: Tuple, gen: JsonGenerator, serializers: SerializerProvider) {
+        gen.writeStartArray(value.length)
+        value.toArray().forEach { gen.writeObject(it) }
+        gen.writeEndArray()
     }
 }

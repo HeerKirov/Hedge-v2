@@ -4,6 +4,9 @@ import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.database.ImportOption
 import com.heerkirov.hedge.server.dao.source.ImportImages
 import com.heerkirov.hedge.server.exceptions.BaseException
+import com.heerkirov.hedge.server.exceptions.BusinessException
+import com.heerkirov.hedge.server.exceptions.InvalidOptionError
+import com.heerkirov.hedge.server.exceptions.InvalidRegexError
 import com.heerkirov.hedge.server.library.xattr.XAttrProcessor
 import com.heerkirov.hedge.server.model.illust.Illust
 import com.heerkirov.hedge.server.utils.DateTime
@@ -22,7 +25,7 @@ class ImportManager(private val data: DataRepository, private val importMetaMana
      * 在此方法中进行source analyse时，分析过程抛出的异常会被捕获，并以警告的形式返回。
      * @return (import image id, warnings)
      */
-    fun newImportRecord(fileId: Int, sourceFile: File? = null, sourceFilename: String? = null): Pair<Int, List<BaseException>> {
+    fun newImportRecord(fileId: Int, sourceFile: File? = null, sourceFilename: String? = null): Pair<Int, List<BaseException<*>>> {
         val options = data.metadata.import
 
         val attr = sourceFile?.let { Files.readAttributes(it.toPath(), BasicFileAttributes::class.java) }
@@ -46,13 +49,13 @@ class ImportManager(private val data: DataRepository, private val importMetaMana
         val fileName = sourceFilename ?: sourceFile?.name
         val filePath = sourceFile?.absoluteFile?.parent
 
-        val warnings = mutableListOf<BaseException>()
+        val warnings = mutableListOf<BaseException<*>>()
 
         val (source, sourceId, sourcePart) = if(options.autoAnalyseMeta) {
             try {
                 importMetaManager.analyseSourceMeta(fileName, fileFromSource, fileCreateTime)
-            }catch (e: BaseException) {
-                warnings.add(e)
+            }catch (e: BusinessException) {
+                warnings.add(e.exception)
                 Triple(null, null, null)
             }
         }else Triple(null, null, null)

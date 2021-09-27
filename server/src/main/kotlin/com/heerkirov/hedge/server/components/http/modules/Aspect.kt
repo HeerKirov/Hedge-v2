@@ -5,6 +5,7 @@ import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.http.Endpoints
 import com.heerkirov.hedge.server.enums.LoadStatus
 import com.heerkirov.hedge.server.exceptions.NotInit
+import com.heerkirov.hedge.server.exceptions.be
 import io.javalin.Javalin
 import io.javalin.http.Context
 
@@ -26,7 +27,7 @@ class Aspect(private val appdata: AppDataDriver, private val repo: DataRepositor
             if(appdata.status == LoadStatus.LOADED && repo.status == LoadStatus.LOADED) {
                 loaded = true
             }else{
-                throw NotInit()
+                throw be(NotInit())
             }
         }
     }

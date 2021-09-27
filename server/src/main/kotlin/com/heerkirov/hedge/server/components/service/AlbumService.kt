@@ -6,15 +6,13 @@ import com.heerkirov.hedge.server.components.kit.AlbumKit
 import com.heerkirov.hedge.server.components.manager.AlbumManager
 import com.heerkirov.hedge.server.components.manager.query.QueryManager
 import com.heerkirov.hedge.server.dao.album.*
-import com.heerkirov.hedge.server.dao.illust.IllustAuthorRelations
 import com.heerkirov.hedge.server.dao.illust.Illusts
 import com.heerkirov.hedge.server.dao.meta.Authors
 import com.heerkirov.hedge.server.dao.meta.Tags
 import com.heerkirov.hedge.server.dao.meta.Topics
 import com.heerkirov.hedge.server.dao.source.FileRecords
-import com.heerkirov.hedge.server.exceptions.NotFound
-import com.heerkirov.hedge.server.exceptions.ParamRequired
 import com.heerkirov.hedge.server.dto.*
+import com.heerkirov.hedge.server.exceptions.*
 import com.heerkirov.hedge.server.model.meta.Tag
 import com.heerkirov.hedge.server.utils.business.takeAllFilepath
 import com.heerkirov.hedge.server.utils.business.takeFilepath
@@ -74,6 +72,9 @@ class AlbumService(private val data: DataRepository,
 
     }
 
+    /**
+     * @throws ResourceNotExist ("images", number[]) image项不存在。给出imageId列表
+     */
     fun create(form: AlbumCreateForm): Int {
         if(form.score != null) kit.validateScore(form.score)
         data.db.transaction {
@@ -81,6 +82,9 @@ class AlbumService(private val data: DataRepository,
         }
     }
 
+    /**
+     * @throws NotFound 请求对象不存在
+     */
     fun get(id: Int): AlbumDetailRes {
         val row = data.db.from(Albums)
             .leftJoin(FileRecords, Albums.fileId eq FileRecords.id)
@@ -89,7 +93,7 @@ class AlbumService(private val data: DataRepository,
                 FileRecords.folder, FileRecords.id, FileRecords.extension)
             .where { Albums.id eq id }
             .firstOrNull()
-            ?: throw NotFound()
+            ?: throw be(NotFound())
 
         val file = if(row[FileRecords.id] != null) takeFilepath(row) else null
 
@@ -136,9 +140,17 @@ class AlbumService(private val data: DataRepository,
         return AlbumDetailRes(id, title, imageCount, file, topics, authors, tags, description, score, favorite, createTime, updateTime)
     }
 
+    /**
+     * @throws NotFound 请求对象不存在
+     * @throws ResourceNotExist ("topics", number[]) 部分topics资源不存在。给出不存在的topic id列表
+     * @throws ResourceNotExist ("authors", number[]) 部分authors资源不存在。给出不存在的author id列表
+     * @throws ResourceNotExist ("tags", number[]) 部分tags资源不存在。给出不存在的tag id列表
+     * @throws ResourceNotSuitable ("tags", number[]) 部分tags资源不适用。地址段不适用于此项。给出不适用的tag id列表
+     * @throws ConflictingGroupMembersError 发现标签冲突组
+     */
     fun update(id: Int, form: AlbumUpdateForm) {
         data.db.transaction {
-            data.db.sequenceOf(Albums).firstOrNull { it.id eq id } ?: throw NotFound()
+            data.db.sequenceOf(Albums).firstOrNull { it.id eq id } ?: throw be(NotFound())
 
             form.score.alsoOpt {
                 if(it != null) kit.validateScore(it)
@@ -163,9 +175,12 @@ class AlbumService(private val data: DataRepository,
         }
     }
 
+    /**
+     * @throws NotFound 请求对象不存在
+     */
     fun delete(id: Int) {
         data.db.transaction {
-            data.db.sequenceOf(Albums).firstOrNull { it.id eq id } ?: throw NotFound()
+            data.db.sequenceOf(Albums).firstOrNull { it.id eq id } ?: throw be(NotFound())
 
             data.db.delete(Albums) { it.id eq id }
             data.db.delete(AlbumTagRelations) { it.albumId eq id }
@@ -197,9 +212,13 @@ class AlbumService(private val data: DataRepository,
             }
     }
 
+    /**
+     * @throws NotFound 请求对象不存在
+     * @throws ResourceNotExist ("images", number[]) image项不存在，给出imageId列表
+     */
     fun updateImages(id: Int, items: List<Int>) {
         data.db.transaction {
-            data.db.sequenceOf(Albums).firstOrNull { Albums.id eq id } ?: throw NotFound()
+            data.db.sequenceOf(Albums).firstOrNull { Albums.id eq id } ?: throw be(NotFound())
 
             val (images, imageCount, fileId) = kit.validateSubImages(items)
             val now = DateTime.now()
@@ -215,26 +234,31 @@ class AlbumService(private val data: DataRepository,
         }
     }
 
+    /**
+     * @throws NotFound 请求对象不存在
+     * @throws ResourceNotExist ("images", number[]) image项不存在，给出imageId列表
+     * @throws ResourceNotExist ("itemIndexes", number[]) 要操作的image index不存在。给出不存在的index列表
+     */
     fun partialUpdateImages(id: Int, form: AlbumImagesPartialUpdateForm) {
         data.db.transaction {
-            data.db.sequenceOf(Albums).firstOrNull { Albums.id eq id } ?: throw NotFound()
+            data.db.sequenceOf(Albums).firstOrNull { Albums.id eq id } ?: throw be(NotFound())
 
             when (form.action) {
                 BatchAction.ADD -> {
-                    val images = form.images ?: throw ParamRequired("images")
+                    val images = form.images ?: throw be(ParamRequired("images"))
                     kit.validateSubImages(images)
                     kit.insertSubImages(images, id, form.ordinal)
                     kit.exportFileAndCount(id)
                 }
                 BatchAction.MOVE -> {
-                    val itemIndexes = form.itemIndexes ?: throw ParamRequired("itemIndexes")
+                    val itemIndexes = form.itemIndexes ?: throw be(ParamRequired("itemIndexes"))
                     if(itemIndexes.isNotEmpty()) {
                         kit.moveSubImages(itemIndexes, id, form.ordinal)
                         kit.exportFileAndCount(id)
                     }
                 }
                 BatchAction.DELETE -> {
-                    val itemIndexes = form.itemIndexes ?: throw ParamRequired("itemIndexes")
+                    val itemIndexes = form.itemIndexes ?: throw be(ParamRequired("itemIndexes"))
                     if(itemIndexes.isNotEmpty()) {
                         kit.deleteSubImages(itemIndexes, id)
                         kit.exportFileAndCount(id)

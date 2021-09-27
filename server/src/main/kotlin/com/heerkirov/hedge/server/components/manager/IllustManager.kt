@@ -6,7 +6,10 @@ import com.heerkirov.hedge.server.components.backend.ImageExporterTask
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.kit.IllustKit
 import com.heerkirov.hedge.server.dao.illust.*
+import com.heerkirov.hedge.server.exceptions.ConflictingGroupMembersError
 import com.heerkirov.hedge.server.exceptions.ResourceNotExist
+import com.heerkirov.hedge.server.exceptions.ResourceNotSuitable
+import com.heerkirov.hedge.server.exceptions.be
 import com.heerkirov.hedge.server.model.illust.Illust
 import com.heerkirov.hedge.server.utils.DateTime
 import com.heerkirov.hedge.server.utils.ktorm.first
@@ -24,6 +27,13 @@ class IllustManager(private val data: DataRepository,
                     private val illustMetaExporter: IllustMetaExporter) {
     /**
      * 创建新的image。
+     * @throws ResourceNotExist ("source", string) 给出的source不存在
+     * @throws ResourceNotExist ("parentId", number) 给定的parent不存在，或者它不是一个collection。给出id
+     * @throws ResourceNotExist ("topics", number[]) 部分topics资源不存在。给出不存在的topic id列表
+     * @throws ResourceNotExist ("authors", number[]) 部分authors资源不存在。给出不存在的author id列表
+     * @throws ResourceNotExist ("tags", number[]) 部分tags资源不存在。给出不存在的tag id列表
+     * @throws ResourceNotSuitable ("tags", number[]) 部分tags资源不适用。地址段不适用于此项。给出不适用的tag id列表
+     * @throws ConflictingGroupMembersError 发现标签冲突组
      */
     fun newImage(fileId: Int, parentId: Int? = null,
                  source: String? = null, sourceId: Long? = null, sourcePart: Int? = null,
@@ -33,7 +43,7 @@ class IllustManager(private val data: DataRepository,
         val collection = if(parentId == null) null else {
             data.db.sequenceOf(Illusts)
                 .firstOrNull { (Illusts.type eq Illust.Type.COLLECTION) and (Illusts.id eq parentId) }
-                ?: throw ResourceNotExist("parentId", parentId)
+                ?: throw be(ResourceNotExist("parentId", parentId))
         }
 
         partitionManager.addItemInPartition(partitionTime)
@@ -103,6 +113,7 @@ class IllustManager(private val data: DataRepository,
 
     /**
      * 创建新的collection。
+     * @throws ResourceNotExist ("images", number[]) 给出的部分images不存在。给出不存在的image id列表
      */
     fun newCollection(formImages: List<Int>, formDescription: String, formScore: Int?, formFavorite: Boolean, formTagme: Illust.Tagme): Int {
         val createTime = DateTime.now()

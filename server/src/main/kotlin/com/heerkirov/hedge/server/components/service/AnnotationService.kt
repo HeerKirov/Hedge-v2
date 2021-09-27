@@ -12,6 +12,8 @@ import com.heerkirov.hedge.server.dao.meta.TagAnnotationRelations
 import com.heerkirov.hedge.server.dao.meta.TopicAnnotationRelations
 import com.heerkirov.hedge.server.exceptions.NotFound
 import com.heerkirov.hedge.server.dto.*
+import com.heerkirov.hedge.server.exceptions.AlreadyExists
+import com.heerkirov.hedge.server.exceptions.be
 import com.heerkirov.hedge.server.utils.DateTime
 import com.heerkirov.hedge.server.utils.ktorm.OrderTranslator
 import com.heerkirov.hedge.server.utils.types.anyOpt
@@ -45,6 +47,9 @@ class AnnotationService(private val data: DataRepository, private val kit: Annot
             .toListResult { newAnnotationRes(Annotations.createEntity(it)) }
     }
 
+    /**
+     * @throws AlreadyExists ("Annotation", "name", string) 此名称的annotation已存在
+     */
     fun create(form: AnnotationCreateForm): Int {
         data.db.transaction {
             val createTime = DateTime.now()
@@ -58,15 +63,22 @@ class AnnotationService(private val data: DataRepository, private val kit: Annot
         }
     }
 
+    /**
+     * @throws NotFound 请求对象不存在
+     */
     fun get(id: Int): AnnotationRes {
         return data.db.sequenceOf(Annotations).firstOrNull { it.id eq id }
             ?.let { newAnnotationRes(it) }
-            ?: throw NotFound()
+            ?: throw be(NotFound())
     }
 
+    /**
+     * @throws NotFound 请求对象不存在
+     * @throws AlreadyExists ("Annotation", "name", string) 此名称的annotation已存在
+     */
     fun update(id: Int, form: AnnotationUpdateForm) {
         data.db.transaction {
-            data.db.sequenceOf(Annotations).firstOrNull { it.id eq id } ?: throw NotFound()
+            data.db.sequenceOf(Annotations).firstOrNull { it.id eq id } ?: throw be(NotFound())
 
             val newName = form.name.letOpt { kit.validateName(it, id) }
             if(anyOpt(newName, form.canBeExported, form.target)) {
@@ -83,10 +95,13 @@ class AnnotationService(private val data: DataRepository, private val kit: Annot
         }
     }
 
+    /**
+     * @throws NotFound 请求对象不存在
+     */
     fun delete(id: Int) {
         data.db.transaction {
             data.db.delete(Annotations) { it.id eq id }.let {
-                if(it <= 0) NotFound()
+                if(it <= 0) throw be(NotFound())
             }
             data.db.delete(IllustAnnotationRelations) { it.annotationId eq id }
             data.db.delete(AlbumAnnotationRelations) { it.annotationId eq id }

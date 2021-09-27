@@ -1,6 +1,7 @@
 package com.heerkirov.hedge.server.library.image
 
 import com.heerkirov.hedge.server.exceptions.IllegalFileExtensionError
+import com.heerkirov.hedge.server.exceptions.be
 import com.heerkirov.hedge.server.utils.Fs
 import ws.schild.jave.Encoder
 import ws.schild.jave.MultimediaObject
@@ -31,6 +32,7 @@ object ImageProcessor {
      * 使用全局通用策略生成缩略图，并获得原始分辨率。
      * 全局策略中，非jpg类型的文件需要转换至jpg文件(视频需要截图)，尺寸超过一定面积的图片需要缩放至适合尺寸。
      * @return 缩略图文件的临时文件File。如果返回null，表示按照全局策略不需要生成缩略图。
+     * @throws IllegalFileExtensionError 不支持的扩展名
      */
     fun process(src: File): ProcessResult {
         val extension = src.extension.lowercase()
@@ -41,7 +43,7 @@ object ImageProcessor {
         }else if(extension == "mp4" || extension == "webm") {
             translateVideoToJpg(src, timePercent = 0.05F) //取5%进度位置的帧作为截图
         }else{
-            throw IllegalFileExtensionError(src.extension)
+            throw be(IllegalFileExtensionError(src.extension))
         }
         val resolution: Pair<Int, Int>
         val resized = try {

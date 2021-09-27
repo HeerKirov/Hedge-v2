@@ -7,6 +7,7 @@ import com.heerkirov.hedge.server.dao.illust.Illusts
 import com.heerkirov.hedge.server.exceptions.AlreadyExists
 import com.heerkirov.hedge.server.exceptions.ParamTypeError
 import com.heerkirov.hedge.server.exceptions.ResourceNotExist
+import com.heerkirov.hedge.server.exceptions.be
 import com.heerkirov.hedge.server.model.illust.Illust
 import com.heerkirov.hedge.server.utils.runIf
 import org.ktorm.dsl.*
@@ -16,14 +17,16 @@ import org.ktorm.entity.*
 class FolderKit(private val data: DataRepository) {
     /**
      * 校验title是否合法，包括空检查、重复检查。
+     * @throws AlreadyExists ("Folder", "name", string) 此名称的folder已存在
      */
     fun validateTitle(title: String, thisId: Int? = null) {
-        if(title.isBlank()) throw ParamTypeError("title", "cannoe be blank")
-        if(data.db.sequenceOf(Folders).any { (it.title eq title).runIf(thisId != null) { this and (it.id notEq thisId!!) } }) throw AlreadyExists("Folder", "title", title)
+        if(title.isBlank()) throw be(ParamTypeError("title", "cannot be blank"))
+        if(data.db.sequenceOf(Folders).any { (it.title eq title).runIf(thisId != null) { this and (it.id notEq thisId!!) } }) throw be(AlreadyExists("Folder", "title", title))
     }
 
     /**
      * 校验folder的sub items列表的正确性。
+     * @throws ResourceNotExist ("images", number[]) 给出的images不存在。给出不存在的image id列表
      */
     fun validateSubImages(imageIds: List<Int>) {
         if(imageIds.isEmpty()) return
@@ -33,7 +36,7 @@ class FolderKit(private val data: DataRepository) {
             .where { (Illusts.id inList imageIds) and (Illusts.type notEq Illust.Type.COLLECTION) }
             .map { it[Illusts.id]!! }
         //数量不够表示有imageId不存在(或类型是collection，被一同判定为不存在)
-        if(images.size < imageIds.size) throw ResourceNotExist("images", imageIds.toSet() - images.toSet())
+        if(images.size < imageIds.size) throw be(ResourceNotExist("images", imageIds.toSet() - images.toSet()))
     }
 
     /**
@@ -77,6 +80,7 @@ class FolderKit(private val data: DataRepository) {
 
     /**
      * 移动一部分images的顺序。
+     * @throws ResourceNotExist ("itemIndexes", number[]) 要操作的image index不存在。给出不存在的index列表
      */
     fun moveSubImages(indexes: List<Int>, thisId: Int, ordinal: Int?) {
         if(indexes.isNotEmpty()) {
@@ -87,7 +91,7 @@ class FolderKit(private val data: DataRepository) {
                 .filter { (it.folderId eq thisId) and (it.ordinal inList indexes) }
                 .map { it.ordinal to it.imageId }.toMap()
 
-            if(itemMap.size < indexes.size) throw ResourceNotExist("itemIndexes", indexes.toSet() - itemMap.keys)
+            if(itemMap.size < indexes.size) throw be(ResourceNotExist("itemIndexes", indexes.toSet() - itemMap.keys))
             //先删除所有要移动的项
             data.db.delete(FolderImageRelations) { (it.folderId eq thisId) and (it.ordinal inList indexes) }
             //将余下的项向前缩进
@@ -124,12 +128,13 @@ class FolderKit(private val data: DataRepository) {
 
     /**
      * 删除一部分images。
+     * @throws ResourceNotExist ("itemIndexes", number[]) 要操作的image index不存在。给出不存在的index列表
      */
     fun deleteSubImages(indexes: List<Int>, thisId: Int) {
         if(indexes.isNotEmpty()) {
             val sortedIndexes = indexes.sorted()
             val count = data.db.sequenceOf(FolderImageRelations).count { it.folderId eq thisId }
-            if(sortedIndexes.last() >= count) throw ResourceNotExist("itemIndexes", indexes.filter { it >= count })
+            if(sortedIndexes.last() >= count) throw be(ResourceNotExist("itemIndexes", indexes.filter { it >= count }))
             //删除
             data.db.delete(FolderImageRelations) { (it.folderId eq thisId) and (it.ordinal inList indexes) }
             //将余下的项向前缩进

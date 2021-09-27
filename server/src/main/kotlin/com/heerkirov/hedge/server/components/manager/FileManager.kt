@@ -5,6 +5,7 @@ import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.dao.source.FileRecords
 import com.heerkirov.hedge.server.definitions.Filename
 import com.heerkirov.hedge.server.exceptions.IllegalFileExtensionError
+import com.heerkirov.hedge.server.exceptions.be
 import com.heerkirov.hedge.server.model.source.FileRecord
 import com.heerkirov.hedge.server.utils.business.getFilepath
 import com.heerkirov.hedge.server.utils.business.getThumbnailFilepath
@@ -28,6 +29,7 @@ class FileManager(private val configurationDriver: ConfigurationDriver, private 
      * - 自动生成thumbnail。
      * - 自动计算大小。
      * @return file id。使用此id来索引物理文件记录。
+     * @throws IllegalFileExtensionError (extension) 此文件扩展名不受支持
      */
     fun newFile(file: File): Int = defer {
         val now = DateTime.now()
@@ -111,10 +113,11 @@ class FileManager(private val configurationDriver: ConfigurationDriver, private 
 
     /**
      * 检查并纠正一个文件的扩展名。扩展名必须是受支持的扩展名，且统一转换为小写。
+     * @throws IllegalFileExtensionError (extension) 此文件扩展名不受支持
      */
     private fun validateExtension(extension: String): String {
         return extension.lowercase().apply {
-            if(this !in extensions) throw IllegalFileExtensionError(extension)
+            if(this !in extensions) throw be(IllegalFileExtensionError(extension))
         }
     }
 

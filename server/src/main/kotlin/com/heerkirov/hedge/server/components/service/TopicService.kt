@@ -5,7 +5,6 @@ import com.heerkirov.hedge.server.components.backend.IllustExporterTask
 import com.heerkirov.hedge.server.components.backend.IllustMetaExporter
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.database.transaction
-import com.heerkirov.hedge.server.exceptions.NotFound
 import com.heerkirov.hedge.server.dto.*
 import com.heerkirov.hedge.server.components.kit.TopicKit
 import com.heerkirov.hedge.server.components.manager.query.QueryManager
@@ -13,6 +12,7 @@ import com.heerkirov.hedge.server.dao.album.AlbumTopicRelations
 import com.heerkirov.hedge.server.dao.illust.IllustTopicRelations
 import com.heerkirov.hedge.server.dao.meta.TopicAnnotationRelations
 import com.heerkirov.hedge.server.dao.meta.Topics
+import com.heerkirov.hedge.server.exceptions.*
 import com.heerkirov.hedge.server.utils.DateTime
 import com.heerkirov.hedge.server.utils.ktorm.OrderTranslator
 import com.heerkirov.hedge.server.utils.ktorm.orderBy
@@ -57,6 +57,14 @@ class TopicService(private val data: DataRepository,
             .toListResult { newTopicRes(Topics.createEntity(it), data.metadata.meta.topicColors) }
     }
 
+    /**
+     * @throws AlreadyExists ("Topic", "name", string) 此名称的topic已存在
+     * @throws RecursiveParentError parentId出现闭环
+     * @throws IllegalConstraintError ("type", "parent", TopicType[]) 当前的type与parent的type不兼容。给出parent的type
+     * @throws ResourceNotExist ("parentId", number) 给出的parent不存在。给出parentId
+     * @throws ResourceNotExist ("annotations", number[]) 有annotation不存在时，抛出此异常。给出不存在的annotation id列表
+     * @throws ResourceNotSuitable ("annotations", number[]) 指定target类型且有元素不满足此类型时，抛出此异常。给出不适用的annotation id列表
+     */
     fun create(form: TopicCreateForm): Int {
         data.db.transaction {
             val name = kit.validateName(form.name)
@@ -91,15 +99,27 @@ class TopicService(private val data: DataRepository,
         }
     }
 
+    /**
+     * @throws NotFound 请求对象不存在
+     */
     fun get(id: Int): TopicDetailRes {
-        val topic = data.db.sequenceOf(Topics).firstOrNull { it.id eq id } ?: throw NotFound()
+        val topic = data.db.sequenceOf(Topics).firstOrNull { it.id eq id } ?: throw be(NotFound())
         val parent = topic.parentId?.let { parentId -> data.db.sequenceOf(Topics).firstOrNull { it.id eq parentId } }
         return newTopicDetailRes(topic, parent, data.metadata.meta.topicColors)
     }
 
+    /**
+     * @throws NotFound 请求对象不存在
+     * @throws AlreadyExists ("Topic", "name", string) 此名称的topic已存在
+     * @throws RecursiveParentError parentId出现闭环
+     * @throws IllegalConstraintError ("type", "children" | "parent", TopicType[]) 当前的type与parent|children的type不兼容。给出parent|children的type
+     * @throws ResourceNotExist ("parentId", number) 给出的parent不存在。给出parentId
+     * @throws ResourceNotExist ("annotations", number[]) 有annotation不存在时，抛出此异常。给出不存在的annotation id列表
+     * @throws ResourceNotSuitable ("annotations", number[]) 指定target类型且有元素不满足此类型时，抛出此异常。给出不适用的annotation id列表
+     */
     fun update(id: Int, form: TopicUpdateForm) {
         data.db.transaction {
-            val record = data.db.sequenceOf(Topics).firstOrNull { it.id eq id } ?: throw NotFound()
+            val record = data.db.sequenceOf(Topics).firstOrNull { it.id eq id } ?: throw be(NotFound())
 
             val newName = form.name.letOpt { kit.validateName(it, id) }
             val newOtherNames = form.otherNames.letOpt { kit.validateOtherNames(it) }
@@ -154,10 +174,13 @@ class TopicService(private val data: DataRepository,
         }
     }
 
+    /**
+     * @throws NotFound 请求对象不存在
+     */
     fun delete(id: Int) {
         data.db.transaction {
             data.db.delete(Topics) { it.id eq id }.let {
-                if(it <= 0) throw NotFound()
+                if(it <= 0) throw be(NotFound())
             }
             data.db.delete(IllustTopicRelations) { it.topicId eq id }
             data.db.delete(AlbumTopicRelations) { it.topicId eq id }

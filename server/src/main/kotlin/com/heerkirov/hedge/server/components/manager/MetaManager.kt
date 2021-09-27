@@ -12,6 +12,7 @@ import com.heerkirov.hedge.server.dao.types.MetaTag
 import com.heerkirov.hedge.server.exceptions.ConflictingGroupMembersError
 import com.heerkirov.hedge.server.exceptions.ResourceNotExist
 import com.heerkirov.hedge.server.exceptions.ResourceNotSuitable
+import com.heerkirov.hedge.server.exceptions.be
 import com.heerkirov.hedge.server.model.meta.Author
 import com.heerkirov.hedge.server.model.meta.Tag
 import com.heerkirov.hedge.server.model.meta.Topic
@@ -32,15 +33,18 @@ class MetaManager(private val data: DataRepository) {
     /**
      * 该方法使用在设置tag时，对tag进行校验并导出，返回声明式的tag列表。
      * @return 一组tag。Int表示tag id，Boolean表示此tag是否为导出tag。
+     * @throws ResourceNotExist ("tags", number[]) 部分tags资源不存在。给出不存在的tag id列表
+     * @throws ResourceNotSuitable ("tags", number[]) 部分tags资源不适用。地址段不适用于此项。给出不适用的tag id列表
+     * @throws ConflictingGroupMembersError 发现标签冲突组
      */
     fun validateAndExportTag(tagIds: List<Int>): List<Pair<Int, Boolean>> {
         val tags = data.db.sequenceOf(Tags).filter { it.id inList tagIds }.toList()
         if(tags.size < tags.size) {
-            throw ResourceNotExist("tags", tagIds.toSet() - tags.asSequence().map { it.id }.toSet())
+            throw be(ResourceNotExist("tags", tagIds.toSet() - tags.asSequence().map { it.id }.toSet()))
         }
         tags.filter { it.type != Tag.Type.TAG }.run {
             //只允许设定类型为TAG的标签，不允许地址段。
-            if(isNotEmpty()) throw ResourceNotSuitable("tags", map { it.id })
+            if(isNotEmpty()) throw be(ResourceNotSuitable("tags", map { it.id }))
         }
 
         return exportTag(tags)
@@ -49,11 +53,12 @@ class MetaManager(private val data: DataRepository) {
     /**
      * 该方法使用在设置topic时，对topic进行校验并导出，返回声明式的topic列表。
      * @return 一组topic。Int表示topic id，Boolean表示此topic是否为导出tag。
+     * @throws ResourceNotExist ("topics", number[]) 部分topics资源不存在。给出不存在的topic id列表
      */
     fun validateAndExportTopic(topicIds: List<Int>): List<Pair<Int, Boolean>> {
         val topics = data.db.sequenceOf(Topics).filter { it.id inList topicIds }.toList()
         if(topics.size < topicIds.size) {
-            throw ResourceNotExist("topics", topicIds.toSet() - topics.asSequence().map { it.id }.toSet())
+            throw be(ResourceNotExist("topics", topicIds.toSet() - topics.asSequence().map { it.id }.toSet()))
         }
 
         return exportTopic(topics)
@@ -62,11 +67,12 @@ class MetaManager(private val data: DataRepository) {
     /**
      * 该方法使用在设置author时，对author进行校验并导出，返回声明式的author列表。
      * @return 一组author。Int表示tag id，Boolean表示此tag是否为导出tag。
+     * @throws ResourceNotExist ("authors", number[]) 部分authors资源不存在。给出不存在的author id列表
      */
     fun validateAndExportAuthor(authors: List<Int>): List<Pair<Int, Boolean>> {
         val ids = data.db.from(Authors).select(Authors.id).where { Authors.id inList authors }.map { it[Authors.id]!! }
         if(ids.size < authors.size) {
-            throw ResourceNotExist("authors", authors.toSet() - ids.toSet())
+            throw be(ResourceNotExist("authors", authors.toSet() - ids.toSet()))
         }
 
         //author类型的标签没有导出机制，因此直接返回结果。
@@ -77,7 +83,7 @@ class MetaManager(private val data: DataRepository) {
      * 对tag进行导出。
      * @param conflictingMembersCheck 对冲突组进行检查，并抛出异常。
      * @param onlyForceConflicting 只检查强制冲突组，而忽略非强制。
-     * @exception ConflictingGroupMembersError 发现冲突组时，抛出此异常。
+     * @throws ConflictingGroupMembersError 发现标签冲突组
      */
     fun exportTag(tags: List<Tag>, conflictingMembersCheck: Boolean = true, onlyForceConflicting: Boolean = true): List<Pair<Int, Boolean>> {
         //记下所有访问过的节点父子关系
@@ -122,7 +128,7 @@ class MetaManager(private val data: DataRepository) {
                 }
                 .toList()
             //检查存在冲突成员时，抛出强制冲突异常
-            if(conflictingMembers.isNotEmpty()) throw ConflictingGroupMembersError(conflictingMembers)
+            if(conflictingMembers.isNotEmpty()) throw be(ConflictingGroupMembersError(conflictingMembers))
         }
 
         return result

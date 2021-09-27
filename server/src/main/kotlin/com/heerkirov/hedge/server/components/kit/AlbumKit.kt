@@ -6,8 +6,7 @@ import com.heerkirov.hedge.server.dao.album.*
 import com.heerkirov.hedge.server.dao.illust.*
 import com.heerkirov.hedge.server.dao.meta.*
 import com.heerkirov.hedge.server.dao.types.EntityMetaRelationTable
-import com.heerkirov.hedge.server.exceptions.ParamError
-import com.heerkirov.hedge.server.exceptions.ResourceNotExist
+import com.heerkirov.hedge.server.exceptions.*
 import com.heerkirov.hedge.server.model.illust.Illust
 import com.heerkirov.hedge.server.model.meta.Annotation
 import com.heerkirov.hedge.server.utils.business.checkScore
@@ -23,11 +22,16 @@ class AlbumKit(private val data: DataRepository,
      * 检查score的值，不允许其超出范围。
      */
     fun validateScore(score: Int) {
-        if(!checkScore(score)) throw ParamError("score")
+        if(!checkScore(score)) throw be(ParamError("score"))
     }
 
     /**
      * 检验给出的tags/topics/authors的正确性，处理导出，并应用其更改。此外，annotations的更改也会被一并导出处理。
+     * @throws ResourceNotExist ("topics", number[]) 部分topics资源不存在。给出不存在的topic id列表
+     * @throws ResourceNotExist ("authors", number[]) 部分authors资源不存在。给出不存在的author id列表
+     * @throws ResourceNotExist ("tags", number[]) 部分tags资源不存在。给出不存在的tag id列表
+     * @throws ResourceNotSuitable ("tags", number[]) 部分tags资源不适用。地址段不适用于此项。给出不适用的tag id列表
+     * @throws ConflictingGroupMembersError 发现标签冲突组
      */
     fun processAllMeta(thisId: Int, newTags: Opt<List<Int>>, newTopics: Opt<List<Int>>, newAuthors: Opt<List<Int>>,
                        creating: Boolean = false) {
@@ -264,6 +268,7 @@ class AlbumKit(private val data: DataRepository,
     /**
      * 校验album的sub items列表的正确性。列表的值只允许是string(subtitle)或int(image id)。subtitle不允许为空值。
      * @return (全items列表, image类型的项目数, 封面fileId)
+     * @throws ResourceNotExist ("images", number[]) image项不存在，给出imageId列表
      */
     fun validateSubImages(items: List<Int>): Triple<List<Int>, Int, Int?> {
         if(items.isEmpty()) return Triple(emptyList(), 0, null)
@@ -274,7 +279,7 @@ class AlbumKit(private val data: DataRepository,
             .map { Pair(it[Illusts.id]!!, it[Illusts.fileId]!!) }
             .toMap()
         //数量不够表示有imageId不存在(或类型是collection，被一同判定为不存在)
-        if(images.size < items.size) throw ResourceNotExist("images", items.toSet() - images.keys)
+        if(images.size < items.size) throw be(ResourceNotExist("images", items.toSet() - images.keys))
 
         val fileId = if(items.isNotEmpty()) images[items.first()] else null
 
@@ -322,6 +327,7 @@ class AlbumKit(private val data: DataRepository,
 
     /**
      * 移动一部分images的顺序。
+     * @throws ResourceNotExist ("itemIndexes", number[]) 要操作的image index不存在。给出不存在的index列表
      */
     fun moveSubImages(indexes: List<Int>, thisId: Int, ordinal: Int?) {
         if(indexes.isNotEmpty()) {
@@ -332,7 +338,7 @@ class AlbumKit(private val data: DataRepository,
                 .filter { (it.albumId eq thisId) and (it.ordinal inList indexes) }
                 .map { it.ordinal to it }.toMap()
 
-            if(itemMap.size < indexes.size) throw ResourceNotExist("itemIndexes", indexes.toSet() - itemMap.keys)
+            if(itemMap.size < indexes.size) throw be(ResourceNotExist("itemIndexes", indexes.toSet() - itemMap.keys))
             //先删除所有要移动的项
             data.db.delete(AlbumImageRelations) { (it.albumId eq thisId) and (it.ordinal inList indexes) }
             //将余下的项向前缩进
@@ -369,12 +375,13 @@ class AlbumKit(private val data: DataRepository,
 
     /**
      * 删除一部分images。
+     * @throws ResourceNotExist ("itemIndexes", number[]) 要操作的image index不存在。给出不存在的index列表
      */
     fun deleteSubImages(indexes: List<Int>, thisId: Int) {
         if(indexes.isNotEmpty()) {
             val sortedIndexes = indexes.sorted()
             val count = data.db.sequenceOf(AlbumImageRelations).count { it.albumId eq thisId }
-            if(sortedIndexes.last() >= count) throw ResourceNotExist("itemIndexes", indexes.filter { it >= count })
+            if(sortedIndexes.last() >= count) throw be(ResourceNotExist("itemIndexes", indexes.filter { it >= count }))
             //删除
             data.db.delete(AlbumImageRelations) { (it.albumId eq thisId) and (it.ordinal inList indexes) }
             //将余下的项向前缩进

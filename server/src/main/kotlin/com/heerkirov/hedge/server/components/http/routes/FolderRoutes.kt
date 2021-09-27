@@ -4,6 +4,7 @@ import com.heerkirov.hedge.server.components.http.Endpoints
 import com.heerkirov.hedge.server.components.service.FolderService
 import com.heerkirov.hedge.server.exceptions.ParamTypeError
 import com.heerkirov.hedge.server.dto.*
+import com.heerkirov.hedge.server.exceptions.be
 import com.heerkirov.hedge.server.library.form.bodyAsForm
 import com.heerkirov.hedge.server.library.form.queryAsFilter
 import io.javalin.Javalin
@@ -74,7 +75,7 @@ class FolderRoutes(private val folderService: FolderService) : Endpoints {
     private fun updateImages(ctx: Context) {
         val id = ctx.pathParamAsClass<Int>("id").get()
         val images = try { ctx.bodyAsClass<List<Int>>() } catch (e: Exception) {
-            throw ParamTypeError("images", e.message ?: "cannot convert to List<Int>")
+            throw be(ParamTypeError("images", e.message ?: "cannot convert to List<Int>"))
         }
         folderService.updateImages(id, images)
     }

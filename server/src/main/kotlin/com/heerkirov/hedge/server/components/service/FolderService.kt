@@ -9,11 +9,8 @@ import com.heerkirov.hedge.server.dao.collection.FolderImageRelations
 import com.heerkirov.hedge.server.dao.collection.Folders
 import com.heerkirov.hedge.server.dao.illust.Illusts
 import com.heerkirov.hedge.server.dao.source.FileRecords
-import com.heerkirov.hedge.server.exceptions.NotFound
-import com.heerkirov.hedge.server.exceptions.ParamNotRequired
-import com.heerkirov.hedge.server.exceptions.ParamRequired
-import com.heerkirov.hedge.server.exceptions.Reject
 import com.heerkirov.hedge.server.dto.*
+import com.heerkirov.hedge.server.exceptions.*
 import com.heerkirov.hedge.server.utils.business.takeAllFilepath
 import com.heerkirov.hedge.server.utils.DateTime
 import com.heerkirov.hedge.server.utils.DateTime.parseDateTime
@@ -74,6 +71,10 @@ class FolderService(private val data: DataRepository,
             }
     }
 
+    /**
+     * @throws AlreadyExists ("Folder", "name", string) 此名称的folder已存在
+     * @throws ResourceNotExist ("images", number[]) 给出的images不存在。给出不存在的image id列表
+     */
     fun create(form: FolderCreateForm): Int {
         data.db.transaction {
             return if(form.isVirtualFolder) {
@@ -84,12 +85,15 @@ class FolderService(private val data: DataRepository,
         }
     }
 
+    /**
+     * @throws NotFound 请求对象不存在
+     */
     fun get(id: Int): FolderDetailRes {
         val row = data.db.from(Folders)
             .select()
             .where { Folders.id eq id }
             .firstOrNull()
-            ?: throw NotFound()
+            ?: throw be(NotFound())
 
         val title = row[Folders.title]!!
         val query = row[Folders.query]
@@ -101,12 +105,16 @@ class FolderService(private val data: DataRepository,
         return FolderDetailRes(id, title, isVirtualFolder, query, imageCount, createTime, updateTime)
     }
 
+    /**
+     * @throws NotFound 请求对象不存在
+     * @throws AlreadyExists ("Folder", "name", string) 此名称的folder已存在
+     */
     fun update(id: Int, form: FolderUpdateForm) {
         data.db.transaction {
-            val folder = data.db.sequenceOf(Folders).firstOrNull { it.id eq id } ?: throw NotFound()
+            val folder = data.db.sequenceOf(Folders).firstOrNull { it.id eq id } ?: throw be(NotFound())
 
             form.title.letOpt { kit.validateTitle(it, thisId = id) }
-            if(form.virtualQueryLanguage.isPresent && folder.query == null) throw ParamNotRequired("virtualQueryLanguage")
+            if(form.virtualQueryLanguage.isPresent && folder.query == null) throw be(ParamNotRequired("virtualQueryLanguage"))
 
             if(anyOpt(form.title, form.virtualQueryLanguage)) {
                 data.db.update(Folders) {
@@ -118,26 +126,37 @@ class FolderService(private val data: DataRepository,
         }
     }
 
+    /**
+     * @throws NotFound 请求对象不存在
+     */
     fun delete(id: Int) {
         data.db.transaction {
-            val folder = data.db.sequenceOf(Folders).firstOrNull { it.id eq id } ?: throw NotFound()
+            val folder = data.db.sequenceOf(Folders).firstOrNull { it.id eq id } ?: throw be(NotFound())
 
             data.db.delete(Folders) { it.id eq id }
             if(folder.query == null) data.db.delete(FolderImageRelations) { it.folderId eq id }
         }
     }
 
+    /**
+     * @throws NotFound 请求对象不存在
+     */
     fun getImages(id: Int, filter: FolderImagesFilter): ListResult<FolderImageRes> {
-        val row = data.db.from(Folders).select(Folders.query).where { Folders.id eq id }.firstOrNull() ?: throw NotFound()
+        val row = data.db.from(Folders).select(Folders.query).where { Folders.id eq id }.firstOrNull() ?: throw be(NotFound())
         val query = row[Folders.query]
 
         return if(query == null) getSubItemImages(id, filter) else getVirtualQueryResult(query, filter)
     }
 
+    /**
+     * @throws NotFound 请求对象不存在
+     * @throws Reject 试图给虚拟文件夹更新images时抛出此错误
+     * @throws ResourceNotExist ("images", number[]) 给出的images不存在。给出不存在的image id列表
+     */
     fun updateImages(id: Int, images: List<Int>) {
         data.db.transaction {
-            val folder = data.db.sequenceOf(Folders).firstOrNull { Folders.id eq id } ?: throw NotFound()
-            if(folder.query != null) throw Reject("Cannot update images for virtual-folder.")
+            val folder = data.db.sequenceOf(Folders).firstOrNull { Folders.id eq id } ?: throw be(NotFound())
+            if(folder.query != null) throw be(Reject("Cannot update images for virtual-folder."))
 
             kit.validateSubImages(images)
 
@@ -151,25 +170,31 @@ class FolderService(private val data: DataRepository,
         }
     }
 
+    /**
+     * @throws NotFound 请求对象不存在
+     * @throws Reject 试图给虚拟文件夹更新images时抛出此错误
+     * @throws ResourceNotExist ("images", number[]) 给出的images不存在。给出不存在的image id列表
+     * @throws ResourceNotExist ("itemIndexes", number[]) 要操作的image index不存在。给出不存在的index列表
+     */
     fun partialUpdateImages(id: Int, form: FolderImagesPartialUpdateForm) {
         data.db.transaction {
-            val folder = data.db.sequenceOf(Folders).firstOrNull { Folders.id eq id } ?: throw NotFound()
-            if(folder.query != null) throw Reject("Cannot update images for virtual-folder.")
+            val folder = data.db.sequenceOf(Folders).firstOrNull { Folders.id eq id } ?: throw be(NotFound())
+            if(folder.query != null) throw be(Reject("Cannot update images for virtual-folder."))
 
             when (form.action) {
                 BatchAction.ADD -> {
-                    val images = form.images ?: throw ParamRequired("images")
+                    val images = form.images ?: throw be(ParamRequired("images"))
                     kit.validateSubImages(images)
                     kit.insertSubImages(images, id, form.ordinal)
                 }
                 BatchAction.MOVE -> {
-                    val itemIndexes = form.itemIndexes ?: throw ParamRequired("itemIndexes")
+                    val itemIndexes = form.itemIndexes ?: throw be(ParamRequired("itemIndexes"))
                     if(itemIndexes.isNotEmpty()) {
                         kit.moveSubImages(itemIndexes, id, form.ordinal)
                     }
                 }
                 BatchAction.DELETE -> {
-                    val itemIndexes = form.itemIndexes ?: throw ParamRequired("itemIndexes")
+                    val itemIndexes = form.itemIndexes ?: throw be(ParamRequired("itemIndexes"))
                     if (itemIndexes.isNotEmpty()) {
                         kit.deleteSubImages(itemIndexes, id)
                     }
@@ -185,9 +210,12 @@ class FolderService(private val data: DataRepository,
             .map { FolderPinRes(it[Folders.id]!!, it[Folders.title]!!, it.getBoolean("virtual")) }
     }
 
+    /**
+     * @throws NotFound 请求对象不存在
+     */
     fun updatePinFolder(id: Int, form: FolderPinForm) {
         data.db.transaction {
-            val folder = data.db.sequenceOf(Folders).firstOrNull { it.id eq id } ?: throw NotFound()
+            val folder = data.db.sequenceOf(Folders).firstOrNull { it.id eq id } ?: throw be(NotFound())
             if((form.ordinal == null && folder.pin != null) || (form.ordinal != null && folder.pin == form.ordinal)) return
 
             val count = data.db.sequenceOf(Folders).count { it.pin.isNotNull() }
@@ -226,10 +254,14 @@ class FolderService(private val data: DataRepository,
         }
     }
 
+    /**
+     * @throws NotFound 请求对象不存在
+     * @throws Reject 此folder没有被pin，因此不能删除pin
+     */
     fun deletePinFolder(id: Int) {
         data.db.transaction {
-            val folder = data.db.sequenceOf(Folders).firstOrNull { it.id eq id } ?: throw NotFound()
-            if(folder.pin == null) throw Reject("Folder is not pinned.")
+            val folder = data.db.sequenceOf(Folders).firstOrNull { it.id eq id } ?: throw be(NotFound())
+            if(folder.pin == null) throw be(Reject("Folder is not pinned."))
 
             data.db.update(Folders) {
                 where { it.id eq id }

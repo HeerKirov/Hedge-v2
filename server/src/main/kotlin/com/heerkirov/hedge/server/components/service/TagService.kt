@@ -66,24 +66,35 @@ class TagService(private val data: DataRepository,
         return generateNodeList(filter.parent) ?: emptyList()
     }
 
+    /**
+     * @throws AlreadyExists ("Tag", "name", string) 在相同的影响范围内，此名称的标签已存在
+     * @throws CannotGiveColorError 不是根节点，不能修改颜色
+     * @throws ResourceNotExist ("parentId", number) 给出的parent id不存在
+     * @throws ResourceNotExist ("links", number[]) links中给出的tag不存在。给出不存在的link id列表
+     * @throws ResourceNotExist ("examples", number[]) examples中给出的image不存在。给出不存在的image id列表
+     * @throws ResourceNotExist ("annotations", number[]) 有annotation不存在时，抛出此异常。给出不存在的annotation id列表
+     * @throws ResourceNotSuitable ("links", number[]) links中给出的部分资源不适用，虚拟地址段是不能被link的。给出不适用的link id列表
+     * @throws ResourceNotSuitable ("examples", number[]) examples中给出的部分资源不适用，collection不能用作example。给出不适用的link id列表
+     * @throws ResourceNotSuitable ("annotations", number[]) 指定target类型且有元素不满足此类型时，抛出此异常。给出不适用的annotation id列表
+     */
     fun create(form: TagCreateForm): Int {
         val name = kit.validateName(form.name)
         val otherNames = kit.validateOtherNames(form.otherNames)
 
         data.db.transaction {
             //检查parent是否存在
-            val parent = form.parentId?.let { parentId -> data.db.sequenceOf(Tags).firstOrNull { it.id eq parentId } ?: throw ResourceNotExist("parentId", form.parentId) }
+            val parent = form.parentId?.let { parentId -> data.db.sequenceOf(Tags).firstOrNull { it.id eq parentId } ?: throw be(ResourceNotExist("parentId", form.parentId)) }
 
             //检查颜色，只有顶层tag允许指定颜色
-            if(form.color != null && parent != null) throw CannotGiveColorError()
+            if(form.color != null && parent != null) throw be(CannotGiveColorError())
 
             //检查标签重名
             //addr类型的标签在相同的parent下重名
             //tag类型的标签除上一条外，还禁止与全局的其他tag类型标签重名
             if(form.type == Tag.Type.TAG) {
-                if(data.db.sequenceOf(Tags).any { (if(form.parentId != null) { Tags.parentId eq form.parentId }else{ Tags.parentId.isNull() } or (it.type eq Tag.Type.TAG)) and (it.name eq name) }) throw AlreadyExists("Tag", "name", name)
+                if(data.db.sequenceOf(Tags).any { (if(form.parentId != null) { Tags.parentId eq form.parentId }else{ Tags.parentId.isNull() } or (it.type eq Tag.Type.TAG)) and (it.name eq name) }) throw be(AlreadyExists("Tag", "name", name))
             }else{
-                if(data.db.sequenceOf(Tags).any { if(form.parentId != null) { Tags.parentId eq form.parentId }else{ Tags.parentId.isNull() } and (it.name eq name) }) throw AlreadyExists("Tag", "name", name)
+                if(data.db.sequenceOf(Tags).any { if(form.parentId != null) { Tags.parentId eq form.parentId }else{ Tags.parentId.isNull() } and (it.name eq name) }) throw be(AlreadyExists("Tag", "name", name))
             }
 
             //存在link时，检查link的目标是否存在
@@ -141,8 +152,11 @@ class TagService(private val data: DataRepository,
         }
     }
 
+    /**
+     * @throws NotFound 请求对象不存在
+     */
     fun get(id: Int): TagDetailRes {
-        val tag = data.db.sequenceOf(Tags).firstOrNull { it.id eq id } ?: throw NotFound()
+        val tag = data.db.sequenceOf(Tags).firstOrNull { it.id eq id } ?: throw be(NotFound())
 
         val annotations = data.db.from(TagAnnotationRelations)
             .innerJoin(Annotations, TagAnnotationRelations.annotationId eq Annotations.id)
@@ -163,9 +177,12 @@ class TagService(private val data: DataRepository,
         return newTagDetailRes(tag, parents, links, annotations, examples)
     }
 
+    /**
+     * @throws NotFound 请求对象不存在
+     */
     @Deprecated("虽然写了但没有被用到的API，预计不会用到了")
     fun getIndexedInfo(id: Int): TagIndexedInfoRes {
-        val tag = data.db.sequenceOf(Tags).firstOrNull { it.id eq id } ?: throw NotFound()
+        val tag = data.db.sequenceOf(Tags).firstOrNull { it.id eq id } ?: throw be(NotFound())
 
         return if(tag.parentId != null) {
             val address = kit.getAllParents(tag)
@@ -180,9 +197,21 @@ class TagService(private val data: DataRepository,
         }
     }
 
+    /**
+     * @throws NotFound 请求对象不存在
+     * @throws RecursiveParentError parentId出现闭环
+     * @throws CannotGiveColorError 不是根节点，不能修改颜色
+     * @throws ResourceNotExist ("parentId", number) 给出的parent id不存在
+     * @throws ResourceNotExist ("links", number[]) links中给出的tag不存在。给出不存在的link id列表
+     * @throws ResourceNotExist ("examples", number[]) examples中给出的image不存在。给出不存在的image id列表
+     * @throws ResourceNotExist ("annotations", number[]) 有annotation不存在时，抛出此异常。给出不存在的annotation id列表
+     * @throws ResourceNotSuitable ("links", number[]) links中给出的部分资源不适用，虚拟地址段是不能被link的。给出不适用的link id列表
+     * @throws ResourceNotSuitable ("examples", number[]) examples中给出的部分资源不适用，collection不能用作example。给出不适用的link id列表
+     * @throws ResourceNotSuitable ("annotations", number[]) 指定target类型且有元素不满足此类型时，抛出此异常。给出不适用的annotation id列表
+     */
     fun update(id: Int, form: TagUpdateForm) {
         data.db.transaction {
-            val record = data.db.sequenceOf(Tags).firstOrNull { it.id eq id } ?: throw NotFound()
+            val record = data.db.sequenceOf(Tags).firstOrNull { it.id eq id } ?: throw be(NotFound())
 
             val newName = form.name.letOpt { kit.validateName(it) }
             val newOtherNames = form.otherNames.letOpt { kit.validateOtherNames(it) }
@@ -197,7 +226,7 @@ class TagService(private val data: DataRepository,
                     tailrec fun recursiveCheckParent(id: Int, chains: Set<Int>) {
                         if(id in chains) {
                             //在过去经历过的parent中发现了重复的id，判定存在闭环
-                            throw RecursiveParentError()
+                            throw be(RecursiveParentError())
                         }
                         val parent = data.db.from(Tags)
                             .select(Tags.parentId)
@@ -206,7 +235,7 @@ class TagService(private val data: DataRepository,
                             .map { optOf(it[Tags.parentId]) }
                             .firstOrNull()
                             //检查parent是否存在
-                            ?: throw ResourceNotExist("parentId", newParentId)
+                            ?: throw be(ResourceNotExist("parentId", newParentId))
                         val parentId = parent.value
                         if(parentId != null) recursiveCheckParent(parentId, chains + id)
                     }
@@ -264,7 +293,7 @@ class TagService(private val data: DataRepository,
 
             val newColor = if(form.color.isPresent) {
                 //指定新color。此时如果parent为null，新color为指定的color，否则抛异常
-                newParentId.unwrapOr { record.parentId }?.let { throw CannotGiveColorError() } ?: optOf(form.color.value)
+                newParentId.unwrapOr { record.parentId }?.let { throw be(CannotGiveColorError()) } ?: optOf(form.color.value)
             }else{
                 //没有指定新color
                 if(newParentId.isPresent && newParentId.value != null) {
@@ -289,11 +318,11 @@ class TagService(private val data: DataRepository,
                 if(type == Tag.Type.TAG) {
                     if(data.db.sequenceOf(Tags).any {
                             (if(parentId != null) { Tags.parentId eq parentId }else{ Tags.parentId.isNull() } or (it.type eq Tag.Type.TAG)) and (it.name eq name) and (it.id notEq record.id)
-                    }) throw AlreadyExists("Tag", "name", name)
+                    }) throw be(AlreadyExists("Tag", "name", name))
                 }else{
                     if(data.db.sequenceOf(Tags).any {
                             if(parentId != null) { Tags.parentId eq parentId }else{ Tags.parentId.isNull() } and (it.name eq name) and (it.id notEq record.id)
-                    }) throw AlreadyExists("Tag", "name", name)
+                    }) throw be(AlreadyExists("Tag", "name", name))
                 }
             }
 
@@ -352,6 +381,9 @@ class TagService(private val data: DataRepository,
         }
     }
 
+    /**
+     * @throws NotFound 请求对象不存在
+     */
     fun delete(id: Int) {
         fun recursionDelete(id: Int) {
             data.db.delete(Tags) { it.id eq id }
@@ -365,7 +397,7 @@ class TagService(private val data: DataRepository,
         }
         data.db.transaction {
             if(data.db.sequenceOf(Tags).none { it.id eq id }) {
-                throw NotFound()
+                throw be(NotFound())
             }
             //删除标签时，将关联的illust/album重导出。只需要导出当前标签的关联，而不需要导出子标签的。
             data.db.from(IllustTagRelations)

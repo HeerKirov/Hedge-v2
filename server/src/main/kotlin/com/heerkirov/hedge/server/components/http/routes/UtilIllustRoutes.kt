@@ -3,6 +3,7 @@ package com.heerkirov.hedge.server.components.http.routes
 import com.heerkirov.hedge.server.components.http.Endpoints
 import com.heerkirov.hedge.server.components.service.IllustUtilService
 import com.heerkirov.hedge.server.exceptions.ParamTypeError
+import com.heerkirov.hedge.server.exceptions.be
 import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder.path
 import io.javalin.apibuilder.ApiBuilder.post
@@ -19,7 +20,7 @@ class UtilIllustRoutes(private val illustUtilService: IllustUtilService) : Endpo
 
     private fun getCollectionSituation(ctx: Context) {
         val illusts = try { ctx.bodyAsClass<List<Int>>() } catch (e: Exception) {
-            throw ParamTypeError("illusts", e.message ?: "cannot convert to List<Int>")
+            throw be(ParamTypeError("illusts", e.message ?: "cannot convert to List<Int>"))
         }
         ctx.json(illustUtilService.getCollectionSituation(illusts))
     }

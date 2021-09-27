@@ -4,6 +4,8 @@ import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.kit.FolderKit
 import com.heerkirov.hedge.server.dao.collection.FolderImageRelations
 import com.heerkirov.hedge.server.dao.collection.Folders
+import com.heerkirov.hedge.server.exceptions.AlreadyExists
+import com.heerkirov.hedge.server.exceptions.ResourceNotExist
 import com.heerkirov.hedge.server.utils.DateTime
 import org.ktorm.dsl.*
 import org.ktorm.entity.filter
@@ -33,6 +35,8 @@ class FolderManager(private val data: DataRepository, private val kit: FolderKit
 
     /**
      * 新建一个folder。
+     * @throws AlreadyExists ("Folder", "name", string) 此名称的folder已存在
+     * @throws ResourceNotExist ("images", number[]) 给出的images不存在。给出不存在的image id列表
      */
     fun newFolder(formTitle: String, formImages: List<Int> = emptyList()): Int {
         kit.validateTitle(formTitle)
@@ -56,6 +60,7 @@ class FolderManager(private val data: DataRepository, private val kit: FolderKit
 
     /**
      * 新建一个virtual folder。
+     * @throws AlreadyExists ("Folder", "name", string) 此名称的folder已存在
      */
     fun newVirtualFolder(formTitle: String, virtualQueryLanguage: String): Int {
         kit.validateTitle(formTitle)

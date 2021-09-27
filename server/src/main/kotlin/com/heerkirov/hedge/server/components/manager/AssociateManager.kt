@@ -7,6 +7,7 @@ import com.heerkirov.hedge.server.dao.source.FileRecords
 import com.heerkirov.hedge.server.exceptions.ResourceNotExist
 import com.heerkirov.hedge.server.dto.AssociateRes
 import com.heerkirov.hedge.server.dto.IllustRes
+import com.heerkirov.hedge.server.exceptions.be
 import com.heerkirov.hedge.server.model.illust.Illust
 import com.heerkirov.hedge.server.utils.business.takeAllFilepath
 import com.heerkirov.hedge.server.utils.DateTime.parseDateTime
@@ -72,10 +73,11 @@ class AssociateManager(private val data: DataRepository) {
 
     /**
      * 为illust更换associate。
+     * @throws ResourceNotExist ("associateId", number) 新id指定的associate不存在。给出id
      */
     fun changeAssociate(illust: Illust, newAssociateId: Int?) {
         val targetAssociate = if(newAssociateId == null) null else {
-            data.db.sequenceOf(Associates).firstOrNull { it.id eq newAssociateId } ?: throw ResourceNotExist("associateId", newAssociateId)
+            data.db.sequenceOf(Associates).firstOrNull { it.id eq newAssociateId } ?: throw be(ResourceNotExist("associateId", newAssociateId))
         }
 
         removeFromAssociate(illust)
