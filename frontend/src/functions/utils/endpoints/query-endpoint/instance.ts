@@ -22,6 +22,9 @@ export interface QueryEndpointArguments {
     segmentSize?: number
 }
 
+/**
+ * 一个大规模查询端点的实例，持有一个不变的查询条件，在这个查询条件下缓存查询结果。
+ */
 export interface QueryEndpointInstance<T> {
     /**
      * 查询指定单条数据。

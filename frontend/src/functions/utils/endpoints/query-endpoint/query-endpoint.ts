@@ -3,6 +3,7 @@ import { objects } from "@/utils/primitives"
 import { createEmitter, Emitter } from "@/utils/emitter"
 import { RefEmitter, useRefEmitter } from "@/functions/utils/emitter"
 import { Response } from "@/functions/adapter-http/server"
+import { BasicException } from "@/functions/adapter-http/exception"
 import { ListResult } from "@/functions/adapter-http/impl/generic"
 import { createQueryEndpointInstance, ModifiedEvent, QueryEndpointArguments, QueryEndpointInstance } from "./instance"
 
@@ -14,9 +15,12 @@ export interface QueryEndpointOptions<T, K> extends QueryEndpointArguments {
     /**
      * 通过此函数回调数据源的查询结果。
      */
-    request(offset: number, limit: number, filter: K): Promise<Response<ListResult<T>>>
+    request(offset: number, limit: number, filter: K): Promise<Response<ListResult<T>, BasicException>>
 }
 
+/**
+ * 响应式的查询端点。它自动根据filter参数的变化来更换queryInstance。
+ */
 export interface QueryEndpointResult<T> {
     /**
      * 代理实例。该对象的实现代理了真实对象，在只需要使用endpoint的API的情况下不需要手动处理instance更换引起的对象更替。

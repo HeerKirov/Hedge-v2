@@ -9,12 +9,12 @@ import { useNavigator } from "@/functions/feature/navigator"
 import { usePopupMenu } from "@/functions/module/popup-menu"
 import { writeClipboard } from "@/functions/module/others"
 import { date, datetime, LocalDate, LocalDateTime } from "@/utils/datetime"
-import { useDetailViewContext, useMetadataEndpoint } from "../inject"
+import { usePreviewContext, useMetadataEndpoint } from "../inject"
 import style from "./style.module.scss"
 
 export default defineComponent({
     setup() {
-        const { detail: { target }, ui: { drawerTab } } = useDetailViewContext()
+        const { detail: { target }, ui: { drawerTab } } = usePreviewContext()
         const { data, setData } = useMetadataEndpoint()
 
         const setDescription = async (description: string) => {

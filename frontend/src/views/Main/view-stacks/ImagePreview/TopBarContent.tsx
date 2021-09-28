@@ -3,7 +3,7 @@ import { ZoomController } from "@/layouts/topbar-components"
 import { useElementPopupMenu } from "@/functions/module/popup-menu"
 import { watchGlobalKeyEvent } from "@/functions/feature/keyboard"
 import { BackspaceButton } from ".."
-import { useDetailViewContext } from "./inject"
+import { usePreviewContext } from "./inject"
 import style from "./style.module.scss"
 
 export default defineComponent({
@@ -26,7 +26,7 @@ export default defineComponent({
 
 const Navigator = defineComponent({
     setup() {
-        const { navigator } = useDetailViewContext()
+        const { navigator } = usePreviewContext()
 
         watchGlobalKeyEvent(e => {
             if(e.key === "ArrowLeft" || e.key === "ArrowUp") {
@@ -67,7 +67,7 @@ const Navigator = defineComponent({
 
 const FavoriteButton = defineComponent({
     setup() {
-        const { detail: { target, setTargetData } } = useDetailViewContext()
+        const { detail: { target, setTargetData } } = usePreviewContext()
 
         const favorite = computed(() => target.value?.favorite ?? false)
 

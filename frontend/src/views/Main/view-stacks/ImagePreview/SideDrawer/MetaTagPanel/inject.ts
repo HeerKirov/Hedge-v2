@@ -17,7 +17,7 @@ import { useMetaTagCallout } from "@/layouts/data/MetaTagCallout"
 import { installSearchService, installTagListContext, useTagListContext, useSearchService } from "@/functions/api/tag-tree"
 import { installTagTreeContext } from "@/layouts/data/TagTree"
 import { sleep } from "@/utils/process"
-import { useDetailViewContext, useMetadataEndpoint } from "../../inject"
+import { usePreviewContext, useMetadataEndpoint } from "../../inject"
 
 export { useTagListContext, useSearchService }
 
@@ -115,7 +115,7 @@ function useEditorData(data: Ref<DetailIllust | null>) {
 function useSaveFunction(tags: Ref<SimpleTag[]>, topics: Ref<SimpleTopic[]>, authors: Ref<SimpleAuthor[]>, tagme: Ref<Tagme[]>, changed: {tag: boolean, topic: boolean, author: boolean, tagme: boolean}, validation: ReturnType<typeof useEditorDataValidation>) {
     const message = useMessageBox()
     const { setData } = useMetadataEndpoint()
-    const { ui: { drawerTab } } = useDetailViewContext()
+    const { ui: { drawerTab } } = usePreviewContext()
 
     const canSave = computed(() =>
         (changed.tag || changed.topic || changed.author || changed.tagme) &&

@@ -1,6 +1,6 @@
 import { inject, InjectionKey, provide, ref, Ref } from "vue"
 import { Illust } from "@/functions/adapter-http/impl/illust"
-import { SliceDataView } from "@/functions/utils/endpoints/query-endpoint"
+import { SliceDataView, SingletonDataView } from "@/functions/utils/endpoints/query-endpoint"
 
 export interface ViewStacks {
     stacks: Readonly<Ref<DetailViewInfo[]>>
@@ -15,16 +15,16 @@ export type DetailViewInfo = {
     currentIndex: number
 } | {
     type: "collection"
-    illustId: number
+    data: SingletonDataView<Illust>
 } | {
     type: "album"
-    albumId: number
+    albumId: SingletonDataView<number>
 }
 
 export function installViewStacks(): ViewStacks {
     const stacks: Ref<DetailViewInfo[]> = ref([])
 
-    const viewStacks = {
+    const viewStacks: ViewStacks = {
         openView(info: DetailViewInfo) {
             stacks.value.push(info)
         },

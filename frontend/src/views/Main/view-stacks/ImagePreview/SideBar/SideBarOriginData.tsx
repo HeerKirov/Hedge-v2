@@ -5,14 +5,14 @@ import { SourceEditor, ViewAndEditable, ViewAndEditor, SourceIdentity } from "@/
 import { SourceTag } from "@/functions/adapter-http/impl/illust"
 import { installSettingSite } from "@/functions/api/setting"
 import { useMessageBox } from "@/functions/module/message-box"
-import { useDetailViewContext, useOriginDataEndpoint } from "../inject"
+import { usePreviewContext, useOriginDataEndpoint } from "../inject"
 import style from "./style.module.scss"
 
 export default defineComponent({
     setup() {
         installSettingSite()
         const message = useMessageBox()
-        const { ui: { drawerTab } } = useDetailViewContext()
+        const { ui: { drawerTab } } = usePreviewContext()
         const { data, setData } = useOriginDataEndpoint()
 
         const setSourceIdentity = async (value: SourceIdentity) => {

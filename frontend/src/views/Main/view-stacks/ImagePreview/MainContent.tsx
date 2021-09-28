@@ -9,11 +9,11 @@ import { useNavigator } from "@/functions/feature/navigator"
 import TopBarContent from "./TopBarContent"
 import MetaTagPanel from "./SideDrawer/MetaTagPanel"
 import SourcePanel from "./SideDrawer/SourcePanel"
-import { useDetailViewContext } from "./inject"
+import { usePreviewContext } from "./inject"
 
 export default defineComponent({
     setup() {
-        const { detail, ui: { drawerTab } } = useDetailViewContext()
+        const { detail, ui: { drawerTab } } = usePreviewContext()
 
         provide(dashboardZoomInjection, {zoom: ref(100), enable: ref(true)})
 
@@ -42,7 +42,7 @@ export default defineComponent({
 function useContextmenu() {
     const navigator = useNavigator()
     const messageBox = useMessageBox()
-    const { detail } = useDetailViewContext()
+    const { detail } = usePreviewContext()
 
     const openInNewWindow = () => {
         navigator.newWindow.preferences.image(detail.id.value!)

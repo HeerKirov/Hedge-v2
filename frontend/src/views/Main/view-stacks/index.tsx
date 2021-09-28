@@ -1,7 +1,8 @@
 import { defineComponent, TransitionGroup } from "vue"
 import { watchGlobalKeyEvent } from "@/functions/feature/keyboard"
 import { useViewStacks, installViewStacks, DetailViewInfo } from "./inject"
-import ImageDetailView from "./ImageDetailView"
+import ImagePreview from "./ImagePreview"
+import CollectionPreview from "./CollectionPreview"
 import BackspaceButton from "./BackspaceButton"
 import style from "./style.module.scss"
 
@@ -45,7 +46,11 @@ function mapViews(pages: DetailViewInfo[]) {
 function mapView(page: DetailViewInfo, index: number, hidden: boolean) {
     if(page.type === "image") {
         return <ViewContainer key={index} hidden={hidden}>
-            <ImageDetailView data={page.data} currentIndex={page.currentIndex}/>
+            <ImagePreview data={page.data} currentIndex={page.currentIndex}/>
+        </ViewContainer>
+    }else if(page.type === "collection") {
+        return <ViewContainer key={index} hidden={hidden}>
+            <CollectionPreview data={page.data}/>
         </ViewContainer>
     }else{
         return undefined

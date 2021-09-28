@@ -1,10 +1,10 @@
 import { computed, reactive, readonly, watch } from "vue"
 import { SourceTag } from "@/functions/adapter-http/impl/illust"
 import { installation } from "@/functions/utils/basic"
-import { useDetailViewContext, useOriginDataEndpoint } from "../../inject"
+import { usePreviewContext, useOriginDataEndpoint } from "../../inject"
 
 export const [installEditorData, useEditorData] = installation(function() {
-    const { ui: { drawerTab } } = useDetailViewContext()
+    const { ui: { drawerTab } } = usePreviewContext()
     const { data, setData } = useOriginDataEndpoint()
 
     const editorData = reactive<{

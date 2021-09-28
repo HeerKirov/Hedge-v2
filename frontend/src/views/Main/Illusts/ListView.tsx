@@ -163,7 +163,6 @@ function useContextOperator() {
             const res = await httpClient.illust.collection.create({images})
             if(res.ok) {
                 //创建成功的情况下，刷新列表
-                //TODO 调用refresh，会导致scrollView的滚动重置。必须想办法调整组件，取消这个重置，不然使用体验会过差。
                 endpoint.refresh()
             }else if(res.exception) {
                 toast.handleException(res.exception)

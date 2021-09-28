@@ -1,23 +1,21 @@
-import { defineComponent, PropType, toRef } from "vue"
+import { defineComponent, PropType } from "vue"
 import MetaTagCallout, { installMetaTagCallout } from "@/layouts/data/MetaTagCallout"
 import SideLayout from "@/layouts/layouts/SideLayout"
 import { Illust } from "@/functions/adapter-http/impl/illust"
-import { SliceDataView } from "@/functions/utils/endpoints/query-endpoint"
-import SideBarContent from "./SideBar/SideBarContent"
 import MainContent from "./MainContent"
-import { installDetailViewContext } from "./inject"
+import { installPreviewContext } from "./inject"
+import { SingletonDataView } from "@/functions/utils/endpoints/query-endpoint"
 
 export default defineComponent({
     props: {
-        data: {type: null as any as PropType<SliceDataView<Illust>>, required: true},
-        currentIndex: {type: Number, required: true}
+        data: {type: Object as PropType<SingletonDataView<Illust>>, required: true}
     },
     setup(props) {
-        installDetailViewContext(props.data, toRef(props, "currentIndex"))
+        installPreviewContext(props.data)
         installMetaTagCallout()
 
         const sideLayoutSlots = {
-            side() { return <SideBarContent/> },
+            side() { return undefined },
             default() { return <MainContent/> }
         }
         return () => <>

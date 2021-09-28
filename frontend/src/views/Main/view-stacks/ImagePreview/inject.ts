@@ -9,9 +9,9 @@ import { useFastObjectEndpoint } from "@/functions/utils/endpoints/object-fast-e
 import { useHttpClient } from "@/functions/app"
 import { useToast } from "@/functions/module/toast"
 import { installation } from "@/functions/utils/basic"
-import { useViewStacks } from "../../view-stacks"
+import { useViewStacks } from ".."
 
-export interface DetailViewContext {
+export interface PreviewContext {
     /**
      * 当前详情视图中，引用的数据列表的列表视图。
      */
@@ -81,7 +81,7 @@ interface TargetDataForm {
     favorite?: boolean
 }
 
-export const [installDetailViewContext, useDetailViewContext] = installation(function (data: SliceDataView<Illust>, initIndex: Ref<number>): DetailViewContext {
+export const [installPreviewContext, usePreviewContext] = installation(function (data: SliceDataView<Illust>, initIndex: Ref<number>): PreviewContext {
     const { navigator, detail } = useNavigatorAndTarget(data, initIndex)
 
     installSideBarEndpoints(detail.id)
@@ -98,7 +98,7 @@ export const [installDetailViewContext, useDetailViewContext] = installation(fun
     }
 })
 
-function useNavigatorAndTarget(data: SliceDataView<Illust>, initIndex: Ref<number>): {navigator: DetailViewContext["navigator"], detail: Targets} {
+function useNavigatorAndTarget(data: SliceDataView<Illust>, initIndex: Ref<number>): {navigator: PreviewContext["navigator"], detail: Targets} {
     const { toast, handleException } = useToast()
     const httpClient = useHttpClient()
 
@@ -233,6 +233,7 @@ function useNavigatorMethod(data: SliceDataView<Illust>, currentIndex: Ref<numbe
 function useTargetUpdater(data: SliceDataView<Illust>, target: Ref<Illust | null>,
                           currentIndex: Ref<number>, currentIndexOfCollection: Ref<number | null>, collectionItems: Ref<Illust[] | null>,
                           refreshByIndex: (index: number) => void, refreshByCollectionIndex: (index: number) => void) {
+    //TODO goBack也许可以做到viewStack层去，通过数据层中间拦截，在确认没有数据后自动回退
     const { goBack } = useViewStacks()
     const { setData, deleteData } = useFastObjectEndpoint({
         update: httpClient => httpClient.illust.image.update,
@@ -364,7 +365,7 @@ export function useFileInfoEndpoint() {
 
 const symbols = {
     metadata: Symbol() as InjectionKey<ObjectLazyObjectInjection<number, DetailIllust, ImageUpdateForm, IllustExceptions["image.update"]>>,
-    relatedItems: Symbol() as InjectionKey<ObjectLazyObjectInjection<number, ImageRelatedItems, ImageRelatedUpdateForm, IllustExceptions["relatedItems.update"]>>,
-    originData: Symbol() as InjectionKey<ObjectLazyObjectInjection<number, ImageOriginData, ImageOriginUpdateForm, IllustExceptions["originData.update"]>>,
+    relatedItems: Symbol() as InjectionKey<ObjectLazyObjectInjection<number, ImageRelatedItems, ImageRelatedUpdateForm, IllustExceptions["image.relatedItems.update"]>>,
+    originData: Symbol() as InjectionKey<ObjectLazyObjectInjection<number, ImageOriginData, ImageOriginUpdateForm, IllustExceptions["image.originData.update"]>>,
     fileInfo: Symbol() as InjectionKey<ObjectLazyObjectInjection<number, ImageFileInfo, unknown, never>>
 }

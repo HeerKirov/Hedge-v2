@@ -11,6 +11,9 @@ export interface PaginationOptions {
     queryDelay?: number
 }
 
+/**
+ * 对接于虚拟视图的分页视图，依据提出的数据更新请求，从queryEndpoint中获得查询结果。
+ */
 export interface PaginationDataView<T> {
     /**
      * 响应式返回的数据结果。

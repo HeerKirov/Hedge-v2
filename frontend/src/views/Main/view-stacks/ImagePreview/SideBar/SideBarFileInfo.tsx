@@ -2,12 +2,12 @@ import { defineComponent } from "vue"
 import { assetsUrl } from "@/functions/app"
 import { numbers } from "@/utils/primitives"
 import { datetime } from "@/utils/datetime"
-import { useDetailViewContext, useFileInfoEndpoint } from "../inject"
+import { usePreviewContext, useFileInfoEndpoint } from "../inject"
 import style from "./style.module.scss"
 
 export default defineComponent({
     setup() {
-        const { detail: { target } } = useDetailViewContext()
+        const { detail: { target } } = usePreviewContext()
         const fileInfo = useFileInfoEndpoint()
 
         return () => <div class={style.fileInfoPanel}>

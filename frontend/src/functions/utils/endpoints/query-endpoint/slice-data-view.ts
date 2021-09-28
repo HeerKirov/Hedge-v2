@@ -1,5 +1,8 @@
 import { QueryEndpointInstance } from "./instance"
 
+/**
+ * 一个queryInstance的代理切片，根据规则从实例中映射出一些数据项，并把一些操作映射回原实例。
+ */
 export interface SliceDataView<T> {
     /**
      * 查询指定单条数据。

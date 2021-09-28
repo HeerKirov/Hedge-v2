@@ -181,7 +181,7 @@ export interface IllustEndpoint {
          * @exception NOT_SUITABLE ("tags", number[]) 选择的资源不适用。tag: 不能选择addr类型的tag
          * @exception CONFLICTING_GROUP_MEMBERS ({[id: number]: {memberId: number, member: string}[]}) 违反tag冲突组约束。参数值是每一项冲突组的tagId，以及这个组下有冲突的tag的id和name列表
          */
-        update(id: number, form: CollectionUpdateForm): Promise<Response<null, NotFound | ResourceNotExist<"topics" | "authors" | "tags", number[]> | ResourceNotSuitable<"tags", number[]> | ConflictingGroupMembersError>>
+        update(id: number, form: CollectionUpdateForm): Promise<Response<null, IllustExceptions["collection.update"]>>
         /**
          * 删除collection。
          * @exception NOT_FOUND
@@ -201,7 +201,7 @@ export interface IllustEndpoint {
              * @exception NOT_FOUND
              * @exception RESOURCE_NOT_EXIST ("associateId", id: number) 目标关联组不存在
              */
-            update(id: number, form: CollectionRelatedUpdateForm): Promise<Response<null, NotFound | ResourceNotExist<"associateId", number>>>
+            update(id: number, form: CollectionRelatedUpdateForm): Promise<Response<null, IllustExceptions["collection.relatedItems.update"]>>
         }
         /**
          * collection的下属image。
@@ -216,7 +216,7 @@ export interface IllustEndpoint {
              * @exception PARAM_REQUIRED ("images") images未提供
              * @exception RESOURCE_NOT_EXIST ("images", id: number[]) image id不存在或者可能是collection，总之不能用
              */
-            update(id: number, imageIds: number[]): Promise<Response<null, NotFound | ResourceNotExist<"images", number[]>>>
+            update(id: number, imageIds: number[]): Promise<Response<null, IllustExceptions["collection.images.update"]>>
         }
     }
     /**
@@ -256,7 +256,7 @@ export interface IllustEndpoint {
              * @exception NOT_FOUND
              * @exception RESOURCE_NOT_EXIST ("associateId"|"collectionId", id: number) 目标关联组/集合不存在
              */
-            update(id: number, form: ImageRelatedUpdateForm): Promise<Response<null, IllustExceptions["relatedItems.update"]>>
+            update(id: number, form: ImageRelatedUpdateForm): Promise<Response<null, IllustExceptions["image.relatedItems.update"]>>
         }
         /**
          * image的来源数据。包括关联的来源数据的id，以及关联到的来源数据内容。
@@ -275,7 +275,7 @@ export interface IllustEndpoint {
              * @exception PARAM_REQUIRED ("sourceId"/"sourcePart") 需要这些参数
              * @exception PARAM_NOT_REQUIRED ("sourcePart"/"sourceId/sourcePart") 不需要这些参数
              */
-            update(id: number, form: ImageOriginUpdateForm): Promise<Response<null, IllustExceptions["originData.update"]>>
+            update(id: number, form: ImageOriginUpdateForm): Promise<Response<null, IllustExceptions["image.originData.update"]>>
         }
         fileInfo: {
             /**
@@ -313,9 +313,12 @@ export interface IllustEndpoint {
 }
 
 export interface IllustExceptions {
+    "collection.update": NotFound | ResourceNotExist<"topics" | "authors" | "tags", number[]> | ResourceNotSuitable<"tags", number[]> | ConflictingGroupMembersError
+    "collection.relatedItems.update": NotFound | ResourceNotExist<"associateId", number>
+    "collection.images.update": NotFound | ResourceNotExist<"images", number[]>
     "image.update": NotFound | ResourceNotExist<"topics" | "authors" | "tags", number[]> | ResourceNotSuitable<"tags", number[]> | ConflictingGroupMembersError
-    "relatedItems.update": NotFound | ResourceNotExist<"collectionId" | "associateId", number>
-    "originData.update": NotFound | ResourceNotExist<"source", string> | ParamNotRequired | ParamRequired | ParamError
+    "image.relatedItems.update": NotFound | ResourceNotExist<"collectionId" | "associateId", number>
+    "image.originData.update": NotFound | ResourceNotExist<"source", string> | ParamNotRequired | ParamRequired | ParamError
 }
 
 export type IllustType = "COLLECTION" | "IMAGE"
