@@ -1,7 +1,7 @@
 import { defineComponent, PropType, watch } from "vue"
 import WrappedText from "@/components/elements/WrappedText"
 import Starlight from "@/components/elements/Starlight"
-import { AnnotationElement } from "@/layouts/display-components"
+import { AnnotationElement } from "@/layouts/elements"
 import TopBarTransparentLayout from "@/layouts/layouts/TopBarTransparentLayout"
 import { Link } from "@/functions/adapter-http/impl/generic"
 import { DetailAuthor, AuthorType } from "@/functions/adapter-http/impl/author"

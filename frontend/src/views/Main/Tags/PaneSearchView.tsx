@@ -1,6 +1,6 @@
 import { computed, defineComponent, PropType, ref } from "vue"
 import Input from "@/components/forms/Input"
-import { TagAddressElement } from "@/layouts/display-components/MetaTagElement"
+import { TagAddressElement } from "@/layouts/elements"
 import { PaneBasicLayout } from "@/layouts/layouts/SplitPane"
 import { TagAddress } from "@/functions/api/tag-tree"
 import { useKeyboardSelector } from "@/functions/utils/element"

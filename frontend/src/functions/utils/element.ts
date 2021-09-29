@@ -56,11 +56,11 @@ export function watchElementExcludeClick(ref: Ref<HTMLElement | undefined>, even
 export function useMouseHover() {
     const hover = ref(false)
 
-    const mouseover = () => hover.value = true
+    const onMouseover = () => hover.value = true
 
-    const mouseleave = () => hover.value = false
+    const onMouseleave = () => hover.value = false
 
-    return {hover, mouseover, mouseleave}
+    return {hover, onMouseover, onMouseleave}
 }
 
 /**

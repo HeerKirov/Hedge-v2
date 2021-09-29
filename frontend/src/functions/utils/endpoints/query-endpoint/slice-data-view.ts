@@ -1,4 +1,5 @@
-import { QueryEndpointInstance } from "./instance"
+import { ModifiedEvent, QueryEndpointInstance } from "./instance"
+import { createEmitter, Emitter } from "@/utils/emitter";
 
 /**
  * 一个queryInstance的代理切片，根据规则从实例中映射出一些数据项，并把一些操作映射回原实例。
@@ -26,6 +27,10 @@ export interface SliceDataView<T> {
          * @return 是否成功删除
          */
         remove(index: number): boolean
+        /**
+         * 变化事件。进行任意变更时，发送事件通知。
+         */
+        modified: Emitter<ModifiedEvent<T>>
     }
 }
 
@@ -38,7 +43,8 @@ export function createSliceOfAll<T>(instance: QueryEndpointInstance<T>): SliceDa
         count: () => instance.count()!,
         syncOperations: {
             modify: instance.syncOperations.modify,
-            remove: instance.syncOperations.remove
+            remove: instance.syncOperations.remove,
+            modified: instance.syncOperations.modified
         }
     }
 }
@@ -48,6 +54,7 @@ export function createSliceOfAll<T>(instance: QueryEndpointInstance<T>): SliceDa
  * 这种模式下，对slice中item的修改会确切反映到instance中。modify会更新，remove会移除。
  */
 export function createSliceOfList<T>(instance: QueryEndpointInstance<T>, indexList: number[]): SliceDataView<T> {
+    const modified = createEmitter<ModifiedEvent<T>>()
     let indexes = [...indexList]
 
     return {
@@ -65,20 +72,28 @@ export function createSliceOfList<T>(instance: QueryEndpointInstance<T>, indexLi
                 if(index < 0 || index >= indexes.length) {
                     return false
                 }
-                return instance.syncOperations.modify(indexes[index], newData)
+                const oldValue = instance.syncOperations.retrieve(indexes[index])!
+                const ret = instance.syncOperations.modify(indexes[index], newData)
+                if(ret) {
+                    modified.emit({type: "modify", index, value: newData, oldValue})
+                }
+                return ret
             },
             remove(index: number): boolean {
                 if(index < 0 || index >= indexes.length) {
                     return false
                 }
                 const i = indexes[index]
+                const oldValue = instance.syncOperations.retrieve(indexes[index])!
                 const ret = instance.syncOperations.remove(i)
                 if(ret) {
                     //成功删除时，从列表中移除此index的引用，并将在这之后的index的值降1
                     indexes = [...indexes.slice(0, index).map(j => j >= i ? j - 1 : j), ...indexes.slice(index + 1).map(j => j >= i ? j - 1 : j)]
+                    modified.emit({type: "remove", index, oldValue})
                 }
                 return ret
-            }
+            },
+            modified
         }
     }
 }

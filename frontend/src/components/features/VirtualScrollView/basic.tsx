@@ -40,7 +40,6 @@ interface BasicVirtualComponentOptions {
     onRefresh?()
 }
 
-//TODO 使用单一use在嵌套组件中有串数据的风险，这玩意还是得拆出install来
 export function useScrollView(): Readonly<ScrollView> {
     const parent = inject(scrollControllerInjection, undefined)
     if(parent != undefined) {

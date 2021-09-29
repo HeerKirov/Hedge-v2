@@ -1,7 +1,7 @@
 import { computed, defineComponent, ref, watch } from "vue"
 import Select from "@/components/forms/Select"
 import { PaneBasicLayout } from "@/layouts/layouts/SplitPane"
-import { AnnotationEditor, DescriptionEditor } from "@/layouts/editor-components"
+import { AnnotationEditor, DescriptionEditor } from "@/layouts/editors"
 import { IdResponse } from "@/functions/adapter-http/impl/generic"
 import { SimpleIllust } from "@/functions/adapter-http/impl/illust"
 import { SimpleAnnotation } from "@/functions/adapter-http/impl/annotations"

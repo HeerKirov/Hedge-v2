@@ -79,9 +79,9 @@ const VideoControls = defineComponent({
         const updateVolume = (volume: number) => emit("updateVolume", volume)
         const updateMuted = (muted: boolean) => emit("updateMuted", muted)
 
-        const { hover, mouseover, mouseleave } = useMouseHover()
+        const { hover, ...hoverEvents } = useMouseHover()
 
-        return () => <div class={{[style.controls]: true, [style.visible]: hover.value}} onMouseover={mouseover} onMouseleave={mouseleave}>
+        return () => <div class={{[style.controls]: true, [style.visible]: hover.value}} {...hoverEvents}>
             {hover.value && <>
                 <VideoProgressBar value={props.currentTime} max={props.duration} onSeek={seek}/>
                 <VideoProgressSpan value={props.currentTime} max={props.duration}/>
@@ -105,9 +105,9 @@ const VideoVolumeControl = defineComponent({
 
         const switchMuted = () => emit("updateMuted", !props.muted)
 
-        const { hover, mouseover, mouseleave} = useMouseHover()
+        const { hover, ...hoverEvents } = useMouseHover()
 
-        return () => <div ref={dom} class={{[style.volumeControl]: true, [style.visible]: hover.value}} onMouseover={mouseover} onMouseleave={mouseleave}>
+        return () => <div ref={dom} class={{[style.volumeControl]: true, [style.visible]: hover.value}} {...hoverEvents}>
             {hover.value && <>
                 <div class={style.num}>{Math.round(props.volume * 100)}</div>
                 <VideoVolumeBar value={props.volume} onUpdateValue={updateVolume}/>

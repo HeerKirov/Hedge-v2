@@ -6,7 +6,7 @@ import { useFastObjectEndpoint } from "@/functions/utils/endpoints/object-fast-e
 import { SimpleAnnotation } from "@/functions/adapter-http/impl/annotations"
 import { Topic, TopicType } from "@/functions/adapter-http/impl/topic"
 import { VirtualRow } from "@/components/features/VirtualScrollView"
-import { AnnotationElement } from "@/layouts/display-components"
+import { AnnotationElement } from "@/layouts/elements"
 import { arrays } from "@/utils/collections"
 import { TOPIC_TYPE_ENUMS, TOPIC_TYPE_ICONS, TOPIC_TYPE_NAMES } from "@/definitions/topic"
 import { useTopicContext } from "../inject"
@@ -122,9 +122,9 @@ const Item = defineComponent({
 
         const switchFavorite = () => emit("switchFavorite", !props.value.favorite)
 
-        const { hover, mouseover, mouseleave } = useMouseHover()
+        const { hover, ...hoverEvents } = useMouseHover()
 
-        return () => <tr onContextmenu={rightClick} onMouseover={mouseover} onMouseleave={mouseleave} style="height: 50px">
+        return () => <tr onContextmenu={rightClick} {...hoverEvents} style="height: 50px">
             <td class="is-width-45 is-cursor-pointer" onClick={click}>
                 <span class={`has-text-${props.value.color}`}>{props.value.name}</span>
                 {(props.value.otherNames?.length || null) && <p class="has-text-grey">

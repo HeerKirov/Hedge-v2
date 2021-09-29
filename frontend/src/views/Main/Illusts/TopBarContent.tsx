@@ -5,7 +5,7 @@ import {
     FitTypeButton,
     CollectionModeButton,
     SearchBox
-} from "@/layouts/topbar-components"
+} from "@/layouts/topbars"
 import { FitType } from "@/layouts/data/IllustGrid"
 import { useIllustContext } from "./inject"
 

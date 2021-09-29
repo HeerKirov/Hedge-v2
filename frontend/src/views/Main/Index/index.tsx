@@ -1,7 +1,7 @@
 import { computed, defineComponent, ref } from "vue"
 import NumberInput from "@/components/forms/NumberInput"
 import TopBarLayout from "@/layouts/layouts/TopBarLayout"
-import { DataRouter } from "@/layouts/topbar-components"
+import { DataRouter } from "@/layouts/topbars"
 import { VirtualGrid, useScrollView } from "@/components/features/VirtualScrollView"
 import { usePaginationDataView, useQueryEndpoint } from "@/functions/utils/endpoints/query-endpoint"
 

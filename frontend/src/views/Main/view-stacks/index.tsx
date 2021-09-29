@@ -1,62 +1,41 @@
-import { defineComponent, TransitionGroup } from "vue"
-import { watchGlobalKeyEvent } from "@/functions/feature/keyboard"
-import { useViewStacks, installViewStacks, DetailViewInfo } from "./inject"
-import ImagePreview from "./ImagePreview"
-import CollectionPreview from "./CollectionPreview"
-import BackspaceButton from "./BackspaceButton"
-import style from "./style.module.scss"
+import { SingletonDataView, SliceDataView } from "@/functions/utils/endpoints/query-endpoint"
+import { Illust } from "@/functions/adapter-http/impl/illust"
+import ImageDetailView from "./ImageDetailView"
+import CollectionDetailView from "./CollectionDetailView"
+import { defineViewStackComponents } from "./Components"
+export { BackspaceButton } from "./BackspaceButton"
 
-export { useViewStacks, installViewStacks, BackspaceButton }
+/* TODO view stacks待解决的问题
+        2. 需要处理"view内容被删除后需要自动回退"的问题。
+        3. 需要实现"view内容向上一层级传递回调消息"(例如preview通知list最后浏览的对象)的功能。
+ */
 
-export default defineComponent({
-    setup() {
-        const { stacks } = useViewStacks()
+export type StackViewInfo = {
+    type: "image"
+    data: SliceDataView<Illust>
+    currentIndex: number
+} | {
+    type: "collection"
+    data: SingletonDataView<Illust> | number
+} | {
+    type: "album"
+    albumId: SingletonDataView<number>
+}
 
-        return () => <TransitionGroup enterFromClass={style.transitionEnterFrom}
-                                      leaveToClass={style.transitionLeaveTo}
-                                      enterActiveClass={style.transitionEnterActive}
-                                      leaveActiveClass={style.transitionLeaveActive}>
-            {mapViews(stacks.value)}
-        </TransitionGroup>
-    }
-})
-
-const ViewContainer = defineComponent({
-    props: {
-        hidden: Boolean
+export const { ViewStack, installViewStack, useViewStack } = defineViewStackComponents({
+    slots(info: StackViewInfo) {
+        return info.type === "image" ? <ImageDetailView data={info.data} currentIndex={info.currentIndex}/>
+            : info.type === "collection" ? <CollectionDetailView data={info.data}/>
+            : undefined
     },
-    setup(props, { slots }) {
-        watchGlobalKeyEvent(e => {
-            //截断按键事件继续向前传播，使按键事件只能作用在最新的视图上
-            e.stopPropagation()
-        })
-
-        return () => <div class={{[style.viewContainer]: true, [style.hidden]: props.hidden}}>{slots.default?.()}</div>
+    operations({ stacks }) {
+        return {
+            openImageView(data: SliceDataView<Illust>, currentIndex: number) {
+                stacks.value.push({type: "image", data, currentIndex})
+            },
+            openCollectionView(data: SingletonDataView<Illust> | number) {
+                stacks.value.push({type: "collection", data})
+            }
+        }
     }
 })
-
-function mapViews(pages: DetailViewInfo[]) {
-    if(pages.length <= 0) {
-        return []
-    }
-    return pages.slice(0, pages.length - 1).map((page, i) => mapView(page, i, true))
-        .concat(coverDom(pages.length), mapView(pages[pages.length - 1], pages.length - 1, false))
-}
-
-function mapView(page: DetailViewInfo, index: number, hidden: boolean) {
-    if(page.type === "image") {
-        return <ViewContainer key={index} hidden={hidden}>
-            <ImagePreview data={page.data} currentIndex={page.currentIndex}/>
-        </ViewContainer>
-    }else if(page.type === "collection") {
-        return <ViewContainer key={index} hidden={hidden}>
-            <CollectionPreview data={page.data}/>
-        </ViewContainer>
-    }else{
-        return undefined
-    }
-}
-
-function coverDom(index: number) {
-    return <div key={`background-cover-${index}`} class={style.viewBackgroundCover}/>
-}

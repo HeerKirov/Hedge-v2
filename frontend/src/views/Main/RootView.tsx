@@ -3,15 +3,15 @@ import { RouterView } from "vue-router"
 import { clientMode } from "@/functions/adapter-ipc"
 import { windowManager } from "@/functions/module/window-manager"
 import SideLayout, { SideBar } from "@/layouts/layouts/SideLayout"
-import { useViewStacks } from "./view-stacks"
+import { useViewStack } from "./view-stacks"
 import SideBarContent from "./SideBarContent"
 import style from "./style.module.scss"
 
 export default defineComponent({
     setup() {
-        const viewStacks = useViewStacks()
+        const viewStacks = useViewStack()
 
-        const stackExists = computed(() => viewStacks.stacks.value.length > 0)
+        const stackExists = computed(() => viewStacks.size() > 0)
 
         const sideSlots = {
             default() { return <SideBarContent/> },

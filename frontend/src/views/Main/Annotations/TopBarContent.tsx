@@ -1,5 +1,5 @@
 import { defineComponent, ref, watch } from "vue"
-import { DataRouter, AddOnFilter, SearchBox, AddOnTemplate } from "@/layouts/topbar-components"
+import { DataRouter, AddOnFilter, SearchBox, AddOnTemplate } from "@/layouts/topbars"
 import { AnnotationQueryFilter, AnnotationTarget } from "@/functions/adapter-http/impl/annotations"
 import { TARGET_TYPE_ENUMS, TARGET_TYPE_NAMES, TARGET_TYPE_ICONS } from "@/definitions/annotation"
 import { useAnnotationContext } from "./inject"

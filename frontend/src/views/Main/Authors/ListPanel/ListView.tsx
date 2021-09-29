@@ -6,7 +6,7 @@ import { useFastObjectEndpoint } from "@/functions/utils/endpoints/object-fast-e
 import { SimpleAnnotation } from "@/functions/adapter-http/impl/annotations"
 import { Author, AuthorType } from "@/functions/adapter-http/impl/author"
 import { VirtualRow } from "@/components/features/VirtualScrollView"
-import { AnnotationElement } from "@/layouts/display-components"
+import { AnnotationElement } from "@/layouts/elements"
 import { arrays } from "@/utils/collections"
 import { AUTHOR_TYPE_ENUMS, AUTHOR_TYPE_ICONS, AUTHOR_TYPE_NAMES } from "@/definitions/author"
 import { useAuthorContext } from "../inject"
@@ -100,9 +100,9 @@ const Item = defineComponent({
 
         const switchFavorite = () => emit("switchFavorite", !props.value.favorite)
 
-        const { hover, mouseover, mouseleave } = useMouseHover()
+        const { hover, ...hoverEvents } = useMouseHover()
 
-        return () => <div class={[style.item, "box"]} onMouseover={mouseover} onMouseleave={mouseleave}  onContextmenu={rightClick}>
+        return () => <div class={[style.item, "box"]} {...hoverEvents} onContextmenu={rightClick}>
             <div class={style.left}>
                 {props.value.favorite ?
                     <i class="mr-3 mt-1 fa fa-heart has-text-danger is-cursor-pointer float-right" onClick={switchFavorite}/>

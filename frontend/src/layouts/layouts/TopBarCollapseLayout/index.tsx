@@ -14,7 +14,7 @@ export default defineComponent({
     setup(_, { slots }) {
         const fixed = inject(sideBarSwitchInjection)!
 
-        const { hover, mouseover, mouseleave } = useMouseHover()
+        const { hover, ...hoverEvents } = useMouseHover()
 
         const hidden = ref(false)
 
@@ -35,7 +35,7 @@ export default defineComponent({
             {slots.default && <div class={{[style.mainContent]: true, [style.fixed]: fixed.value}}>
                 {slots.default?.()}
             </div>}
-            {slots.topBar && <div class={style.topBarArea} onMouseover={mouseover} onMouseleave={mouseleave}>
+            {slots.topBar && <div class={style.topBarArea} {...hoverEvents}>
                 {!fixed.value && <div class={style.topBarTriggerArea}/>}
                 <TopBar class={{[style.topBarComponent]: true, [style.hidden]: !fixed.value && !hidden.value}}>
                     {slots.topBar?.()}

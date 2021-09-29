@@ -1,6 +1,6 @@
 import { defineComponent } from "vue"
-import { SourceEditor, TagmeEditor, DateTimeEditor, ViewAndEditor, DateEditor } from "@/layouts/editor-components"
-import { SourceInfo, TagmeInfo } from "@/layouts/display-components"
+import { SourceEditor, TagmeEditor, DateTimeEditor, ViewAndEditor, DateEditor } from "@/layouts/editors"
+import { SourceInfo, TagmeInfo } from "@/layouts/displays"
 import { PaneBasicLayout } from "@/layouts/layouts/SplitPane"
 import { useMessageBox } from "@/functions/module/message-box"
 import { useObjectEndpoint } from "@/functions/utils/endpoints/object-endpoint"

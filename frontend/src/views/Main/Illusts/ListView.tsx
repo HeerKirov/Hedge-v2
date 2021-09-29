@@ -1,14 +1,14 @@
 import { defineComponent, markRaw } from "vue"
 import IllustGrid from "@/layouts/data/IllustGrid"
 import { Illust } from "@/functions/adapter-http/impl/illust"
-import { createSliceOfAll, createSliceOfList } from "@/functions/utils/endpoints/query-endpoint"
+import { createProxySingleton, createSliceOfAll, createSliceOfList } from "@/functions/utils/endpoints/query-endpoint"
 import { useFastObjectEndpoint } from "@/functions/utils/endpoints/object-fast-endpoint"
 import { useHttpClient } from "@/functions/app"
 import { useToast } from "@/functions/module/toast"
 import { useMessageBox } from "@/functions/module/message-box"
 import { useDynamicPopupMenu } from "@/functions/module/popup-menu"
 import { useNavigator } from "@/functions/feature/navigator"
-import { useViewStacks } from "../view-stacks"
+import { useViewStack } from "../view-stacks"
 import { useIllustContext } from "./inject"
 
 export default defineComponent({
@@ -25,29 +25,29 @@ export default defineComponent({
             lastSelected.value = lastSelectedValue
         }
 
-        const { clickToOpenDetail, enterToOpenDetail } = useOpenDetail()
+        const openMethod = useOpenMethod()
 
-        const menu = useContextmenu(clickToOpenDetail)
+        const menu = useContextmenu(openMethod)
 
         return () => <IllustGrid data={markRaw(dataView.data.value)} onDataUpdate={dataView.dataUpdate}
                                  queryEndpoint={markRaw(endpoint.proxy)} fitType={fitType.value} columnNum={columnNum.value}
                                  selected={selected.value} lastSelected={lastSelected.value} onSelect={updateSelected}
-                                 onRightClick={menu.popup} onDblClick={clickToOpenDetail} onEnter={enterToOpenDetail}/>
+                                 onRightClick={menu.popup} onDblClick={openMethod.clickToOpenDetail} onEnter={openMethod.enterToOpenDetail}/>
     }
 })
 
-function useContextmenu(clickToOpenDetail: (id: number) => void) {
+function useContextmenu(openMethod: ReturnType<typeof useOpenMethod>) {
 
     const navigator = useNavigator()
     const { switchFavorite, createCollection, deleteItem } = useContextOperator()
 
     //TODO 完成illust右键菜单的功能
     const menu = useDynamicPopupMenu<Illust>(illust => [
-        {type: "normal", label: "查看详情", click: illust => clickToOpenDetail(illust.id)},
-        illust.type === "COLLECTION" ? {type: "normal", label: "查看集合详情"} : null,
+        {type: "normal", label: "查看详情", click: illust => openMethod.clickToOpenDetail(illust.id)},
+        illust.type === "COLLECTION" ? {type: "normal", label: "查看集合详情", click: openMethod.openCollectionDetail} : null,
         {type: "separator"},
-        {type: "normal", label: "显示信息预览"},
         {type: "normal", label: "在新窗口中打开", click: openInNewWindow},
+        {type: "normal", label: "显示信息预览"},
         {type: "separator"},
         illust.favorite
             ? {type: "normal", label: "取消标记为收藏", click: illust => switchFavorite(illust, false)}
@@ -75,15 +75,15 @@ function useContextmenu(clickToOpenDetail: (id: number) => void) {
     return menu
 }
 
-function useOpenDetail() {
+function useOpenMethod() {
     const { dataView, endpoint, selector: { selected } } = useIllustContext()
-    const viewStacks = useViewStacks()
+    const viewStacks = useViewStack()
 
     const openAll = (illustId: number) => {
         const currentIndex = dataView.proxy.syncOperations.find(i => i.id === illustId)
         if(currentIndex !== undefined) {
             const data = createSliceOfAll(endpoint.instance.value)
-            viewStacks.openView({type: "image", data, currentIndex})
+            viewStacks.openImageView(data, currentIndex)
         }
     }
 
@@ -93,7 +93,7 @@ function useOpenDetail() {
             .filter(index => index !== undefined) as number[]
         const data = createSliceOfList(endpoint.instance.value, indexList)
 
-        viewStacks.openView({type: "image", data, currentIndex})
+        viewStacks.openImageView(data, currentIndex)
     }
 
     const clickToOpenDetail = (illustId: number) => {
@@ -122,7 +122,19 @@ function useOpenDetail() {
         }
     }
 
-    return {clickToOpenDetail, enterToOpenDetail}
+    const openCollectionDetail = (illust: Illust) => {
+        if(illust?.type === "COLLECTION") {
+            const currentIndex = dataView.proxy.syncOperations.find(i => i.id === illust.id)
+            if(currentIndex !== undefined) {
+                const data = createProxySingleton(endpoint.instance.value, currentIndex)
+                viewStacks.openCollectionView(data)
+            }
+        }else{
+            console.error(`Illust ${illust.id} is not a collection.`)
+        }
+    }
+
+    return {clickToOpenDetail, enterToOpenDetail, openCollectionDetail}
 }
 
 function useContextOperator() {

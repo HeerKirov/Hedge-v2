@@ -3,8 +3,8 @@ import Input from "@/components/forms/Input"
 import CheckBox from "@/components/forms/CheckBox"
 import StdColorSelector from "@/components/forms/StdColorSelector"
 import WrappedText from "@/components/elements/WrappedText"
-import { TagLinkElement } from "@/layouts/display-components"
-import { OtherNameEditor } from "@/layouts/editor-components"
+import { TagLinkElement } from "@/layouts/elements"
+import { OtherNameEditor } from "@/layouts/editors"
 import { IsGroup, TagLink } from "@/functions/adapter-http/impl/tag"
 import { useDroppable } from "@/functions/feature/drag"
 import { useMouseHover } from "@/functions/utils/element"
@@ -103,9 +103,9 @@ export const DescriptionDisplay = defineComponent({
     setup(props, { emit }) {
         const edit = () => emit("edit")
 
-        const { hover, mouseover, mouseleave } = useMouseHover()
+        const { hover, ...hoverEvents } = useMouseHover()
 
-        return () => <div class={[style.description, "block", "is-cursor-text"]} onMouseover={mouseover} onMouseleave={mouseleave}>
+        return () => <div class={[style.description, "block", "is-cursor-text"]} {...hoverEvents}>
             {props.value ? <WrappedText value={props.value}/> : <i class="has-text-grey">没有描述</i>}
             {hover.value && <a class={[style.edit, "has-text-link"]} onClick={edit}><i class="fa fa-edit"/></a>}
         </div>
