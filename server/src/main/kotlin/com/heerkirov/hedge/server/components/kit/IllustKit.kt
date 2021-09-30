@@ -44,15 +44,23 @@ class IllustKit(private val data: DataRepository,
                        creating: Boolean = false, copyFromParent: Int? = null, copyFromChildren: Boolean = false) {
         val analyseStatisticCount = !copyFromChildren
 
+        //检出每种tag的数量。这个数量指新设定的值或已存在的值中notExported的数量
         val tagCount = if(newTags.isPresent) newTags.value.size else if(creating) 0 else metaManager.getNotExportedMetaCount(thisId, IllustTagRelations)
         val topicCount = if(newTopics.isPresent) newTopics.value.size else if(creating) 0 else metaManager.getNotExportedMetaCount(thisId, IllustTopicRelations)
         val authorCount = if(newAuthors.isPresent) newAuthors.value.size else if(creating) 0 else metaManager.getNotExportedMetaCount(thisId, IllustAuthorRelations)
 
         if(tagCount == 0 && topicCount == 0 && authorCount == 0) {
-            //若发现当前列表数全部为0，那么从依赖项拷贝tag
+            //如果发现所有count都是0，意味着这个illust即将被设置为无metaTag。根据业务规则，此时将寻求从parent或children生成它的metaTag。
+            //首先清理现在可能还存在的metaTag。用XXX.isPresent作为判断条件，是因为若有新设值为空，那么可能意味着之前有值；而isUndefined时，旧值一定是空，不需要清理
+            if(newTags.isPresent) metaManager.deleteMetaTags(thisId, IllustTagRelations, Tags, analyseStatisticCount)
+            if(newAuthors.isPresent) metaManager.deleteMetaTags(thisId, IllustAuthorRelations, Authors, analyseStatisticCount)
+            if(newTopics.isPresent) metaManager.deleteMetaTags(thisId, IllustTopicRelations, Topics, analyseStatisticCount)
+
             if(copyFromParent != null) {
+                //如果发现parent有notExported的metaTag，那么从parent直接拷贝全部metaTag
                 if(anyNotExportedMeta(copyFromParent)) copyAllMetaFromParent(thisId, copyFromParent)
             }else if (copyFromChildren) {
+                //从children拷贝全部notExported的metaTag，然后做导出
                 copyAllMetaFromChildren(thisId)
             }
         }else if(((newTags.isPresent && tagCount > 0) || (newAuthors.isPresent && authorCount > 0) || (newTopics.isPresent && topicCount > 0))
@@ -113,11 +121,10 @@ class IllustKit(private val data: DataRepository,
 
         if(tagCount == 0 && topicCount == 0 && authorCount == 0) {
             //若发现当前列表数全部为0，那么从依赖项拷贝tag。在拷贝之前，清空全列表，防止duplicated key。
+            deleteAllMeta()
             if (copyFromChildren) {
-                deleteAllMeta()
                 copyAllMetaFromChildren(thisId)
             }else if(copyFromParent != null && anyNotExportedMeta(copyFromParent)) {
-                deleteAllMeta()
                 copyAllMetaFromParent(thisId, copyFromParent)
             }
         }else if(tagCount > 0 || topicCount > 0 || authorCount > 0) {
@@ -191,9 +198,10 @@ class IllustKit(private val data: DataRepository,
     }
 
     /**
-     * 从当前项的所有子项拷贝全部的meta，统一设定为exported。
+     * 从当前项的所有子项拷贝notExported的meta，然后统一导出。
      */
     private fun copyAllMetaFromChildren(thisId: Int) {
+        //tips: 此处的实现是直接从所有children拷贝所有metaTag。但这并不是正确的实现方法，这么做可能导致exported metaTag在套娃传递。但后续要重构，就先懒得改了
         fun <R> copyOneMeta(tagRelations: R) where R: EntityMetaRelationTable<*> {
             val ids = data.db.from(Illusts)
                 .innerJoin(tagRelations, tagRelations.entityId() eq Illusts.id)

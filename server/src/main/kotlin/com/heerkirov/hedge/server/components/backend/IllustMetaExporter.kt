@@ -164,6 +164,9 @@ class IllustMetaExporterImpl(private val data: DataRepository,
         }
     }
 
+    /**
+     * 对illust的导出属性做重新导出。
+     */
     private fun exportIllust(task: IllustExporterTask) {
         data.db.transaction {
             val illust = data.db.sequenceOf(Illusts).firstOrNull { it.id eq task.id } ?: return
@@ -172,8 +175,10 @@ class IllustMetaExporterImpl(private val data: DataRepository,
             val exportedFileAndTime: Opt<Triple<Int, LocalDate, Long>>
             val cachedChildrenCount: Opt<Int>
             if(illust.type == Illust.Type.COLLECTION) {
+                //collection不需要重导出description，因为它的值总是取自originDescription，在编写时赋值，不会有别的东西影响它的
                 exportedDescription = undefined()
 
+                //实际上collection还得重新导出file、orderTime和childrenCount
                 exportedFileAndTime = if(task.exportFileAndTime) {
                     val firstChild = data.db.from(Illusts).select()
                         .where { Illusts.parentId eq task.id }
@@ -185,11 +190,11 @@ class IllustMetaExporterImpl(private val data: DataRepository,
                         Opt(Triple(firstChild.fileId, firstChild.partitionTime, firstChild.orderTime))
                     }else undefined()
                 }else undefined()
-
                 cachedChildrenCount = if(task.exportFileAndTime) {
                     Opt(data.db.sequenceOf(Illusts).filter { Illusts.parentId eq task.id }.count())
                 }else undefined()
 
+                //exportedScore取score，或者缺省时，取出avg(children.score)
                 exportedScore = if(task.exportScore) {
                     Opt(illust.score ?: data.db.from(Illusts)
                         .select(count(Illusts.id).aliased("count"), avg(Illusts.score).aliased("score"))
@@ -200,6 +205,7 @@ class IllustMetaExporterImpl(private val data: DataRepository,
 
                 }else undefined()
 
+                //exportedMeta通过推导生成，或者缺省时，从children取notExportedMeta的并集推导生成
                 if(task.exportMeta) {
                     illustKit.forceProcessAllMeta(task.id, copyFromChildren = true)
                 }
@@ -209,14 +215,17 @@ class IllustMetaExporterImpl(private val data: DataRepository,
                 exportedFileAndTime = undefined()
                 cachedChildrenCount = undefined()
 
+                //exportedDescription取description，或者缺省时，沿用parent的description
                 exportedDescription = if(task.exportDescription) {
-                    Opt(if(illust.description.isNotEmpty()) illust.description else parent?.description ?: "")
+                    Opt(illust.description.ifEmpty { parent?.description ?: "" })
                 }else undefined()
 
+                //exportedScore取score，或者缺省时，沿用parent的exportedScore
                 exportedScore = if(task.exportScore) {
                     Opt(illust.score ?: parent?.score)
                 }else undefined()
 
+                //exportedMeta通过推导生成，或者缺省时，直接从parent拷贝全部MetaTag
                 if(task.exportMeta) {
                     illustKit.forceProcessAllMeta(task.id, copyFromParent = illust.parentId)
                 }
