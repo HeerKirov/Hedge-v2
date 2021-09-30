@@ -95,3 +95,42 @@ export function createStandaloneSingleton<T>(d: T): SingletonDataView<T> {
         }
     }
 }
+
+/**
+ * 创建一个无代理的、仅单一数据的实例，不过数据通过异步函数请求取得。
+ */
+export function createInvokeSingleton<T>(invoke: () => Promise<T | undefined>): SingletonDataView<T> {
+    const modified = createEmitter<ModifiedEvent<T>>()
+    let invoked = false
+    let data: T | undefined = undefined
+    return {
+        async get() {
+            if(!invoked) {
+                invoked = true
+                data = await invoke()
+            }
+            return data
+        },
+        syncOperations: {
+            modify(newData: T): boolean {
+                if(data !== undefined) {
+                    const oldValue = data
+                    data = newData
+                    modified.emit({type: "modify", index: -1, value: data, oldValue})
+                    return true
+                }
+                return false
+            },
+            remove(): boolean {
+                if(data !== undefined) {
+                    const oldValue = data
+                    data = undefined
+                    modified.emit({type: "remove", index: -1, oldValue})
+                    return true
+                }
+                return false
+            },
+            modified
+        }
+    }
+}

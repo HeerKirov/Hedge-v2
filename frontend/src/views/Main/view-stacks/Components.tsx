@@ -2,9 +2,10 @@ import { defineComponent, inject, InjectionKey, provide, ref, Ref, TransitionGro
 import { watchGlobalKeyEvent } from "@/functions/feature/keyboard"
 import style from "./style.module.scss"
 
-export interface DefineViewStacksOptions<INFO, OPT extends object> {
+export interface DefineViewStacksOptions<INFO, OPT extends object = {}> {
     slots(info: INFO): JSX.Element | undefined
-    operations(context: StacksContext<INFO>, stackIndex: number | undefined): OPT
+    operations?(context: StacksOperationContext<INFO>, stackIndex: number | undefined): OPT
+    onClose?(info: INFO)
 }
 
 export type ViewStacks<OPT extends object> = OPT & CommonOperations
@@ -19,16 +20,22 @@ interface StacksContext<INFO> {
     stacks: Ref<INFO[]>
 }
 
+interface StacksOperationContext<INFO> {
+    stacks: Readonly<Ref<INFO[]>>
+    push(info: INFO): void
+    close(info: INFO): void
+}
+
 interface EachViewContext {
     stackIndex: number
 }
 
-export function defineViewStackComponents<INFO, OPT extends object>({ slots, operations }: DefineViewStacksOptions<INFO, OPT>) {
+export function defineViewStackComponents<INFO, OPT extends object>({ slots, operations, onClose }: DefineViewStacksOptions<INFO, OPT>) {
     const viewStacksInjection: InjectionKey<StacksContext<INFO>> = Symbol()
 
     const eachViewInjection: InjectionKey<EachViewContext> = Symbol()
 
-    function mapViews<INFO>(pages: INFO[], slots: (_: INFO) => JSX.Element | undefined) {
+    function mapViews(pages: INFO[]) {
         return pages.length <= 0 ? [] : [
             ...pages.slice(0, pages.length - 1).map((page, i) => containerDom(slots(page), i, true)),
             coverDom(pages.length),
@@ -52,7 +59,7 @@ export function defineViewStackComponents<INFO, OPT extends object>({ slots, ope
                                           leaveToClass={style.transitionLeaveTo}
                                           enterActiveClass={style.transitionEnterActive}
                                           leaveActiveClass={style.transitionLeaveActive}>
-                {mapViews(stacks.value, slots)}
+                {mapViews(stacks.value)}
             </TransitionGroup>
         }
     })
@@ -87,9 +94,22 @@ export function defineViewStackComponents<INFO, OPT extends object>({ slots, ope
     }
 
     function createViewStacksOperations(stacksContext: StacksContext<INFO>, stackIndex: number | undefined): ViewStacks<OPT> {
+        const stackOperationContext: StacksOperationContext<INFO> = {
+            stacks: stacksContext.stacks,
+            push(info: INFO) {
+                stacksContext.stacks.value.push(info)
+            },
+            close(info: INFO) {
+                const index = stacksContext.stacks.value.findIndex(i => i === info)
+                if(index >= 0) {
+                    const pops = stacksContext.stacks.value.splice(index, 1)
+                    if(onClose) pops.forEach(onClose)
+                }
+            }
+        }
         return {
             ...createCommonOperations(stacksContext, stackIndex),
-            ...operations(stacksContext, stackIndex)
+            ...(operations?.(stackOperationContext, stackIndex) ?? ({} as OPT))
         }
     }
 
@@ -101,14 +121,17 @@ export function defineViewStackComponents<INFO, OPT extends object>({ slots, ope
             closeView() {
                 if(stackIndex === undefined) {
                     if(stacks.value.length > 0) {
-                        stacks.value.splice(stacks.value.length - 1, 1)
+                        const pops = stacks.value.splice(stacks.value.length - 1, 1)
+                        if(onClose) pops.forEach(onClose)
                     }
                 }else{
-                    stacks.value.splice(stackIndex, 1)
+                    const pops = stacks.value.splice(stackIndex, 1)
+                    if(onClose) pops.forEach(onClose)
                 }
             },
             closeAll() {
-                stacks.value.splice(0, stacks.value.length)
+                const pops = stacks.value.splice(0, stacks.value.length)
+                if(onClose) pops.forEach(onClose)
             }
         }
     }
