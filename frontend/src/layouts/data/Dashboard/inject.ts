@@ -1,4 +1,4 @@
-import { InjectionKey, Ref } from "vue"
+import { inject, InjectionKey, provide, Ref } from "vue"
 
 export interface DashboardZoomProps {
     enable: Ref<boolean>
@@ -6,3 +6,11 @@ export interface DashboardZoomProps {
 }
 
 export const dashboardZoomInjection: InjectionKey<DashboardZoomProps> = Symbol()
+
+export function installDashboardZoom(enable: Ref<boolean>, zoom: Ref<number>) {
+    provide(dashboardZoomInjection, {enable, zoom})
+}
+
+export function useDashboardZoom(): DashboardZoomProps {
+    return inject(dashboardZoomInjection)!
+}

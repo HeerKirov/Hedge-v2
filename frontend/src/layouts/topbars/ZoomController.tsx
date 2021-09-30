@@ -1,7 +1,7 @@
-import { computed, defineComponent, inject, ref } from "vue"
+import { computed, defineComponent, ref } from "vue"
 import RangeInput from "@/components/forms/RangeInput"
 import { watchGlobalKeyEvent } from "@/functions/feature/keyboard"
-import { dashboardZoomInjection } from "@/layouts/data/Dashboard"
+import { useDashboardZoom } from "@/layouts/data/Dashboard"
 import { watchElementExcludeClick } from "@/functions/utils/element"
 import { numbers } from "@/utils/primitives"
 import style from "./ZoomController.module.scss"
@@ -10,7 +10,7 @@ const ZOOM_MIN = 20, ZOOM_MAX = 400, ZOOM_STEP = 20
 
 export default defineComponent({
     setup() {
-        const { zoom } = inject(dashboardZoomInjection)!
+        const { zoom } = useDashboardZoom()
 
         const divRef = ref<HTMLElement>()
         watchElementExcludeClick(divRef, () => visible.value = false)
@@ -43,7 +43,7 @@ export default defineComponent({
 const ZoomButton = defineComponent({
     emits: ["click"],
     setup(_, { emit }) {
-        const { zoom, enable } = inject(dashboardZoomInjection)!
+        const { zoom, enable } = useDashboardZoom()
 
         const click = () => emit("click")
 
@@ -57,7 +57,7 @@ const ZoomButton = defineComponent({
 const ZoomBar = defineComponent({
     emits: ["clickButton"],
     setup(_, { emit }) {
-        const { zoom } = inject(dashboardZoomInjection)!
+        const { zoom } = useDashboardZoom()
 
         const can = computed(() => ({minus: zoom.value > ZOOM_MIN, plus: zoom.value < ZOOM_MAX}))
 

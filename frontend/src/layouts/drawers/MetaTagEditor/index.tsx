@@ -1,14 +1,34 @@
-import { computed, defineComponent } from "vue"
-import { Tagme } from "@/functions/adapter-http/impl/illust"
+import { computed, defineComponent, PropType } from "vue"
 import CheckBox from "@/components/forms/CheckBox"
+import { Tagme } from "@/functions/adapter-http/impl/illust"
+import { DepsTag } from "@/functions/adapter-http/impl/tag"
+import { DepsTopic } from "@/functions/adapter-http/impl/topic"
+import { DepsAuthor } from "@/functions/adapter-http/impl/author"
 import LeftColumn from "./LeftColumn"
 import RightColumn from "./RightColumn"
-import { installPanelContext, usePanelContext } from "./inject"
+import { installPanelContext, usePanelContext, SetData } from "./inject"
 import style from "./style.module.scss"
 
 export default defineComponent({
-    setup() {
-        installPanelContext()
+    props: {
+        tags: {type: Array as PropType<DepsTag[]>, required: true},
+        topics: {type: Array as PropType<DepsTopic[]>, required: true},
+        authors: {type: Array as PropType<DepsAuthor[]>, required: true},
+        tagme: {type: Array as PropType<Tagme[]>, required: true},
+        setData: {type: Function as PropType<SetData>, required: true}
+    },
+    emits: {
+        close: () => true
+    },
+    setup(props, { emit }) {
+        const data = computed(() => ({
+            tags: props.tags,
+            topics: props.topics,
+            authors: props.authors,
+            tagme: props.tagme
+        }))
+
+        installPanelContext({data, setData: props.setData, close: () => emit("close")})
 
         return () => <div class={style.panelOfMetaTag}>
             <TopColumn/>

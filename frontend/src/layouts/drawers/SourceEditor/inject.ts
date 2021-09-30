@@ -1,11 +1,19 @@
-import { computed, reactive, readonly, watch } from "vue"
-import { SourceTag } from "@/functions/adapter-http/impl/illust"
+import { computed, reactive, readonly, Ref, watch } from "vue"
+import { IllustExceptions, ImageOriginData, ImageOriginUpdateForm, SourceTag } from "@/functions/adapter-http/impl/illust"
 import { installation } from "@/functions/utils/basic"
-import { usePreviewContext, useOriginDataEndpoint } from "../../inject"
 
-export const [installEditorData, useEditorData] = installation(function() {
-    const { ui: { drawerTab } } = usePreviewContext()
-    const { data, setData } = useOriginDataEndpoint()
+interface InstallEditorData {
+    data: Ref<ImageOriginData | null>
+    setData: SetData
+    close(): void
+}
+
+export interface SetData {
+    (form: ImageOriginUpdateForm, errorHandler?: (e: IllustExceptions["image.originData.update"]) => IllustExceptions["image.originData.update"] | void): Promise<boolean>
+}
+
+export const [installEditorData, useEditorData] = installation(function(context: InstallEditorData) {
+    const { data, setData } = context
 
     const editorData = reactive<{
         title: string,
@@ -59,7 +67,7 @@ export const [installEditorData, useEditorData] = installation(function() {
 
             if(ok) {
                 //保存成功后关闭面板
-                drawerTab.value = undefined
+                context.close()
             }
         }
     }

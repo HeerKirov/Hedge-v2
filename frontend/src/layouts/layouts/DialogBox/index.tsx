@@ -6,7 +6,7 @@ export default defineComponent({
     props: {
         visible: Boolean,
         position: {type: String as PropType<"absolute" | "fixed">, default: "fixed"},
-        overflow: {type: String as PropType<"auto" | "hidden">, default: "auto"},
+        overflow: {type: String as PropType<"auto" | "hidden" | "default">, default: "default"},
         closeOnClickBackground: {type: Boolean, default: true},
         closeOnEscape: {type: Boolean, default: true}
     },
@@ -33,7 +33,7 @@ export default defineComponent({
 const BoxFramework = defineComponent({
     props: {
         position: {type: String as PropType<"absolute" | "fixed">, required: true},
-        overflow: {type: String as PropType<"auto" | "hidden">, required: true},
+        overflow: {type: String as PropType<"auto" | "hidden" | "default">, required: true},
         closeOnEscape: Boolean
     },
     emits: {
@@ -44,7 +44,7 @@ const BoxFramework = defineComponent({
         if(props.closeOnEscape) interceptGlobalKey(["Escape"], () => emit("close"))
 
         return () => <div class={{[style.boxFramework]: true, [style.absolute]: props.position === "absolute"}}>
-            <div class={{"popup-block": true, "is-overflow-hidden": props.overflow === "hidden"}} {...attrs}>
+            <div class={["popup-block", `is-overflow-${props.overflow}`]} {...attrs}>
                 {slots.default?.()}
             </div>
         </div>

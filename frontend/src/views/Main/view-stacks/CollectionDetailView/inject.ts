@@ -59,7 +59,7 @@ interface TargetDataForm {
     favorite?: boolean
 }
 
-export const [installPreviewContext, usePreviewContext] = installation(function (singletonDataView: SingletonDataView<Illust> | number): PreviewContext {
+export const [installPreviewContext, usePreviewContext] = installation(function (singletonDataView: SingletonDataView<Illust>): PreviewContext {
     const data = useDataContext(singletonDataView)
     const images = useImagesContext(data.id)
 
@@ -70,88 +70,43 @@ export const [installPreviewContext, usePreviewContext] = installation(function 
     return { data, images, ui: { drawerTab } }
 })
 
-function useDataContext(data: SingletonDataView<Illust> | number): PreviewContext["data"] {
-    const { getData, setData, deleteData } = useFastObjectEndpoint({
-        get: httpClient => httpClient.illust.collection.get,
+function useDataContext(data: SingletonDataView<Illust>): PreviewContext["data"] {
+    const { setData, deleteData } = useFastObjectEndpoint({
         update: httpClient => httpClient.illust.collection.update,
         delete: httpClient => httpClient.illust.collection.delete
     })
 
-    if(typeof data === "object") {
-        const target = ref<Illust | null>(null)
-        const id = computed(() => target.value?.id ?? null)
+    const target = ref<Illust | null>(null)
+    const id = computed(() => target.value?.id ?? null)
 
-        const setTargetData = async (form: TargetDataForm): Promise<boolean> => {
-            if(target.value !== null) {
-                const ok = await setData(target.value.id, form)
-                if(ok) {
-                    if(form.favorite !== undefined) target.value.favorite = form.favorite
-                    data.syncOperations.modify({...target.value})
-                }
-                return ok
-            }else{
-                return false
+    const setTargetData = async (form: TargetDataForm): Promise<boolean> => {
+        if(target.value !== null) {
+            const ok = await setData(target.value.id, form)
+            if(ok) {
+                if(form.favorite !== undefined) target.value.favorite = form.favorite
+                data.syncOperations.modify({...target.value})
             }
+            return ok
+        }else{
+            return false
         }
-
-        const deleteTarget = async (): Promise<boolean> => {
-            if(target.value !== null) {
-                const ok = await deleteData(target.value.id)
-                if(ok) {
-                    await data.syncOperations.remove()
-                }
-                return ok
-            }else{
-                return false
-            }
-        }
-
-        onBeforeMount(async () => target.value = await data.get() ?? null)
-
-        return {id, target, setTargetData, deleteTarget}
-    }else{
-        const id = ref(data)
-        const target = ref<Illust | null>(null)
-
-        const setTargetData = async (form: TargetDataForm): Promise<boolean> => {
-            if(target.value !== null) {
-                const ok = await setData(target.value.id, form)
-                if(ok) {
-                    if(form.favorite !== undefined) target.value.favorite = form.favorite
-                }
-                return ok
-            }else{
-                return false
-            }
-        }
-
-        const deleteTarget = async (): Promise<boolean> => {
-            if(target.value !== null) {
-                return await deleteData(target.value.id)
-            }else{
-                return false
-            }
-        }
-
-        onBeforeMount(async () => {
-            const d = await getData(data)
-            if(d !== undefined) {
-                target.value = {
-                    id: d.id,
-                    file: d.file,
-                    thumbnailFile: d.thumbnailFile,
-                    score: d.score,
-                    favorite: d.favorite,
-                    tagme: d.tagme,
-                    orderTime: d.orderTime,
-                    type: "COLLECTION",
-                    childrenCount: 0
-                }
-            }
-        })
-
-        return {id, target, setTargetData, deleteTarget}
     }
+
+    const deleteTarget = async (): Promise<boolean> => {
+        if(target.value !== null) {
+            const ok = await deleteData(target.value.id)
+            if(ok) {
+                await data.syncOperations.remove()
+            }
+            return ok
+        }else{
+            return false
+        }
+    }
+
+    onBeforeMount(async () => target.value = await data.get() ?? null)
+
+    return {id, target, setTargetData, deleteTarget}
 }
 
 function useImagesContext(id: Ref<number | null>): PreviewContext["images"] {

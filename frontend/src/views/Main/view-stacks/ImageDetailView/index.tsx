@@ -12,8 +12,11 @@ export default defineComponent({
         data: {type: null as any as PropType<SliceDataView<Illust>>, required: true},
         currentIndex: {type: Number, required: true}
     },
-    setup(props) {
-        installPreviewContext(props.data, toRef(props, "currentIndex"))
+    emits: {
+        updateCurrentIndex: (_: number) => true
+    },
+    setup(props, { emit }) {
+        installPreviewContext(props.data, toRef(props, "currentIndex"), i => emit("updateCurrentIndex", i))
         installMetaTagCallout()
 
         const sideLayoutSlots = {

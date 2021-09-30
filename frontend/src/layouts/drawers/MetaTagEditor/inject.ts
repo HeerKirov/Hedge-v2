@@ -1,9 +1,10 @@
 import { computed, reactive, readonly, ref, Ref, watch } from "vue"
 import { HttpClient } from "@/functions/adapter-http"
-import { DetailIllust, Tagme } from "@/functions/adapter-http/impl/illust"
-import { SimpleTag } from "@/functions/adapter-http/impl/tag"
-import { SimpleTopic } from "@/functions/adapter-http/impl/topic"
-import { SimpleAuthor } from "@/functions/adapter-http/impl/author"
+import { ConflictingGroupMembersError, NotFound, ResourceNotExist, ResourceNotSuitable } from "@/functions/adapter-http/exception"
+import { Tagme } from "@/functions/adapter-http/impl/illust"
+import { DepsTag, SimpleTag } from "@/functions/adapter-http/impl/tag"
+import { DepsTopic, SimpleTopic } from "@/functions/adapter-http/impl/topic"
+import { DepsAuthor, SimpleAuthor } from "@/functions/adapter-http/impl/author"
 import { MetaTagTypeValues } from "@/functions/adapter-http/impl/all"
 import { MetaTagValidation } from "@/functions/adapter-http/impl/util-meta"
 import { watchGlobalKeyEvent } from "@/functions/feature/keyboard"
@@ -13,27 +14,50 @@ import { createPopupMenu } from "@/functions/module/popup-menu"
 import { useHttpClient, useLocalStorageWithDefault } from "@/functions/app"
 import { useContinuousEndpoint } from "@/functions/utils/endpoints/continuous-endpoint"
 import { installation, splitRef } from "@/functions/utils/basic"
-import { useMetaTagCallout } from "@/layouts/data/MetaTagCallout"
 import { installSearchService, installTagListContext, useTagListContext, useSearchService } from "@/functions/api/tag-tree"
+import { useMetaTagCallout } from "@/layouts/data/MetaTagCallout"
 import { installTagTreeContext } from "@/layouts/data/TagTree"
 import { sleep } from "@/utils/process"
-import { usePreviewContext, useMetadataEndpoint } from "../../inject"
 
 export { useTagListContext, useSearchService }
 
-export const [installPanelContext, usePanelContext] = installation(function() {
-    const { data } = useMetadataEndpoint()
+interface InstallPanelContext {
+    data: Readonly<Ref<EditorData | null>>
+    setData: SetData
+    close(): void
+}
 
+export interface SetData {
+    (form: EditorUpdateForm, errorHandler: (e: EditorUpdateException) => EditorUpdateException | void): Promise<boolean>
+}
+
+interface EditorData {
+    tags: DepsTag[]
+    topics: DepsTopic[]
+    authors: DepsAuthor[]
+    tagme: Tagme[]
+}
+
+interface EditorUpdateForm {
+    topics?: number[]
+    authors?: number[]
+    tags?: number[]
+    tagme?: Tagme[]
+}
+
+type EditorUpdateException = NotFound | ResourceNotExist<"topics" | "authors" | "tags", number[]> | ResourceNotSuitable<"tags", number[]> | ConflictingGroupMembersError
+
+export const [installPanelContext, usePanelContext] = installation(function(context: InstallPanelContext) {
     const typeFilter = useLocalStorageWithDefault("detail-view/meta-tag-editor/type-filter", {tag: true, author: true, topic: true})
 
-    const editorData = useEditorData(data)
+    const editorData = useEditorData(context.data, context.setData, context.close)
 
     const rightColumnData = useRightColumnData()
 
     return {typeFilter, editorData, rightColumnData}
 })
 
-function useEditorData(data: Ref<DetailIllust | null>) {
+function useEditorData(data: Ref<EditorData | null>, setData: SetData, closeTab: () => void) {
     const tags = ref<SimpleTag[]>([])
     const topics = ref<SimpleTopic[]>([])
     const authors = ref<SimpleAuthor[]>([])
@@ -107,15 +131,20 @@ function useEditorData(data: Ref<DetailIllust | null>) {
 
     const { record: addHistoryRecord, ...history } = useEditorDataHistory(tags, topics, authors, data)
 
-    const { canSave, save } = useSaveFunction(tags, topics, authors, tagme, changed, validation)
+    const { canSave, save } = useSaveFunction(tags, topics, authors, tagme, changed, validation, setData, closeTab)
 
     return {tags: readonly(tags), topics: readonly(topics), authors: readonly(authors), tagme: readonly(tagme), setTagme, add, removeAt, canSave, save, validation, history}
 }
 
-function useSaveFunction(tags: Ref<SimpleTag[]>, topics: Ref<SimpleTopic[]>, authors: Ref<SimpleAuthor[]>, tagme: Ref<Tagme[]>, changed: {tag: boolean, topic: boolean, author: boolean, tagme: boolean}, validation: ReturnType<typeof useEditorDataValidation>) {
+function useSaveFunction(tags: Ref<SimpleTag[]>,
+                         topics: Ref<SimpleTopic[]>,
+                         authors: Ref<SimpleAuthor[]>,
+                         tagme: Ref<Tagme[]>,
+                         changed: {tag: boolean, topic: boolean, author: boolean, tagme: boolean},
+                         validation: ReturnType<typeof useEditorDataValidation>,
+                         setData: SetData,
+                         closeTab: () => void) {
     const message = useMessageBox()
-    const { setData } = useMetadataEndpoint()
-    const { ui: { drawerTab } } = usePreviewContext()
 
     const canSave = computed(() =>
         (changed.tag || changed.topic || changed.author || changed.tagme) &&
@@ -146,7 +175,7 @@ function useSaveFunction(tags: Ref<SimpleTag[]>, topics: Ref<SimpleTopic[]>, aut
 
             if(ok) {
                 //保存成功后关闭面板
-                drawerTab.value = undefined
+                closeTab()
             }
         }
     }
@@ -162,13 +191,13 @@ function useSaveFunction(tags: Ref<SimpleTag[]>, topics: Ref<SimpleTopic[]>, aut
     return {canSave, save}
 }
 
-function useEditorDataValidation(tags: Ref<SimpleTag[]>, data: Ref<DetailIllust | null>) {
+function useEditorDataValidation(tags: Ref<SimpleTag[]>, data: Ref<EditorData | null>) {
     const httpClient = useHttpClient()
     const toast = useToast()
 
     const tagValidationResults = ref<MetaTagValidation>()
 
-    //TODO 为校验功能添加Link和Exported项的标记提示，告诉用户这些项是哪儿来的，以免摸不着头脑
+    //FUTURE 为校验功能添加Link和Exported项的标记提示，告诉用户这些项是哪儿来的，以免摸不着头脑
     watch(tags, async (tags, _, onInvalidate) => {
         if(tags.length) {
             let invalidate = false
@@ -196,7 +225,7 @@ function useEditorDataValidation(tags: Ref<SimpleTag[]>, data: Ref<DetailIllust 
     return {tagValidationResults}
 }
 
-function useEditorDataHistory(tags: Ref<SimpleTag[]>, topics: Ref<SimpleTopic[]>, authors: Ref<SimpleAuthor[]>, data: Ref<DetailIllust | null>) {
+function useEditorDataHistory(tags: Ref<SimpleTag[]>, topics: Ref<SimpleTopic[]>, authors: Ref<SimpleAuthor[]>, data: Ref<EditorData | null>) {
     type Action = {action: "add"} | {action: "remove", index: number}
     type Record = Action & MetaTagTypeValues
 

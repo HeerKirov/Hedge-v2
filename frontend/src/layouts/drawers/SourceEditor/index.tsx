@@ -1,14 +1,25 @@
-import { defineComponent } from "vue"
+import { defineComponent, PropType, toRef } from "vue"
 import Input from "@/components/forms/Input"
 import Textarea from "@/components/forms/Textarea"
+import { ImageOriginData } from "@/functions/adapter-http/impl/illust"
 import { SourceTagEditor, SourcePoolEditor, SourceRelationEditor } from "@/layouts/editors"
-import { installEditorData, useEditorData } from "./inject"
+import { installEditorData, SetData, useEditorData } from "./inject"
 import style from "./style.module.scss"
 
-
 export default defineComponent({
-    setup() {
-        installEditorData()
+    props: {
+        data: {type: null as any as PropType<ImageOriginData | null>, required: true},
+        setData: {type: Function as PropType<SetData>, required: true}
+    },
+    emits: {
+        close: () => true
+    },
+    setup(props, { emit }) {
+        installEditorData({
+            data: toRef(props, "data"),
+            setData: props.setData,
+            close: () => emit("close")
+        })
 
         return () => <div class={style.panelOfSource}>
             <Content/>

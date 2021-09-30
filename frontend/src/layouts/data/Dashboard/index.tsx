@@ -1,9 +1,9 @@
 import { computed, defineComponent, inject, watch } from "vue"
 import VideoDashboard from "./VideoDashboard"
 import ImageDashboard from "./ImageDashboard"
-import { dashboardZoomInjection } from "./inject"
+import { dashboardZoomInjection, installDashboardZoom, useDashboardZoom } from "./inject"
 
-export { dashboardZoomInjection }
+export { installDashboardZoom, useDashboardZoom }
 
 /**
  * 显示详情内容的封装组件。处理图片、视频的不同显示方式，并包装关联的高级功能。

@@ -80,8 +80,8 @@ interface TargetDataForm {
     favorite?: boolean
 }
 
-export const [installPreviewContext, usePreviewContext] = installation(function (data: SliceDataView<Illust>, initIndex: Ref<number>): PreviewContext {
-    const { navigator, detail } = useNavigatorAndTarget(data, initIndex)
+export const [installPreviewContext, usePreviewContext] = installation(function (data: SliceDataView<Illust>, initIndex: Ref<number>, onIndexCallback: (_: number) => void): PreviewContext {
+    const { navigator, detail } = useNavigatorAndTarget(data, initIndex, onIndexCallback)
 
     installSideBarEndpoints(detail.id)
 
@@ -97,7 +97,7 @@ export const [installPreviewContext, usePreviewContext] = installation(function 
     }
 })
 
-function useNavigatorAndTarget(data: SliceDataView<Illust>, initIndex: Ref<number>): {navigator: PreviewContext["navigator"], detail: Targets} {
+function useNavigatorAndTarget(data: SliceDataView<Illust>, initIndex: Ref<number>, onIndexCallback: (_: number) => void): {navigator: PreviewContext["navigator"], detail: Targets} {
     const { toast, handleException } = useToast()
     const httpClient = useHttpClient()
 
@@ -117,6 +117,9 @@ function useNavigatorAndTarget(data: SliceDataView<Illust>, initIndex: Ref<numbe
         target.value = null
         collectionItems.value = null
         currentIndexOfCollection.value = null
+
+        //调用回调将当前index通知到上层
+        onIndexCallback(currentIndex)
 
         const res = await data.get(currentIndex)
         if(res === undefined) {

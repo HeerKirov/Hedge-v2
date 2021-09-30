@@ -1,27 +1,25 @@
-import { defineComponent, provide, ref } from "vue"
+import { defineComponent, ref } from "vue"
 import SideDrawer from "@/layouts/layouts/SideDrawer"
-import Dashboard, { dashboardZoomInjection } from "@/layouts/data/Dashboard"
+import Dashboard, { installDashboardZoom } from "@/layouts/data/Dashboard"
 import TopBarCollapseLayout from "@/layouts/layouts/TopBarCollapseLayout"
+import MetaTagEditor from "@/layouts/drawers/MetaTagEditor"
+import SourceEditor from "@/layouts/drawers/SourceEditor"
 import { assetsUrl } from "@/functions/app"
 import { usePopupMenu } from "@/functions/module/popup-menu"
 import { useMessageBox } from "@/functions/module/message-box"
 import { useNavigator } from "@/functions/feature/navigator"
 import TopBarContent from "./TopBarContent"
-import MetaTagPanel from "./SideDrawer/MetaTagPanel"
-import SourcePanel from "./SideDrawer/SourcePanel"
-import { usePreviewContext } from "./inject"
+import { useMetadataEndpoint, useOriginDataEndpoint, usePreviewContext } from "./inject"
 
 export default defineComponent({
     setup() {
         const { detail, ui: { drawerTab } } = usePreviewContext()
 
-        provide(dashboardZoomInjection, {zoom: ref(100), enable: ref(true)})
+        installDashboardZoom(ref(true), ref(100))
 
         const menu = useContextmenu()
 
-        const closeDrawerTab = () => {
-            drawerTab.value = undefined
-        }
+        const closeDrawerTab = () => drawerTab.value = undefined
 
         const topBarLayoutSlots = {
             topBar() { return <TopBarContent/> },
@@ -30,13 +28,39 @@ export default defineComponent({
             }
         }
         const sideDrawerSlots = {
-            "metaTag"() { return <MetaTagPanel/> },
-            "source"() { return <MetaTagPanel/> }
+            "metaTag"() { return <MetaTagEditorPanel/> },
+            "source"() { return <SourceEditorPanel/> }
         }
         return () => <>
             <TopBarCollapseLayout v-slots={topBarLayoutSlots}/>
             <SideDrawer tab={drawerTab.value} onClose={closeDrawerTab} v-slots={sideDrawerSlots}/>
         </>
+    }
+})
+
+const MetaTagEditorPanel = defineComponent({
+    setup() {
+        const { ui: { drawerTab } } = usePreviewContext()
+        const { data, setData } = useMetadataEndpoint()
+
+        const closeDrawerTab = () => drawerTab.value = undefined
+
+        return () => <MetaTagEditor tags={data.value?.tags ?? []}
+                                    topics={data.value?.topics ?? []}
+                                    authors={data.value?.authors ?? []}
+                                    tagme={data.value?.tagme ?? []}
+                                    setData={setData} onClose={closeDrawerTab}/>
+    }
+})
+
+const SourceEditorPanel = defineComponent({
+    setup() {
+        const { ui: { drawerTab } } = usePreviewContext()
+        const { data, setData } = useOriginDataEndpoint()
+
+        const closeDrawerTab = () => drawerTab.value = undefined
+
+        return () => <SourceEditor data={data.value} setData={setData} onClose={closeDrawerTab}/>
     }
 })
 
