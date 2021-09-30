@@ -4,8 +4,8 @@ import { datetime, LocalDateTime } from "@/utils/datetime"
 
 export function createUtilIllustEndpoint(http: HttpInstance): UtilIllustEndpoint {
     return {
-        getCollectionSituation: http.createDataRequest("/api/utils/meta/validate/tags", "POST", {
-            parseResponse: (d) => (<any[]>d).map(mapToCollectionSituation)
+        getCollectionSituation: http.createDataRequest("/api/utils/illust/collection-situation", "POST", {
+            parseResponse: d => (<any[]>d).map(mapToCollectionSituation)
         })
     }
 }
@@ -27,7 +27,7 @@ export interface UtilIllustEndpoint {
     /**
      * 查询一组illust的集合所属情况，查询这些项目中的集合项/已经属于其他集合的项，给出这些集合的列表。
      */
-    getCollectionSituation(tags: number[]): Promise<Response<CollectionSituation[]>>
+    getCollectionSituation(images: number[]): Promise<Response<CollectionSituation[]>>
 }
 
 export interface CollectionSituation {

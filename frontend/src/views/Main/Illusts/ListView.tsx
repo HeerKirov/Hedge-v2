@@ -1,10 +1,9 @@
 import { defineComponent, markRaw } from "vue"
 import IllustGrid from "@/layouts/data/IllustGrid"
+import { useCreatingCollectionDialog } from "@/layouts/dialogs/CreatingCollectionDialog"
 import { Illust } from "@/functions/adapter-http/impl/illust"
 import { createProxySingleton, createSliceOfAll, createSliceOfList } from "@/functions/utils/endpoints/query-endpoint"
 import { useFastObjectEndpoint } from "@/functions/utils/endpoints/object-fast-endpoint"
-import { useHttpClient } from "@/functions/app"
-import { useToast } from "@/functions/module/toast"
 import { useMessageBox } from "@/functions/module/message-box"
 import { useDynamicPopupMenu } from "@/functions/module/popup-menu"
 import { useNavigator } from "@/functions/feature/navigator"
@@ -76,14 +75,20 @@ function useContextmenu(openMethod: ReturnType<typeof useOpenMethod>) {
 }
 
 function useOpenMethod() {
-    const { dataView, endpoint, selector: { selected } } = useIllustContext()
+    const { dataView, endpoint, selector: { selected }, scrollView } = useIllustContext()
     const viewStacks = useViewStack()
+
+    const onImageViewClose = (illustId: number) => {
+        //image view关闭时，回调通知list view它最后访问的illustId，以使list view导航到相应的illust上
+        const index = dataView.proxy.syncOperations.find(i => i.id === illustId)
+        if(index !== undefined) scrollView.navigateTo(index)
+    }
 
     const openAll = (illustId: number) => {
         const currentIndex = dataView.proxy.syncOperations.find(i => i.id === illustId)
         if(currentIndex !== undefined) {
             const data = createSliceOfAll(endpoint.instance.value)
-            viewStacks.openImageView(data, currentIndex)
+            viewStacks.openImageView(data, currentIndex, onImageViewClose)
         }
     }
 
@@ -93,7 +98,7 @@ function useOpenMethod() {
             .filter(index => index !== undefined) as number[]
         const data = createSliceOfList(endpoint.instance.value, indexList)
 
-        viewStacks.openImageView(data, currentIndex)
+        viewStacks.openImageView(data, currentIndex, onImageViewClose)
     }
 
     const clickToOpenDetail = (illustId: number) => {
@@ -139,8 +144,7 @@ function useOpenMethod() {
 
 function useContextOperator() {
     const messageBox = useMessageBox()
-    const toast = useToast()
-    const httpClient = useHttpClient()
+    const creatingCollection = useCreatingCollectionDialog()
 
     const imageFastEndpoint = useFastObjectEndpoint({
         update: httpClient => httpClient.illust.image.update,
@@ -167,18 +171,10 @@ function useContextOperator() {
     }
 
     const createCollection = async (illustId?: number) => {
-        if(selected.value.length >= 0 || illustId !== undefined) {
-            //TODO 这只是一个初始版本。后续需要：
-            //      优化后端API，允许images列表中列入collectionId，含义为将这整个collection加入新collection。
-            //      新增检测(需要后端支持)，如果images列表包含collection或已属于其他collection的image，则弹出一个modal，要求选择操作[创建新col]/[加入其中某个col]。
-            const images = selected.value.length >= 0 ? selected.value : [illustId!]
-            const res = await httpClient.illust.collection.create({images})
-            if(res.ok) {
-                //创建成功的情况下，刷新列表
-                endpoint.refresh()
-            }else if(res.exception) {
-                toast.handleException(res.exception)
-            }
+        if(selected.value.length >= 0) {
+            creatingCollection.createCollection(selected.value, () => endpoint.refresh())
+        }else if(illustId !== undefined) {
+            creatingCollection.createCollection([illustId], () => endpoint.refresh())
         }
     }
 

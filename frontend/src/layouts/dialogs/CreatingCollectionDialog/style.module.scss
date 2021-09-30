@@ -1,0 +1,50 @@
+@import '@/styles/base/size.sass';
+
+.content {
+  padding: 0.5rem;
+  max-height: 45rem;
+  min-height: 5rem;
+  width: 40rem;
+
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  > .scroll-content {
+    height: 100%;
+    overflow-y: auto;
+
+    > .item {
+      padding: 0.75rem 0.5rem 0.75rem 0.75rem;
+      display: flex;
+      flex-wrap: nowrap;
+      > .item-left-column {
+        width: 4rem;
+        > .item-img {
+          border-radius: $radius-size-std;
+          width: 4rem; height: 4rem;
+          flex-shrink: 0;
+          object-fit: cover;
+        }
+      }
+      > .item-right-column {
+        padding-left: 0.5rem;
+        > .title {
+          margin-bottom: 0.25rem;
+          font-size: $font-size-large;
+        }
+        > .example-img {
+          border-radius: $radius-size-small;
+          width: 2rem; height: 2rem;
+          object-fit: cover;
+          margin: 0.25rem 0.25rem 0 0;
+        }
+        > .counter {
+          margin-left: 0.25rem;
+        }
+      }
+    }
+  }
+  > .bottom {
+    padding-top: 0.5rem;
+  }
+}

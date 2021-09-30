@@ -59,6 +59,25 @@
       &.has-border-#{$name}
         border: solid 1px $color
 
+.border-block
+  padding: 1.25rem 1.5rem 1.25rem 1rem
+  border-radius: $radius-size-std
+  position: relative
+  box-sizing: border-box
+  border: solid 1px $literal
+  @media (prefers-color-scheme: light)
+    @each $name, $pair in $colors
+      $color: nth($pair, 1)
+      $color-invert: nth($pair, 2)
+      &.has-border-#{$name}
+        border: solid 1px $color
+  @media (prefers-color-scheme: dark)
+    @each $name, $pair in $colors-dark-mode
+      $color: nth($pair, 1)
+      $color-invert: nth($pair, 2)
+      &.has-border-#{$name}
+        border: solid 1px $color
+
 .popup-block
   border-radius: $radius-size-std
   position: relative
