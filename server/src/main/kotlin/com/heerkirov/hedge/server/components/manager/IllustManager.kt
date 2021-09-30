@@ -143,6 +143,8 @@ class IllustManager(private val data: DataRepository,
 
         processSubImages(images, id, formDescription, formScore)
 
+        kit.forceProcessAllMeta(id, copyFromChildren = true)
+
         return id
     }
 
