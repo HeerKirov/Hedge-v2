@@ -1,9 +1,10 @@
 import * as path from "path"
-import { BrowserWindow, BrowserWindowConstructorOptions, nativeTheme } from "electron"
+import { BrowserWindow, BrowserWindowConstructorOptions } from "electron"
 import { Platform } from "../utils/process"
 import { State, StateManager } from "../components/state"
 import { APP_FILE, RESOURCE_FILE } from "../definitions/file"
 import { registerIpcRemoteEvent } from "./ipc-transformer"
+import { ThemeManager } from "./theme-manager"
 
 /**
  * electron的窗口管理器。管控窗口的建立。
@@ -40,7 +41,7 @@ export interface WindowManagerOptions {
     }
 }
 
-export function createWindowManager(state: StateManager, options: WindowManagerOptions): WindowManager {
+export function createWindowManager(state: StateManager, theme: ThemeManager, options: WindowManagerOptions): WindowManager {
     let ready = false
     let guideWindow: BrowserWindow | null = null
     let settingWindow: BrowserWindow | null = null
@@ -57,7 +58,7 @@ export function createWindowManager(state: StateManager, options: WindowManagerO
                 devTools: !!options.debug,
                 preload: path.join(__dirname, 'preloads/index.js')
             },
-            backgroundColor: nativeTheme.shouldUseDarkColors ? "#212121" : "#FFFFFF",
+            backgroundColor: theme.getRuntimeTheme() === "dark" ? "#212121" : "#FFFFFF",
             ...configure
         })
 

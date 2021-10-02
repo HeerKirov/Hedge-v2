@@ -82,9 +82,9 @@ export async function createApplication(options?: AppOptions) {
 
         const stateManager = createStateManager(appDataDriver, configurationDriver, resourceManager, serverManager, {debugMode})
 
-        const windowManager = createWindowManager(stateManager, {platform, debug: options?.debug && {frontendFromFolder: options.debug.frontendFromFolder, frontendFromURL: options.debug.frontendFromURL}})
-
         const themeManager = createThemeManager(appDataDriver)
+
+        const windowManager = createWindowManager(stateManager, themeManager, {platform, debug: options?.debug && {frontendFromFolder: options.debug.frontendFromFolder, frontendFromURL: options.debug.frontendFromURL}})
 
         const service = createService(appDataDriver, configurationDriver, channelManager, resourceManager, serverManager, stateManager, windowManager, themeManager, {debugMode, userDataPath, platform, channel: channelManager.currentChannel()})
 

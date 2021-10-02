@@ -21,6 +21,11 @@ export interface ThemeManager {
      * @param value
      */
     setTheme(value: NativeTheme): Promise<void>
+
+    /**
+     * 查看当前系统运行时的确定主题。
+     */
+    getRuntimeTheme(): "light" | "dark"
 }
 
 export function createThemeManager(appdata: AppDataDriver): ThemeManager {
@@ -36,6 +41,9 @@ export function createThemeManager(appdata: AppDataDriver): ThemeManager {
         async setTheme(value: NativeTheme) {
             await appdata.saveAppData(d => d.appearanceOption.theme = value)
             nativeTheme.themeSource = value
+        },
+        getRuntimeTheme(): "light" | "dark" {
+            return nativeTheme.shouldUseDarkColors ? "dark" : "light"
         }
     }
 }
