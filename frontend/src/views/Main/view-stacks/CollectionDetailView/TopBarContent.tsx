@@ -17,9 +17,9 @@ export default defineComponent({
                 <BackspaceButton/>
             </div>
             <div class="layout-container">
-                <DataRouter/>
                 <FavoriteButton/>
                 <ExternalButton/>
+                <DataRouter/>
                 <FitTypeButton value={fitType.value} onUpdateValue={setFitType}/>
                 <ColumnNumButton value={columnNum.value} onUpdateValue={setColumnNum}/>
             </div>

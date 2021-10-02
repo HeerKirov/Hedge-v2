@@ -17,14 +17,20 @@ export default defineComponent({
         lastSelected: {type: null as any as PropType<number | null>, default: null},
         queryEndpoint: Object as PropType<QueryEndpointInstance<Illust>>
     },
-    emits: ["dataUpdate", "select", "enter", "dblClick", "rightClick"],
+    emits: {
+        dataUpdate: (_: number, __: number) => true,
+        select: (_: number[], __: number | null) => true,
+        enter: (_: number) => true,
+        dblClick: (_: number, __: boolean) => true,
+        rightClick: (_: Illust) => true
+    },
     setup(props, { emit }) {
         const selected = toRef(props, "selected")
         const lastSelected = toRef(props, "lastSelected")
 
         const dataUpdate = (offset: number, limit: number) => emit("dataUpdate", offset, limit)
 
-        const dblClick = (illustId: number) => emit("dblClick", illustId)
+        const dblClick = (illustId: number, option: boolean) => emit("dblClick", illustId, option)
         const enter = (illustId: number) => emit("enter", illustId)
         const rightClick = (illust: Illust) => emit("rightClick", illust)
 
@@ -58,7 +64,13 @@ const Content = defineComponent({
         columnNum: {type: Number, required: true},
         queryEndpoint: Object as PropType<QueryEndpointInstance<Illust>>
     },
-    emits: ["dataUpdate", "enter", "dblClick", "rightClick", "select"],
+    emits: {
+        dataUpdate: (_: number, __: number) => true,
+        select: (_: number[], __: number | null) => true,
+        enter: (_: number) => true,
+        dblClick: (_: number, __: boolean) => true,
+        rightClick: (_: Illust) => true
+    },
     setup(props, { emit }) {
         const appInfo = useAppInfo()
 
@@ -69,7 +81,7 @@ const Content = defineComponent({
 
         const dataUpdate = (offset: number, limit: number) => emit("dataUpdate", offset, limit)
         const enter = (illustId: number) => emit("enter", illustId)
-        const dblClick = (illustId: number) => emit("dblClick", illustId)
+        const dblClick = (illustId: number, option: boolean) => emit("dblClick", illustId, option)
         const rightClick = (illust: Illust) => emit("rightClick", illust)
         const click = (illust: Illust, index: number, e: MouseEvent) => {
             // 追加添加的任意选择项都会排列在选择列表的最后
@@ -101,9 +113,12 @@ const Item = defineComponent({
         data: {type: Object as PropType<Illust>, required: true},
         index: {type: Number, required: true}
     },
-    emits: ["dblClick", "rightClick", "click", "shiftSelect"],
+    emits: {
+        dblClick: (_: number, __: boolean) => true,
+        rightClick: (_: Illust) => true,
+        click: (_: Illust, __: number, ___: MouseEvent) => true,
+    },
     setup(props, { emit }) {
-
         const { selected } = inject(selectContextInjection)!
 
         const currentSelected = computed(() => selected.value.find(i => i === props.data.id) != undefined)
@@ -111,8 +126,8 @@ const Item = defineComponent({
         const click = (e: MouseEvent) => emit("click", props.data, props.index, e)
 
         const dblClick = (e: MouseEvent) => {
-            if(e.ctrlKey || e.metaKey || e.shiftKey) return
-            emit("dblClick", props.data.id)
+            if(e.ctrlKey || e.shiftKey || e.metaKey) return
+            emit("dblClick", props.data.id, e.altKey)
         }
 
         const rightClick = () => emit("rightClick", props.data)

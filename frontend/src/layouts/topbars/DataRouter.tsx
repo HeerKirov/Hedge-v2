@@ -23,7 +23,7 @@ export default defineComponent({
             editMode.value = false
         }
 
-        return () => <div class="mr-2 no-drag">
+        return () => <div class="mx-2 no-drag">
             {editMode.value ?
                 <NumberInput class="is-small is-width-half no-drag" min={1} value={editValue.value} focusOnMounted={true} onUpdateValue={enter} onBlur={close}/>
             : view.state.itemTotal ?

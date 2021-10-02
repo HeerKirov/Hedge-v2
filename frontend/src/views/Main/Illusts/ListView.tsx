@@ -101,7 +101,19 @@ function useOpenMethod() {
         viewStacks.openImageView(data, currentIndex, onImageViewClose)
     }
 
-    const clickToOpenDetail = (illustId: number) => {
+    const clickToOpenDetail = (illustId: number, option?: boolean) => {
+        if(option) {
+            //在按下option/alt键时，打开集合
+            const index = dataView.proxy.syncOperations.find(i => i.id === illustId)
+            if(index !== undefined) {
+                const illust = dataView.proxy.syncOperations.retrieve(index)!
+                if(illust.type === "COLLECTION") {
+                    const data = createProxySingleton(endpoint.instance.value, index)
+                    viewStacks.openCollectionView(data)
+                    return
+                }
+            }
+        }
         if(selected.value.length > 1) {
             //选择项数量大于1时，只显示选择项列表
             const currentIndex = selected.value.indexOf(illustId)
