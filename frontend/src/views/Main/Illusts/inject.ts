@@ -5,6 +5,7 @@ import { PaginationDataView, QueryEndpointResult, usePaginationDataView, useQuer
 import { Illust, IllustQueryFilter } from "@/functions/adapter-http/impl/illust"
 import { useHttpClient, useLocalStorageWithDefault } from "@/functions/app"
 import { useToast } from "@/functions/module/toast"
+import { useListeningEvent } from "@/functions/utils/emitter"
 import { installation, splitRef } from "@/functions/utils/basic"
 
 export interface IllustContext {
@@ -75,6 +76,15 @@ function useSelector(endpoint: QueryEndpointResult<Illust>) {
         //在更新实例时，清空已选择项
         selected.value = []
         lastSelected.value = null
+    })
+    useListeningEvent(endpoint.modifiedEvent, e => {
+        if(e.type === "remove") {
+            //当监听到数据被移除时，检查是否属于当前已选择项，并将其从已选择中移除
+            const id = e.oldValue.id
+            const index = selected.value.findIndex(i => i === id)
+            if(index >= 0) selected.value.splice(index, 1)
+            if(lastSelected.value === id) lastSelected.value = null
+        }
     })
 
     return {selected, lastSelected}

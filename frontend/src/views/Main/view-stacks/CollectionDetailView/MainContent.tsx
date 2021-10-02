@@ -10,6 +10,8 @@ import { useFastObjectEndpoint } from "@/functions/utils/endpoints/object-fast-e
 import { useNavigator } from "@/functions/feature/navigator"
 import { useDynamicPopupMenu } from "@/functions/module/popup-menu"
 import { useMessageBox } from "@/functions/module/message-box"
+import { useToast } from "@/functions/module/toast"
+import { useHttpClient } from "@/functions/app"
 import { useViewStack } from "@/views/Main/view-stacks"
 import { usePreviewContext, useMetadataEndpoint } from "./inject"
 
@@ -75,9 +77,9 @@ const ListView = defineComponent({
 
 function useContextmenu(openMethod: ReturnType<typeof useOpenMethod>) {
     const navigator = useNavigator()
-    const { switchFavorite, deleteItem } = useContextOperator()
+    const { switchFavorite, createNewCollection, deleteItem, removeItemFromCollection } = useContextOperator()
 
-    //TODO 完成collection右键菜单的功能
+    //TODO 完成collection右键菜单的功能; 将各个主要功能的实现更改至与selector相关的实现方式上
     const menu = useDynamicPopupMenu<Illust>(illust => [
         {type: "normal", label: "查看详情", click: illust => openMethod.clickToOpenDetail(illust.id)},
         {type: "separator"},
@@ -90,7 +92,7 @@ function useContextmenu(openMethod: ReturnType<typeof useOpenMethod>) {
         {type: "separator"},
         {type: "normal", label: "加入剪贴板"},
         {type: "separator"},
-        {type: "normal", label: "拆分创建新集合"},
+        {type: "normal", label: "拆分至新集合", click: illust => createNewCollection(illust.id)},
         {type: "normal", label: "创建画集"},
         {type: "normal", label: "创建关联组"},
         {type: "normal", label: "添加到文件夹"},
@@ -100,7 +102,7 @@ function useContextmenu(openMethod: ReturnType<typeof useOpenMethod>) {
         {type: "normal", label: "导出"},
         {type: "separator"},
         {type: "normal", label: "删除项目", click: deleteItem},
-        {type: "normal", label: "从集合移除此项目"}
+        {type: "normal", label: "从集合移除此项目", click: removeItemFromCollection}
     ])
 
     const openInNewWindow = (illust: Illust) => {
@@ -168,28 +170,45 @@ function useOpenMethod() {
 }
 
 function useContextOperator() {
+    const toast = useToast()
+    const httpClient = useHttpClient()
     const messageBox = useMessageBox()
+    const viewStack = useViewStack()
 
     const imageFastEndpoint = useFastObjectEndpoint({
         update: httpClient => httpClient.illust.image.update,
         delete: httpClient => httpClient.illust.image.delete
     })
-    const collectionFastEndpoint = useFastObjectEndpoint({
-        update: httpClient => httpClient.illust.collection.update,
-        delete: httpClient => httpClient.illust.collection.delete
+    const imageRelatedFastEndpoint = useFastObjectEndpoint({
+        update: httpClient => httpClient.illust.image.relatedItems.update
     })
 
-    const { dataView, endpoint, selector: { selected } } = usePreviewContext().images
+    const { images: { dataView, endpoint, selector: { selected } }, data: { toastRefresh, target, setTargetData } } = usePreviewContext()
 
     const switchFavorite = async (illust: Illust, favorite: boolean) => {
-        const ok = illust.type === "IMAGE"
-            ? await imageFastEndpoint.setData(illust.id, { favorite })
-            : await collectionFastEndpoint.setData(illust.id, { favorite })
+        const ok = await imageFastEndpoint.setData(illust.id, { favorite })
 
         if(ok) {
             const index = dataView.proxy.syncOperations.find(i => i.id === illust.id)
             if(index !== undefined) {
                 dataView.proxy.syncOperations.modify(index, {...illust, favorite})
+            }
+        }
+    }
+
+    const createNewCollection = async (illustId: number) => {
+        if(await messageBox.showYesNoMessage("confirm", "确定要拆分生成新的集合吗？", "这些项将从当前集合中移除。")) {
+            const images = selected.value.length > 0 ? [...selected.value] : [illustId]
+            const res = await httpClient.illust.collection.create({images})
+            if(res.ok) {
+                //将所有项从当前数据视图中移除。然而query endpoint的设计不适合连续删除，因此更好的选择是直接刷新以下
+                endpoint.refresh()
+                //创建成功后打开新集合的详情页面
+                viewStack.openCollectionView(res.data.id)
+                //直接通知上层刷新列表以适应变化
+                toastRefresh()
+            }else{
+                toast.handleException(res.exception)
             }
         }
     }
@@ -203,9 +222,31 @@ function useContextOperator() {
                 if(index !== undefined) {
                     dataView.proxy.syncOperations.remove(index)
                 }
+                //由于从集合删除项目产生的变化不大，因此做一些精细的操作来更新上层数据
+                setTargetData({childrenCount: target.value!.childrenCount! - 1})
+                if(index === 0 && dataView.data.value.metrics.total! > 0) {
+                    //移除首位的情况下，需要更新此collection的封面
+                    const first = dataView.proxy.syncOperations.retrieve(0)
+                    if(first !== undefined) setTargetData({thumbnailFile: first.thumbnailFile})
+                }
             }
         }
     }
 
-    return {switchFavorite, deleteItem}
+    const removeItemFromCollection = async (illust: Illust) => {
+        if(await messageBox.showYesNoMessage("warn", "确定要从集合移除此项吗？")) {
+            const ok = await imageRelatedFastEndpoint.setData(illust.id, {collectionId: null})
+
+            if(ok) {
+                const index = dataView.proxy.syncOperations.find(i => i.id === illust.id)
+                if(index !== undefined) {
+                    dataView.proxy.syncOperations.remove(index)
+                }
+                //直接通知上层刷新列表以适应变化
+                toastRefresh()
+            }
+        }
+    }
+
+    return {switchFavorite, createNewCollection, deleteItem, removeItemFromCollection}
 }

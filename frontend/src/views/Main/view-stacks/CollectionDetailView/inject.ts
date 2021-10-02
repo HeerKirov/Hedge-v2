@@ -8,6 +8,7 @@ import { PaginationDataView, QueryEndpointResult, SingletonDataView, usePaginati
 import { installObjectLazyObject, ObjectLazyObjectInjection, useObjectLazyObject } from "@/functions/utils/endpoints/object-lazy-endpoint"
 import { useFastObjectEndpoint } from "@/functions/utils/endpoints/object-fast-endpoint"
 import { installation, splitRef } from "@/functions/utils/basic"
+import { useListeningEvent } from "@/functions/utils/emitter"
 
 export interface PreviewContext {
     /**
@@ -30,6 +31,10 @@ export interface PreviewContext {
          * 删除当前项。
          */
         deleteTarget(): Promise<boolean>
+        /**
+         * 发送一个标记给view的上级，告知当前view做了一些大动作修改illust列表的操作，因此需要重新加载列表
+         */
+        toastRefresh(): void
     }
     /**
      * 当前所引用的collection的图像列表的数据和操作。
@@ -57,10 +62,12 @@ export interface PreviewContext {
 
 interface TargetDataForm {
     favorite?: boolean
+    thumbnailFile?: string
+    childrenCount?: number
 }
 
-export const [installPreviewContext, usePreviewContext] = installation(function (singletonDataView: SingletonDataView<Illust>): PreviewContext {
-    const data = useDataContext(singletonDataView)
+export const [installPreviewContext, usePreviewContext] = installation(function (singletonDataView: SingletonDataView<Illust>, onToastRefresh: () => void): PreviewContext {
+    const data = useDataContext(singletonDataView, onToastRefresh)
     const images = useImagesContext(data.id)
 
     installSideBarEndpoints(data.id)
@@ -70,7 +77,7 @@ export const [installPreviewContext, usePreviewContext] = installation(function 
     return { data, images, ui: { drawerTab } }
 })
 
-function useDataContext(data: SingletonDataView<Illust>): PreviewContext["data"] {
+function useDataContext(data: SingletonDataView<Illust>, toastRefresh: () => void): PreviewContext["data"] {
     const { setData, deleteData } = useFastObjectEndpoint({
         update: httpClient => httpClient.illust.collection.update,
         delete: httpClient => httpClient.illust.collection.delete
@@ -81,9 +88,12 @@ function useDataContext(data: SingletonDataView<Illust>): PreviewContext["data"]
 
     const setTargetData = async (form: TargetDataForm): Promise<boolean> => {
         if(target.value !== null) {
-            const ok = await setData(target.value.id, form)
+            //只有一部分属性需要调API更新数据库，所以加一个||判断条件
+            const ok = (form.favorite === undefined) || await setData(target.value.id, form)
             if(ok) {
                 if(form.favorite !== undefined) target.value.favorite = form.favorite
+                if(form.thumbnailFile !== undefined) target.value.thumbnailFile = form.thumbnailFile
+                if(form.childrenCount !== undefined) target.value.childrenCount = form.childrenCount
                 data.syncOperations.modify({...target.value})
             }
             return ok
@@ -106,7 +116,7 @@ function useDataContext(data: SingletonDataView<Illust>): PreviewContext["data"]
 
     onBeforeMount(async () => target.value = await data.get() ?? null)
 
-    return {id, target, setTargetData, deleteTarget}
+    return {id, target, setTargetData, deleteTarget, toastRefresh}
 }
 
 function useImagesContext(id: Ref<number | null>): PreviewContext["images"] {
@@ -160,6 +170,15 @@ function useSelector(endpoint: QueryEndpointResult<Illust>) {
         //在更新实例时，清空已选择项
         selected.value = []
         lastSelected.value = null
+    })
+    useListeningEvent(endpoint.modifiedEvent, e => {
+        if(e.type === "remove") {
+            //当监听到数据被移除时，检查是否属于当前已选择项，并将其从已选择中移除
+            const id = e.oldValue.id
+            const index = selected.value.findIndex(i => i === id)
+            if(index >= 0) selected.value.splice(index, 1)
+            if(lastSelected.value === id) lastSelected.value = null
+        }
     })
 
     return {selected, lastSelected}

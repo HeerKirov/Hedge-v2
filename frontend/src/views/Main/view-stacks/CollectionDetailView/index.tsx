@@ -11,8 +11,11 @@ export default defineComponent({
     props: {
         data: {type: null as any as PropType<SingletonDataView<Illust>>, required: true}
     },
-    setup(props) {
-        installPreviewContext(props.data)
+    emits: {
+        toastRefresh: () => true
+    },
+    setup(props, { emit }) {
+        installPreviewContext(props.data, () => emit("toastRefresh"))
         installMetaTagCallout()
 
         const sideLayoutSlots = {

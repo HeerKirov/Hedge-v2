@@ -18,6 +18,7 @@ interface StackViewImageInfo {
 interface StackViewCollectionInfo {
     type: "collection"
     data: SingletonDataView<Illust>
+    toastRefresh?: ToastRefreshCallback
     modifiedEvent(e: ModifiedEvent<Illust>): void
 }
 interface StackViewAlbumInfo {
@@ -30,12 +31,17 @@ interface ModifiedCallback {
     backspaceCallback(): void
 }
 
+interface ToastRefreshCallback {
+    trigger(): void
+    backspaceCallback(): void
+}
+
 export const { ViewStack, installViewStack, useViewStack } = defineViewStackComponents({
     slots(info: StackViewInfo) {
         if(info.type === "image") {
             return <ImageDetailView data={info.data} currentIndex={info.currentIndex} onUpdateCurrentIndex={info.currentIndexModified?.updateValue}/>
         }else if(info.type === "collection") {
-            return <CollectionDetailView data={info.data}/>
+            return <CollectionDetailView data={info.data} onToastRefresh={info.toastRefresh?.trigger}/>
         }
         return undefined
     },
@@ -63,17 +69,17 @@ export const { ViewStack, installViewStack, useViewStack } = defineViewStackComp
         }
 
         return {
-            openImageView(data: SliceDataView<Illust>, currentIndex: number, backspaceCallback?: (modifiedIndex: number) => void) {
+            openImageView(data: SliceDataView<Illust>, currentIndex: number, onIndexModified?: (modifiedIndex: number) => void) {
                 //index modified机制：通过组件的update事件调用{updateValue}回调，以记录组件更改currentIndex的行为；
-                //index modified回调：在关闭视图时，回调{backspaceCallback}函数，将更改后的currentIndex通过传入的回调函数通知到上级。
+                //index modified回调：在关闭视图时，回调{onIndexModified}函数，将更改后的currentIndex通过传入的回调函数通知到上级。
                 let modifiedIndex: number | null = null
-                const currentIndexModified: ModifiedCallback | undefined = backspaceCallback && {
+                const currentIndexModified: ModifiedCallback | undefined = onIndexModified && {
                     updateValue(index: number) {
                         modifiedIndex = index
                     },
                     backspaceCallback() {
                         if(modifiedIndex !== null) {
-                            backspaceCallback(modifiedIndex)
+                            onIndexModified(modifiedIndex)
                         }
                     }
                 }
@@ -88,10 +94,22 @@ export const { ViewStack, installViewStack, useViewStack } = defineViewStackComp
                 const info: StackViewImageInfo = {type: "image", data, currentIndex, currentIndexModified, modifiedEvent}
                 push(info)
             },
-            openCollectionView(data: SingletonDataView<Illust> | number) {
+            openCollectionView(data: SingletonDataView<Illust> | number, onToastRefresh?: () => void) {
                 //先处理data，如果data是illustId就请求数据并处理成illust model
                 const finalData = generateCollectionData(data)
                 if(finalData !== undefined) {
+                    //toast refresh机制：如果有刷新通知，则需要在返回上级时刷新
+                    let isToastRefresh = false
+                    const toastRefresh: ToastRefreshCallback | undefined = onToastRefresh && {
+                        trigger() {
+                            isToastRefresh = true
+                        },
+                        backspaceCallback() {
+                            if(isToastRefresh) {
+                                onToastRefresh()
+                            }
+                        }
+                    }
                     //内容变更监听机制：监听到内容列表清零就自动关闭
                     const modifiedEvent = (e: ModifiedEvent<Illust>) => {
                         if(e.type === "remove" && finalData.get() === undefined) {
@@ -99,7 +117,7 @@ export const { ViewStack, installViewStack, useViewStack } = defineViewStackComp
                         }
                     }
                     finalData.syncOperations.modified.addEventListener(modifiedEvent)
-                    const info: StackViewCollectionInfo = {type: "collection", data: finalData, modifiedEvent}
+                    const info: StackViewCollectionInfo = {type: "collection", data: finalData, toastRefresh, modifiedEvent}
                     push(info)
                 }
             }
@@ -111,6 +129,7 @@ export const { ViewStack, installViewStack, useViewStack } = defineViewStackComp
             info.currentIndexModified?.backspaceCallback()
         }else if(info.type === "collection") {
             info.data.syncOperations.modified.removeEventListener(info.modifiedEvent)
+            info.toastRefresh?.backspaceCallback()
         }
     }
 })

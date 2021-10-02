@@ -109,7 +109,7 @@ function useOpenMethod() {
                 const illust = dataView.proxy.syncOperations.retrieve(index)!
                 if(illust.type === "COLLECTION") {
                     const data = createProxySingleton(endpoint.instance.value, index)
-                    viewStacks.openCollectionView(data)
+                    viewStacks.openCollectionView(data, () => endpoint.refresh())
                     return
                 }
             }
@@ -144,7 +144,7 @@ function useOpenMethod() {
             const currentIndex = dataView.proxy.syncOperations.find(i => i.id === illust.id)
             if(currentIndex !== undefined) {
                 const data = createProxySingleton(endpoint.instance.value, currentIndex)
-                viewStacks.openCollectionView(data)
+                viewStacks.openCollectionView(data, () => endpoint.refresh())
             }
         }else{
             console.error(`Illust ${illust.id} is not a collection.`)
@@ -183,7 +183,7 @@ function useContextOperator() {
     }
 
     const createCollection = async (illustId?: number) => {
-        if(selected.value.length >= 0) {
+        if(selected.value.length > 0) {
             creatingCollection.createCollection(selected.value, () => endpoint.refresh())
         }else if(illustId !== undefined) {
             creatingCollection.createCollection([illustId], () => endpoint.refresh())
