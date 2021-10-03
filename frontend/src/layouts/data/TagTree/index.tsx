@@ -39,11 +39,11 @@ const RootNodeItem = defineComponent({
         const isExpanded = useExpandedValue(id)
 
         const draggable = computed(() => isDraggable(props.node))
-        const dragEvents = useDraggable("tag", computed(() => ({
+        const dragEvents = useDraggable("tag",() => ({
             id: node.value.id,
             name: node.value.name,
             color: node.value.color
-        })))
+        }))
         const click = (e: MouseEvent) => event.click(node.value, e)
         const rightClick = (e: MouseEvent) => event.rightClick(node.value, e)
 

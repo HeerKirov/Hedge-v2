@@ -68,7 +68,12 @@ const ListView = defineComponent({
 
         const menu = useContextmenu(openMethod)
 
-        return () => <IllustGrid data={markRaw(dataView.data.value)} onDataUpdate={dataView.dataUpdate}
+        //TODO 做一个通过拖放引入新项的功能。
+        //      拖放illust至此时，打开一个modal，提示列表内容，勾选要放入的项，然后放入。(注意甄别出原来就在当前集合的项，以及提示那些现在在其他集合的项)
+        //      目前还没有哪里能拖拽illust。给IllustGrid加入这个功能。(当然拖放不是IllustGrid的功能，它是一个独有功能)
+        //      最后，从剪贴板导入的功能使用相同的接口，即打开一个modal。(虽然剪贴板还没做)
+
+        return () => <IllustGrid data={markRaw(dataView.data.value)} onDataUpdate={dataView.dataUpdate} draggable={true}
                                  queryEndpoint={markRaw(endpoint.proxy)} fitType={fitType.value} columnNum={columnNum.value}
                                  selected={selected.value} lastSelected={lastSelected.value} onSelect={updateSelected}
                                  onRightClick={menu.popup} onDblClick={openMethod.clickToOpenDetail} onEnter={openMethod.enterToOpenDetail}/>
@@ -79,7 +84,7 @@ function useContextmenu(openMethod: ReturnType<typeof useOpenMethod>) {
     const navigator = useNavigator()
     const { switchFavorite, createNewCollection, deleteItem, removeItemFromCollection } = useContextOperator()
 
-    //TODO 完成collection右键菜单的功能; 将各个主要功能的实现更改至与selector相关的实现方式上
+    //TODO 完成collection右键菜单的功能; 将各个主要功能的实现更改至与selector相关的实现方式上, 注意处理点击项不属于选择列表时的情况
     const menu = useDynamicPopupMenu<Illust>(illust => [
         {type: "normal", label: "查看详情", click: illust => openMethod.clickToOpenDetail(illust.id)},
         {type: "separator"},
@@ -91,6 +96,7 @@ function useContextmenu(openMethod: ReturnType<typeof useOpenMethod>) {
             : {type: "normal", label: "标记为收藏", click: illust => switchFavorite(illust, true)},
         {type: "separator"},
         {type: "normal", label: "加入剪贴板"},
+        {type: "normal", label: "从剪贴板引入项"},
         {type: "separator"},
         {type: "normal", label: "拆分至新集合", click: illust => createNewCollection(illust.id)},
         {type: "normal", label: "创建画集"},

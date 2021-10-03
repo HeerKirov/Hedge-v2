@@ -4,8 +4,13 @@ import { TypeDefinition } from "./definition"
 /**
  * 它提供一组函数，用于直接实现拖拽功能，同时还负责自动注入拖拽的传递数据。
  */
-export function useDraggable<T extends keyof TypeDefinition>(type: T | Ref<T>, data: Ref<TypeDefinition[T]>) {
-    const onDragstart = (e: DragEvent) => {
+export function useDraggable<T extends keyof TypeDefinition>(type: T | Ref<T>, data: Ref<TypeDefinition[T]> | (() => TypeDefinition[T])) {
+    const onDragstart = typeof data === "function" ? (e: DragEvent) => {
+        if(e.dataTransfer) {
+            e.dataTransfer.setData("type", unref(type))
+            e.dataTransfer.setData("data", JSON.stringify(data()))
+        }
+    } : (e: DragEvent) => {
         if(e.dataTransfer) {
             e.dataTransfer.setData("type", unref(type))
             e.dataTransfer.setData("data", JSON.stringify(data.value))

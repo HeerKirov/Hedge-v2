@@ -2,6 +2,7 @@ import { computed, defineComponent, inject, InjectionKey, PropType, provide, Ref
 import { useScrollView, VirtualGrid } from "@/components/features/VirtualScrollView"
 import { Illust } from "@/functions/adapter-http/impl/illust"
 import { useToast } from "@/functions/module/toast"
+import { useDraggable } from "@/functions/feature/drag"
 import { watchGlobalKeyEvent } from "@/functions/feature/keyboard"
 import { PaginationData, QueryEndpointInstance } from "@/functions/utils/endpoints/query-endpoint"
 import { assetsUrl, useAppInfo } from "@/functions/app"
@@ -10,12 +11,34 @@ import style from "./style.module.scss"
 
 export default defineComponent({
     props: {
+        /**
+         * 分页数据视图。
+         */
         data: {type: Object as PropType<PaginationData<Illust>>, required: true},
+        /**
+         * 显示的列数。
+         */
         columnNum: {type: Number, default: 4},
+        /**
+         * 内容填充的方式。cover表示裁切并填满整个方块，contain表示留白并完整显示所有内容。
+         */
         fitType: {type: String as PropType<FitType>, default: "cover"},
+        /**
+         * 选择器：已选择项列表。
+         */
         selected: {type: Array as PropType<number[]>, default: []},
+        /**
+         * 选择器：上一个已选择项。
+         */
         lastSelected: {type: null as any as PropType<number | null>, default: null},
-        queryEndpoint: Object as PropType<QueryEndpointInstance<Illust>>
+        /**
+         * 数据查询端点。被选择器用到了。
+         */
+        queryEndpoint: Object as PropType<QueryEndpointInstance<Illust>>,
+        /**
+         * 可拖拽开关。
+         */
+        draggable: Boolean
     },
     emits: {
         dataUpdate: (_: number, __: number) => true,
@@ -27,6 +50,10 @@ export default defineComponent({
     setup(props, { emit }) {
         const selected = toRef(props, "selected")
         const lastSelected = toRef(props, "lastSelected")
+        const data = toRef(props, "data")
+        const columnNum = toRef(props, "columnNum")
+
+        provide(contextInjection, {selected, lastSelected, data, columnNum, queryEndpoint: props.queryEndpoint, draggable: props.draggable})
 
         const dataUpdate = (offset: number, limit: number) => emit("dataUpdate", offset, limit)
 
@@ -36,11 +63,8 @@ export default defineComponent({
 
         const emitSelect = (selected: number[], lastSelected: number | null) => emit("select", selected, lastSelected)
 
-        provide(selectContextInjection, {selected, lastSelected})
-
         return () => <div class={[style.root, FIT_TYPE_CLASS[props.fitType], COLUMN_NUMBER_CLASS[props.columnNum]]}>
-            <Content data={props.data} columnNum={props.columnNum} queryEndpoint={props.queryEndpoint}
-                     onDataUpdate={dataUpdate} onEnter={enter} onDblClick={dblClick} onRightClick={rightClick} onSelect={emitSelect}/>
+            <Content onDataUpdate={dataUpdate} onEnter={enter} onDblClick={dblClick} onRightClick={rightClick} onSelect={emitSelect}/>
             <OverLayer/>
         </div>
     }
@@ -48,7 +72,7 @@ export default defineComponent({
 
 const OverLayer = defineComponent({
     setup() {
-        const { selected } = inject(selectContextInjection)!
+        const { selected } = inject(contextInjection)!
 
         const selectedCount = computed(() => selected.value.length)
 
@@ -59,11 +83,6 @@ const OverLayer = defineComponent({
 })
 
 const Content = defineComponent({
-    props: {
-        data: {type: Object as PropType<PaginationData<Illust>>, required: true},
-        columnNum: {type: Number, required: true},
-        queryEndpoint: Object as PropType<QueryEndpointInstance<Illust>>
-    },
     emits: {
         dataUpdate: (_: number, __: number) => true,
         select: (_: number[], __: number | null) => true,
@@ -73,11 +92,9 @@ const Content = defineComponent({
     },
     setup(props, { emit }) {
         const appInfo = useAppInfo()
+        const { data, columnNum } = inject(contextInjection)!
 
-        const columnNum = toRef(props, "columnNum")
-        const data = toRef(props, "data")
-
-        const selector = useSelector(data, columnNum, props.queryEndpoint, (selected, lastSelected) => emit("select", selected, lastSelected))
+        const selector = useSelector((selected, lastSelected) => emit("select", selected, lastSelected))
 
         const dataUpdate = (offset: number, limit: number) => emit("dataUpdate", offset, limit)
         const enter = (illustId: number) => emit("enter", illustId)
@@ -119,7 +136,7 @@ const Item = defineComponent({
         click: (_: Illust, __: number, ___: MouseEvent) => true,
     },
     setup(props, { emit }) {
-        const { selected } = inject(selectContextInjection)!
+        const { selected } = inject(contextInjection)!
 
         const currentSelected = computed(() => selected.value.find(i => i === props.data.id) != undefined)
 
@@ -132,7 +149,9 @@ const Item = defineComponent({
 
         const rightClick = () => emit("rightClick", props.data)
 
-        return () => <div class={style.item} onClick={click} onDblclick={dblClick} onContextmenu={rightClick}>
+        const dragEvents = useDragEvents(() => toRef(props, "data"))
+
+        return () => <div class={style.item} onClick={click} onDblclick={dblClick} onContextmenu={rightClick} draggable={true} {...dragEvents}>
             <div class={style.content}>
                 <img src={assetsUrl(props.data.thumbnailFile)} alt={`${props.data.type}-${props.data.id}`}/>
             </div>
@@ -143,10 +162,10 @@ const Item = defineComponent({
     }
 })
 
-function useSelector(data: Ref<PaginationData<Illust>>, columnNum: Ref<number>, queryEndpoint: QueryEndpointInstance<Illust> | undefined, emitSelectEvent: EmitSelectFunction) {
+function useSelector(emitSelectEvent: EmitSelectFunction) {
     const scrollView = useScrollView()
     const { toast } = useToast()
-    const { selected, lastSelected } = inject(selectContextInjection)!
+    const { selected, lastSelected, queryEndpoint, data, columnNum } = inject(contextInjection)!
 
     const select = (index: number, illustId: number) => {
         // 单击一个项时，如果没有选择此项，则取消所有选择项，只选择此项；否则无动作
@@ -273,11 +292,40 @@ function useKeyboardEvents({ moveSelect, lastSelected }: ReturnType<typeof useSe
     })
 }
 
+function useDragEvents(getDataRef: () => Ref<Illust>) {
+    const { draggable, selected, queryEndpoint } = inject(contextInjection)!
+
+    if(draggable && queryEndpoint !== undefined) {
+        const data = getDataRef()
+        return useDraggable("illusts", () => {
+            const selectedItems = selected.value.length <= 0 ? [] : selected.value.map(illustId => {
+                const index = queryEndpoint.syncOperations.find(i => i.id === illustId)!
+                const illust = queryEndpoint.syncOperations.retrieve(index)!
+                return {id: illust.id, type: illust.type, thumbnailFile: illust.thumbnailFile, childrenCount: illust.childrenCount}
+            })
+            const clickItems = selected.value.includes(data.value.id) ? [] : [{id: data.value.id, type: data.value.type, thumbnailFile: data.value.thumbnailFile, childrenCount: data.value.childrenCount}]
+
+            return selectedItems.concat(clickItems)
+        })
+    }else{
+        return {}
+    }
+}
+
 export type FitType = "cover" | "contain"
 
 type EmitSelectFunction = (selected: number[], lastSelected: number | null) => void
 
-const selectContextInjection: InjectionKey<{selected: Ref<number[]>, lastSelected: Ref<number | null>}> = Symbol()
+interface Context {
+    queryEndpoint: QueryEndpointInstance<Illust> | undefined
+    data: Ref<PaginationData<Illust>>
+    selected: Ref<number[]>
+    lastSelected: Ref<number | null>
+    columnNum: Ref<number>
+    draggable: boolean
+}
+
+const contextInjection: InjectionKey<Context> = Symbol()
 
 const FIT_TYPE_CLASS: {[key in FitType]: string} = {
     "cover": style.fitTypeCover,

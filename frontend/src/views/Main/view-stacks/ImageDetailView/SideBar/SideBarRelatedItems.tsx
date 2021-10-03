@@ -24,7 +24,7 @@ export default defineComponent({
                     {relatedItems.data.value.albums.map(album => <div class={style.album}><a>《{album.title}》</a></div>)}
                 </div>,
                 relatedItems.data.value.collection !== null && <div class={style.collection}>
-                    <b>所属集合</b>
+                    <b>所属集合</b><i class="fa fa-id-card mx-2"/><b class="can-be-selected">{relatedItems.data.value.collection.id}</b>
                     <div class={style.image} onClick={openRelatedCollection}>
                         <img src={assetsUrl(relatedItems.data.value.collection.thumbnailFile)} alt="related collection"/>
                         <span class={[style.numTag, "tag", "is-dark"]}><i class="fa fa-images"/>{relatedItems.data.value.collection.childrenCount}</span>

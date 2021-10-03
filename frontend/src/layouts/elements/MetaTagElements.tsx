@@ -91,11 +91,11 @@ export const TagNodeElement = defineComponent({
         setRef: Function as PropType<(el: Element | ComponentPublicInstance | null) => void>
     },
     setup(props, { slots }) {
-        const dragEvents = useDraggable("tag", computed(() => ({
+        const dragEvents = useDraggable("tag", () => ({
             id: props.node.id,
             name: props.node.name,
             color: props.node.color
-        })))
+        }))
 
         function renderElement() {
             const isAddr = props.node.type !== "TAG"
@@ -141,11 +141,11 @@ export const TagAddressElement = defineComponent({
         clickable: Boolean
     },
     setup(props) {
-        const dragEvents = useDraggable("tag", computed(() => ({
+        const dragEvents = useDraggable("tag",() => ({
             id: props.address.id,
             name: props.address.address[props.address.address.length - 1].name,
             color: props.address.color
-        })))
+        }))
 
         function renderElement() {
             const isAddr = props.address.type !== "TAG"
@@ -198,7 +198,7 @@ export const AnnotationElement = defineComponent({
         canBeSelected: Boolean
     },
     setup(props, { slots }) {
-        const dragEvents = useDraggable("annotation", toRef(props, "value"))
+        const dragEvents = useDraggable("annotation", () => props.value)
 
         return () => <span class={{"tag": true, "is-cursor-pointer": props.clickable, "is-cursor-default": !props.clickable}} draggable={props.draggable} {...dragEvents}>
             {slots.frontOfTag?.()}
