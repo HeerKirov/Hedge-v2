@@ -14,6 +14,7 @@ class UtilIllustRoutes(private val illustUtilService: IllustUtilService) : Endpo
         javalin.routes {
             path("api/utils/illust") {
                 post("collection-situation", ::getCollectionSituation)
+                post("image-situation", ::getImageSituation)
             }
         }
     }
@@ -23,5 +24,12 @@ class UtilIllustRoutes(private val illustUtilService: IllustUtilService) : Endpo
             throw be(ParamTypeError("illusts", e.message ?: "cannot convert to List<Int>"))
         }
         ctx.json(illustUtilService.getCollectionSituation(illusts))
+    }
+
+    private fun getImageSituation(ctx: Context) {
+        val illusts = try { ctx.bodyAsClass<List<Int>>() } catch (e: Exception) {
+            throw be(ParamTypeError("illusts", e.message ?: "cannot convert to List<Int>"))
+        }
+        ctx.json(illustUtilService.getImageSituation(illusts))
     }
 }

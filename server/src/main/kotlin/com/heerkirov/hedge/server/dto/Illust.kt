@@ -28,9 +28,9 @@ data class IllustCollectionRelatedRes(val associate: AssociateRes?)
 
 data class IllustImageRelatedRes(val collection: IllustParent?,
                                  val albums: List<AlbumSimpleRes>,
-                                 val associate: AssociateRes?) {
-    data class IllustParent(val id: Int, val thumbnailFile: String, val childrenCount: Int)
-}
+                                 val associate: AssociateRes?)
+
+data class IllustParent(val id: Int, val thumbnailFile: String, val childrenCount: Int)
 
 data class AssociateRes(val id: Int, val totalCount: Int, val items: List<IllustRes>)
 

@@ -1,5 +1,8 @@
 package com.heerkirov.hedge.server.utils
 
+import java.util.*
+import kotlin.collections.HashMap
+
 fun <T> Iterable<T>.duplicateCount(): Map<T, Int> {
     val map = HashMap<T, Int>()
     for (t in this) {
@@ -8,9 +11,18 @@ fun <T> Iterable<T>.duplicateCount(): Map<T, Int> {
     return map
 }
 
+inline fun <T> Iterable<T>.filterInto(condition: (T) -> Boolean): Pair<List<T>, List<T>> {
+    val a = LinkedList<T>()
+    val b = LinkedList<T>()
+    for (t in this) {
+        if(condition(t)) a.add(t) else b.add(t)
+    }
+    return a to b
+}
+
 inline fun <T> Sequence<T>.filterInto(condition: (T) -> Boolean): Pair<List<T>, List<T>> {
-    val a = ArrayList<T>()
-    val b = ArrayList<T>()
+    val a = LinkedList<T>()
+    val b = LinkedList<T>()
     for (t in this) {
         if(condition(t)) a.add(t) else b.add(t)
     }

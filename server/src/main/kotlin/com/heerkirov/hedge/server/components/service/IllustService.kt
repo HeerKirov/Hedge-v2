@@ -223,7 +223,7 @@ class IllustService(private val data: DataRepository,
             .select(Illusts.id, Illusts.cachedChildrenCount, FileRecords.id, FileRecords.folder, FileRecords.extension, FileRecords.status)
             .where { Illusts.id eq parentId }
             .firstOrNull()
-            ?.let { IllustImageRelatedRes.IllustParent(it[Illusts.id]!!, takeThumbnailFilepath(it), it[Illusts.cachedChildrenCount]!!) }
+            ?.let { IllustParent(it[Illusts.id]!!, takeThumbnailFilepath(it), it[Illusts.cachedChildrenCount]!!) }
 
         val albums = data.db.from(Albums)
             .innerJoin(AlbumImageRelations, AlbumImageRelations.albumId eq Albums.id)
