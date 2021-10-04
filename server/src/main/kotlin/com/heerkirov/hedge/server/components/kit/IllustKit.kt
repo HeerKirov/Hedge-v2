@@ -11,6 +11,7 @@ import com.heerkirov.hedge.server.model.illust.Illust
 import com.heerkirov.hedge.server.model.meta.Annotation
 import com.heerkirov.hedge.server.utils.business.checkScore
 import com.heerkirov.hedge.server.utils.DateTime
+import com.heerkirov.hedge.server.utils.filterInto
 import com.heerkirov.hedge.server.utils.ktorm.asSequence
 import com.heerkirov.hedge.server.utils.types.Opt
 import com.heerkirov.hedge.server.utils.types.union
@@ -18,7 +19,6 @@ import org.ktorm.dsl.*
 import org.ktorm.dsl.where
 import org.ktorm.entity.*
 import java.time.LocalDate
-import kotlin.collections.ArrayList
 import kotlin.math.roundToInt
 
 class IllustKit(private val data: DataRepository,
@@ -322,7 +322,7 @@ class IllustKit(private val data: DataRepository,
     }
 
     /**
-     * 校验collection的images列表的正确性。
+     * 校验collection的images列表的正确性，同时利用images列表做collection的重导出计算。
      * 要求必须存在至少一项，检查是否有不存在或不合法的项。
      * @return 导出那些exported属性(fileId, score, partitionTime, orderTime)
      * @throws ResourceNotExist ("images", number[]) 给出的部分images不存在。给出不存在的image id列表
@@ -333,19 +333,13 @@ class IllustKit(private val data: DataRepository,
         //数量不够表示有imageId不存在
         if(result.size < imageIds.size) throw be(ResourceNotExist("images", imageIds.toSet() - result.asSequence().map { it.id }.toSet()))
 
-        val images = ArrayList<Illust>(result.size).run {
-            for (item in result) {
-                //按照type分类处理
-                if(item.type == Illust.Type.COLLECTION) {
-                    //对于collection，做一个易用性处理，将它们的所有子项包括在images列表中
-                    addAll(data.db.sequenceOf(Illusts).filter { it.parentId eq item.id }.asKotlinSequence())
-                }else{
-                    //对于image/image_with_parent，直接加入images列表
-                    add(item)
-                }
-            }
-            distinct()
-        }
+        val (collectionResult, imageResult) = result.filterInto { it.type == Illust.Type.COLLECTION }
+        //对于collection，做一个易用性处理，将它们的所有子项包括在images列表中; 对于image/image_with_parent，直接加入images列表
+        val images = imageResult.asSequence()
+            .plus(if(collectionResult.isEmpty()) emptySequence()
+            else data.db.sequenceOf(Illusts).filter { it.parentId inList collectionResult.map(Illust::id) }.asKotlinSequence())
+            .distinctBy { it.id }
+            .toList()
 
         val firstImage = images.minByOrNull { it.orderTime }!!
         val fileId = firstImage.fileId

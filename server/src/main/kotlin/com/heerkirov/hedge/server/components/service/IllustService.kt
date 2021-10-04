@@ -405,7 +405,8 @@ class IllustService(private val data: DataRepository,
                 set(it.updateTime, now)
             }
 
-            illustManager.processSubImages(images, id, illust.description, illust.score)
+            //更换collection的images时，需要对三个方面重导出：collection自己; 移入此处的image的旧parents; 移入此处和从此处移出的images
+            illustManager.processSubImages(images, id)
         }
     }
 
@@ -467,11 +468,12 @@ class IllustService(private val data: DataRepository,
             if(illust.parentId != null) {
                 val exportScore = form.score.isPresent && parent!!.score == null
                 val exportMeta = anyOpt(form.tags, form.authors, form.topics) && !kit.anyNotExportedMeta(illust.parentId)
-                if(exportScore || exportMeta) {
+                val exportFileAndTime = anyOpt(form.orderTime, form.partitionTime)
+                if(exportScore || exportMeta || exportFileAndTime) {
                     //设置了score，且parent未设置score时
                     //或tags/topics/authors存在更改，且parent不存在任何not exported meta tag时
                     //将parent加入更新
-                    illustMetaExporter.appendNewTask(CollectionExporterTask(illust.parentId, exportScore = exportScore, exportMeta = exportMeta))
+                    illustMetaExporter.appendNewTask(CollectionExporterTask(illust.parentId, exportScore = exportScore, exportMeta = exportMeta, exportFileAndTime = exportFileAndTime))
                 }
             }
 
@@ -500,12 +502,21 @@ class IllustService(private val data: DataRepository,
                             .firstOrNull { (it.id eq newParentId) and (it.type eq Illust.Type.COLLECTION) }
                             ?: throw be(ResourceNotExist("collectionId", newParentId))
                     }
+                    val exportedScore = illust.score ?: newParent?.score
+                    val exportedDescription = illust.description.ifEmpty { newParent?.description ?: "" }
+
                     data.db.update(Illusts) {
                         where { it.id eq id }
                         set(it.parentId, newParentId)
                         set(it.type, if(newParentId != null) Illust.Type.IMAGE_WITH_PARENT else Illust.Type.IMAGE)
+                        set(it.exportedScore, exportedScore)
+                        set(it.exportedDescription, exportedDescription)
+                    }
+                    if(!kit.anyNotExportedMeta(id)) {
+                        kit.forceProcessAllMeta(id, copyFromParent = newParentId)
                     }
 
+                    //更换image的parent时，需要对三个方面重导出：image自己; 旧parent; 新parent
                     val now = DateTime.now()
                     if(newParent != null) {
                         illustManager.processAddItemToCollection(newParent.id, illust, now)

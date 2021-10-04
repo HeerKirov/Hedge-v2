@@ -12,6 +12,7 @@ import com.heerkirov.hedge.server.exceptions.ResourceNotSuitable
 import com.heerkirov.hedge.server.exceptions.be
 import com.heerkirov.hedge.server.model.illust.Illust
 import com.heerkirov.hedge.server.utils.DateTime
+import com.heerkirov.hedge.server.utils.ktorm.asSequence
 import com.heerkirov.hedge.server.utils.ktorm.first
 import com.heerkirov.hedge.server.utils.types.Opt
 import com.heerkirov.hedge.server.utils.types.undefined
@@ -141,7 +142,7 @@ class IllustManager(private val data: DataRepository,
             set(it.updateTime, createTime)
         } as Int
 
-        processSubImages(images, id, formDescription, formScore)
+        processSubImages(images, id)
 
         kit.forceProcessAllMeta(id, copyFromChildren = true)
 
@@ -149,47 +150,36 @@ class IllustManager(private val data: DataRepository,
     }
 
     /**
-     * 应用images列表，设置images的parent为当前collection。
+     * 应用images列表，设置images的parent为当前collection。整体设置时，当前collection的重导出是在validate时完成的。
      * 如果image已有其他parent，覆盖那些parent，并对那些parent做属性重导出(主要是fileId)。由于collection要求至少有1个子项，没有子项的collection会被删除。
-     * image的exported属性如果没有填写，会被重新导出计算。
+     * image的exported属性会被重新导出计算。
      */
-    fun processSubImages(images: List<Illust>, thisId: Int, thisDescription: String, thisScore: Int?) {
-        val imageIds = images.map { it.id }
-        //处理那些新列表中没有，也就是需要被移除的项
-        val deleteIds = data.db.from(Illusts).select(Illusts.id).where { (Illusts.id notInList imageIds) and (Illusts.parentId eq thisId) }.map { it[Illusts.id]!! }
+    fun processSubImages(images: List<Illust>, thisId: Int) {
+        val imageIds = images.asSequence().map { it.id }.toSet()
+        val oldImageIds = data.db.from(Illusts).select(Illusts.id).where { Illusts.parentId eq thisId }.asSequence().map { it[Illusts.id]!! }.toSet()
+        //处理移出项，修改它们的type/parentId，并视情况执行重新导出
+        val deleteIds = oldImageIds - imageIds
         data.db.update(Illusts) {
             where { it.id inList deleteIds }
             set(it.type, Illust.Type.IMAGE)
             set(it.parentId, null)
         }
-        //修改子项的parentId/type。如果存在description/score，那么也有可能导出给子项
+        illustMetaExporter.appendNewTask(deleteIds.map { ImageExporterTask(it, exportDescription = true, exportScore = true, exportMeta = true) })
+
+        //处理移入项，修改它们的type/parentId，并视情况执行重新导出
+        val addIds = imageIds - oldImageIds
         data.db.update(Illusts) {
-            where { it.id inList imageIds }
+            where { it.id inList addIds }
             set(it.parentId, thisId)
             set(it.type, Illust.Type.IMAGE_WITH_PARENT)
         }
-        if(thisDescription.isNotEmpty()) {
-            data.db.update(Illusts) {
-                where { (it.id inList imageIds) and (it.description eq "") }
-                set(it.exportedDescription, thisDescription)
-            }
-        }
-        if(thisScore != null) {
-            data.db.update(Illusts) {
-                where { (it.id inList imageIds) and (it.score.isNull()) }
-                set(it.exportedScore, thisScore)
-            }
-        }
-
-        val now = DateTime.now()
+        illustMetaExporter.appendNewTask(addIds.map { ImageExporterTask(it, exportDescription = true, exportScore = true, exportMeta = true) })
         //这些image有旧的parent，需要对旧parent做重新导出
+        val now = DateTime.now()
         images.asSequence()
-            .filter { it.parentId != null && it.parentId != thisId }
+            .filter { it.id in addIds && it.parentId != null && it.parentId != thisId }
             .groupBy { it.parentId!! }
             .forEach { (parentId, images) -> processRemoveItemFromCollection(parentId, images, now) }
-
-        //将被从列表移除的images加入重导出任务
-        illustMetaExporter.appendNewTask(deleteIds.map { ImageExporterTask(it, exportDescription = true, exportScore = true, exportMeta = true) })
     }
 
     /**

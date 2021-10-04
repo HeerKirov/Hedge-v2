@@ -246,22 +246,19 @@ class AlbumService(private val data: DataRepository,
             when (form.action) {
                 BatchAction.ADD -> {
                     val images = form.images ?: throw be(ParamRequired("images"))
-                    kit.validateSubImages(images)
-                    kit.insertSubImages(images, id, form.ordinal)
-                    kit.exportFileAndCount(id)
+                    val (finalImages) = kit.validateSubImages(images)
+                    kit.insertSubImages(finalImages, id, form.ordinal)
                 }
                 BatchAction.MOVE -> {
                     val itemIndexes = form.itemIndexes ?: throw be(ParamRequired("itemIndexes"))
                     if(itemIndexes.isNotEmpty()) {
                         kit.moveSubImages(itemIndexes, id, form.ordinal)
-                        kit.exportFileAndCount(id)
                     }
                 }
                 BatchAction.DELETE -> {
                     val itemIndexes = form.itemIndexes ?: throw be(ParamRequired("itemIndexes"))
                     if(itemIndexes.isNotEmpty()) {
                         kit.deleteSubImages(itemIndexes, id)
-                        kit.exportFileAndCount(id)
                     }
                 }
             }

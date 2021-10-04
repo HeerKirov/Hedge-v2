@@ -10,6 +10,7 @@ import com.heerkirov.hedge.server.exceptions.*
 import com.heerkirov.hedge.server.model.illust.Illust
 import com.heerkirov.hedge.server.model.meta.Annotation
 import com.heerkirov.hedge.server.utils.business.checkScore
+import com.heerkirov.hedge.server.utils.filterInto
 import com.heerkirov.hedge.server.utils.ktorm.asSequence
 import com.heerkirov.hedge.server.utils.ktorm.firstOrNull
 import com.heerkirov.hedge.server.utils.types.Opt
@@ -247,7 +248,7 @@ class AlbumKit(private val data: DataRepository,
     /**
      * 重新计算项目数量和封面的fileId。
      */
-    fun exportFileAndCount(thisId: Int) {
+    private fun exportFileAndCount(thisId: Int) {
         val fileId = data.db.from(AlbumImageRelations)
             .innerJoin(Illusts, AlbumImageRelations.imageId eq Illusts.id)
             .select(Illusts.fileId)
@@ -266,24 +267,31 @@ class AlbumKit(private val data: DataRepository,
     }
 
     /**
-     * 校验album的sub items列表的正确性。列表的值只允许是string(subtitle)或int(image id)。subtitle不允许为空值。
+     * 校验album的sub items列表的正确性。
      * @return (全items列表, image类型的项目数, 封面fileId)
      * @throws ResourceNotExist ("images", number[]) image项不存在，给出imageId列表
      */
-    fun validateSubImages(items: List<Int>): Triple<List<Int>, Int, Int?> {
-        if(items.isEmpty()) return Triple(emptyList(), 0, null)
+    fun validateSubImages(imageIds: List<Int>): Triple<List<Int>, Int, Int?> {
+        if(imageIds.isEmpty()) return Triple(emptyList(), 0, null)
+        val result = data.db.sequenceOf(Illusts).filter { it.id inList imageIds }.toList()
+        //数量不够表示有imageId不存在
+        if(result.size < imageIds.size) throw be(ResourceNotExist("images", imageIds.toSet() - result.asSequence().map { it.id }.toSet()))
 
-        val images = data.db.from(Illusts)
-            .select(Illusts.id, Illusts.fileId)
-            .where { (Illusts.id inList items) and (Illusts.type notEq Illust.Type.COLLECTION) }
-            .map { Pair(it[Illusts.id]!!, it[Illusts.fileId]!!) }
-            .toMap()
-        //数量不够表示有imageId不存在(或类型是collection，被一同判定为不存在)
-        if(images.size < items.size) throw be(ResourceNotExist("images", items.toSet() - images.keys))
+        val (collectionResult, imageResult) = result.filterInto { it.type == Illust.Type.COLLECTION }
+        //对于collection，做一个易用性处理，将它们的所有子项包括在images列表中; 对于image/image_with_parent，直接加入images列表
+        val images = imageResult.asSequence()
+            .plus(if(collectionResult.isEmpty()) emptySequence()
+            else data.db.sequenceOf(Illusts).filter { it.parentId inList collectionResult.map(Illust::id) }.asKotlinSequence())
+            .distinctBy { it.id }
+            .toList()
 
-        val fileId = if(items.isNotEmpty()) images[items.first()] else null
+        val fileId = if(images.isEmpty()) null else {
+            //取出imageIds中的第一个id，认为它是封面image，并寻找它的fileId
+            val firstId = imageIds.first()
+            images.first { it.id == firstId }.fileId
+        }
 
-        return Triple(items, items.size, fileId)
+        return Triple(images.map { it.id }, imageIds.size, fileId)
     }
 
     /**
@@ -323,6 +331,8 @@ class AlbumKit(private val data: DataRepository,
                 }
             }
         }
+
+        exportFileAndCount(thisId)
     }
 
     /**
@@ -370,6 +380,8 @@ class AlbumKit(private val data: DataRepository,
                     }
                 }
             }
+
+            exportFileAndCount(thisId)
         }
     }
 
@@ -395,6 +407,8 @@ class AlbumKit(private val data: DataRepository,
                         }
                     }
             }
+
+            exportFileAndCount(thisId)
         }
     }
 }
