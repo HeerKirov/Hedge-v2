@@ -222,7 +222,7 @@ class IllustManager(private val data: DataRepository,
                     set(it.partitionTime, firstImage.partitionTime)
                     set(it.orderTime, firstImage.orderTime)
                 }
-                set(it.cachedChildrenCount, it.cachedChildrenCount minus 1)
+                set(it.cachedChildrenCount, it.cachedChildrenCount minus removedImages.size)
                 set(it.updateTime, currentTime ?: DateTime.now())
             }
             //其他属性稍后在metaExporter延后导出
