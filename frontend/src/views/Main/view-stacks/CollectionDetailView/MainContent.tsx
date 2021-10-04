@@ -8,10 +8,12 @@ import { Illust } from "@/functions/adapter-http/impl/illust"
 import { createSliceOfAll, createSliceOfList } from "@/functions/utils/endpoints/query-endpoint"
 import { useFastObjectEndpoint } from "@/functions/utils/endpoints/object-fast-endpoint"
 import { useNavigator } from "@/functions/feature/navigator"
+import { useDroppable } from "@/functions/feature/drag"
 import { useDynamicPopupMenu } from "@/functions/module/popup-menu"
 import { useMessageBox } from "@/functions/module/message-box"
 import { useToast } from "@/functions/module/toast"
 import { useHttpClient } from "@/functions/app"
+import { AddToCollectionDialog, useAddToCollectionDialog } from "@/layouts/dialogs/AddToCollectionDialog"
 import { useViewStack } from "@/views/Main/view-stacks"
 import { usePreviewContext, useMetadataEndpoint } from "./inject"
 
@@ -31,6 +33,7 @@ export default defineComponent({
         return () => <>
             <TopBarLayout v-slots={topBarLayoutSlots}/>
             <SideDrawer tab={drawerTab.value} onClose={closeDrawerTab} v-slots={sideDrawerSlots}/>
+            <AddToCollectionDialog/>
         </>
     }
 })
@@ -68,12 +71,10 @@ const ListView = defineComponent({
 
         const menu = useContextmenu(openMethod)
 
-        //TODO 做一个通过拖放引入新项的功能。
-        //      拖放illust至此时，打开一个modal，提示列表内容，勾选要放入的项，然后放入。(注意甄别出原来就在当前集合的项，以及提示那些现在在其他集合的项)
-        //      目前还没有哪里能拖拽illust。给IllustGrid加入这个功能。(当然拖放不是IllustGrid的功能，它是一个独有功能)
-        //      最后，从剪贴板导入的功能使用相同的接口，即打开一个modal。(虽然剪贴板还没做)
+        const dropEvents = useDropEvents()
 
-        return () => <IllustGrid data={markRaw(dataView.data.value)} onDataUpdate={dataView.dataUpdate} draggable={true}
+        return () => <IllustGrid data={markRaw(dataView.data.value)} onDataUpdate={dataView.dataUpdate}
+                                 draggable={true} {...dropEvents}
                                  queryEndpoint={markRaw(endpoint.proxy)} fitType={fitType.value} columnNum={columnNum.value}
                                  selected={selected.value} lastSelected={lastSelected.value} onSelect={updateSelected}
                                  onRightClick={menu.popup} onDblClick={openMethod.clickToOpenDetail} onEnter={openMethod.enterToOpenDetail}/>
@@ -96,7 +97,7 @@ function useContextmenu(openMethod: ReturnType<typeof useOpenMethod>) {
             : {type: "normal", label: "标记为收藏", click: illust => switchFavorite(illust, true)},
         {type: "separator"},
         {type: "normal", label: "加入剪贴板"},
-        {type: "normal", label: "从剪贴板引入项"},
+        {type: "normal", label: "从剪贴板引入项"}, //TODO 实现时使用addToCollection功能
         {type: "separator"},
         {type: "normal", label: "拆分至新集合", click: illust => createNewCollection(illust.id)},
         {type: "normal", label: "创建画集"},
@@ -255,4 +256,17 @@ function useContextOperator() {
     }
 
     return {switchFavorite, createNewCollection, deleteItem, removeItemFromCollection}
+}
+
+function useDropEvents() {
+    const { data: { id }, images: { endpoint } } = usePreviewContext()
+    const addToCollectionDialog = useAddToCollectionDialog()
+
+    const { isDragover: _, ...dropEvents } = useDroppable("illusts", (illusts) => {
+        if(id.value !== null) {
+            addToCollectionDialog.addToCollection(illusts.map(i => i.id), id.value, () => endpoint.refresh())
+        }
+    })
+
+    return dropEvents
 }

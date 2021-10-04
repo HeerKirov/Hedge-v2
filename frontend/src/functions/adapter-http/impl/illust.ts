@@ -415,7 +415,7 @@ export interface SimpleIllust {
     thumbnailFile: string
 }
 
-interface IllustParent extends SimpleIllust {
+export interface IllustParent extends SimpleIllust {
     childrenCount: number
 }
 

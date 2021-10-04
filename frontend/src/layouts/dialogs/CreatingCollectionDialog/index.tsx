@@ -75,12 +75,13 @@ const Content = defineComponent({
 
         return () => <div class={style.content}>
             <div class={style.scrollContent}>
-                <p class="my-2">一些图像已经属于某个集合，或者选中了一些集合作为集合内容。</p>
+                <p class="mt-2 pl-1 is-size-medium"><b>合并集合</b></p>
+                <p class="mb-2 pl-1">一些图像已经属于某个集合，或者选中了一些集合作为集合内容。</p>
                 <NewItem selected={selected.value === "new"} onClick={() => selected.value = "new"}/>
                 {props.situations.map(s => <SituationItem key={s.id} situation={s} selected={selected.value === s.id} onClick={() => selected.value = s.id}/>)}
             </div>
             <div class={style.bottom}>
-                <span>合并后，原先的其他集合会被删除。</span>
+                <span class="is-line-height-std">合并后，原先的其他集合会被删除。</span>
                 <button class="button is-link float-right" onClick={execute}>
                     <span class="icon"><i class="fa fa-check"/></span><span>确认</span>
                 </button>

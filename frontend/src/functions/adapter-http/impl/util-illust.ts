@@ -1,12 +1,15 @@
 import { HttpInstance, Response } from "@/functions/adapter-http"
-import { SimpleIllust } from "@/functions/adapter-http/impl/illust"
+import { IllustParent, SimpleIllust } from "@/functions/adapter-http/impl/illust"
 import { datetime, LocalDateTime } from "@/utils/datetime"
 
 export function createUtilIllustEndpoint(http: HttpInstance): UtilIllustEndpoint {
     return {
         getCollectionSituation: http.createDataRequest("/api/utils/illust/collection-situation", "POST", {
             parseResponse: d => (<any[]>d).map(mapToCollectionSituation)
-        })
+        }),
+        getImageSituation: http.createDataRequest("/api/utils/illust/image-situation", "POST", {
+            parseResponse: d => (<any[]>d).map(mapToImageSituation)
+        }),
     }
 }
 
@@ -20,6 +23,15 @@ function mapToCollectionSituation(data: any): CollectionSituation {
     }
 }
 
+function mapToImageSituation(data: any): ImageSituation {
+    return {
+        id: <number>data["id"],
+        thumbnailFile: <string>data["thumbnailFile"],
+        orderTime: datetime.of(<string>data["orderTime"]),
+        belong: <IllustParent>data["belong"]
+    }
+}
+
 /**
  * 工具API：图像项目相关工具。
  */
@@ -28,6 +40,10 @@ export interface UtilIllustEndpoint {
      * 查询一组illust的集合所属情况，查询这些项目中的集合项/已经属于其他集合的项，给出这些集合的列表。
      */
     getCollectionSituation(images: number[]): Promise<Response<CollectionSituation[]>>
+    /**
+     * 查询一组illust的展开图像情况，查询它们展开后的全部images列表，并给出每个image的parent。
+     */
+    getImageSituation(images: number[]): Promise<Response<ImageSituation[]>>
 }
 
 export interface CollectionSituation {
@@ -51,4 +67,23 @@ export interface CollectionSituation {
      * 调用API给出的列表中，有哪些id属于这个集合。
      */
     belongs: number[]
+}
+
+export interface ImageSituation {
+    /**
+     * image id。
+     */
+    id: number
+    /**
+     * 此图像的缩略图文件路径。
+     */
+    thumbnailFile: string
+    /**
+     * 排序时间。最终结果是按照排序时间排序的。
+     */
+    orderTime: LocalDateTime
+    /**
+     * 它所属的parent。
+     */
+    belong: IllustParent | null
 }
