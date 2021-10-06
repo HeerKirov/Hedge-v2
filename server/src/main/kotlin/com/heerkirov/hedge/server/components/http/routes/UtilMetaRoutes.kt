@@ -2,6 +2,7 @@ package com.heerkirov.hedge.server.components.http.routes
 
 import com.heerkirov.hedge.server.components.http.Endpoints
 import com.heerkirov.hedge.server.components.service.MetaUtilService
+import com.heerkirov.hedge.server.dto.MetaUtilSuggestionForm
 import com.heerkirov.hedge.server.dto.MetaUtilValidateForm
 import com.heerkirov.hedge.server.library.form.bodyAsForm
 import io.javalin.Javalin
@@ -13,6 +14,7 @@ class UtilMetaRoutes(private val metaUtilService: MetaUtilService) : Endpoints {
         javalin.routes {
             path("api/utils/meta") {
                 post("validate", ::validate)
+                post("suggest", ::suggest)
             }
         }
     }
@@ -20,5 +22,10 @@ class UtilMetaRoutes(private val metaUtilService: MetaUtilService) : Endpoints {
     private fun validate(ctx: Context) {
         val form = ctx.bodyAsForm<MetaUtilValidateForm>()
         ctx.json(metaUtilService.validate(form))
+    }
+
+    private fun suggest(ctx: Context) {
+        val form = ctx.bodyAsForm<MetaUtilSuggestionForm>()
+        ctx.json(metaUtilService.suggest(form))
     }
 }

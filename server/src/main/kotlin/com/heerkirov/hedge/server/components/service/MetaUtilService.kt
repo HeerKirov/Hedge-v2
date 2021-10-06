@@ -1,22 +1,29 @@
 package com.heerkirov.hedge.server.components.service
 
 import com.heerkirov.hedge.server.components.database.DataRepository
+import com.heerkirov.hedge.server.components.kit.MetaUtilKit
 import com.heerkirov.hedge.server.components.manager.MetaManager
+import com.heerkirov.hedge.server.dao.illust.Illusts
 import com.heerkirov.hedge.server.dao.meta.Authors
 import com.heerkirov.hedge.server.dao.meta.Tags
 import com.heerkirov.hedge.server.dao.meta.Topics
 import com.heerkirov.hedge.server.dto.*
 import com.heerkirov.hedge.server.exceptions.ConflictingGroupMembersError
+import com.heerkirov.hedge.server.exceptions.ParamRequired
 import com.heerkirov.hedge.server.exceptions.ResourceNotExist
 import com.heerkirov.hedge.server.exceptions.be
+import com.heerkirov.hedge.server.model.illust.Illust
 import com.heerkirov.hedge.server.model.meta.Tag
 import com.heerkirov.hedge.server.utils.filterInto
+import com.heerkirov.hedge.server.utils.ktorm.firstOrNull
 import org.ktorm.dsl.*
 import org.ktorm.entity.filter
 import org.ktorm.entity.sequenceOf
 import org.ktorm.entity.toList
 
-class MetaUtilService(private val data: DataRepository, private val metaManager: MetaManager) {
+class MetaUtilService(private val data: DataRepository,
+                      private val kit: MetaUtilKit,
+                      private val metaManager: MetaManager) {
     /**
      * 对metaTag做内容校验和推导。它实际上是metaTag保存流程的一部分。
      * 这个API用于metaTag编辑器，实时对metaTag列表做验证，获得全局的推导结果，并提前得知错误关系。
@@ -87,5 +94,47 @@ class MetaUtilService(private val data: DataRepository, private val metaManager:
             notSuitable,
             conflictingMembers,
             forceConflictingMembers)
+    }
+
+    /**
+     * 根据给出的元素和关联方式，推导出建议使用的元数据列表。
+     * @throws ResourceNotExist ("imageId" | "collectionId" | "albumId", number)
+     */
+    fun suggest(form: MetaUtilSuggestionForm): List<MetaUtilSuggestionRes> {
+        return when {
+            form.imageId.isPresent -> {
+                //对于image，获得：parent的元数据; associate的元数据; 每一个已加入的album的元数据
+                val row = data.db.from(Illusts).select(Illusts.associateId, Illusts.parentId)
+                    .where { (Illusts.id eq form.imageId.value) and (Illusts.type notEq Illust.Type.COLLECTION) }
+                    .limit(1)
+                    .firstOrNull() ?: throw be(ResourceNotExist("imageId", form.imageId.value))
+                val associateId = row[Illusts.associateId]
+                val parentId = row[Illusts.parentId]
+
+                val ret = mutableListOf<MetaUtilSuggestionRes>()
+                if(parentId != null) ret.add(kit.suggestMetaOfCollection(parentId))
+                ret.addAll(kit.suggestMetaOfAlbum(form.imageId.value))
+                if(associateId != null) ret.add(kit.suggestMetaOfAssociate(associateId))
+                ret
+            }
+            form.collectionId.isPresent -> {
+                //对于collection，获得：所有children的元数据; associate的元数据
+                val row = data.db.from(Illusts).select(Illusts.associateId)
+                    .where { (Illusts.id eq form.collectionId.value) and (Illusts.type eq Illust.Type.COLLECTION) }
+                    .limit(1)
+                    .firstOrNull() ?: throw be(ResourceNotExist("collectionId", form.collectionId.value))
+                val associateId = row[Illusts.associateId]
+
+                val ret = mutableListOf<MetaUtilSuggestionRes>()
+                ret.add(kit.suggestMetaOfCollectionChildren(form.collectionId.value))
+                if(associateId != null) ret.add(kit.suggestMetaOfAssociate(associateId))
+                ret
+            }
+            form.albumId.isPresent -> {
+                //对于album，获得：所有item的元数据
+                listOf(kit.suggestMetaOfAlbumChildren(form.albumId.value))
+            }
+            else -> throw be(ParamRequired("imageId/collectionId/albumId"))
+        }
     }
 }
