@@ -1,7 +1,6 @@
-import { ComponentPublicInstance, computed, nextTick, Ref, ref } from "vue"
+import { inject, InjectionKey, provide, Ref, ref } from "vue"
 import { TagTreeNode } from "@/functions/adapter-http/impl/tag"
 import { IndexedInfo, TagListContext, useTagListContext } from "@/functions/api/tag-tree/data"
-import { installation } from "@/functions/utils/basic"
 
 export interface ExpandedInfoContext {
     /**
@@ -22,10 +21,21 @@ export interface ExpandedInfoContext {
     setAllForChildren(key: number, value: boolean): void
 }
 
+/**
+ * 辅助VCA：在更上层级注入，以在期望节点上缓存expandedInfo存储结构。
+ * 不是必须使用的。如果不使用此方法，那么默认会在构建位置保存存储结构。
+ */
+export function installExpandedInfoStorage() {
+    provide(expandedInfoInjection, ref<{[key: number]: boolean}>({}))
+}
+
+/**
+ * 构建树节点的展开信息的存储结构。
+ */
 export function useExpandedInfo(context?: TagListContext): ExpandedInfoContext {
     const { indexedInfo } = context ?? useTagListContext()
 
-    const expandedInfo = ref<{[key: number]: boolean}>({})
+    const expandedInfo = inject<Ref<{[key: number]: boolean}>>(expandedInfoInjection, () => ref({}), true)
 
     const get = (key: number): boolean => expandedInfo.value[key] ?? false
 
@@ -63,3 +73,5 @@ export function useExpandedInfo(context?: TagListContext): ExpandedInfoContext {
 
     return {get, set, setAllForParent, setAllForChildren}
 }
+
+const expandedInfoInjection: InjectionKey<Ref<{[key: number]: boolean}>> = Symbol()

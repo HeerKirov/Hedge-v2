@@ -13,6 +13,7 @@ import { useDynamicPopupMenu } from "@/functions/module/popup-menu"
 import { useMessageBox } from "@/functions/module/message-box"
 import { useToast } from "@/functions/module/toast"
 import { useHttpClient } from "@/functions/app"
+import { installExpandedInfoStorage } from "@/layouts/data/TagTree"
 import { AddToCollectionDialog, useAddToCollectionDialog } from "@/layouts/dialogs/AddToCollectionDialog"
 import { useViewStack } from "@/views/Main/view-stacks"
 import { usePreviewContext, useMetadataEndpoint } from "./inject"
@@ -20,6 +21,8 @@ import { usePreviewContext, useMetadataEndpoint } from "./inject"
 export default defineComponent({
     setup() {
         const { ui: { drawerTab } } = usePreviewContext()
+
+        installExpandedInfoStorage()
 
         const closeDrawerTab = () => drawerTab.value = undefined
 

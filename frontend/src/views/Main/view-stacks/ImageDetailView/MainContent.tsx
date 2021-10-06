@@ -1,5 +1,6 @@
 import { defineComponent, ref } from "vue"
 import SideDrawer from "@/layouts/layouts/SideDrawer"
+import { installExpandedInfoStorage } from "@/layouts/data/TagTree"
 import Dashboard, { installDashboardZoom } from "@/layouts/data/Dashboard"
 import TopBarCollapseLayout from "@/layouts/layouts/TopBarCollapseLayout"
 import MetaTagEditor from "@/layouts/drawers/MetaTagEditor"
@@ -16,6 +17,8 @@ export default defineComponent({
         const { detail, ui: { drawerTab } } = usePreviewContext()
 
         installDashboardZoom(ref(true), ref(100))
+
+        installExpandedInfoStorage()
 
         const menu = useContextmenu()
 

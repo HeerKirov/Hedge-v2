@@ -4,9 +4,10 @@ import { TagTreeNode } from "@/functions/adapter-http/impl/tag"
 import { useDraggable } from "@/functions/feature/drag"
 import { useExpandedValue, useTagTreeContext, useDescriptionValue, useTagDrop, useTagTreeAccessor, installTagTreeContext } from "./inject"
 import type { TagTreeEventCallbackContext } from "./inject"
+import { installExpandedInfoStorage } from "./inject-expand"
 import style from "./style.module.scss"
 
-export { installTagTreeContext, useTagTreeAccessor, TagTreeEventCallbackContext }
+export { installTagTreeContext, useTagTreeAccessor, installExpandedInfoStorage, TagTreeEventCallbackContext }
 
 /**
  * tag tree的根节点列表。它实质上是标准节点列表，但是通过包装有一个不太一样的根节点外壳。

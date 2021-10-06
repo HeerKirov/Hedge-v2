@@ -6,7 +6,7 @@ import { DepsTag, SimpleTag } from "@/functions/adapter-http/impl/tag"
 import { DepsTopic, SimpleTopic } from "@/functions/adapter-http/impl/topic"
 import { DepsAuthor, SimpleAuthor } from "@/functions/adapter-http/impl/author"
 import { MetaTagTypeValues } from "@/functions/adapter-http/impl/all"
-import { MetaTagValidation } from "@/functions/adapter-http/impl/util-meta"
+import { MetaUtilValidation } from "@/functions/adapter-http/impl/util-meta"
 import { watchGlobalKeyEvent } from "@/functions/feature/keyboard"
 import { useToast, ToastManager } from "@/functions/module/toast"
 import { useMessageBox } from "@/functions/module/message-box"
@@ -195,9 +195,8 @@ function useEditorDataValidation(tags: Ref<SimpleTag[]>, data: Ref<EditorData | 
     const httpClient = useHttpClient()
     const toast = useToast()
 
-    const tagValidationResults = ref<MetaTagValidation>()
+    const tagValidationResults = ref<MetaUtilValidation>()
 
-    //FUTURE 为校验功能添加Link和Exported项的标记提示，告诉用户这些项是哪儿来的，以免摸不着头脑
     watch(tags, async (tags, _, onInvalidate) => {
         if(tags.length) {
             let invalidate = false
@@ -206,7 +205,7 @@ function useEditorDataValidation(tags: Ref<SimpleTag[]>, data: Ref<EditorData | 
             await sleep(1000)
             if(invalidate) return
 
-            const res = await httpClient.metaUtil.validateTag(tags.map(t => t.id))
+            const res = await httpClient.metaUtil.validate({tags: tags.map(t => t.id), topics: null, authors: null})
             if(invalidate) return
 
             if(res.ok) {
@@ -328,7 +327,7 @@ function useEditorDataHistory(tags: Ref<SimpleTag[]>, topics: Ref<SimpleTopic[]>
 
 function useRightColumnData() {
     const storage = useLocalStorageWithDefault<{
-        tab: "db" | "suggest" | "source",
+        tab: "db" | "recent" | "suggest" | "source",
         tabDbType: "author" | "topic" | "tag"
     }>("detail-view/meta-tag-editor/data", {
         tab: "db",
