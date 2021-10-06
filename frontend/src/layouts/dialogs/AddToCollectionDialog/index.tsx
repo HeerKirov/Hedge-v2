@@ -95,10 +95,10 @@ const Content = defineComponent({
             </div>
             <div class={style.bottom}>
                 <button class="button is-white has-text-link" onClick={selectAll}>
-                    <span class="icon"><i class="fa fa-check"/></span><span>全选</span>
+                    <span class="icon"><i class="fa fa-check-square"/></span><span>全选</span>
                 </button>
                 <button class="button is-white has-text-link" onClick={selectReverse}>
-                    <span class="icon"><i class="fa fa-check"/></span><span>反选</span>
+                    <span class="icon"><i class="far fa-check-square"/></span><span>反选</span>
                 </button>
                 <span class="ml-2 is-line-height-std">已选择{selectedCount.value}项，共{props.situations.length}项</span>
                 {anyHasParent.value && <span class="ml-8 is-line-height-std is-size-small">

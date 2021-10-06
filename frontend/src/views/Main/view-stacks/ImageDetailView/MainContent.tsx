@@ -43,12 +43,13 @@ export default defineComponent({
 
 const MetaTagEditorPanel = defineComponent({
     setup() {
-        const { ui: { drawerTab } } = usePreviewContext()
+        const { ui: { drawerTab }, detail: { id } } = usePreviewContext()
         const { data, setData } = useMetadataEndpoint()
 
         const closeDrawerTab = () => drawerTab.value = undefined
 
-        return () => <MetaTagEditor tags={data.value?.tags ?? []}
+        return () => <MetaTagEditor identity={id.value !== null ? {imageId: id.value!} : null}
+                                    tags={data.value?.tags ?? []}
                                     topics={data.value?.topics ?? []}
                                     authors={data.value?.authors ?? []}
                                     tagme={data.value?.tagme ?? []}

@@ -6,7 +6,7 @@ import { DepsTag, SimpleTag } from "@/functions/adapter-http/impl/tag"
 import { DepsTopic, SimpleTopic } from "@/functions/adapter-http/impl/topic"
 import { DepsAuthor, SimpleAuthor } from "@/functions/adapter-http/impl/author"
 import { MetaTagTypeValues } from "@/functions/adapter-http/impl/all"
-import { MetaUtilValidation } from "@/functions/adapter-http/impl/util-meta"
+import { MetaUtilRelatedIdentity, MetaUtilValidation } from "@/functions/adapter-http/impl/util-meta"
 import { watchGlobalKeyEvent } from "@/functions/feature/keyboard"
 import { useToast, ToastManager } from "@/functions/module/toast"
 import { useMessageBox } from "@/functions/module/message-box"
@@ -25,6 +25,7 @@ interface InstallPanelContext {
     data: Readonly<Ref<EditorData | null>>
     setData: SetData
     close(): void
+    identity: Ref<MetaUtilRelatedIdentity | null>
 }
 
 export interface SetData {
@@ -54,7 +55,7 @@ export const [installPanelContext, usePanelContext] = installation(function(cont
 
     const rightColumnData = useRightColumnData()
 
-    return {typeFilter, editorData, rightColumnData}
+    return {identity: context.identity, typeFilter, editorData, rightColumnData}
 })
 
 function useEditorData(data: Ref<EditorData | null>, setData: SetData, closeTab: () => void) {

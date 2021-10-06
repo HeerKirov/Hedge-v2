@@ -1,9 +1,10 @@
-import { computed, defineComponent, PropType } from "vue"
+import { computed, defineComponent, PropType, toRef } from "vue"
 import CheckBox from "@/components/forms/CheckBox"
 import { Tagme } from "@/functions/adapter-http/impl/illust"
 import { DepsTag } from "@/functions/adapter-http/impl/tag"
 import { DepsTopic } from "@/functions/adapter-http/impl/topic"
 import { DepsAuthor } from "@/functions/adapter-http/impl/author"
+import { MetaUtilRelatedIdentity } from "@/functions/adapter-http/impl/util-meta"
 import LeftColumn from "./LeftColumn"
 import RightColumn from "./RightColumn"
 import { installPanelContext, usePanelContext, SetData } from "./inject"
@@ -24,7 +25,8 @@ export default defineComponent({
         topics: {type: Array as PropType<DepsTopic[]>, required: true},
         authors: {type: Array as PropType<DepsAuthor[]>, required: true},
         tagme: {type: Array as PropType<Tagme[]>, required: true},
-        setData: {type: Function as PropType<SetData>, required: true}
+        setData: {type: Function as PropType<SetData>, required: true},
+        identity: {type: null as any as PropType<MetaUtilRelatedIdentity | null>, required: true}
     },
     emits: {
         close: () => true
@@ -37,7 +39,12 @@ export default defineComponent({
             tagme: props.tagme
         }))
 
-        installPanelContext({data, setData: props.setData, close: () => emit("close")})
+        installPanelContext({
+            data,
+            setData: props.setData,
+            close: () => emit("close"),
+            identity: toRef(props, "identity")
+        })
 
         return () => <div class={style.panelOfMetaTag}>
             <TopColumn/>

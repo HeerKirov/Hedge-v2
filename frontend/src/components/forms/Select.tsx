@@ -5,7 +5,7 @@ export default defineComponent({
         items: null as any as PropType<SelectItem[]>,
         value: String
     },
-    emits: ['updateValue'],
+    emits: ["updateValue"],
     setup(props, { emit }) {
         const selectDom = ref<HTMLSelectElement>()
 
@@ -14,7 +14,7 @@ export default defineComponent({
                 const idx = (e.target as HTMLSelectElement).selectedIndex
                 const value = props.items[idx]?.value
                 if(value != undefined) {
-                    emit("updateValue", value)
+                    emit("updateValue", value, idx)
                 }
             }
         }
@@ -28,7 +28,7 @@ export default defineComponent({
                     const idx = props.items.findIndex(item => item.value === props.value)
                     if(idx >= 0) selectDom.value.selectedIndex = idx
                 }else{
-                    emit("updateValue", props.items[0].value)
+                    emit("updateValue", props.items[0].value, 0)
                 }
             }
         }
