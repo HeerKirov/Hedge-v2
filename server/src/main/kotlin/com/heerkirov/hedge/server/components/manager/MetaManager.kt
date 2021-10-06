@@ -35,7 +35,7 @@ class MetaManager(private val data: DataRepository) {
      * @return 一组tag。Int表示tag id，Boolean表示此tag是否为导出tag。
      * @throws ResourceNotExist ("tags", number[]) 部分tags资源不存在。给出不存在的tag id列表
      * @throws ResourceNotSuitable ("tags", number[]) 部分tags资源不适用。地址段不适用于此项。给出不适用的tag id列表
-     * @throws ConflictingGroupMembersError 发现标签冲突组
+     * @throws ConflictingGroupMembersError 发现标签冲突组。此方法会直接把冲突组问题作为异常抛出，而不是继续在参数里传递
      */
     fun validateAndExportTag(tagIds: List<Int>): List<Pair<Int, Boolean>> {
         val tags = data.db.sequenceOf(Tags).filter { it.id inList tagIds }.toList()
@@ -47,7 +47,15 @@ class MetaManager(private val data: DataRepository) {
             if(isNotEmpty()) throw be(ResourceNotSuitable("tags", map { it.id }))
         }
 
-        return exportTag(tags)
+        val (result, e) = exportTag(tags)
+        if(e != null) {
+            //此方法只检出强制冲突组
+            val forceInfo = e.info.filter { it.force }
+            if(forceInfo.isNotEmpty()) {
+                throw be(ConflictingGroupMembersError(forceInfo))
+            }
+        }
+        return result
     }
 
     /**
@@ -80,12 +88,33 @@ class MetaManager(private val data: DataRepository) {
     }
 
     /**
-     * 对tag进行导出。
-     * @param conflictingMembersCheck 对冲突组进行检查，并抛出异常。
-     * @param onlyForceConflicting 只检查强制冲突组，而忽略非强制。
-     * @throws ConflictingGroupMembersError 发现标签冲突组
+     * 对tag进行导出。结果是id。
+     * @return 返回一个结果和检查错误的双元组。检查错误是不会打断结果输出的。
      */
-    fun exportTag(tags: List<Tag>, conflictingMembersCheck: Boolean = true, onlyForceConflicting: Boolean = true): List<Pair<Int, Boolean>> {
+    fun exportTag(tags: List<Tag>): Pair<List<Pair<Int, Boolean>>, ConflictingGroupMembersError?> {
+        val (result, e) = exportTagModel(tags)
+        return result.map { (tag, isExported) -> tag.id to isExported } to e
+    }
+
+    /**
+     * 对topic进行导出。结果是id。
+     */
+    fun exportTopic(topics: List<Topic>): List<Pair<Int, Boolean>> {
+        return exportTopicModel(topics).map { (topic, isExported) -> topic.id to isExported }
+    }
+
+    /**
+     * 对author进行导出。结果是id。
+     */
+    fun exportAuthor(authors: List<Author>): List<Pair<Int, Boolean>> {
+        return authors.map { it.id to false }
+    }
+
+    /**
+     * 对tag进行导出。
+     * @return 返回一个结果和检查错误的双元组。检查错误是不会打断结果输出的。
+     */
+    fun exportTagModel(tags: List<Tag>): Pair<List<Pair<Tag, Boolean>>, ConflictingGroupMembersError?> {
         //记下所有访问过的节点父子关系
         val childrenMap = HashMap<Int, MutableSet<Int>>().apply { for (tag in tags) if(tag.parentId != null) computeIfAbsent(tag.parentId) { mutableSetOf() }.apply { add(tag.id) } }
         //已经访问过的节点。原tags列表的节点直接进去了
@@ -112,32 +141,28 @@ class MetaManager(private val data: DataRepository) {
             }
         }
 
-        val result = (tags.asSequence().map { it to false } + exportedTags.asSequence().map { it to true }).map { (tag, isExported) -> tag.id to isExported }.toList()
+        val result = (tags.asSequence().map { it to false } + exportedTags.asSequence().map { it to true }).toList()
 
-        if(conflictingMembersCheck) {
-            val isExportedMap = result.toMap()
-            val condition: (Tag.IsGroup) -> Boolean = if(onlyForceConflicting) { { it == Tag.IsGroup.FORCE || it == Tag.IsGroup.FORCE_AND_SEQUENCE } } else { { it != Tag.IsGroup.NO } }
-            //筛选出所有的强制冲突组
-            val conflictingMembers = childrenMap.asSequence()
-                .filter { (id, members) -> members.size > 1 && been[id]!!.isGroup.let(condition) }
-                .map { (groupId, members) ->
-                    val groupTag = been[groupId]!!
-                    val groupMember = ConflictingGroupMembersError.Member(groupTag.id, groupTag.name, groupTag.color, isExportedMap.getOrDefault(groupId, true))
-                    val force = groupTag.isGroup == Tag.IsGroup.FORCE || groupTag.isGroup == Tag.IsGroup.FORCE_AND_SEQUENCE
-                    ConflictingGroupMembersError.ConflictingMembers(groupMember, force, members.map { ConflictingGroupMembersError.Member(it, been[it]!!.name, been[it]!!.color, isExportedMap.getOrDefault(it, true)) })
-                }
-                .toList()
-            //检查存在冲突成员时，抛出强制冲突异常
-            if(conflictingMembers.isNotEmpty()) throw be(ConflictingGroupMembersError(conflictingMembers))
-        }
+        //冲突组检查
+        val isExportedMap = result.associate { (tag, isExported) -> tag.id to isExported }
+        //筛选出所有的强制冲突组
+        val conflictingMembers = childrenMap.asSequence()
+            .filter { (id, members) -> members.size > 1 && been[id]!!.isGroup != Tag.IsGroup.NO }
+            .map { (groupId, members) ->
+                val groupTag = been[groupId]!!
+                val groupMember = ConflictingGroupMembersError.Member(groupTag.id, groupTag.name, groupTag.color, isExportedMap.getOrDefault(groupId, true))
+                val force = groupTag.isGroup == Tag.IsGroup.FORCE || groupTag.isGroup == Tag.IsGroup.FORCE_AND_SEQUENCE
+                ConflictingGroupMembersError.ConflictingMembers(groupMember, force, members.map { ConflictingGroupMembersError.Member(it, been[it]!!.name, been[it]!!.color, isExportedMap.getOrDefault(it, true)) })
+            }
+            .toList()
 
-        return result
+        return result to if(conflictingMembers.isNotEmpty()) ConflictingGroupMembersError(conflictingMembers) else null
     }
 
     /**
      * 对topic进行导出。
      */
-    fun exportTopic(topics: List<Topic>): List<Pair<Int, Boolean>> {
+    fun exportTopicModel(topics: List<Topic>): List<Pair<Topic, Boolean>> {
         val been = HashSet<Int>(topics.size * 2).apply { addAll(topics.map { it.id }) }
         val queue = LinkedList<Int>().apply { addAll(topics.mapNotNull { it.parentId }) }
         val exportedTopics = LinkedList<Topic>()
@@ -154,14 +179,14 @@ class MetaManager(private val data: DataRepository) {
             }
         }
 
-        return topics.map { it.id to false } + exportedTopics.map { it.id to true }
+        return topics.map { it to false } + exportedTopics.map { it to true }
     }
 
     /**
      * 对author进行导出。
      */
-    fun exportAuthor(authors: List<Author>): List<Pair<Int, Boolean>> {
-        return authors.map { it.id to false }
+    fun exportAuthorModel(authors: List<Author>): List<Pair<Author, Boolean>> {
+        return authors.map { it to false }
     }
 
     /**

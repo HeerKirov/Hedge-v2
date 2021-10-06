@@ -78,7 +78,7 @@ class HttpServerImpl(private val allServices: AllServices,
                 allServices.settingSpider,
                 allServices.settingAppdata))
             .handle(UtilQueryRoutes(allServices.queryService))
-            .handle(UtilMetaRoutes(allServices.metaService))
+            .handle(UtilMetaRoutes(allServices.metaUtilService))
             .handle(UtilIllustRoutes(allServices.illustUtilService))
             .handle(IllustRoutes(allServices.illust, allServices.associate))
             .handle(AlbumRoutes(allServices.album))

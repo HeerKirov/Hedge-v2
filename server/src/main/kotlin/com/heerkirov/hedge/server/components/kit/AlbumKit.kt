@@ -89,7 +89,7 @@ class AlbumKit(private val data: DataRepository,
                 metaTag = Tags,
                 metaRelations = AlbumTagRelations,
                 metaAnnotationRelations = TagAnnotationRelations,
-                newTagIds = metaManager.exportTag(tags, conflictingMembersCheck = false))
+                newTagIds = metaManager.exportTag(tags).first) //直接忽略任何冲突组错误
             val topicAnnotations = metaManager.processMetaTags(thisId, creating = false, analyseStatisticCount = false,
                 metaTag = Topics,
                 metaRelations = AlbumTopicRelations,

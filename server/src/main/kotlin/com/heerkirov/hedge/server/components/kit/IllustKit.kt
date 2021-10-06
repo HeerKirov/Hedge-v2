@@ -136,7 +136,7 @@ class IllustKit(private val data: DataRepository,
                 metaTag = Tags,
                 metaRelations = IllustTagRelations,
                 metaAnnotationRelations = TagAnnotationRelations,
-                newTagIds = metaManager.exportTag(tags, conflictingMembersCheck = false))
+                newTagIds = metaManager.exportTag(tags).first) //直接忽略任何冲突组错误
             val topicAnnotations = metaManager.processMetaTags(thisId, false, analyseStatisticCount,
                 metaTag = Topics,
                 metaRelations = IllustTopicRelations,

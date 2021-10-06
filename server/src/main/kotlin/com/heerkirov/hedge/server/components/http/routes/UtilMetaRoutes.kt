@@ -1,26 +1,24 @@
 package com.heerkirov.hedge.server.components.http.routes
 
 import com.heerkirov.hedge.server.components.http.Endpoints
-import com.heerkirov.hedge.server.components.service.MetaService
-import com.heerkirov.hedge.server.exceptions.ParamTypeError
-import com.heerkirov.hedge.server.exceptions.be
+import com.heerkirov.hedge.server.components.service.MetaUtilService
+import com.heerkirov.hedge.server.dto.MetaUtilValidateForm
+import com.heerkirov.hedge.server.library.form.bodyAsForm
 import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder.*
 import io.javalin.http.Context
 
-class UtilMetaRoutes(private val metaService: MetaService) : Endpoints {
+class UtilMetaRoutes(private val metaUtilService: MetaUtilService) : Endpoints {
     override fun handle(javalin: Javalin) {
         javalin.routes {
             path("api/utils/meta") {
-                post("validate/tags", ::validateTags)
+                post("validate", ::validate)
             }
         }
     }
 
-    private fun validateTags(ctx: Context) {
-        val tags = try { ctx.bodyAsClass<List<Int>>() } catch (e: Exception) {
-            throw be(ParamTypeError("tags", e.message ?: "cannot convert to List<Int>"))
-        }
-        ctx.json(metaService.validateTags(tags))
+    private fun validate(ctx: Context) {
+        val form = ctx.bodyAsForm<MetaUtilValidateForm>()
+        ctx.json(metaUtilService.validate(form))
     }
 }
