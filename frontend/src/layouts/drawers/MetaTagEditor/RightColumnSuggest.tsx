@@ -1,7 +1,7 @@
 import { computed, defineComponent, PropType, ref, watch } from "vue"
 import Select, { SelectItem } from "@/components/forms/Select"
 import CheckBox from "@/components/forms/CheckBox"
-import { MetaTagTypes, MetaTagValues, SimpleAuthor, SimpleTopic, SimpleTag } from "@/functions/adapter-http/impl/all"
+import { MetaTagTypes, MetaTagValues, SimpleAuthor, SimpleTopic, SimpleTag, MetaTagTypeValues } from "@/functions/adapter-http/impl/all"
 import { SimpleMetaTagElement } from "@/layouts/elements"
 import { useHttpClient } from "@/functions/app"
 import { useMetaTagCallout } from "@/layouts/data/MetaTagCallout"
@@ -132,6 +132,18 @@ function useSelectListContext(props: {tags: SimpleTag[], topics: SimpleTopic[], 
         if(typeFilter.value.topic) selectedTopics.value = {}
     }
 
+    const selectNone = () => {
+        if(typeFilter.value.tag) for (const tag of props.tags) {
+            selectedTags.value[tag.id] = false
+        }
+        if(typeFilter.value.topic) for (const topic of props.topics) {
+            selectedTopics.value[topic.id] = false
+        }
+        if(typeFilter.value.author) for (const author of props.authors) {
+            selectedAuthors.value[author.id] = false
+        }
+    }
+
     const selectReverse = () => {
         if(typeFilter.value.tag) for (const tag of props.tags) {
             if(selectedTags.value[tag.id] === false) {
@@ -157,7 +169,20 @@ function useSelectListContext(props: {tags: SimpleTag[], topics: SimpleTopic[], 
     }
 
     const addAll = () => {
-        //TODO 修改editorData，添加一个批量添加的函数，并为这个批量添加行为修改存储实现。然后，实现此处的addAll
+        const addList: MetaTagTypeValues[] = []
+        if(typeFilter.value.author) for (const author of props.authors) {
+            if(selectedAuthors.value[author.id] !== false) addList.push({type: "author", value: author})
+        }
+        if(typeFilter.value.topic) for (const topic of props.topics) {
+            if(selectedTopics.value[topic.id] !== false) addList.push({type: "topic", value: topic})
+        }
+        if(typeFilter.value.tag) for (const tag of props.tags) {
+            if(selectedTags.value[tag.id] !== false) addList.push({type: "tag", value: tag})
+        }
+        if(addList.length) {
+            editorData.addAll(addList)
+            selectNone()
+        }
     }
 
     return {selectedAuthors, selectedTopics, selectedTags, selectAll, selectReverse, addAll}

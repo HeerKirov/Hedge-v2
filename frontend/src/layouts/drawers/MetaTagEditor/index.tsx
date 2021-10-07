@@ -12,7 +12,6 @@ import style from "./style.module.scss"
 
 /* TODO tag editor内容清单
     - 最近使用。根据上一个项目/最近几个项目/最近使用频次较高的标签/标签历史记录，给出推荐列表。
-    - 相关推荐。根据相关项(collection/associate/album关联)，给出推荐列表。
     - 来源推导。根据source tag，推导出可能需要的tag。这个页面也需要能显示source tag列表。
    TODO tag editor内容优化清单
     - 显示推导结果：左侧栏在下面跟着显示推导标签，以提示用户最终结果。

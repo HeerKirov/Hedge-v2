@@ -112,6 +112,37 @@ function useEditorData(data: Ref<EditorData | null>, setData: SetData, closeTab:
         }
     }
 
+    function addAll(records: MetaTagTypeValues[]) {
+        const finalRecords: MetaTagTypeValues[] = []
+        for(const record of records) {
+            if(record.type === "tag") {
+                const tag = record.value
+                if(!tags.value.find(i => i.id === tag.id)) {
+                    tags.value.push(tag)
+                    finalRecords.push(record)
+                }
+                changed.tag = true
+            }else if(record.type === "author") {
+                const author = record.value
+                if(!authors.value.find(i => i.id === author.id)) {
+                    authors.value.push(author)
+                    finalRecords.push(record)
+                }
+                changed.author = true
+            }else if(record.type === "topic") {
+                const topic = record.value
+                if(!topics.value.find(i => i.id === topic.id)) {
+                    topics.value.push(topic)
+                    finalRecords.push(record)
+                }
+                changed.topic = true
+            }
+        }
+        if(finalRecords.length) {
+            addHistoryRecord(finalRecords.map(r => ({...r, action: "add"})))
+        }
+    }
+
     const removeAt = (type: "tag" | "topic" | "author", index: number) => {
         if(type === "tag") {
             const [tag] = tags.value.splice(index, 1)
@@ -134,7 +165,7 @@ function useEditorData(data: Ref<EditorData | null>, setData: SetData, closeTab:
 
     const { canSave, save } = useSaveFunction(tags, topics, authors, tagme, changed, validation, setData, closeTab)
 
-    return {tags: readonly(tags), topics: readonly(topics), authors: readonly(authors), tagme: readonly(tagme), setTagme, add, removeAt, canSave, save, validation, history}
+    return {tags: readonly(tags), topics: readonly(topics), authors: readonly(authors), tagme: readonly(tagme), setTagme, add, addAll, removeAt, canSave, save, validation, history}
 }
 
 function useSaveFunction(tags: Ref<SimpleTag[]>,
@@ -229,90 +260,99 @@ function useEditorDataHistory(tags: Ref<SimpleTag[]>, topics: Ref<SimpleTopic[]>
     type Action = {action: "add"} | {action: "remove", index: number}
     type Record = Action & MetaTagTypeValues
 
-    const undoStack = ref<Record[]>([])
-    const redoStack = ref<Record[]>([])
+    const undoStack = ref<Record[][]>([])
+    const redoStack = ref<Record[][]>([])
 
     const canUndo = computed(() => !!undoStack.value.length)
     const canRedo = computed(() => !!redoStack.value.length)
 
     const undo = () => {
         if(canUndo.value) {
-            const [record] = undoStack.value.splice(undoStack.value.length - 1, 1)
-            if(record.type === "tag") {
-                //撤销时执行相反的操作
-                if(record.action === "add") {
-                    const i = tags.value.findIndex(i => i.id === record.value.id)
-                    tags.value.splice(i, 1)
-                }else{
-                    if(!tags.value.find(i => i.id === record.value.id)) {
-                        tags.value.splice(record.index, 0, record.value)
+            const [records] = undoStack.value.splice(undoStack.value.length - 1, 1)
+            for(const record of records.reverse()) {
+                //对每组records，按反顺序撤销动作
+                if(record.type === "tag") {
+                    //撤销时执行相反的操作
+                    if(record.action === "add") {
+                        const i = tags.value.findIndex(i => i.id === record.value.id)
+                        tags.value.splice(i, 1)
+                    }else{
+                        if(!tags.value.find(i => i.id === record.value.id)) {
+                            tags.value.splice(record.index, 0, record.value)
+                        }
                     }
-                }
-            }else if(record.type === "topic") {
-                if(record.action === "add") {
-                    const i = topics.value.findIndex(i => i.id === record.value.id)
-                    topics.value.splice(i, 1)
-                }else{
-                    if(!topics.value.find(i => i.id === record.value.id)) {
-                        topics.value.splice(record.index, 0, record.value)
+                }else if(record.type === "topic") {
+                    if(record.action === "add") {
+                        const i = topics.value.findIndex(i => i.id === record.value.id)
+                        topics.value.splice(i, 1)
+                    }else{
+                        if(!topics.value.find(i => i.id === record.value.id)) {
+                            topics.value.splice(record.index, 0, record.value)
+                        }
                     }
-                }
-            }else if(record.type === "author") {
-                if(record.action === "add") {
-                    const i = authors.value.findIndex(i => i.id === record.value.id)
-                    authors.value.splice(i, 1)
-                }else{
-                    if(!authors.value.find(i => i.id === record.value.id)) {
-                        authors.value.splice(record.index, 0, record.value)
+                }else if(record.type === "author") {
+                    if(record.action === "add") {
+                        const i = authors.value.findIndex(i => i.id === record.value.id)
+                        authors.value.splice(i, 1)
+                    }else{
+                        if(!authors.value.find(i => i.id === record.value.id)) {
+                            authors.value.splice(record.index, 0, record.value)
+                        }
                     }
                 }
             }
 
-            redoStack.value.push(record)
+            redoStack.value.push(records)
         }
     }
 
     const redo = () => {
         if(canRedo.value) {
-            const [record] = redoStack.value.splice(redoStack.value.length - 1, 1)
-            if(record.type === "tag") {
-                //重做时执行相同的操作
-                if(record.action === "add") {
-                    if(!tags.value.find(i => i.id === record.value.id)) {
-                        tags.value.push(record.value)
+            const [records] = redoStack.value.splice(redoStack.value.length - 1, 1)
+            for(const record of records) {
+                if(record.type === "tag") {
+                    //重做时执行相同的操作
+                    if(record.action === "add") {
+                        if(!tags.value.find(i => i.id === record.value.id)) {
+                            tags.value.push(record.value)
+                        }
+                    }else{
+                        const i = tags.value.findIndex(i => i.id === record.value.id)
+                        tags.value.splice(i, 1)
                     }
-                }else{
-                    const i = tags.value.findIndex(i => i.id === record.value.id)
-                    tags.value.splice(i, 1)
-                }
-            }else if(record.type === "topic") {
-                //重做时执行相同的操作
-                if(record.action === "add") {
-                    if(!topics.value.find(i => i.id === record.value.id)) {
-                        topics.value.push(record.value)
+                }else if(record.type === "topic") {
+                    //重做时执行相同的操作
+                    if(record.action === "add") {
+                        if(!topics.value.find(i => i.id === record.value.id)) {
+                            topics.value.push(record.value)
+                        }
+                    }else{
+                        const i = topics.value.findIndex(i => i.id === record.value.id)
+                        topics.value.splice(i, 1)
                     }
-                }else{
-                    const i = topics.value.findIndex(i => i.id === record.value.id)
-                    topics.value.splice(i, 1)
-                }
-            }else if(record.type === "author") {
-                //重做时执行相同的操作
-                if(record.action === "add") {
-                    if(!authors.value.find(i => i.id === record.value.id)) {
-                        authors.value.push(record.value)
+                }else if(record.type === "author") {
+                    //重做时执行相同的操作
+                    if(record.action === "add") {
+                        if(!authors.value.find(i => i.id === record.value.id)) {
+                            authors.value.push(record.value)
+                        }
+                    }else{
+                        const i = authors.value.findIndex(i => i.id === record.value.id)
+                        authors.value.splice(i, 1)
                     }
-                }else{
-                    const i = authors.value.findIndex(i => i.id === record.value.id)
-                    authors.value.splice(i, 1)
                 }
             }
 
-            undoStack.value.push(record)
+            undoStack.value.push(records)
         }
     }
 
-    const record = (record: Record) => {
-        undoStack.value.push(record)
+    const record = (record: Record | Record[]) => {
+        if(record instanceof Array) {
+            undoStack.value.push(record)
+        }else{
+            undoStack.value.push([record])
+        }
         if(redoStack.value.length) {
             redoStack.value = []
         }
