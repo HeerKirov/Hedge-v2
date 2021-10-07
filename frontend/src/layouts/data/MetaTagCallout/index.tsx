@@ -3,7 +3,7 @@ import Starlight from "@/components/elements/Starlight"
 import WrappedText from "@/components/elements/WrappedText"
 import PopupBox from "@/layouts/layouts/PopupBox"
 import { AnnotationElement } from "@/layouts/elements"
-import { TagGroupDisplay, TagGroupMemberDisplay, TagLinkDisplay } from "@/layouts/displays"
+import { TagExampleDisplay, TagGroupDisplay, TagGroupMemberDisplay, TagLinkDisplay } from "@/layouts/displays"
 import { TOPIC_TYPE_ENUMS, TOPIC_TYPE_ICONS, TOPIC_TYPE_NAMES } from "@/definitions/topic"
 import { AUTHOR_TYPE_ENUMS, AUTHOR_TYPE_ICONS, AUTHOR_TYPE_NAMES } from "@/definitions/author"
 import { useObjectEndpoint } from "@/functions/utils/endpoints/object-endpoint"
@@ -154,6 +154,10 @@ const TagDetail = defineComponent({
                 <TagLinkDisplay value={data.value.links}/>
             </div>}
             {data.value.score ? <p class="mt-2"><Starlight value={data.value.score} showText={true}/></p> : null}
+            {(data.value.examples.length || null) && <div class="mt-2">
+                <label class="label">示例</label>
+                <TagExampleDisplay value={data.value.examples} columnNum={3}/>
+            </div>}
         </>
     }
 })

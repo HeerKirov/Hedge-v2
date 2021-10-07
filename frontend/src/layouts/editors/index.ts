@@ -11,6 +11,7 @@ import { SourceTagEditor, SourcePoolEditor, SourceRelationEditor } from "./Sourc
 import DateTimeEditor from "./DateTimeEditor"
 import DateEditor from "./DateEditor"
 import DescriptionEditor from "./DescriptionEditor"
+export { TagExampleEditor } from "./TagEditors"
 
 export { ViewAndEditor, ViewAndEditable }
 export { StarlightEditor }

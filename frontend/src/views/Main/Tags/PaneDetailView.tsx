@@ -2,21 +2,18 @@ import { computed, defineComponent } from "vue"
 import Starlight from "@/components/elements/Starlight"
 import Select from "@/components/forms/Select"
 import { AnnotationElement } from "@/layouts/elements"
-import { TagGroupDisplay, TagTypeDisplay, TagGroupMemberDisplay, TagLinkDisplay } from "@/layouts/displays"
+import { TagGroupDisplay, TagTypeDisplay, TagGroupMemberDisplay, TagLinkDisplay, TagExampleDisplay } from "@/layouts/displays"
 import { PaneBasicLayout } from "@/layouts/layouts/SplitPane"
-import { AnnotationEditor, DescriptionEditor, ViewAndEditor } from "@/layouts/editors"
+import { AnnotationEditor, DescriptionEditor, TagExampleEditor, ViewAndEditor } from "@/layouts/editors"
 import { DetailTag, IsGroup, TagLink, TagType } from "@/functions/adapter-http/impl/tag"
 import { SimpleAnnotation } from "@/functions/adapter-http/impl/annotations"
+import { SimpleIllust } from "@/functions/adapter-http/impl/illust"
 import { useObjectEndpoint } from "@/functions/utils/endpoints/object-endpoint"
 import { useMessageBox } from "@/functions/module/message-box"
-import { assetsUrl } from "@/functions/app"
-import { objects } from "@/utils/primitives"
 import { checkTagName } from "@/utils/check"
+import { objects } from "@/utils/primitives"
 import { TAG_TYPE_SELECT_ITEMS } from "./define"
-import {
-    TagGroupEditor, NameAndOtherNamesEditor, TagLinkEditor,
-    NameAndOtherNameDisplay, DescriptionDisplay
-} from "./PaneComponents"
+import { TagGroupEditor, NameAndOtherNamesEditor, TagLinkEditor, NameAndOtherNameDisplay, DescriptionDisplay } from "./PaneComponents"
 import { useTagPaneContext, useTagListContext, useTagTreeAccessor } from "./inject"
 import style from "./style.module.scss"
 
@@ -131,6 +128,28 @@ export default defineComponent({
             })
         }
 
+        const setExamples = async (examples: SimpleIllust[]) => {
+            return objects.deepEquals(examples, data.value?.examples) || await setData({ examples: examples.map(i => i.id) }, e => {
+                if(e.code === "NOT_EXIST") {
+                    const [type, ids] = e.info
+                    if(type === "examples") {
+                        message.showOkMessage("error", "选择的作为示例的图像不存在。", `错误项: ${ids}`)
+                    }else{
+                        return e
+                    }
+                }else if(e.code === "NOT_SUITABLE") {
+                    const [type, ids] = e.info
+                    if(type === "examples") {
+                        message.showOkMessage("error", "选择的作为示例的图像不可用。", `图库集合不能用作示例。错误项: ${ids}`)
+                    }else{
+                        return e
+                    }
+                }else{
+                    return e
+                }
+            })
+        }
+
         return () => <PaneBasicLayout onClose={closePane} class={style.paneDetailContent}>
             {data.value && <>
                 <p class={style.top}/>
@@ -153,7 +172,7 @@ export default defineComponent({
                 <p class={style.separator}/>
                 <ViewAndEditor class={style.annotations} data={data.value.annotations} onSetData={setAnnotations} v-slots={{
                     default: ({ value }: {value: SimpleAnnotation[]}) => value.length ? value.map(a => <AnnotationElement key={a.id} value={a}/>) : <span class="tag"><i class="has-text-grey">没有注解</i></span>,
-                    editor: ({ value, setValue }: {value: SimpleAnnotation[], setValue(v: SimpleAnnotation[])}) => <AnnotationEditor class="mb-1" value={value} onUpdateValue={setValue} target="TAG"/>
+                    editor: ({ value, setValue }: {value: SimpleAnnotation[], setValue(_: SimpleAnnotation[])}) => <AnnotationEditor class="mb-1" value={value} onUpdateValue={setValue} target="TAG"/>
                 }}/>
                 <ViewAndEditor data={data.value.description} onSetData={setDescription} showEditButton={false} showSaveButton={false} v-slots={{
                     default: ({ value, edit }) => <DescriptionDisplay value={value} onEdit={edit}/>,
@@ -162,7 +181,7 @@ export default defineComponent({
                 <div class={style.links}>
                     <ViewAndEditor data={data.value.links} onSetData={setLinks} v-slots={{
                         default: ({ value }: {value: TagLink[]}) => <TagLinkDisplay value={value} onClick={scrollIntoView}/>,
-                        editor: ({ value, setValue }: {value: TagLink[], setValue(v: TagLink[])}) => <TagLinkEditor value={value} onUpdateValue={setValue}/>
+                        editor: ({ value, setValue }: {value: TagLink[], setValue(_: TagLink[])}) => <TagLinkEditor value={value} onUpdateValue={setValue}/>
                     }}/>
                 </div>
                 <div class={style.score}>
@@ -171,13 +190,11 @@ export default defineComponent({
                         : <i class="has-text-grey">暂无评分</i>}
                 </div>
                 <div class={style.examples}>
-                    {/* TODO examples编辑的功能 */}
                     <label class="label">示例</label>
-                    {data.value.examples.length ? <div class={style.exampleList}>
-                        {data.value.examples.map(example => <div class={style.example}>
-                            <img alt={example.thumbnailFile} src={assetsUrl(example.thumbnailFile)}/>
-                        </div>)}
-                    </div> : <i class="has-text-grey">没有示例</i>}
+                    <ViewAndEditor data={data.value.examples} onSetData={setExamples} baseline="medium" showEditButton={false} showSaveButton={false} v-slots={{
+                        default: ({ value, edit }: {value: SimpleIllust[], edit()}) => <TagExampleDisplay value={value} showEditButton={true} onEdit={edit}/>,
+                        editor: ({ value, setValue, save }: {value: SimpleIllust[], setValue(_: SimpleIllust[]), save()}) => <TagExampleEditor value={value} onUpdateValue={setValue} onSave={save}/>
+                    }}/>
                 </div>
             </>}
         </PaneBasicLayout>
