@@ -18,39 +18,8 @@ class MetaUtilKit(private val data: DataRepository) {
      * 获得一个collection的元数据。
      */
     fun suggestMetaOfCollection(collectionId: Int): MetaUtilSuggestionByParentCollection {
-        val authorColors = data.metadata.meta.authorColors
-        val topicColors = data.metadata.meta.topicColors
-
-        val topics = data.db.from(Topics)
-            .innerJoin(IllustTopicRelations, IllustTopicRelations.topicId eq Topics.id)
-            .select(Topics.id, Topics.name, Topics.type, IllustTopicRelations.isExported)
-            .where { IllustTopicRelations.illustId eq collectionId }
-            .orderBy(Topics.type.asc(), Topics.id.asc())
-            .map {
-                val topicType = it[Topics.type]!!
-                val color = topicColors[topicType]
-                TopicSimpleRes(it[Topics.id]!!, it[Topics.name]!!, topicType, it[IllustTopicRelations.isExported]!!, color)
-            }
-
-        val authors = data.db.from(Authors)
-            .innerJoin(IllustAuthorRelations, IllustAuthorRelations.authorId eq Authors.id)
-            .select(Authors.id, Authors.name, Authors.type, IllustAuthorRelations.isExported)
-            .where { IllustAuthorRelations.illustId eq collectionId }
-            .orderBy(Authors.type.asc(), Authors.id.asc())
-            .map {
-                val authorType = it[Authors.type]!!
-                val color = authorColors[authorType]
-                AuthorSimpleRes(it[Authors.id]!!, it[Authors.name]!!, authorType, it[IllustAuthorRelations.isExported]!!, color)
-            }
-
-        val tags = data.db.from(Tags)
-            .innerJoin(IllustTagRelations, IllustTagRelations.tagId eq Tags.id)
-            .select(Tags.id, Tags.name, Tags.color, IllustTagRelations.isExported)
-            .where { (IllustTagRelations.illustId eq collectionId) and (Tags.type eq Tag.Type.TAG) }
-            .orderBy(Tags.globalOrdinal.asc())
-            .map { TagSimpleRes(it[Tags.id]!!, it[Tags.name]!!, it[Tags.color], it[IllustTagRelations.isExported]!!) }
-
-        return MetaUtilSuggestionByParentCollection(collectionId, topics, authors, tags)
+        val res = getMetaOfIllust(collectionId)
+        return MetaUtilSuggestionByParentCollection(collectionId, res.topics, res.authors, res.tags)
     }
 
     /**
@@ -189,12 +158,9 @@ class MetaUtilKit(private val data: DataRepository) {
     }
 
     /**
-     * 获得一个album的元数据。
+     * 获得关联的所有album的元数据。
      */
     fun suggestMetaOfAlbum(imageId: Int): List<MetaUtilSuggestionByAlbum> {
-        val authorColors = data.metadata.meta.authorColors
-        val topicColors = data.metadata.meta.topicColors
-
         val albums = data.db.from(Albums)
             .innerJoin(AlbumImageRelations, AlbumImageRelations.albumId eq Albums.id)
             .select(Albums.id, Albums.title)
@@ -202,38 +168,86 @@ class MetaUtilKit(private val data: DataRepository) {
             .map { AlbumSimpleRes(it[Albums.id]!!, it[Albums.title]!!) }
 
         return albums.map { album ->
-            val topics = data.db.from(Topics)
-                .innerJoin(AlbumTopicRelations, AlbumTopicRelations.topicId eq Topics.id)
-                .select(Topics.id, Topics.name, Topics.type, AlbumTopicRelations.isExported)
-                .where { AlbumTopicRelations.albumId eq album.id }
-                .orderBy(Topics.type.asc(), Topics.id.asc())
-                .map {
-                    val topicType = it[Topics.type]!!
-                    val color = topicColors[topicType]
-                    TopicSimpleRes(it[Topics.id]!!, it[Topics.name]!!, topicType, it[AlbumTopicRelations.isExported]!!, color)
-                }
-
-            val authors = data.db.from(Authors)
-                .innerJoin(AlbumAuthorRelations, AlbumAuthorRelations.authorId eq Authors.id)
-                .select(Authors.id, Authors.name, Authors.type, AlbumAuthorRelations.isExported)
-                .where { AlbumAuthorRelations.albumId eq album.id }
-                .orderBy(Authors.type.asc(), Authors.id.asc())
-                .map {
-                    val authorType = it[Authors.type]!!
-                    val color = authorColors[authorType]
-                    AuthorSimpleRes(it[Authors.id]!!, it[Authors.name]!!, authorType, it[AlbumAuthorRelations.isExported]!!, color)
-                }
-
-            val tags = data.db.from(Tags)
-                .innerJoin(AlbumTagRelations, AlbumTagRelations.tagId eq Tags.id)
-                .select(Tags.id, Tags.name, Tags.color, AlbumTagRelations.isExported)
-                .where { (AlbumTagRelations.albumId eq album.id) and (Tags.type eq Tag.Type.TAG) }
-                .orderBy(Tags.globalOrdinal.asc())
-                .map { TagSimpleRes(it[Tags.id]!!, it[Tags.name]!!, it[Tags.color], it[AlbumTagRelations.isExported]!!) }
-
-            MetaUtilSuggestionByAlbum(album, topics, authors, tags)
+            val res = getMetaOfAlbum(album.id)
+            MetaUtilSuggestionByAlbum(album, res.topics, res.authors, res.tags)
         }
+    }
 
+    /**
+     * 获得指定illust的元数据。
+     */
+    fun getMetaOfIllust(illustId: Int): MetaUtilRes {
+        val authorColors = data.metadata.meta.authorColors
+        val topicColors = data.metadata.meta.topicColors
 
+        val topics = data.db.from(Topics)
+            .innerJoin(IllustTopicRelations, IllustTopicRelations.topicId eq Topics.id)
+            .select(Topics.id, Topics.name, Topics.type, IllustTopicRelations.isExported)
+            .where { IllustTopicRelations.illustId eq illustId }
+            .orderBy(Topics.type.asc(), Topics.id.asc())
+            .map {
+                val topicType = it[Topics.type]!!
+                val color = topicColors[topicType]
+                TopicSimpleRes(it[Topics.id]!!, it[Topics.name]!!, topicType, it[IllustTopicRelations.isExported]!!, color)
+            }
+
+        val authors = data.db.from(Authors)
+            .innerJoin(IllustAuthorRelations, IllustAuthorRelations.authorId eq Authors.id)
+            .select(Authors.id, Authors.name, Authors.type, IllustAuthorRelations.isExported)
+            .where { IllustAuthorRelations.illustId eq illustId }
+            .orderBy(Authors.type.asc(), Authors.id.asc())
+            .map {
+                val authorType = it[Authors.type]!!
+                val color = authorColors[authorType]
+                AuthorSimpleRes(it[Authors.id]!!, it[Authors.name]!!, authorType, it[IllustAuthorRelations.isExported]!!, color)
+            }
+
+        val tags = data.db.from(Tags)
+            .innerJoin(IllustTagRelations, IllustTagRelations.tagId eq Tags.id)
+            .select(Tags.id, Tags.name, Tags.color, IllustTagRelations.isExported)
+            .where { (IllustTagRelations.illustId eq illustId) and (Tags.type eq Tag.Type.TAG) }
+            .orderBy(Tags.globalOrdinal.asc())
+            .map { TagSimpleRes(it[Tags.id]!!, it[Tags.name]!!, it[Tags.color], it[IllustTagRelations.isExported]!!) }
+
+        return MetaUtilRes(topics, authors, tags)
+    }
+
+    /**
+     * 获得指定album的元数据。
+     */
+    fun getMetaOfAlbum(albumId: Int): MetaUtilRes {
+        val authorColors = data.metadata.meta.authorColors
+        val topicColors = data.metadata.meta.topicColors
+
+        val topics = data.db.from(Topics)
+            .innerJoin(AlbumTopicRelations, AlbumTopicRelations.topicId eq Topics.id)
+            .select(Topics.id, Topics.name, Topics.type, AlbumTopicRelations.isExported)
+            .where { AlbumTopicRelations.albumId eq albumId }
+            .orderBy(Topics.type.asc(), Topics.id.asc())
+            .map {
+                val topicType = it[Topics.type]!!
+                val color = topicColors[topicType]
+                TopicSimpleRes(it[Topics.id]!!, it[Topics.name]!!, topicType, it[AlbumTopicRelations.isExported]!!, color)
+            }
+
+        val authors = data.db.from(Authors)
+            .innerJoin(AlbumAuthorRelations, AlbumAuthorRelations.authorId eq Authors.id)
+            .select(Authors.id, Authors.name, Authors.type, AlbumAuthorRelations.isExported)
+            .where { AlbumAuthorRelations.albumId eq albumId }
+            .orderBy(Authors.type.asc(), Authors.id.asc())
+            .map {
+                val authorType = it[Authors.type]!!
+                val color = authorColors[authorType]
+                AuthorSimpleRes(it[Authors.id]!!, it[Authors.name]!!, authorType, it[AlbumAuthorRelations.isExported]!!, color)
+            }
+
+        val tags = data.db.from(Tags)
+            .innerJoin(AlbumTagRelations, AlbumTagRelations.tagId eq Tags.id)
+            .select(Tags.id, Tags.name, Tags.color, AlbumTagRelations.isExported)
+            .where { (AlbumTagRelations.albumId eq albumId) and (Tags.type eq Tag.Type.TAG) }
+            .orderBy(Tags.globalOrdinal.asc())
+            .map { TagSimpleRes(it[Tags.id]!!, it[Tags.name]!!, it[Tags.color], it[AlbumTagRelations.isExported]!!) }
+
+        return MetaUtilRes(topics, authors, tags)
     }
 }

@@ -321,3 +321,12 @@ CREATE TABLE system_db.exporter_task(
     export_meta             BOOLEAN NOT NULL,       -- 任务项：导出meta tag
     create_time             TIMESTAMP NOT NULL      -- 此任务建立的时间
 );
+
+-- [系统表]meta editor metaTag历史表
+CREATE TABLE system_db.me_history_meta_tag(
+    sequence_id         BIGINT NOT NULL,            -- 需要手动设置和重置的ID，按类型隔离
+    meta_type           TINYINT NOT NULL,           -- 目标类型{0=TAG, 1=TOPIC, 2=AUTHOR}
+    meta_id             INT NOT NULL,               -- 目标标签的ID
+    record_time         BIGINT NOT NULL             -- 记录时间
+);
+CREATE UNIQUE INDEX system_db.me_history_meta_tag__index ON me_history_meta_tag(meta_type, sequence_id);

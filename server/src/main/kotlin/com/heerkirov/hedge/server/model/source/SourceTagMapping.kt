@@ -1,5 +1,7 @@
 package com.heerkirov.hedge.server.model.source
 
+import com.heerkirov.hedge.server.enums.MetaType
+
 /**
  * 原始标签映射。
  * 记录由来源信息的tag到app tag的映射关系，符合映射表的tag会放入建议列表。
@@ -20,12 +22,8 @@ data class SourceTagMapping(val id: Int,
                             /**
                              * 转换为什么类型的tag。
                              */
-                            val targetTagType: TargetTagType,
+                            val targetTagType: MetaType,
                             /**
                              * 目标tag的tag id。
                              */
-                            val targetTagId: Int) {
-    enum class TargetTagType {
-        TAG, AUTHOR, TOPIC
-    }
-}
+                            val targetTagId: Int)
