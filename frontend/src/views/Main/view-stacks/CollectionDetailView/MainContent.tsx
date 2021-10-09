@@ -48,7 +48,7 @@ const MetaTagEditorPanel = defineComponent({
 
         const closeDrawerTab = () => drawerTab.value = undefined
 
-        return () => <MetaTagEditor identity={id.value !== null ? {collectionId: id.value!} : null}
+        return () => <MetaTagEditor identity={id.value !== null ? {id: id.value!, type: "COLLECTION"} : null}
                                     tags={data.value?.tags ?? []}
                                     topics={data.value?.topics ?? []}
                                     authors={data.value?.authors ?? []}

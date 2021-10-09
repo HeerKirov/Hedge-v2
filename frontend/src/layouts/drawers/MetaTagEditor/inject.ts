@@ -6,7 +6,8 @@ import { DepsTag, SimpleTag } from "@/functions/adapter-http/impl/tag"
 import { DepsTopic, SimpleTopic } from "@/functions/adapter-http/impl/topic"
 import { DepsAuthor, SimpleAuthor } from "@/functions/adapter-http/impl/author"
 import { MetaTagTypeValues } from "@/functions/adapter-http/impl/all"
-import { MetaUtilRelatedIdentity, MetaUtilValidation } from "@/functions/adapter-http/impl/util-meta"
+import { MetaType } from "@/functions/adapter-http/impl/generic"
+import { MetaUtilIdentity, MetaUtilValidation } from "@/functions/adapter-http/impl/util-meta"
 import { watchGlobalKeyEvent } from "@/functions/feature/keyboard"
 import { useToast, ToastManager } from "@/functions/module/toast"
 import { useMessageBox } from "@/functions/module/message-box"
@@ -25,7 +26,7 @@ interface InstallPanelContext {
     data: Readonly<Ref<EditorData | null>>
     setData: SetData
     close(): void
-    identity: Ref<MetaUtilRelatedIdentity | null>
+    identity: Ref<MetaUtilIdentity | null>
 }
 
 export interface SetData {
@@ -51,21 +52,21 @@ type EditorUpdateException = NotFound | ResourceNotExist<"topics" | "authors" | 
 export const [installPanelContext, usePanelContext] = installation(function(context: InstallPanelContext) {
     const typeFilter = useLocalStorageWithDefault("detail-view/meta-tag-editor/type-filter", {tag: true, author: true, topic: true})
 
-    const editorData = useEditorData(context.data, context.setData, context.close)
+    const editorData = useEditorData(context)
 
     const rightColumnData = useRightColumnData()
 
     return {identity: context.identity, typeFilter, editorData, rightColumnData}
 })
 
-function useEditorData(data: Ref<EditorData | null>, setData: SetData, closeTab: () => void) {
+function useEditorData(context: InstallPanelContext) {
     const tags = ref<SimpleTag[]>([])
     const topics = ref<SimpleTopic[]>([])
     const authors = ref<SimpleAuthor[]>([])
     const tagme = ref<Tagme[]>([])
     const changed = reactive({tag: false, topic: false, author: false, tagme: false})
 
-    watch(data, d => {
+    watch(context.data, d => {
         tags.value = d?.tags?.filter(t => !t.isExported) ?? []
         topics.value = d?.topics?.filter(t => !t.isExported) ?? []
         authors.value = d?.authors?.filter(t => !t.isExported) ?? []
@@ -159,23 +160,24 @@ function useEditorData(data: Ref<EditorData | null>, setData: SetData, closeTab:
         }
     }
 
-    const validation = useEditorDataValidation(tags, data)
+    const { record: addHistoryRecord, recordsHistory, ...history } = useEditorDataHistory(tags, topics, authors, context.data)
 
-    const { record: addHistoryRecord, ...history } = useEditorDataHistory(tags, topics, authors, data)
+    const validation = useEditorDataValidation(tags, context.data)
 
-    const { canSave, save } = useSaveFunction(tags, topics, authors, tagme, changed, validation, setData, closeTab)
+    const save = useSaveMethod(tags, topics, authors, tagme, changed, validation, recordsHistory, context)
 
-    return {tags: readonly(tags), topics: readonly(topics), authors: readonly(authors), tagme: readonly(tagme), setTagme, add, addAll, removeAt, canSave, save, validation, history}
+    return {tags: readonly(tags), topics: readonly(topics), authors: readonly(authors), tagme: readonly(tagme), setTagme, add, addAll, removeAt, ...save, validation, history}
 }
 
-function useSaveFunction(tags: Ref<SimpleTag[]>,
-                         topics: Ref<SimpleTopic[]>,
-                         authors: Ref<SimpleAuthor[]>,
-                         tagme: Ref<Tagme[]>,
-                         changed: {tag: boolean, topic: boolean, author: boolean, tagme: boolean},
-                         validation: ReturnType<typeof useEditorDataValidation>,
-                         setData: SetData,
-                         closeTab: () => void) {
+function useSaveMethod(tags: Ref<SimpleTag[]>,
+                       topics: Ref<SimpleTopic[]>,
+                       authors: Ref<SimpleAuthor[]>,
+                       tagme: Ref<Tagme[]>,
+                       changed: {tag: boolean, topic: boolean, author: boolean, tagme: boolean},
+                       validation: ReturnType<typeof useEditorDataValidation>,
+                       getMetaHistory: () => MetaTagTypeValues[],
+                       context: InstallPanelContext) {
+    const httpClient = useHttpClient()
     const message = useMessageBox()
 
     const canSave = computed(() =>
@@ -186,7 +188,9 @@ function useSaveFunction(tags: Ref<SimpleTag[]>,
 
     const save = async () => {
         if(canSave.value) {
-            const ok = await setData({
+            //在提交更改之前就记录下变化统计数据，因为在提交更改后，历史记录栈会被清空
+            const metaChangedHistory = getMetaHistory()
+            const ok = await context.setData({
                 tags: changed.tag ? tags.value.map(i => i.id) : undefined,
                 topics: changed.topic ? topics.value.map(i => i.id) : undefined,
                 authors: changed.author ? authors.value.map(i => i.id) : undefined,
@@ -206,13 +210,25 @@ function useSaveFunction(tags: Ref<SimpleTag[]>,
             })
 
             if(ok) {
-                //保存成功后关闭面板
-                closeTab()
+                //发送编辑器历史记录所需的统计数据
+                sendEditorHistoryStatistics(metaChangedHistory)
+                //保存成功
+                context.close()
             }
         }
     }
 
+    const sendEditorHistoryStatistics = (metas: MetaTagTypeValues[]) => {
+        //发送一条对象编辑记录
+        const identity = context.identity.value
+        if(identity !== null) httpClient.metaUtil.editorHistory.identities.push(identity).finally()
+        //将编辑器撤销栈里的内容发送到标签使用记录
+        const metaTags = metas.map(({ type, value }) => ({type: type.toUpperCase() as MetaType, id: value.id}))
+        httpClient.metaUtil.editorHistory.metaTags.push(metaTags).finally()
+    }
+
     watchGlobalKeyEvent(e => {
+        //按下meta + Enter时触发保存
         if(e.metaKey && e.key === "Enter") {
             e.preventDefault()
             e.stopPropagation()
@@ -358,12 +374,17 @@ function useEditorDataHistory(tags: Ref<SimpleTag[]>, topics: Ref<SimpleTopic[]>
         }
     }
 
+    const recordsHistory = () => {
+        return undoStack.value.flatMap(i => i).filter(i => i.action === "add").map(i => ({type: i.type, value: i.value} as MetaTagTypeValues))
+    }
+
     watch(data, () => {
+        //监听到data变化后就清除历史记录
         undoStack.value = []
         redoStack.value = []
     })
 
-    return {canUndo, canRedo, undo, redo, record}
+    return {canUndo, canRedo, undo, redo, record, recordsHistory}
 }
 
 function useRightColumnData() {

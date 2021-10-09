@@ -4,14 +4,13 @@ import { Tagme } from "@/functions/adapter-http/impl/illust"
 import { DepsTag } from "@/functions/adapter-http/impl/tag"
 import { DepsTopic } from "@/functions/adapter-http/impl/topic"
 import { DepsAuthor } from "@/functions/adapter-http/impl/author"
-import { MetaUtilRelatedIdentity } from "@/functions/adapter-http/impl/util-meta"
+import { MetaUtilIdentity } from "@/functions/adapter-http/impl/util-meta"
 import LeftColumn from "./LeftColumn"
 import RightColumn from "./RightColumn"
 import { installPanelContext, usePanelContext, SetData } from "./inject"
 import style from "./style.module.scss"
 
 /* TODO tag editor内容清单
-    - 最近使用。根据上一个项目/最近几个项目/最近使用频次较高的标签/标签历史记录，给出推荐列表。
     - 来源推导。根据source tag，推导出可能需要的tag。这个页面也需要能显示source tag列表。
    TODO tag editor内容优化清单
     - 显示推导结果：左侧栏在下面跟着显示推导标签，以提示用户最终结果。
@@ -25,7 +24,7 @@ export default defineComponent({
         authors: {type: Array as PropType<DepsAuthor[]>, required: true},
         tagme: {type: Array as PropType<Tagme[]>, required: true},
         setData: {type: Function as PropType<SetData>, required: true},
-        identity: {type: null as any as PropType<MetaUtilRelatedIdentity | null>, required: true}
+        identity: {type: null as any as PropType<MetaUtilIdentity | null>, required: true}
     },
     emits: {
         close: () => true
