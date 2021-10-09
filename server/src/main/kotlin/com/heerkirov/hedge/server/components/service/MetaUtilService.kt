@@ -153,6 +153,7 @@ class MetaUtilService(private val data: DataRepository,
 
     /**
      * 获得某一项历史对象的metaTag详情。
+     * @throws NotFound 无法找到目标对象。
      */
     fun getHistoryIdentityDetail(type: IdentityType, id: Int): MetaUtilRes {
         return when (type) {
@@ -195,11 +196,11 @@ class MetaUtilService(private val data: DataRepository,
     }
 
     /**
-     * 添加metaTag到历史。
+     * 添加一组metaTag到历史。
      */
     fun pushHistoryMeta(form: MetaUtilMetaForm) {
         data.db.transaction {
-            metaHistoryManager.addMeta(form.type, form.id)
+            form.metas.forEach { (type, id) -> metaHistoryManager.addMeta(type, id) }
         }
     }
 
