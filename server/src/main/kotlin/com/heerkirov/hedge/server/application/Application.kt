@@ -49,13 +49,14 @@ fun runApplication(options: ApplicationOptions) {
             val annotationKit = AnnotationKit(repo)
             val annotationManager = AnnotationManager(repo)
 
+            val tagExporter = define { TagExporterImpl(repo) }
             val authorKit = AuthorKit(repo, annotationManager)
             val topicKit = TopicKit(repo, annotationManager)
             val tagKit = TagKit(repo, annotationManager)
             val metaUtilKit = MetaUtilKit(repo)
-            val tagExporter = define { TagExporterImpl(repo) }
             val metaManager = MetaManager(repo)
-            val metaService = MetaUtilService(repo, metaUtilKit, metaManager)
+            val metaHistoryManager = MetaHistoryManager(repo)
+            val metaService = MetaUtilService(repo, metaUtilKit, metaManager, metaHistoryManager)
 
             val partitionManager = PartitionManager(repo)
 

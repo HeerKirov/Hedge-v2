@@ -1,5 +1,6 @@
 package com.heerkirov.hedge.server.dao.source
 
+import com.heerkirov.hedge.server.enums.MetaType
 import com.heerkirov.hedge.server.model.source.SourceTagMapping
 import com.heerkirov.hedge.server.utils.ktorm.enum
 import org.ktorm.dsl.QueryRowSet
@@ -13,7 +14,7 @@ object SourceTagMappings : BaseTable<SourceTagMapping>("source_tag_mapping", sch
     val source = varchar("source")
     val sourceTagType = varchar("source_tag_type")
     val sourceTag = varchar("source_tag")
-    val targetTagType = enum("target_tag_type", typeRef<SourceTagMapping.TargetTagType>())
+    val targetTagType = enum("target_tag_type", typeRef<MetaType>())
     val targetTagId = int("target_tag_id")
 
     override fun doCreateEntity(row: QueryRowSet, withReferences: Boolean) = SourceTagMapping(

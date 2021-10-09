@@ -1,6 +1,5 @@
-package com.heerkirov.hedge.server.utils
+package com.heerkirov.hedge.server.utils.types
 
-import com.heerkirov.hedge.server.utils.types.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse

@@ -1,6 +1,7 @@
 package com.heerkirov.hedge.server.components.service
 
 import com.heerkirov.hedge.server.components.database.DataRepository
+import com.heerkirov.hedge.server.components.database.transaction
 import com.heerkirov.hedge.server.components.kit.MetaUtilKit
 import com.heerkirov.hedge.server.components.manager.MetaHistoryManager
 import com.heerkirov.hedge.server.components.manager.MetaManager
@@ -197,7 +198,16 @@ class MetaUtilService(private val data: DataRepository,
      * 添加metaTag到历史。
      */
     fun pushHistoryMeta(form: MetaUtilMetaForm) {
-        metaHistoryManager.addMeta(form.type, form.id)
+        data.db.transaction {
+            metaHistoryManager.addMeta(form.type, form.id)
+        }
+    }
+
+    /**
+     * 清空所有metaTag历史记录。
+     */
+    fun deleteAllHistoryMeta() {
+        metaHistoryManager.clearMeta()
     }
 
     /**

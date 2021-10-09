@@ -35,6 +35,26 @@ inline fun <T, R> Iterator<T>.map (transform: (T) -> R): List<R> {
     return list
 }
 
+inline fun <T> List<T>.indexOfFirst(fromIndex: Int, predicate: (T) -> Boolean): Int {
+    val iterator = this.listIterator(fromIndex)
+    while (iterator.hasNext()) {
+        if (predicate(iterator.next())) {
+            return iterator.previousIndex()
+        }
+    }
+    return -1
+}
+
+inline fun <T> List<T>.indexOfLast(fromIndex: Int, predicate: (T) -> Boolean): Int {
+    val iterator = this.listIterator(fromIndex)
+    while (iterator.hasPrevious()) {
+        if (predicate(iterator.previous())) {
+            return iterator.nextIndex()
+        }
+    }
+    return -1
+}
+
 inline fun <T> T.applyIf(predicate: Boolean, block: T.() -> Unit): T {
     if(predicate) {
         block()

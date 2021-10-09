@@ -27,6 +27,7 @@ class UtilMetaRoutes(private val metaUtilService: MetaUtilService) : Endpoints {
                         get("recent", ::getHistoryMetaRecent)
                         get("frequent", ::getHistoryMetaFrequent)
                         post(::pushHistoryMeta)
+                        delete(::deleteAllHistoryMeta)
                     }
                 }
             }
@@ -55,7 +56,7 @@ class UtilMetaRoutes(private val metaUtilService: MetaUtilService) : Endpoints {
 
     private fun pushHistoryIdentity(ctx: Context) {
         val form = ctx.bodyAsForm<MetaUtilIdentityForm>()
-        ctx.json(metaUtilService.pushHistoryIdentity(form))
+        metaUtilService.pushHistoryIdentity(form)
     }
 
     private fun getHistoryMetaRecent(ctx: Context) {
@@ -68,6 +69,11 @@ class UtilMetaRoutes(private val metaUtilService: MetaUtilService) : Endpoints {
 
     private fun pushHistoryMeta(ctx: Context) {
         val form = ctx.bodyAsForm<MetaUtilMetaForm>()
-        ctx.json(metaUtilService.pushHistoryMeta(form))
+        metaUtilService.pushHistoryMeta(form)
+    }
+
+    private fun deleteAllHistoryMeta(ctx: Context) {
+        metaUtilService.deleteAllHistoryMeta()
+        ctx.status(204)
     }
 }

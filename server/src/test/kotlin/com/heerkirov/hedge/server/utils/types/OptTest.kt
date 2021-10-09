@@ -1,4 +1,4 @@
-package com.heerkirov.hedge.server.utils
+package com.heerkirov.hedge.server.utils.types
 
 import com.heerkirov.hedge.server.utils.types.optOf
 import com.heerkirov.hedge.server.utils.types.undefined
