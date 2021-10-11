@@ -315,7 +315,7 @@ CREATE TABLE system_db.exporter_task(
     id                      INTEGER PRIMARY KEY,    -- 自增ID
     entity_type             TINYINT NOT NULL,       -- 目标实体的类型{0=ILLUST, 1=ALBUM}
     entity_id               INTEGER NOT NULL,       -- 目标实体的ID
-    export_file_and_time    BOOLEAN NOT NULL,       -- 任务项：导出fileId和时间属性
+    export_first_cover      BOOLEAN NOT NULL,       -- 任务项：导出fileId和时间属性
     export_description      BOOLEAN NOT NULL,       -- 任务项：导出描述
     export_score            BOOLEAN NOT NULL,       -- 任务项：导出评分
     export_meta             BOOLEAN NOT NULL,       -- 任务项：导出meta tag

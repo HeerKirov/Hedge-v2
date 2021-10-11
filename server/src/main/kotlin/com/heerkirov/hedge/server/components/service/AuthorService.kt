@@ -2,7 +2,7 @@ package com.heerkirov.hedge.server.components.service
 
 import com.heerkirov.hedge.server.components.backend.AlbumExporterTask
 import com.heerkirov.hedge.server.components.backend.IllustExporterTask
-import com.heerkirov.hedge.server.components.backend.IllustMetaExporter
+import com.heerkirov.hedge.server.components.backend.EntityExporter
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.database.transaction
 import com.heerkirov.hedge.server.components.kit.AuthorKit
@@ -24,7 +24,7 @@ import org.ktorm.entity.sequenceOf
 class AuthorService(private val data: DataRepository,
                     private val kit: AuthorKit,
                     private val queryManager: QueryManager,
-                    private val illustMetaExporter: IllustMetaExporter) {
+                    private val entityExporter: EntityExporter) {
     private val orderTranslator = OrderTranslator {
         "id" to Authors.id
         "name" to Authors.name
@@ -140,13 +140,13 @@ class AuthorService(private val data: DataRepository,
                 data.db.from(IllustAuthorRelations)
                     .select(IllustAuthorRelations.illustId)
                     .where { IllustAuthorRelations.authorId eq id }
-                    .map { IllustExporterTask(it[IllustAuthorRelations.illustId]!!, exportMeta = true, exportDescription = false, exportFileAndTime = false, exportScore = false) }
-                    .let { illustMetaExporter.appendNewTask(it) }
+                    .map { IllustExporterTask(it[IllustAuthorRelations.illustId]!!, exportMeta = true, exportDescription = false, exportFirstCover = false, exportScore = false) }
+                    .let { entityExporter.appendNewTask(it) }
                 data.db.from(AlbumAuthorRelations)
                     .select(AlbumAuthorRelations.albumId)
                     .where { AlbumAuthorRelations.authorId eq id }
                     .map { AlbumExporterTask(it[AlbumAuthorRelations.albumId]!!, exportMeta = true) }
-                    .let { illustMetaExporter.appendNewTask(it) }
+                    .let { entityExporter.appendNewTask(it) }
 
                 queryManager.flushCacheOf(QueryManager.CacheType.AUTHOR)
             }

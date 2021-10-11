@@ -2,7 +2,7 @@ package com.heerkirov.hedge.server.components.service
 
 import com.heerkirov.hedge.server.components.backend.AlbumExporterTask
 import com.heerkirov.hedge.server.components.backend.IllustExporterTask
-import com.heerkirov.hedge.server.components.backend.IllustMetaExporter
+import com.heerkirov.hedge.server.components.backend.EntityExporter
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.database.transaction
 import com.heerkirov.hedge.server.dto.*
@@ -24,7 +24,7 @@ import org.ktorm.entity.sequenceOf
 class TopicService(private val data: DataRepository,
                    private val kit: TopicKit,
                    private val queryManager: QueryManager,
-                   private val illustMetaExporter: IllustMetaExporter) {
+                   private val entityExporter: EntityExporter) {
     private val orderTranslator = OrderTranslator {
         "id" to Topics.id
         "name" to Topics.name
@@ -161,13 +161,13 @@ class TopicService(private val data: DataRepository,
                 data.db.from(IllustTopicRelations)
                     .select(IllustTopicRelations.illustId)
                     .where { IllustTopicRelations.topicId eq id }
-                    .map { IllustExporterTask(it[IllustTopicRelations.illustId]!!, exportMeta = true, exportDescription = false, exportFileAndTime = false, exportScore = false) }
-                    .let { illustMetaExporter.appendNewTask(it) }
+                    .map { IllustExporterTask(it[IllustTopicRelations.illustId]!!, exportMeta = true, exportDescription = false, exportFirstCover = false, exportScore = false) }
+                    .let { entityExporter.appendNewTask(it) }
                 data.db.from(AlbumTopicRelations)
                     .select(AlbumTopicRelations.albumId)
                     .where { AlbumTopicRelations.topicId eq id }
                     .map { AlbumExporterTask(it[AlbumTopicRelations.albumId]!!, exportMeta = true) }
-                    .let { illustMetaExporter.appendNewTask(it) }
+                    .let { entityExporter.appendNewTask(it) }
 
                 queryManager.flushCacheOf(QueryManager.CacheType.TOPIC)
             }

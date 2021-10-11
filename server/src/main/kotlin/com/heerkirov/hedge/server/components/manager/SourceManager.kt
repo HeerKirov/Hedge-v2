@@ -168,7 +168,8 @@ class SourceManager(private val data: DataRepository, private val queryManager: 
     }
 
     /**
-     * 根据给出的tags dto，创建或修改数据库里的source tag model，并返回这些模型的id。
+     * 在image的source update方法中，根据给出的tags dto，创建或修改数据库里的source tag model，并返回这些模型的id。
+     * 这个方法的逻辑是，source tags总是基于其name做唯一定位，当name不变时，修改其他属性视为更新，而改变name即认为是不同的对象。
      */
     private fun getAndUpsertSourceTags(source: String, tags: List<SourceTagDto>): List<Int> {
         val tagMap = tags.associateBy { it.name }

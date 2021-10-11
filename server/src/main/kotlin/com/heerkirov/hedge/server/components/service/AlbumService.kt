@@ -4,6 +4,7 @@ import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.database.transaction
 import com.heerkirov.hedge.server.components.kit.AlbumKit
 import com.heerkirov.hedge.server.components.manager.AlbumManager
+import com.heerkirov.hedge.server.components.manager.IllustManager
 import com.heerkirov.hedge.server.components.manager.query.QueryManager
 import com.heerkirov.hedge.server.dao.album.*
 import com.heerkirov.hedge.server.dao.illust.Illusts
@@ -30,6 +31,7 @@ import org.ktorm.entity.sequenceOf
 class AlbumService(private val data: DataRepository,
                    private val kit: AlbumKit,
                    private val albumManager: AlbumManager,
+                   private val illustManager: IllustManager,
                    private val queryManager: QueryManager) {
     private val orderTranslator = OrderTranslator {
         "id" to Albums.id
@@ -152,15 +154,12 @@ class AlbumService(private val data: DataRepository,
         data.db.transaction {
             data.db.sequenceOf(Albums).firstOrNull { it.id eq id } ?: throw be(NotFound())
 
-            form.score.alsoOpt {
-                if(it != null) kit.validateScore(it)
-            }
-
+            form.score.alsoOpt { if(it != null) kit.validateScore(it) }
             val newTitle = form.title.letOpt { it ?: "" }
             val newDescription = form.description.letOpt { it ?: "" }
 
             if(anyOpt(form.tags, form.authors, form.topics)) {
-                kit.processAllMeta(id, newTags = form.tags, newTopics = form.topics, newAuthors = form.authors)
+                kit.updateMeta(id, newTags = form.tags, newTopics = form.topics, newAuthors = form.authors)
             }
 
             if(anyOpt(form.score, form.favorite, newTitle, newDescription)) {
@@ -220,17 +219,19 @@ class AlbumService(private val data: DataRepository,
         data.db.transaction {
             data.db.sequenceOf(Albums).firstOrNull { Albums.id eq id } ?: throw be(NotFound())
 
-            val (images, imageCount, fileId) = kit.validateSubImages(items)
-            val now = DateTime.now()
+            val images = illustManager.unfoldImages(items)
+            val fileId = images.first().fileId
 
             data.db.update(Albums) {
                 where { it.id eq id }
                 set(it.fileId, fileId)
-                set(it.cachedCount, imageCount)
-                set(it.updateTime, now)
+                set(it.cachedCount, images.size)
+                set(it.updateTime, DateTime.now())
             }
 
-            kit.processSubImages(images, id)
+            kit.updateSubImages(id, images.map { it.id })
+
+            kit.refreshAllMeta(id)
         }
     }
 
@@ -245,20 +246,26 @@ class AlbumService(private val data: DataRepository,
 
             when (form.action) {
                 BatchAction.ADD -> {
-                    val images = form.images ?: throw be(ParamRequired("images"))
-                    val (finalImages) = kit.validateSubImages(images)
-                    kit.insertSubImages(finalImages, id, form.ordinal)
+                    val formImages = form.images ?: throw be(ParamRequired("images"))
+                    val images = illustManager.unfoldImages(formImages)
+                    kit.insertSubImages(id, images.map { it.id }, form.ordinal)
+                    kit.refreshFirstCover(id)
+                    kit.refreshAllMeta(id)
                 }
                 BatchAction.MOVE -> {
                     val itemIndexes = form.itemIndexes ?: throw be(ParamRequired("itemIndexes"))
                     if(itemIndexes.isNotEmpty()) {
-                        kit.moveSubImages(itemIndexes, id, form.ordinal)
+                        kit.moveSubImages(id, itemIndexes, form.ordinal)
+                        kit.refreshFirstCover(id)
+                        kit.refreshAllMeta(id)
                     }
                 }
                 BatchAction.DELETE -> {
                     val itemIndexes = form.itemIndexes ?: throw be(ParamRequired("itemIndexes"))
                     if(itemIndexes.isNotEmpty()) {
-                        kit.deleteSubImages(itemIndexes, id)
+                        kit.deleteSubImages(id, itemIndexes)
+                        kit.refreshFirstCover(id)
+                        kit.refreshAllMeta(id)
                     }
                 }
             }

@@ -7,10 +7,8 @@ import com.heerkirov.hedge.server.dao.illust.*
 import com.heerkirov.hedge.server.dao.meta.*
 import com.heerkirov.hedge.server.dao.types.EntityMetaRelationTable
 import com.heerkirov.hedge.server.exceptions.*
-import com.heerkirov.hedge.server.model.illust.Illust
 import com.heerkirov.hedge.server.model.meta.Annotation
 import com.heerkirov.hedge.server.utils.business.checkScore
-import com.heerkirov.hedge.server.utils.filterInto
 import com.heerkirov.hedge.server.utils.ktorm.asSequence
 import com.heerkirov.hedge.server.utils.ktorm.firstOrNull
 import com.heerkirov.hedge.server.utils.types.Opt
@@ -27,6 +25,27 @@ class AlbumKit(private val data: DataRepository,
     }
 
     /**
+     * 在partial update操作后，重新计算项目数量和封面的fileId。
+     */
+    fun refreshFirstCover(thisId: Int) {
+        val fileId = data.db.from(AlbumImageRelations)
+            .innerJoin(Illusts, AlbumImageRelations.imageId eq Illusts.id)
+            .select(Illusts.fileId)
+            .where { AlbumImageRelations.albumId eq thisId }
+            .orderBy(AlbumImageRelations.ordinal.asc())
+            .limit(0, 1)
+            .firstOrNull()
+            ?.let { it[Illusts.fileId]!! }
+        val count = data.db.sequenceOf(AlbumImageRelations).count { it.albumId eq thisId }
+
+        data.db.update(Albums) {
+            where { it.id eq thisId }
+            set(it.cachedCount, count)
+            set(it.fileId, fileId)
+        }
+    }
+
+    /**
      * 检验给出的tags/topics/authors的正确性，处理导出，并应用其更改。此外，annotations的更改也会被一并导出处理。
      * @throws ResourceNotExist ("topics", number[]) 部分topics资源不存在。给出不存在的topic id列表
      * @throws ResourceNotExist ("authors", number[]) 部分authors资源不存在。给出不存在的author id列表
@@ -34,8 +53,8 @@ class AlbumKit(private val data: DataRepository,
      * @throws ResourceNotSuitable ("tags", number[]) 部分tags资源不适用。地址段不适用于此项。给出不适用的tag id列表
      * @throws ConflictingGroupMembersError 发现标签冲突组
      */
-    fun processAllMeta(thisId: Int, newTags: Opt<List<Int>>, newTopics: Opt<List<Int>>, newAuthors: Opt<List<Int>>,
-                       creating: Boolean = false) {
+    fun updateMeta(thisId: Int, newTags: Opt<List<Int>>, newTopics: Opt<List<Int>>, newAuthors: Opt<List<Int>>,
+                   creating: Boolean = false) {
         val tagAnnotations = if(newTags.isUndefined) null else
             metaManager.processMetaTags(thisId, creating, false,
                 metaTag = Tags,
@@ -59,9 +78,9 @@ class AlbumKit(private val data: DataRepository,
     }
 
     /**
-     * 在没有更新的情况下，强制重新导出meta tag。被使用在meta exporter的后台任务中。
+     * 在没有更新的情况下，强制重新导出meta tag。
      */
-    fun forceProcessAllMeta(thisId: Int) {
+    fun refreshAllMeta(thisId: Int) {
         val tags = metaManager.getNotExportMetaTags(thisId, AlbumTagRelations, Tags)
         val topics = metaManager.getNotExportMetaTags(thisId, AlbumTopicRelations, Topics)
         val authors = metaManager.getNotExportMetaTags(thisId, AlbumAuthorRelations, Authors)
@@ -246,58 +265,9 @@ class AlbumKit(private val data: DataRepository,
     }
 
     /**
-     * 重新计算项目数量和封面的fileId。
-     */
-    private fun exportFileAndCount(thisId: Int) {
-        val fileId = data.db.from(AlbumImageRelations)
-            .innerJoin(Illusts, AlbumImageRelations.imageId eq Illusts.id)
-            .select(Illusts.fileId)
-            .where { AlbumImageRelations.albumId eq thisId }
-            .orderBy(AlbumImageRelations.ordinal.asc())
-            .limit(0, 1)
-            .firstOrNull()
-            ?.let { it[Illusts.fileId]!! }
-        val count = data.db.sequenceOf(AlbumImageRelations).count { it.albumId eq thisId }
-
-        data.db.update(Albums) {
-            where { it.id eq thisId }
-            set(it.cachedCount, count)
-            set(it.fileId, fileId)
-        }
-    }
-
-    /**
-     * 校验album的sub items列表的正确性。
-     * @return (全items列表, image类型的项目数, 封面fileId)
-     * @throws ResourceNotExist ("images", number[]) image项不存在，给出imageId列表
-     */
-    fun validateSubImages(imageIds: List<Int>): Triple<List<Int>, Int, Int?> {
-        if(imageIds.isEmpty()) return Triple(emptyList(), 0, null)
-        val result = data.db.sequenceOf(Illusts).filter { it.id inList imageIds }.toList()
-        //数量不够表示有imageId不存在
-        if(result.size < imageIds.size) throw be(ResourceNotExist("images", imageIds.toSet() - result.asSequence().map { it.id }.toSet()))
-
-        val (collectionResult, imageResult) = result.filterInto { it.type == Illust.Type.COLLECTION }
-        //对于collection，做一个易用性处理，将它们的所有子项包括在images列表中; 对于image/image_with_parent，直接加入images列表
-        val images = imageResult.asSequence()
-            .plus(if(collectionResult.isEmpty()) emptySequence()
-            else data.db.sequenceOf(Illusts).filter { it.parentId inList collectionResult.map(Illust::id) }.asKotlinSequence())
-            .distinctBy { it.id }
-            .toList()
-
-        val fileId = if(images.isEmpty()) null else {
-            //取出imageIds中的第一个id，认为它是封面image，并寻找它的fileId
-            val firstId = imageIds.first()
-            images.first { it.id == firstId }.fileId
-        }
-
-        return Triple(images.map { it.id }, imageIds.size, fileId)
-    }
-
-    /**
      * 应用images列表。对列表进行整体替换。
      */
-    fun processSubImages(items: List<Int>, thisId: Int) {
+    fun updateSubImages(thisId: Int, items: List<Int>) {
         data.db.delete(AlbumImageRelations) { it.albumId eq thisId }
         data.db.batchInsert(AlbumImageRelations) {
             items.forEachIndexed { index, imageId ->
@@ -313,7 +283,7 @@ class AlbumKit(private val data: DataRepository,
     /**
      * 插入新的images。
      */
-    fun insertSubImages(items: List<Int>, thisId: Int, ordinal: Int?) {
+    fun insertSubImages(thisId: Int, items: List<Int>, ordinal: Int?) {
         val count = data.db.sequenceOf(AlbumImageRelations).count { it.albumId eq thisId }
         val insertOrdinal = if(ordinal != null && ordinal <= count) ordinal else count
         //先把原有位置的项向后挪动
@@ -331,15 +301,13 @@ class AlbumKit(private val data: DataRepository,
                 }
             }
         }
-
-        exportFileAndCount(thisId)
     }
 
     /**
      * 移动一部分images的顺序。
      * @throws ResourceNotExist ("itemIndexes", number[]) 要操作的image index不存在。给出不存在的index列表
      */
-    fun moveSubImages(indexes: List<Int>, thisId: Int, ordinal: Int?) {
+    fun moveSubImages(thisId: Int, indexes: List<Int>, ordinal: Int?) {
         if(indexes.isNotEmpty()) {
             val sortedIndexes = indexes.sorted()
             val count = data.db.sequenceOf(AlbumImageRelations).count { it.albumId eq thisId }
@@ -380,8 +348,6 @@ class AlbumKit(private val data: DataRepository,
                     }
                 }
             }
-
-            exportFileAndCount(thisId)
         }
     }
 
@@ -389,7 +355,7 @@ class AlbumKit(private val data: DataRepository,
      * 删除一部分images。
      * @throws ResourceNotExist ("itemIndexes", number[]) 要操作的image index不存在。给出不存在的index列表
      */
-    fun deleteSubImages(indexes: List<Int>, thisId: Int) {
+    fun deleteSubImages(thisId: Int, indexes: List<Int>) {
         if(indexes.isNotEmpty()) {
             val sortedIndexes = indexes.sorted()
             val count = data.db.sequenceOf(AlbumImageRelations).count { it.albumId eq thisId }
@@ -407,8 +373,6 @@ class AlbumKit(private val data: DataRepository,
                         }
                     }
             }
-
-            exportFileAndCount(thisId)
         }
     }
 }

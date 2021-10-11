@@ -28,7 +28,7 @@ import kotlin.math.roundToInt
  * 处理元信息重导出的后台任务。适用于处理大批量重新导出的情况。
  * 会将持有的任务持久化到数据库。
  */
-interface IllustMetaExporter : StatefulComponent {
+interface EntityExporter : StatefulComponent {
     /**
      * 添加一个新的任务。
      * - 更新collection的score/meta导出属性。可细化到哪几项。
@@ -36,7 +36,7 @@ interface IllustMetaExporter : StatefulComponent {
      *      - 或由于子项修改——发生在image编辑联动影响parent。
      * - 更新collection的file相关/score/meta。由于子项变动——创建image并指定parent。
      */
-    fun appendNewTask(task: MetaExporterTask) {
+    fun appendNewTask(task: EntityExporterTask) {
         appendNewTask(listOf(task))
     }
 
@@ -50,23 +50,23 @@ interface IllustMetaExporter : StatefulComponent {
      * - 更新image/album的tag。
      *      - 发生在tag编辑或删除，联动影响所有关联项。
      */
-    fun appendNewTask(tasks: Collection<MetaExporterTask>)
+    fun appendNewTask(tasks: Collection<EntityExporterTask>)
 }
 
 /**
  * 一个任务记录单元，标记要执行重导出的对象的种类和id。
  */
-abstract class MetaExporterTask(val id: Int)
+abstract class EntityExporterTask(val id: Int)
 
 /**
  * illust的通用任务单元。
  */
-open class IllustExporterTask(id: Int, val exportScore: Boolean = false, val exportMeta: Boolean = false, val exportDescription: Boolean, val exportFileAndTime: Boolean) : MetaExporterTask(id)
+open class IllustExporterTask(id: Int, val exportScore: Boolean = false, val exportMeta: Boolean = false, val exportDescription: Boolean, val exportFirstCover: Boolean) : EntityExporterTask(id)
 
 /**
  * collection的专项任务单元。
  */
-class CollectionExporterTask(id: Int, exportFileAndTime: Boolean = false, exportScore: Boolean = false, exportMeta: Boolean = false) : IllustExporterTask(id, exportScore, exportMeta, false, exportFileAndTime)
+class CollectionExporterTask(id: Int, exportScore: Boolean = false, exportMeta: Boolean = false, exportFirstCover: Boolean = false) : IllustExporterTask(id, exportScore, exportMeta, false, exportFirstCover)
 
 /**
  * image的专项任务单元。
@@ -76,11 +76,11 @@ class ImageExporterTask(id: Int, exportDescription: Boolean = false, exportScore
 /**
  * album的通用任务单元。
  */
-open class AlbumExporterTask(id: Int, val exportMeta: Boolean = false) : MetaExporterTask(id)
+open class AlbumExporterTask(id: Int, val exportMeta: Boolean = false) : EntityExporterTask(id)
 
-class IllustMetaExporterImpl(private val data: DataRepository,
-                             private val illustKit: IllustKit,
-                             private val albumKit: AlbumKit) : IllustMetaExporter {
+class EntityExporterImpl(private val data: DataRepository,
+                         private val illustKit: IllustKit,
+                         private val albumKit: AlbumKit) : EntityExporter {
     private val taskCount = AtomicInteger(0)
     private val totalTaskCount = AtomicInteger(0)
 
@@ -90,6 +90,7 @@ class IllustMetaExporterImpl(private val data: DataRepository,
 
     override fun load() {
         if(data.status == LoadStatus.LOADED) {
+            //组件加载时，从db加载剩余数量，若存在剩余数量就直接开始daemon task。
             taskCount.set(data.db.sequenceOf(ExporterTasks).count())
             totalTaskCount.set(taskCount.get())
             if(taskCount.get() > 0) {
@@ -98,7 +99,7 @@ class IllustMetaExporterImpl(private val data: DataRepository,
         }
     }
 
-    override fun appendNewTask(tasks: Collection<MetaExporterTask>) {
+    override fun appendNewTask(tasks: Collection<EntityExporterTask>) {
         synchronized(this) {
             val now = DateTime.now()
             data.db.batchInsert(ExporterTasks) {
@@ -107,7 +108,7 @@ class IllustMetaExporterImpl(private val data: DataRepository,
                     item {
                         set(it.entityType, model.entityType)
                         set(it.entityId, model.entityId)
-                        set(it.exportFileAndTime, model.exportFileAndTime)
+                        set(it.exportFirstCover, model.exportFirstCover)
                         set(it.exportDescription, model.exportDescription)
                         set(it.exportScore, model.exportScore)
                         set(it.exportMeta, model.exportMeta)
@@ -124,6 +125,7 @@ class IllustMetaExporterImpl(private val data: DataRepository,
     }
 
     private fun daemonThread() {
+        //执行背景任务的线程函数。此函数单线程执行，不断地从db查询下一条task并执行。两次执行之间有一点微小的间隔。
         if(taskCount.get() <= 0) {
             synchronized(this) {
                 if(taskCount.get() <= 0) {
@@ -156,17 +158,14 @@ class IllustMetaExporterImpl(private val data: DataRepository,
 
     private fun exportAlbum(task: AlbumExporterTask) {
         data.db.transaction {
-            data.db.sequenceOf(Albums).firstOrNull { it.id eq task.id } ?: return
-
             if(task.exportMeta) {
-                albumKit.forceProcessAllMeta(task.id)
+                data.db.sequenceOf(Albums).firstOrNull { it.id eq task.id } ?: return
+
+                albumKit.refreshAllMeta(task.id)
             }
         }
     }
 
-    /**
-     * 对illust的导出属性做重新导出。
-     */
     private fun exportIllust(task: IllustExporterTask) {
         data.db.transaction {
             val illust = data.db.sequenceOf(Illusts).firstOrNull { it.id eq task.id } ?: return
@@ -179,7 +178,7 @@ class IllustMetaExporterImpl(private val data: DataRepository,
                 exportedDescription = undefined()
 
                 //实际上collection还得重新导出file、orderTime和childrenCount
-                exportedFileAndTime = if(task.exportFileAndTime) {
+                exportedFileAndTime = if(task.exportFirstCover) {
                     val firstChild = data.db.from(Illusts).select()
                         .where { Illusts.parentId eq task.id }
                         .orderBy(Illusts.orderTime.asc())
@@ -190,7 +189,7 @@ class IllustMetaExporterImpl(private val data: DataRepository,
                         Opt(Triple(firstChild.fileId, firstChild.partitionTime, firstChild.orderTime))
                     }else undefined()
                 }else undefined()
-                cachedChildrenCount = if(task.exportFileAndTime) {
+                cachedChildrenCount = if(task.exportFirstCover) {
                     Opt(data.db.sequenceOf(Illusts).filter { Illusts.parentId eq task.id }.count())
                 }else undefined()
 
@@ -207,7 +206,7 @@ class IllustMetaExporterImpl(private val data: DataRepository,
 
                 //exportedMeta通过推导生成，或者缺省时，从children取notExportedMeta的并集推导生成
                 if(task.exportMeta) {
-                    illustKit.forceProcessAllMeta(task.id, copyFromChildren = true)
+                    illustKit.refreshAllMeta(task.id, copyFromChildren = true)
                 }
             }else{
                 val parent by lazy { if(illust.parentId == null) null else data.db.sequenceOf(Illusts).firstOrNull { it.id eq illust.parentId} }
@@ -227,11 +226,11 @@ class IllustMetaExporterImpl(private val data: DataRepository,
 
                 //exportedMeta通过推导生成，或者缺省时，直接从parent拷贝全部MetaTag
                 if(task.exportMeta) {
-                    illustKit.forceProcessAllMeta(task.id, copyFromParent = illust.parentId)
+                    illustKit.refreshAllMeta(task.id, copyFromParent = illust.parentId)
                 }
             }
 
-            if(anyOpt(exportedDescription, exportedScore, exportedFileAndTime)) {
+            if(anyOpt(exportedDescription, exportedScore, exportedFileAndTime, cachedChildrenCount)) {
                 data.db.update(Illusts) {
                     where { it.id eq task.id }
                     exportedDescription.applyOpt { set(it.exportedDescription, this) }
@@ -248,18 +247,18 @@ class IllustMetaExporterImpl(private val data: DataRepository,
     }
 }
 
-private fun MetaExporterTask.toModel(now: LocalDateTime = DateTime.now()): ExporterTask {
+private fun EntityExporterTask.toModel(now: LocalDateTime = DateTime.now()): ExporterTask {
     return when(this) {
-        is IllustExporterTask -> ExporterTask(0, ExporterTask.EntityType.ILLUST, id, exportFileAndTime, exportDescription, exportScore, exportMeta, now)
-        is AlbumExporterTask -> ExporterTask(0, ExporterTask.EntityType.ALBUM, id, exportFileAndTime = false, exportDescription = false, exportScore = false, exportMeta, now)
+        is IllustExporterTask -> ExporterTask(0, ExporterTask.EntityType.ILLUST, id, exportFirstCover, exportDescription, exportScore, exportMeta, now)
+        is AlbumExporterTask -> ExporterTask(0, ExporterTask.EntityType.ALBUM, id, exportFirstCover = false, exportDescription = false, exportScore = false, exportMeta, now)
         else -> throw UnsupportedOperationException("Unknown exporter task class ${this::class.simpleName}.")
     }
 }
 
-private fun ExporterTask.toTask(): MetaExporterTask {
+private fun ExporterTask.toTask(): EntityExporterTask {
     return if(this.entityType == ExporterTask.EntityType.ALBUM) {
         AlbumExporterTask(this.entityId, exportMeta)
     }else{
-        IllustExporterTask(this.entityId, exportScore, exportMeta, exportDescription, exportFileAndTime)
+        IllustExporterTask(this.entityId, exportScore, exportMeta, exportDescription, exportFirstCover)
     }
 }

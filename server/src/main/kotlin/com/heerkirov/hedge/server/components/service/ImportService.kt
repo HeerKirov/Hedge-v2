@@ -272,7 +272,7 @@ class ImportService(private val data: DataRepository,
     }
 
     /**
-     * @warn ResourceNotExist ("parentId", number) 给定的parent不存在，或者它不是一个collection。给出id
+     * 保存。
      */
     fun save(): ImportSaveRes {
         data.db.transaction {

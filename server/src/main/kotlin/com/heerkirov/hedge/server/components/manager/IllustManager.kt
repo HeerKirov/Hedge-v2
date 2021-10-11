@@ -1,20 +1,17 @@
 package com.heerkirov.hedge.server.components.manager
 
 import com.heerkirov.hedge.server.components.backend.CollectionExporterTask
-import com.heerkirov.hedge.server.components.backend.IllustMetaExporter
+import com.heerkirov.hedge.server.components.backend.EntityExporter
 import com.heerkirov.hedge.server.components.backend.ImageExporterTask
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.kit.IllustKit
 import com.heerkirov.hedge.server.dao.illust.*
-import com.heerkirov.hedge.server.exceptions.ConflictingGroupMembersError
-import com.heerkirov.hedge.server.exceptions.ResourceNotExist
-import com.heerkirov.hedge.server.exceptions.ResourceNotSuitable
-import com.heerkirov.hedge.server.exceptions.be
+import com.heerkirov.hedge.server.exceptions.*
 import com.heerkirov.hedge.server.model.illust.Illust
 import com.heerkirov.hedge.server.utils.DateTime
+import com.heerkirov.hedge.server.utils.filterInto
 import com.heerkirov.hedge.server.utils.ktorm.asSequence
 import com.heerkirov.hedge.server.utils.ktorm.first
-import com.heerkirov.hedge.server.utils.types.Opt
 import com.heerkirov.hedge.server.utils.types.undefined
 import org.ktorm.dsl.*
 import org.ktorm.entity.*
@@ -25,7 +22,7 @@ class IllustManager(private val data: DataRepository,
                     private val kit: IllustKit,
                     private val sourceManager: SourceManager,
                     private val partitionManager: PartitionManager,
-                    private val illustMetaExporter: IllustMetaExporter) {
+                    private val entityExporter: EntityExporter) {
     /**
      * 创建新的image。
      * @throws ResourceNotExist ("source", string) 给出的source不存在
@@ -39,7 +36,6 @@ class IllustManager(private val data: DataRepository,
     fun newImage(fileId: Int, parentId: Int? = null,
                  source: String? = null, sourceId: Long? = null, sourcePart: Int? = null,
                  description: String = "", score: Int? = null, favorite: Boolean = false, tagme: Illust.Tagme = Illust.Tagme.EMPTY,
-                 tags: List<Int>? = null, topics: List<Int>? = null, authors: List<Int>? = null,
                  partitionTime: LocalDate, orderTime: Long, createTime: LocalDateTime): Int {
         val collection = if(parentId == null) null else {
             data.db.sequenceOf(Illusts)
@@ -92,21 +88,12 @@ class IllustManager(private val data: DataRepository,
             }
         }
 
-        if(!tags.isNullOrEmpty() || !authors.isNullOrEmpty() || !topics.isNullOrEmpty()) {
-            //指定了任意tags时，对tag进行校验和分析，导出，并同时导出annotations
-            kit.processAllMeta(id, creating = true,
-                newTags = tags?.let { Opt(it) } ?: undefined(),
-                newTopics = topics?.let { Opt(it) } ?: undefined(),
-                newAuthors = authors?.let { Opt(it) } ?: undefined())
-
-        }else if (collection != null && kit.anyNotExportedMeta(collection.id)) {
-            //tag为空且parent的tag不为空时，直接应用parent的exported tag(因为一定是从parent的tag导出的，不需要再算一次)
-            kit.copyAllMetaFromParent(id, collection.id)
-        }
+        //对tag进行校验和分析，导出
+        kit.updateMeta(id, creating = true, newTags = undefined(), newTopics = undefined(), newAuthors = undefined(), copyFromParent = collection?.id)
 
         if(collection != null) {
             //对parent做重导出。尽管重导出有多个可分离的部分，但分开判定太费劲且收益不高，就统一只要有parent就重导出了
-            illustMetaExporter.appendNewTask(CollectionExporterTask(collection.id, exportFileAndTime = true, exportMeta = true))
+            entityExporter.appendNewTask(CollectionExporterTask(collection.id, exportFirstCover = true, exportMeta = true))
         }
 
         return id
@@ -117,9 +104,10 @@ class IllustManager(private val data: DataRepository,
      * @throws ResourceNotExist ("images", number[]) 给出的部分images不存在。给出不存在的image id列表
      */
     fun newCollection(formImages: List<Int>, formDescription: String, formScore: Int?, formFavorite: Boolean, formTagme: Illust.Tagme): Int {
-        val createTime = DateTime.now()
+        val images = unfoldImages(formImages, sorted = false)
+        val (fileId, scoreFromSub, partitionTime, orderTime) = kit.getExportedPropsFromList(images)
 
-        val (images, fileId, scoreFromSub, partitionTime, orderTime) = kit.validateSubImages(formImages)
+        val createTime = DateTime.now()
 
         val id = data.db.insertAndGenerateKey(Illusts) {
             set(it.type, Illust.Type.COLLECTION)
@@ -142,21 +130,23 @@ class IllustManager(private val data: DataRepository,
             set(it.updateTime, createTime)
         } as Int
 
-        processSubImages(images, id)
+        updateSubImages(id, images)
 
-        kit.forceProcessAllMeta(id, copyFromChildren = true)
+        kit.refreshAllMeta(id, copyFromChildren = true)
 
         return id
     }
 
     /**
-     * 应用images列表，设置images的parent为当前collection。整体设置时，当前collection的重导出是在validate时完成的。
-     * 如果image已有其他parent，覆盖那些parent，并对那些parent做属性重导出(主要是fileId)。由于collection要求至少有1个子项，没有子项的collection会被删除。
-     * image的exported属性会被重新导出计算。
+     * 应用images列表，设置images的parent为当前collection，同时处理重导出关系。
+     * 对于移入/移除当前集合的项，对其属性进行重导出；对于被移出的旧parent，也对其进行处理。
      */
-    fun processSubImages(images: List<Illust>, thisId: Int) {
+    fun updateSubImages(collectionId: Int, images: List<Illust>) {
         val imageIds = images.asSequence().map { it.id }.toSet()
-        val oldImageIds = data.db.from(Illusts).select(Illusts.id).where { Illusts.parentId eq thisId }.asSequence().map { it[Illusts.id]!! }.toSet()
+        val oldImageIds = data.db.from(Illusts).select(Illusts.id)
+            .where { Illusts.parentId eq collectionId }
+            .asSequence().map { it[Illusts.id]!! }.toSet()
+
         //处理移出项，修改它们的type/parentId，并视情况执行重新导出
         val deleteIds = oldImageIds - imageIds
         data.db.update(Illusts) {
@@ -164,28 +154,30 @@ class IllustManager(private val data: DataRepository,
             set(it.type, Illust.Type.IMAGE)
             set(it.parentId, null)
         }
-        illustMetaExporter.appendNewTask(deleteIds.map { ImageExporterTask(it, exportDescription = true, exportScore = true, exportMeta = true) })
+        entityExporter.appendNewTask(deleteIds.map { ImageExporterTask(it, exportDescription = true, exportScore = true, exportMeta = true) })
 
         //处理移入项，修改它们的type/parentId，并视情况执行重新导出
         val addIds = imageIds - oldImageIds
         data.db.update(Illusts) {
             where { it.id inList addIds }
-            set(it.parentId, thisId)
+            set(it.parentId, collectionId)
             set(it.type, Illust.Type.IMAGE_WITH_PARENT)
         }
-        illustMetaExporter.appendNewTask(addIds.map { ImageExporterTask(it, exportDescription = true, exportScore = true, exportMeta = true) })
+        entityExporter.appendNewTask(addIds.map { ImageExporterTask(it, exportDescription = true, exportScore = true, exportMeta = true) })
         //这些image有旧的parent，需要对旧parent做重新导出
         val now = DateTime.now()
         images.asSequence()
-            .filter { it.id in addIds && it.parentId != null && it.parentId != thisId }
+            .filter { it.id in addIds && it.parentId != null && it.parentId != collectionId }
             .groupBy { it.parentId!! }
-            .forEach { (parentId, images) -> processRemoveItemFromCollection(parentId, images, now) }
+            .forEach { (parentId, images) -> processCollectionChildrenRemoved(parentId, images, now) }
     }
 
     /**
-     * 向collection中添加了一个新子项(由于移动子项)，对此collection做快速重导出，如有必要，放入metaExporter。
+     * 由于向collection加入了新的child，因此需要处理所有属性的重导出，包括firstCover, count, score, metaTags。
+     * 这个函数不是向collection加入child，而是已经加入了，为此需要处理关系，而且必须同步处理。
      */
-    fun processAddItemToCollection(collectionId: Int, addedImage: Illust, currentTime: LocalDateTime? = null) {
+    fun processCollectionChildrenAdded(collectionId: Int, addedImage: Illust,
+                                       updateTime: LocalDateTime? = null, exportMetaTags: Boolean = false, exportScore: Boolean = false) {
         val firstImage = data.db.sequenceOf(Illusts).filter { (it.parentId eq collectionId) and (it.id notEq addedImage.id) }.sortedBy { it.orderTime }.firstOrNull()
 
         data.db.update(Illusts) {
@@ -198,16 +190,21 @@ class IllustManager(private val data: DataRepository,
                 set(it.orderTime, addedImage.orderTime)
             }
             set(it.cachedChildrenCount, it.cachedChildrenCount plus 1)
-            set(it.updateTime, currentTime ?: DateTime.now())
+            set(it.updateTime, updateTime ?: DateTime.now())
+        }
+
+        if(exportMetaTags || exportScore) {
+            entityExporter.appendNewTask(CollectionExporterTask(collectionId, exportScore = exportScore, exportMeta = exportMetaTags))
         }
     }
 
     /**
-     * 从collection中移除了一个子项(由于删除子项或移动子项)，对此collection做快速重导出，如有必要，放入metaExporter。
+     * 由于从collection移除了child，因此需要处理所有属性的重导出，包括firstCover, count, score, metaTags。若已净空，则会直接移除collection。
+     * 这个函数不是从collection移除child，而是已经移除了，为此需要处理关系，而且必须同步处理。
      */
-    fun processRemoveItemFromCollection(collectionId: Int, removedImages: List<Illust>, currentTime: LocalDateTime? = null) {
+    fun processCollectionChildrenRemoved(collectionId: Int, removedImages: List<Illust>,
+                                         updateTime: LocalDateTime? = null, exportMetaTags: Boolean = false, exportScore: Boolean = false) {
         //关键属性(fileId, partitionTime, orderTime)的重导出不延后到metaExporter，在事务内立即完成
-        val parent = data.db.sequenceOf(Illusts).first { it.id eq collectionId }
         val firstImage = data.db.sequenceOf(Illusts)
             .filter { (it.parentId eq collectionId) and (it.id notInList removedImages.map(Illust::id)) }
             .sortedBy { it.orderTime }
@@ -223,17 +220,54 @@ class IllustManager(private val data: DataRepository,
                     set(it.orderTime, firstImage.orderTime)
                 }
                 set(it.cachedChildrenCount, it.cachedChildrenCount minus removedImages.size)
-                set(it.updateTime, currentTime ?: DateTime.now())
+                set(it.updateTime, updateTime ?: DateTime.now())
             }
-            //其他属性稍后在metaExporter延后导出
-            illustMetaExporter.appendNewTask(CollectionExporterTask(parent.id, exportScore = true, exportMeta = true))
+
+            if(exportMetaTags || exportScore) {
+                entityExporter.appendNewTask(CollectionExporterTask(collectionId, exportScore = exportScore, exportMeta = exportMetaTags))
+            }
         }else{
             //此collection已经没有项了，将其删除
-            data.db.delete(Illusts) { it.id eq parent.id }
-            data.db.delete(IllustTagRelations) { it.illustId eq parent.id }
-            data.db.delete(IllustAuthorRelations) { it.illustId eq parent.id }
-            data.db.delete(IllustTopicRelations) { it.illustId eq parent.id }
-            data.db.delete(IllustAnnotationRelations) { it.illustId eq parent.id }
+            data.db.delete(Illusts) { it.id eq collectionId }
+            data.db.delete(IllustTagRelations) { it.illustId eq collectionId }
+            data.db.delete(IllustAuthorRelations) { it.illustId eq collectionId }
+            data.db.delete(IllustTopicRelations) { it.illustId eq collectionId }
+            data.db.delete(IllustAnnotationRelations) { it.illustId eq collectionId }
+        }
+    }
+
+    /**
+     * 将一个images id序列映射成illust列表。其中的collection会被展开成其children列表，并去重。
+     * @param sorted 返回结果保持有序。默认开启。对album是有必要的，但collection就没有这个需要。控制这个开关来做查询效率优化。
+     */
+    fun unfoldImages(imageIds: List<Int>, paramNameWhenThrow: String = "images", sorted: Boolean = true): List<Illust> {
+        if(imageIds.isEmpty()) throw be(ParamRequired(paramNameWhenThrow))
+        val result = data.db.sequenceOf(Illusts).filter { it.id inList imageIds }.toList()
+        //数量不够表示有imageId不存在
+        if(result.size < imageIds.size) throw be(ResourceNotExist(paramNameWhenThrow, imageIds.toSet() - result.asSequence().map { it.id }.toSet()))
+
+        if(sorted) {
+            //有序时不能做太多优化，就把原id列表依次展开查询
+            val resultMap = result.associateBy { it.id }
+            return imageIds.asSequence().map { id -> resultMap[id]!! }.flatMap { illust ->
+                if(illust.type != Illust.Type.COLLECTION) sequenceOf(illust) else {
+                    data.db.sequenceOf(Illusts)
+                        .filter { it.parentId eq illust.id }
+                        .sortedBy { it.orderTime.asc() }
+                        .asKotlinSequence()
+                }
+            }.distinctBy { it.id }.toList()
+        }else{
+            //对于collection，做一个易用性处理，将它们的所有子项包括在images列表中; 对于image/image_with_parent，直接加入images列表
+            val (collectionResult, imageResult) = result.filterInto { it.type == Illust.Type.COLLECTION }
+            //非有序时，一口气查询出所有的children
+            val childrenResult = if(collectionResult.isEmpty()) emptyList() else {
+                data.db.sequenceOf(Illusts)
+                    .filter { it.parentId inList collectionResult.map(Illust::id) }
+                    .toList()
+            }
+            //然后将children和image一起去重
+            return (imageResult + childrenResult).distinctBy { it.id }
         }
     }
 }

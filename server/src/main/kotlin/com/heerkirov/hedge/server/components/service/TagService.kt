@@ -2,7 +2,7 @@ package com.heerkirov.hedge.server.components.service
 
 import com.heerkirov.hedge.server.components.backend.AlbumExporterTask
 import com.heerkirov.hedge.server.components.backend.IllustExporterTask
-import com.heerkirov.hedge.server.components.backend.IllustMetaExporter
+import com.heerkirov.hedge.server.components.backend.EntityExporter
 import com.heerkirov.hedge.server.components.backend.TagExporter
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.database.transaction
@@ -32,7 +32,7 @@ class TagService(private val data: DataRepository,
                  private val fileManager: FileManager,
                  private val queryManager: QueryManager,
                  private val tagExporter: TagExporter,
-                 private val illustMetaExporter: IllustMetaExporter) {
+                 private val entityExporter: EntityExporter) {
     private val orderTranslator = OrderTranslator {
         "id" to Tags.id
         "name" to Tags.name
@@ -364,13 +364,13 @@ class TagService(private val data: DataRepository,
                     data.db.from(IllustTagRelations)
                         .select(IllustTagRelations.illustId)
                         .where { IllustTagRelations.tagId eq id }
-                        .map { IllustExporterTask(it[IllustTagRelations.illustId]!!, exportMeta = true, exportDescription = false, exportFileAndTime = false, exportScore = false) }
-                        .let { illustMetaExporter.appendNewTask(it) }
+                        .map { IllustExporterTask(it[IllustTagRelations.illustId]!!, exportMeta = true, exportDescription = false, exportFirstCover = false, exportScore = false) }
+                        .let { entityExporter.appendNewTask(it) }
                     data.db.from(AlbumTagRelations)
                         .select(AlbumTagRelations.albumId)
                         .where { AlbumTagRelations.tagId eq id }
                         .map { AlbumExporterTask(it[AlbumTagRelations.albumId]!!, exportMeta = true) }
-                        .let { illustMetaExporter.appendNewTask(it) }
+                        .let { entityExporter.appendNewTask(it) }
 
                     queryManager.flushCacheOf(QueryManager.CacheType.TAG)
             }
@@ -403,13 +403,13 @@ class TagService(private val data: DataRepository,
             data.db.from(IllustTagRelations)
                 .select(IllustTagRelations.illustId)
                 .where { IllustTagRelations.tagId eq id }
-                .map { IllustExporterTask(it[IllustTagRelations.illustId]!!, exportMeta = true, exportDescription = false, exportFileAndTime = false, exportScore = false) }
-                .let { illustMetaExporter.appendNewTask(it) }
+                .map { IllustExporterTask(it[IllustTagRelations.illustId]!!, exportMeta = true, exportDescription = false, exportFirstCover = false, exportScore = false) }
+                .let { entityExporter.appendNewTask(it) }
             data.db.from(AlbumTagRelations)
                 .select(AlbumTagRelations.albumId)
                 .where { AlbumTagRelations.tagId eq id }
                 .map { AlbumExporterTask(it[AlbumTagRelations.albumId]!!, exportMeta = true) }
-                .let { illustMetaExporter.appendNewTask(it) }
+                .let { entityExporter.appendNewTask(it) }
             recursionDelete(id)
 
             queryManager.flushCacheOf(QueryManager.CacheType.TAG)

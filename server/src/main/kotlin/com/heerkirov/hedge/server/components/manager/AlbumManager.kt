@@ -1,5 +1,7 @@
 package com.heerkirov.hedge.server.components.manager
 
+import com.heerkirov.hedge.server.components.backend.AlbumExporterTask
+import com.heerkirov.hedge.server.components.backend.EntityExporter
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.kit.AlbumKit
 import com.heerkirov.hedge.server.dao.album.AlbumImageRelations
@@ -12,11 +14,14 @@ import org.ktorm.entity.filter
 import org.ktorm.entity.sequenceOf
 import org.ktorm.entity.toList
 
-class AlbumManager(private val data: DataRepository, private val kit: AlbumKit) {
+class AlbumManager(private val data: DataRepository,
+                   private val kit: AlbumKit,
+                   private val illustManager: IllustManager,
+                   private val entityExporter: EntityExporter) {
     /**
      * 从所有的albums中平滑移除一个image项。将数量统计-1。如果删掉的image是封面，重新获得下一张封面。
      */
-    fun removeItemInAllAlbums(imageId: Int) {
+    fun removeItemInAllAlbums(imageId: Int, exportMetaTags: Boolean = false) {
         val relations = data.db.sequenceOf(AlbumImageRelations).filter { it.imageId eq imageId }.toList()
         val albumIds = relations.asSequence().map { it.albumId }.toSet()
 
@@ -37,6 +42,9 @@ class AlbumManager(private val data: DataRepository, private val kit: AlbumKit) 
                     set(it.fileId, newCoverFileId)
                 }
             }
+            if(exportMetaTags) {
+                entityExporter.appendNewTask(AlbumExporterTask(albumId, exportMeta = true))
+            }
         }
         data.db.delete(AlbumImageRelations) { it.imageId eq imageId }
         data.db.update(Albums) {
@@ -50,7 +58,8 @@ class AlbumManager(private val data: DataRepository, private val kit: AlbumKit) 
      * @throws ResourceNotExist ("images", number[]) image项不存在。给出imageId列表
      */
     fun newAlbum(formImages: List<Int>, formTitle: String = "", formDescription: String = "", formScore: Int? = null, formFavorite: Boolean = false): Int {
-        val (images, imageCount, fileId) = kit.validateSubImages(formImages)
+        val images = illustManager.unfoldImages(formImages)
+        val fileId = images.first().fileId
         val createTime = DateTime.now()
 
         val id = data.db.insertAndGenerateKey(Albums) {
@@ -59,12 +68,14 @@ class AlbumManager(private val data: DataRepository, private val kit: AlbumKit) 
             set(it.score, formScore)
             set(it.favorite, formFavorite)
             set(it.fileId, fileId)
-            set(it.cachedCount, imageCount)
+            set(it.cachedCount, images.size)
             set(it.createTime, createTime)
             set(it.updateTime, createTime)
         } as Int
 
-        kit.processSubImages(images, id)
+        kit.updateSubImages(id, images.map { it.id })
+
+        kit.refreshAllMeta(id)
 
         return id
     }

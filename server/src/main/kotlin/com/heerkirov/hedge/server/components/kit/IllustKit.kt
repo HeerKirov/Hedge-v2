@@ -11,7 +11,6 @@ import com.heerkirov.hedge.server.model.illust.Illust
 import com.heerkirov.hedge.server.model.meta.Annotation
 import com.heerkirov.hedge.server.utils.business.checkScore
 import com.heerkirov.hedge.server.utils.DateTime
-import com.heerkirov.hedge.server.utils.filterInto
 import com.heerkirov.hedge.server.utils.ktorm.asSequence
 import com.heerkirov.hedge.server.utils.types.Opt
 import com.heerkirov.hedge.server.utils.types.union
@@ -40,8 +39,8 @@ class IllustKit(private val data: DataRepository,
      * @throws ResourceNotSuitable ("tags", number[]) 部分tags资源不适用。地址段不适用于此项。给出不适用的tag id列表
      * @throws ConflictingGroupMembersError 发现标签冲突组
      */
-    fun processAllMeta(thisId: Int, newTags: Opt<List<Int>>, newTopics: Opt<List<Int>>, newAuthors: Opt<List<Int>>,
-                       creating: Boolean = false, copyFromParent: Int? = null, copyFromChildren: Boolean = false) {
+    fun updateMeta(thisId: Int, newTags: Opt<List<Int>>, newTopics: Opt<List<Int>>, newAuthors: Opt<List<Int>>,
+                   creating: Boolean = false, copyFromParent: Int? = null, copyFromChildren: Boolean = false) {
         val analyseStatisticCount = !copyFromChildren
 
         //检出每种tag的数量。这个数量指新设定的值或已存在的值中notExported的数量
@@ -58,7 +57,7 @@ class IllustKit(private val data: DataRepository,
 
             if(copyFromParent != null) {
                 //如果发现parent有notExported的metaTag，那么从parent直接拷贝全部metaTag
-                if(anyNotExportedMeta(copyFromParent)) copyAllMetaFromParent(thisId, copyFromParent)
+                if(anyNotExportedMetaExists(copyFromParent)) copyAllMetaFromParent(thisId, copyFromParent)
             }else if (copyFromChildren) {
                 //从children拷贝全部notExported的metaTag，然后做导出
                 copyAllMetaFromChildren(thisId)
@@ -99,9 +98,9 @@ class IllustKit(private val data: DataRepository,
     }
 
     /**
-     * 在没有更新的情况下，强制重新导出meta tag。被使用在meta exporter的后台任务中。
+     * 在没有更新的情况下，强制重新导出meta tag。
      */
-    fun forceProcessAllMeta(thisId: Int, copyFromParent: Int? = null, copyFromChildren: Boolean = false) {
+    fun refreshAllMeta(thisId: Int, copyFromParent: Int? = null, copyFromChildren: Boolean = false) {
         val analyseStatisticCount = !copyFromChildren
 
         val tags = metaManager.getNotExportMetaTags(thisId, IllustTagRelations, Tags)
@@ -124,7 +123,7 @@ class IllustKit(private val data: DataRepository,
             deleteAllMeta()
             if (copyFromChildren) {
                 copyAllMetaFromChildren(thisId)
-            }else if(copyFromParent != null && anyNotExportedMeta(copyFromParent)) {
+            }else if(copyFromParent != null && anyNotExportedMetaExists(copyFromParent)) {
                 copyAllMetaFromParent(thisId, copyFromParent)
             }
         }else if(tagCount > 0 || topicCount > 0 || authorCount > 0) {
@@ -155,7 +154,7 @@ class IllustKit(private val data: DataRepository,
     /**
      * 使用目标的所有relations，拷贝一份赋给当前项，统一设定为exported。
      */
-    fun copyAllMetaFromParent(thisId: Int, fromId: Int) {
+    private fun copyAllMetaFromParent(thisId: Int, fromId: Int) {
         val now = DateTime.now()
         fun <R : EntityMetaRelationTable<*>, T : MetaTag<*>> copyOneMeta(tagRelations: R, metaTag: T) {
             val ids = data.db.from(tagRelations).select(tagRelations.metaId()).where { tagRelations.entityId() eq fromId }.map { it[tagRelations.metaId()]!! }
@@ -317,36 +316,30 @@ class IllustKit(private val data: DataRepository,
     /**
      * 当目标对象存在任意一个not exported的meta tag时，返回true。
      */
-    fun anyNotExportedMeta(id: Int): Boolean {
-        return metaManager.getNotExportedMetaCount(id, IllustTagRelations) > 0 || metaManager.getNotExportedMetaCount(id, IllustAuthorRelations) > 0 || metaManager.getNotExportedMetaCount(id, IllustTopicRelations) > 0
+    fun anyNotExportedMetaExists(illustId: Int): Boolean {
+        return metaManager.getNotExportedMetaCount(illustId, IllustTagRelations) > 0
+                || metaManager.getNotExportedMetaCount(illustId, IllustAuthorRelations) > 0
+                || metaManager.getNotExportedMetaCount(illustId, IllustTopicRelations) > 0
     }
 
     /**
-     * 校验collection的images列表的正确性，同时利用images列表做collection的重导出计算。
-     * 要求必须存在至少一项，检查是否有不存在或不合法的项。
-     * @return 导出那些exported属性(fileId, score, partitionTime, orderTime)
-     * @throws ResourceNotExist ("images", number[]) 给出的部分images不存在。给出不存在的image id列表
+     * 查询一个collection的第一个child。当不存在时抛出NPE。
      */
-    fun validateSubImages(imageIds: List<Int>): Tuple5<List<Illust>, Int, Int?, LocalDate, Long> {
-        if(imageIds.isEmpty()) throw be(ParamRequired("images"))
-        val result = data.db.sequenceOf(Illusts).filter { it.id inList imageIds }.toList()
-        //数量不够表示有imageId不存在
-        if(result.size < imageIds.size) throw be(ResourceNotExist("images", imageIds.toSet() - result.asSequence().map { it.id }.toSet()))
+    fun getFirstChildOfCollection(collectionId: Int): Illust {
+        return data.db.sequenceOf(Illusts).sortedBy { it.orderTime }.first { it.parentId eq collectionId }
+    }
 
-        val (collectionResult, imageResult) = result.filterInto { it.type == Illust.Type.COLLECTION }
-        //对于collection，做一个易用性处理，将它们的所有子项包括在images列表中; 对于image/image_with_parent，直接加入images列表
-        val images = imageResult.asSequence()
-            .plus(if(collectionResult.isEmpty()) emptySequence()
-            else data.db.sequenceOf(Illusts).filter { it.parentId inList collectionResult.map(Illust::id) }.asKotlinSequence())
-            .distinctBy { it.id }
-            .toList()
-
+    /**
+     * 从一组images中，获得firstCover导出属性和score导出属性。
+     * @return (fileId, score, partitionTime, orderTime)
+     */
+    fun getExportedPropsFromList(images: List<Illust>): Tuple4<Int, Int?, LocalDate, Long> {
         val firstImage = images.minByOrNull { it.orderTime }!!
         val fileId = firstImage.fileId
         val partitionTime = firstImage.partitionTime
         val orderTime = firstImage.orderTime
         val score = images.asSequence().mapNotNull { it.score }.average().run { if(isNaN()) null else this }?.roundToInt()
 
-        return Tuple5(images, fileId, score, partitionTime, orderTime)
+        return Tuple4(fileId, score, partitionTime, orderTime)
     }
 }

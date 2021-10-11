@@ -15,9 +15,9 @@ data class ExporterTask(val id: Int,
                          */
                         val entityId: Int,
                         /**
-                         * 导出fileId和时间属性。
+                         * 导出first cover的属性。
                          */
-                        val exportFileAndTime: Boolean,
+                        val exportFirstCover: Boolean,
                         /**
                          * 导出描述。
                          */
