@@ -7,6 +7,7 @@ import com.heerkirov.hedge.server.library.compiler.lexical.LexicalOptions
 import com.heerkirov.hedge.server.library.compiler.semantic.SemanticAnalyzer
 import com.heerkirov.hedge.server.library.compiler.semantic.dialect.AlbumDialect
 import com.heerkirov.hedge.server.library.compiler.semantic.dialect.IllustDialect
+import com.heerkirov.hedge.server.library.compiler.semantic.dialect.SourceImageDialect
 import com.heerkirov.hedge.server.library.compiler.translator.*
 import com.heerkirov.hedge.server.library.compiler.translator.visual.*
 import com.heerkirov.hedge.server.library.compiler.utils.CompileError
@@ -34,6 +35,7 @@ class QueryManager(private val data: DataRepository) {
             val semanticResult = SemanticAnalyzer.parse(grammarResult.result, when (key.dialect) {
                 Dialect.ILLUST -> IllustDialect::class
                 Dialect.ALBUM -> AlbumDialect::class
+                Dialect.SOURCE_IMAGE -> SourceImageDialect::class
             })
             if(semanticResult.result == null) {
                 return@computeIfAbsent QuerySchema(null, null, warnings = MetaParserUtil.unionList(lexicalResult.warnings, grammarResult.warnings, semanticResult.warnings), errors = semanticResult.errors)
@@ -41,6 +43,7 @@ class QueryManager(private val data: DataRepository) {
             val builder = when (key.dialect) {
                 Dialect.ILLUST -> IllustExecutePlanBuilder(data.db)
                 Dialect.ALBUM -> AlbumExecutePlanBuilder(data.db)
+                Dialect.SOURCE_IMAGE -> SourceImageExecutePlanBuilder(data.db)
             }
             val translatorResult = Translator.parse(semanticResult.result, queryer, builder, options)
 
@@ -61,7 +64,7 @@ class QueryManager(private val data: DataRepository) {
         queryer.flushCacheOf(cacheType)
     }
 
-    enum class Dialect { ILLUST, ALBUM }
+    enum class Dialect { ILLUST, ALBUM, SOURCE_IMAGE }
 
     enum class CacheType { TAG, TOPIC, AUTHOR, ANNOTATION, SOURCE_TAG }
 

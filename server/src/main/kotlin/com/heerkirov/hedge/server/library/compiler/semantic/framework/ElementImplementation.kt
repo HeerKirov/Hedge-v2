@@ -188,9 +188,8 @@ object AnnotationElementField : ElementFieldByAnnotation() {
 /**
  * 从^element生成source tag的生成器。被使用在illust中。
  */
-object SourceTagElementField : ElementFieldByElement() {
+class SourceTagElementField(override val forSourceFlag: Boolean) : ElementFieldByElement() {
     override val itemName = "source-tag"
-    override val forSourceFlag = true
 
     override fun generate(element: SemanticElement, minus: Boolean): SourceTagElement {
         if(element.prefix != null) semanticError(ElementPrefixNotRequired(itemName, element.beginIndex, element.endIndex))

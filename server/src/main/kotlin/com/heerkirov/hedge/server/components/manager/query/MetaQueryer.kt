@@ -431,7 +431,7 @@ class MetaQueryer(private val data: DataRepository) : Queryer {
     private val topicCacheMap = ConcurrentHashMap<MetaAddress, List<ElementTopic>>()
 
     /**
-     * 缓存authot查询的最终结果。
+     * 缓存author查询的最终结果。
      */
     private val authorCacheMap = ConcurrentHashMap<MetaString, List<ElementAuthor>>()
 

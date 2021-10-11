@@ -8,6 +8,7 @@ import com.heerkirov.hedge.server.dao.source.SourceImages
 import com.heerkirov.hedge.server.dao.source.SourceTagRelations
 import com.heerkirov.hedge.server.library.compiler.semantic.dialect.AlbumDialect
 import com.heerkirov.hedge.server.library.compiler.semantic.dialect.IllustDialect
+import com.heerkirov.hedge.server.library.compiler.semantic.dialect.SourceImageDialect
 import com.heerkirov.hedge.server.library.compiler.semantic.framework.FilterFieldDefinition
 import com.heerkirov.hedge.server.library.compiler.semantic.plan.*
 import com.heerkirov.hedge.server.library.compiler.semantic.plan.FilterValue
@@ -35,7 +36,6 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import java.util.*
 import kotlin.collections.ArrayList
-
 
 interface ExecutePlanBuilder : ExecuteBuilder {
     fun build(): ExecutePlan
@@ -654,5 +654,84 @@ class AnnotationExecutePlanBuilder : ExecutePlanBuilder {
 
     override fun build(): ExecutePlan {
         return ExecutePlan(wheres, emptyList(), emptyList(), false)
+    }
+}
+
+class SourceImageExecutePlanBuilder(private val db: Database): ExecutePlanBuilder, OrderByColumn<SourceImageDialect.OrderItem>, FilterByColumn {
+    private val orders: MutableList<OrderByExpression> = ArrayList()
+    private val wheres: MutableList<ColumnDeclaring<Boolean>> = ArrayList()
+    private val joins: MutableList<ExecutePlan.Join> = ArrayList()
+
+    //在连接查询中，如果遇到一整层查询的项为空，这一层按逻辑不会产生任何结果匹配，那么相当于结果恒为空。使用这个flag来优化这种情况。
+    private var alwaysFalseFlag: Boolean = false
+
+    //在连接查询中，如果一层中有复数项，那么需要做去重。
+    private var needDistinct: Boolean = false
+
+    //在连接查询中，出现多次连接时需要alias dao，使用count做计数。
+    private var joinCount = 0
+
+    //在exclude连接查询中，具有相同类型的连接会被联合成同一个where nested查询来实现，在这里存储这个信息。
+    private val excludeSourceTags: MutableCollection<Int> = mutableSetOf()
+
+    private val orderDeclareMapping = mapOf(
+        SourceImageDialect.OrderItem.SOURCE_ID to OrderByColumn.ColumnDefinition(SourceImages.sourceId),
+        SourceImageDialect.OrderItem.SOURCE to OrderByColumn.ColumnDefinition(SourceImages.source)
+    )
+
+    private val filterDeclareMapping = mapOf(
+        SourceImageDialect.sourceId to SourceImages.sourceId,
+        SourceImageDialect.source to SourceImages.source,
+        SourceImageDialect.title to SourceImages.title,
+        SourceImageDialect.description to SourceImages.description,
+    )
+
+    override fun getOrderDeclareMapping(order: SourceImageDialect.OrderItem): OrderByColumn.ColumnDefinition {
+        return orderDeclareMapping[order]!!
+    }
+
+    override fun getFilterDeclareMapping(field: FilterFieldDefinition<*>): Column<*> {
+        return filterDeclareMapping[field]!!
+    }
+
+    override fun setOrders(orders: List<OrderByExpression>) {
+        this.orders.addAll(orders)
+    }
+
+    override fun addWhereCondition(whereCondition: ColumnDeclaring<Boolean>) {
+        wheres.add(whereCondition)
+    }
+
+    override fun mapFilterSpecial(field: FilterFieldDefinition<*>, value: Any): Any {
+        return value
+    }
+
+    override fun mapSourceTagElement(unionItems: List<ElementSourceTag>, exclude: Boolean) {
+        when {
+            exclude -> excludeSourceTags.addAll(unionItems.map { it.id })
+            unionItems.isEmpty() -> alwaysFalseFlag = true
+            else -> {
+                val j = SourceTagRelations.aliased("IR_${++joinCount}")
+                val condition = if(unionItems.size == 1) {
+                    j.tagId eq unionItems.first().id
+                }else{
+                    needDistinct = true
+                    j.tagId inList unionItems.map { it.id }
+                }
+                joins.add(ExecutePlan.Join(j, j.sourceId eq SourceImages.id and condition))
+            }
+        }
+    }
+
+    override fun build(): ExecutePlan {
+        if(alwaysFalseFlag) {
+            return ExecutePlan(listOf(ArgumentExpression(false, BooleanSqlType)), emptyList(), emptyList(), false)
+        }
+        if(excludeSourceTags.isNotEmpty()) {
+            wheres.add(Illusts.id notInList db.from(Illusts)
+                .innerJoin(SourceTagRelations, SourceTagRelations.sourceId eq Illusts.sourceImageId)
+                .select(Illusts.id))
+        }
+        return ExecutePlan(wheres, joins, orders, needDistinct)
     }
 }
