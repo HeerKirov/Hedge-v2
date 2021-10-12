@@ -40,6 +40,7 @@ fun runApplication(options: ApplicationOptions) {
             val queryService = QueryService(queryManager)
 
             val sourceManager = SourceManager(repo, queryManager)
+            val sourceImageService = SourceImageService(repo, sourceManager, queryManager)
 
             val thumbnailGenerator = define { FileGeneratorImpl(configuration, repo) }
             val fileManager = FileManager(configuration, repo)
@@ -101,6 +102,7 @@ fun runApplication(options: ApplicationOptions) {
                 annotationService,
                 authorService,
                 topicService,
+                sourceImageService,
                 settingAppdataService,
                 settingMetaService,
                 settingQueryService,

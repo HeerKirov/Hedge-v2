@@ -6,6 +6,13 @@ import com.heerkirov.hedge.server.utils.tuples.t2
 import com.heerkirov.hedge.server.utils.tuples.t3
 
 /**
+ * content内容解析错误。
+ * 抛出位置：
+ * - source image 导入时
+ */
+class ContentParseError(message: String) : BadRequestException<Nothing?>("CONTENT_PARSE_ERROR", message, null)
+
+/**
  * 当指定导入的文件不可访问时，抛出此异常。
  * 抛出位置：
  * - import从本地导入
@@ -16,6 +23,7 @@ class FileNotFoundError : BadRequestException<Nothing?>("FILE_NOT_FOUND", "Targe
  * 当指定的文件的扩展名不受支持时，抛出此异常。
  * 抛出位置：
  * - upload/import导入时
+ * - source upload/import导入时
  * info: string: 扩展名
  */
 class IllegalFileExtensionError(extension: String) : BadRequestException<String>("ILLEGAL_FILE_EXTENSION", "Extension type '$extension' is illegal.", extension)

@@ -21,10 +21,11 @@ import org.ktorm.entity.toList
 class SourceManager(private val data: DataRepository, private val queryManager: QueryManager) {
     /**
      * 检查source key。主要检查source是否是已注册的site，检查part是否存在，检查id/part是否为非负数。
+     * @return 如果给出的值是null，那么返回null，否则，返回一个tuple，用于后续工具链处理。
      * @throws ResourceNotExist ("source", string) 给出的source不存在
      */
-    fun checkSource(source: String?, sourceId: Long?, sourcePart: Int?) {
-        if(source != null) {
+    fun checkSource(source: String?, sourceId: Long?, sourcePart: Int?): Triple<String, Long, Int?>? {
+        return if(source != null) {
             val site = data.metadata.source.sites.firstOrNull { it.name.equals(source, ignoreCase = true) } ?: throw be(ResourceNotExist("source", source))
 
             if(sourceId == null) throw be(ParamRequired("sourceId"))
@@ -34,27 +35,44 @@ class SourceManager(private val data: DataRepository, private val queryManager: 
             else if(!site.hasSecondaryId && sourcePart != null) throw be(ParamNotRequired("sourcePart"))
 
             if(sourcePart != null && sourcePart < 0) throw be(ParamError("sourcePart"))
+
+            Triple(source, sourceId, sourcePart)
+        }else{
+            null
+        }
+    }
+
+    /**
+     * 检查source key。主要检查source是否是已注册的site，检查id/part是否为非负数。
+     * @return 如果给出的值是null，那么返回null，否则，返回一个pair，用于后续工具链处理。
+     * @throws ResourceNotExist ("source", string) 给出的source不存在
+     */
+    fun checkSource(source: String?, sourceId: Long?): Pair<String, Long>? {
+        return if(source != null) {
+            data.metadata.source.sites.firstOrNull { it.name.equals(source, ignoreCase = true) } ?: throw be(ResourceNotExist("source", source))
+
+            if(sourceId == null) throw be(ParamRequired("sourceId"))
+            else if(sourceId < 0) throw be(ParamError("sourceId"))
+
+            Pair(source, sourceId)
+        }else{
+            null
         }
     }
 
     /**
      * 检查source key是否存在。如果存在，检查目标sourceImage是否存在并创建对应的记录。在创建之前自动检查source key。
-     * @return 返回在sourceImage中实际存储的key。
+     * @return (rowId, source, sourceId) 返回在sourceImage中实际存储的key。
      * @throws ResourceNotExist ("source", string) 给出的source不存在
      */
-    fun validateAndCreateSourceImageIfNotExist(source: String?, sourceId: Long?, sourcePart: Int?): Triple<Int?, String?, Long?> {
-        if(source == null) return Triple(null, null, null)
-        checkSource(source, sourceId, sourcePart)
-
-        val realSourceId = sourceId!!
-
-        val sourceImage = data.db.sequenceOf(SourceImages).firstOrNull { (it.source eq source) and (it.sourceId eq realSourceId) }
+    fun validateAndCreateSourceImageIfNotExist(source: String, sourceId: Long): Triple<Int?, String?, Long?> {
+        val sourceImage = data.db.sequenceOf(SourceImages).firstOrNull { (it.source eq source) and (it.sourceId eq sourceId) }
         return if(sourceImage != null) {
-            Triple(sourceImage.id, source, realSourceId)
+            Triple(sourceImage.id, source, sourceId)
         }else{
             val id = data.db.insertAndGenerateKey(SourceImages) {
                 set(it.source, source)
-                set(it.sourceId, realSourceId)
+                set(it.sourceId, sourceId)
                 set(it.title, null)
                 set(it.description, null)
                 set(it.relations, null)
@@ -62,28 +80,29 @@ class SourceManager(private val data: DataRepository, private val queryManager: 
                 set(it.analyseTime, null)
             } as Int
 
-            Triple(id, source, realSourceId)
+            Triple(id, source, sourceId)
         }
     }
 
     /**
      * 检查source key是否存在，创建对应记录，并手动更新内容。
-     * @return 返回在sourceImage中实际存储的key。
+     * @return (rowId, source, sourceId) 返回在sourceImage中实际存储的key。
      * @throws ResourceNotExist ("source", string) 给出的source不存在
+     * @throws NotFound 请求对象不存在 (allowCreate=false时抛出)
+     * @throws AlreadyExists 此对象已存在 (allowUpdate=false时抛出)
      */
-    fun createOrUpdateSourceImage(source: String?, sourceId: Long?, sourcePart: Int?,
+    fun createOrUpdateSourceImage(source: String, sourceId: Long,
                                   title: Opt<String?> = undefined(),
                                   description: Opt<String?> = undefined(),
                                   tags: Opt<List<SourceTagDto>> = undefined(),
                                   pools: Opt<List<String>> = undefined(),
                                   children: Opt<List<Int>> = undefined(),
-                                  parents: Opt<List<Int>> = undefined()): Triple<Int?, String?, Long?> {
-        if(source == null) return Triple(null, null, null)
-        checkSource(source, sourceId, sourcePart)
-        val realSourceId = sourceId!!
-
-        val sourceImage = data.db.sequenceOf(SourceImages).firstOrNull { (it.source eq source) and (it.sourceId eq realSourceId) }
+                                  parents: Opt<List<Int>> = undefined(),
+                                  allowCreate: Boolean = true,
+                                  allowUpdate: Boolean = true): Triple<Int?, String?, Long?> {
+        val sourceImage = data.db.sequenceOf(SourceImages).firstOrNull { (it.source eq source) and (it.sourceId eq sourceId) }
         if(sourceImage == null) {
+            if(!allowCreate) throw be(NotFound())
             //新建
             val analyseStatus = if(anyOpt(title, description, tags, pools, children, parents))
                 SourceImage.AnalyseStatus.MANUAL else SourceImage.AnalyseStatus.NO
@@ -98,7 +117,7 @@ class SourceManager(private val data: DataRepository, private val queryManager: 
 
             val id = data.db.insertAndGenerateKey(SourceImages) {
                 set(it.source, source)
-                set(it.sourceId, realSourceId)
+                set(it.sourceId, sourceId)
                 set(it.title, title.unwrapOr { null })
                 set(it.description, description.unwrapOr { null })
                 set(it.relations, relations)
@@ -121,8 +140,9 @@ class SourceManager(private val data: DataRepository, private val queryManager: 
                 }
             }
 
-            return Triple(id, source, realSourceId)
+            return Triple(id, source, sourceId)
         }else{
+            if(!allowUpdate) throw be(AlreadyExists("SourceImage", "sourceId", sourceId))
             //更新
             val analyseStatus = if(sourceImage.analyseStatus != SourceImage.AnalyseStatus.MANUAL && anyOpt(title, description, tags, pools, children, parents))
                 Opt(SourceImage.AnalyseStatus.MANUAL) else undefined()
@@ -162,9 +182,8 @@ class SourceManager(private val data: DataRepository, private val queryManager: 
                 queryManager.flushCacheOf(QueryManager.CacheType.SOURCE_TAG)
             }
 
-            return Triple(sourceImage.id, source, realSourceId)
+            return Triple(sourceImage.id, source, sourceId)
         }
-
     }
 
     /**

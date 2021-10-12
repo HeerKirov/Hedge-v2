@@ -19,7 +19,7 @@ import kotlin.reflect.full.memberProperties
  * 语义分析。执行语义树 -> 查询计划的步骤。
  */
 object SemanticAnalyzer {
-    private val dialects = arrayOf(IllustDialect, AlbumDialect, AuthorAndTopicDialect, AnnotationDialect).associate { it::class to DialectStructure(it) }
+    private val dialects = arrayOf(IllustDialect, AlbumDialect, AuthorAndTopicDialect, AnnotationDialect, SourceImageDialect).associate { it::class to DialectStructure(it) }
 
     /**
      * 执行语义分析。

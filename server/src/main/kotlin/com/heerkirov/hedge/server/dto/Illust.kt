@@ -41,8 +41,6 @@ data class IllustImageOriginRes(val source: String?, val sourceTitle: String?, v
 
 data class IllustImageFileInfoRes(val file: String, val extension: String, val size: Long, val thumbnailSize: Long?, val resolutionWidth: Int, val resolutionHeight: Int, val createTime: LocalDateTime)
 
-data class SourceTagDto(val name: String, val displayName: String?, val type: String?)
-
 data class IllustQueryFilter(@Limit val limit: Int,
                              @Offset val offset: Int,
                              @Search val query: String?,

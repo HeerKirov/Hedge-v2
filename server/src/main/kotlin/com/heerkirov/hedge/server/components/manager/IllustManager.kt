@@ -45,7 +45,9 @@ class IllustManager(private val data: DataRepository,
 
         partitionManager.addItemInPartition(partitionTime)
 
-        val (newSourceImageId, newSource, newSourceId) = sourceManager.validateAndCreateSourceImageIfNotExist(source, sourceId, sourcePart)
+        val (newSourceImageId, newSource, newSourceId) = sourceManager.checkSource(source, sourceId, sourcePart)
+            ?.let { (source, sourceId) -> sourceManager.validateAndCreateSourceImageIfNotExist(source, sourceId) }
+            ?: Triple(null, null, null)
 
         val exportedDescription = if(description.isEmpty() && collection != null) collection.exportedDescription else description
         val exportedScore = if(score == null && collection != null) collection.exportedScore else score

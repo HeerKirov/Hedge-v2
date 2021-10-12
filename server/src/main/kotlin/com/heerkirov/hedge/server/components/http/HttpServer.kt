@@ -89,6 +89,7 @@ class HttpServerImpl(private val allServices: AllServices,
             .handle(TopicRoutes(allServices.topic))
             .handle(AuthorRoutes(allServices.author))
             .handle(AnnotationRoutes(allServices.annotation))
+            .handle(SourceImageRoutes(allServices.sourceImage))
             .bind()
     }
 

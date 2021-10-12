@@ -42,7 +42,7 @@ class ImportRoutes(private val importService: ImportService) : Endpoints {
     }
 
     private fun upload(ctx: Context) {
-        val form = ctx.uploadedFile("file")?.let { UploadForm(it.content, it.filename, it.extension) } ?: throw be(ParamRequired("file"))
+        val form = ctx.uploadedFile("file")?.let { UploadForm(it.content, it.filename, it.extension.trimStart('.')) } ?: throw be(ParamRequired("file"))
         val (id, warnings) = importService.upload(form)
         ctx.status(201).json(IdResWithWarnings(id, warnings.map { ErrorResult(it) }))
     }
