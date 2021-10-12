@@ -23,6 +23,7 @@ export type CheckedException =
     CascadeResourceExists<string> |
     FileNotFoundError |
     IllegalFileExtensionError |
+    ContentParseError |
     RecursiveParentError |
     CannotGiveColorError |
     IllegalConstraintError<string, string, unknown> |
@@ -60,6 +61,7 @@ export type CascadeResourceExists<P extends string> = BadRequestException<"CASCA
 
 export type FileNotFoundError = BadRequestException<"FILE_NOT_FOUND", null>
 export type IllegalFileExtensionError = BadRequestException<"ILLEGAL_FILE_EXTENSION", string>
+export type ContentParseError = BadRequestException<"CONTENT_PARSE_ERROR", string>
 export type RecursiveParentError = BadRequestException<"RECURSIVE_PARENT", null>
 export type CannotGiveColorError = BadRequestException<"CANNOT_GIVE_COLOR", null>
 export type IllegalConstraintError<P extends string, R extends string, V> = BadRequestException<"ILLEGAL_CONSTRAINT", [P, R, V[]]>

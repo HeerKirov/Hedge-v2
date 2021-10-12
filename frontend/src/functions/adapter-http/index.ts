@@ -15,6 +15,7 @@ import { createAuthorEndpoint, AuthorEndpoint } from "./impl/author"
 import { createTopicEndpoint, TopicEndpoint } from "./impl/topic"
 import { createPartitionEndpoint, PartitionEndpoint } from "./impl/partition"
 import { createImportEndpoint, ImportEndpoint } from "./impl/import"
+import { createSourceImageEndpoint, SourceImageEndpoint } from "./impl/source-image"
 import { createUtilMetaEndpoint, UtilMetaEndpoint } from "./impl/util-meta"
 import { createUtilIllustEndpoint, UtilIllustEndpoint } from "./impl/util-illust"
 
@@ -36,6 +37,7 @@ export interface HttpClient {
     topic: TopicEndpoint
     annotation: AnnotationEndpoint
     import: ImportEndpoint
+    sourceImage: SourceImageEndpoint
     metaUtil: UtilMetaEndpoint
     illustUtil: UtilIllustEndpoint
 }
@@ -57,6 +59,7 @@ export function createHttpClient(http: HttpInstance): HttpClient {
         topic: createTopicEndpoint(http),
         annotation: createAnnotationEndpoint(http),
         import: createImportEndpoint(http),
+        sourceImage: createSourceImageEndpoint(http),
         metaUtil: createUtilMetaEndpoint(http),
         illustUtil: createUtilIllustEndpoint(http)
     }

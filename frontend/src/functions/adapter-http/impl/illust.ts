@@ -12,6 +12,7 @@ import { SimpleAlbum } from "./album"
 import { DepsTopic } from "./topic"
 import { DepsAuthor } from "./author"
 import { DepsTag } from "./tag"
+import { SourceTag } from "./source-image"
 
 export function createIllustEndpoint(http: HttpInstance): IllustEndpoint {
     return {
@@ -504,8 +505,6 @@ export type ImageOriginData = {
     children: null
     parents: null
 }
-
-export interface SourceTag {type: string, name: string, displayName: string | null}
 
 export interface Associate {
     /**
