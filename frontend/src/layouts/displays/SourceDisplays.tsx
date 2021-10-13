@@ -1,6 +1,6 @@
 import { computed, defineComponent, PropType } from "vue"
 import { useSettingSite } from "@/functions/api/setting"
-import { SourceTag } from "@/functions/adapter-http/impl/illust"
+import { SourceTag } from "@/functions/adapter-http/impl/source-image"
 
 /**
  * 来源信息展示条。显示来源site、id和part。适用于侧边栏。

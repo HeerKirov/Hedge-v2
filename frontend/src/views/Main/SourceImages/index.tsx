@@ -3,6 +3,7 @@ import TopBarLayout from "@/layouts/layouts/TopBarLayout"
 import SplitPane from "@/layouts/layouts/SplitPane"
 import TopBarContent from "./TopBarContent"
 import ListView from "./ListView"
+import PaneDetailView from "./PaneDetailView"
 import { installSourceImageContext } from "./inject"
 
 export default defineComponent({
@@ -12,9 +13,9 @@ export default defineComponent({
         return () => <div>
             <TopBarLayout v-slots={{
                 topBar: () => <TopBarContent/>,
-                default: () => <SplitPane v-slots={{
+                default: () => <SplitPane showPane={detailMode.value !== null} v-slots={{
                     default: () => <ListView/>,
-                    pane: () => undefined
+                    pane: () => <PaneDetailView/>
                 }}/>
             }}/>
         </div>

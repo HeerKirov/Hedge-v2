@@ -20,7 +20,11 @@ export interface SourceImageContext {
     }
 }
 
-interface SourceKey { source: string, sourceId: number }
+export interface SourceKey { source: string, sourceId: number }
+
+export function keyEqual(key: SourceKey | null | undefined, key2: SourceKey | null | undefined): boolean {
+    return key != null && key2 != null && key.source === key2.source && key.sourceId === key2.sourceId
+}
 
 export const [installSourceImageContext, useSourceImageContext] = installation(function (): SourceImageContext {
     const list = useSourceImageListContext()

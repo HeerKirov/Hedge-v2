@@ -36,7 +36,7 @@ export default defineComponent({
             <ScopeComponent id="tool" name="工具箱">
                 <StdItemComponent name="导入项目" icon="plus-square" routeName="MainImport"/>
                 <StdItemComponent name="文件管理" icon="folder-open" routeName="MainFile"/>
-                <StdItemComponent name="源数据" icon="spider" routeName="MainSource"/>
+                <StdItemComponent name="源数据" icon="spider" routeName="MainSourceImage"/>
             </ScopeComponent>
             <ScopeComponent id="folder" name="文件夹">
                 <StdItemComponent name="所有文件夹" icon="archive" routeName="HedgeFolders"/>

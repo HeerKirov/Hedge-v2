@@ -41,14 +41,14 @@ const ICONS: {[tagme in Tagme]: JSX.Element} = {
  * [标题]属性组件。在无内容时显示[没有标题]。
  */
 export function TitleDisplay({ value }: {value: string | null}) {
-    return value ? <p class="py-1 is-size-medium can-be-selected">{value}</p> : <i class="has-text-grey">没有标题</i>
+    return value ? <p class="py-1 is-size-medium can-be-selected">{value}</p> : <p class="py-1"><i class="has-text-grey">没有标题</i></p>
 }
 
 /**
  * [描述]属性组件。在无内容时显示[没有描述]。
  */
 export function DescriptionDisplay(props: {value: string | null}) {
-    return props.value ? <WrappedText value={props.value}/> : <i class="has-text-grey">没有描述</i>
+    return props.value ? <WrappedText value={props.value}/> : <p><i class="has-text-grey">没有描述</i></p>
 }
 
 /**
