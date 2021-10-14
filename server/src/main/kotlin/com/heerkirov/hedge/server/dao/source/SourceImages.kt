@@ -13,8 +13,9 @@ object SourceImages : BaseTable<SourceImage>("source_image", schema = "source_db
     val title = varchar("title")
     val description = varchar("description")
     val relations = json("relations", typeRef<SourceImage.SourceRelation>())
-    val analyseStatus = enum("analyse_status", typeRef<SourceImage.AnalyseStatus>())
-    val analyseTime = datetime("analyse_time")
+    val cachedCount = json("cached_count", typeRef<SourceImage.SourceCount>())
+    val createTime = datetime("create_time")
+    val updateTime = datetime("update_time")
 
     override fun doCreateEntity(row: QueryRowSet, withReferences: Boolean) = SourceImage(
         id = row[id]!!,
@@ -23,7 +24,8 @@ object SourceImages : BaseTable<SourceImage>("source_image", schema = "source_db
         title = row[title],
         description = row[description],
         relations = row[relations],
-        analyseStatus = row[analyseStatus]!!,
-        analyseTime = row[analyseTime]
+        cachedCount = row[cachedCount]!!,
+        createTime = row[createTime]!!,
+        updateTime = row[updateTime]!!
     )
 }

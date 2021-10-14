@@ -3,12 +3,12 @@ package com.heerkirov.hedge.server.components.backend
 import com.heerkirov.hedge.server.components.configuration.ConfigurationDriver
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.database.transaction
-import com.heerkirov.hedge.server.dao.source.FileRecords
+import com.heerkirov.hedge.server.dao.illust.FileRecords
 import com.heerkirov.hedge.server.definitions.Filename
 import com.heerkirov.hedge.server.enums.LoadStatus
 import com.heerkirov.hedge.server.library.framework.StatefulComponent
 import com.heerkirov.hedge.server.library.image.ImageProcessor
-import com.heerkirov.hedge.server.model.source.FileRecord
+import com.heerkirov.hedge.server.model.illust.FileRecord
 import com.heerkirov.hedge.server.utils.business.getFilepath
 import com.heerkirov.hedge.server.utils.business.getThumbnailFilepath
 import com.heerkirov.hedge.server.utils.tools.controlledThread

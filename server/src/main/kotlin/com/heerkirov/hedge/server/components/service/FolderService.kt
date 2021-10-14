@@ -8,7 +8,7 @@ import com.heerkirov.hedge.server.components.manager.query.QueryManager
 import com.heerkirov.hedge.server.dao.collection.FolderImageRelations
 import com.heerkirov.hedge.server.dao.collection.Folders
 import com.heerkirov.hedge.server.dao.illust.Illusts
-import com.heerkirov.hedge.server.dao.source.FileRecords
+import com.heerkirov.hedge.server.dao.illust.FileRecords
 import com.heerkirov.hedge.server.dto.*
 import com.heerkirov.hedge.server.exceptions.*
 import com.heerkirov.hedge.server.utils.business.takeAllFilepath

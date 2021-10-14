@@ -10,6 +10,7 @@ import com.heerkirov.hedge.server.exceptions.*
 import com.heerkirov.hedge.server.dto.*
 import com.heerkirov.hedge.server.components.manager.FileManager
 import com.heerkirov.hedge.server.components.kit.TagKit
+import com.heerkirov.hedge.server.components.manager.SourceMappingManager
 import com.heerkirov.hedge.server.components.manager.query.QueryManager
 import com.heerkirov.hedge.server.dao.album.AlbumTagRelations
 import com.heerkirov.hedge.server.dao.illust.IllustTagRelations
@@ -17,7 +18,8 @@ import com.heerkirov.hedge.server.dao.illust.Illusts
 import com.heerkirov.hedge.server.dao.meta.Annotations
 import com.heerkirov.hedge.server.dao.meta.TagAnnotationRelations
 import com.heerkirov.hedge.server.dao.meta.Tags
-import com.heerkirov.hedge.server.dao.source.FileRecords
+import com.heerkirov.hedge.server.dao.illust.FileRecords
+import com.heerkirov.hedge.server.enums.MetaType
 import com.heerkirov.hedge.server.model.meta.Tag
 import com.heerkirov.hedge.server.utils.business.takeThumbnailFilepath
 import com.heerkirov.hedge.server.utils.*
@@ -32,6 +34,7 @@ class TagService(private val data: DataRepository,
                  private val fileManager: FileManager,
                  private val queryManager: QueryManager,
                  private val tagExporter: TagExporter,
+                 private val sourceMappingManager: SourceMappingManager,
                  private val entityExporter: EntityExporter) {
     private val orderTranslator = OrderTranslator {
         "id" to Tags.id
@@ -174,7 +177,9 @@ class TagService(private val data: DataRepository,
 
         val parents = kit.getAllParents(tag).map { TagDetailRes.Parent(it.id, it.name, it.type, it.isGroup) }
 
-        return newTagDetailRes(tag, parents, links, annotations, examples)
+        val mappingSourceTags = sourceMappingManager.query(MetaType.TAG, id)
+
+        return newTagDetailRes(tag, parents, links, annotations, examples, mappingSourceTags)
     }
 
     /**
@@ -208,6 +213,7 @@ class TagService(private val data: DataRepository,
      * @throws ResourceNotSuitable ("links", number[]) links中给出的部分资源不适用，虚拟地址段是不能被link的。给出不适用的link id列表
      * @throws ResourceNotSuitable ("examples", number[]) examples中给出的部分资源不适用，collection不能用作example。给出不适用的link id列表
      * @throws ResourceNotSuitable ("annotations", number[]) 指定target类型且有元素不满足此类型时，抛出此异常。给出不适用的annotation id列表
+     * @throws ResourceNotExist ("source", string) 更新source mapping tags时给出的source不存在
      */
     fun update(id: Int, form: TagUpdateForm) {
         data.db.transaction {
@@ -327,6 +333,8 @@ class TagService(private val data: DataRepository,
             }
 
             form.annotations.letOpt { newAnnotations -> kit.processAnnotations(id, newAnnotations) }
+
+            form.mappingSourceTags.letOpt { sourceMappingManager.update(MetaType.TAG, id, it ?: emptyList()) }
 
             newColor.letOpt { color ->
                 fun recursionUpdateColor(parentId: Int) {

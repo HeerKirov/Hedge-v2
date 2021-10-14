@@ -11,7 +11,7 @@ import com.heerkirov.hedge.server.dao.illust.Illusts
 import com.heerkirov.hedge.server.dao.meta.Authors
 import com.heerkirov.hedge.server.dao.meta.Tags
 import com.heerkirov.hedge.server.dao.meta.Topics
-import com.heerkirov.hedge.server.dao.source.FileRecords
+import com.heerkirov.hedge.server.dao.illust.FileRecords
 import com.heerkirov.hedge.server.dto.*
 import com.heerkirov.hedge.server.exceptions.*
 import com.heerkirov.hedge.server.model.meta.Tag

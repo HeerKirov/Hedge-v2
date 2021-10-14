@@ -23,7 +23,8 @@ data class TagDetailRes(val id: Int, val ordinal: Int, val parentId: Int?, val p
                         val type: Tag.Type, val group: Tag.IsGroup, val links: List<Link>,
                         val description: String, val color: String?,
                         val examples: List<IllustSimpleRes>, val annotations: List<Annotation>,
-                        val score: Int?, val count: Int) {
+                        val score: Int?, val count: Int,
+                        val mappingSourceTags: List<SourceMappingMetaItem>) {
     data class Annotation(val id: Int, val name: String, val canBeExported: Boolean)
 
     data class Link(val id: Int, val name: String, val type: Tag.Type, val group: Tag.IsGroup, val color: String?)
@@ -72,17 +73,22 @@ data class TagUpdateForm(@NotBlank @Length(32) val name: Opt<String>,
                          val annotations: Opt<List<Any>?>,
                          val description: Opt<String>,
                          val color: Opt<String>,
-                         val examples: Opt<List<Int>?>)
+                         val examples: Opt<List<Int>?>,
+                         val mappingSourceTags: Opt<List<SourceMappingMetaItem>?>)
 
 fun newTagRes(tag: Tag) = TagRes(tag.id, tag.ordinal, tag.parentId, tag.name, tag.otherNames, tag.type, tag.isGroup, tag.color)
 
 fun newTagTreeNode(tag: Tag, children: List<TagTreeNode>?) = TagTreeNode(tag.id, tag.name, tag.otherNames, tag.type, tag.isGroup, tag.color, children)
 
-fun newTagDetailRes(tag: Tag, parents: List<TagDetailRes.Parent>, links: List<TagDetailRes.Link>, annotations: List<TagDetailRes.Annotation>, examples: List<IllustSimpleRes>) = TagDetailRes(
+fun newTagDetailRes(tag: Tag, parents: List<TagDetailRes.Parent>,
+                    links: List<TagDetailRes.Link>,
+                    annotations: List<TagDetailRes.Annotation>,
+                    examples: List<IllustSimpleRes>,
+                    mappingSourceTags: List<SourceMappingMetaItem>) = TagDetailRes(
     tag.id, tag.ordinal, tag.parentId, parents,
     tag.name, tag.otherNames, tag.type, tag.isGroup,
     links, tag.description, tag.color,
-    examples, annotations, tag.exportedScore, tag.cachedCount)
+    examples, annotations, tag.exportedScore, tag.cachedCount, mappingSourceTags)
 
 fun newTagIndexedInfoRes(tag: Tag, address: List<Tag>, member: Boolean, memberIndex: Int?) = TagIndexedInfoRes(
     tag.id, tag.name, tag.otherNames, tag.type, tag.isGroup, tag.description, tag.color,

@@ -39,8 +39,11 @@ fun runApplication(options: ApplicationOptions) {
             val queryManager = QueryManager(repo)
             val queryService = QueryService(queryManager)
 
-            val sourceManager = SourceManager(repo, queryManager)
+            val sourceTagManager = SourceTagManager(repo)
+            val sourceManager = SourceImageManager(repo, queryManager, sourceTagManager)
+            val sourceMappingManager = SourceMappingManager(repo, sourceTagManager)
             val sourceImageService = SourceImageService(repo, sourceManager, queryManager)
+            val sourceMappingService = SourceMappingService(repo, sourceMappingManager)
 
             val thumbnailGenerator = define { FileGeneratorImpl(configuration, repo) }
             val fileManager = FileManager(configuration, repo)
@@ -77,9 +80,9 @@ fun runApplication(options: ApplicationOptions) {
             val folderService = FolderService(repo, folderKit, folderManager, queryManager)
             val partitionService = PartitionService(repo)
             val annotationService = AnnotationService(repo, annotationKit, queryManager)
-            val tagService = TagService(repo, tagKit, fileManager, queryManager, tagExporter, entityExporter)
-            val authorService = AuthorService(repo, authorKit, queryManager, entityExporter)
-            val topicService = TopicService(repo, topicKit, queryManager, entityExporter)
+            val tagService = TagService(repo, tagKit, fileManager, queryManager, tagExporter, sourceMappingManager, entityExporter)
+            val authorService = AuthorService(repo, authorKit, queryManager, sourceMappingManager, entityExporter)
+            val topicService = TopicService(repo, topicKit, queryManager, sourceMappingManager, entityExporter)
             val importService = ImportService(repo, fileManager, importManager, illustManager, sourceManager, importMetaManager, thumbnailGenerator)
 
             val illustUtilService = IllustUtilService(repo)
@@ -103,6 +106,7 @@ fun runApplication(options: ApplicationOptions) {
                 authorService,
                 topicService,
                 sourceImageService,
+                sourceMappingService,
                 settingAppdataService,
                 settingMetaService,
                 settingQueryService,

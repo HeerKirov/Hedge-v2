@@ -34,6 +34,15 @@ inline fun <reified T : Any> Context.bodyAsForm(): T {
     return mapForm(this.body().parseJsonNode(), T::class)
 }
 
+inline fun <reified T : Any> Context.bodyAsListForm(): List<T> {
+    val jsonNode = this.body().parseJsonNode()
+    if(jsonNode.isArray) {
+        return jsonNode.map { mapForm(it, T::class) }
+    }else{
+        throw be(ParamTypeError("body", "Request body must be List."))
+    }
+}
+
 //FIX Optimize: 将类型解析的过程提到执行之前，并缓存类型解析信息，供下次复用。
 
 /**

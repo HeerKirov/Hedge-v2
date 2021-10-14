@@ -20,7 +20,7 @@ import java.time.LocalDateTime
 
 class IllustManager(private val data: DataRepository,
                     private val kit: IllustKit,
-                    private val sourceManager: SourceManager,
+                    private val sourceManager: SourceImageManager,
                     private val partitionManager: PartitionManager,
                     private val entityExporter: EntityExporter) {
     /**

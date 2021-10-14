@@ -7,19 +7,23 @@ import com.heerkirov.hedge.server.library.form.Search
 import com.heerkirov.hedge.server.utils.types.Opt
 import com.heerkirov.hedge.server.utils.types.OrderItem
 import java.io.InputStream
+import java.time.LocalDateTime
 
-data class SourceImageRes(val source: String, val sourceTitle: String, val sourceId: Long)
+data class SourceImageRes(val source: String, val sourceTitle: String, val sourceId: Long,
+                          val tagCount: Int, val poolCount: Int, val relationCount: Int,
+                          val createTime: LocalDateTime, val updateTime: LocalDateTime)
 
 data class SourceImageDetailRes(val source: String, val sourceTitle: String, val sourceId: Long,
                                 val title: String, val description: String, val tags: List<SourceTagDto>,
-                                val pools: List<String>, val children: List<Int>, val parents: List<Int>)
+                                val pools: List<String>, val children: List<Int>, val parents: List<Int>,
+                                val createTime: LocalDateTime, val updateTime: LocalDateTime)
 
 data class SourceTagDto(val name: String, val displayName: String?, val type: String?)
 
 data class SourceImageQueryFilter(@Limit val limit: Int,
                                   @Offset val offset: Int,
                                   @Search val query: String?,
-                                  @Order(options = ["ordinal", "source_id", "source"])
+                                  @Order(options = ["rowId", "sourceId", "source", "createTime", "updateTime"])
                                   val order: List<OrderItem>? = null,
                                   val source: String? = null,
                                   val sourceTag: String? = null,

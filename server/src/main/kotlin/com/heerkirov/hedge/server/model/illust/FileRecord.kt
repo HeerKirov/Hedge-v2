@@ -1,4 +1,4 @@
-package com.heerkirov.hedge.server.model.source
+package com.heerkirov.hedge.server.model.illust
 
 import java.time.LocalDateTime
 

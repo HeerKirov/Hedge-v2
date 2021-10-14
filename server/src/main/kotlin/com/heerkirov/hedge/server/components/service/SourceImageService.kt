@@ -3,10 +3,10 @@ package com.heerkirov.hedge.server.components.service
 import com.fasterxml.jackson.core.type.TypeReference
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.database.transaction
-import com.heerkirov.hedge.server.components.manager.SourceManager
+import com.heerkirov.hedge.server.components.manager.SourceImageManager
 import com.heerkirov.hedge.server.components.manager.query.QueryManager
 import com.heerkirov.hedge.server.dao.illust.Illusts
-import com.heerkirov.hedge.server.dao.source.FileRecords
+import com.heerkirov.hedge.server.dao.illust.FileRecords
 import com.heerkirov.hedge.server.dao.source.SourceImages
 import com.heerkirov.hedge.server.dao.source.SourceTagRelations
 import com.heerkirov.hedge.server.dao.source.SourceTags
@@ -22,11 +22,13 @@ import com.heerkirov.hedge.server.utils.types.*
 import org.ktorm.dsl.*
 import java.io.File
 
-class SourceImageService(private val data: DataRepository, private val sourceManager: SourceManager, private val queryManager: QueryManager) {
+class SourceImageService(private val data: DataRepository, private val sourceManager: SourceImageManager, private val queryManager: QueryManager) {
     private val orderTranslator = OrderTranslator {
-        "ordinal" to SourceImages.id
-        "source_id" to SourceImages.sourceId
+        "rowId" to SourceImages.id
+        "sourceId" to SourceImages.sourceId
         "source" to SourceImages.source
+        "createTime" to SourceImages.createTime
+        "updateTime" to SourceImages.updateTime
     }
 
     fun list(filter: SourceImageQueryFilter): ListResult<SourceImageRes> {
@@ -41,7 +43,7 @@ class SourceImageService(private val data: DataRepository, private val sourceMan
                     .innerJoin(SourceTags, (SourceTags.id eq SourceTagRelations.tagId) and (SourceTags.name eq filter.sourceTag))
             } }
             .let { if(filter.imageId == null) it else it.innerJoin(Illusts, (Illusts.sourceImageId eq SourceImages.id) and (Illusts.id eq filter.imageId)) }
-            .select(SourceImages.source, SourceImages.sourceId)
+            .select(SourceImages.source, SourceImages.sourceId, SourceImages.cachedCount, SourceImages.createTime, SourceImages.updateTime)
             .whereWithConditions {
                 if(filter.source != null) {
                     it += SourceImages.source eq filter.source
@@ -52,11 +54,14 @@ class SourceImageService(private val data: DataRepository, private val sourceMan
             }
             .runIf(schema?.distinct == true) { groupBy(SourceImages.id) }
             .limit(filter.offset, filter.limit)
-            .orderBy(orderTranslator, filter.order, schema?.orderConditions, default = descendingOrderItem("ordinal"))
+            .orderBy(orderTranslator, filter.order, schema?.orderConditions, default = descendingOrderItem("rowId"))
             .toListResult {
                 val source = it[SourceImages.source]!!
                 val sourceId = it[SourceImages.sourceId]!!
-                SourceImageRes(source, titles.getOrDefault(source, source), sourceId)
+                val cachedCount = it[SourceImages.cachedCount]!!
+                val createTime = it[SourceImages.createTime]!!
+                val updateTime = it[SourceImages.updateTime]!!
+                SourceImageRes(source, titles.getOrDefault(source, source), sourceId, cachedCount.tagCount, cachedCount.poolCount, cachedCount.relationCount, createTime, updateTime)
             }
     }
 
@@ -91,6 +96,7 @@ class SourceImageService(private val data: DataRepository, private val sourceMan
     /**
      * @throws ResourceNotExist ("source", string) 给出的source不存在
      * @throws IllegalFileExtensionError 此扩展名不受支持
+     * @throws ContentParseError 内容解析失败
      */
     fun upload(form: SourceUploadForm) {
         createByContent(form.content.reader().readText(), form.extension)
@@ -100,6 +106,7 @@ class SourceImageService(private val data: DataRepository, private val sourceMan
      * @throws ResourceNotExist ("source", string) 给出的source不存在
      * @throws FileNotFoundError 此文件不存在
      * @throws IllegalFileExtensionError 此扩展名不受支持
+     * @throws ContentParseError 内容解析失败
      */
     fun import(form: SourceImportForm) {
         val file = File(form.filepath)
@@ -112,6 +119,7 @@ class SourceImageService(private val data: DataRepository, private val sourceMan
     /**
      * 使用file content执行创建。
      * @throws ResourceNotExist ("source", string) 给出的source不存在
+     * @throws ContentParseError 内容解析失败
      */
     private fun createByContent(content: String, type: String) {
         when (type) {
@@ -167,6 +175,8 @@ class SourceImageService(private val data: DataRepository, private val sourceMan
 
         val sourceRowId = row[SourceImages.id]!!
         val relation = row[SourceImages.relations]
+        val createTime = row[SourceImages.createTime]!!
+        val updateTime = row[SourceImages.updateTime]!!
         val sourceTags = data.db.from(SourceTags)
             .innerJoin(SourceTagRelations, (SourceTags.id eq SourceTagRelations.tagId) and (SourceTagRelations.sourceId eq sourceRowId))
             .select()
@@ -180,7 +190,8 @@ class SourceImageService(private val data: DataRepository, private val sourceMan
             sourceTags,
             relation?.pools ?: emptyList(),
             relation?.children ?: emptyList(),
-            relation?.parents ?: emptyList())
+            relation?.parents ?: emptyList(),
+            createTime, updateTime)
     }
 
     fun getRelatedImages(source: String, sourceId: Long): List<IllustSimpleRes> {

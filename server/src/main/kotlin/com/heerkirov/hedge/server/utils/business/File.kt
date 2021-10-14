@@ -1,7 +1,7 @@
 package com.heerkirov.hedge.server.utils.business
 
-import com.heerkirov.hedge.server.dao.source.FileRecords
-import com.heerkirov.hedge.server.model.source.FileRecord
+import com.heerkirov.hedge.server.dao.illust.FileRecords
+import com.heerkirov.hedge.server.model.illust.FileRecord
 import org.ktorm.dsl.QueryRowSet
 
 

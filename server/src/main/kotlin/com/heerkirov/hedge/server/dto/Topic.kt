@@ -17,7 +17,8 @@ data class TopicDetailRes(val id: Int, val name: String, val parent: Parent?,
                           val type: Topic.Type, val favorite: Boolean,
                           val annotations: List<Topic.CachedAnnotation>,
                           val links: List<Topic.Link>,
-                          val score: Int?, val count: Int, val color: String?) {
+                          val score: Int?, val count: Int, val color: String?,
+                          val mappingSourceTags: List<SourceMappingMetaItem>) {
     data class Parent(val id: Int, val name: String, val type: Topic.Type, val color: String?)
 }
 
@@ -51,16 +52,16 @@ data class TopicUpdateForm(@NotBlank val name: Opt<String>,
                            val links: Opt<List<Topic.Link>?>,
                            val annotations: Opt<List<Any>?>,
                            val favorite: Opt<Boolean>,
-                           val score: Opt<Int?>)
+                           val score: Opt<Int?>,
+                           val mappingSourceTags: Opt<List<SourceMappingMetaItem>?>)
 
 fun newTopicRes(topic: Topic, colors: Map<Topic.Type, String>) = TopicRes(topic.id, topic.name,
     topic.otherNames, topic.keywords, topic.type, topic.favorite,
     topic.cachedAnnotations ?: emptyList(),
     topic.score, topic.cachedCount, colors[topic.type])
 
-fun newTopicDetailRes(topic: Topic, parent: Topic?, colors: Map<Topic.Type, String>) = TopicDetailRes(topic.id, topic.name,
-    parent?.let { TopicDetailRes.Parent(it.id, it.name, it.type, colors[it.type]) },
+fun newTopicDetailRes(topic: Topic, parent: Topic?, colors: Map<Topic.Type, String>, mappingSourceTags: List<SourceMappingMetaItem>) = TopicDetailRes(
+    topic.id, topic.name, parent?.let { TopicDetailRes.Parent(it.id, it.name, it.type, colors[it.type]) },
     topic.otherNames, topic.keywords, topic.description, topic.type, topic.favorite,
-    topic.cachedAnnotations ?: emptyList(),
-    topic.links ?: emptyList(),
-    topic.score, topic.cachedCount, colors[topic.type])
+    topic.cachedAnnotations ?: emptyList(), topic.links ?: emptyList(),
+    topic.score, topic.cachedCount, colors[topic.type], mappingSourceTags)

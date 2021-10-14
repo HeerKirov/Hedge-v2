@@ -406,12 +406,6 @@ class SemanticAnalyzerTest {
             filters = listOf(UnionFilters(listOf(EqualFilter(IllustDialect.description, listOf(FilterStringValueImpl("hello, world")))))),
             elements = emptyList()
         )), parse("desc:`hello, world`", IllustDialect::class))
-        //枚举类型
-        assertEquals(AnalysisResult(QueryPlan(
-            orders = emptyList(),
-            filters = listOf(UnionFilters(listOf(EqualFilter(IllustDialect.analyseStatus, listOf(FilterEnumValueImpl(IllustDialect.AnalyseStatus.NOT_FOUND)))))),
-            elements = emptyList()
-        )), parse("analyse-status:404", IllustDialect::class))
         assertEquals(AnalysisResult<QueryPlan, SemanticError<*>>(null, errors = listOf(
             EnumTypeCastError("x", "Tagme", listOf("tag", "author", "topic", "source"), 6, 7)
         )), parse("tagme:x", IllustDialect::class))

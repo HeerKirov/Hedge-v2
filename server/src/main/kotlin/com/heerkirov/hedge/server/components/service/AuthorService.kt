@@ -6,12 +6,14 @@ import com.heerkirov.hedge.server.components.backend.EntityExporter
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.database.transaction
 import com.heerkirov.hedge.server.components.kit.AuthorKit
+import com.heerkirov.hedge.server.components.manager.SourceMappingManager
 import com.heerkirov.hedge.server.components.manager.query.QueryManager
 import com.heerkirov.hedge.server.dao.album.AlbumAuthorRelations
 import com.heerkirov.hedge.server.dao.illust.IllustAuthorRelations
 import com.heerkirov.hedge.server.dao.meta.AuthorAnnotationRelations
 import com.heerkirov.hedge.server.dao.meta.Authors
 import com.heerkirov.hedge.server.dto.*
+import com.heerkirov.hedge.server.enums.MetaType
 import com.heerkirov.hedge.server.exceptions.*
 import com.heerkirov.hedge.server.utils.DateTime
 import com.heerkirov.hedge.server.utils.ktorm.OrderTranslator
@@ -24,6 +26,7 @@ import org.ktorm.entity.sequenceOf
 class AuthorService(private val data: DataRepository,
                     private val kit: AuthorKit,
                     private val queryManager: QueryManager,
+                    private val sourceMappingManager: SourceMappingManager,
                     private val entityExporter: EntityExporter) {
     private val orderTranslator = OrderTranslator {
         "id" to Authors.id
@@ -98,7 +101,10 @@ class AuthorService(private val data: DataRepository,
      */
     fun get(id: Int): AuthorDetailRes {
         return data.db.sequenceOf(Authors).firstOrNull { it.id eq id }
-            ?.let { newAuthorDetailRes(it, data.metadata.meta.authorColors) }
+            ?.let {
+                val mappingSourceTags = sourceMappingManager.query(MetaType.AUTHOR, id)
+                newAuthorDetailRes(it, data.metadata.meta.authorColors, mappingSourceTags)
+            }
             ?: throw be(NotFound())
     }
 
@@ -107,6 +113,7 @@ class AuthorService(private val data: DataRepository,
      * @throws AlreadyExists ("Author", "name", string) 此名称的author已存在
      * @throws ResourceNotExist ("annotations", number[]) 有annotation不存在时，抛出此异常。给出不存在的annotation id列表
      * @throws ResourceNotSuitable ("annotations", number[]) 指定target类型且有元素不满足此类型时，抛出此异常。给出不适用的annotation id列表
+     * @throws ResourceNotExist ("source", string) 更新source mapping tags时给出的source不存在
      */
     fun update(id: Int, form: AuthorUpdateForm) {
         data.db.transaction {
@@ -117,6 +124,8 @@ class AuthorService(private val data: DataRepository,
             val newKeywords = form.keywords.letOpt { kit.validateKeywords(it) }
 
             val newAnnotations = form.annotations.letOpt { kit.validateAnnotations(it, form.type.unwrapOr { record.type }) }
+
+            form.mappingSourceTags.letOpt { sourceMappingManager.update(MetaType.AUTHOR, id, it ?: emptyList()) }
 
             if(anyOpt(newName, newOtherNames, newKeywords, form.type, form.description, form.links, form.favorite, form.score, newAnnotations)) {
                 data.db.update(Authors) {

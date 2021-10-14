@@ -7,6 +7,6 @@ interface WebController {
     var isAccess: Boolean
 }
 
-class WebControllerImpl() : WebController {
+class WebControllerImpl : WebController {
     override var isAccess: Boolean = false
 }

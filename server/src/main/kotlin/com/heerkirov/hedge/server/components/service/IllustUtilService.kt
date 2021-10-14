@@ -2,7 +2,7 @@ package com.heerkirov.hedge.server.components.service
 
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.dao.illust.Illusts
-import com.heerkirov.hedge.server.dao.source.FileRecords
+import com.heerkirov.hedge.server.dao.illust.FileRecords
 import com.heerkirov.hedge.server.dto.CollectionSituationRes
 import com.heerkirov.hedge.server.dto.IllustParent
 import com.heerkirov.hedge.server.dto.IllustSimpleRes

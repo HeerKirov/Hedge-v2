@@ -2,11 +2,11 @@ package com.heerkirov.hedge.server.components.manager
 
 import com.heerkirov.hedge.server.components.configuration.ConfigurationDriver
 import com.heerkirov.hedge.server.components.database.DataRepository
-import com.heerkirov.hedge.server.dao.source.FileRecords
+import com.heerkirov.hedge.server.dao.illust.FileRecords
 import com.heerkirov.hedge.server.definitions.Filename
 import com.heerkirov.hedge.server.exceptions.IllegalFileExtensionError
 import com.heerkirov.hedge.server.exceptions.be
-import com.heerkirov.hedge.server.model.source.FileRecord
+import com.heerkirov.hedge.server.model.illust.FileRecord
 import com.heerkirov.hedge.server.utils.business.getFilepath
 import com.heerkirov.hedge.server.utils.business.getThumbnailFilepath
 import com.heerkirov.hedge.server.utils.tools.*

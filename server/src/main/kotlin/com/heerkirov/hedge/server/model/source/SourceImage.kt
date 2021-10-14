@@ -28,35 +28,19 @@ data class SourceImage(val id: Int,
                         */
                        val relations: SourceRelation? = null,
                        /**
-                        * 原数据的解析状态。
+                        * 关系信息的数量的缓存。
                         */
-                       val analyseStatus: AnalyseStatus = AnalyseStatus.NO,
+                       val cachedCount: SourceCount,
                        /**
-                        * 原数据被解析的时间。
+                        * 初次建立的真实时间。
                         */
-                       val analyseTime: LocalDateTime? = null) {
-    enum class AnalyseStatus {
-        /**
-         * 未解析。
-         */
-        NO,
-        /**
-         * 已解析。
-         */
-        ANALYZED,
-        /**
-         * 解析发生错误，多为网络错误，可重试。
-         */
-        ERROR,
-        /**
-         * 信息已手动处理。
-         */
-        MANUAL,
-        /**
-         * 解析找不到目标。
-         */
-        NOT_FOUND
-    }
+                       val createTime: LocalDateTime,
+                       /**
+                        * 上次更新的真实更新时间。
+                        */
+                       val updateTime: LocalDateTime) {
 
     data class SourceRelation(val pools: List<String>?, val parents: List<Int>?, val children: List<Int>?)
+
+    data class SourceCount(val tagCount: Int, val poolCount: Int, val relationCount: Int)
 }

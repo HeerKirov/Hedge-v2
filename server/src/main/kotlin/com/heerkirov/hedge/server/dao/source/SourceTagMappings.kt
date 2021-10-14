@@ -12,17 +12,15 @@ import org.ktorm.schema.varchar
 object SourceTagMappings : BaseTable<SourceTagMapping>("source_tag_mapping", schema = "source_db") {
     val id = int("id").primaryKey()
     val source = varchar("source")
-    val sourceTagType = varchar("source_tag_type")
-    val sourceTag = varchar("source_tag")
-    val targetTagType = enum("target_tag_type", typeRef<MetaType>())
-    val targetTagId = int("target_tag_id")
+    val sourceTagId = int("source_tag_id")
+    val targetMetaType = enum("target_meta_type", typeRef<MetaType>())
+    val targetMetaId = int("target_tag_id")
 
     override fun doCreateEntity(row: QueryRowSet, withReferences: Boolean) = SourceTagMapping(
         id = row[id]!!,
-        source = row[source],
-        sourceTagType = row[sourceTagType],
-        sourceTag = row[sourceTag]!!,
-        targetTagType = row[targetTagType]!!,
-        targetTagId = row[targetTagId]!!
+        source = row[source]!!,
+        sourceTagId = row[sourceTagId]!!,
+        targetMetaType = row[targetMetaType]!!,
+        targetMetaId = row[targetMetaId]!!
     )
 }

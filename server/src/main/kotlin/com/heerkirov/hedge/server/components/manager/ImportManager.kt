@@ -2,11 +2,9 @@ package com.heerkirov.hedge.server.components.manager
 
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.database.ImportOption
-import com.heerkirov.hedge.server.dao.source.ImportImages
+import com.heerkirov.hedge.server.dao.illust.ImportImages
 import com.heerkirov.hedge.server.exceptions.BaseException
 import com.heerkirov.hedge.server.exceptions.BusinessException
-import com.heerkirov.hedge.server.exceptions.InvalidOptionError
-import com.heerkirov.hedge.server.exceptions.InvalidRegexError
 import com.heerkirov.hedge.server.library.xattr.XAttrProcessor
 import com.heerkirov.hedge.server.model.illust.Illust
 import com.heerkirov.hedge.server.utils.DateTime

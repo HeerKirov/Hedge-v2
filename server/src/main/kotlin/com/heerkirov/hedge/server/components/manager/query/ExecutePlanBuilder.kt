@@ -3,7 +3,7 @@ package com.heerkirov.hedge.server.components.manager.query
 import com.heerkirov.hedge.server.dao.album.*
 import com.heerkirov.hedge.server.dao.illust.*
 import com.heerkirov.hedge.server.dao.meta.*
-import com.heerkirov.hedge.server.dao.source.FileRecords
+import com.heerkirov.hedge.server.dao.illust.FileRecords
 import com.heerkirov.hedge.server.dao.source.SourceImages
 import com.heerkirov.hedge.server.dao.source.SourceTagRelations
 import com.heerkirov.hedge.server.library.compiler.semantic.dialect.AlbumDialect
@@ -165,7 +165,6 @@ class IllustExecutePlanBuilder(private val db: Database) : ExecutePlanBuilder, O
         IllustDialect.description to Illusts.exportedDescription,
         IllustDialect.extension to FileRecords.extension,
         IllustDialect.filesize to FileRecords.size,
-        IllustDialect.analyseStatus to SourceImages.analyseStatus,
         IllustDialect.sourceId to Illusts.sourceId,
         IllustDialect.sourceFrom to Illusts.source,
         IllustDialect.sourceDescription to SourceImages.description,
@@ -177,7 +176,7 @@ class IllustExecutePlanBuilder(private val db: Database) : ExecutePlanBuilder, O
     }
 
     override fun getFilterDeclareMapping(field: FilterFieldDefinition<*>): Column<*> {
-        if(field == IllustDialect.analyseStatus || field == IllustDialect.sourceDescription) {
+        if(field == IllustDialect.sourceDescription) {
             joinSourceImage = true
         }
         return filterDeclareMapping[field]!!
@@ -195,13 +194,6 @@ class IllustExecutePlanBuilder(private val db: Database) : ExecutePlanBuilder, O
         return when (field) {
             IllustDialect.ordinal -> (value as LocalDate).toEpochDay() * 1000L * 60 * 60 * 24
             IllustDialect.createTime, IllustDialect.updateTime -> LocalDateTime.of(value as LocalDate, LocalTime.MIN)
-            IllustDialect.analyseStatus -> when (value as IllustDialect.AnalyseStatus) {
-                IllustDialect.AnalyseStatus.NO -> SourceImage.AnalyseStatus.NO
-                IllustDialect.AnalyseStatus.ANALYZED -> SourceImage.AnalyseStatus.ANALYZED
-                IllustDialect.AnalyseStatus.ERROR -> SourceImage.AnalyseStatus.ERROR
-                IllustDialect.AnalyseStatus.MANUAL -> SourceImage.AnalyseStatus.MANUAL
-                IllustDialect.AnalyseStatus.NOT_FOUND -> SourceImage.AnalyseStatus.NOT_FOUND
-            }
             else -> value
         }
     }

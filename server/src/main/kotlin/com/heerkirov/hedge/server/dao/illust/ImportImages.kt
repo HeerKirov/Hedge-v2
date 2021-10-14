@@ -1,7 +1,7 @@
-package com.heerkirov.hedge.server.dao.source
+package com.heerkirov.hedge.server.dao.illust
 
 import com.heerkirov.hedge.server.model.illust.Illust
-import com.heerkirov.hedge.server.model.source.ImportImage
+import com.heerkirov.hedge.server.model.illust.ImportImage
 import com.heerkirov.hedge.server.utils.ktorm.composition
 import com.heerkirov.hedge.server.utils.ktorm.json
 import org.ktorm.dsl.QueryRowSet

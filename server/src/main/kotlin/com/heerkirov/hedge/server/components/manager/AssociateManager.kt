@@ -3,7 +3,7 @@ package com.heerkirov.hedge.server.components.manager
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.dao.illust.Associates
 import com.heerkirov.hedge.server.dao.illust.Illusts
-import com.heerkirov.hedge.server.dao.source.FileRecords
+import com.heerkirov.hedge.server.dao.illust.FileRecords
 import com.heerkirov.hedge.server.exceptions.ResourceNotExist
 import com.heerkirov.hedge.server.dto.AssociateRes
 import com.heerkirov.hedge.server.dto.IllustRes

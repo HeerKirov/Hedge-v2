@@ -57,7 +57,7 @@ interface Lifetime : ThreadComponent {
 data class LifetimeOptions(
     val permanent: Boolean = false,
     val defaultInterval: Long = 1000L * 60,
-    val threadInterval: Long = 1000L * 10,
+    val threadInterval: Long = 1000L * 5,
     val threadContinuousCount: Int = 1
 )
 
@@ -122,11 +122,11 @@ class LifetimeImpl(private val context: FrameworkContext, private val options: L
             }
             if(signals.isNotEmpty()) {
                 synchronized(signals) {
-                    val iter = signals.listIterator()
-                    while (iter.hasNext()) {
-                        val signal = iter.next()
+                    val iterator = signals.listIterator()
+                    while (iterator.hasNext()) {
+                        val signal = iterator.next()
                         if(signal <= now) {
-                            iter.remove()
+                            iterator.remove()
                         }
                     }
                 }

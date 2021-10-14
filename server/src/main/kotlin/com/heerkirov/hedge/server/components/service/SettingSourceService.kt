@@ -2,7 +2,7 @@ package com.heerkirov.hedge.server.components.service
 
 import com.heerkirov.hedge.server.components.database.*
 import com.heerkirov.hedge.server.dao.illust.Illusts
-import com.heerkirov.hedge.server.dao.source.ImportImages
+import com.heerkirov.hedge.server.dao.illust.ImportImages
 import com.heerkirov.hedge.server.exceptions.AlreadyExists
 import com.heerkirov.hedge.server.exceptions.CascadeResourceExists
 import com.heerkirov.hedge.server.exceptions.NotFound
@@ -24,7 +24,7 @@ class SettingSourceService(private val data: DataRepository) {
     fun create(form: SiteCreateForm) {
         data.syncMetadata {
             val sites = metadata.source.sites
-            if(sites.any { it.name.equals(form.name, ignoreCase = true) }) throw be(AlreadyExists("site", "name", form.name))
+            if(sites.any { it.name == form.name }) throw be(AlreadyExists("site", "name", form.name))
 
             val newSite = SourceOption.Site(form.name, form.title, form.hasSecondaryId)
 
@@ -50,7 +50,7 @@ class SettingSourceService(private val data: DataRepository) {
      * @throws NotFound 请求对象不存在
      */
     fun get(name: String): SourceOption.Site {
-        return data.metadata.source.sites.firstOrNull { it.name.equals(name, ignoreCase = true) } ?: throw be(NotFound())
+        return data.metadata.source.sites.firstOrNull { it.name == name } ?: throw be(NotFound())
     }
 
     fun update(name: String, form: SiteUpdateForm) {

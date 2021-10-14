@@ -261,9 +261,10 @@ CREATE TABLE source_db.source_image(
     title 			TEXT DEFAULT NULL,                  -- 原数据的标题信息，有些会有，比如pixiv
     description     TEXT DEFAULT NULL,                  -- 原数据的描述信息，有些会有，比如pixiv
     relations 		TEXT DEFAULT NULL,                  -- 原数据的关系信息::json<SourceRelations>
+    cached_count    TEXT NOT NULL,                      -- 关系信息的数量缓存::json<SourceCount>
 
-    analyse_status  TINYINT NOT NULL DEFAULT 0,         -- 原数据的解析状态{0=无,1=已解析, 2=解析出错, 3=手动填写, 4=未找到信息}
-    analyse_time    TIMESTAMP DEFAULT NULL              -- 对原数据进行解析的时间
+    create_time 	TIMESTAMP NOT NULL,                 -- 初次建立的真实时间
+    update_time 	TIMESTAMP NOT NULL                  -- 上次更新的真实更新时间
 );
 CREATE UNIQUE INDEX source_db.source_image__source__index ON source_image(source, source_id);
 
@@ -285,13 +286,14 @@ CREATE UNIQUE INDEX source_db.source_tag__index ON source_tag_relation(source_id
 
 -- 原始标签映射
 CREATE TABLE source_db.source_tag_mapping(
-    id              INTEGER PRIMARY KEY,
-    source          VARCHAR(16),                    -- 来源网站的代号，可以为空表示对任意来源适用
-    source_tag_type TEXT,                           -- 源tag的类型，可以为空表示不区分类型
-    source_tag      TEXT NOT NULL,                  -- 源tag名称
-    save_tag_type   VARCHAR(10) NOT NULL,           -- 转换为什么类型的tag{tag, author, topic}
-    save_tag_id     INTEGER NOT NULL                -- 目标tag的tag id
+    id                  INTEGER PRIMARY KEY,
+    source              VARCHAR(16) NOT NULL,           -- 来源网站的代号
+    source_tag_id       INTEGER NOT NULL,               -- 来源tag id
+    target_meta_type    TINYINT NOT NULL,               -- 转换为什么类型的tag{0=TAG, 1=TOPIC, 2=AUTHOR}
+    target_meta_id      INTEGER NOT NULL                -- 目标tag的tag id
 );
+CREATE INDEX source_db.source_tag_mapping__source__index ON source_tag_mapping(source, source_tag_id);
+CREATE INDEX source_db.source_tag_mapping__target__index ON source_tag_mapping(target_meta_type, target_meta_id);
 
 -- 物理文件
 CREATE TABLE origin_db.file(

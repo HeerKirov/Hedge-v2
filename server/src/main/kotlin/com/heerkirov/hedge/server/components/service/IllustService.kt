@@ -15,7 +15,7 @@ import com.heerkirov.hedge.server.dao.illust.*
 import com.heerkirov.hedge.server.dao.meta.Authors
 import com.heerkirov.hedge.server.dao.meta.Tags
 import com.heerkirov.hedge.server.dao.meta.Topics
-import com.heerkirov.hedge.server.dao.source.FileRecords
+import com.heerkirov.hedge.server.dao.illust.FileRecords
 import com.heerkirov.hedge.server.dao.source.SourceImages
 import com.heerkirov.hedge.server.dao.source.SourceTagRelations
 import com.heerkirov.hedge.server.dao.source.SourceTags
@@ -47,7 +47,7 @@ class IllustService(private val data: DataRepository,
                     private val associateManager: AssociateManager,
                     private val folderManager: FolderManager,
                     private val fileManager: FileManager,
-                    private val sourceManager: SourceManager,
+                    private val sourceManager: SourceImageManager,
                     private val partitionManager: PartitionManager,
                     private val queryManager: QueryManager,
                     private val entityExporter: EntityExporter) {
@@ -107,7 +107,8 @@ class IllustService(private val data: DataRepository,
     fun get(id: Int, type: Illust.IllustType): IllustDetailRes {
         val row = data.db.from(Illusts)
             .innerJoin(FileRecords, FileRecords.id eq Illusts.fileId)
-            .select(FileRecords.id, FileRecords.folder, FileRecords.extension, FileRecords.status,
+            .select(
+                FileRecords.id, FileRecords.folder, FileRecords.extension, FileRecords.status,
                 Illusts.description, Illusts.score,
                 Illusts.exportedDescription, Illusts.exportedScore, Illusts.favorite, Illusts.tagme,
                 Illusts.partitionTime, Illusts.orderTime, Illusts.createTime, Illusts.updateTime)

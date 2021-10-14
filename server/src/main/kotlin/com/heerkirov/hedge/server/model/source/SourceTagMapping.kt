@@ -8,22 +8,18 @@ import com.heerkirov.hedge.server.enums.MetaType
  */
 data class SourceTagMapping(val id: Int,
                             /**
-                             * 来源网站的代号，可以为null表示对任意来源适用。
+                             * 来源网站的代号。
                              */
-                            val source: String?,
+                            val source: String,
                             /**
-                             * 源tag的类型，可以为null表示不区分类型。
+                             * 来源tag id。
                              */
-                            val sourceTagType: String?,
-                            /**
-                             * 源tag名称。
-                             */
-                            val sourceTag: String,
+                            val sourceTagId: Int,
                             /**
                              * 转换为什么类型的tag。
                              */
-                            val targetTagType: MetaType,
+                            val targetMetaType: MetaType,
                             /**
                              * 目标tag的tag id。
                              */
-                            val targetTagId: Int)
+                            val targetMetaId: Int)

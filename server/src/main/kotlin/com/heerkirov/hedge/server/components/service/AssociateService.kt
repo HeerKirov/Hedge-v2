@@ -5,7 +5,7 @@ import com.heerkirov.hedge.server.components.database.transaction
 import com.heerkirov.hedge.server.components.manager.AssociateManager
 import com.heerkirov.hedge.server.dao.illust.Associates
 import com.heerkirov.hedge.server.dao.illust.Illusts
-import com.heerkirov.hedge.server.dao.source.FileRecords
+import com.heerkirov.hedge.server.dao.illust.FileRecords
 import com.heerkirov.hedge.server.exceptions.NotFound
 import com.heerkirov.hedge.server.exceptions.ParamError
 import com.heerkirov.hedge.server.dto.IllustRes

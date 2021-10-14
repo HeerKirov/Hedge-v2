@@ -16,7 +16,8 @@ data class AuthorDetailRes(val id: Int, val name: String, val otherNames: List<S
                            val type: Author.Type, val favorite: Boolean,
                            val annotations: List<Author.CachedAnnotation>,
                            val links: List<Author.Link>,
-                           val score: Int?, val count: Int, val color: String?)
+                           val score: Int?, val count: Int, val color: String?,
+                           val mappingSourceTags: List<SourceMappingMetaItem>)
 
 data class AuthorFilter(@Limit val limit: Int,
                         @Offset val offset: Int,
@@ -45,14 +46,14 @@ data class AuthorUpdateForm(@NotBlank val name: Opt<String>,
                             val links: Opt<List<Author.Link>?>,
                             val annotations: Opt<List<Any>?>,
                             val favorite: Opt<Boolean>,
-                            val score: Opt<Int?>)
+                            val score: Opt<Int?>,
+                            val mappingSourceTags: Opt<List<SourceMappingMetaItem>?>)
 
 fun newAuthorRes(author: Author, colors: Map<Author.Type, String>) = AuthorRes(author.id, author.name,
     author.otherNames, author.keywords, author.type, author.favorite,
     author.cachedAnnotations ?: emptyList(), author.score, author.cachedCount, colors[author.type])
 
-fun newAuthorDetailRes(author: Author, colors: Map<Author.Type, String>) = AuthorDetailRes(author.id, author.name,
-    author.otherNames, author.keywords, author.description, author.type, author.favorite,
-    author.cachedAnnotations ?: emptyList(),
-    author.links ?: emptyList(),
-    author.score, author.cachedCount, colors[author.type])
+fun newAuthorDetailRes(author: Author, colors: Map<Author.Type, String>, mappingSourceTags: List<SourceMappingMetaItem>) = AuthorDetailRes(
+    author.id, author.name, author.otherNames, author.keywords, author.description, author.type, author.favorite,
+    author.cachedAnnotations ?: emptyList(), author.links ?: emptyList(),
+    author.score, author.cachedCount, colors[author.type], mappingSourceTags)

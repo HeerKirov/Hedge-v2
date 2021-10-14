@@ -5,12 +5,12 @@ import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.database.ImportOption
 import com.heerkirov.hedge.server.components.database.transaction
 import com.heerkirov.hedge.server.components.manager.*
-import com.heerkirov.hedge.server.dao.source.FileRecords
-import com.heerkirov.hedge.server.dao.source.ImportImages
+import com.heerkirov.hedge.server.dao.illust.FileRecords
+import com.heerkirov.hedge.server.dao.illust.ImportImages
 import com.heerkirov.hedge.server.dto.*
 import com.heerkirov.hedge.server.exceptions.*
 import com.heerkirov.hedge.server.model.illust.Illust
-import com.heerkirov.hedge.server.model.source.FileRecord
+import com.heerkirov.hedge.server.model.illust.FileRecord
 import com.heerkirov.hedge.server.utils.DateTime.parseDateTime
 import com.heerkirov.hedge.server.utils.DateTime.toMillisecond
 import com.heerkirov.hedge.server.utils.Fs
@@ -34,7 +34,7 @@ class ImportService(private val data: DataRepository,
                     private val fileManager: FileManager,
                     private val importManager: ImportManager,
                     private val illustManager: IllustManager,
-                    private val sourceManager: SourceManager,
+                    private val sourceManager: SourceImageManager,
                     private val importMetaManager: ImportMetaManager,
                     private val fileGenerator: FileGenerator) {
     private val orderTranslator = OrderTranslator {
