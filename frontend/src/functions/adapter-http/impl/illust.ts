@@ -12,7 +12,7 @@ import { SimpleAlbum } from "./album"
 import { DepsTopic } from "./topic"
 import { DepsAuthor } from "./author"
 import { DepsTag } from "./tag"
-import { SourceTag } from "./source-image"
+import { SourceTag } from "./source-tag-mapping"
 
 export function createIllustEndpoint(http: HttpInstance): IllustEndpoint {
     return {
@@ -558,7 +558,7 @@ export interface ImageOriginUpdateForm {
     sourcePart?: number | null
     title?: string | null
     description?: string | null
-    tags?: {type: string, name: string, displayName: string | null}[]
+    tags?: SourceTag[]
     pools?: string[]
     children?: number[]
     parents?: number[]

@@ -1,6 +1,6 @@
 import { computed, reactive, readonly, Ref, watch } from "vue"
 import { IllustExceptions, ImageOriginData, ImageOriginUpdateForm } from "@/functions/adapter-http/impl/illust"
-import { SourceTag } from "@/functions/adapter-http/impl/source-image"
+import { SourceTag } from "@/functions/adapter-http/impl/source-tag-mapping"
 import { installation } from "@/functions/utils/basic"
 
 interface InstallEditorData {

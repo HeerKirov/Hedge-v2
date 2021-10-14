@@ -2,6 +2,7 @@ import { HttpInstance, Response } from "../server"
 import { IdResponse, LimitAndOffsetFilter, ListResult, OrderList } from "./generic"
 import { DepsAnnotation } from "./annotations"
 import { SimpleIllust } from "./illust"
+import { SourceMappingMetaItem } from "./source-tag-mapping"
 import {
     AlreadyExists,
     CannotGiveColorError, NotFound, RecursiveParentError,
@@ -136,6 +137,10 @@ export interface DetailTag extends Tag {
      * 标签关联的项目的数量。
      */
     count: number
+    /**
+     * 映射到此元数据的来源标签。
+     */
+    mappingSourceTags: SourceMappingMetaItem[]
 }
 
 export interface TagTreeNode {
@@ -199,6 +204,7 @@ export interface TagUpdateForm {
     description?: string
     color?: string
     examples?: number[] | null
+    mappingSourceTags?: SourceMappingMetaItem[] | null
 }
 
 export interface TagFilter extends LimitAndOffsetFilter {

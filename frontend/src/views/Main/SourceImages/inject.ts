@@ -51,7 +51,7 @@ function useSourceImageListContext() {
     const scrollView = useScrollView()
 
     const queryFilter = ref<SourceImageQueryFilter>({
-        order: "-ordinal"
+        order: "-rowId"
     })
 
     const endpoint = useQueryEndpoint({

@@ -2,11 +2,14 @@ import { AlreadyExists, ContentParseError, FileNotFoundError, IllegalFileExtensi
 import { HttpInstance, Response } from ".."
 import { LimitAndOffsetFilter, ListResult, mapFromOrderList, OrderList } from "./generic"
 import { SimpleIllust } from "./illust"
+import { SourceTag } from "./source-tag-mapping"
+import { datetime, LocalDateTime } from "@/utils/datetime"
 
 export function createSourceImageEndpoint(http: HttpInstance): SourceImageEndpoint {
     return {
         list: http.createQueryRequest("/api/source-images", "GET", {
-            parseQuery: mapFromSourceImageFilter
+            parseQuery: mapFromSourceImageFilter,
+            parseResponse: ({ total, result }: ListResult<any>) => ({total, result: result.map(mapToSourceImage)})
         }),
         create: http.createDataRequest("/api/source-images", "POST"),
         bulk: http.createDataRequest("/api/source-images/bulk", "POST", {
@@ -16,10 +19,28 @@ export function createSourceImageEndpoint(http: HttpInstance): SourceImageEndpoi
             parseData: mapFromUploadFile
         }),
         import: http.createDataRequest("/api/source-images/import", "POST"),
-        get: http.createPathRequest(({ source, sourceId }) => `/api/source-images/${source}/${sourceId}`),
-        getRelatedImages: http.createPathRequest(({ source, sourceId }) => `/api/source-images/${source}/${sourceId}/related-images`),
-        update: http.createPathDataRequest(({ source, sourceId }) => `/api/source-images/${source}/${sourceId}`, "PATCH"),
-        delete: http.createPathRequest(({ source, sourceId }) => `/api/source-images/${source}/${sourceId}`, "DELETE")
+        get: http.createPathRequest(({ source, sourceId }) => `/api/source-images/${encodeURIComponent(source)}/${encodeURIComponent(sourceId)}`, "GET", {
+            parseResponse: mapToDetailSourceImage
+        }),
+        getRelatedImages: http.createPathRequest(({ source, sourceId }) => `/api/source-images/${encodeURIComponent(source)}/${encodeURIComponent(sourceId)}/related-images`),
+        update: http.createPathDataRequest(({ source, sourceId }) => `/api/source-images/${encodeURIComponent(source)}/${encodeURIComponent(sourceId)}`, "PATCH"),
+        delete: http.createPathRequest(({ source, sourceId }) => `/api/source-images/${encodeURIComponent(source)}/${encodeURIComponent(sourceId)}`, "DELETE")
+    }
+}
+
+function mapToSourceImage(data: any): SourceImage {
+    return {
+        ...data,
+        createTime: datetime.of(<string>data["createTime"]),
+        updateTime: datetime.of(<string>data["updateTime"]),
+    }
+}
+
+function mapToDetailSourceImage(data: any): DetailSourceImage {
+    return {
+        ...data,
+        createTime: datetime.of(<string>data["createTime"]),
+        updateTime: datetime.of(<string>data["updateTime"]),
     }
 }
 
@@ -57,7 +78,7 @@ export interface SourceImageExceptions {
     "import": ResourceNotExist<"source", string> | IllegalFileExtensionError | FileNotFoundError | ContentParseError
 }
 
-export interface SourceImage {
+interface BasicSourceImage {
     /**
      * source name。
      */
@@ -72,19 +93,23 @@ export interface SourceImage {
     sourceId: number
 }
 
-export interface DetailSourceImage extends SourceImage {
+export interface SourceImage extends BasicSourceImage {
+    tagCount: number
+    poolCount: number
+    relationCount: number
+    createTime: LocalDateTime
+    updateTime: LocalDateTime
+}
+
+export interface DetailSourceImage extends BasicSourceImage {
     title: string
     description: string
     tags: SourceTag[]
     pools: string[]
     children: number[]
     parents: number[]
-}
-
-export interface SourceTag {
-    type: string
-    name: string
-    displayName: string | null
+    createTime: LocalDateTime
+    updateTime: LocalDateTime
 }
 
 export interface SourceImportForm {
@@ -115,7 +140,7 @@ export interface SourceImageQueryFilter {
     /**
      * 排序字段列表。
      */
-    order?: OrderList<"ordinal" | "source_id" | "source">
+    order?: OrderList<"rowId" | "sourceId" | "source" | "createTime" | "updateTime">
     /**
      * 按source类型过滤。
      */

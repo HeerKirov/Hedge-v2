@@ -1,7 +1,8 @@
 import { HttpInstance, Response } from "../server"
-import { AlreadyExists, NotFound, ResourceNotExist, ResourceNotSuitable } from "../exception"
 import { IdResponse, LimitAndOffsetFilter, Link, ListResult, mapFromOrderList, OrderList } from "./generic"
 import { SimpleAnnotation } from "./annotations"
+import { SourceMappingMetaItem } from "./source-tag-mapping"
+import { AlreadyExists, NotFound, ResourceNotExist, ResourceNotSuitable } from "../exception"
 
 export function createAuthorEndpoint(http: HttpInstance): AuthorEndpoint {
     return {
@@ -117,6 +118,10 @@ export interface DetailAuthor extends Author {
      * 相关链接。
      */
     links: Link[]
+    /**
+     * 映射到此元数据的来源标签。
+     */
+    mappingSourceTags: SourceMappingMetaItem[]
 }
 
 export interface SimpleAuthor {
@@ -152,6 +157,7 @@ export interface AuthorUpdateForm {
     annotations?: (string | number)[] | null
     favorite?: boolean
     score?: number | null
+    mappingSourceTags?: SourceMappingMetaItem[] | null
 }
 
 export type AuthorFilter = AuthorQueryFilter & LimitAndOffsetFilter

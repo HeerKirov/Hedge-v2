@@ -1,6 +1,7 @@
 import { HttpInstance, Response } from "../server"
 import { IdResponse, LimitAndOffsetFilter, Link, ListResult, mapFromOrderList, OrderList } from "./generic"
 import { SimpleAnnotation } from "./annotations"
+import { SourceMappingMetaItem } from "./source-tag-mapping"
 import {
     AlreadyExists, IllegalConstraintError, NotFound,
     RecursiveParentError,
@@ -130,6 +131,10 @@ export interface DetailTopic extends Topic {
      * 相关链接。
      */
     links: Link[]
+    /**
+     * 映射到此元数据的来源标签。
+     */
+    mappingSourceTags: SourceMappingMetaItem[]
 }
 
 export interface ParentTopic {
@@ -174,6 +179,7 @@ export interface TopicUpdateForm {
     annotations?: (string | number)[] | null
     favorite?: boolean
     score?: number | null
+    mappingSourceTags?: SourceMappingMetaItem[] | null
 }
 
 export type TopicFilter = TopicQueryFilter & LimitAndOffsetFilter
