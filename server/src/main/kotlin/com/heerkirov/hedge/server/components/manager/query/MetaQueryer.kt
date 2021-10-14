@@ -15,9 +15,9 @@ import com.heerkirov.hedge.server.model.meta.Annotation
 import com.heerkirov.hedge.server.model.meta.Tag
 import com.heerkirov.hedge.server.utils.ktorm.first
 import com.heerkirov.hedge.server.utils.runIf
+import com.heerkirov.hedge.server.utils.types.CacheMap
 import org.ktorm.dsl.*
 import java.util.*
-import java.util.concurrent.ConcurrentHashMap
 import kotlin.collections.ArrayList
 
 class MetaQueryer(private val data: DataRepository) : Queryer {
@@ -428,42 +428,42 @@ class MetaQueryer(private val data: DataRepository) : Queryer {
     /**
      * 缓存topic查询的最终结果。
      */
-    private val topicCacheMap = ConcurrentHashMap<MetaAddress, List<ElementTopic>>()
+    private val topicCacheMap = CacheMap<MetaAddress, List<ElementTopic>>(256)
 
     /**
      * 缓存author查询的最终结果。
      */
-    private val authorCacheMap = ConcurrentHashMap<MetaString, List<ElementAuthor>>()
+    private val authorCacheMap = CacheMap<MetaString, List<ElementAuthor>>(256)
 
     /**
      * 缓存annotation查询的最终结果。
      */
-    private val annotationCacheMap = ConcurrentHashMap<AnnotationCacheKey, List<Annotation>>()
+    private val annotationCacheMap = CacheMap<AnnotationCacheKey, List<Annotation>>(256)
 
     /**
      * 缓存source tag的查询的最终结果。
      */
-    private val sourceTagCacheMap = ConcurrentHashMap<MetaString, List<ElementSourceTag>>()
+    private val sourceTagCacheMap = CacheMap<MetaString, List<ElementSourceTag>>(256)
 
     /**
      * 在parent溯源中缓存每一个遇到的topic。
      */
-    private val topicItemsPool = ConcurrentHashMap<Int, TopicItem>()
+    private val topicItemsPool = CacheMap<Int, TopicItem>(1024)
 
     /**
      * 在parent溯源中缓存每一个遇到的tag。
      */
-    private val tagItemsPool = ConcurrentHashMap<Int, TagItem>()
+    private val tagItemsPool = CacheMap<Int, TagItem>(1024)
 
     /**
      * 缓存group tag的children tag。
      */
-    private val tagChildrenPool = ConcurrentHashMap<Int, List<TagItem>>()
+    private val tagChildrenPool = CacheMap<Int, List<TagItem>>(1024)
 
     /**
      * 缓存根据metaString查找到的tag。
      */
-    private val tagByStringPool = ConcurrentHashMap<MetaString, List<TagItem>>()
+    private val tagByStringPool = CacheMap<MetaString, List<TagItem>>(256)
 
     internal interface ItemInterface {
         val name: String

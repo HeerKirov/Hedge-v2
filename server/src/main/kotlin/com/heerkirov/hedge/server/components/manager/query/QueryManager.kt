@@ -11,13 +11,13 @@ import com.heerkirov.hedge.server.library.compiler.semantic.dialect.SourceImageD
 import com.heerkirov.hedge.server.library.compiler.translator.*
 import com.heerkirov.hedge.server.library.compiler.translator.visual.*
 import com.heerkirov.hedge.server.library.compiler.utils.CompileError
-import java.util.concurrent.ConcurrentHashMap
+import com.heerkirov.hedge.server.utils.types.CacheMap
 
 class QueryManager(private val data: DataRepository) {
     private val queryer = MetaQueryer(data)
     private val options = OptionsImpl()
 
-    private val executePlanCache = ConcurrentHashMap<DialectAndText, QuerySchema>()
+    private val executePlanCache = CacheMap<DialectAndText, QuerySchema>(100)
 
     /**
      * 在指定的方言下编译查询语句。获得此语句结果的可视化查询计划、执行计划、错误和警告。
@@ -81,28 +81,28 @@ class QueryManager(private val data: DataRepository) {
         override val translateUnderscoreToSpace: Boolean get() {
             if (data.metadata.query.translateUnderscoreToSpace != _translateUnderscoreToSpace) {
                 _translateUnderscoreToSpace = data.metadata.query.translateUnderscoreToSpace
-                if(executePlanCache.isNotEmpty()) executePlanCache.clear()
+                executePlanCache.clear()
             }
             return _translateUnderscoreToSpace!!
         }
         override val chineseSymbolReflect: Boolean get() {
             if (data.metadata.query.chineseSymbolReflect != _chineseSymbolReflect) {
                 _chineseSymbolReflect = data.metadata.query.chineseSymbolReflect
-                if(executePlanCache.isNotEmpty()) executePlanCache.clear()
+                executePlanCache.clear()
             }
             return _chineseSymbolReflect!!
         }
         override val warningLimitOfUnionItems: Int get() {
             if (data.metadata.query.warningLimitOfUnionItems != _warningLimitOfUnionItems) {
                 _warningLimitOfUnionItems = data.metadata.query.warningLimitOfUnionItems
-                if(executePlanCache.isNotEmpty()) executePlanCache.clear()
+                executePlanCache.clear()
             }
             return _warningLimitOfUnionItems!!
         }
         override val warningLimitOfIntersectItems: Int get() {
             if (data.metadata.query.warningLimitOfIntersectItems != _warningLimitOfIntersectItems) {
                 _warningLimitOfIntersectItems = data.metadata.query.warningLimitOfIntersectItems
-                if(executePlanCache.isNotEmpty()) executePlanCache.clear()
+                executePlanCache.clear()
             }
             return _warningLimitOfIntersectItems!!
         }

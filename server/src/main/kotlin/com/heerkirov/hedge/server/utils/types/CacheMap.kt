@@ -6,6 +6,8 @@ import java.util.*
 class CacheMap<K, V>(private val limit: Int) {
     private val map = LinkedHashMap<K, SoftReference<V>>()
 
+    val size: Int get() = map.size
+
     fun computeIfAbsent(key: K, mappingFunction: (K) -> V): V {
         synchronized(map) {
             val ref = map[key]
@@ -20,9 +22,30 @@ class CacheMap<K, V>(private val limit: Int) {
                 map.remove(key)
                 val nv = mappingFunction(key)
                 map[key] = SoftReference(nv)
+                clearCache()
                 return nv
             }
             return value
+        }
+    }
+
+    operator fun get(key: K): V? {
+        synchronized(map) {
+            val ref = map[key] ?: return null
+            val value = ref.get()
+            if(value == null) {
+                map.remove(key)
+                return null
+            }
+            return value
+        }
+    }
+
+    operator fun set(key: K, value: V) {
+        synchronized(map) {
+            map.remove(key)
+            map[key] = SoftReference(value)
+            clearCache()
         }
     }
 
@@ -32,9 +55,9 @@ class CacheMap<K, V>(private val limit: Int) {
         }
     }
 
-    fun putAll(from: Map<out K, V>) {
+    fun putAll(from: List<Pair<K, V>>) {
         synchronized(map) {
-            map.putAll(from.mapValues { SoftReference(it.value) })
+            map.putAll(from.associate { it.first to SoftReference(it.second) })
             clearCache()
         }
     }
