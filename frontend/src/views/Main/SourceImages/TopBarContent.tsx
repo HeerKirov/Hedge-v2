@@ -1,6 +1,6 @@
 import { defineComponent } from "vue"
 import { DataRouter, SearchBox } from "@/layouts/topbars"
-import { useElementPopupMenu } from "@/functions/module/popup-menu"
+import { useSourceImageEditDialog } from "@/layouts/dialogs/SourceImageEditDialog"
 import { useSourceImageContext } from "./inject"
 
 export default defineComponent({
@@ -15,22 +15,22 @@ export default defineComponent({
             </div>
             <div class="layout-container">
                 <DataRouter/>
-                <MenuButton/>
+                <AddButton/>
             </div>
         </div>
     }
 })
 
-const MenuButton = defineComponent({
+const AddButton = defineComponent({
     setup() {
+        const { list: { endpoint } } = useSourceImageContext()
+        const { openCreateDialog } = useSourceImageEditDialog()
 
-        const menu = useElementPopupMenu(() => [
-            {type: "normal", label: "新建来源数据项"},
-            {type: "normal", label: "批量新建来源数据项"},
-            {type: "normal", label: "导入来源数据"},
-        ], {position: "bottom", align: "left", offsetY: 4})
+        const click = () => {
+            openCreateDialog(() => endpoint.refresh())
+        }
 
-        return () => <button ref={menu.element} class="square button no-drag radius-large is-white" onClick={() => menu.popup()}>
+        return () => <button class="square button no-drag radius-large is-white" onClick={click}>
             <span class="icon"><i class="fa fa-ellipsis-v"/></span>
         </button>
     }
