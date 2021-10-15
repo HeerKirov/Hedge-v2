@@ -1,5 +1,5 @@
 import { computed, reactive, Ref } from "vue"
-import { useHttpClient } from "@/functions/app"
+import { useAppInfo, useHttpClient } from "@/functions/app"
 import { dialogManager } from "@/functions/module/dialog"
 import { useToast } from "@/functions/module/toast"
 import { installation } from "@/functions/utils/basic"
@@ -14,6 +14,7 @@ export interface ImportService {
 }
 
 export const [installImportService, useImportService] = installation(function(): ImportService {
+    const { clientMode } = useAppInfo()
     const httpClient = useHttpClient()
     const toast = useToast()
 
@@ -39,13 +40,14 @@ export const [installImportService, useImportService] = installation(function():
             progress.max += files.length
 
             for await (const filepath of files) {
+                //FUTURE: 在web dialog module完成后添加upload API支持
                 const res = await httpClient.import.import({filepath})
                 if(res.ok) {
                     const { id, warnings } = res.data
                     if(warnings.length) {
                         warningList.push({id, filepath})
                     }
-                }else if(res.exception) {
+                }else{
                     if(res.exception.code === "FILE_NOT_FOUND") {
                         toast.toast("错误", "danger", `文件${filepath}不存在。`)
                     }else if(res.exception.code === "ILLEGAL_FILE_EXTENSION") {

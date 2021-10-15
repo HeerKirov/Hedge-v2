@@ -1,6 +1,6 @@
 import { defineComponent, ref } from "vue"
 import { SourceInfo, TitleDisplay, DescriptionDisplay, SourceRelationsDisplay, SourceTagListDisplay } from "@/layouts/displays"
-import { SourceEditor, ViewAndEditable, ViewAndEditor, SourceIdentity } from "@/layouts/editors"
+import { SourceIdentityEditor, ViewAndEditable, ViewAndEditor, SourceIdentity } from "@/layouts/editors"
 import { installSettingSite } from "@/functions/api/setting"
 import { useMessageBox } from "@/functions/module/message-box"
 import { usePreviewContext, useOriginDataEndpoint } from "../inject"
@@ -45,7 +45,7 @@ export default defineComponent({
             {data.value && (data.value.source !== null && data.value.sourceId !== null ? <>
                 <ViewAndEditor data={getSourceIdentity()} onSetData={setSourceIdentity} v-slots={{
                     default: ({ value}: {value: SourceIdentity}) => <SourceInfo {...value}/>,
-                    editor: ({ value, setValue }: {value: SourceIdentity, setValue(_: SourceIdentity)}) => <SourceEditor {...value} onUpdateValue={setValue}/>
+                    editor: ({ value, setValue }: {value: SourceIdentity, setValue(_: SourceIdentity)}) => <SourceIdentityEditor {...value} onUpdateValue={setValue}/>
                 }}/>
                 <ViewAndEditable class="mt-2" baseline="medium" onEdit={openSourceEditor}>
                     <TitleDisplay value={data.value.title}/>
@@ -95,7 +95,7 @@ const NoOriginDataBoard = defineComponent({
         }
 
         return () => createMode.value ? <div>
-            <SourceEditor {...source.value} onUpdateValue={v => source.value = v}/>
+            <SourceIdentityEditor {...source.value} onUpdateValue={v => source.value = v}/>
             <p class="mt-2"><a onClick={save}><i class="fa fa-save mr-1"/>创建或使用此来源数据项</a></p>
         </div> : <div class={style.noOriginData}>
             <i>没有相关的来源数据</i>

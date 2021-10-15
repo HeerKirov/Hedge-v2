@@ -31,7 +31,7 @@ const AddButton = defineComponent({
         }
 
         return () => <button class="square button no-drag radius-large is-white" onClick={click}>
-            <span class="icon"><i class="fa fa-ellipsis-v"/></span>
+            <span class="icon"><i class="fa fa-plus"/></span>
         </button>
     }
 })

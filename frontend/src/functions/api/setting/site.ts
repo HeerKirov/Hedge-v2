@@ -25,7 +25,7 @@ export const [installSettingSite, useSettingSite] = simpleInstallation(function(
         if(res.ok) {
             await refreshData()
             return true
-        }else if(res.exception) {
+        }else{
             if(res.exception.code === "ALREADY_EXISTS") {
                 messageBox.showOkMessage("prompt", "已经存在同名的站点。")
             }else{
@@ -39,7 +39,7 @@ export const [installSettingSite, useSettingSite] = simpleInstallation(function(
         if(res.ok) {
             await refreshData()
             return true
-        }else if(res.exception) {
+        }else{
             toast.handleException(res.exception)
         }
         return false
@@ -50,7 +50,7 @@ export const [installSettingSite, useSettingSite] = simpleInstallation(function(
             const i = data.value.findIndex(s => s.name === name)
             data.value.splice(i, 1)
             return true
-        }else if(res.exception) {
+        }else{
             if(res.exception.code == "CASCADE_RESOURCE_EXISTS") {
                 const resourceName = {
                     "Illust": "图库项目",

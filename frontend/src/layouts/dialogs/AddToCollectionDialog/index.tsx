@@ -1,6 +1,7 @@
 import { computed, defineComponent, inject, InjectionKey, PropType, provide, Ref, ref, watch } from "vue"
 import CheckBox from "@/components/forms/CheckBox"
 import DialogBox from "@/layouts/layouts/DialogBox"
+import { useToast } from "@/functions/module/toast"
 import { assetsUrl, useHttpClient } from "@/functions/app"
 import { arrays } from "@/utils/collections"
 import style from "./style.module.scss"
@@ -57,6 +58,7 @@ const Content = defineComponent({
         added: () => true
     },
     setup(props, { emit }) {
+        const toast = useToast()
         const httpClient = useHttpClient()
 
         const selections = ref<boolean[]>([])
@@ -79,6 +81,8 @@ const Content = defineComponent({
                 const res = await httpClient.illust.collection.images.update(props.collectionId, [props.collectionId, ...addedItems])
                 if(res.ok) {
                     emit("added")
+                }else{
+                    toast.handleException(res.exception)
                 }
             }
         }

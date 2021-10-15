@@ -116,9 +116,9 @@ export interface SourceImportForm {
     filepath: string
 }
 
-export interface SourceImageCreateForm extends SourceImageUpdateForm{
+export interface SourceImageCreateForm extends SourceImageUpdateForm {
     source: string
-    sourceId: string
+    sourceId: number
 }
 
 export interface SourceImageUpdateForm {

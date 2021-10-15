@@ -1,8 +1,8 @@
 import { defineComponent, PropType, reactive, ref, watch } from "vue"
 import Input from "@/components/forms/Input"
 import NumberInput from "@/components/forms/NumberInput"
-import { useMessageBox } from "@/functions/module/message-box"
 import { SourceTag } from "@/functions/adapter-http/impl/source-tag-mapping"
+import { useMessageBox } from "@/functions/module/message-box"
 import style from "./SourceEditors.module.scss"
 
 export const SourceTagEditor = defineComponent({

@@ -1,5 +1,5 @@
 import { defineComponent } from "vue"
-import { SourceEditor, TagmeEditor, DateTimeEditor, ViewAndEditor, DateEditor } from "@/layouts/editors"
+import { SourceIdentityEditor, TagmeEditor, DateTimeEditor, ViewAndEditor, DateEditor } from "@/layouts/editors"
 import { SourceInfo, TagmeInfo } from "@/layouts/displays"
 import { PaneBasicLayout } from "@/layouts/layouts/SplitPane"
 import { useMessageBox } from "@/functions/module/message-box"
@@ -80,7 +80,7 @@ export default defineComponent({
                 <div class={style.separator}/>
                 <ViewAndEditor data={{source: data.value.source, sourceId: data.value.sourceId, sourcePart: data.value.sourcePart}} onSetData={setSourceInfo} v-slots={{
                     default: ({ value }: {value: {source: string | null, sourceId: number | null, sourcePart: number | null}}) => <SourceInfo {...value}/>,
-                    editor: ({ value, setValue }) => <SourceEditor {...value} onUpdateValue={setValue}/>
+                    editor: ({ value, setValue }) => <SourceIdentityEditor {...value} onUpdateValue={setValue}/>
                 }}/>
                 <div class={style.spacing}/>
                 <ViewAndEditor data={data.value.tagme} onSetData={setTagme} v-slots={{

@@ -472,11 +472,11 @@ export type ImageOriginData = {
     /**
      * 来源数据：标题。
      */
-    title: string | null
+    title: string
     /**
      * 来源数据：描述。
      */
-    description: string | null
+    description: string
     /**
      * 来源数据：标签。
      */

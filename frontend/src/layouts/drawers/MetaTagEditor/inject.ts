@@ -258,7 +258,7 @@ function useEditorDataValidation(tags: Ref<SimpleTag[]>, data: Ref<EditorData | 
 
             if(res.ok) {
                 tagValidationResults.value = res.data
-            }else if(res.exception) {
+            }else{
                 tagValidationResults.value = undefined
                 toast.handleException(res.exception)
             }

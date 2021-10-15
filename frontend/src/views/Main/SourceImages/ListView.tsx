@@ -1,4 +1,4 @@
-import { computed, defineComponent, PropType } from "vue"
+import { computed, defineComponent, nextTick, PropType } from "vue"
 import { VirtualRow } from "@/components/features/VirtualScrollView"
 import { useMessageBox } from "@/functions/module/message-box"
 import { usePopupMenu } from "@/functions/module/popup-menu"
@@ -35,7 +35,13 @@ export default defineComponent({
         }
 
         const editItem = (key: SourceKey) => {
-            edit(key, () => endpoint.refresh())
+            edit(key, () => {
+                endpoint.refresh()
+                if(keyEqual(detailMode.value, key)) {
+                    closePane()
+                    nextTick(() => openDetailPane(key)).finally()
+                }
+            })
         }
 
         const popupmenu = usePopupMenu<SourceKey>([
@@ -46,6 +52,7 @@ export default defineComponent({
             {type: "normal", label: "删除此项", click: deleteItem},
         ])
 
+        //TODO 后端bug：更改source meta后，数量没有刷新
         return () => <div class="w-100 h-100">
             <VirtualRow rowHeight={33} padding={0} bufferSize={10} onUpdate={dataView.dataUpdate} {...dataView.data.value.metrics}>
                 <table class="table is-hoverable is-fullwidth no-wrap">

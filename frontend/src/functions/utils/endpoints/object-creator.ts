@@ -41,7 +41,7 @@ export function useObjectCreator<FORM, OUTPUT, RESULT, CE extends BasicException
                 const res = await method(options.mapForm(form))
                 if(res.ok) {
                     options.afterCreate?.(res.data)
-                }else if(res.exception) {
+                }else{
                     //首先尝试让上层处理错误，上层拒绝处理则自行处理
                     const e = options.handleError ? options.handleError(res.exception) : res.exception
                     if(e != undefined) toast.handleException(e)
