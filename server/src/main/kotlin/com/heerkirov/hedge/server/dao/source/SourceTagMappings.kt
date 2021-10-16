@@ -14,7 +14,7 @@ object SourceTagMappings : BaseTable<SourceTagMapping>("source_tag_mapping", sch
     val source = varchar("source")
     val sourceTagId = int("source_tag_id")
     val targetMetaType = enum("target_meta_type", typeRef<MetaType>())
-    val targetMetaId = int("target_tag_id")
+    val targetMetaId = int("target_meta_id")
 
     override fun doCreateEntity(row: QueryRowSet, withReferences: Boolean) = SourceTagMapping(
         id = row[id]!!,

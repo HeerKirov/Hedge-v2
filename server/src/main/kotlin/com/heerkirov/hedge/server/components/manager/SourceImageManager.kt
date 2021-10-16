@@ -164,7 +164,7 @@ class SourceImageManager(private val data: DataRepository,
                 ))
             }else undefined()
 
-            if(title.isPresent || description.isPresent || relations.isPresent) {
+            if(title.isPresent || description.isPresent || relations.isPresent || sourceCount.isPresent) {
                 data.db.update(SourceImages) {
                     where { it.id eq sourceImage.id }
                     title.applyOpt { set(it.title, this) }
