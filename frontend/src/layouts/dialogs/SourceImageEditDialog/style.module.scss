@@ -2,17 +2,13 @@
 
 .content {
   padding: 0.5rem;
-  max-height: 45rem;
-  min-height: 5rem;
+  height: 35rem;
   width: 40rem;
 
   display: flex;
   flex-direction: column;
   flex-wrap: nowrap;
 
-  > .top {
-    padding-bottom: 0.5rem;
-  }
   > .scroll-content {
     height: 100%;
     overflow-y: auto;
@@ -21,6 +17,7 @@
   }
   > .bottom {
     padding-top: 0.5rem;
+    padding-bottom: 0.25rem;
   }
 
   > .center-board {

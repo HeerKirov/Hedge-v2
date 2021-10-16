@@ -52,7 +52,6 @@ export default defineComponent({
             {type: "normal", label: "删除此项", click: deleteItem},
         ])
 
-        //TODO 后端bug：更改source meta后，数量没有刷新
         return () => <div class="w-100 h-100">
             <VirtualRow rowHeight={33} padding={0} bufferSize={10} onUpdate={dataView.dataUpdate} {...dataView.data.value.metrics}>
                 <table class="table is-hoverable is-fullwidth no-wrap">

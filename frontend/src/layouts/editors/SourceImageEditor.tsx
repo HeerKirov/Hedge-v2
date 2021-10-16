@@ -69,7 +69,7 @@ export function useSourceImageEditorData(data: Ref<SourceImageEditorData | null 
 
     const changed = reactive({title: false, description: false, tags: false, pools: false, children: false, parents: false})
 
-    const canSave = computed(() => changed.title || changed.description || changed.tags || changed.parents || changed.children || changed.pools)
+    const anyChanged = computed(() => changed.title || changed.description || changed.tags || changed.parents || changed.children || changed.pools)
 
     function set<K extends keyof (typeof editorData)>(key: K, value: (typeof editorData)[K]) {
         editorData[key] = value
@@ -94,17 +94,15 @@ export function useSourceImageEditorData(data: Ref<SourceImageEditorData | null 
     }
 
     const save = async () => {
-        if(canSave.value) {
-            setData({
-                title: changed.title ? editorData.title ?? null : undefined,
-                description: changed.description ? editorData.description ?? null : undefined,
-                tags: changed.tags ? editorData.tags : undefined,
-                pools: changed.pools ? editorData.pools : undefined,
-                children: changed.children ? editorData.children : undefined,
-                parents: changed.parents ? editorData.parents : undefined
-            })
-        }
+        setData({
+            title: changed.title ? editorData.title ?? null : undefined,
+            description: changed.description ? editorData.description ?? null : undefined,
+            tags: changed.tags ? editorData.tags : undefined,
+            pools: changed.pools ? editorData.pools : undefined,
+            children: changed.children ? editorData.children : undefined,
+            parents: changed.parents ? editorData.parents : undefined
+        })
     }
 
-    return {data: editorData, set, save, canSave}
+    return {data: editorData, set, save, anyChanged}
 }

@@ -8,4 +8,19 @@
     border-left-color: $deep-sidebar-dm;
   }
 
+  .thumbnail {
+    text-align: center;
+    > img {
+      width: 100%;
+      min-height: 12rem;
+      max-height: 30rem;
+      object-fit: contain;
+      object-position: center;
+      border-radius: $radius-size-std;
+      border: solid 1px $deep-sidebar;
+      @media (prefers-color-scheme: dark) {
+        border-color: $deep-sidebar-dm;
+      }
+    }
+  }
 }

@@ -59,7 +59,7 @@ export const SourceKeyEditor = defineComponent({
 
         return () => <div>
             <SourceSiteSelect value={props.source} onUpdateValue={updateSource}/>
-            {props.source && <Input class="is-small is-width-small ml-1" placeholder="来源ID" value={props.sourceId?.toString()} onUpdateValue={updateId} refreshOnInput={true}/>}
+            {props.source && <Input class="is-width-small ml-1" placeholder="来源ID" value={props.sourceId?.toString()} onUpdateValue={updateId} refreshOnInput={true}/>}
         </div>
     }
 })

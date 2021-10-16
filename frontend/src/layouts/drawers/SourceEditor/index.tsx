@@ -30,7 +30,7 @@ export default defineComponent({
                 return null
             }
         })
-        const { data, set, canSave, save } = useSourceImageEditorData(sourceData, async d => {
+        const { data, set, anyChanged, save } = useSourceImageEditorData(sourceData, async d => {
             if(await props.setData(d)) {
                 emit("close")
             }
@@ -41,7 +41,7 @@ export default defineComponent({
                 <SourceImageEditor data={data} setProperty={set}/>
             </div>
             <div class={style.toolBar}>
-                <button class="button is-link float-right" disabled={!canSave.value} onClick={save}>
+                <button class="button is-link float-right" disabled={!anyChanged.value} onClick={save}>
                     <span class="icon"><i class="fa fa-save"/></span><span>保存</span>
                 </button>
             </div>

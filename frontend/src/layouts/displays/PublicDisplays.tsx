@@ -63,11 +63,12 @@ export function ScoreDisplay(props: {value: number | null}) {
 /**
  * illust/album等的业务时间展示组件。
  */
-export function TimeDisplay(props: {orderTime: LocalDateTime, createTime: LocalDateTime, updateTime: LocalDateTime}) {
+export function TimeDisplay(props: {orderTime?: LocalDateTime, createTime?: LocalDateTime, updateTime?: LocalDateTime}) {
+    const showUpdateTime = props.updateTime && (props.createTime === undefined || props.updateTime.timestamp !== props.createTime.timestamp)
     return <div class="pt-1">
-        <p class="has-text-grey">排序时间 {datetime.toSimpleFormat(props.orderTime)}</p>
-        <p class="has-text-grey">添加时间 {datetime.toSimpleFormat(props.createTime)}</p>
-        {props.updateTime.timestamp !== props.updateTime.timestamp && <p class="has-text-grey">上次修改 {datetime.toSimpleFormat(props.updateTime)}</p>}
+        {props.orderTime && <p class="has-text-grey">排序时间 {datetime.toSimpleFormat(props.orderTime)}</p>}
+        {props.createTime && <p class="has-text-grey">添加时间 {datetime.toSimpleFormat(props.createTime)}</p>}
+        {showUpdateTime && <p class="has-text-grey">上次修改 {datetime.toSimpleFormat(props.updateTime!)}</p>}
     </div>
 }
 

@@ -1,8 +1,8 @@
 import { defineComponent, PropType, ref, watch } from "vue"
 import DialogBox from "@/layouts/layouts/DialogBox"
 import { MessageBoxButton, MessageTask, useMessageBoxConsumer } from "@/functions/module/message-box"
+import { interceptGlobalKey } from "@/functions/feature/keyboard"
 import style from "./style.module.scss"
-import { interceptGlobalKey } from "@/functions/feature/keyboard";
 
 export default defineComponent({
     setup() {

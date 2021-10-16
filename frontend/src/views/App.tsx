@@ -23,10 +23,10 @@ export default defineComponent({
         installGlobalKey(appInfo)
 
         return () => <>
+            {initialized.value && <RouterView/>}
             <MessageBoxModule/>
             <NotificationModule/>
             <PopupMenuModule/>
-            {initialized.value && <RouterView/>}
         </>
     }
 })
