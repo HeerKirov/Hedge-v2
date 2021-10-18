@@ -5,6 +5,7 @@ import com.heerkirov.hedge.server.components.database.transaction
 import com.heerkirov.hedge.server.components.kit.MetaUtilKit
 import com.heerkirov.hedge.server.components.manager.MetaHistoryManager
 import com.heerkirov.hedge.server.components.manager.MetaManager
+import com.heerkirov.hedge.server.components.manager.SourceMappingManager
 import com.heerkirov.hedge.server.dao.album.Albums
 import com.heerkirov.hedge.server.dao.illust.Illusts
 import com.heerkirov.hedge.server.dao.meta.Authors
@@ -30,7 +31,8 @@ import org.ktorm.entity.toList
 class MetaUtilService(private val data: DataRepository,
                       private val kit: MetaUtilKit,
                       private val metaManager: MetaManager,
-                      private val metaHistoryManager: MetaHistoryManager) {
+                      private val metaHistoryManager: MetaHistoryManager,
+                      private val sourceMappingManager: SourceMappingManager) {
     /**
      * 对metaTag做内容校验和推导。它实际上是metaTag保存流程的一部分。
      * 这个API用于metaTag编辑器，实时对metaTag列表做验证，获得全局的推导结果，并提前得知错误关系。

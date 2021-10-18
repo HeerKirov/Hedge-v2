@@ -96,6 +96,8 @@ class TopicService(private val data: DataRepository,
                 set(it.updateTime, createTime)
             } as Int
 
+            form.mappingSourceTags?.also { sourceMappingManager.update(MetaType.TOPIC, id, it) }
+
             kit.processAnnotations(id, annotations.asSequence().map { it.id }.toSet(), creating = true)
 
             return id

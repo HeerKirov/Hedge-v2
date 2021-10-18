@@ -41,7 +41,8 @@ data class TopicCreateForm(@NotBlank val name: String,
                            val links: List<Topic.Link>? = null,
                            val annotations: List<Any>? = null,
                            val favorite: Boolean = false,
-                           val score: Int? = null)
+                           val score: Int? = null,
+                           val mappingSourceTags: List<SourceMappingMetaItem>? = null)
 
 data class TopicUpdateForm(@NotBlank val name: Opt<String>,
                            val otherNames: Opt<List<String>?>,

@@ -90,6 +90,8 @@ class AuthorService(private val data: DataRepository,
                 set(it.updateTime, createTime)
             } as Int
 
+            form.mappingSourceTags?.also { sourceMappingManager.update(MetaType.AUTHOR, id, it) }
+
             kit.processAnnotations(id, annotations.asSequence().map { it.id }.toSet(), creating = true)
 
             return id

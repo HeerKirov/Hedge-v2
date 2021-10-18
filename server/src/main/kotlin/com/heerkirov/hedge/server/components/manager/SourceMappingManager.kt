@@ -12,13 +12,14 @@ import com.heerkirov.hedge.server.enums.MetaType
 import com.heerkirov.hedge.server.exceptions.ResourceNotExist
 import com.heerkirov.hedge.server.exceptions.NotFound
 import com.heerkirov.hedge.server.exceptions.be
+import com.heerkirov.hedge.server.model.meta.Tag
 import org.ktorm.dsl.*
 import org.ktorm.entity.*
 import org.ktorm.schema.Column
 
 class SourceMappingManager(private val data: DataRepository, private val sourceTagManager: SourceTagManager) {
     fun batchQuery(form: SourceMappingBatchQueryForm): List<SourceMappingBatchQueryResult> {
-        return data.db.from(SourceTagMappings)
+        val groups = data.db.from(SourceTagMappings)
             .innerJoin(SourceTags, (SourceTags.source eq SourceTagMappings.source) and (SourceTags.id eq SourceTagMappings.sourceTagId))
             .select(SourceTags.source, SourceTags.name, SourceTagMappings.targetMetaType, SourceTagMappings.targetMetaId)
             .where { (SourceTags.source eq form.source) and (SourceTags.name inList form.tagNames) }
@@ -29,15 +30,23 @@ class SourceMappingManager(private val data: DataRepository, private val sourceT
                 )
             }
             .groupBy { (s, _) -> s }
-            .map { (s, mappings) -> SourceMappingBatchQueryResult(s.first, s.second, mappings.map { it.second }) }
+            .mapValues { it.value.map { (_, v) -> v } }
+
+        val allMappings = groups.flatMap { (_, mappings) -> mappings }.let(::mapTargetItemToDetail)
+
+        return groups.map { (s, mappings) ->
+            val mappingDetails = mappings.mapNotNull { allMappings[it] }
+            SourceMappingBatchQueryResult(s.first, s.second, mappingDetails)
+        }
     }
 
-    fun query(source: String, tagName: String): List<SourceMappingTargetItem> {
+    fun query(source: String, tagName: String): List<SourceMappingTargetItemDetail> {
         return data.db.from(SourceTagMappings)
             .innerJoin(SourceTags, (SourceTags.source eq SourceTagMappings.source) and (SourceTags.id eq SourceTagMappings.sourceTagId))
             .select(SourceTagMappings.targetMetaType, SourceTagMappings.targetMetaId)
             .where { (SourceTags.source eq source) and (SourceTags.name eq tagName) }
             .map { row -> SourceMappingTargetItem(row[SourceTagMappings.targetMetaType]!!, row[SourceTagMappings.targetMetaId]!!) }
+            .let { mapTargetItemToDetail(it).values.toList() }
     }
 
     fun query(metaType: MetaType, metaId: Int): List<SourceMappingMetaItem> {
@@ -137,5 +146,35 @@ class SourceMappingManager(private val data: DataRepository, private val sourceT
             val lack = this.toSet() - existIds.toSet()
             if(lack.isNotEmpty()) throw be(ResourceNotExist(propName, lack))
         }
+    }
+
+    private fun mapTargetItemToDetail(items: List<SourceMappingTargetItem>): Map<SourceMappingTargetItem, SourceMappingTargetItemDetail> {
+        val authorColors = data.metadata.meta.authorColors
+        val topicColors = data.metadata.meta.topicColors
+
+        val metas = items.groupBy { it.metaType }.mapValues { (_, value) -> value.map { it.metaId } }
+        val authors = metas[MetaType.AUTHOR]?.let { authorIds ->
+            data.db.from(Authors).select(Authors.id, Authors.name, Authors.type)
+                .where { Authors.id inList authorIds }
+                .map {
+                    val type = it[Authors.type]!!
+                    AuthorSimpleRes(it[Authors.id]!!, it[Authors.name]!!, type, false, authorColors[type])
+                }
+        }?.associate { SourceMappingTargetItem(MetaType.AUTHOR, it.id) to SourceMappingTargetItemDetail(MetaType.AUTHOR, it) } ?: emptyMap()
+        val topics = metas[MetaType.TOPIC]?.let { topicIds ->
+            data.db.from(Topics).select(Topics.id, Topics.name, Topics.type)
+                .where { Topics.id inList topicIds }
+                .map {
+                    val type = it[Topics.type]!!
+                    TopicSimpleRes(it[Topics.id]!!, it[Topics.name]!!, type, false, topicColors[type])
+                }
+        }?.associate { SourceMappingTargetItem(MetaType.TOPIC, it.id) to SourceMappingTargetItemDetail(MetaType.TOPIC, it) } ?: emptyMap()
+        val tags = metas[MetaType.TAG]?.let { tagIds ->
+            data.db.from(Tags).select(Tags.id, Tags.name, Tags.color)
+                .where { (Tags.id inList tagIds) and (Tags.type eq Tag.Type.TAG) }
+                .map { TagSimpleRes(it[Tags.id]!!, it[Tags.name]!!, it[Tags.color], false) }
+        }?.associate { SourceMappingTargetItem(MetaType.TAG, it.id) to SourceMappingTargetItemDetail(MetaType.TAG, it) } ?: emptyMap()
+
+        return authors + topics + tags
     }
 }

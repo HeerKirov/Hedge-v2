@@ -4,7 +4,9 @@ import com.heerkirov.hedge.server.enums.MetaType
 
 data class SourceMappingBatchQueryForm(val source: String, val tagNames: List<String>)
 
-data class SourceMappingBatchQueryResult(val source: String, val tagName: String, val mappings: List<SourceMappingTargetItem>)
+data class SourceMappingBatchQueryResult(val source: String, val tagName: String, val mappings: List<SourceMappingTargetItemDetail>)
+
+data class SourceMappingTargetItemDetail(val metaType: MetaType, val metaTag: Any /* simple meta tag*/)
 
 data class SourceMappingTargetItem(val metaType: MetaType, val metaId: Int)
 

@@ -147,6 +147,8 @@ class TagService(private val data: DataRepository,
                 set(it.updateTime, createTime)
             } as Int
 
+            form.mappingSourceTags?.also { sourceMappingManager.update(MetaType.TAG, id, it) }
+
             kit.processAnnotations(id, form.annotations, creating = true)
 
             tagExporter.refreshGlobalOrdinal()

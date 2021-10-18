@@ -6,6 +6,7 @@ import com.heerkirov.hedge.server.components.manager.SourceMappingManager
 import com.heerkirov.hedge.server.dto.SourceMappingBatchQueryForm
 import com.heerkirov.hedge.server.dto.SourceMappingBatchQueryResult
 import com.heerkirov.hedge.server.dto.SourceMappingTargetItem
+import com.heerkirov.hedge.server.dto.SourceMappingTargetItemDetail
 import com.heerkirov.hedge.server.exceptions.ResourceNotExist
 
 class SourceMappingService(private val data: DataRepository, private val sourceMappingManager: SourceMappingManager) {
@@ -13,7 +14,7 @@ class SourceMappingService(private val data: DataRepository, private val sourceM
         return sourceMappingManager.batchQuery(form)
     }
 
-    fun query(source: String, tagName: String): List<SourceMappingTargetItem> {
+    fun query(source: String, tagName: String): List<SourceMappingTargetItemDetail> {
         return sourceMappingManager.query(source, tagName)
     }
 

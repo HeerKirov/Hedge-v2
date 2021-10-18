@@ -36,7 +36,8 @@ data class AuthorCreateForm(@NotBlank val name: String,
                             val links: List<Author.Link>? = null,
                             val annotations: List<Any>? = null,
                             val favorite: Boolean = false,
-                            val score: Int? = null)
+                            val score: Int? = null,
+                            val mappingSourceTags: List<SourceMappingMetaItem>? = null)
 
 data class AuthorUpdateForm(@NotBlank val name: Opt<String>,
                             val otherNames: Opt<List<String>?>,

@@ -61,7 +61,8 @@ data class TagCreateForm(@NotBlank @Length(32) val name: String,
                          val annotations: List<Any>? = null,
                          val description: String = "",
                          val color: String? = null,
-                         val examples: List<Int>? = null)
+                         val examples: List<Int>? = null,
+                         val mappingSourceTags: List<SourceMappingMetaItem>? = null)
 
 data class TagUpdateForm(@NotBlank @Length(32) val name: Opt<String>,
                          val otherNames: Opt<List<String>?>,
