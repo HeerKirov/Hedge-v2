@@ -2,12 +2,13 @@ import { computed, defineComponent } from "vue"
 import Starlight from "@/components/elements/Starlight"
 import Select from "@/components/forms/Select"
 import { AnnotationElement } from "@/layouts/elements"
-import { TagGroupDisplay, TagTypeDisplay, TagGroupMemberDisplay, TagLinkDisplay, TagExampleDisplay } from "@/layouts/displays"
+import { TagGroupDisplay, TagTypeDisplay, TagGroupMemberDisplay, TagLinkDisplay, TagExampleDisplay, SourceTagMappingsDisplay } from "@/layouts/displays"
 import { PaneBasicLayout } from "@/layouts/layouts/SplitPane"
-import { AnnotationEditor, DescriptionEditor, TagExampleEditor, ViewAndEditor } from "@/layouts/editors"
+import { AnnotationEditor, DescriptionEditor, TagExampleEditor, ViewAndEditor, VAEDisplay, VAEEditor, SourceTagMappingEditor } from "@/layouts/editors"
 import { DetailTag, IsGroup, TagLink, TagType } from "@/functions/adapter-http/impl/tag"
 import { SimpleAnnotation } from "@/functions/adapter-http/impl/annotations"
 import { SimpleIllust } from "@/functions/adapter-http/impl/illust"
+import { SourceMappingMetaItem } from "@/functions/adapter-http/impl/source-tag-mapping"
 import { useObjectEndpoint } from "@/functions/utils/endpoints/object-endpoint"
 import { useMessageBox } from "@/functions/module/message-box"
 import { checkTagName } from "@/utils/check"
@@ -128,6 +129,16 @@ export default defineComponent({
             })
         }
 
+        const setMappingSourceTags = async (mappingSourceTags: SourceMappingMetaItem[]) => {
+            return objects.deepEquals(mappingSourceTags, data.value?.mappingSourceTags) || await setData({ mappingSourceTags }, e => {
+                if(e.code === "NOT_EXIST") {
+                    message.showOkMessage("error", "选择的来源类型不存在。")
+                }else{
+                    return e
+                }
+            })
+        }
+
         const setExamples = async (examples: SimpleIllust[]) => {
             return objects.deepEquals(examples, data.value?.examples) || await setData({ examples: examples.map(i => i.id) }, e => {
                 if(e.code === "NOT_EXIST") {
@@ -171,8 +182,8 @@ export default defineComponent({
                 </div>
                 <p class={style.separator}/>
                 <ViewAndEditor class={style.annotations} data={data.value.annotations} onSetData={setAnnotations} v-slots={{
-                    default: ({ value }: {value: SimpleAnnotation[]}) => value.length ? value.map(a => <AnnotationElement key={a.id} value={a}/>) : <span class="tag"><i class="has-text-grey">没有注解</i></span>,
-                    editor: ({ value, setValue }: {value: SimpleAnnotation[], setValue(_: SimpleAnnotation[])}) => <AnnotationEditor class="mb-1" value={value} onUpdateValue={setValue} target="TAG"/>
+                    default: ({ value }: VAEDisplay<SimpleAnnotation[]>) => value.length ? value.map(a => <AnnotationElement key={a.id} value={a}/>) : <span class="tag"><i class="has-text-grey">没有注解</i></span>,
+                    editor: ({ value, setValue }: VAEEditor<SimpleAnnotation[]>) => <AnnotationEditor class="mb-1" value={value} onUpdateValue={setValue} target="TAG"/>
                 }}/>
                 <ViewAndEditor data={data.value.description} onSetData={setDescription} showEditButton={false} showSaveButton={false} v-slots={{
                     default: ({ value, edit }) => <DescriptionDisplay value={value} onEdit={edit}/>,
@@ -180,8 +191,8 @@ export default defineComponent({
                 }}/>
                 <div class={style.links}>
                     <ViewAndEditor data={data.value.links} onSetData={setLinks} v-slots={{
-                        default: ({ value }: {value: TagLink[]}) => <TagLinkDisplay value={value} onClick={scrollIntoView}/>,
-                        editor: ({ value, setValue }: {value: TagLink[], setValue(_: TagLink[])}) => <TagLinkEditor value={value} onUpdateValue={setValue}/>
+                        default: ({ value }: VAEDisplay<TagLink[]>) => <TagLinkDisplay value={value} onClick={scrollIntoView}/>,
+                        editor: ({ value, setValue }: VAEEditor<TagLink[]>) => <TagLinkEditor value={value} onUpdateValue={setValue}/>
                     }}/>
                 </div>
                 <div class={style.score}>
@@ -189,11 +200,18 @@ export default defineComponent({
                         ? <Starlight showText={true} value={data.value.score}/>
                         : <i class="has-text-grey">暂无评分</i>}
                 </div>
+                <div class={style.mappingSourceTags}>
+                    <label class="label">来源映射</label>
+                    <ViewAndEditor data={data.value.mappingSourceTags} onSetData={setMappingSourceTags} v-slots={{
+                        default: ({ value }: VAEDisplay<SourceMappingMetaItem[]>) => <SourceTagMappingsDisplay value={value} direction="vertical"/>,
+                        editor: ({ value, setValue }: VAEEditor<SourceMappingMetaItem[]>) => <SourceTagMappingEditor value={value} onUpdateValue={setValue} direction="vertical"/>
+                    }}/>
+                </div>
                 <div class={style.examples}>
                     <label class="label">示例</label>
                     <ViewAndEditor data={data.value.examples} onSetData={setExamples} baseline="medium" showEditButton={false} showSaveButton={false} v-slots={{
-                        default: ({ value, edit }: {value: SimpleIllust[], edit()}) => <TagExampleDisplay value={value} showEditButton={true} onEdit={edit}/>,
-                        editor: ({ value, setValue, save }: {value: SimpleIllust[], setValue(_: SimpleIllust[]), save()}) => <TagExampleEditor value={value} onUpdateValue={setValue} onSave={save}/>
+                        default: ({ value, edit }: VAEDisplay<SimpleIllust[]>) => <TagExampleDisplay value={value} showEditButton={true} onEdit={edit}/>,
+                        editor: ({ value, setValue, save }: VAEEditor<SimpleIllust[]>) => <TagExampleEditor value={value} onUpdateValue={setValue} onSave={save}/>
                     }}/>
                 </div>
             </>}

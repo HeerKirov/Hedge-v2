@@ -119,7 +119,8 @@ function mapCreatorData(mode: Partial<DetailAuthor>): CreatorData {
         links: mode.links ?? [],
         favorite: mode.favorite ?? false,
         annotations: mode.annotations ?? [],
-        score: mode.score ?? null
+        score: mode.score ?? null,
+        mappingSourceTags: mode.mappingSourceTags ?? []
     }
 }
 

@@ -2,8 +2,9 @@ import { computed, defineComponent, PropType, Ref } from "vue"
 import Input from "@/components/forms/Input"
 import Textarea from "@/components/forms/Textarea"
 import Select, { SelectItem } from "@/components/forms/Select"
+import { AnnotationEditor, LinkEditor, OtherNameEditor, SourceTagMappingEditor, StarlightEditor, TopicEditor } from "@/layouts/editors"
 import { AnnotationTarget, SimpleAnnotation } from "@/functions/adapter-http/impl/annotations"
-import { AnnotationEditor, LinkEditor, OtherNameEditor, StarlightEditor, TopicEditor } from "@/layouts/editors"
+import { SourceMappingMetaItem } from "@/functions/adapter-http/impl/source-tag-mapping"
 import { ParentTopic, TopicType } from "@/functions/adapter-http/impl/topic"
 import { Link } from "@/functions/adapter-http/impl/generic"
 import { TOPIC_TYPE_ENUMS, TOPIC_TYPE_ICONS, TOPIC_TYPE_NAMES } from "@/definitions/topic"
@@ -30,6 +31,7 @@ export default defineComponent({
         const setScore = (v: number | null) => emit("update", "score", v)
         const setAnnotations = (v: SimpleAnnotation[]) => emit("update", "annotations", v)
         const setParent = (v: ParentTopic | null) => emit("update", "parent", v)
+        const setMappingSourceTags = (v: SourceMappingMetaItem[]) => emit("update", "mappingSourceTags", v)
 
         const annotationTarget: Ref<AnnotationTarget> = computed(() => props.data.type === "UNKNOWN" ? "TOPIC" : props.data.type)
 
@@ -77,6 +79,10 @@ export default defineComponent({
                 <span class="label">相关链接</span>
                 <LinkEditor value={props.data.links} onUpdateValue={setLinks}/>
             </div>
+            <div class="box">
+                <span class="label">来源映射</span>
+                <SourceTagMappingEditor value={props.data.mappingSourceTags} onUpdateValue={setMappingSourceTags} direction="horizontal"/>
+            </div>
         </div>
     }
 })
@@ -91,6 +97,7 @@ export interface FormEditorData {
     description: string
     links: Link[]
     score: number | null
+    mappingSourceTags: SourceMappingMetaItem[]
 }
 
 type FormEditorProps = keyof FormEditorData

@@ -1,4 +1,4 @@
-import ViewAndEditor from "./ViewAndEditor"
+import ViewAndEditor, { VAEEditor, VAEDisplay } from "./ViewAndEditor"
 import ViewAndEditable from "./ViewAndEditable"
 import OtherNameEditor from "./OtherNameEditor"
 import LinkEditor from "./LinkEditor"
@@ -11,7 +11,7 @@ import DateEditor from "./DateEditor"
 import DescriptionEditor from "./DescriptionEditor"
 export { TagExampleEditor } from "./TagEditors"
 export { SourceIdentityEditor, SourceKeyEditor, SourceSiteSelect } from "./SourceIdentityEditors"
-export { SourceTagEditor, SourcePoolEditor, SourceRelationEditor } from "./SourceEditors"
+export { SourceTagEditor, SourceTagMappingEditor, SourcePoolEditor, SourceRelationEditor } from "./SourceEditors"
 export { SourceImageEditor, useSourceImageEditorData } from "./SourceImageEditor"
 export type { SourceImageEditorData, SourceImageEditorSetData, SourceImageEditorSetProperty } from "./SourceImageEditor"
 import type { SourceIdentity } from "./SourceIdentityEditors"
@@ -22,3 +22,4 @@ export { OtherNameEditor, LinkEditor, DescriptionEditor }
 export { AnnotationEditor, TopicEditor }
 export { TagmeEditor, DateTimeEditor, DateEditor }
 export type { SourceIdentity }
+export type { VAEEditor, VAEDisplay }

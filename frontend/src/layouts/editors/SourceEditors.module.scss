@@ -15,3 +15,48 @@
     width: 40%;
   }
 }
+
+.source-tag-mapping-editor {
+  width: 100%;
+  &.horizontal {
+    min-height: 2rem;
+    display: flex;
+    flex-wrap: nowrap;
+    > .list {
+      width: 60%;
+      max-height: 6rem;
+      overflow-y: auto;
+      padding: 0.5rem;
+      > a {
+        padding-left: 0.25rem;
+        padding-right: 0.25rem;
+        margin-right: 0.25rem;
+      }
+    }
+    > .editor {
+      width: 40%;
+      > div {
+        margin: 0.5rem;
+        padding: 0.75rem;
+      }
+    }
+  }
+  &.vertical {
+    > .list {
+      max-height: 10rem;
+      overflow-y: auto;
+      display: flex;
+      flex-wrap: nowrap;
+      flex-direction: column;
+      > a {
+        margin-bottom: 0.25rem;
+      }
+    }
+    > .editor {
+      > div {
+        margin-top: 0.25rem;
+        padding: 0.75rem;
+      }
+    }
+  }
+}

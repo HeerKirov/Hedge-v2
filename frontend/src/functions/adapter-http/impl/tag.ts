@@ -65,8 +65,8 @@ export interface TagEndpoint {
 }
 
 export interface TagExceptions {
-    "create": AlreadyExists<"Tag", "name", string> | CannotGiveColorError | ResourceNotExist<"parentId", number> | ResourceNotExist<"links" | "examples" | "annotations", number[]> | ResourceNotSuitable<"links" | "examples" | "annotations", number[]>
-    "update": NotFound | RecursiveParentError | AlreadyExists<"Tag", "name", string> | CannotGiveColorError | ResourceNotExist<"parentId", number> | ResourceNotExist<"links" | "examples" | "annotations", number[]> | ResourceNotSuitable<"links" | "examples" | "annotations", number[]>
+    "create": AlreadyExists<"Tag", "name", string> | CannotGiveColorError | ResourceNotExist<"parentId", number> | ResourceNotExist<"links" | "examples" | "annotations", number[]> | ResourceNotSuitable<"links" | "examples" | "annotations", number[]> | ResourceNotExist<"source", string>
+    "update": NotFound | RecursiveParentError | AlreadyExists<"Tag", "name", string> | CannotGiveColorError | ResourceNotExist<"parentId", number> | ResourceNotExist<"links" | "examples" | "annotations", number[]> | ResourceNotSuitable<"links" | "examples" | "annotations", number[]> | ResourceNotExist<"source", string>
     "delete": NotFound
 }
 
@@ -190,6 +190,7 @@ export interface TagCreateForm {
     description?: string
     color?: string | null
     examples?: number[] | null
+    mappingSourceTags?: SourceMappingMetaItem[] | null
 }
 
 export interface TagUpdateForm {

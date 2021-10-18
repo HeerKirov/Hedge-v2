@@ -69,8 +69,8 @@ export interface TopicEndpoint {
 }
 
 export interface TopicExceptions {
-    "create": AlreadyExists<"Topic", "name", string> | ResourceNotExist<"parentId", number> | ResourceNotExist<"annotations", number[]> | ResourceNotSuitable<"annotations", number[]> | RecursiveParentError | IllegalConstraintError<"type", "parent", TopicType[]>
-    "update": NotFound | AlreadyExists<"Topic", "name", string> | ResourceNotExist<"parentId", number> | ResourceNotExist<"annotations", number[]> | ResourceNotSuitable<"annotations", number[]> | RecursiveParentError | IllegalConstraintError<"type", "parent" | "children", TopicType[]>
+    "create": AlreadyExists<"Topic", "name", string> | ResourceNotExist<"parentId", number> | ResourceNotExist<"annotations", number[]> | ResourceNotSuitable<"annotations", number[]> | RecursiveParentError | IllegalConstraintError<"type", "parent", TopicType[]> | ResourceNotExist<"source", string>
+    "update": NotFound | AlreadyExists<"Topic", "name", string> | ResourceNotExist<"parentId", number> | ResourceNotExist<"annotations", number[]> | ResourceNotSuitable<"annotations", number[]> | RecursiveParentError | IllegalConstraintError<"type", "parent" | "children", TopicType[]> | ResourceNotExist<"source", string>
 }
 
 export type TopicType = "UNKNOWN" | "COPYRIGHT" | "WORK" | "CHARACTER"
@@ -166,6 +166,7 @@ export interface TopicCreateForm {
     annotations?: (string | number)[] | null
     favorite?: boolean
     score?: number | null
+    mappingSourceTags?: SourceMappingMetaItem[] | null
 }
 
 export interface TopicUpdateForm {

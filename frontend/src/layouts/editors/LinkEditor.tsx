@@ -5,6 +5,7 @@ import { useMessageBox } from "@/functions/module/message-box"
 import { onKeyEnter } from "@/utils/events"
 
 
+//TODO 重制：应该改成点击一个按钮追加一个空记录的做法。直接空记录填写的做法用起来容易误解
 export default defineComponent({
     props: {
         value: {type: Array as PropType<Link[]>, required: true}

@@ -83,6 +83,17 @@ export default defineComponent({
     }
 })
 
+export interface VAEDisplay<T> {
+    value: T
+    edit(): void
+}
+
+export interface VAEEditor<T> {
+    value: T
+    setValue(v: T): void
+    save(): void
+}
+
 interface SetDataFunction {
     (data: any): Promise<boolean>
 }

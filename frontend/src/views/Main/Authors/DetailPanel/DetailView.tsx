@@ -1,10 +1,12 @@
 import { defineComponent, PropType, watch } from "vue"
 import WrappedText from "@/components/elements/WrappedText"
 import Starlight from "@/components/elements/Starlight"
-import { AnnotationElement } from "@/layouts/elements"
 import TopBarTransparentLayout from "@/layouts/layouts/TopBarTransparentLayout"
+import { SourceTagMappingsDisplay } from "@/layouts/displays"
+import { AnnotationElement } from "@/layouts/elements"
 import { Link } from "@/functions/adapter-http/impl/generic"
 import { DetailAuthor, AuthorType } from "@/functions/adapter-http/impl/author"
+import { SourceMappingMetaItem } from "@/functions/adapter-http/impl/source-tag-mapping"
 import { clientMode, assetsUrl } from "@/functions/app"
 import { useMessageBox } from "@/functions/module/message-box"
 import { useElementPopupMenu } from "@/functions/module/popup-menu"
@@ -108,6 +110,7 @@ const Panel = defineComponent({
         return () => <div class={["container", "p-2", style.detailView]}>
             {data.value && <MainContent data={data.value}/>}
             {data.value?.links.length ? <LinkContent class="mb-1" links={data.value.links}/> : null}
+            {data.value?.mappingSourceTags.length ? <SourceTagMappingContent class="mb-1" mappings={data.value.mappingSourceTags}/> : null}
             {data.value && <ExampleContent name={data.value.name}/>}
         </div>
     }
@@ -186,6 +189,18 @@ const ExampleContent = defineComponent({
                 <a class="no-wrap" onClick={more}>在图库搜索"{props.name}"的全部项目<i class="fa fa-angle-double-right ml-1 mr-1"/></a>
             </div>
         </div> : <div/>
+    }
+})
+
+const SourceTagMappingContent = defineComponent({
+    props: {
+        mappings: {type: Array as PropType<SourceMappingMetaItem[]>, required: true}
+    },
+    setup(props) {
+        return () => <div class="box">
+            <span class="label">来源映射</span>
+            <SourceTagMappingsDisplay value={props.mappings} direction="horizontal"/>
+        </div>
     }
 })
 

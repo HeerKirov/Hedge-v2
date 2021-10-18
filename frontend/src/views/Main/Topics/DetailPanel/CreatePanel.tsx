@@ -130,7 +130,8 @@ function mapCreatorData(mode: Partial<DetailTopic>): CreatorData {
         links: mode.links ?? [],
         favorite: mode.favorite ?? false,
         annotations: mode.annotations ?? [],
-        score: mode.score ?? null
+        score: mode.score ?? null,
+        mappingSourceTags: mode.mappingSourceTags ?? []
     }
 }
 

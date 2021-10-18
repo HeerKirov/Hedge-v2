@@ -1,7 +1,8 @@
 import { defineComponent, PropType, reactive, ref, watch } from "vue"
 import Input from "@/components/forms/Input"
 import NumberInput from "@/components/forms/NumberInput"
-import { SourceTag } from "@/functions/adapter-http/impl/source-tag-mapping"
+import { SourceSiteSelect } from "@/layouts/editors/SourceIdentityEditors"
+import { SourceMappingMetaItem, SourceTag } from "@/functions/adapter-http/impl/source-tag-mapping"
 import { useMessageBox } from "@/functions/module/message-box"
 import style from "./SourceEditors.module.scss"
 
@@ -103,6 +104,111 @@ function SourceTagEditorItem({ value, selected }: {value: SourceTag, selected?: 
 
 function SourceTagEditorAddButton({ selected }: {selected?: boolean}) {
     return <a class={selected ? "px-1 mr-1 has-bg-link has-text-white has-radius-small" : "px-1 mr-1"}><i class="fa fa-plus mr-1"/>添加</a>
+}
+
+export const SourceTagMappingEditor = defineComponent({
+    props: {
+        value: {type: Array as PropType<SourceMappingMetaItem[]>, required: true},
+        direction: {type: String as PropType<"horizontal" | "vertical">, required: true}
+    },
+    emits: {
+        updateValue: (_: SourceMappingMetaItem[]) => true
+    },
+    setup(props, { emit }) {
+        const messageBox = useMessageBox()
+        const selected = ref<"creating" | number>()
+
+        const updateValue = (v: SourceMappingMetaItem) => {
+            if(v.name === "") {
+                messageBox.showOkMessage("prompt", "不合法的名称。", "基准名称不能为空。")
+                return false
+            }else if(props.value.find((t, i) => v.source === t.source && v.name === t.name && selected.value !== i)) {
+                messageBox.showOkMessage("prompt", "该名称已存在。", "在同一列表中创建了重名的标签。")
+                return false
+            }else if(v.source === "") {
+                messageBox.showOkMessage("prompt", "未选择来源类型。", )
+                return false
+            }
+            if(selected.value === "creating") {
+                emit("updateValue", [...props.value, v])
+            }else if(selected.value !== undefined) {
+                emit("updateValue", [...props.value.slice(0, selected.value), v, ...props.value.slice(selected.value + 1)])
+            }
+            return true
+        }
+        const del = () => {
+            if(typeof selected.value === "number") {
+                emit("updateValue", [...props.value.slice(0, selected.value), ...props.value.slice(selected.value + 1)])
+                selected.value = undefined
+            }
+        }
+
+        return () => <div class={[style.sourceTagMappingEditor, props.direction === "vertical" ? style.vertical : style.horizontal]}>
+            <div class={style.list}>
+                {props.value.map((tag, i) => <SourceTagMappingEditorItem value={tag} onClick={() => selected.value = i} selected={i === selected.value}/>)}
+                <SourceTagEditorAddButton onClick={() => selected.value = "creating"} selected={selected.value === "creating"}/>
+            </div>
+            {selected.value !== undefined && <div class={style.editor}>
+                <SourceTagMappingEditorPanel value={selected.value === "creating" ? undefined : props.value[selected.value]} onUpdateValue={updateValue} onDelete={del}/>
+            </div>}
+        </div>
+    }
+})
+
+const SourceTagMappingEditorPanel = defineComponent({
+    props: {
+        value: Object as PropType<SourceMappingMetaItem>,
+        onUpdateValue: Function as PropType<(_: SourceMappingMetaItem) => boolean>
+    },
+    emits: {
+        delete: () => true
+    },
+    setup(props, { emit }) {
+        const creating = ref(false)
+        const form = reactive({source: null as string | null, name: "", displayName: "", type: ""})
+
+        watch(() => props.value, v => {
+            form.source = v?.source ?? null
+            form.name = v?.name ?? ""
+            form.displayName = v?.displayName ?? ""
+            form.type = v?.type ?? ""
+            creating.value = !v
+        }, {immediate: true})
+
+        const updateValue = () => {
+            const ok = props.onUpdateValue?.({
+                source: form.source || "",
+                name: form.name.trim(),
+                displayName: form.displayName.trim() || null,
+                type: form.type.trim()
+            })
+            if(ok) {
+                form.name = ""
+                form.displayName = ""
+                form.type = ""
+            }
+        }
+        const del = () => emit("delete")
+
+        return () => <div class="block">
+            <SourceSiteSelect class="mb-1 is-small" value={form.source} onUpdateValue={v => form.source = v}/>
+            <Input class="is-fullwidth is-small mb-1" placeholder="基准名称" value={form.name} onUpdateValue={v => form.name = v ?? ""}/>
+            <Input class="is-fullwidth is-small mb-1" placeholder="标示名称" value={form.displayName} onUpdateValue={v => form.displayName = v ?? ""}/>
+            <Input class="is-fullwidth is-small mb-2" placeholder="分类" value={form.type} onUpdateValue={v => form.type = v ?? ""}/>
+            <button class="button is-small is-shallow-bg" onClick={updateValue}>
+                <span class="icon"><i class="fa fa-check"/></span><span>确定</span>
+            </button>
+            {!creating.value && <button class="button is-small is-shallow-bg has-text-danger float-right" onClick={del}>
+                <span class="icon"><i class="fa fa-trash"/></span><span>删除</span>
+            </button>}
+        </div>
+    }
+})
+
+function SourceTagMappingEditorItem({ value, selected }: {value: SourceMappingMetaItem, selected?: boolean}) {
+    return <a class={selected ? " has-bg-link has-text-white has-radius-small" : ""}>
+        ·<span class="has-text-grey">[{value.source}]</span><b>{value.name}</b>
+    </a>
 }
 
 export const SourcePoolEditor = defineComponent({

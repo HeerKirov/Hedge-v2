@@ -60,8 +60,8 @@ export interface AuthorEndpoint {
 }
 
 export interface AuthorExceptions {
-    "create": AlreadyExists<"Author", "name", string> | ResourceNotExist<"annotations", number[]> | ResourceNotSuitable<"annotations", number[]>
-    "update": NotFound | AlreadyExists<"Author", "name", string> | ResourceNotExist<"annotations", number[]> | ResourceNotSuitable<"annotations", number[]>
+    "create": AlreadyExists<"Author", "name", string> | ResourceNotExist<"annotations", number[]> | ResourceNotSuitable<"annotations", number[]> | ResourceNotExist<"source", string>
+    "update": NotFound | AlreadyExists<"Author", "name", string> | ResourceNotExist<"annotations", number[]> | ResourceNotSuitable<"annotations", number[]> | ResourceNotExist<"source", string>
 }
 
 export type AuthorType = "UNKNOWN" | "ARTIST" | "STUDIO" | "PUBLISH"
@@ -145,6 +145,7 @@ export interface AuthorCreateForm {
     annotations?: (string | number)[] | null
     favorite?: boolean
     score?: number | null
+    mappingSourceTags?: SourceMappingMetaItem[] | null
 }
 
 export interface AuthorUpdateForm {

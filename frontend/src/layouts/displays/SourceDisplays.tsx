@@ -1,6 +1,6 @@
 import { computed, defineComponent, PropType } from "vue"
 import { useSettingSite } from "@/functions/api/setting"
-import { SourceTag } from "@/functions/adapter-http/impl/source-tag-mapping"
+import { SourceMappingMetaItem, SourceTag } from "@/functions/adapter-http/impl/source-tag-mapping"
 
 /**
  * 来源信息展示条。显示来源site、id和part。适用于侧边栏。
@@ -70,4 +70,19 @@ function SourceTagDisplayItem({ value }: {value: SourceTag}) {
         <i class="fa fa-tag mr-2"/>
         <a><b>{value.name}</b>{value.displayName !== null && ` (${value.displayName})`}</a>
     </p>
+}
+
+/**
+ * 显示source tag mappings信息。
+ */
+export function SourceTagMappingsDisplay({ value, direction }: {value: SourceMappingMetaItem[], direction: "horizontal" | "vertical"}) {
+    return value.length ? <div class="can-be-selected has-text-link">
+        {direction === "vertical" ? value.map(tag => <p class="mb-1">
+            ·<span class="has-text-grey">[{tag.source}]</span><b>{tag.name}</b>{tag.displayName ? ` (${tag.displayName})` : null}
+        </p>) : value.map(tag => <span class="mb-1 mx-1">
+            ·<span class="has-text-grey">[{tag.source}]</span><b>{tag.name}</b>{tag.displayName ? ` (${tag.displayName})` : null}
+        </span>)}
+    </div> : <div>
+        <i class="has-text-grey">没有标签映射</i>
+    </div>
 }

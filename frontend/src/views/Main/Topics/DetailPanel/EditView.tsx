@@ -22,7 +22,8 @@ export default defineComponent({
             keywords: data.value.keywords,
             description: data.value.description,
             links: data.value.links,
-            score: data.value.score
+            score: data.value.score,
+            mappingSourceTags: data.value.mappingSourceTags
         }))
 
         function update<T extends EditorProps>(key: T, value: FormEditorData[T]) {
@@ -39,7 +40,8 @@ export default defineComponent({
                     annotations: !objects.deepEquals(editorData.value.annotations.map(i => i.id), data.value.annotations.map(i => i.id)) ? editorData.value.annotations.map(i => i.id) : undefined,
                     keywords: !objects.deepEquals(editorData.value.keywords, data.value.keywords) ? editorData.value.keywords : undefined,
                     description: editorData.value.description !== data.value.description ? editorData.value.description : undefined,
-                    score: editorData.value.score !== data.value.score ? editorData.value.score : undefined
+                    score: editorData.value.score !== data.value.score ? editorData.value.score : undefined,
+                    mappingSourceTags: !objects.deepEquals(editorData.value.mappingSourceTags, data.value.mappingSourceTags) ? editorData.value.mappingSourceTags : undefined
                 }
                 if(editorData.value.name !== data.value.name) {
                     if(!checkTagName(editorData.value.name)) {
