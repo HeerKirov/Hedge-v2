@@ -30,7 +30,7 @@ export default defineComponent({
 
         //TODO test code
         watch(() => dataView.data.value.metrics.total, v => {
-            if(v !== undefined) openMethod.enterToOpenDetail(70)
+            if(v !== undefined) openMethod.enterToOpenDetail(83)
         })
 
         return () => <IllustGrid data={markRaw(dataView.data.value)} onDataUpdate={dataView.dataUpdate} draggable={true}

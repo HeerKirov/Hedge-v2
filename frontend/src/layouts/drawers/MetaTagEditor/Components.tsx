@@ -1,9 +1,10 @@
-import { defineComponent, PropType, ref } from "vue"
+import { defineComponent, PropType, Ref, ref, toRef } from "vue"
 import CheckBox from "@/components/forms/CheckBox"
 import { SimpleTopic } from "@/functions/adapter-http/impl/topic"
 import { SimpleAuthor } from "@/functions/adapter-http/impl/author"
 import { SimpleTag } from "@/functions/adapter-http/impl/tag"
 import { MetaTagTypes, MetaTagTypeValues, MetaTagValues } from "@/functions/adapter-http/impl/all"
+import { BatchQueryResult, SourceMappingTargetDetail } from "@/functions/adapter-http/impl/source-tag-mapping"
 import { SimpleMetaTagElement } from "@/layouts/elements"
 import { useMetaTagCallout } from "@/layouts/data/MetaTagCallout"
 import { usePanelContext } from "./inject"
@@ -18,7 +19,7 @@ export const MetaTagSelectList = defineComponent({
     setup(props) {
         const { typeFilter } = usePanelContext()
 
-        const { selectedAuthors, selectedTopics, selectedTags, selectAll, selectReverse, addAll } = useSelectListContext(props)
+        const { selectedAuthors, selectedTopics, selectedTags, selectAll, selectReverse, addAll } = useMetaTagSelectListContext(props)
 
         return () => <>
             <div class={style.suggest}>
@@ -40,7 +41,7 @@ export const MetaTagSelectList = defineComponent({
                     <span class="icon"><i class="far fa-check-square"/></span><span>反选</span>
                 </button>
                 <button class="button is-link float-right" onClick={addAll}>
-                    <span class="icon"><i class="fa fa-save"/></span><span>添加所选项</span>
+                    <span class="icon"><i class="fa fa-check-circle"/></span><span>添加所选项</span>
                 </button>
             </div>
         </>
@@ -67,7 +68,7 @@ const MetaTagSelectItem = defineComponent({
     }
 })
 
-function useSelectListContext(props: {tags: SimpleTag[], topics: SimpleTopic[], authors: SimpleAuthor[]}) {
+function useMetaTagSelectListContext(props: {tags: SimpleTag[], topics: SimpleTopic[], authors: SimpleAuthor[]}) {
     const { typeFilter, editorData } = usePanelContext()
 
     const selectedAuthors = ref<Record<number, boolean>>({})
@@ -134,4 +135,89 @@ function useSelectListContext(props: {tags: SimpleTag[], topics: SimpleTopic[], 
     }
 
     return {selectedAuthors, selectedTopics, selectedTags, selectAll, selectReverse, addAll}
+}
+
+export const MappingTagSelectList = defineComponent({
+    props: {
+        mappings: {type: Array as PropType<BatchQueryResult[]>, required: true},
+        selected: {type: Boolean, default: true}
+    },
+    setup(props) {
+        //TODO 按typeFilter过滤最终显示的内容
+        //      对于没有内容的项，禁用掉选择器
+        //      对于没有内容的项，添加一个edit按钮；对于所有项添加一个右键编辑菜单；打开遮罩版面以编辑source tag mapping
+        const { typeFilter } = usePanelContext()
+        const { selected, selectAll, selectReverse, addAll } = useMappingTagSelectListContext(toRef(props, "mappings"))
+
+        return () => <>
+            <div class={style.derive}>
+                <table>
+                    <tbody>
+                        {props.mappings.map(mapping => (
+                            <MappingTagSelectItem key={`${mapping.source}-${mapping.tagName}`} mapping={mapping}
+                                                  selected={selected.value[`${mapping.source}-${mapping.tagName}`]}
+                                                  onUpdateSelected={v => selected.value[`${mapping.source}-${mapping.tagName}`] = v}/>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+            <div class={style.toolBar}>
+                <button class="button is-white has-text-link" onClick={selectAll}>
+                    <span class="icon"><i class="fa fa-check-square"/></span><span>全选</span>
+                </button>
+                <button class="button is-white has-text-link" onClick={selectReverse}>
+                    <span class="icon"><i class="far fa-check-square"/></span><span>反选</span>
+                </button>
+                <button class="button is-link float-right" onClick={addAll}>
+                    <span class="icon"><i class="fa fa-check-circle"/></span><span>添加所选项</span>
+                </button>
+            </div>
+        </>
+    }
+})
+
+const MappingTagSelectItem = defineComponent({
+    props: {
+        mapping: {type: Object as PropType<BatchQueryResult>, required: true},
+        selected: {type: Boolean, default: true}
+    },
+    emits: {
+        updateSelected: (_: boolean) => true
+    },
+    setup(props, { emit }) {
+        const metaTagCallout = useMetaTagCallout()
+        const onClick = (s: SourceMappingTargetDetail) => (e: MouseEvent) => metaTagCallout.open((e.currentTarget as Element).getBoundingClientRect(), s.metaType.toLowerCase() as MetaTagTypes, s.metaTag.id)
+
+        return () => <tr>
+            <td><CheckBox value={props.selected} onUpdateValue={v => emit("updateSelected", v)}/></td>
+            <td class="has-text-link is-size-small">{props.mapping.tagName}</td>
+            <td>{props.mapping.mappings.map(metaTag => <SimpleMetaTagElement class="mr-1" type={metaTag.metaType.toLowerCase() as MetaTagTypes} value={metaTag.metaTag} draggable={true} onClick={onClick(metaTag)}/>)}</td>
+        </tr>
+    }
+})
+
+function useMappingTagSelectListContext(mappings: Ref<BatchQueryResult[]>) {
+    const { typeFilter, editorData } = usePanelContext()
+
+    const selected = ref<Record<`${string}-${string}`, boolean>>({})
+
+    //TODO 这个比较麻烦的点是根据typeFilter判定哪些是要操作的项
+
+    const selectAll = () => {
+
+    }
+
+    const selectNone = () => {
+
+    }
+
+    const selectReverse = () => {
+
+    }
+
+    const addAll = () => {
+
+    }
+
+    return {selected, selectAll, selectReverse, addAll}
 }

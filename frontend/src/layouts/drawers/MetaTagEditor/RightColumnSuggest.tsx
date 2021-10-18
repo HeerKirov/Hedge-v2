@@ -13,12 +13,14 @@ export default defineComponent({
         const selectedIndex = ref<number>(0)
         const selectedSuggestion = computed<{topics: SimpleTopic[], authors: SimpleAuthor[], tags: SimpleTag[]} | undefined>(() => suggestions.value[selectedIndex.value])
 
-        return () => <>
+        return () => selectList.value.length ? <>
             <div class="mx-1">
                 <Select class="is-small" items={selectList.value} value={selectList.value[selectedIndex.value]?.value} onUpdateValue={(_, i) => selectedIndex.value = i}/>
             </div>
             <MetaTagSelectList topics={selectedSuggestion.value?.topics ?? []} authors={selectedSuggestion.value?.authors ?? []} tags={selectedSuggestion.value?.tags ?? []}/>
-        </>
+        </> : <div class="has-text-centered">
+            <i class="has-text-grey">没有可用于建议的相关项目</i>
+        </div>
     }
 })
 

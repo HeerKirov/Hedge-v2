@@ -124,6 +124,12 @@
       }
     }
 
+    > .derive {
+      height: 100%;
+      overflow-y: auto;
+      padding: 0.5rem 0 0.5rem 0.75rem;
+    }
+
     > .tool-bar {
       margin: $spacing-1 $spacing-4 $spacing-4 $spacing-1;
     }
