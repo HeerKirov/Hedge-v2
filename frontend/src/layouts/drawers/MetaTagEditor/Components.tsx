@@ -5,6 +5,7 @@ import { SimpleAuthor } from "@/functions/adapter-http/impl/author"
 import { SimpleTag } from "@/functions/adapter-http/impl/tag"
 import { MetaTagTypes, MetaTagTypeValues, MetaTagValues } from "@/functions/adapter-http/impl/all"
 import { BatchQueryResult, SourceMappingTargetDetail } from "@/functions/adapter-http/impl/source-tag-mapping"
+import { usePopupMenu } from "@/functions/module/popup-menu"
 import { SimpleMetaTagElement } from "@/layouts/elements"
 import { useMetaTagCallout } from "@/layouts/data/MetaTagCallout"
 import { usePanelContext } from "./inject"
@@ -143,9 +144,6 @@ export const MappingTagSelectList = defineComponent({
         selected: {type: Boolean, default: true}
     },
     setup(props) {
-        //TODO 按typeFilter过滤最终显示的内容
-        //      对于没有内容的项，禁用掉选择器
-        //      对于没有内容的项，添加一个edit按钮；对于所有项添加一个右键编辑菜单；打开遮罩版面以编辑source tag mapping
         const { typeFilter } = usePanelContext()
         const { selected, selectAll, selectReverse, addAll } = useMappingTagSelectListContext(toRef(props, "mappings"))
 
@@ -154,7 +152,7 @@ export const MappingTagSelectList = defineComponent({
                 <table>
                     <tbody>
                         {props.mappings.map(mapping => (
-                            <MappingTagSelectItem key={`${mapping.source}-${mapping.tagName}`} mapping={mapping}
+                            <MappingTagSelectItem key={`${mapping.source}-${mapping.tagName}`} mappings={mapping.mappings} tagName={mapping.tagName}
                                                   selected={selected.value[`${mapping.source}-${mapping.tagName}`]}
                                                   onUpdateSelected={v => selected.value[`${mapping.source}-${mapping.tagName}`] = v}/>
                         ))}
@@ -178,45 +176,96 @@ export const MappingTagSelectList = defineComponent({
 
 const MappingTagSelectItem = defineComponent({
     props: {
-        mapping: {type: Object as PropType<BatchQueryResult>, required: true},
+        tagName: {type: String, required: true},
+        mappings: {type: Object as PropType<SourceMappingTargetDetail[]>, required: true},
         selected: {type: Boolean, default: true}
     },
     emits: {
         updateSelected: (_: boolean) => true
     },
     setup(props, { emit }) {
+        const { typeFilter } = usePanelContext()
         const metaTagCallout = useMetaTagCallout()
         const onClick = (s: SourceMappingTargetDetail) => (e: MouseEvent) => metaTagCallout.open((e.currentTarget as Element).getBoundingClientRect(), s.metaType.toLowerCase() as MetaTagTypes, s.metaTag.id)
 
+        const menu = usePopupMenu([
+            { type: "normal", label: "编辑映射" }
+        ])
+
+        //TODO 对于没有内容的项，添加一个edit按钮；对于所有项添加一个右键编辑菜单；点击切换编辑面板，可拖放到此
+        //      需要为topics/authors列表添加拖拽功能
         return () => <tr>
-            <td><CheckBox value={props.selected} onUpdateValue={v => emit("updateSelected", v)}/></td>
-            <td class="has-text-link is-size-small">{props.mapping.tagName}</td>
-            <td>{props.mapping.mappings.map(metaTag => <SimpleMetaTagElement class="mr-1" type={metaTag.metaType.toLowerCase() as MetaTagTypes} value={metaTag.metaTag} draggable={true} onClick={onClick(metaTag)}/>)}</td>
+            <td><CheckBox disabled={props.mappings.length <= 0} value={props.selected}
+                          onUpdateValue={v => emit("updateSelected", v)}/></td>
+            <td class="has-text-link is-size-small">{props.tagName}</td>
+            <td onContextmenu={() => menu.popup()}>
+                {props.mappings.length > 0
+                    ? props.mappings.map(metaTag => {
+                        const type = metaTag.metaType.toLowerCase() as MetaTagTypes
+                        if (typeFilter.value[type]) {
+                            return <SimpleMetaTagElement class="mr-1" type={metaTag.metaType.toLowerCase() as MetaTagTypes} value={metaTag.metaTag} draggable={true} onClick={onClick(metaTag)}/>
+                        } else {
+                            return <SimpleMetaTagElement class="mr-1" type={metaTag.metaType.toLowerCase() as MetaTagTypes} value={{...metaTag.metaTag, color: ""}}/>
+                        }
+                    })
+                    : <a class="tag"><i class="fa fa-plus mr-1"/>编辑映射</a>}
+            </td>
         </tr>
     }
 })
 
-function useMappingTagSelectListContext(mappings: Ref<BatchQueryResult[]>) {
-    const { typeFilter, editorData } = usePanelContext()
+function useMappingTagSelectListContext(list: Ref<BatchQueryResult[]>) {
+    const { editorData, typeFilter } = usePanelContext()
 
     const selected = ref<Record<`${string}-${string}`, boolean>>({})
 
-    //TODO 这个比较麻烦的点是根据typeFilter判定哪些是要操作的项
-
     const selectAll = () => {
-
+        selected.value = {}
     }
 
     const selectNone = () => {
-
+        for (const { source, tagName } of list.value) {
+            selected.value[`${source}-${tagName}`] = false
+        }
     }
 
     const selectReverse = () => {
-
+        for (const { source, tagName } of list.value) {
+            const key = `${source}-${tagName}`
+            if(selected.value[key] === false) {
+                delete selected.value[key]
+            }else{
+                selected.value[key] = false
+            }
+        }
     }
 
     const addAll = () => {
-
+        const addList: MetaTagTypeValues[] = []
+        for (const { source, tagName, mappings } of list.value) {
+            const key = `${source}-${tagName}`
+            if(selected.value[key] !== false) {
+                for (const meta of mappings) {
+                    if(meta.metaType === "AUTHOR") {
+                        if(typeFilter.value.author) {
+                            addList.push({type: "author", value: meta.metaTag})
+                        }
+                    }else if(meta.metaType === "TOPIC") {
+                        if(typeFilter.value.topic) {
+                            addList.push({type: "topic", value: meta.metaTag})
+                        }
+                    }else if(meta.metaType === "TAG") {
+                        if(typeFilter.value.tag) {
+                            addList.push({type: "tag", value: meta.metaTag})
+                        }
+                    }
+                }
+            }
+        }
+        if(addList.length) {
+            editorData.addAll(addList)
+            selectNone()
+        }
     }
 
     return {selected, selectAll, selectReverse, addAll}
