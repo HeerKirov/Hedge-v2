@@ -9,9 +9,9 @@ import { usePanelContext } from "./inject"
 
 export default defineComponent({
     setup() {
-        const { derives } = useSourceDeriveItems()
+        const { source, derives, refresh } = useSourceDeriveItems()
 
-        return () => <MappingTagSelectList mappings={derives.value}/>
+        return () => <MappingTagSelectList source={source.value} mappings={derives.value} onUpdated={refresh}/>
     }
 })
 
@@ -20,36 +20,50 @@ function useSourceDeriveItems() {
     const httpClient = useHttpClient()
     const { identity } = usePanelContext()
 
+    const source = ref<string>()
     const derives = ref<BatchQueryResult[]>([])
+
+    const loadDerives = async () => {
+        const sourceDataRes = await httpClient.illust.image.originData.get(identity.value!.id)
+        if(!sourceDataRes.ok) {
+            toast.handleException(sourceDataRes.exception)
+            derives.value = []
+            return
+        }
+        if(sourceDataRes.data.source === null || !sourceDataRes.data.tags?.length) {
+            derives.value = []
+            return
+        }
+        source.value = sourceDataRes.data.source
+        const res = await httpClient.sourceTagMapping.batchQuery({source: sourceDataRes.data.source, tagNames: sourceDataRes.data.tags.map(i => i.name)})
+        if(!res.ok) {
+            toast.handleException(res.exception)
+            derives.value = []
+            return
+        }
+        derives.value = sortDerives(res.data)
+    }
+
+    const refresh = () => {
+        if(identity.value !== null && identity.value.type === "IMAGE") {
+            loadDerives().finally()
+        }else{
+            derives.value = []
+        }
+    }
 
     watch(identity, async (identity, old) => {
         if(identity !== null && identity.type === "IMAGE") {
             //确认首次执行，或identity实质未变
             if(old === undefined || !objects.deepEquals(identity, old)) {
-                const sourceDataRes = await httpClient.illust.image.originData.get(identity.id)
-                if(!sourceDataRes.ok) {
-                    toast.handleException(sourceDataRes.exception)
-                    derives.value = []
-                    return
-                }
-                if(sourceDataRes.data.source === null || !sourceDataRes.data.tags?.length) {
-                    derives.value = []
-                    return
-                }
-                const res = await httpClient.sourceTagMapping.batchQuery({source: sourceDataRes.data.source, tagNames: sourceDataRes.data.tags.map(i => i.name)})
-                if(!res.ok) {
-                    toast.handleException(res.exception)
-                    derives.value = []
-                    return
-                }
-                derives.value = sortDerives(res.data)
+                await loadDerives()
             }
         }else{
             derives.value = []
         }
     }, {immediate: true})
 
-    return {derives}
+    return {source, derives, refresh}
 }
 
 function sortDerives(sourceTags: BatchQueryResult[]): BatchQueryResult[] {

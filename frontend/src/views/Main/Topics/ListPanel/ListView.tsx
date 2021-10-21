@@ -1,6 +1,7 @@
-import { defineComponent, PropType, ref, watchEffect } from "vue"
+import { computed, defineComponent, PropType, ref, watchEffect } from "vue"
 import { useMessageBox } from "@/functions/module/message-box"
 import { usePopupMenu } from "@/functions/module/popup-menu"
+import { useDraggable } from "@/functions/feature/drag"
 import { useMouseHover } from "@/functions/utils/element"
 import { useFastObjectEndpoint } from "@/functions/utils/endpoints/object-fast-endpoint"
 import { SimpleAnnotation } from "@/functions/adapter-http/impl/annotations"
@@ -124,9 +125,16 @@ const Item = defineComponent({
 
         const { hover, ...hoverEvents } = useMouseHover()
 
+        const dragEvents = useDraggable("topic", computed(() => ({
+            id: props.value.id,
+            name: props.value.name,
+            type: props.value.type,
+            color: props.value.color
+        })))
+
         return () => <tr onContextmenu={rightClick} {...hoverEvents} style="height: 50px">
             <td class="is-width-45 is-cursor-pointer" onClick={click}>
-                <span class={`has-text-${props.value.color}`}>{props.value.name}</span>
+                <span class={`has-text-${props.value.color}`} draggable={true} {...dragEvents}>{props.value.name}</span>
                 {(props.value.otherNames?.length || null) && <p class="has-text-grey">
                     ({generateOtherNames(props.value.otherNames)})
                 </p>}

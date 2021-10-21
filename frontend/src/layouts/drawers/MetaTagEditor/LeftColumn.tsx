@@ -17,6 +17,7 @@ export default defineComponent({
                 <AuthorItems/>
                 <TopicItems/>
                 <TagItems/>
+                <ExportedItems/>
             </div>
             <ValidationResult/>
             <ToolBar/>
@@ -29,7 +30,7 @@ const AuthorItems = defineComponent({
         const { typeFilter, editorData } = usePanelContext()
 
         return () => typeFilter.value.author ? editorData.authors.value.map((author, i) => (
-            <EditorItem key={author.id} value={{type: "author", value: author}}
+            <EditorItem key={author.id} value={{type: "author", value: author}} showCloseButton={true}
                         onClose={() => editorData.removeAt("author", i)}/>
         )) : undefined
     }
@@ -40,7 +41,7 @@ const TopicItems = defineComponent({
         const { typeFilter, editorData } = usePanelContext()
 
         return () => typeFilter.value.topic ? editorData.topics.value.map((topic, i) => (
-            <EditorItem key={topic.id} value={{type: "topic", value: topic}}
+            <EditorItem key={topic.id} value={{type: "topic", value: topic}} showCloseButton={true}
                         onClose={() => editorData.removeAt("topic", i)}/>
         )) : undefined
     }
@@ -51,17 +52,35 @@ const TagItems = defineComponent({
         const { typeFilter, editorData } = usePanelContext()
 
         return () => typeFilter.value.tag ? editorData.tags.value.map((tag, i) => (
-            <EditorItem key={tag.id} value={{type: "tag", value: tag}}
+            <EditorItem key={tag.id} value={{type: "tag", value: tag}} showCloseButton={true}
                         onClose={() => editorData.removeAt("tag", i)}/>
         )) : undefined
     }
 })
 
+const ExportedItems = defineComponent({
+    setup() {
+        const { editorData: { validation: { exportedResults } } } = usePanelContext()
+
+        return () => (exportedResults.value.tags.length > 0 
+        || exportedResults.value.topics.length > 0 
+        || exportedResults.value.authors.length > 0) && <>
+            <label class="label">导出项</label>
+            {exportedResults.value.authors.map(author => <EditorItem key={`author-${author.id}`} value={{type: "author", value: author}}/>)}
+            {exportedResults.value.topics.map(topic => <EditorItem key={`topic-${topic.id}`} value={{type: "topic", value: topic}}/>)}
+            {exportedResults.value.tags.map(tag => <EditorItem key={`tag-${tag.id}`} value={{type: "tag", value: tag}}/>)}
+        </>
+    }
+})
+
 const EditorItem = defineComponent({
     props: {
-        value: {type: Object as PropType<MetaTagTypeValues>, required: true}
+        value: {type: Object as PropType<MetaTagTypeValues>, required: true},
+        showCloseButton: Boolean
     },
-    emits: ["close"],
+    emits: {
+        close: () => true
+    },
     setup(props, { emit }) {
         const metaTagCallout = useMetaTagCallout()
 
@@ -69,30 +88,30 @@ const EditorItem = defineComponent({
             metaTagCallout.open((e.currentTarget as Element).getBoundingClientRect(), props.value.type, props.value.value.id)
         }
 
-        return () => <SimpleMetaTagElement class={style.tagItem} {...props.value} wrappedByDiv={true} onClick={click} v-slots={{
+        return props.showCloseButton ? () => <SimpleMetaTagElement class={style.tagItem} {...props.value} wrappedByDiv={true} onClick={click} v-slots={{
             backOfWrap: () => <a class={["tag", `is-${props.value.value.color}`, style.closeButton]} onClick={() => emit("close")}><i class="fa fa-times"/></a>
-        }}/>
+        }}/> : () => <SimpleMetaTagElement class={style.tagItem} {...props.value} wrappedByDiv={true} onClick={click}/>
     }
 })
 
 const ValidationResult = defineComponent({
     setup() {
-        const { editorData: { validation: { tagValidationResults } } } = usePanelContext()
+        const { editorData: { validation: { validationResults } } } = usePanelContext()
 
-        return () => tagValidationResults.value && <div class={style.notificationList}>
-            {tagValidationResults.value.notSuitable.map(item => <div class="mb-1">
+        return () => validationResults.value && <div class={style.notificationList}>
+            {validationResults.value.notSuitable.map(item => <div class="mb-1">
                 <i class="fa fa-exclamation has-text-danger mr-1"/>
                 标签
                 <span class={`tag is-${item.color} is-light mx-1`}>{item.name}</span>
                 不能被用作关联对象，它的类型是地址段。
             </div>)}
-            {tagValidationResults.value.forceConflictingMembers.map(item => <div class="mb-1">
+            {validationResults.value.forceConflictingMembers.map(item => <div class="mb-1">
                 <i class="fa fa-exclamation has-text-danger mr-1"/>
                 <span class="mr-1">标签</span>
                 {item.members.map(member => <span class={`tag is-${member.color} mr-1`}>{member.name}</span>)}
                 不能被同时应用于一个项目，它们隶属同一个强制冲突组<span class={`tag is-${item.group.color} mr-1`}>{item.group.name}</span>。
             </div>)}
-            {tagValidationResults.value.conflictingMembers.map(item => <div class="mb-1">
+            {validationResults.value.conflictingMembers.map(item => <div class="mb-1">
                 <i class="fa fa-exclamation has-text-warning mr-1"/>
                 <span class="mr-1">标签</span>
                 {item.members.map(member => <span class={`tag is-${member.color} mr-1`}>{member.name}</span>)}

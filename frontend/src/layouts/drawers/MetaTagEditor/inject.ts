@@ -1,4 +1,4 @@
-import { computed, reactive, readonly, ref, Ref, watch } from "vue"
+import { computed, onMounted, reactive, readonly, ref, Ref, watch } from "vue"
 import { HttpClient } from "@/functions/adapter-http"
 import { ConflictingGroupMembersError, NotFound, ResourceNotExist, ResourceNotSuitable } from "@/functions/adapter-http/exception"
 import { Tagme } from "@/functions/adapter-http/impl/illust"
@@ -162,7 +162,7 @@ function useEditorData(context: InstallPanelContext) {
 
     const { record: addHistoryRecord, recordsHistory, ...history } = useEditorDataHistory(tags, topics, authors, context.data)
 
-    const validation = useEditorDataValidation(tags, context.data)
+    const validation = useEditorDataValidation(tags, topics, authors, context.data)
 
     const save = useSaveMethod(tags, topics, authors, tagme, changed, validation, recordsHistory, context)
 
@@ -182,8 +182,8 @@ function useSaveMethod(tags: Ref<SimpleTag[]>,
 
     const canSave = computed(() =>
         (changed.tag || changed.topic || changed.author || changed.tagme) &&
-        (validation.tagValidationResults.value == undefined ||
-            (!validation.tagValidationResults.value.forceConflictingMembers.length && !validation.tagValidationResults.value.notSuitable.length))
+        (validation.validationResults.value == undefined ||
+            (!validation.validationResults.value.forceConflictingMembers.length && !validation.validationResults.value.notSuitable.length))
     )
 
     const save = async () => {
@@ -239,37 +239,85 @@ function useSaveMethod(tags: Ref<SimpleTag[]>,
     return {canSave, save}
 }
 
-function useEditorDataValidation(tags: Ref<SimpleTag[]>, data: Ref<EditorData | null>) {
+function useEditorDataValidation(tags: Ref<SimpleTag[]>, topics: Ref<SimpleTopic[]>, authors: Ref<SimpleAuthor[]>, data: Ref<EditorData | null>) {
     const httpClient = useHttpClient()
     const toast = useToast()
 
-    const tagValidationResults = ref<MetaUtilValidation>()
+    const validationResults = ref<{
+        notSuitable: MetaUtilValidation["notSuitable"],
+        conflictingMembers: MetaUtilValidation["conflictingMembers"],
+        forceConflictingMembers: MetaUtilValidation["forceConflictingMembers"]
+    }>()
+    const exportedResults = ref<{
+        tags: SimpleTag[],
+        topics: SimpleTopic[],
+        authors: SimpleAuthor[]
+    }>({tags: [], topics: [], authors: []})
 
-    watch(tags, async (tags, _, onInvalidate) => {
-        if(tags.length) {
+    const validateFlag = ref({tag: false, topic: false, author: false})
+    
+    watch(tags, () => validateFlag.value.tag = true, {deep: true})
+    watch(topics, () => validateFlag.value.topic = true, {deep: true})
+    watch(authors, () => validateFlag.value.author = true, {deep: true})
+    
+    watch(validateFlag, async (flag, __, onInvalidate) => {
+        if(flag.tag || flag.topic || flag.author) {
             let invalidate = false
             onInvalidate(() => invalidate = true)
 
-            await sleep(1000)
+            await sleep(500)
             if(invalidate) return
 
-            const res = await httpClient.metaUtil.validate({tags: tags.map(t => t.id), topics: null, authors: null})
-            if(invalidate) return
+            validate(flag).finally()
+            validateFlag.value = {tag: false, topic: false, author: false}
+        }
+    }, {deep: true})
 
-            if(res.ok) {
-                tagValidationResults.value = res.data
-            }else{
-                tagValidationResults.value = undefined
-                toast.handleException(res.exception)
+    onMounted(() => {
+        if(tags.value.length || topics.value.length || authors.value.length) {
+            validate({tag: tags.value.length > 0, topic: topics.value.length > 0, author: authors.value.length > 0}).finally()
+        }
+    })
+
+    const validate = async (flag: {tag: boolean, topic: boolean, author: boolean}) => {
+        const res = await httpClient.metaUtil.validate({
+            tags: flag.tag ? tags.value.map(t => t.id) : null, 
+            topics: flag.topic ? topics.value.map(t => t.id) : null,
+            authors: flag.author ? authors.value.map(t => t.id) : null
+        })
+        if(res.ok) {
+            if(flag.tag) {
+                validationResults.value = {
+                    notSuitable: res.data.notSuitable,
+                    conflictingMembers: res.data.conflictingMembers,
+                    forceConflictingMembers: res.data.forceConflictingMembers
+                }
+                exportedResults.value.tags = res.data.tags.filter(i => i.isExported)
+            }
+            if(flag.topic) {
+                exportedResults.value.topics = res.data.topics.filter(i => i.isExported)
+            }
+            if(flag.author) {
+                exportedResults.value.authors = res.data.authors.filter(i => i.isExported)
             }
         }else{
-            tagValidationResults.value = undefined
+            if(flag.tag) {
+                validationResults.value = undefined
+                exportedResults.value.tags = []
+            }
+            if(flag.topic) {
+                exportedResults.value.topics = []
+            }
+            if(flag.author) {
+                exportedResults.value.authors = []
+            }
+            toast.handleException(res.exception)
         }
-    }, {immediate: true, deep: true})
+    }
 
-    watch(data, () => tagValidationResults.value = undefined)
+    watch(data, () => validationResults.value = undefined)
 
-    return {tagValidationResults}
+    return {validationResults, exportedResults}
 }
 
 function useEditorDataHistory(tags: Ref<SimpleTag[]>, topics: Ref<SimpleTopic[]>, authors: Ref<SimpleAuthor[]>, data: Ref<EditorData | null>) {

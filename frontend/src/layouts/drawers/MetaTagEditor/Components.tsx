@@ -3,11 +3,17 @@ import CheckBox from "@/components/forms/CheckBox"
 import { SimpleTopic } from "@/functions/adapter-http/impl/topic"
 import { SimpleAuthor } from "@/functions/adapter-http/impl/author"
 import { SimpleTag } from "@/functions/adapter-http/impl/tag"
+import { MetaType } from "@/functions/adapter-http/impl/generic"
 import { MetaTagTypes, MetaTagTypeValues, MetaTagValues } from "@/functions/adapter-http/impl/all"
 import { BatchQueryResult, SourceMappingTargetDetail } from "@/functions/adapter-http/impl/source-tag-mapping"
+import { useHttpClient } from "@/functions/app"
+import { useToast } from "@/functions/module/toast"
 import { usePopupMenu } from "@/functions/module/popup-menu"
-import { SimpleMetaTagElement } from "@/layouts/elements"
+import { writeClipboard } from "@/functions/module/others"
+import { useDroppable } from "@/functions/feature/drag"
+import { useMutableComputed } from "@/functions/utils/basic"
 import { useMetaTagCallout } from "@/layouts/data/MetaTagCallout"
+import { SimpleMetaTagElement } from "@/layouts/elements"
 import { usePanelContext } from "./inject"
 import style from "./style.module.scss"
 
@@ -140,21 +146,38 @@ function useMetaTagSelectListContext(props: {tags: SimpleTag[], topics: SimpleTo
 
 export const MappingTagSelectList = defineComponent({
     props: {
+        source: String,
         mappings: {type: Array as PropType<BatchQueryResult[]>, required: true},
         selected: {type: Boolean, default: true}
     },
-    setup(props) {
-        const { typeFilter } = usePanelContext()
+    emits: {
+        updated: () => true
+    },
+    setup(props, { emit }) {
+        const toast = useToast()
+        const httpClient = useHttpClient()
         const { selected, selectAll, selectReverse, addAll } = useMappingTagSelectListContext(toRef(props, "mappings"))
+
+        const onUpdateMappings = ({ tagName }: BatchQueryResult) => async (v: SourceMappingTargetDetail[]) => {
+            if(props.source) {
+                const res = await httpClient.sourceTagMapping.update({source: props.source, tagName}, v.map(({ metaTag, metaType }) => ({metaType, metaId: metaTag.id})))
+                if(res.ok) {
+                    emit("updated")
+                }else{
+                    toast.handleException(res.exception)
+                }
+            }
+        }
 
         return () => <>
             <div class={style.derive}>
                 <table>
                     <tbody>
                         {props.mappings.map(mapping => (
-                            <MappingTagSelectItem key={`${mapping.source}-${mapping.tagName}`} mappings={mapping.mappings} tagName={mapping.tagName}
-                                                  selected={selected.value[`${mapping.source}-${mapping.tagName}`]}
-                                                  onUpdateSelected={v => selected.value[`${mapping.source}-${mapping.tagName}`] = v}/>
+                            <MappingTagSelectItem key={mapping.tagName} mappings={mapping.mappings} tagName={mapping.tagName}
+                                                  selected={selected.value[mapping.tagName]}
+                                                  onUpdateSelected={v => selected.value[mapping.tagName] = v}
+                                                  onUpdateMappings={onUpdateMappings(mapping)}/>
                         ))}
                     </tbody>
                 </table>
@@ -181,7 +204,40 @@ const MappingTagSelectItem = defineComponent({
         selected: {type: Boolean, default: true}
     },
     emits: {
-        updateSelected: (_: boolean) => true
+        updateSelected: (_: boolean) => true,
+        updateMappings: (_: SourceMappingTargetDetail[]) => true
+    },
+    setup(props, { emit }) {
+        const editMode = ref(false)
+
+        const copyTagName = () => {
+            writeClipboard(props.tagName)
+        }
+        const menu = usePopupMenu([
+            {type: "normal", label: "复制此来源标签的名称", click: copyTagName}
+        ])
+
+        const updateMappings = (mappings: SourceMappingTargetDetail[]) => emit("updateMappings", mappings)
+
+        return () => <tr>
+            <td><CheckBox disabled={props.mappings.length <= 0} value={props.selected}
+                          onUpdateValue={v => emit("updateSelected", v)}/></td>
+            <td class="has-text-link is-size-small can-be-selected" onContextmenu={() => menu.popup()}>{props.tagName}</td>
+            <td>
+                {editMode.value
+                    ? <MappingTagElementEditor mappings={props.mappings} onClose={() => editMode.value = false} onUpdate={updateMappings}/>
+                    : <MappingTagElementList mappings={props.mappings} onEdit={() => editMode.value = true}/>}
+            </td>
+        </tr>
+    }
+})
+
+const MappingTagElementList = defineComponent({
+    props: {
+        mappings: {type: Object as PropType<SourceMappingTargetDetail[]>, required: true}
+    },
+    emits: {
+        edit: () => true
     },
     setup(props, { emit }) {
         const { typeFilter } = usePanelContext()
@@ -189,62 +245,102 @@ const MappingTagSelectItem = defineComponent({
         const onClick = (s: SourceMappingTargetDetail) => (e: MouseEvent) => metaTagCallout.open((e.currentTarget as Element).getBoundingClientRect(), s.metaType.toLowerCase() as MetaTagTypes, s.metaTag.id)
 
         const menu = usePopupMenu([
-            { type: "normal", label: "编辑映射" }
+            { type: "normal", label: "编辑映射", click : () => emit("edit") }
         ])
+        const rightClick = () => menu.popup()
 
-        //TODO 对于没有内容的项，添加一个edit按钮；对于所有项添加一个右键编辑菜单；点击切换编辑面板，可拖放到此
-        //      需要为topics/authors列表添加拖拽功能
-        return () => <tr>
-            <td><CheckBox disabled={props.mappings.length <= 0} value={props.selected}
-                          onUpdateValue={v => emit("updateSelected", v)}/></td>
-            <td class="has-text-link is-size-small">{props.tagName}</td>
-            <td onContextmenu={() => menu.popup()}>
-                {props.mappings.length > 0
-                    ? props.mappings.map(metaTag => {
-                        const type = metaTag.metaType.toLowerCase() as MetaTagTypes
-                        if (typeFilter.value[type]) {
-                            return <SimpleMetaTagElement class="mr-1" type={metaTag.metaType.toLowerCase() as MetaTagTypes} value={metaTag.metaTag} draggable={true} onClick={onClick(metaTag)}/>
-                        } else {
-                            return <SimpleMetaTagElement class="mr-1" type={metaTag.metaType.toLowerCase() as MetaTagTypes} value={{...metaTag.metaTag, color: ""}}/>
-                        }
-                    })
-                    : <a class="tag"><i class="fa fa-plus mr-1"/>编辑映射</a>}
-            </td>
-        </tr>
+        return () => props.mappings.length > 0
+            ? props.mappings.map(metaTag => {
+                const type = metaTag.metaType.toLowerCase() as MetaTagTypes
+                if (typeFilter.value[type]) {
+                    return <SimpleMetaTagElement key={metaTag.metaTag.id} class="mr-1 mb-1" type={metaTag.metaType.toLowerCase() as MetaTagTypes} value={metaTag.metaTag}
+                                                 draggable={true} onClick={onClick(metaTag)} onContextmenu={rightClick}/>
+                } else {
+                    return <SimpleMetaTagElement key={metaTag.metaTag.id} class="mr-1 mb-1" type={metaTag.metaType.toLowerCase() as MetaTagTypes} value={{...metaTag.metaTag, color: ""}}/>
+                }
+            })
+            : <a class="tag" onClick={() => emit("edit")}><i class="fa fa-plus mr-1"/>编辑映射</a>
+    }
+})
+
+const MappingTagElementEditor = defineComponent({
+    props: {
+        mappings: {type: Object as PropType<SourceMappingTargetDetail[]>, required: true}
+    },
+    emits: {
+        update: (_: SourceMappingTargetDetail[]) => true,
+        close: () => true
+    },
+    setup(props, { emit }) {
+        const data = useMutableComputed(() => [...props.mappings])
+        const changed = ref(false)
+
+        const save = () => {
+            if(changed.value) {
+                changed.value = false
+                emit("update", data.value)
+            }
+            emit("close")
+        }
+        const cancel = () => emit("close")
+
+        const onDelete = (index: number) => () => {
+            data.value.splice(index, 1)
+            changed.value = true
+        }
+
+        const { isDragover: _, ...dropEvents } = useDroppable(["author", "topic", "tag"], (meta, type) => {
+            const added = {metaType: type.toUpperCase() as MetaType, metaTag: meta} as SourceMappingTargetDetail
+            if(!data.value.find(i => i.metaType === added.metaType && i.metaTag.id === added.metaTag.id)) {
+                data.value.push(added)
+                changed.value = true
+            }
+        })
+
+        return () => <div class={["block", style.mappingEditor]} {...dropEvents}>
+            {data.value.length > 0 ? data.value.map((item, index) => (
+                <SimpleMetaTagElement key={item.metaTag.id} class="mr-1 mb-1" type={item.metaType.toLowerCase() as MetaTagTypes} value={item.metaTag} v-slots={{
+                    backOfTag: () => <a class="tag-button" onClick={onDelete(index)}><i class="fa fa-times"/></a>
+                }}/>
+            )) : <div class={style.empty}/>}
+            <p class="has-text-grey is-size-small px-6 py-1">拖动标签到此处以添加映射项</p>
+            <div class="flex is-right">
+                <button class="button is-small is-link mr-1" disabled={!changed.value} onClick={save}><span class="icon"><i class="fa fa-save"/></span><span>保存</span></button>
+                <button class="button is-small is-white" onClick={cancel}><span class="icon"><i class="fa fa-times"/></span><span>取消</span></button>
+            </div>
+        </div>
     }
 })
 
 function useMappingTagSelectListContext(list: Ref<BatchQueryResult[]>) {
     const { editorData, typeFilter } = usePanelContext()
 
-    const selected = ref<Record<`${string}-${string}`, boolean>>({})
+    const selected = ref<Record<string, boolean>>({})
 
     const selectAll = () => {
         selected.value = {}
     }
 
     const selectNone = () => {
-        for (const { source, tagName } of list.value) {
-            selected.value[`${source}-${tagName}`] = false
+        for (const { tagName } of list.value) {
+            selected.value[tagName] = false
         }
     }
 
     const selectReverse = () => {
-        for (const { source, tagName } of list.value) {
-            const key = `${source}-${tagName}`
-            if(selected.value[key] === false) {
-                delete selected.value[key]
+        for (const { tagName } of list.value) {
+            if(selected.value[tagName] as boolean | undefined === false) {
+                delete selected.value[tagName]
             }else{
-                selected.value[key] = false
+                selected.value[tagName] = false
             }
         }
     }
 
     const addAll = () => {
         const addList: MetaTagTypeValues[] = []
-        for (const { source, tagName, mappings } of list.value) {
-            const key = `${source}-${tagName}`
-            if(selected.value[key] !== false) {
+        for (const { tagName, mappings } of list.value) {
+            if(selected.value[tagName] as boolean | undefined !== false) {
                 for (const meta of mappings) {
                     if(meta.metaType === "AUTHOR") {
                         if(typeFilter.value.author) {

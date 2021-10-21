@@ -1,6 +1,7 @@
-import { defineComponent, PropType } from "vue"
+import { computed, defineComponent, PropType } from "vue"
 import { useMessageBox } from "@/functions/module/message-box"
 import { usePopupMenu } from "@/functions/module/popup-menu"
+import { useDraggable } from "@/functions/feature/drag"
 import { useMouseHover } from "@/functions/utils/element"
 import { useFastObjectEndpoint } from "@/functions/utils/endpoints/object-fast-endpoint"
 import { SimpleAnnotation } from "@/functions/adapter-http/impl/annotations"
@@ -102,6 +103,13 @@ const Item = defineComponent({
 
         const { hover, ...hoverEvents } = useMouseHover()
 
+        const dragEvents = useDraggable("author", computed(() => ({
+            id: props.value.id,
+            name: props.value.name,
+            type: props.value.type,
+            color: props.value.color
+        })))
+
         return () => <div class={[style.item, "box"]} {...hoverEvents} onContextmenu={rightClick}>
             <div class={style.left}>
                 {props.value.favorite ?
@@ -109,7 +117,9 @@ const Item = defineComponent({
                     : hover.value ?
                         <i class="mr-3 mt-1 fa fa-heart has-text-grey is-cursor-pointer float-right" onClick={switchFavorite}/>
                         : null}
-                <div class={[`has-text-${props.value.color}`, "is-size-medium", "is-cursor-pointer"]} onClick={click}><b>{props.value.name}</b></div>
+                <div class={[`has-text-${props.value.color}`, "is-size-medium", "is-cursor-pointer"]} onClick={click}>
+                    <b draggable={true} {...dragEvents}>{props.value.name}</b>
+                </div>
                 {(props.value.otherNames?.length || null) && <p class="has-text-grey mt-1">
                     {generateOtherNames(props.value.otherNames)}
                 </p>}

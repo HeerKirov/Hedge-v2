@@ -7,7 +7,7 @@ export function createSourceTagMappingEndpoint(http: HttpInstance): SourceTagMap
     return {
         batchQuery: http.createDataRequest("/api/source-tag-mappings/batch-query", "POST"),
         get: http.createPathRequest(({ source, tagName }) => `/api/source-tag-mappings/${encodeURIComponent(source)}/${encodeURIComponent(tagName)}`),
-        update: http.createPathRequest(({ source, tagName }) => `/api/source-tag-mappings/${encodeURIComponent(source)}/${encodeURIComponent(tagName)}`, "PUT"),
+        update: http.createPathDataRequest(({ source, tagName }) => `/api/source-tag-mappings/${encodeURIComponent(source)}/${encodeURIComponent(tagName)}`, "PUT"),
         delete: http.createPathRequest(({ source, tagName }) => `/api/source-tag-mappings/${encodeURIComponent(source)}/${encodeURIComponent(tagName)}`, "DELETE")
     }
 }
@@ -49,7 +49,6 @@ export type SourceMappingTargetDetail = { metaType: "AUTHOR", metaTag: SimpleAut
     | { metaType: "TAG", metaTag: SimpleTag }
 
 export interface BatchQueryResult {
-    source: string
     tagName: string
     mappings: SourceMappingTargetDetail[]
 }
