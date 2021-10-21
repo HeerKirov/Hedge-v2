@@ -25,18 +25,18 @@ class SourceMappingManager(private val data: DataRepository, private val sourceT
             .where { (SourceTags.source eq form.source) and (SourceTags.name inList form.tagNames) }
             .map { row ->
                 Pair(
-                    Pair(row[SourceTags.source]!!, row[SourceTags.name]!!),
+                    row[SourceTags.name]!!,
                     SourceMappingTargetItem(row[SourceTagMappings.targetMetaType]!!, row[SourceTagMappings.targetMetaId]!!)
                 )
             }
-            .groupBy { (s, _) -> s }
+            .groupBy { (tagName, _) -> tagName }
             .mapValues { it.value.map { (_, v) -> v } }
 
         val allMappings = groups.flatMap { (_, mappings) -> mappings }.let(::mapTargetItemToDetail)
 
-        return groups.map { (s, mappings) ->
-            val mappingDetails = mappings.mapNotNull { allMappings[it] }
-            SourceMappingBatchQueryResult(s.first, s.second, mappingDetails)
+        return form.tagNames.map { tagName ->
+            val mappingDetails = groups[tagName]?.mapNotNull { allMappings[it] } ?: emptyList()
+            SourceMappingBatchQueryResult(tagName, mappingDetails)
         }
     }
 

@@ -31,8 +31,7 @@ import org.ktorm.entity.toList
 class MetaUtilService(private val data: DataRepository,
                       private val kit: MetaUtilKit,
                       private val metaManager: MetaManager,
-                      private val metaHistoryManager: MetaHistoryManager,
-                      private val sourceMappingManager: SourceMappingManager) {
+                      private val metaHistoryManager: MetaHistoryManager) {
     /**
      * 对metaTag做内容校验和推导。它实际上是metaTag保存流程的一部分。
      * 这个API用于metaTag编辑器，实时对metaTag列表做验证，获得全局的推导结果，并提前得知错误关系。

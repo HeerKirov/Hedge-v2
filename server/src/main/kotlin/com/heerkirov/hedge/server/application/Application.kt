@@ -60,7 +60,7 @@ fun runApplication(options: ApplicationOptions) {
             val metaUtilKit = MetaUtilKit(repo)
             val metaManager = MetaManager(repo)
             val metaHistoryManager = MetaHistoryManager(repo)
-            val metaService = MetaUtilService(repo, metaUtilKit, metaManager, metaHistoryManager, sourceMappingManager)
+            val metaService = MetaUtilService(repo, metaUtilKit, metaManager, metaHistoryManager)
 
             val partitionManager = PartitionManager(repo)
 
