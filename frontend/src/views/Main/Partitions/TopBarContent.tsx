@@ -42,7 +42,9 @@ const CalendarDate = defineComponent({
             editMode.value = true
         }
         const save = () => {
-            calendarDate.value = {...editValue}
+            if(editValue.year !== calendarDate.value.year || editValue.month !== calendarDate.value.month) {
+                calendarDate.value = {...editValue}
+            }
             editMode.value = false
         }
 
@@ -74,15 +76,15 @@ const CalendarDate = defineComponent({
 
         return () => <div class={style.calendarDate}>
             {editMode.value ? <>
-                <NumberInput class={style.yearEditor} min={1995} max={2077} value={editValue.year} onUpdateValue={v => editValue.year = v}/>年
-                <NumberInput class={style.monthEditor} min={1} max={12} value={editValue.month} onUpdateValue={v => editValue.month = v}/>月
-                <button class="button square is-white ml-1" onClick={save}><span class="icon"><i class="fa fa-check"/></span></button>
+                <NumberInput class={[style.yearEditor, "no-drag"]} min={1995} max={2077} value={editValue.year} onUpdateValue={v => editValue.year = v}/>年
+                <NumberInput class={[style.monthEditor, "no-drag"]} min={1} max={12} value={editValue.month} onUpdateValue={v => editValue.month = v}/>月
+                <button class="button square no-drag is-white ml-1" onClick={save}><span class="icon"><i class="fa fa-check"/></span></button>
             </> : <>
-                <button class="button square is-white" onClick={prev}><span class="icon"><i class="fa fa-angle-left"/></span></button>
-                <button class={[style.textButton, "button", "is-white"]} onClick={edit}>
+                <button class="button square no-drag is-white" onClick={prev}><span class="icon"><i class="fa fa-angle-left"/></span></button>
+                <button class={[style.textButton, "no-drag", "button", "is-white"]} onClick={edit}>
                     <b>{calendarDate.value.year}</b>年<b>{calendarDate.value.month}</b>月
                 </button>
-                <button class="button square is-white" onClick={next}><span class="icon"><i class="fa fa-angle-right"/></span></button>
+                <button class="button square no-drag is-white" onClick={next}><span class="icon"><i class="fa fa-angle-right"/></span></button>
             </>}
         </div>
     }

@@ -7,6 +7,7 @@ import { useHttpClient, useLocalStorageWithDefault } from "@/functions/app"
 import { useToast } from "@/functions/module/toast"
 import { useListeningEvent } from "@/functions/utils/emitter"
 import { installation, splitRef } from "@/functions/utils/basic"
+import { LocalDate } from "@/utils/datetime";
 
 export interface IllustContext {
     dataView: PaginationDataView<Illust>
@@ -16,6 +17,8 @@ export interface IllustContext {
         fitType: Ref<FitType>
         columnNum: Ref<number>
         collectionMode: Ref<boolean>
+        partition: Ref<LocalDate> | null
+        partitionClose?: () => void
     }
     selector: {
         selected: Ref<number[]>
@@ -23,26 +26,28 @@ export interface IllustContext {
     }
 }
 
-export const [installIllustContext, useIllustContext] = installation(function(): IllustContext {
-    const viewController = useViewController()
+export const [installIllustContext, useIllustContext] = installation(function(partition: Ref<LocalDate> | null, partitionClose: (() => void) | undefined): IllustContext {
+    const viewController = useViewController(partition, partitionClose)
 
-    const list = useListContext(viewController.collectionMode)
+    const list = useListContext(viewController.collectionMode, partition)
 
     const selector = useSelector(list.endpoint)
 
     return {...list, viewController, selector}
 })
 
-function useListContext(collectionMode: Ref<boolean>) {
+function useListContext(collectionMode: Ref<boolean>, partition: Ref<LocalDate> | null) {
     const httpClient = useHttpClient()
     const { handleError } = useToast()
     const scrollView = useScrollView()
 
     const queryFilter = ref<IllustQueryFilter>({
-        order: "-orderTime",
-        type: collectionMode.value ? "COLLECTION" : "IMAGE"
+        order: partition !== undefined ? "orderTime" : "-orderTime", //在partition模式下，排列方向为正向
+        type: collectionMode.value ? "COLLECTION" : "IMAGE",
+        partition: partition?.value
     })
     watch(collectionMode, v => queryFilter.value.type = v ? "COLLECTION" : "IMAGE")
+    if(partition !== null) watch(partition, p => queryFilter.value.partition = p)
 
     const endpoint = useQueryEndpoint({
         filter: queryFilter,
@@ -54,7 +59,7 @@ function useListContext(collectionMode: Ref<boolean>) {
     return {endpoint, dataView, scrollView}
 }
 
-function useViewController() {
+function useViewController(partition: Ref<LocalDate> | null, partitionClose: (() => void) | undefined) {
     const storage = useLocalStorageWithDefault<{
         fitType: FitType, columnNum: number, collectionMode: boolean
     }>("illust-grid/view-controller", {
@@ -64,7 +69,8 @@ function useViewController() {
     return {
         fitType: splitRef(storage, "fitType"),
         columnNum: splitRef(storage, "columnNum"),
-        collectionMode: splitRef(storage, "collectionMode")
+        collectionMode: splitRef(storage, "collectionMode"),
+        partition, partitionClose
     }
 }
 

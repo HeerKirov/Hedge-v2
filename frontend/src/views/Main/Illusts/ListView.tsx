@@ -1,4 +1,4 @@
-import { defineComponent, markRaw, watch } from "vue"
+import { defineComponent, markRaw } from "vue"
 import IllustGrid from "@/layouts/data/IllustGrid"
 import { useCreatingCollectionDialog } from "@/layouts/dialogs/CreatingCollectionDialog"
 import { Illust } from "@/functions/adapter-http/impl/illust"
@@ -27,11 +27,6 @@ export default defineComponent({
         const openMethod = useOpenMethod()
 
         const menu = useContextmenu(openMethod)
-
-        //TODO test code
-        watch(() => dataView.data.value.metrics.total, v => {
-            if(v !== undefined) openMethod.enterToOpenDetail(83)
-        })
 
         return () => <IllustGrid data={markRaw(dataView.data.value)} onDataUpdate={dataView.dataUpdate} draggable={true}
                                  queryEndpoint={markRaw(endpoint.proxy)} fitType={fitType.value} columnNum={columnNum.value}

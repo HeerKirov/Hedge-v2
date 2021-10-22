@@ -1,12 +1,15 @@
-import { ref, Ref } from "vue"
+import { ref, Ref, watch } from "vue"
 import { installation } from "@/functions/utils/basic"
 import { useLocalStorageWithDefault } from "@/functions/app"
-import { datetime, LocalDate } from "@/utils/datetime"
+import { useRouterQuery } from "@/functions/utils/properties/router-property"
+import { date, datetime, LocalDate } from "@/utils/datetime"
+import { useSideBarContext } from "../inject"
 
 export interface PartitionContext {
     viewMode: Ref<"calendar" | "timeline">
     calendarDate: Ref<YearAndMonth>
     today: LocalDate
+    detail: Ref<LocalDate | null>
 }
 
 interface YearAndMonth {
@@ -20,5 +23,15 @@ export const [installPartitionContext, usePartitionContext] = installation(funct
     const today = datetime.now()
     const calendarDate = ref<YearAndMonth>({year: today.year, month: today.month})
 
-    return {viewMode, calendarDate, today}
+    const detail = useRouterQuery<LocalDate>("MainPartitions", "detail", date.toISOString, date.of)
+
+    const { pushSubItem } = useSideBarContext()
+    watch(detail, d => {
+        if(d != null) {
+            const str = date.toISOString(d)
+            pushSubItem(str, str)
+        }
+    })
+
+    return {viewMode, calendarDate, today, detail}
 })

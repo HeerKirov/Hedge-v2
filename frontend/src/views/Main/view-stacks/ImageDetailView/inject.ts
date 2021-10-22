@@ -85,8 +85,7 @@ export const [installPreviewContext, usePreviewContext] = installation(function 
 
     installSideBarEndpoints(detail.id)
 
-    //TODO test code
-    const drawerTab = ref<"metaTag" | "source">("metaTag")
+    const drawerTab = ref<"metaTag" | "source">()
 
     return {
         data,

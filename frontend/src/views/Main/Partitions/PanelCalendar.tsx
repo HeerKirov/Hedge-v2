@@ -10,7 +10,7 @@ import style from "./style.module.scss"
  */
 export default defineComponent({
     setup() {
-        const { calendarDate, today } = usePartitionContext()
+        const { calendarDate, today, detail } = usePartitionContext()
         const weekdayNames = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"]
         const spaceCount = [6, 0, 1, 2, 3, 4, 5]
 
@@ -45,6 +45,10 @@ export default defineComponent({
             }
         })
 
+        const onClick = ({ day, count }: {day: number, count: number | null}) => !count ? undefined : () => {
+            detail.value = date.ofDate(calendarDate.value.year, calendarDate.value.month, day)
+        }
+
         return () => <div class={style.calendar}>
             <div class={["block", style.header]}>
                 {weekdayNames.map(i => <div class={style.col}>
@@ -53,7 +57,7 @@ export default defineComponent({
             </div>
             <div class={style.body}>
                 {items.value.map(item => <div class={style.col}>
-                    {item && <div class={{"block": true, "is-link": item.count, [style.hoverable]: item.count}}>
+                    {item && <div class={{"block": true, "is-link": !!item.count, [style.hoverable]: !!item.count}} onClick={onClick(item)}>
                         <b class={{"has-text-underline": item.today}}>{item.day}</b>
                         {(item.count || null) && <p class={style.count}>{item.count}项</p>}
                     </div>}

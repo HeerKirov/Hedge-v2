@@ -5,6 +5,7 @@ import { SendRefEmitter, useListeningEvent, useRefEmitter } from "@/functions/ut
 import { sleep } from "@/utils/process"
 import { usePartitionContext } from "./inject"
 import style from "./style.module.scss"
+import { date } from "@/utils/datetime";
 
 /**
  * 时间线形态的面板。
@@ -37,8 +38,12 @@ const PartitionList = defineComponent({
     setup() {
         const toast = useToast()
         const httpClient = useHttpClient()
-        const { calendarDate } = usePartitionContext()
+        const { calendarDate, detail } = usePartitionContext()
         const { monthAnchor } = inject(communicationInjection)!
+
+        const onClick = ({ year, month }: {year: number, month: number}, { day }: {day: number}) => () => {
+            detail.value = date.ofDate(year, month, day)
+        }
 
         const partitions = ref<{year: number, month: number, day: number, title: string, count: number}[]>([])
 
@@ -118,7 +123,7 @@ const PartitionList = defineComponent({
             pmRefs = {}
             return <div class={style.timelineList} onScroll={scrollEvent}>
                 {partitionsByMonth.value.map(pm => <div key={pm.key} ref={el => pmRefs[pm.key] = el as HTMLDivElement}>
-                    {pm.items.map(p => <TimelineItem key={p.title} title={p.title} message={`${p.count}项`} colorFilled={true}/>)}
+                    {pm.items.map(p => <TimelineItem key={p.title} title={p.title} message={`${p.count}项`} colorFilled={true} onClick={onClick(pm, p)}/>)}
                 </div>)}
             </div>
         }
