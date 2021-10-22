@@ -8,24 +8,22 @@ import com.heerkirov.hedge.server.dto.PartitionMonthRes
 import com.heerkirov.hedge.server.dto.PartitionRes
 import com.heerkirov.hedge.server.exceptions.be
 import com.heerkirov.hedge.server.utils.ktorm.firstOrNull
-import com.heerkirov.hedge.server.utils.types.ListResult
-import com.heerkirov.hedge.server.utils.types.toListResult
 import org.ktorm.dsl.*
+import org.ktorm.entity.filter
 import org.ktorm.entity.sequenceOf
 import org.ktorm.entity.sortedBy
 import java.time.LocalDate
 
 class PartitionService(private val data: DataRepository) {
-    fun list(filter: PartitionFilter): ListResult<PartitionRes> {
+    fun list(filter: PartitionFilter): List<PartitionRes> {
         return data.db.from(Partitions).select()
             .whereWithConditions {
                 if(filter.gte != null) it += Partitions.date greaterEq filter.gte
                 if(filter.lt != null) it += Partitions.date less filter.lt
                 it += Partitions.cachedCount greater 0
             }
-            .limit(filter.offset, filter.limit)
             .orderBy(Partitions.date.asc())
-            .toListResult { PartitionRes(it[Partitions.date]!!, it[Partitions.cachedCount]!!) }
+            .map { PartitionRes(it[Partitions.date]!!, it[Partitions.cachedCount]!!) }
     }
 
     /**
@@ -41,6 +39,7 @@ class PartitionService(private val data: DataRepository) {
 
     fun listMonths(): List<PartitionMonthRes> {
         return data.db.sequenceOf(Partitions)
+            .filter { it.cachedCount greater 0 }
             .sortedBy { it.date }
             .asKotlinSequence()
             .groupBy { it.date.year to it.date.monthValue }
