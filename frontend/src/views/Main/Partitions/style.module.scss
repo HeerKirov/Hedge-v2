@@ -1,0 +1,103 @@
+
+.top-bar {
+  .calendar-date {
+    > .year-editor {
+      width: 4.5rem;
+      margin-right: 0.25rem;
+    }
+    > .month-editor {
+      width: 3.5rem;
+      margin-right: 0.25rem;
+      margin-left: 0.25rem;
+    }
+    > .text-button {
+      width: 6.5rem;
+    }
+  }
+}
+
+.calendar {
+  width: 100%;
+  height: 100%;
+  padding: 2rem 1rem 0 1rem;
+  box-sizing: border-box;
+
+  $column-num: 7;
+  > .header {
+    display: flex;
+    padding: 0;
+    margin: 0.5rem;
+    > .col {
+      box-sizing: border-box;
+      width: #{percentage(1 / $column-num)};
+      text-align: center;
+      padding-top: 1.5rem;
+      padding-bottom: 1.5rem;
+    }
+  }
+  > .body {
+    display: flex;
+    flex-wrap: wrap;
+    > .col {
+      box-sizing: border-box;
+      width: #{percentage(1 / $column-num)};
+      padding: 0.5rem;
+
+      > div:global(.block) {
+        position: relative;
+        padding: 0.75rem;
+        height: 3.5rem;
+        &.hoverable {
+          cursor: pointer;
+        }
+        &.hoverable:hover {
+          transform: translateY(-1px);
+        }
+
+        > .count {
+          position: absolute;
+          right: 0.75rem;
+          bottom: 0.5rem;
+        }
+      }
+    }
+  }
+}
+
+.timeline {
+  display: flex;
+  flex-wrap: nowrap;
+  width: 100%;
+  height: 100%;
+  > .left-column {
+    width: 60%;
+    height: 100%;
+  }
+  > .right-column {
+    width: 40%;
+    height: 100%;
+  }
+  //时间线列表
+  .timeline-list {
+    padding: 1rem;
+    max-height: 100%;
+    box-sizing: border-box;
+    overflow-y: auto;
+    //项
+    .item {
+      position: relative;
+      padding: 0.5rem 0.75rem;
+      margin-bottom: 0.3rem;
+      cursor: pointer;
+      &:hover {
+        transform: translateX(1px);
+      }
+      > .float-right-message {
+        position: absolute;
+        right: 0.75rem; top: 0;
+        height: 100%;
+        padding: 0.5rem 0;
+      }
+    }
+  }
+}

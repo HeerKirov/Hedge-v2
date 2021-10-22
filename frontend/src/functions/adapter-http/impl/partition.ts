@@ -1,16 +1,24 @@
 import { HttpInstance, Response } from "../server"
 import { NotFound } from "../exception"
-import { LimitAndOffsetFilter } from "./generic"
 import { date, LocalDate } from "@/utils/datetime"
 
 export function createPartitionEndpoint(http: HttpInstance): PartitionEndpoint {
     return {
         list: http.createQueryRequest("/api/partitions", "GET", {
+            parseQuery: mapFromPartitionFilter,
             parseResponse: d => (<any[]>d).map(mapToPartition)
         }),
+        monthList: http.createRequest("/api/partitions/months"),
         get: http.createPathRequest(d => `/api/partitions/${date.toISOString(d)}`, "GET", {
             parseResponse: mapToPartition
         })
+    }
+}
+
+function mapFromPartitionFilter(filter: PartitionFilter) {
+    return {
+        gte: filter.gte && date.toISOString(filter.gte),
+        lt: filter.lt && date.toISOString(filter.lt)
     }
 }
 
@@ -29,6 +37,7 @@ export interface PartitionEndpoint {
      * 查询分区列表。
      */
     list(filter: PartitionFilter): Promise<Response<Partition[]>>
+    monthList(): Promise<Response<PartitionMonth[]>>
     /**
      * 查看分区。
      * @exception NOT_FOUND
@@ -41,7 +50,14 @@ export interface Partition {
     count: number
 }
 
-export interface PartitionFilter extends LimitAndOffsetFilter {
+export interface PartitionMonth {
+    year: number
+    month: number
+    dayCount: number
+    count: number
+}
+
+export interface PartitionFilter {
     gte?: LocalDate
     lt?: LocalDate
 }

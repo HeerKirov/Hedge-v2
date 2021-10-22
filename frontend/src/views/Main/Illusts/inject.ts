@@ -57,7 +57,7 @@ function useListContext(collectionMode: Ref<boolean>) {
 function useViewController() {
     const storage = useLocalStorageWithDefault<{
         fitType: FitType, columnNum: number, collectionMode: boolean
-    }>("illust-list-view-controller", {
+    }>("illust-grid/view-controller", {
         fitType: "cover", columnNum: 8, collectionMode: false
     })
 

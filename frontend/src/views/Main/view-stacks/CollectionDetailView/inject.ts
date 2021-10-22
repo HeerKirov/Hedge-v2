@@ -152,7 +152,7 @@ function useListContext(path: Ref<number | null>) {
 function useViewController() {
     const storage = useLocalStorageWithDefault<{
         fitType: FitType, columnNum: number
-    }>("illust-list-view-controller", {
+    }>("illust-grid/view-controller", {
         fitType: "cover", columnNum: 8
     })
 

@@ -7,7 +7,7 @@ export interface RefEmitter<T> {
     emitter: Readonly<Ref<T | undefined>>
 }
 
-interface SendRefEmitter<T> extends RefEmitter<T> {
+export interface SendRefEmitter<T> extends RefEmitter<T> {
     emit(arg: T): void
 }
 

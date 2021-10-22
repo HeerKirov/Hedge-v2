@@ -1,11 +1,10 @@
 import { defineComponent } from "vue"
-import QueryBox from "../../TopBar/QueryBox"
 
 export default defineComponent({
     setup() {
         return () => <div class="h-middle-layout absolute stretch">
             <div class="middle">
-                <QueryBox placeholder="使用hedge QL查询画集"/>
+                {/*<QueryBox placeholder="使用hedge QL查询画集"/>*/}
             </div>
             <div class="right">
                 <p class="control mr-2">

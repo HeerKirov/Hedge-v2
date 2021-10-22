@@ -77,6 +77,12 @@ export const date = {
         throw new Error(`dateOf can only accept time with format 'yyyy-MM-ddTHH:mm:ssZ' or 'yyyy-MM-dd', but actual is ${time}.`)
     },
     /**
+     * 将年月日转换为LocalDate。
+     */
+    ofDate(year: number, month: number, day: number): LocalDate {
+        return toDate(year, month, day)
+    },
+    /**
      * 转换为yyyy-MM-dd的标准时间戳。
      */
     toISOString({ year, month, day }: LocalDate): string {
@@ -117,6 +123,12 @@ export const date = {
 }
 
 export const datetime = {
+    /**
+     * 获得当前时间。
+     */
+    now(): LocalDateTime {
+        return nativeDateToDateTime(new Date())
+    },
     /**
      * 将一个UTC时间戳转换为LocalDateTime。字符串时间戳必须符合yyyy-MM-ddTHH:mm:ssZ的格式。
      */
