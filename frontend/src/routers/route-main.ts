@@ -25,6 +25,11 @@ export default <RouteRecordRaw[]>[
                 component: () => import('@/views/Main/Partitions')
             },
             {
+                name: 'MainAlbums',
+                path: 'albums',
+                component: () => import('@/views/Main/Albums')
+            },
+            {
                 name: 'MainTags',
                 path: 'tags',
                 component: () => import('@/views/Main/Tags')

@@ -93,7 +93,7 @@ const SearchResultItem = defineComponent({
         return () => {
             elementRef = null
             return <div ref={el => elementRef = el as Element} class={style.resultItem}>
-                <TagAddressElement address={props.node} clickable={true} draggable={true} onClick={click}/>
+                <TagAddressElement class={{[style.selected]: props.selected}} address={props.node} clickable={true} draggable={true} onClick={click}/>
             </div>
         }
     }

@@ -9,6 +9,7 @@ import { createSettingSourceEndpoint, SettingSourceEndpoint } from "./impl/setti
 import { createSettingMetaEndpoint, SettingMetaEndpoint } from "./impl/setting-meta"
 import { createSettingQueryEndpoint, SettingQueryEndpoint } from "./impl/setting-query"
 import { createIllustEndpoint, IllustEndpoint } from "./impl/illust"
+import { createAlbumEndpoint, AlbumEndpoint } from "./impl/album"
 import { createTagEndpoint, TagEndpoint } from "./impl/tag"
 import { createAnnotationEndpoint, AnnotationEndpoint } from "./impl/annotations"
 import { createAuthorEndpoint, AuthorEndpoint } from "./impl/author"
@@ -33,6 +34,7 @@ export interface HttpClient {
     settingSource: SettingSourceEndpoint
     illust: IllustEndpoint
     partition: PartitionEndpoint
+    album: AlbumEndpoint
     tag: TagEndpoint
     author: AuthorEndpoint
     topic: TopicEndpoint
@@ -56,6 +58,7 @@ export function createHttpClient(http: HttpInstance): HttpClient {
         settingSource: createSettingSourceEndpoint(http),
         illust: createIllustEndpoint(http),
         partition: createPartitionEndpoint(http),
+        album: createAlbumEndpoint(http),
         tag: createTagEndpoint(http),
         author: createAuthorEndpoint(http),
         topic: createTopicEndpoint(http),

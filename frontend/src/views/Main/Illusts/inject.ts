@@ -42,7 +42,7 @@ function useListContext(collectionMode: Ref<boolean>, partition: Ref<LocalDate> 
     const scrollView = useScrollView()
 
     const queryFilter = ref<IllustQueryFilter>({
-        order: partition !== undefined ? "orderTime" : "-orderTime", //在partition模式下，排列方向为正向
+        order: partition !== null ? "orderTime" : "-orderTime", //在partition模式下，排列方向为正向
         type: collectionMode.value ? "COLLECTION" : "IMAGE",
         partition: partition?.value
     })

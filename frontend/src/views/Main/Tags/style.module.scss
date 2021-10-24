@@ -231,6 +231,9 @@
     overflow-y: auto;
     > .result-item {
       margin-bottom: 0.25rem;
+      > .selected {
+        border: solid 1px $link;
+      }
     }
   }
 }
