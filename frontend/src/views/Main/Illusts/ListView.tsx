@@ -78,17 +78,14 @@ function useOpenMethod() {
     const { dataView, endpoint, selector: { selected }, scrollView } = useIllustContext()
     const viewStacks = useViewStack()
 
-    const onImageViewClose = (illustId: number) => {
-        //image view关闭时，回调通知list view它最后访问的illustId，以使list view导航到相应的illust上
-        const index = dataView.proxy.syncOperations.find(i => i.id === illustId)
-        if(index !== undefined) scrollView.navigateTo(index)
-    }
-
     const openAll = (illustId: number) => {
         const currentIndex = dataView.proxy.syncOperations.find(i => i.id === illustId)
         if(currentIndex !== undefined) {
             const data = createSliceOfAll(endpoint.instance.value)
-            viewStacks.openImageView(data, currentIndex, onImageViewClose)
+            viewStacks.openImageView(data, currentIndex, (index: number) => {
+                //回调：导航到目标index的位置
+                scrollView.navigateTo(index)
+            })
         }
     }
 
@@ -98,7 +95,14 @@ function useOpenMethod() {
             .filter(index => index !== undefined) as number[]
         const data = createSliceOfList(endpoint.instance.value, indexList)
 
-        viewStacks.openImageView(data, currentIndex, onImageViewClose)
+        viewStacks.openImageView(data, currentIndex, async (index: number) => {
+            //回调：给出了目标index，回查data中此index的项，并找到此项现在的位置，导航到此位置
+            const illust = await data.get(index)
+            if(illust !== undefined) {
+                const index = dataView.proxy.syncOperations.find(i => i.id === illust.id)
+                if(index !== undefined) scrollView.navigateTo(index)
+            }
+        })
     }
 
     const clickToOpenDetail = (illustId: number, option?: boolean) => {
