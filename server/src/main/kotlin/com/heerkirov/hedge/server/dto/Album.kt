@@ -16,12 +16,12 @@ data class AlbumRes(val id: Int, val title: String, val imageCount: Int,
 
 data class AlbumSimpleRes(val id: Int, val title: String)
 
-data class AlbumDetailRes(val id: Int, val title: String, val imageCount: Int, val file: String?,
+data class AlbumDetailRes(val id: Int, val title: String, val imageCount: Int, val file: String?, val thumbnailFile: String?,
                           val topics: List<TopicSimpleRes>, val authors: List<AuthorSimpleRes>, val tags: List<TagSimpleRes>,
                           val description: String, val score: Int?, val favorite: Boolean,
                           val createTime: LocalDateTime, val updateTime: LocalDateTime)
 
-data class AlbumImageRes(val id: Int, val ordinal: Int, val file: String, val thumbnailFile: String?,
+data class AlbumImageRes(val id: Int, val ordinal: Int, val file: String, val thumbnailFile: String,
                          val score: Int?, val favorite: Boolean, val tagme: Illust.Tagme,
                          val orderTime: LocalDateTime)
 

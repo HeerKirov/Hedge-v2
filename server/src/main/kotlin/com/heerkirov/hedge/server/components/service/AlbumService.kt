@@ -97,7 +97,7 @@ class AlbumService(private val data: DataRepository,
             .firstOrNull()
             ?: throw be(NotFound())
 
-        val file = if(row[FileRecords.id] != null) takeFilepath(row) else null
+        val (file, thumbnailFile) = if(row[FileRecords.id] != null) takeAllFilepath(row) else null to null
 
         val title = row[Albums.title]!!
         val description = row[Albums.description]!!
@@ -139,7 +139,7 @@ class AlbumService(private val data: DataRepository,
             .orderBy(Tags.globalOrdinal.asc())
             .map { TagSimpleRes(it[Tags.id]!!, it[Tags.name]!!, it[Tags.color], it[AlbumTagRelations.isExported]!!) }
 
-        return AlbumDetailRes(id, title, imageCount, file, topics, authors, tags, description, score, favorite, createTime, updateTime)
+        return AlbumDetailRes(id, title, imageCount, file, thumbnailFile, topics, authors, tags, description, score, favorite, createTime, updateTime)
     }
 
     /**
