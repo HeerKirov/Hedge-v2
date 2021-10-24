@@ -58,8 +58,8 @@ class AlbumManager(private val data: DataRepository,
      * @throws ResourceNotExist ("images", number[]) image项不存在。给出imageId列表
      */
     fun newAlbum(formImages: List<Int>, formTitle: String = "", formDescription: String = "", formScore: Int? = null, formFavorite: Boolean = false): Int {
-        val images = illustManager.unfoldImages(formImages)
-        val fileId = images.first().fileId
+        val images = if(formImages.isNotEmpty()) illustManager.unfoldImages(formImages) else emptyList()
+        val fileId = images.firstOrNull()?.fileId
         val createTime = DateTime.now()
 
         val id = data.db.insertAndGenerateKey(Albums) {

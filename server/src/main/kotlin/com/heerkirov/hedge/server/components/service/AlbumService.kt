@@ -219,8 +219,8 @@ class AlbumService(private val data: DataRepository,
         data.db.transaction {
             data.db.sequenceOf(Albums).firstOrNull { Albums.id eq id } ?: throw be(NotFound())
 
-            val images = illustManager.unfoldImages(items)
-            val fileId = images.first().fileId
+            val images = if(items.isNotEmpty()) illustManager.unfoldImages(items) else emptyList()
+            val fileId = images.firstOrNull()?.fileId
 
             data.db.update(Albums) {
                 where { it.id eq id }
