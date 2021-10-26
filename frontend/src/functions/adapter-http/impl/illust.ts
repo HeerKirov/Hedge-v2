@@ -416,6 +416,16 @@ export interface SimpleIllust {
     thumbnailFile: string
 }
 
+export interface StandardIllust {
+    id: number
+    thumbnailFile: string
+    score: number | null
+    favorite: boolean
+    orderTime: LocalDateTime
+    type?: IllustType
+    childrenCount?: number | null
+}
+
 export interface IllustParent extends SimpleIllust {
     childrenCount: number
 }

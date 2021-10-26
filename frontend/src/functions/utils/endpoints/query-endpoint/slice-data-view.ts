@@ -34,66 +34,152 @@ export interface SliceDataView<T> {
     }
 }
 
+export function createSliceOfAll<T, R>(instance: QueryEndpointInstance<T>, mapper: Mapper<T, R>): SliceDataView<R>;
+export function createSliceOfAll<T>(instance: QueryEndpointInstance<T>): SliceDataView<T>;
+
 /**
  * 创建一个instance的完全切片，相当于代理。
  */
-export function createSliceOfAll<T>(instance: QueryEndpointInstance<T>): SliceDataView<T> {
-    return {
-        get: instance.queryOne,
-        count: () => instance.count()!,
-        syncOperations: {
-            modify: instance.syncOperations.modify,
-            remove: instance.syncOperations.remove,
-            modified: instance.syncOperations.modified
+export function createSliceOfAll<T, R = T>(instance: QueryEndpointInstance<T>, mapper?: Mapper<T, R>): SliceDataView<R> {
+    if(mapper !== undefined) {
+        const modified = createEmitter<ModifiedEvent<R>>()
+        return {
+            async get(index) {
+                const v = await instance.queryOne(index)
+                return v && mapper.to(v)
+            },
+            count: () => instance.count()!,
+            syncOperations: {
+                modify(index, newData) {
+                    const oldValue = instance.syncOperations.retrieve(index)!
+                    const ret = instance.syncOperations.modify(index, mapper.from(newData))
+                    if(ret) {
+                        modified.emit({type: "modify", index, value: newData, oldValue: mapper.to(oldValue)})
+                    }
+                    return ret
+                },
+                remove(index) {
+                    const oldValue = instance.syncOperations.retrieve(index)!
+                    const ret = instance.syncOperations.remove(index)
+                    if(ret) {
+                        modified.emit({type: "remove", index, oldValue: mapper.to(oldValue)})
+                    }
+                    return ret
+                },
+                modified
+            }
         }
+    }else{
+        return {
+            get: instance.queryOne,
+            count: () => instance.count()!,
+            syncOperations: {
+                modify: instance.syncOperations.modify,
+                remove: instance.syncOperations.remove,
+                modified: instance.syncOperations.modified
+            }
+        } as any as SliceDataView<R>
     }
 }
+
+export function createSliceOfList<T, R>(instance: QueryEndpointInstance<T>, indexList: number[], mapper: Mapper<T, R>): SliceDataView<R>;
+export function createSliceOfList<T>(instance: QueryEndpointInstance<T>, indexList: number[]): SliceDataView<T>;
 
 /**
  * 创建一个instance中，根据index列表得到的切片。
  * 这种模式下，对slice中item的修改会确切反映到instance中。modify会更新，remove会移除。
  */
-export function createSliceOfList<T>(instance: QueryEndpointInstance<T>, indexList: number[]): SliceDataView<T> {
-    const modified = createEmitter<ModifiedEvent<T>>()
+export function createSliceOfList<T, R = T>(instance: QueryEndpointInstance<T>, indexList: number[], mapper?: Mapper<T, R>): SliceDataView<R> {
     let indexes = [...indexList]
+    if(mapper !== undefined) {
+        const modified = createEmitter<ModifiedEvent<R>>()
 
-    return {
-        async get(index: number): Promise<T | undefined> {
-            if(index < 0 || index >= indexes.length) {
-                return undefined
+        return {
+            async get(index: number): Promise<R | undefined> {
+                if(index < 0 || index >= indexes.length) {
+                    return undefined
+                }
+                const v = await instance.queryOne(indexes[index])
+                return v && mapper.to(v)
+            },
+            count(): number {
+                return indexes.length
+            },
+            syncOperations: {
+                modify(index: number, newData: R): boolean {
+                    if(index < 0 || index >= indexes.length) {
+                        return false
+                    }
+                    const oldValue = instance.syncOperations.retrieve(indexes[index])!
+                    const ret = instance.syncOperations.modify(indexes[index], mapper.from(newData))
+                    if(ret) {
+                        modified.emit({type: "modify", index, value: newData, oldValue: mapper.to(oldValue)})
+                    }
+                    return ret
+                },
+                remove(index: number): boolean {
+                    if(index < 0 || index >= indexes.length) {
+                        return false
+                    }
+                    const i = indexes[index]
+                    const oldValue = instance.syncOperations.retrieve(indexes[index])!
+                    const ret = instance.syncOperations.remove(i)
+                    if(ret) {
+                        //成功删除时，从列表中移除此index的引用，并将在这之后的index的值降1
+                        indexes = [...indexes.slice(0, index).map(j => j >= i ? j - 1 : j), ...indexes.slice(index + 1).map(j => j >= i ? j - 1 : j)]
+                        modified.emit({type: "remove", index, oldValue: mapper.to(oldValue)})
+                    }
+                    return ret
+                },
+                modified
             }
-            return await instance.queryOne(indexes[index])
-        },
-        count(): number {
-            return indexes.length
-        },
-        syncOperations: {
-            modify(index: number, newData: T): boolean {
-                if(index < 0 || index >= indexes.length) {
-                    return false
-                }
-                const oldValue = instance.syncOperations.retrieve(indexes[index])!
-                const ret = instance.syncOperations.modify(indexes[index], newData)
-                if(ret) {
-                    modified.emit({type: "modify", index, value: newData, oldValue})
-                }
-                return ret
-            },
-            remove(index: number): boolean {
-                if(index < 0 || index >= indexes.length) {
-                    return false
-                }
-                const i = indexes[index]
-                const oldValue = instance.syncOperations.retrieve(indexes[index])!
-                const ret = instance.syncOperations.remove(i)
-                if(ret) {
-                    //成功删除时，从列表中移除此index的引用，并将在这之后的index的值降1
-                    indexes = [...indexes.slice(0, index).map(j => j >= i ? j - 1 : j), ...indexes.slice(index + 1).map(j => j >= i ? j - 1 : j)]
-                    modified.emit({type: "remove", index, oldValue})
-                }
-                return ret
-            },
-            modified
         }
+    }else{
+        const modified = createEmitter<ModifiedEvent<T>>()
+
+        return {
+            async get(index: number): Promise<T | undefined> {
+                if(index < 0 || index >= indexes.length) {
+                    return undefined
+                }
+                return await instance.queryOne(indexes[index])
+            },
+            count(): number {
+                return indexes.length
+            },
+            syncOperations: {
+                modify(index: number, newData: T): boolean {
+                    if(index < 0 || index >= indexes.length) {
+                        return false
+                    }
+                    const oldValue = instance.syncOperations.retrieve(indexes[index])!
+                    const ret = instance.syncOperations.modify(indexes[index], newData)
+                    if(ret) {
+                        modified.emit({type: "modify", index, value: newData, oldValue})
+                    }
+                    return ret
+                },
+                remove(index: number): boolean {
+                    if(index < 0 || index >= indexes.length) {
+                        return false
+                    }
+                    const i = indexes[index]
+                    const oldValue = instance.syncOperations.retrieve(indexes[index])!
+                    const ret = instance.syncOperations.remove(i)
+                    if(ret) {
+                        //成功删除时，从列表中移除此index的引用，并将在这之后的index的值降1
+                        indexes = [...indexes.slice(0, index).map(j => j >= i ? j - 1 : j), ...indexes.slice(index + 1).map(j => j >= i ? j - 1 : j)]
+                        modified.emit({type: "remove", index, oldValue})
+                    }
+                    return ret
+                },
+                modified
+            }
+        } as any as SliceDataView<R>
     }
+}
+
+interface Mapper<T, R> {
+    to(t: T): R
+    from(r: R): T
 }

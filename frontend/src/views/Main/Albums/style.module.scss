@@ -26,6 +26,11 @@
         box-shadow: 0 0.1em 0.25em rgba(0, 0, 0, 0.1);
         cursor: pointer;
       }
+      > .fav-tag {
+        position: absolute;
+        right: 0.35rem;
+        bottom: calc(0.35rem + 20%);
+      }
       > .info {
         position: absolute;
         box-sizing: border-box;

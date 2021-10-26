@@ -55,7 +55,6 @@ function mapToDetailAlbum(data: any): DetailAlbum {
 function mapToAlbumImage(data: any): AlbumImage {
     return {
         id: <number>data["id"],
-        ordinal: <number>data["ordinal"],
         file: <string>data["file"],
         thumbnailFile: <string>data["thumbnailFile"],
         score: <number | null>data["score"],
@@ -181,7 +180,6 @@ export interface DetailAlbum extends Album {
 
 export interface AlbumImage {
     id: number
-    ordinal: number
     file: string
     thumbnailFile: string
     score: number | null

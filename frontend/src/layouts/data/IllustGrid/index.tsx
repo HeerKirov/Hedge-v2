@@ -1,12 +1,13 @@
 import { computed, defineComponent, inject, InjectionKey, PropType, provide, Ref, toRef } from "vue"
 import { useScrollView, VirtualGrid } from "@/components/features/VirtualScrollView"
-import { Illust } from "@/functions/adapter-http/impl/illust"
+import { IllustType } from "@/functions/adapter-http/impl/illust"
 import { useToast } from "@/functions/module/toast"
 import { useDraggable } from "@/functions/feature/drag"
 import { watchGlobalKeyEvent } from "@/functions/feature/keyboard"
 import { PaginationData, QueryEndpointInstance } from "@/functions/utils/endpoints/query-endpoint"
 import { assetsUrl, useAppInfo } from "@/functions/app"
 import { arrays } from "@/utils/collections"
+import { LocalDateTime } from "@/utils/datetime"
 import style from "./style.module.scss"
 
 export default defineComponent({
@@ -14,7 +15,7 @@ export default defineComponent({
         /**
          * 分页数据视图。
          */
-        data: {type: Object as PropType<PaginationData<Illust>>, required: true},
+        data: {type: Object as PropType<PaginationData<SuitableIllust>>, required: true},
         /**
          * 显示的列数。
          */
@@ -34,7 +35,7 @@ export default defineComponent({
         /**
          * 数据查询端点。被选择器用到了。
          */
-        queryEndpoint: Object as PropType<QueryEndpointInstance<Illust>>,
+        queryEndpoint: Object as PropType<QueryEndpointInstance<SuitableIllust>>,
         /**
          * 可拖拽开关。
          */
@@ -45,7 +46,7 @@ export default defineComponent({
         select: (_: number[], __: number | null) => true,
         enter: (_: number) => true,
         dblClick: (_: number, __: boolean) => true,
-        rightClick: (_: Illust) => true
+        rightClick: (_: unknown) => true
     },
     setup(props, { emit }) {
         const selected = toRef(props, "selected")
@@ -59,7 +60,7 @@ export default defineComponent({
 
         const dblClick = (illustId: number, option: boolean) => emit("dblClick", illustId, option)
         const enter = (illustId: number) => emit("enter", illustId)
-        const rightClick = (illust: Illust) => emit("rightClick", illust)
+        const rightClick = (illust: SuitableIllust) => emit("rightClick", illust)
 
         const emitSelect = (selected: number[], lastSelected: number | null) => emit("select", selected, lastSelected)
 
@@ -88,7 +89,7 @@ const Content = defineComponent({
         select: (_: number[], __: number | null) => true,
         enter: (_: number) => true,
         dblClick: (_: number, __: boolean) => true,
-        rightClick: (_: Illust) => true
+        rightClick: (_: SuitableIllust) => true
     },
     setup(props, { emit }) {
         const appInfo = useAppInfo()
@@ -99,8 +100,8 @@ const Content = defineComponent({
         const dataUpdate = (offset: number, limit: number) => emit("dataUpdate", offset, limit)
         const enter = (illustId: number) => emit("enter", illustId)
         const dblClick = (illustId: number, option: boolean) => emit("dblClick", illustId, option)
-        const rightClick = (illust: Illust) => emit("rightClick", illust)
-        const click = (illust: Illust, index: number, e: MouseEvent) => {
+        const rightClick = (illust: SuitableIllust) => emit("rightClick", illust)
+        const click = (illust: SuitableIllust, index: number, e: MouseEvent) => {
             // 追加添加的任意选择项都会排列在选择列表的最后
             // 选择任意项都会使其成为last selected
             // 为了性能考虑，选择的项数上限为100
@@ -127,13 +128,13 @@ const Content = defineComponent({
 
 const Item = defineComponent({
     props: {
-        data: {type: Object as PropType<Illust>, required: true},
+        data: {type: Object as PropType<SuitableIllust>, required: true},
         index: {type: Number, required: true}
     },
     emits: {
         dblClick: (_: number, __: boolean) => true,
-        rightClick: (_: Illust) => true,
-        click: (_: Illust, __: number, ___: MouseEvent) => true,
+        rightClick: (_: SuitableIllust) => true,
+        click: (_: SuitableIllust, __: number, ___: MouseEvent) => true,
     },
     setup(props, { emit }) {
         const { selected } = inject(contextInjection)!
@@ -243,7 +244,7 @@ function useSelector(emitSelectEvent: EmitSelectFunction) {
         }
     }
 
-    async function getShiftSelectItems(queryEndpoint: QueryEndpointInstance<Illust>, selectId: number, lastSelectId: number) {
+    async function getShiftSelectItems(queryEndpoint: QueryEndpointInstance<SuitableIllust>, selectId: number, lastSelectId: number) {
         const priorityRange: [number, number] = [data.value.metrics.offset, data.value.metrics.offset + data.value.metrics.limit]
         const index1 = queryEndpoint.syncOperations.find(i => i.id === selectId, priorityRange)
         const index2 = queryEndpoint.syncOperations.find(i => i.id === lastSelectId, priorityRange)
@@ -257,7 +258,7 @@ function useSelector(emitSelectEvent: EmitSelectFunction) {
         }
     }
 
-    async function getArrowSelectItem(queryEndpoint: QueryEndpointInstance<Illust>, lastSelectId: number, offset: number) {
+    async function getArrowSelectItem(queryEndpoint: QueryEndpointInstance<SuitableIllust>, lastSelectId: number, offset: number) {
         const priorityRange: [number, number] = [data.value.metrics.offset, data.value.metrics.offset + data.value.metrics.limit]
         const lastIndex = queryEndpoint.syncOperations.find(i => i.id === lastSelectId, priorityRange)
         if(lastIndex === undefined) return null
@@ -269,7 +270,7 @@ function useSelector(emitSelectEvent: EmitSelectFunction) {
         return {illustId: res.id, index}
     }
 
-    async function getOffsetSelectItem(queryEndpoint: QueryEndpointInstance<Illust>, index: number) {
+    async function getOffsetSelectItem(queryEndpoint: QueryEndpointInstance<SuitableIllust>, index: number) {
         return (await queryEndpoint.queryOne(index))?.id ?? null
     }
 
@@ -292,7 +293,7 @@ function useKeyboardEvents({ moveSelect, lastSelected }: ReturnType<typeof useSe
     })
 }
 
-function useDragEvents(getDataRef: () => Ref<Illust>) {
+function useDragEvents(getDataRef: () => Ref<SuitableIllust>) {
     const { draggable, selected, queryEndpoint } = inject(contextInjection)!
 
     if(draggable && queryEndpoint !== undefined) {
@@ -301,9 +302,9 @@ function useDragEvents(getDataRef: () => Ref<Illust>) {
             const selectedItems = selected.value.length <= 0 ? [] : selected.value.map(illustId => {
                 const index = queryEndpoint.syncOperations.find(i => i.id === illustId)!
                 const illust = queryEndpoint.syncOperations.retrieve(index)!
-                return {id: illust.id, type: illust.type, thumbnailFile: illust.thumbnailFile, childrenCount: illust.childrenCount}
+                return {id: illust.id, type: illust.type ?? "IMAGE", thumbnailFile: illust.thumbnailFile, childrenCount: illust.childrenCount ?? null}
             })
-            const clickItems = selected.value.includes(data.value.id) ? [] : [{id: data.value.id, type: data.value.type, thumbnailFile: data.value.thumbnailFile, childrenCount: data.value.childrenCount}]
+            const clickItems = selected.value.includes(data.value.id) ? [] : [{id: data.value.id, type: data.value.type ?? "IMAGE", thumbnailFile: data.value.thumbnailFile, childrenCount: data.value.childrenCount ?? null}]
 
             return selectedItems.concat(clickItems)
         })
@@ -316,9 +317,19 @@ export type FitType = "cover" | "contain"
 
 type EmitSelectFunction = (selected: number[], lastSelected: number | null) => void
 
+interface SuitableIllust {
+    id: number
+    file: string
+    thumbnailFile: string
+    favorite: boolean
+    orderTime: LocalDateTime
+    type?: IllustType
+    childrenCount?: number | null
+}
+
 interface Context {
-    queryEndpoint: QueryEndpointInstance<Illust> | undefined
-    data: Ref<PaginationData<Illust>>
+    queryEndpoint: QueryEndpointInstance<SuitableIllust> | undefined
+    data: Ref<PaginationData<SuitableIllust>>
     selected: Ref<number[]>
     lastSelected: Ref<number | null>
     columnNum: Ref<number>

@@ -30,7 +30,7 @@ export default defineComponent({
             },
             bottom() { return <BottomButtons tab={tab.value} onTab={updateTab}/> }
         }
-        return () => <SideBar class="has-button-sidebar" v-slots={sideBarSlots}/>
+        return () => <SideBar v-slots={sideBarSlots}/>
     }
 })
 

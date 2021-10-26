@@ -3,26 +3,21 @@ import TopBarLayout from "@/layouts/layouts/TopBarLayout"
 import SideDrawer from "@/layouts/layouts/SideDrawer"
 import IllustGrid from "@/layouts/data/IllustGrid"
 import MetaTagEditor from "@/layouts/drawers/MetaTagEditor"
-import TopBarContent from "./TopBarContent"
+import { AlbumImage } from "@/functions/adapter-http/impl/album"
 import { Illust } from "@/functions/adapter-http/impl/illust"
 import { createSliceOfAll, createSliceOfList } from "@/functions/utils/endpoints/query-endpoint"
 import { useFastObjectEndpoint } from "@/functions/utils/endpoints/object-fast-endpoint"
 import { useNavigator } from "@/functions/feature/navigator"
-import { useDroppable } from "@/functions/feature/drag"
 import { useDynamicPopupMenu } from "@/functions/module/popup-menu"
 import { useMessageBox } from "@/functions/module/message-box"
-import { useToast } from "@/functions/module/toast"
-import { useHttpClient } from "@/functions/app"
-import { installExpandedInfoStorage } from "@/layouts/data/TagTree"
-import { AddToCollectionDialog, useAddToCollectionDialog } from "@/layouts/dialogs/AddToCollectionDialog"
+import { useCreatingCollectionDialog } from "@/layouts/dialogs/CreatingCollectionDialog"
+import TopBarContent from "./TopBarContent"
 import { useViewStack } from "../../view-stacks"
-import { usePreviewContext, useMetadataEndpoint } from "./inject"
+import { usePreviewContext } from "./inject"
 
 export default defineComponent({
     setup() {
         const { ui: { drawerTab } } = usePreviewContext()
-
-        installExpandedInfoStorage()
 
         const closeDrawerTab = () => drawerTab.value = undefined
 
@@ -36,24 +31,21 @@ export default defineComponent({
         return () => <>
             <TopBarLayout v-slots={topBarLayoutSlots}/>
             <SideDrawer tab={drawerTab.value} onClose={closeDrawerTab} v-slots={sideDrawerSlots}/>
-            <AddToCollectionDialog/>
         </>
     }
 })
 
 const MetaTagEditorPanel = defineComponent({
     setup() {
-        const { ui: { drawerTab }, data: { id } } = usePreviewContext()
-        const { data, setData } = useMetadataEndpoint()
+        const { ui: { drawerTab }, data: { id }, detailInfo } = usePreviewContext()
 
         const closeDrawerTab = () => drawerTab.value = undefined
 
-        return () => <MetaTagEditor identity={id.value !== null ? {id: id.value!, type: "COLLECTION"} : null}
-                                    tags={data.value?.tags ?? []}
-                                    topics={data.value?.topics ?? []}
-                                    authors={data.value?.authors ?? []}
-                                    tagme={data.value?.tagme ?? []}
-                                    setData={setData} onClose={closeDrawerTab}/>
+        return () => <MetaTagEditor identity={id.value !== null ? {id: id.value!, type: "ALBUM"} : null}
+                                    tags={detailInfo.data.value?.tags ?? []}
+                                    topics={detailInfo.data.value?.topics ?? []}
+                                    authors={detailInfo.data.value?.authors ?? []}
+                                    tagme={[]} setData={detailInfo.setData} onClose={closeDrawerTab}/>
     }
 })
 
@@ -62,7 +54,7 @@ const ListView = defineComponent({
         const {
             dataView,
             endpoint,
-            viewController: { fitType, columnNum },
+            viewController: { columnNum, fitType },
             selector: { selected, lastSelected }
         } = usePreviewContext().images
 
@@ -75,35 +67,31 @@ const ListView = defineComponent({
 
         const menu = useContextmenu(openMethod)
 
-        const dropEvents = useDropEvents()
-
         return () => <IllustGrid data={markRaw(dataView.data.value)} onDataUpdate={dataView.dataUpdate}
-                                 draggable={true} {...dropEvents}
                                  queryEndpoint={markRaw(endpoint.proxy)} fitType={fitType.value} columnNum={columnNum.value}
                                  selected={selected.value} lastSelected={lastSelected.value} onSelect={updateSelected}
-                                 onRightClick={i => menu.popup(i as Illust)} onDblClick={openMethod.clickToOpenDetail} onEnter={openMethod.enterToOpenDetail}/>
+                                 onRightClick={i => menu.popup(i as AlbumImage)} onDblClick={openMethod.clickToOpenDetail} onEnter={openMethod.enterToOpenDetail}/>
     }
 })
 
 function useContextmenu(openMethod: ReturnType<typeof useOpenMethod>) {
     const navigator = useNavigator()
-    const { switchFavorite, createNewCollection, deleteItem, removeItemFromCollection } = useContextOperator()
+    const { switchFavorite, deleteItem, createNewCollection } = useContextOperator()
 
-    //TODO 完成collection右键菜单的功能; 将各个主要功能的实现更改至与selector相关的实现方式上, 注意处理点击项不属于选择列表时的情况
-    const menu = useDynamicPopupMenu<Illust>(illust => [
-        {type: "normal", label: "查看详情", click: illust => openMethod.clickToOpenDetail(illust.id)},
+    //TODO 完成album images右键菜单的功能; 将各个主要功能的实现更改至与selector相关的实现方式上, 注意处理点击项不属于选择列表时的情况
+    const menu = useDynamicPopupMenu<AlbumImage>(image => [
+        {type: "normal", label: "查看详情", click: image => openMethod.clickToOpenDetail(image.id)},
         {type: "separator"},
         {type: "normal", label: "在新窗口中打开", click: openInNewWindow},
         {type: "normal", label: "显示信息预览"},
         {type: "separator"},
-        illust.favorite
-            ? {type: "normal", label: "取消标记为收藏", click: illust => switchFavorite(illust, false)}
-            : {type: "normal", label: "标记为收藏", click: illust => switchFavorite(illust, true)},
+        image.favorite
+            ? {type: "normal", label: "取消标记为收藏", click: image => switchFavorite(image, false)}
+            : {type: "normal", label: "标记为收藏", click: image => switchFavorite(image, true)},
         {type: "separator"},
         {type: "normal", label: "加入剪贴板"},
-        {type: "normal", label: "从剪贴板引入项"}, //TODO 实现时使用addToCollection功能
         {type: "separator"},
-        {type: "normal", label: "拆分至新集合", click: illust => createNewCollection(illust.id)},
+        {type: "normal", label: "创建图库项目集合", click: image => createNewCollection(image.id)},
         {type: "normal", label: "创建画集"},
         {type: "normal", label: "创建关联组"},
         {type: "normal", label: "添加到文件夹"},
@@ -112,13 +100,11 @@ function useContextmenu(openMethod: ReturnType<typeof useOpenMethod>) {
         {type: "separator"},
         {type: "normal", label: "导出"},
         {type: "separator"},
-        {type: "normal", label: "删除项目", click: deleteItem},
-        {type: "normal", label: "从集合移除此项目", click: removeItemFromCollection}
+        {type: "normal", label: "删除项目", click: deleteItem}
     ])
 
-    const openInNewWindow = (illust: Illust) => {
-        if(illust.type === "IMAGE") navigator.newWindow.preferences.image(illust.id)
-        else navigator.newWindow.preferences.collection(illust.id)
+    const openInNewWindow = (illust: AlbumImage) => {
+        navigator.newWindow.preferences.image(illust.id)
     }
 
     return menu
@@ -131,7 +117,10 @@ function useOpenMethod() {
     const openAll = (illustId: number) => {
         const currentIndex = dataView.proxy.syncOperations.find(i => i.id === illustId)
         if(currentIndex !== undefined) {
-            const data = createSliceOfAll(endpoint.instance.value)
+            const data = createSliceOfAll<AlbumImage, Illust>(endpoint.instance.value, {
+                to: data => ({...data, type: "IMAGE", childrenCount: null}),
+                from: data => data
+            })
             viewStacks.openImageView(data, currentIndex, (index: number) => {
                 //回调：导航到目标index的位置
                 scrollView.navigateTo(index)
@@ -143,7 +132,10 @@ function useOpenMethod() {
         const indexList = selected
             .map(selectedId => dataView.proxy.syncOperations.find(i => i.id === selectedId))
             .filter(index => index !== undefined) as number[]
-        const data = createSliceOfList(endpoint.instance.value, indexList)
+        const data = createSliceOfList<AlbumImage, Illust>(endpoint.instance.value, indexList, {
+            to: data => ({...data, type: "IMAGE", childrenCount: null}),
+            from: data => data
+        })
 
         viewStacks.openImageView(data, currentIndex, async (index: number) => {
             //回调：给出了目标index，回查data中此index的项，并找到此项现在的位置，导航到此位置
@@ -185,22 +177,17 @@ function useOpenMethod() {
 }
 
 function useContextOperator() {
-    const toast = useToast()
-    const httpClient = useHttpClient()
     const messageBox = useMessageBox()
-    const viewStack = useViewStack()
+    const creatingCollection = useCreatingCollectionDialog()
 
     const imageFastEndpoint = useFastObjectEndpoint({
         update: httpClient => httpClient.illust.image.update,
         delete: httpClient => httpClient.illust.image.delete
     })
-    const imageRelatedFastEndpoint = useFastObjectEndpoint({
-        update: httpClient => httpClient.illust.image.relatedItems.update
-    })
 
-    const { images: { dataView, endpoint, selector: { selected } }, data: { toastRefresh, target, setTargetData } } = usePreviewContext()
+    const { images: { dataView, endpoint, selector: { selected } }, data: { target, setTargetData } } = usePreviewContext()
 
-    const switchFavorite = async (illust: Illust, favorite: boolean) => {
+    const switchFavorite = async (illust: AlbumImage, favorite: boolean) => {
         const ok = await imageFastEndpoint.setData(illust.id, { favorite })
 
         if(ok) {
@@ -212,23 +199,14 @@ function useContextOperator() {
     }
 
     const createNewCollection = async (illustId: number) => {
-        if(await messageBox.showYesNoMessage("confirm", "确定要拆分生成新的集合吗？", "这些项将从当前集合中移除。")) {
-            const images = selected.value.length > 0 ? [...selected.value] : [illustId]
-            const res = await httpClient.illust.collection.create({images})
-            if(res.ok) {
-                //将所有项从当前数据视图中移除。然而query endpoint的设计不适合连续删除，因此更好的选择是直接刷新以下
-                endpoint.refresh()
-                //创建成功后打开新集合的详情页面
-                viewStack.openCollectionView(res.data.id)
-                //直接通知上层刷新列表以适应变化
-                toastRefresh()
-            }else{
-                toast.handleException(res.exception)
-            }
+        if(selected.value.length > 0) {
+            creatingCollection.createCollection(selected.value, () => endpoint.refresh())
+        }else if(illustId !== undefined) {
+            creatingCollection.createCollection([illustId], () => endpoint.refresh())
         }
     }
 
-    const deleteItem = async (illust: Illust) => {
+    const deleteItem = async (illust: AlbumImage) => {
         if(await messageBox.showYesNoMessage("warn", "确定要删除此项吗？", "此操作不可撤回。")) {
             const ok = await imageFastEndpoint.deleteData(illust.id)
 
@@ -237,10 +215,10 @@ function useContextOperator() {
                 if(index !== undefined) {
                     dataView.proxy.syncOperations.remove(index)
                 }
-                //由于从集合删除项目产生的变化不大，因此做一些精细的操作来更新上层数据
-                setTargetData({childrenCount: target.value!.childrenCount! - 1})
+                //由于从画集删除项目产生的变化不大，因此做一些精细的操作来更新上层数据
+                setTargetData({imageCount: target.value!.imageCount - 1})
                 if(index === 0 && dataView.data.value.metrics.total! > 0) {
-                    //移除首位的情况下，需要更新此collection的封面
+                    //移除首位的情况下，需要更新此album的封面
                     const first = dataView.proxy.syncOperations.retrieve(0)
                     if(first !== undefined) setTargetData({thumbnailFile: first.thumbnailFile})
                 }
@@ -248,33 +226,5 @@ function useContextOperator() {
         }
     }
 
-    const removeItemFromCollection = async (illust: Illust) => {
-        if(await messageBox.showYesNoMessage("warn", "确定要从集合移除此项吗？")) {
-            const ok = await imageRelatedFastEndpoint.setData(illust.id, {collectionId: null})
-
-            if(ok) {
-                const index = dataView.proxy.syncOperations.find(i => i.id === illust.id)
-                if(index !== undefined) {
-                    dataView.proxy.syncOperations.remove(index)
-                }
-                //直接通知上层刷新列表以适应变化
-                toastRefresh()
-            }
-        }
-    }
-
-    return {switchFavorite, createNewCollection, deleteItem, removeItemFromCollection}
-}
-
-function useDropEvents() {
-    const { data: { id }, images: { endpoint } } = usePreviewContext()
-    const addToCollectionDialog = useAddToCollectionDialog()
-
-    const { isDragover: _, ...dropEvents } = useDroppable("illusts", (illusts) => {
-        if(id.value !== null) {
-            addToCollectionDialog.addToCollection(illusts.map(i => i.id), id.value, () => endpoint.refresh())
-        }
-    })
-
-    return dropEvents
+    return {switchFavorite, createNewCollection, deleteItem}
 }

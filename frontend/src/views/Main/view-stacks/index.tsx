@@ -2,8 +2,10 @@ import { SingletonDataView, SliceDataView, createInvokeSingleton } from "@/funct
 import { ModifiedEvent } from "@/functions/utils/endpoints/query-endpoint/instance"
 import { useFastObjectEndpoint } from "@/functions/utils/endpoints/object-fast-endpoint"
 import { Illust } from "@/functions/adapter-http/impl/illust"
+import { Album } from "@/functions/adapter-http/impl/album"
 import ImageDetailView from "./ImageDetailView"
 import CollectionDetailView from "./CollectionDetailView"
+import AlbumDetailView from "./AlbumDetailView"
 import { defineViewStackComponents } from "./Components"
 export { BackspaceButton } from "./BackspaceButton"
 
@@ -23,7 +25,8 @@ interface StackViewCollectionInfo {
 }
 interface StackViewAlbumInfo {
     type: "album"
-    albumId: SingletonDataView<number>
+    data: SingletonDataView<Album>
+    toastRefresh?: ToastRefreshCallback
 }
 
 interface ModifiedCallback {
@@ -42,11 +45,14 @@ export const { ViewStack, installViewStack, useViewStack } = defineViewStackComp
             return <ImageDetailView data={info.data} currentIndex={info.currentIndex} onUpdateCurrentIndex={info.currentIndexModified?.updateValue}/>
         }else if(info.type === "collection") {
             return <CollectionDetailView data={info.data} onToastRefresh={info.toastRefresh?.trigger}/>
+        }else if(info.type === "album") {
+            return <AlbumDetailView data={info.data} onToastRefresh={info.toastRefresh?.trigger}/>
         }
         return undefined
     },
     operations({ push, close }) {
         const { getData: getCollectionDetail } = useFastObjectEndpoint({ get: httpClient => httpClient.illust.collection.get })
+        const { getData: getAlbumDetail } = useFastObjectEndpoint({ get: httpClient => httpClient.album.get })
 
         const generateCollectionData = (data: SingletonDataView<Illust> | number): SingletonDataView<Illust> => {
             if(typeof data === "number") {
@@ -62,6 +68,26 @@ export const { ViewStack, installViewStack, useViewStack } = defineViewStackComp
                         orderTime: d.orderTime,
                         type: "COLLECTION",
                         childrenCount: 0
+                    }
+                })
+            }
+            return data
+        }
+
+        const generateAlbumData = (data: SingletonDataView<Album> | number): SingletonDataView<Album> => {
+            if(typeof data === "number") {
+                return createInvokeSingleton(async () => {
+                    const d = await getAlbumDetail(data)
+                    return d && {
+                        id: d.id,
+                        title: d.title,
+                        imageCount: d.imageCount,
+                        file: d.file,
+                        thumbnailFile: d.thumbnailFile,
+                        score: d.score,
+                        favorite: d.favorite,
+                        createTime: d.createTime,
+                        updateTime: d.updateTime
                     }
                 })
             }
@@ -120,6 +146,27 @@ export const { ViewStack, installViewStack, useViewStack } = defineViewStackComp
                     const info: StackViewCollectionInfo = {type: "collection", data: finalData, toastRefresh, modifiedEvent}
                     push(info)
                 }
+            },
+            openAlbumView(data: SingletonDataView<Album> | number, onToastRefresh?: () => void) {
+                //先处理data，如果data是albumId就请求数据并处理成illust model
+                const finalData = generateAlbumData(data)
+                if(finalData !== undefined) {
+                    //toast refresh机制：如果有刷新通知，则需要在返回上级时刷新
+                    let isToastRefresh = false
+                    const toastRefresh: ToastRefreshCallback | undefined = onToastRefresh && {
+                        trigger() {
+                            isToastRefresh = true
+                        },
+                        backspaceCallback() {
+                            if(isToastRefresh) {
+                                onToastRefresh()
+                            }
+                        }
+                    }
+                    //tips: album没有内容列表清零就自动关闭的机制
+                    const info: StackViewAlbumInfo = {type: "album", data: finalData, toastRefresh}
+                    push(info)
+                }
             }
         }
     },
@@ -129,6 +176,8 @@ export const { ViewStack, installViewStack, useViewStack } = defineViewStackComp
             info.currentIndexModified?.backspaceCallback()
         }else if(info.type === "collection") {
             info.data.syncOperations.modified.removeEventListener(info.modifiedEvent)
+            info.toastRefresh?.backspaceCallback()
+        }else if(info.type === "album") {
             info.toastRefresh?.backspaceCallback()
         }
     }

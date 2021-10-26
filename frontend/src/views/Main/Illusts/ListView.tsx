@@ -31,7 +31,7 @@ export default defineComponent({
         return () => <IllustGrid data={markRaw(dataView.data.value)} onDataUpdate={dataView.dataUpdate} draggable={true}
                                  queryEndpoint={markRaw(endpoint.proxy)} fitType={fitType.value} columnNum={columnNum.value}
                                  selected={selected.value} lastSelected={lastSelected.value} onSelect={updateSelected}
-                                 onRightClick={menu.popup} onDblClick={openMethod.clickToOpenDetail} onEnter={openMethod.enterToOpenDetail}/>
+                                 onRightClick={i => menu.popup(i as Illust)} onDblClick={openMethod.clickToOpenDetail} onEnter={openMethod.enterToOpenDetail}/>
     }
 })
 
