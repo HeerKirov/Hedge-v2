@@ -109,7 +109,7 @@ export function registerIpcRemoteHandle() {
             menu.popup({window})
         }
     })
-    ipcMain.handle("/remote/shell/openExternal", (e, url: string) => {
+    ipcMain.on("/remote/shell/openExternal", (e, url: string) => {
         shell.openExternal(url).catch(reason => dialog.showErrorBox("打开链接时发生错误", reason))
     })
 }
