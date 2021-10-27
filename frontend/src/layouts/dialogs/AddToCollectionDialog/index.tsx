@@ -124,7 +124,7 @@ export function useAddToCollectionDialog(): AddToCollectionDialogContext {
     const { task } = inject(dialogInjection)!
 
     return {
-        async addToCollection(images, collectionId, onAdded) {
+        addToCollection(images, collectionId, onAdded) {
             task.value = {images, collectionId, onAdded}
         }
     }

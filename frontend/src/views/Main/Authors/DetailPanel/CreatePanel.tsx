@@ -41,12 +41,13 @@ export default defineComponent({
                 for(const otherName of form.otherNames) {
                     if(!checkTagName(otherName)) {
                         message.showOkMessage("prompt", "不合法的别名。", "别名不能为空，且不能包含 ` \" ' . | 字符。")
-                        return
+                        return false
                     }
                 }
                 for(const link of form.links) {
                     if(!link.title.trim() || !link.link.trim()) {
                         message.showOkMessage("prompt", "不合法的链接内容。", "链接的标题和内容不能为空。")
+                        return false
                     }
                 }
             },

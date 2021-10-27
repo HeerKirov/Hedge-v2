@@ -7,7 +7,7 @@ import { useHttpClient, useLocalStorageWithDefault } from "@/functions/app"
 import { useToast } from "@/functions/module/toast"
 import { useListeningEvent } from "@/functions/utils/emitter"
 import { installation, splitRef } from "@/functions/utils/basic"
-import { LocalDate } from "@/utils/datetime";
+import { LocalDate } from "@/utils/datetime"
 
 export interface IllustContext {
     dataView: PaginationDataView<Illust>

@@ -9,6 +9,14 @@ export function useMutableComputed<T>(call: () => T): Ref<T> {
     return data
 }
 
+export function useAsyncComputed<T>(initValue: T, call: () => Promise<T>): Readonly<Ref<T>> {
+    const data = <Ref<T>>ref(initValue)
+
+    watchEffect(async () => data.value = await call())
+
+    return data
+}
+
 /**
  * 从Ref类型toRef。
  */

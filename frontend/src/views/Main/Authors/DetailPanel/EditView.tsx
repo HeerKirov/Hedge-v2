@@ -61,6 +61,7 @@ export default defineComponent({
                     for(const link of editorData.value.links) {
                         if(!link.title.trim() || !link.link.trim()) {
                             message.showOkMessage("prompt", "不合法的链接内容。", "链接的标题和内容不能为空。")
+                            return
                         }
                     }
                     form.links = editorData.value.links

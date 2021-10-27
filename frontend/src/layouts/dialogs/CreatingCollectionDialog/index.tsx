@@ -14,6 +14,10 @@ export interface CreatingCollectionDialogContext {
      * @param onCreated 如果成功创建集合，则执行回调。
      */
     createCollection(images: number[], onCreated?: (collectionId: number, newCollection: boolean) => void): void
+    /**
+     * 与上一个方法一致，区别在于，总是会强制打开dialog用于确认。
+     */
+    createCollectionForceDialog(images: number[], onCreated?: (collectionId: number, newCollection: boolean) => void): void
 }
 
 export const CreatingCollectionDialog = defineComponent({
@@ -74,12 +78,16 @@ const Content = defineComponent({
         }
 
         return () => <div class={style.content}>
-            <div class={style.scrollContent}>
+            {props.situations.length > 0 ? <div class={style.scrollContent}>
                 <p class="mt-2 pl-1 is-size-medium"><b>合并集合</b></p>
                 <p class="mb-2 pl-1">一些图像已经属于某个集合，或者选中了一些集合作为集合内容。</p>
                 <NewItem selected={selected.value === "new"} onClick={() => selected.value = "new"}/>
                 {props.situations.map(s => <SituationItem key={s.id} situation={s} selected={selected.value === s.id} onClick={() => selected.value = s.id}/>)}
-            </div>
+            </div> : <div class={style.scrollContent}>
+                <p class="mt-2 pl-1 is-size-medium"><b>创建集合</b></p>
+                <p class="mb-2 pl-1">不存在已属于其他集合的图像，这是一次全新的创建。</p>
+                <NewItem selected={selected.value === "new"} onClick={() => selected.value = "new"}/>
+            </div>}
             <div class={style.bottom}>
                 <span class="is-line-height-std">合并后，原先的其他集合会被删除。</span>
                 <button class="button is-link float-right" onClick={execute}>
@@ -139,6 +147,15 @@ export function useCreatingCollectionDialog(): CreatingCollectionDialogContext {
                         toast.handleException(res.exception)
                     }
                 }
+            }else{
+                toast.handleException(res.exception)
+            }
+        },
+        async createCollectionForceDialog(images, onCreated) {
+            const res = await httpClient.illustUtil.getCollectionSituation(images)
+            if(res.ok) {
+                //总是打开dialog，对内容做确认
+                task.value = {situations: res.data, images, onCreated}
             }else{
                 toast.handleException(res.exception)
             }

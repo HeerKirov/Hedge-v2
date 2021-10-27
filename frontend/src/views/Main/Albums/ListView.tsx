@@ -99,7 +99,7 @@ function useContextmenu(openDetail: (album: Album) => void) {
 
 function useContextOperator() {
     const messageBox = useMessageBox()
-    const { dataView, endpoint } = useAlbumContext()
+    const { dataView } = useAlbumContext()
     const fastEndpoint = useFastObjectEndpoint({
         update: httpClient => httpClient.album.update,
         delete: httpClient => httpClient.album.delete

@@ -1,6 +1,7 @@
 import { defineComponent, PropType } from "vue"
 import MetaTagCallout, { installMetaTagCallout } from "@/layouts/data/MetaTagCallout"
 import { installAddToCollectionDialog } from "@/layouts/dialogs/AddToCollectionDialog"
+import { CreatingAlbumDialog, installCreatingAlbumDialog } from "@/layouts/dialogs/CreatingAlbumDialog"
 import SideLayout from "@/layouts/layouts/SideLayout"
 import { Illust } from "@/functions/adapter-http/impl/illust"
 import { SingletonDataView } from "@/functions/utils/endpoints/query-endpoint"
@@ -19,6 +20,7 @@ export default defineComponent({
         installPreviewContext(props.data, () => emit("toastRefresh"))
         installMetaTagCallout()
         installAddToCollectionDialog()
+        installCreatingAlbumDialog()
 
         const sideLayoutSlots = {
             side() { return <SideBarContent/> },
@@ -27,6 +29,7 @@ export default defineComponent({
         return () => <>
             <SideLayout v-slots={sideLayoutSlots}/>
             <MetaTagCallout/>
+            <CreatingAlbumDialog/>
         </>
     }
 })
