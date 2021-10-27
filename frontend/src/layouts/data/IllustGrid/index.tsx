@@ -1,14 +1,16 @@
 import { computed, defineComponent, inject, InjectionKey, PropType, provide, Ref, toRef } from "vue"
 import { useScrollView, VirtualGrid } from "@/components/features/VirtualScrollView"
-import { IllustType } from "@/functions/adapter-http/impl/illust"
 import { useToast } from "@/functions/module/toast"
 import { useDraggable } from "@/functions/feature/drag"
 import { watchGlobalKeyEvent } from "@/functions/feature/keyboard"
 import { PaginationData, QueryEndpointInstance } from "@/functions/utils/endpoints/query-endpoint"
 import { assetsUrl, useAppInfo } from "@/functions/app"
 import { arrays } from "@/utils/collections"
-import { LocalDateTime } from "@/utils/datetime"
+import { useGridContextOperator } from "./context"
+import type { SuitableIllust, GridContextOperatorResult } from "./context"
 import style from "./style.module.scss"
+
+export { useGridContextOperator, GridContextOperatorResult }
 
 export default defineComponent({
     props: {
@@ -317,16 +319,6 @@ export type FitType = "cover" | "contain"
 
 type EmitSelectFunction = (selected: number[], lastSelected: number | null) => void
 
-interface SuitableIllust {
-    id: number
-    file: string
-    thumbnailFile: string
-    favorite: boolean
-    orderTime: LocalDateTime
-    type?: IllustType
-    childrenCount?: number | null
-}
-
 interface Context {
     queryEndpoint: QueryEndpointInstance<SuitableIllust> | undefined
     data: Ref<PaginationData<SuitableIllust>>
@@ -346,4 +338,4 @@ const FIT_TYPE_CLASS: {[key in FitType]: string} = {
 const COLUMN_MAX = 16
 const COLUMN_NUMBER_CLASS = arrays.newArray(COLUMN_MAX + 1, i => style[`columnNum${i}`])
 
-const SELECTED_MAX = 100
+const SELECTED_MAX = 256

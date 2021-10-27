@@ -1,4 +1,5 @@
-import { defineComponent, inject, InjectionKey, provide, ref, Ref, TransitionGroup } from "vue"
+import { defineComponent, inject, InjectionKey, provide, ref, Ref, TransitionGroup, watch } from "vue"
+import { useRoute } from "vue-router"
 import { watchGlobalKeyEvent } from "@/functions/feature/keyboard"
 import style from "./style.module.scss"
 
@@ -83,7 +84,16 @@ export function defineViewStackComponents<INFO, OPT extends object>({ slots, ope
 
     function installViewStack(): ViewStacks<OPT> {
         const stacksContext: StacksContext<INFO> = {stacks: ref([])}
+
         provide(viewStacksInjection, stacksContext)
+
+        const route = useRoute()
+        watch(() => route.name, () => {
+            //路由发生变化时，清空栈区
+            const pops = stacksContext.stacks.value.splice(0, stacksContext.stacks.value.length)
+            if(onClose) pops.forEach(onClose)
+        })
+
         return createViewStacksOperations(stacksContext, undefined)
     }
 

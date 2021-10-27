@@ -68,6 +68,7 @@ export interface PreviewContext {
 }
 
 interface TargetDataForm {
+    title?: string
     favorite?: boolean
     thumbnailFile?: string | null
     imageCount?: number
@@ -96,6 +97,7 @@ function useDataContext(data: SingletonDataView<Album>, toastRefresh: () => void
             //只有一部分属性需要调API更新数据库，所以加一个||判断条件
             const ok = (form.favorite === undefined) || await setData(target.value.id, form)
             if(ok) {
+                if(form.title !== undefined) target.value.title = form.title
                 if(form.favorite !== undefined) target.value.favorite = form.favorite
                 if(form.thumbnailFile !== undefined) target.value.thumbnailFile = form.thumbnailFile
                 if(form.imageCount !== undefined) target.value.imageCount = form.imageCount

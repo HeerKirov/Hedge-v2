@@ -11,7 +11,7 @@ import { useAuthorContext } from "../inject"
 export default defineComponent({
     setup() {
         const message = useMessageBox()
-        const { createMode, endpoint, openDetailPane } = useAuthorContext()
+        const { createMode, endpoint, closePane } = useAuthorContext()
 
         const form = ref<CreatorData>(mapCreatorData(createMode.value!))
 
@@ -51,8 +51,8 @@ export default defineComponent({
                     }
                 }
             },
-            afterCreate(result: IdResponse) {
-                openDetailPane(result.id)
+            afterCreate() {
+                closePane()
                 endpoint.refresh()
             },
             handleError(e: AuthorExceptions["create"]) {

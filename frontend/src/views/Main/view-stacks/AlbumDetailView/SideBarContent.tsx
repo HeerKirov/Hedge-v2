@@ -13,10 +13,15 @@ export default function() {
 
 const SideBarDetailInfo = defineComponent({
     setup() {
-        const { data: { id }, detailInfo: { data, setData }, ui: { drawerTab } } = usePreviewContext()
+        const { data: { id, setTargetData }, detailInfo: { data, setData }, ui: { drawerTab } } = usePreviewContext()
 
         const setTitle = async (title: string) => {
-            return title === data.value?.title || await setData({ title })
+            if(title === data.value?.title) {
+                return true
+            }
+            const ok = await setData({ title })
+            if(ok) setTargetData({ title })
+            return ok
         }
         const setDescription = async (description: string) => {
             return description === data.value?.description || await setData({ description })
@@ -32,7 +37,7 @@ const SideBarDetailInfo = defineComponent({
             {data.value && <>
                 <ViewAndEditor class="mt-3" data={data.value.title} onSetData={setTitle} baseline="medium" color="deep-light" v-slots={{
                     default: ({ value }) => <TitleDisplay value={value}/>,
-                    editor: ({ value, setValue }) => <Input value={value} onUpdateValue={setValue}/>
+                    editor: ({ value, setValue }) => <Input value={value} onUpdateValue={setValue} refreshOnInput={true}/>
                 }}/>
                 <ViewAndEditor class="mt-3" data={data.value.description} onSetData={setDescription} color="deep-light" showSaveButton={false} v-slots={{
                     default: ({ value }) => <DescriptionDisplay value={value}/>,
