@@ -43,11 +43,11 @@ export default defineComponent({
 
         return () => <div class={style.originDataPanel}>
             {data.value && (data.value.source !== null && data.value.sourceId !== null ? <>
-                <ViewAndEditor data={getSourceIdentity()} onSetData={setSourceIdentity} v-slots={{
+                <ViewAndEditor data={getSourceIdentity()} onSetData={setSourceIdentity} color="deep-light" v-slots={{
                     default: ({ value}: {value: SourceIdentity}) => <SourceInfo {...value}/>,
                     editor: ({ value, setValue }: {value: SourceIdentity, setValue(_: SourceIdentity)}) => <SourceIdentityEditor {...value} onUpdateValue={setValue}/>
                 }}/>
-                <ViewAndEditable class="mt-2" baseline="medium" onEdit={openSourceEditor}>
+                <ViewAndEditable class="mt-2" baseline="medium" onEdit={openSourceEditor} color="deep-light">
                     <TitleDisplay value={data.value.title}/>
                     <DescriptionDisplay value={data.value.description}/>
                     <SourceRelationsDisplay parents={data.value.parents} children={data.value.children} pools={data.value.pools}/>

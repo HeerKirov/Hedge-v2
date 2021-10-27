@@ -54,7 +54,7 @@ export const [installPanelContext, usePanelContext] = installation(function(cont
 
     const editorData = useEditorData(context)
 
-    const rightColumnData = useRightColumnData()
+    const rightColumnData = useRightColumnData(context)
 
     return {identity: context.identity, typeFilter, editorData, rightColumnData}
 })
@@ -435,7 +435,7 @@ function useEditorDataHistory(tags: Ref<SimpleTag[]>, topics: Ref<SimpleTopic[]>
     return {canUndo, canRedo, undo, redo, record, recordsHistory}
 }
 
-function useRightColumnData() {
+function useRightColumnData(context: InstallPanelContext) {
     const storage = useLocalStorageWithDefault<{
         tab: "db" | "recent" | "suggest" | "source",
         tabDbType: "author" | "topic" | "tag"
@@ -445,6 +445,12 @@ function useRightColumnData() {
     })
     const tab = splitRef(storage, "tab")
     const tabDbType = splitRef(storage, "tabDbType")
+
+    watch(context.identity, identity => {
+        if(identity?.type === "IMAGE" && tab.value === "source") {
+            tab.value = "suggest"
+        }
+    })
 
     return {tab, tabDbType}
 }

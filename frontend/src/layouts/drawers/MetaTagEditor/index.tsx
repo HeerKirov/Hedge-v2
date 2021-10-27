@@ -12,7 +12,6 @@ import style from "./style.module.scss"
 
 /* TODO tag editor内容优化清单
     - 标签来源追踪：双击tag会在右侧跳转到此tag的位置。
-    - 在album模式下，移除tagme编辑器。
  */
 export default defineComponent({
     props: {
@@ -52,7 +51,7 @@ export default defineComponent({
 
 const TopColumn = defineComponent({
     setup() {
-        const { typeFilter, rightColumnData: { tab, tabDbType } } = usePanelContext()
+        const { typeFilter, rightColumnData: { tab, tabDbType }, identity } = usePanelContext()
 
         const clickAuthor = () => {
             if(typeFilter.value.author && !typeFilter.value.tag && !typeFilter.value.topic) {
@@ -101,7 +100,7 @@ const TopColumn = defineComponent({
                 <span class="icon"><i class="fa fa-tag"/></span>
                 <span>标签</span>
             </button>
-            <TagmeEditor/>
+            {identity.value?.type !== "ALBUM" && <TagmeEditor/>}
         </div>
     }
 })

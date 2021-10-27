@@ -9,7 +9,7 @@ import style from "./style.module.scss"
 export default defineComponent({
     setup() {
         installMetaDatabaseContext()
-        const { rightColumnData: { tab }} = usePanelContext()
+        const { identity, rightColumnData: { tab }} = usePanelContext()
 
         return () => <div class={style.rightColumn}>
             <div class="m-1">
@@ -25,10 +25,10 @@ export default defineComponent({
                     <span class="icon"><i class="fa fa-adjust"/></span>
                     <span>相关推荐</span>
                 </button>
-                <button class={`button is-${tab.value === "source" ? "link" : "white"}`} onClick={() => tab.value = "source"}>
+                {identity.value?.type === "IMAGE" && <button class={`button is-${tab.value === "source" ? "link" : "white"}`} onClick={() => tab.value = "source"}>
                     <span class="icon"><i class="fa fa-file-invoice"/></span>
                     <span>来源推导</span>
-                </button>
+                </button>}
             </div>
             {tab.value === "db"
                 ? <RightColumnMetaDatabase/>

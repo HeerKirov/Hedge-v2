@@ -27,23 +27,23 @@ export default defineComponent({
         return () => <div>
             <p><i class="fa fa-id-card mr-2"/><b class="can-be-selected">{id.value}</b></p>
             {data.value && <>
-                <ViewAndEditor class="mt-3" data={data.value.description} useEditorData editorData={data.value.originDescription} onSetData={setDescription} showSaveButton={false} v-slots={{
+                <ViewAndEditor class="mt-3" data={data.value.description} useEditorData editorData={data.value.originDescription} onSetData={setDescription} color="deep-light" showSaveButton={false} v-slots={{
                     default: ({ value }) => <DescriptionDisplay value={value}/>,
                     editor: ({ value, setValue, save }) => <DescriptionEditor value={value} onUpdateValue={setValue} onSave={save} showSaveButton={true}/>
                 }}/>
-                <ViewAndEditor class="mt-3" data={data.value.score} useEditorData editorData={data.value.originScore} onSetData={setScore} baseline="medium" v-slots={{
+                <ViewAndEditor class="mt-3" data={data.value.score} useEditorData editorData={data.value.originScore} onSetData={setScore} color="deep-light" baseline="medium" v-slots={{
                     default: ({ value }) => <ScoreDisplay class="pt-1" value={value}/>,
                     editor: ({ value, setValue }) => <StarlightEditor value={value} onUpdateValue={setValue}/>
                 }}/>
-                <ViewAndEditable class="mt-4" onEdit={openMetaTagEditor}>
+                <ViewAndEditable class="mt-4" onEdit={openMetaTagEditor} color="deep-light">
                     {data.value.tagme.length > 0 && <TagmeInfo class="is-white" value={data.value.tagme}/>}
                     <MetaTagListDisplay authors={data.value.authors} topics={data.value.topics} tags={data.value.tags}/>
                 </ViewAndEditable>
-                <ViewAndEditor class="mt-2" data={data.value.partitionTime} onSetData={setPartitionTime} baseline="medium" v-slots={{
+                <ViewAndEditor class="mt-2" data={data.value.partitionTime} onSetData={setPartitionTime} color="deep-light" baseline="medium" v-slots={{
                     default: ({ value }) => <PartitionTimeDisplay partitionTime={value}/>,
                     editor: ({ value, setValue }) => <DateEditor value={value} onUpdateValue={setValue}/>
                 }}/>
-                <ViewAndEditor class="mt-1" data={[data.value.orderTime, data.value.createTime, data.value.updateTime]} useEditorData editorData={data.value.orderTime} onSetData={setOrderTime} baseline="medium" v-slots={{
+                <ViewAndEditor class="mt-1" data={[data.value.orderTime, data.value.createTime, data.value.updateTime]} useEditorData editorData={data.value.orderTime} onSetData={setOrderTime} color="deep-light" baseline="medium" v-slots={{
                     default: ({ value: [orderTime, createTime, updateTime] }) => <TimeDisplay orderTime={orderTime} createTime={createTime} updateTime={updateTime}/>,
                     editor: ({ value, setValue }) => <DateTimeEditor value={value} onUpdateValue={setValue}/>
                 }}/>
