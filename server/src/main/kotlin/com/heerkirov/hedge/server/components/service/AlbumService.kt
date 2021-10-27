@@ -92,7 +92,7 @@ class AlbumService(private val data: DataRepository,
             .leftJoin(FileRecords, Albums.fileId eq FileRecords.id)
             .select(Albums.id, Albums.title, Albums.description, Albums.cachedCount,
                 Albums.score, Albums.favorite, Albums.createTime, Albums.updateTime,
-                FileRecords.folder, FileRecords.id, FileRecords.extension)
+                FileRecords.folder, FileRecords.id, FileRecords.extension, FileRecords.status)
             .where { Albums.id eq id }
             .firstOrNull()
             ?: throw be(NotFound())
