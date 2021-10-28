@@ -69,11 +69,15 @@ interface GridContextOperatorOptions<T extends SuitableIllust> {
     /**
      * 调用deleteItem后，附加的回调。
      */
-    afterDeleted?(index: number): void
+    afterDeleted?(): void
     /**
      * 调用removeItemFromCollection后，附加的回调。
      */
-    afterRemovedFromCollection?(index: number): void
+    afterRemovedFromCollection?(): void
+    /**
+     * 调用removeItemFromAlbum后，附加的回调。
+     */
+    afterRemovedFromAlbum?(): void
 }
 
 export interface GridContextOperatorResult<T> {
@@ -126,6 +130,10 @@ export interface GridContextOperatorResult<T> {
      * 从集合移除项目。
      */
     removeItemFromCollection(illust: T): void
+    /**
+     * 从画集移除项目。
+     */
+    removeItemFromAlbum(illust: T, albumId: number): void
 }
 
 export function useGridContextOperator<T extends SuitableIllust>(options: GridContextOperatorOptions<T>): GridContextOperatorResult<T> {
@@ -145,9 +153,6 @@ export function useGridContextOperator<T extends SuitableIllust>(options: GridCo
     const collectionFastEndpoint = useFastObjectEndpoint({
         update: httpClient => httpClient.illust.collection.update,
         delete: httpClient => httpClient.illust.collection.delete
-    })
-    const imageRelatedFastEndpoint = useFastObjectEndpoint({
-        update: httpClient => httpClient.illust.image.relatedItems.update
     })
 
     const openAll = (illustId: number) => {
@@ -288,7 +293,7 @@ export function useGridContextOperator<T extends SuitableIllust>(options: GridCo
                 toast.handleException(res.exception)
             }
         }
-    } : () => {}
+    } : async () => {}
 
     const createAlbum = options.createAlbum ? (illust: T) => {
         const items = selected.value.includes(illust.id) ? selected.value : [...selected.value, illust.id]
@@ -304,7 +309,7 @@ export function useGridContextOperator<T extends SuitableIllust>(options: GridCo
                 const index = dataView.proxy.syncOperations.find(i => i.id === illust.id)
                 if(ok && index !== undefined) {
                     dataView.proxy.syncOperations.remove(index)
-                    options.afterDeleted?.(index)
+                    options.afterDeleted?.()
                 }
             }
         }else{
@@ -315,7 +320,7 @@ export function useGridContextOperator<T extends SuitableIllust>(options: GridCo
                     endpoint.refresh()
                     if(options.afterDeleted) {
                         const index = dataView.proxy.syncOperations.find(i => i.id === illust.id)
-                        if(index !== undefined) options.afterDeleted?.(index)
+                        if(index !== undefined) options.afterDeleted?.()
                     }
                 }
             }
@@ -325,13 +330,32 @@ export function useGridContextOperator<T extends SuitableIllust>(options: GridCo
     const removeItemFromCollection = async (illust: T) => {
         //TODO 添加对selected的处理
         if(await messageBox.showYesNoMessage("warn", "确定要从集合移除此项吗？")) {
-            const ok = await imageRelatedFastEndpoint.setData(illust.id, {collectionId: null})
-
-            if(ok) {
+            const res = await httpClient.illust.image.relatedItems.update(illust.id, {collectionId: null})
+            if(res.ok) {
                 const index = dataView.proxy.syncOperations.find(i => i.id === illust.id)
                 if(index !== undefined) {
                     dataView.proxy.syncOperations.remove(index)
-                    options.afterRemovedFromCollection?.(index)
+                    options.afterRemovedFromCollection?.()
+                }
+            }
+        }
+    }
+
+    const removeItemFromAlbum = async (illust: T, albumId: number) => {
+        const images = selected.value.includes(illust.id) ? selected.value : [...selected.value, illust.id]
+        if(await messageBox.showYesNoMessage("warn", `确定要从画集移除${images.length > 1 ? "这些" : "此"}项吗？`)) {
+            const ok = await httpClient.album.images.partialUpdate(albumId, {action: "DELETE", images})
+            if(ok) {
+                if(images.length <= 1) {
+                    const index = dataView.proxy.syncOperations.find(i => i.id === illust.id)
+                    if(index !== undefined) {
+                        dataView.proxy.syncOperations.remove(index)
+                        options.afterRemovedFromAlbum?.()
+                    }
+                }else{
+                    //删除数量大于2时，直接刷新
+                    endpoint.refresh()
+                    options.afterRemovedFromAlbum?.()
                 }
             }
         }
@@ -339,6 +363,7 @@ export function useGridContextOperator<T extends SuitableIllust>(options: GridCo
 
     return {
         clickToOpenDetail, enterToOpenDetail, openCollectionDetail, openInNewWindow, modifyFavorite,
-        createCollection, splitToGenerateNewCollection, createAlbum, deleteItem, removeItemFromCollection
+        createCollection, splitToGenerateNewCollection, createAlbum,
+        deleteItem, removeItemFromCollection, removeItemFromAlbum
     }
 }

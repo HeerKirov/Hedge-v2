@@ -1,7 +1,7 @@
 import { computed, defineComponent, inject, InjectionKey, PropType, provide, Ref, toRef } from "vue"
 import { useScrollView, VirtualGrid } from "@/components/features/VirtualScrollView"
 import { useToast } from "@/functions/module/toast"
-import { useDraggable } from "@/functions/feature/drag"
+import { useDraggable, useDroppable } from "@/functions/feature/drag"
 import { watchGlobalKeyEvent } from "@/functions/feature/keyboard"
 import { PaginationData, QueryEndpointInstance } from "@/functions/utils/endpoints/query-endpoint"
 import { assetsUrl, useAppInfo } from "@/functions/app"
@@ -39,9 +39,13 @@ export default defineComponent({
          */
         queryEndpoint: Object as PropType<QueryEndpointInstance<SuitableIllust>>,
         /**
-         * 可拖拽开关。
+         * 可拖拽开关。开启后，项可以被拖拽。
          */
-        draggable: Boolean
+        draggable: Boolean,
+        /**
+         * 可拖放开关。开启后，项可以被拖放illusts内容，并触发相应的drop事件。此外右下角还有一个"末尾追加拖放区"。
+         */
+        droppable: {type: Boolean, default: undefined}
     },
     emits: {
         dataUpdate: (_: number, __: number) => true,
@@ -55,8 +59,9 @@ export default defineComponent({
         const lastSelected = toRef(props, "lastSelected")
         const data = toRef(props, "data")
         const columnNum = toRef(props, "columnNum")
+        const droppable = props.droppable !== undefined ? toRef(props, "droppable") as Ref<boolean> : undefined
 
-        provide(contextInjection, {selected, lastSelected, data, columnNum, queryEndpoint: props.queryEndpoint, draggable: props.draggable})
+        provide(contextInjection, {selected, lastSelected, data, columnNum, queryEndpoint: props.queryEndpoint, draggable: props.draggable, droppable})
 
         const dataUpdate = (offset: number, limit: number) => emit("dataUpdate", offset, limit)
 
@@ -139,7 +144,7 @@ const Item = defineComponent({
         click: (_: SuitableIllust, __: number, ___: MouseEvent) => true,
     },
     setup(props, { emit }) {
-        const { selected } = inject(contextInjection)!
+        const { selected, droppable } = inject(contextInjection)!
 
         const currentSelected = computed(() => selected.value.find(i => i === props.data.id) != undefined)
 
@@ -153,12 +158,17 @@ const Item = defineComponent({
         const rightClick = () => emit("rightClick", props.data)
 
         const dragEvents = useDragEvents(() => toRef(props, "data"))
+        const { isDragover, ...dropEvents } = useDropEvents()
 
-        return () => <div class={style.item} onClick={click} onDblclick={dblClick} onContextmenu={rightClick} draggable={true} {...dragEvents}>
+        return () => <div class={style.item} onClick={click} onDblclick={dblClick} onContextmenu={rightClick} {...dragEvents}>
             <div class={style.content}>
                 <img src={assetsUrl(props.data.thumbnailFile)} alt={`${props.data.type}-${props.data.id}`}/>
             </div>
-            <div class={{[style.selected]: currentSelected.value, [style.touch]: true}}><div/></div>
+            {isDragover?.value && <div class={style.leftDropTooltip}/>}
+            {isDragover?.value && <div class={style.rightDropTooltip}/>}
+            <div class={{[style.touch]: true, [style.selected]: currentSelected.value}} {...dropEvents}>
+                {currentSelected.value && <div class={style.internalBorder}/>}
+            </div>
             {props.data.childrenCount && <span class={[style.numTag, "tag", "is-dark"]}><i class="fa fa-images"/>{props.data.childrenCount}</span>}
             {props.data.favorite && <i class={[style.favTag, "fa", "fa-heart", "has-text-danger", "is-size-medium"]}/>}
         </div>
@@ -300,7 +310,7 @@ function useDragEvents(getDataRef: () => Ref<SuitableIllust>) {
 
     if(draggable && queryEndpoint !== undefined) {
         const data = getDataRef()
-        return useDraggable("illusts", () => {
+        const dragEvents = useDraggable("illusts", () => {
             const selectedItems = selected.value.length <= 0 ? [] : selected.value.map(illustId => {
                 const index = queryEndpoint.syncOperations.find(i => i.id === illustId)!
                 const illust = queryEndpoint.syncOperations.retrieve(index)!
@@ -310,8 +320,24 @@ function useDragEvents(getDataRef: () => Ref<SuitableIllust>) {
 
             return selectedItems.concat(clickItems)
         })
+        return {...dragEvents, draggable: true}
     }else{
         return {}
+    }
+}
+
+function useDropEvents() {
+    const { droppable } = inject(contextInjection)!
+    if(droppable !== undefined) {
+        const { isDragover: originDragover, ...dropEvents } = useDroppable("illusts", illusts => {
+            if(droppable.value) {
+                console.log(`drop`, illusts)
+            }
+        })
+        const isDragover = computed(() => originDragover.value && droppable.value)
+        return {...dropEvents, isDragover}
+    }else{
+        return {isDragover: undefined}
     }
 }
 
@@ -326,6 +352,7 @@ interface Context {
     lastSelected: Ref<number | null>
     columnNum: Ref<number>
     draggable: boolean
+    droppable: Ref<boolean> | undefined
 }
 
 const contextInjection: InjectionKey<Context> = Symbol()

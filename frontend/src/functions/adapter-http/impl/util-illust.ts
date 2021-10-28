@@ -5,11 +5,14 @@ import { datetime, LocalDateTime } from "@/utils/datetime"
 export function createUtilIllustEndpoint(http: HttpInstance): UtilIllustEndpoint {
     return {
         getCollectionSituation: http.createDataRequest("/api/utils/illust/collection-situation", "POST", {
+            parseData: illustIds => ({illustIds}),
             parseResponse: d => (<any[]>d).map(mapToCollectionSituation)
         }),
         getImageSituation: http.createDataRequest("/api/utils/illust/image-situation", "POST", {
+            parseData: illustIds => ({illustIds}),
             parseResponse: d => (<any[]>d).map(mapToImageSituation)
         }),
+        getAlbumSituation: http.createDataRequest("/api/utils/illust/album-situation", "POST")
     }
 }
 
@@ -44,6 +47,10 @@ export interface UtilIllustEndpoint {
      * 查询一组illust的展开图像情况，查询它们展开后的全部images列表，并给出每个image的parent。
      */
     getImageSituation(images: number[]): Promise<Response<ImageSituation[]>>
+    /**
+     * 查询一组illust的展开图像在指定画集中的所属情况。查询它们展开后的全部images列表，并给出每个image是否属于当前画集。
+     */
+    getAlbumSituation(form: AlbumSituationForm): Promise<Response<AlbumSituation[]>>
 }
 
 export interface CollectionSituation {
@@ -86,4 +93,34 @@ export interface ImageSituation {
      * 它所属的parent。
      */
     belong: IllustParent | null
+}
+
+export interface AlbumSituation {
+    /**
+     * image id。
+     */
+    id: number
+    /**
+     * 此图像的缩略图文件路径。
+     */
+    thumbnailFile: string
+    /**
+     * 如果此项已在画集中存在，那么给出排序顺位；否则给出null。
+     */
+    ordinal: number | null
+}
+
+export interface AlbumSituationForm {
+    /**
+     * 要检验的illust id列表。
+     */
+    illustIds: number[]
+    /**
+     * 指定的album。
+     */
+    albumId: number
+    /**
+     * 是否只返回已在画集中存在的项。
+     */
+    onlyExists?: boolean
 }

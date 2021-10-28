@@ -22,6 +22,19 @@
         object-position: center;
       }
     }
+    //拖放提示条
+    > .left-drop-tooltip {
+      z-index: 1;
+      position: absolute;
+      top: 0; bottom: 0; left: -2px; width: 5px;
+      background-color: rgba(127, 127, 127, 0.5);
+    }
+    > .right-drop-tooltip {
+      z-index: 1;
+      position: absolute;
+      top: 0; bottom: 0; right: -3px; width: 5px;
+      background-color: rgba(127, 127, 127, 0.5);
+    }
     //点击和选中显示块
     > .touch {
       position: absolute;
@@ -33,7 +46,7 @@
         @media (prefers-color-scheme: dark) {
           border-width: 2px;
         }
-        > div {
+        > .internal-border {
           width: 100%; height: 100%;
           box-sizing: border-box;
           border: solid 1px $white;

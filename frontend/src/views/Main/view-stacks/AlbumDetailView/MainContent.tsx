@@ -51,7 +51,7 @@ const ListView = defineComponent({
                 viewController: { columnNum, fitType },
                 selector: { selected, lastSelected }
             },
-            data: { target, setTargetData }
+            data: { toastRefresh }
         } = usePreviewContext()
 
         const updateSelected = (selectedValue: number[], lastSelectedValue: number | null) => {
@@ -70,20 +70,13 @@ const ListView = defineComponent({
                 from: data => data
             }),
             createCollection: {forceDialog: true},
-            afterDeleted(index: number) {
-                //由于从画集删除项目产生的变化不大，因此做一些精细的操作来更新上层数据
-                setTargetData({imageCount: target.value!.imageCount - 1})
-                if(index === 0 && dataView.data.value.metrics.total! > 0) {
-                    //移除首位的情况下，需要更新此album的封面
-                    const first = dataView.proxy.syncOperations.retrieve(0)
-                    if(first !== undefined) setTargetData({thumbnailFile: first.thumbnailFile})
-                }
-            }
+            afterDeleted: toastRefresh, //TODO 删除图像是能优化的，对上层的影响仅限于target自身
+            afterRemovedFromAlbum: toastRefresh //TODO 移除图像也是能优化的，对上层的影响仅限于target自身
         })
 
         const menu = useContextmenu(operator)
 
-        return () => <IllustGrid data={markRaw(dataView.data.value)} onDataUpdate={dataView.dataUpdate}
+        return () => <IllustGrid data={markRaw(dataView.data.value)} onDataUpdate={dataView.dataUpdate} draggable={true} droppable={true}
                                  queryEndpoint={markRaw(endpoint.proxy)} fitType={fitType.value} columnNum={columnNum.value}
                                  selected={selected.value} lastSelected={lastSelected.value} onSelect={updateSelected}
                                  onRightClick={i => menu.popup(i as AlbumImage)} onDblClick={operator.clickToOpenDetail} onEnter={operator.enterToOpenDetail}/>
@@ -91,6 +84,7 @@ const ListView = defineComponent({
 })
 
 function useContextmenu(operator: GridContextOperatorResult<AlbumImage>) {
+    const { data: { id } } = usePreviewContext()
     //TODO 完成album images右键菜单的功能
     return useDynamicPopupMenu<AlbumImage>(image => [
         {type: "normal", label: "查看详情", click: image => operator.clickToOpenDetail(image.id)},
@@ -112,6 +106,7 @@ function useContextmenu(operator: GridContextOperatorResult<AlbumImage>) {
         {type: "separator"},
         {type: "normal", label: "导出"},
         {type: "separator"},
-        {type: "normal", label: "删除项目", click: operator.deleteItem}
+        {type: "normal", label: "删除项目", click: operator.deleteItem},
+        {type: "normal", label: "从画集移除此项目", click: i => operator.removeItemFromAlbum(i, id.value!)}
     ])
 }

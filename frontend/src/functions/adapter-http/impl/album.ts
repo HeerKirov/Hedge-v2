@@ -225,9 +225,9 @@ export type AlbumImagesPartialUpdateForm = {
      */
     action: "MOVE"
     /**
-     * 选取的项目的index。
+     * 选取的项目的image id。
      */
-    itemIndexes: number[]
+    images: number[]
     /**
      * 放置的新位置。放置位置的判定是将要移动的项目全部移除后，再判定插入位置。
      */
@@ -238,9 +238,9 @@ export type AlbumImagesPartialUpdateForm = {
      */
     action: "DELETE"
     /**
-     * 要移除的项目的index。
+     * 要移除的项目的image id。
      */
-    itemIndexes: number[]
+    images: number[]
 }
 
 export type AlbumFilter = AlbumQueryFilter & LimitAndOffsetFilter

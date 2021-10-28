@@ -59,7 +59,7 @@ const ListView = defineComponent({
                 viewController: { fitType, columnNum },
                 selector: { selected, lastSelected }
             },
-            data: { toastRefresh, setTargetData, target }
+            data: { toastRefresh }
         } = usePreviewContext()
 
         const updateSelected = (selectedValue: number[], lastSelectedValue: number | null) => {
@@ -74,27 +74,20 @@ const ListView = defineComponent({
             createSliceOfSingleton: createProxySingleton,
             splitToGenerateNewCollection: {
                 refreshAfterCreated: true,
-                afterCreated: toastRefresh //通知上层自己的变化
+                afterCreated: toastRefresh //拆分动作幅度太大，对于上层只能重新刷新列表
             },
             createAlbum: true,
-            afterDeleted(index: number) {
-                //由于从集合删除项目产生的变化不大，因此做一些精细的操作来更新上层数据
-                setTargetData({childrenCount: target.value!.childrenCount! - 1})
-                if(index === 0 && dataView.data.value.metrics.total! > 0) {
-                    //移除首位的情况下，需要更新此collection的封面
-                    const first = dataView.proxy.syncOperations.retrieve(0)
-                    if(first !== undefined) setTargetData({thumbnailFile: first.thumbnailFile})
-                }
-            },
-            afterRemovedFromCollection: toastRefresh //通知上层自己的变化
+            afterDeleted: toastRefresh, //TODO 删除图像是能优化的，对上层的影响仅限于target自身
+                                        //      调整context operator的回调，给出变动列表；调整preview context，增加一个重新请求target自己的方法。
+                                        //      在此处回调时，只需要重新请求target自己并set，而不需要通知上层完全刷新。其他位置也要做同步修改。
+            afterRemovedFromCollection: toastRefresh //从集合移除图像对上层影响不可控，因此也只能刷新列表
         })
 
         const menu = useContextmenu(operator)
 
         const dropEvents = useDropEvents()
 
-        return () => <IllustGrid data={markRaw(dataView.data.value)} onDataUpdate={dataView.dataUpdate}
-                                 draggable={true} {...dropEvents}
+        return () => <IllustGrid data={markRaw(dataView.data.value)} onDataUpdate={dataView.dataUpdate} draggable={true} {...dropEvents}
                                  queryEndpoint={markRaw(endpoint.proxy)} fitType={fitType.value} columnNum={columnNum.value}
                                  selected={selected.value} lastSelected={lastSelected.value} onSelect={updateSelected}
                                  onRightClick={i => menu.popup(i as Illust)} onDblClick={operator.clickToOpenDetail} onEnter={operator.enterToOpenDetail}/>
