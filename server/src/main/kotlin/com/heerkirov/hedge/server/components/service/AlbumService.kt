@@ -16,7 +16,6 @@ import com.heerkirov.hedge.server.dto.*
 import com.heerkirov.hedge.server.exceptions.*
 import com.heerkirov.hedge.server.model.meta.Tag
 import com.heerkirov.hedge.server.utils.business.takeAllFilepath
-import com.heerkirov.hedge.server.utils.business.takeFilepath
 import com.heerkirov.hedge.server.utils.DateTime
 import com.heerkirov.hedge.server.utils.DateTime.parseDateTime
 import com.heerkirov.hedge.server.utils.ktorm.OrderTranslator
@@ -246,25 +245,29 @@ class AlbumService(private val data: DataRepository,
 
             when (form.action) {
                 BatchAction.ADD -> {
+                    //添加新项目。添加时，结果按照表单的列表顺序排序。
+                    //也可以用来移动已存在的项目。
                     val formImages = form.images ?: throw be(ParamRequired("images"))
                     val images = illustManager.unfoldImages(formImages)
-                    kit.insertSubImages(id, images.map { it.id }, form.ordinal)
-                    kit.refreshFirstCover(id)
-                    kit.refreshAllMeta(id)
-                }
-                BatchAction.MOVE -> {
-                    val itemIndexes = form.itemIndexes ?: throw be(ParamRequired("itemIndexes"))
-                    if(itemIndexes.isNotEmpty()) {
-                        kit.moveSubImages(id, itemIndexes, form.ordinal)
-                        kit.refreshFirstCover(id)
+                    if(images.isNotEmpty()) {
+                        kit.upsertSubImages(id, images.map { it.id }, form.ordinal)
                         kit.refreshAllMeta(id)
                     }
                 }
+                BatchAction.MOVE -> {
+                    //移动现存的项目。被移动的项目之间仍保持ordinal的顺序挪到新位置。
+                    //不能用来添加新项目，会被忽略。
+                    val formImages = form.images ?: throw be(ParamRequired("images"))
+                    val ordinal = form.ordinal ?: throw be(ParamRequired("ordinal"))
+                    if(formImages.isNotEmpty()) {
+                        kit.moveSubImages(id, formImages, ordinal)
+                        //move操作不需要重置meta
+                    }
+                }
                 BatchAction.DELETE -> {
-                    val itemIndexes = form.itemIndexes ?: throw be(ParamRequired("itemIndexes"))
-                    if(itemIndexes.isNotEmpty()) {
-                        kit.deleteSubImages(id, itemIndexes)
-                        kit.refreshFirstCover(id)
+                    val formImages = form.images ?: throw be(ParamRequired("images"))
+                    if(formImages.isNotEmpty()) {
+                        kit.deleteSubImages(id, formImages)
                         kit.refreshAllMeta(id)
                     }
                 }

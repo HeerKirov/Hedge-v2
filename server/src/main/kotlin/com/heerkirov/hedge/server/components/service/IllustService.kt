@@ -389,7 +389,7 @@ class IllustService(private val data: DataRepository,
         data.db.transaction {
             val illust = data.db.sequenceOf(Illusts).filter { retrieveCondition(id, Illust.IllustType.COLLECTION) }.firstOrNull() ?: throw be(NotFound())
 
-            val images = illustManager.unfoldImages(imageIds)
+            val images = illustManager.unfoldImages(imageIds, sorted = false)
             val (fileId, scoreFromSub, partitionTime, orderTime) = kit.getExportedPropsFromList(images)
 
             data.db.update(Illusts) {

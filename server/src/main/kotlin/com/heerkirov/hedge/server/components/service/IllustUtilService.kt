@@ -1,12 +1,10 @@
 package com.heerkirov.hedge.server.components.service
 
 import com.heerkirov.hedge.server.components.database.DataRepository
+import com.heerkirov.hedge.server.dao.album.AlbumImageRelations
 import com.heerkirov.hedge.server.dao.illust.Illusts
 import com.heerkirov.hedge.server.dao.illust.FileRecords
-import com.heerkirov.hedge.server.dto.CollectionSituationRes
-import com.heerkirov.hedge.server.dto.IllustParent
-import com.heerkirov.hedge.server.dto.IllustSimpleRes
-import com.heerkirov.hedge.server.dto.ImageSituationRes
+import com.heerkirov.hedge.server.dto.*
 import com.heerkirov.hedge.server.model.illust.Illust
 import com.heerkirov.hedge.server.utils.DateTime.parseDateTime
 import com.heerkirov.hedge.server.utils.business.takeThumbnailFilepath
@@ -113,5 +111,47 @@ class IllustUtilService(private val data: DataRepository) {
         val imageWithParentResult = imageWithParentRows.asSequence().map { ImageSituationRes(it.id, it.thumbnailFile, it.orderTime, allParents[it.parentId]) }
 
         return (childrenResult + imageResult + imageWithParentResult).distinctBy { it.id }.sortedBy { it.orderTime }.toList()
+    }
+
+    /**
+     * 查询一组illust对目标album的所属情况。列出所有展开后的images，并点出哪些image已属于此album。
+     */
+    fun getAlbumSituation(illustIds: List<Int>, albumId: Int, onlyExists: Boolean): List<AlbumSituationRes> {
+        data class Row(val id: Int, val type: Illust.Type, val thumbnailFile: String)
+        data class ChildrenRow(val id: Int, val thumbnailFile: String)
+        //先根据id列表把所有的illust查询出来, 然后从中分离collection和image
+        val (collectionRows, imageRows) = data.db.from(Illusts)
+            .innerJoin(FileRecords, Illusts.fileId eq FileRecords.id)
+            .select(Illusts.id, Illusts.type, Illusts.parentId, Illusts.orderTime, Illusts.cachedChildrenCount, FileRecords.id, FileRecords.folder, FileRecords.extension, FileRecords.status)
+            .where { Illusts.id inList illustIds }
+            .map { row ->
+                val thumbnailFile = takeThumbnailFilepath(row)
+                Row(row[Illusts.id]!!, row[Illusts.type]!!, thumbnailFile)
+            }
+            .filterInto { it.type == Illust.Type.COLLECTION }
+
+        //对于collection，查询下属的所有children
+        val childrenRows = data.db.from(Illusts)
+            .innerJoin(FileRecords, Illusts.fileId eq FileRecords.id)
+            .select(Illusts.id, Illusts.parentId, Illusts.orderTime, FileRecords.id, FileRecords.folder, FileRecords.extension, FileRecords.status)
+            .where { (Illusts.parentId inList collectionRows.map { it.id }) and (Illusts.type eq Illust.Type.IMAGE_WITH_PARENT) }
+            .map { row ->
+                val thumbnailFile = takeThumbnailFilepath(row)
+                ChildrenRow(row[Illusts.id]!!, thumbnailFile)
+            }
+
+        //将childrenRows和imageRows组合编排成结果集
+        val childrenResult = childrenRows.asSequence().map { Pair(it.id, it.thumbnailFile) }
+        val imageResult = imageRows.asSequence().map { Pair(it.id, it.thumbnailFile) }
+        val result = (childrenResult + imageResult).distinctBy { it.first }.toList()
+
+        //从album中查询已存在的项
+        val resultIds = result.map { it.first }
+        val exists = data.db.from(AlbumImageRelations).select(AlbumImageRelations.imageId, AlbumImageRelations.ordinal)
+            .where { (AlbumImageRelations.albumId eq albumId) and (AlbumImageRelations.imageId inList resultIds) }
+            .map { Pair(it[AlbumImageRelations.imageId]!!, it[AlbumImageRelations.ordinal]!!) }
+            .toMap()
+
+        return result.map { AlbumSituationRes(it.first, it.second, exists[it.first]) }.letIf(onlyExists) { it.filter { r -> r.ordinal != null } }
     }
 }

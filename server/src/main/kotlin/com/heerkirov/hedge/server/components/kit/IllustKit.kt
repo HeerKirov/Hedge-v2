@@ -62,16 +62,15 @@ class IllustKit(private val data: DataRepository,
                 //从children拷贝全部notExported的metaTag，然后做导出
                 copyAllMetaFromChildren(thisId)
             }
-        }else if(((newTags.isPresent && tagCount > 0) || (newAuthors.isPresent && authorCount > 0) || (newTopics.isPresent && topicCount > 0))
-                && (newAuthors.isPresent || authorCount == 0)
+        }else if(((newTags.isPresent && tagCount > 0) || (newAuthors.isPresent && authorCount > 0) || (newTopics.isPresent && topicCount > 0)) //这行表示存在任意一项是已修改的
+                && (newAuthors.isPresent || authorCount == 0) //这行表示，要么列表数量是0，要么它是已修改的项，也就满足下面的"未修改的列表数量都是0"
                 && (newTopics.isPresent || topicCount == 0)
                 && (newTags.isPresent || tagCount == 0)) {
-            //若发现未修改列表数量都为0，已修改至少一项不为0，那么清空未修改列表从依赖项那里获得的exported tag
-            //在copyFromChildren为false的情况下，认为是image的更改，要求修改统计计数；否则不予修改
-            //tips: 这里的判断逻辑我看不懂了……出了个bug修好了，但这里为什么是这么写的？
-            if(newTags.isUndefined) metaManager.deleteMetaTags(thisId, IllustTagRelations, Tags, analyseStatisticCount)
-            if(newAuthors.isUndefined) metaManager.deleteMetaTags(thisId, IllustAuthorRelations, Authors, analyseStatisticCount)
-            if(newTopics.isUndefined) metaManager.deleteMetaTags(thisId, IllustTopicRelations, Topics, analyseStatisticCount)
+            //若发现未修改列表数量都为0，已修改至少一项不为0: 此时从"从依赖项获得exportedTag"的状态转向"自己持有tag"的状态，清除所有metaTag
+            //tips: 在copyFromChildren为false的情况下，认为是image的更改，要求修改统计计数；否则不予修改
+            metaManager.deleteMetaTags(thisId, IllustTagRelations, Tags, analyseStatisticCount, true)
+            metaManager.deleteMetaTags(thisId, IllustAuthorRelations, Authors, analyseStatisticCount, true)
+            metaManager.deleteMetaTags(thisId, IllustTopicRelations, Topics, analyseStatisticCount, true)
             metaManager.deleteAnnotations(thisId, IllustAnnotationRelations)
         }
 

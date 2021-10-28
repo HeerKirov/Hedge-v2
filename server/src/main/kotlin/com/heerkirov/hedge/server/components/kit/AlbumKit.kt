@@ -7,6 +7,7 @@ import com.heerkirov.hedge.server.dao.illust.*
 import com.heerkirov.hedge.server.dao.meta.*
 import com.heerkirov.hedge.server.dao.types.EntityMetaRelationTable
 import com.heerkirov.hedge.server.exceptions.*
+import com.heerkirov.hedge.server.model.album.AlbumImageRelation
 import com.heerkirov.hedge.server.model.meta.Annotation
 import com.heerkirov.hedge.server.utils.business.checkScore
 import com.heerkirov.hedge.server.utils.ktorm.asSequence
@@ -25,27 +26,6 @@ class AlbumKit(private val data: DataRepository,
     }
 
     /**
-     * 在partial update操作后，重新计算项目数量和封面的fileId。
-     */
-    fun refreshFirstCover(thisId: Int) {
-        val fileId = data.db.from(AlbumImageRelations)
-            .innerJoin(Illusts, AlbumImageRelations.imageId eq Illusts.id)
-            .select(Illusts.fileId)
-            .where { AlbumImageRelations.albumId eq thisId }
-            .orderBy(AlbumImageRelations.ordinal.asc())
-            .limit(0, 1)
-            .firstOrNull()
-            ?.let { it[Illusts.fileId]!! }
-        val count = data.db.sequenceOf(AlbumImageRelations).count { it.albumId eq thisId }
-
-        data.db.update(Albums) {
-            where { it.id eq thisId }
-            set(it.cachedCount, count)
-            set(it.fileId, fileId)
-        }
-    }
-
-    /**
      * 检验给出的tags/topics/authors的正确性，处理导出，并应用其更改。此外，annotations的更改也会被一并导出处理。
      * @throws ResourceNotExist ("topics", number[]) 部分topics资源不存在。给出不存在的topic id列表
      * @throws ResourceNotExist ("authors", number[]) 部分authors资源不存在。给出不存在的author id列表
@@ -55,6 +35,29 @@ class AlbumKit(private val data: DataRepository,
      */
     fun updateMeta(thisId: Int, newTags: Opt<List<Int>>, newTopics: Opt<List<Int>>, newAuthors: Opt<List<Int>>,
                    creating: Boolean = false) {
+        //检出每种tag的数量。这个数量指新设定的值或已存在的值中notExported的数量
+        val tagCount = if(newTags.isPresent) newTags.value.size else if(creating) 0 else metaManager.getNotExportedMetaCount(thisId, IllustTagRelations)
+        val topicCount = if(newTopics.isPresent) newTopics.value.size else if(creating) 0 else metaManager.getNotExportedMetaCount(thisId, IllustTopicRelations)
+        val authorCount = if(newAuthors.isPresent) newAuthors.value.size else if(creating) 0 else metaManager.getNotExportedMetaCount(thisId, IllustAuthorRelations)
+
+        //注释说明见IllustKit的相同功能
+        if(tagCount == 0 && topicCount == 0 && authorCount == 0) {
+            if(newTags.isPresent) metaManager.deleteMetaTags(thisId, AlbumTagRelations, Tags, false)
+            if(newAuthors.isPresent) metaManager.deleteMetaTags(thisId, AlbumAuthorRelations, Authors, false)
+            if(newTopics.isPresent) metaManager.deleteMetaTags(thisId, AlbumTopicRelations, Topics, false)
+            metaManager.deleteAnnotations(thisId, AlbumAnnotationRelations)
+            //从children拷贝全部notExported的metaTag，然后做导出
+            copyAllMetaFromImages(thisId)
+        }else if(((newTags.isPresent && tagCount > 0) || (newAuthors.isPresent && authorCount > 0) || (newTopics.isPresent && topicCount > 0))
+            && (newAuthors.isPresent || authorCount == 0)
+            && (newTopics.isPresent || topicCount == 0)
+            && (newTags.isPresent || tagCount == 0)){
+            metaManager.deleteMetaTags(thisId, IllustTagRelations, Tags, analyseStatisticCount = false, remainNotExported = true)
+            metaManager.deleteMetaTags(thisId, IllustAuthorRelations, Authors, analyseStatisticCount = false, remainNotExported = true)
+            metaManager.deleteMetaTags(thisId, IllustTopicRelations, Topics, analyseStatisticCount = false, remainNotExported = true)
+            metaManager.deleteAnnotations(thisId, IllustAnnotationRelations)
+        }
+
         val tagAnnotations = if(newTags.isUndefined) null else
             metaManager.processMetaTags(thisId, creating, false,
                 metaTag = Tags,
@@ -265,12 +268,39 @@ class AlbumKit(private val data: DataRepository,
     }
 
     /**
+     * 在partial update操作后，重新计算项目数量和封面的fileId。
+     */
+    private fun refreshFirstCover(thisId: Int, refreshCount: Boolean = true, refreshFileId: Boolean = true) {
+        val fileId = if(refreshFileId) {
+            data.db.from(AlbumImageRelations)
+                .innerJoin(Illusts, AlbumImageRelations.imageId eq Illusts.id)
+                .select(Illusts.fileId)
+                .where { AlbumImageRelations.albumId eq thisId }
+                .orderBy(AlbumImageRelations.ordinal.asc())
+                .limit(0, 1)
+                .firstOrNull()
+                ?.let { it[Illusts.fileId]!! }
+        }else null
+        val count = if(refreshCount) {
+            data.db.sequenceOf(AlbumImageRelations).count { it.albumId eq thisId }
+        }else null
+
+        if(refreshFileId || refreshCount) {
+            data.db.update(Albums) {
+                where { it.id eq thisId }
+                if(refreshCount) set(it.cachedCount, count!!)
+                if(refreshFileId) set(it.fileId, fileId)
+            }
+        }
+    }
+
+    /**
      * 应用images列表。对列表进行整体替换。
      */
-    fun updateSubImages(thisId: Int, items: List<Int>) {
+    fun updateSubImages(thisId: Int, imageIds: List<Int>) {
         data.db.delete(AlbumImageRelations) { it.albumId eq thisId }
         data.db.batchInsert(AlbumImageRelations) {
-            items.forEachIndexed { index, imageId ->
+            imageIds.forEachIndexed { index, imageId ->
                 item {
                     set(it.albumId, thisId)
                     set(it.ordinal, index)
@@ -281,47 +311,18 @@ class AlbumKit(private val data: DataRepository,
     }
 
     /**
-     * 插入新的images。
+     * 插入新的images。新的和已存在的images保持表单指定的相对顺序不变，插入到指定的新位置。
      */
-    fun insertSubImages(thisId: Int, items: List<Int>, ordinal: Int?) {
+    fun upsertSubImages(thisId: Int, imageIds: List<Int>, ordinal: Int?) {
+        //首先删除已存在的项
+        val indexes = retrieveSubOrdinalById(thisId, imageIds).map { it.ordinal }
         val count = data.db.sequenceOf(AlbumImageRelations).count { it.albumId eq thisId }
-        val insertOrdinal = if(ordinal != null && ordinal <= count) ordinal else count
-        //先把原有位置的项向后挪动
-        data.db.update(AlbumImageRelations) {
-            where { (it.albumId eq thisId) and (it.ordinal greaterEq insertOrdinal) }
-            set(it.ordinal, it.ordinal plus items.size)
-        }
-        //然后插入新项
-        data.db.batchInsert(AlbumImageRelations) {
-            items.forEachIndexed { index, imageId ->
-                item {
-                    set(it.albumId, thisId)
-                    set(it.ordinal, insertOrdinal + index)
-                    set(it.imageId, imageId)
-                }
-            }
-        }
-    }
-
-    /**
-     * 移动一部分images的顺序。
-     * @throws ResourceNotExist ("itemIndexes", number[]) 要操作的image index不存在。给出不存在的index列表
-     */
-    fun moveSubImages(thisId: Int, indexes: List<Int>, ordinal: Int?) {
         if(indexes.isNotEmpty()) {
-            val sortedIndexes = indexes.sorted()
-            val count = data.db.sequenceOf(AlbumImageRelations).count { it.albumId eq thisId }
-            val insertOrdinal = if(ordinal != null && ordinal <= count) ordinal else count
-            val itemMap = data.db.sequenceOf(AlbumImageRelations)
-                .filter { (it.albumId eq thisId) and (it.ordinal inList indexes) }
-                .map { it.ordinal to it }.toMap()
-
-            if(itemMap.size < indexes.size) throw be(ResourceNotExist("itemIndexes", indexes.toSet() - itemMap.keys))
-            //先删除所有要移动的项
+            //删除
             data.db.delete(AlbumImageRelations) { (it.albumId eq thisId) and (it.ordinal inList indexes) }
             //将余下的项向前缩进
             data.db.batchUpdate(AlbumImageRelations) {
-                sortedIndexes.asSequence()
+                indexes.asSequence()
                     .windowed(2, 1, true) { it[0] to it.getOrElse(1) { count } }
                     .forEachIndexed { index, (fromOrdinal, toOrdinal) ->
                         item {
@@ -330,41 +331,96 @@ class AlbumKit(private val data: DataRepository,
                         }
                     }
             }
+        }
+        //然后，现在所有的项都是不存在的项了，执行纯纯的add流程
+        val countAfterDeleted = count - indexes.size
+        val finalOrdinal = if(ordinal != null && ordinal <= count) ordinal - indexes.count { it < ordinal } //ordinal在count范围内，则正常计算即可
+        else countAfterDeleted //不在合法范围内，那么实际上就是放在最后，计算成countAfterDeleted即可
+        //先把原有位置的项向后挪动
+        if(finalOrdinal < countAfterDeleted) data.db.update(AlbumImageRelations) {
+            where { (it.albumId eq thisId) and (it.ordinal greaterEq finalOrdinal) }
+            set(it.ordinal, it.ordinal plus imageIds.size)
+        }
+        //然后插入新项
+        data.db.batchInsert(AlbumImageRelations) {
+            imageIds.forEachIndexed { index, imageId ->
+                item {
+                    set(it.albumId, thisId)
+                    set(it.ordinal, finalOrdinal + index)
+                    set(it.imageId, imageId)
+                }
+            }
+        }
+
+        //刷新fileId的条件是indexes第一项是0，也就是说之前的cover被移走了。由于indexes有序，第一项肯定是最小的。
+        //或者另一个条件是ordinal/finalOrdinal为0，也就是插入位置是首位。
+        refreshFirstCover(thisId, refreshCount = true, refreshFileId = ordinal == 0 || finalOrdinal == 0 || indexes.firstOrNull() == 0)
+    }
+
+    /**
+     * 移动一部分images的顺序。这部分images的相对顺序保持不变，移动到指定的新位置。
+     */
+    fun moveSubImages(thisId: Int, imageIds: List<Int>, ordinal: Int) {
+        val relations = retrieveSubOrdinalById(thisId, imageIds)
+        val indexes = relations.map { it.ordinal }
+        if(indexes.isNotEmpty()) {
+            val count = data.db.sequenceOf(AlbumImageRelations).count { it.albumId eq thisId }
+
+            //先删除所有要移动的项
+            data.db.delete(AlbumImageRelations) { (it.albumId eq thisId) and (it.ordinal inList indexes) }
+            //将余下的项向前缩进
+            data.db.batchUpdate(AlbumImageRelations) {
+                indexes.asSequence()
+                    .windowed(2, 1, true) { it[0] to it.getOrElse(1) { count } }
+                    .forEachIndexed { index, (fromOrdinal, toOrdinal) ->
+                        item {
+                            where { (it.albumId eq thisId) and (it.ordinal greaterEq fromOrdinal) and (it.ordinal less toOrdinal) }
+                            set(it.ordinal, it.ordinal minus (index + 1))
+                        }
+                    }
+            }
+            //实际的插入ordinal是指定ordinal减去ordinal之前被移除的项的数量的位置。这样保证最终插入位置确实是指定的插入位置，而不会发生偏移
+            val countAfterDeleted = count - indexes.size
+            val finalOrdinal = if(ordinal <= count) ordinal - indexes.count { it < ordinal } //ordinal在count范围内，则正常计算即可
+            else countAfterDeleted //不在合法范围内，那么实际上就是放在最后，计算成countAfterDeleted即可
+
             //再向后挪动空出位置
-            data.db.update(AlbumImageRelations) {
-                where { (it.albumId eq thisId) and (it.ordinal greaterEq insertOrdinal) }
+            if(finalOrdinal < countAfterDeleted) data.db.update(AlbumImageRelations) {
+                where { (it.albumId eq thisId) and (it.ordinal greaterEq finalOrdinal) }
                 set(it.ordinal, it.ordinal plus indexes.size)
             }
             //重新插入要移动的项
             data.db.batchInsert(AlbumImageRelations) {
-                //迭代这部分要移动的项目列表。迭代的是原始列表，没有经过排序
-                indexes.forEachIndexed { index, thisIndex ->
-                    //从map中取出对应的relation项
-                    val r = itemMap[thisIndex]!!
+                //迭代这部分要移动的项目列表
+                relations.forEachIndexed { index, r ->
                     item {
                         set(it.albumId, thisId)
-                        set(it.ordinal, insertOrdinal + index)
+                        set(it.ordinal, finalOrdinal + index)
                         set(it.imageId, r.imageId)
                     }
                 }
             }
+
+            //不会刷新数量。
+            //刷新fileId的条件是indexes第一项是0，也就是说之前的cover被移走了。由于indexes有序，第一项肯定是最小的。
+            //或者另一个条件是ordinal/finalOrdinal为0，也就是插入位置是首位。
+            refreshFirstCover(thisId, refreshCount = false, refreshFileId = ordinal == 0 || finalOrdinal == 0 || indexes.first() == 0)
         }
     }
 
     /**
      * 删除一部分images。
-     * @throws ResourceNotExist ("itemIndexes", number[]) 要操作的image index不存在。给出不存在的index列表
+     * @throws ResourceNotExist ("images", number[]) 要操作的image不存在
      */
-    fun deleteSubImages(thisId: Int, indexes: List<Int>) {
+    fun deleteSubImages(thisId: Int, imageIds: List<Int>) {
+        val indexes = retrieveSubOrdinalById(thisId, imageIds).map { it.ordinal }
         if(indexes.isNotEmpty()) {
-            val sortedIndexes = indexes.sorted()
             val count = data.db.sequenceOf(AlbumImageRelations).count { it.albumId eq thisId }
-            if(sortedIndexes.last() >= count) throw be(ResourceNotExist("itemIndexes", indexes.filter { it >= count }))
             //删除
             data.db.delete(AlbumImageRelations) { (it.albumId eq thisId) and (it.ordinal inList indexes) }
             //将余下的项向前缩进
             data.db.batchUpdate(AlbumImageRelations) {
-                sortedIndexes.asSequence()
+                indexes.asSequence()
                     .windowed(2, 1, true) { it[0] to it.getOrElse(1) { count } }
                     .forEachIndexed { index, (fromOrdinal, toOrdinal) ->
                         item {
@@ -373,6 +429,19 @@ class AlbumKit(private val data: DataRepository,
                         }
                     }
             }
+
+            //刷新fileId的条件是indexes第一项是0，也就是说之前的cover被删除了。由于indexes有序，第一项肯定是最小的。
+            refreshFirstCover(thisId, refreshCount = true, refreshFileId = indexes.first() == 0)
         }
+    }
+
+    /**
+     * 根据image ids，映射得到它们的relation关系。返回结果按ordinal排序。忽略哪些不存在的项。
+     */
+    private fun retrieveSubOrdinalById(thisId: Int, imageIds: List<Int>): List<AlbumImageRelation> {
+        return data.db.sequenceOf(AlbumImageRelations)
+            .filter { (it.albumId eq thisId) and (it.imageId inList imageIds) }
+            .sortedBy { it.ordinal.asc() }
+            .toList()
     }
 }

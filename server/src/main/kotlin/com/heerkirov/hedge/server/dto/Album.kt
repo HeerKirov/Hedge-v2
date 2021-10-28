@@ -45,9 +45,7 @@ data class AlbumUpdateForm(val title: Opt<String?>,
                            val topics: Opt<List<Int>>, val authors: Opt<List<Int>>, val tags: Opt<List<Int>>)
 
 data class AlbumImagesPartialUpdateForm(val action: BatchAction,
-                                        /** 添加新的image，指定其id */
+                                        /** 添加新的images/移动或删除images，指定其id */
                                         val images: List<Int>? = null,
-                                        /** 修改或删除这些ordinal的项 */
-                                        val itemIndexes: List<Int>? = null,
                                         /** 添加或移动项到这个位置 */
                                         val ordinal: Int? = null)

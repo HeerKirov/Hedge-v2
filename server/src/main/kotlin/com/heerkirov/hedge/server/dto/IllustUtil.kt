@@ -6,5 +6,10 @@ data class CollectionSituationRes(val id: Int, val childrenCount: Int, val order
                                   val childrenExamples: List<IllustSimpleRes>,
                                   val belongs: List<Int>)
 
-data class ImageSituationRes(val id: Int, val thumbnailFile: String, val orderTime: LocalDateTime,
-                             val belong: IllustParent?)
+data class ImageSituationRes(val id: Int, val thumbnailFile: String, val orderTime: LocalDateTime, val belong: IllustParent?)
+
+data class AlbumSituationRes(val id: Int, val thumbnailFile: String, val ordinal: Int?)
+
+data class IllustIdForm(val illustIds: List<Int>)
+
+data class AlbumSituationForm(val illustIds: List<Int>, val albumId: Int, val onlyExists: Boolean = false)
