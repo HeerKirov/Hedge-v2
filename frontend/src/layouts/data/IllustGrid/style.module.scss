@@ -22,39 +22,50 @@
         object-position: center;
       }
     }
-    //拖放提示条
+    //选中显示块
+    > .selected {
+      position: absolute;
+      top: 0; bottom: 0; left: 0; right: 0;
+      margin: 1px;
+      border: solid 3px rgb(0, 99, 255);
+      @media (prefers-color-scheme: dark) {
+        border-width: 2px;
+      }
+      > .internal-border {
+        width: 100%; height: 100%;
+        box-sizing: border-box;
+        border: solid 1px $white;
+        @media (prefers-color-scheme: dark) {
+          border-color: $black;
+        }
+      }
+    }
+    //点击浮层
+    > .touch {
+      position: absolute;
+      top: 0; bottom: 0; left: 0; right: 0;
+    }
+    //分侧的点击浮层(用于判断拖放位置)
+    > .left-touch {
+      position: absolute;
+      top: 0; bottom: 0; left: 0; width: 50%;
+    }
+    > .right-touch {
+      position: absolute;
+      top: 0; bottom: 0; right: 0; width: 50%;
+    }
+    //两侧的拖放提示条
     > .left-drop-tooltip {
       z-index: 1;
       position: absolute;
       top: 0; bottom: 0; left: -2px; width: 5px;
-      background-color: rgba(127, 127, 127, 0.5);
+      background-color: rgba(127, 127, 127, 0.6);
     }
     > .right-drop-tooltip {
       z-index: 1;
       position: absolute;
       top: 0; bottom: 0; right: -3px; width: 5px;
-      background-color: rgba(127, 127, 127, 0.5);
-    }
-    //点击和选中显示块
-    > .touch {
-      position: absolute;
-      top: 0; bottom: 0; left: 0; right: 0;
-      margin: 1px;
-      //被选中
-      &.selected {
-        border: solid 3px rgb(0, 99, 255);
-        @media (prefers-color-scheme: dark) {
-          border-width: 2px;
-        }
-        > .internal-border {
-          width: 100%; height: 100%;
-          box-sizing: border-box;
-          border: solid 1px $white;
-          @media (prefers-color-scheme: dark) {
-            border-color: $black;
-          }
-        }
-      }
+      background-color: rgba(127, 127, 127, 0.6);
     }
     //children num的浮动角标
     > .num-tag {
@@ -87,18 +98,21 @@
     }
   }
 
-  > .layer {
+  > .selected-count-tag {
     position: absolute;
     right: 0; top: 0;
-    > .selected-count-tag {
-      margin-top: 0.75rem;
-      margin-right: 0.75rem;
-      padding: 0.15rem 0.6rem;
-      border-radius: $radius-size-std;
-      font-weight: bold;
-      color: $literal-dm;
-      background-color: rgba(0, 0, 0, 0.65);
-      box-shadow: 0 0 6px rgba(0, 0, 0, 0.65);
-    }
+    margin-top: 0.75rem;
+    margin-right: 0.75rem;
+    padding: 0.15rem 0.6rem;
+    border-radius: $radius-size-std;
+    font-weight: bold;
+    color: $literal-dm;
+    background-color: rgba(0, 0, 0, 0.65);
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.65);
+  }
+
+  > .append-drop-area {
+    position: absolute;
+    right: 0; bottom: 0;
   }
 }

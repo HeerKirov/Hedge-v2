@@ -3,6 +3,7 @@ import { useScrollView, VirtualGrid } from "@/components/features/VirtualScrollV
 import { useToast } from "@/functions/module/toast"
 import { useDraggable, useDroppable } from "@/functions/feature/drag"
 import { watchGlobalKeyEvent } from "@/functions/feature/keyboard"
+import { TypeDefinition } from "@/functions/feature/drag/definition"
 import { PaginationData, QueryEndpointInstance } from "@/functions/utils/endpoints/query-endpoint"
 import { assetsUrl, useAppInfo } from "@/functions/app"
 import { arrays } from "@/utils/collections"
@@ -48,11 +49,12 @@ export default defineComponent({
         droppable: {type: Boolean, default: undefined}
     },
     emits: {
-        dataUpdate: (_: number, __: number) => true,
-        select: (_: number[], __: number | null) => true,
-        enter: (_: number) => true,
-        dblClick: (_: number, __: boolean) => true,
-        rightClick: (_: unknown) => true
+        dataUpdate: (_offset: number, _limit: number) => true,
+        select: (_selected: number[], __lastSelected: number | null) => true,
+        enter: (_id: number) => true,
+        dblClick: (_id: number, __shift: boolean) => true,
+        rightClick: (_id: unknown) => true,
+        dataDrop: (_insertIndex: number, _illusts: TypeDefinition["illusts"], _dropIndex: number, _at: "before" | "after") => true
     },
     setup(props, { emit }) {
         const selected = toRef(props, "selected")
@@ -60,8 +62,11 @@ export default defineComponent({
         const data = toRef(props, "data")
         const columnNum = toRef(props, "columnNum")
         const droppable = props.droppable !== undefined ? toRef(props, "droppable") as Ref<boolean> : undefined
+        const drop = props.droppable !== undefined
+            ? (insertIndex: number, illusts: TypeDefinition["illusts"], dropIndex: number, at: "before" | "after") => emit("dataDrop", insertIndex, illusts, dropIndex, at)
+            : undefined
 
-        provide(contextInjection, {selected, lastSelected, data, columnNum, queryEndpoint: props.queryEndpoint, draggable: props.draggable, droppable})
+        provide(contextInjection, {selected, lastSelected, data, columnNum, queryEndpoint: props.queryEndpoint, draggable: props.draggable, droppable, drop})
 
         const dataUpdate = (offset: number, limit: number) => emit("dataUpdate", offset, limit)
 
@@ -78,15 +83,19 @@ export default defineComponent({
     }
 })
 
+//TODO 添加右下角的append区域和此区域相关的参数/事件
 const OverLayer = defineComponent({
     setup() {
         const { selected } = inject(contextInjection)!
 
         const selectedCount = computed(() => selected.value.length)
 
-        return () => <div class={style.layer}>
+        return () => <>
             {selectedCount.value > 1 ? <div class={style.selectedCountTag}>已选择 {selectedCount.value} 项</div> : null}
-        </div>
+            <div class={style.appendDropArea}>
+
+            </div>
+        </>
     }
 })
 
@@ -144,7 +153,7 @@ const Item = defineComponent({
         click: (_: SuitableIllust, __: number, ___: MouseEvent) => true,
     },
     setup(props, { emit }) {
-        const { selected, droppable } = inject(contextInjection)!
+        const { selected } = inject(contextInjection)!
 
         const currentSelected = computed(() => selected.value.find(i => i === props.data.id) != undefined)
 
@@ -158,22 +167,41 @@ const Item = defineComponent({
         const rightClick = () => emit("rightClick", props.data)
 
         const dragEvents = useDragEvents(() => toRef(props, "data"))
-        const { isDragover, ...dropEvents } = useDropEvents()
+        const dropEvents = useDropEvents(() => toRef(props, "index"))
 
-        return () => <div class={style.item} onClick={click} onDblclick={dblClick} onContextmenu={rightClick} {...dragEvents}>
-            <div class={style.content}>
-                <img src={assetsUrl(props.data.thumbnailFile)} alt={`${props.data.type}-${props.data.id}`}/>
-            </div>
-            {isDragover?.value && <div class={style.leftDropTooltip}/>}
-            {isDragover?.value && <div class={style.rightDropTooltip}/>}
-            <div class={{[style.touch]: true, [style.selected]: currentSelected.value}} {...dropEvents}>
-                {currentSelected.value && <div class={style.internalBorder}/>}
-            </div>
-            {props.data.childrenCount && <span class={[style.numTag, "tag", "is-dark"]}><i class="fa fa-images"/>{props.data.childrenCount}</span>}
-            {props.data.favorite && <i class={[style.favTag, "fa", "fa-heart", "has-text-danger", "is-size-medium"]}/>}
+        return dropEvents !== null
+        ? () => <div class={style.item} onClick={click} onDblclick={dblClick} onContextmenu={rightClick} {...dragEvents}>
+            <ItemImage thumbnailFile={props.data.thumbnailFile} type={props.data.type} id={props.data.id}/>
+            {currentSelected.value && <div class={style.selected}><div class={style.internalBorder}/></div>}
+            {props.data.childrenCount && <ItemNumTag count={props.data.childrenCount}/>}
+            {props.data.favorite && <ItemFavIcon/>}
+            {dropEvents.isLeftDragover.value && <div class={style.leftDropTooltip}/>}
+            {dropEvents.isRightDragover.value && <div class={style.rightDropTooltip}/>}
+            <div class={style.leftTouch} {...dropEvents.leftDropEvents}/>
+            <div class={style.rightTouch} {...dropEvents.rightDropEvents}/>
+        </div>
+        : () => <div class={style.item} onClick={click} onDblclick={dblClick} onContextmenu={rightClick} {...dragEvents}>
+            <ItemImage thumbnailFile={props.data.thumbnailFile} type={props.data.type} id={props.data.id}/>
+            <div class={{[style.touch]: true, [style.selected]: currentSelected.value}}><div class={style.internalBorder}/></div>
+            {props.data.childrenCount && <ItemNumTag count={props.data.childrenCount}/>}
+            {props.data.favorite && <ItemFavIcon/>}
         </div>
     }
 })
+
+function ItemImage(props: {thumbnailFile: string, type: string | undefined, id: number}) {
+    return <div class={style.content}>
+        <img src={assetsUrl(props.thumbnailFile)} alt={`${props.type}-${props.id}`}/>
+    </div>
+}
+
+function ItemNumTag(props: {count: number}) {
+    return <span class={[style.numTag, "tag", "is-dark"]}><i class="fa fa-images"/>{props.count}</span>
+}
+
+function ItemFavIcon() {
+    return <i class={[style.favTag, "fa", "fa-heart", "has-text-danger", "is-size-medium"]}/>
+}
 
 function useSelector(emitSelectEvent: EmitSelectFunction) {
     const scrollView = useScrollView()
@@ -326,18 +354,27 @@ function useDragEvents(getDataRef: () => Ref<SuitableIllust>) {
     }
 }
 
-function useDropEvents() {
-    const { droppable } = inject(contextInjection)!
+function useDropEvents(getIndexRef: () => Ref<number>) {
+    const { droppable, drop } = inject(contextInjection)!
     if(droppable !== undefined) {
-        const { isDragover: originDragover, ...dropEvents } = useDroppable("illusts", illusts => {
+        const index = getIndexRef()
+
+        const { isDragover: leftDragover, ...leftDropEvents } = useDroppable("illusts", illusts => {
             if(droppable.value) {
-                console.log(`drop`, illusts)
+                drop!(index.value, illusts, index.value, "before")
             }
         })
-        const isDragover = computed(() => originDragover.value && droppable.value)
-        return {...dropEvents, isDragover}
+        const { isDragover: rightDragover, ...rightDropEvents } = useDroppable("illusts", illusts => {
+            if(droppable.value) {
+                drop!(index.value + 1, illusts, index.value, "after")
+            }
+        })
+        const isLeftDragover = computed(() => leftDragover.value && droppable.value)
+        const isRightDragover = computed(() => rightDragover.value && droppable.value)
+
+        return {isLeftDragover, isRightDragover, leftDropEvents, rightDropEvents}
     }else{
-        return {isDragover: undefined}
+        return null
     }
 }
 
@@ -353,6 +390,7 @@ interface Context {
     columnNum: Ref<number>
     draggable: boolean
     droppable: Ref<boolean> | undefined
+    drop?(insertIndex: number, illusts: TypeDefinition["illusts"], dropIndex: number, at: "before" | "after"): void
 }
 
 const contextInjection: InjectionKey<Context> = Symbol()
