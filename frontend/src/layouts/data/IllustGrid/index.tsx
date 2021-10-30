@@ -54,7 +54,7 @@ export default defineComponent({
         enter: (_id: number) => true,
         dblClick: (_id: number, __shift: boolean) => true,
         rightClick: (_id: unknown) => true,
-        dataDrop: (_insertIndex: number, _illusts: TypeDefinition["illusts"], _dropIndex: number, _at: "before" | "after") => true
+        dataDrop: (_insertIndex: number | null, _illusts: TypeDefinition["illusts"], _mode: "ADD" | "MOVE") => true,
     },
     setup(props, { emit }) {
         const selected = toRef(props, "selected")
@@ -63,7 +63,7 @@ export default defineComponent({
         const columnNum = toRef(props, "columnNum")
         const droppable = props.droppable !== undefined ? toRef(props, "droppable") as Ref<boolean> : undefined
         const drop = props.droppable !== undefined
-            ? (insertIndex: number, illusts: TypeDefinition["illusts"], dropIndex: number, at: "before" | "after") => emit("dataDrop", insertIndex, illusts, dropIndex, at)
+            ? (insertIndex: number, illusts: TypeDefinition["illusts"], mode: "ADD" | "MOVE") => emit("dataDrop", insertIndex, illusts, mode)
             : undefined
 
         provide(contextInjection, {selected, lastSelected, data, columnNum, queryEndpoint: props.queryEndpoint, draggable: props.draggable, droppable, drop})
@@ -78,24 +78,19 @@ export default defineComponent({
 
         return () => <div class={[style.root, FIT_TYPE_CLASS[props.fitType], COLUMN_NUMBER_CLASS[props.columnNum]]}>
             <Content onDataUpdate={dataUpdate} onEnter={enter} onDblClick={dblClick} onRightClick={rightClick} onSelect={emitSelect}/>
-            <OverLayer/>
+            <SelectedCountTag/>
         </div>
     }
 })
 
-//TODO 添加右下角的append区域和此区域相关的参数/事件
-const OverLayer = defineComponent({
+//TODO 添加右下角的append区域和此区域相关的参数/事件，还有空白处
+const SelectedCountTag = defineComponent({
     setup() {
         const { selected } = inject(contextInjection)!
 
         const selectedCount = computed(() => selected.value.length)
 
-        return () => <>
-            {selectedCount.value > 1 ? <div class={style.selectedCountTag}>已选择 {selectedCount.value} 项</div> : null}
-            <div class={style.appendDropArea}>
-
-            </div>
-        </>
+        return () => selectedCount.value > 1 ? <div class={style.selectedCountTag}>已选择 {selectedCount.value} 项</div> : null
     }
 })
 
@@ -132,7 +127,9 @@ const Content = defineComponent({
 
         useKeyboardEvents(selector, enter)
 
-        return () => <VirtualGrid {...data.value.metrics}
+        const appendDropEvents = useSummaryDropEvents()
+
+        return () => <VirtualGrid {...data.value.metrics} {...appendDropEvents}
                                   onUpdate={dataUpdate} columnCount={columnNum.value}
                                   bufferSize={5} minUpdateDelta={1} padding={{top: 1, bottom: 1, left: 2, right: 2}}>
             {data.value.result.map((item, i) => <Item key={item.id}
@@ -358,21 +355,44 @@ function useDropEvents(getIndexRef: () => Ref<number>) {
     const { droppable, drop } = inject(contextInjection)!
     if(droppable !== undefined) {
         const index = getIndexRef()
+        const dragStatus = inject(dragStatusInjection)!
 
         const { isDragover: leftDragover, ...leftDropEvents } = useDroppable("illusts", illusts => {
             if(droppable.value) {
-                drop!(index.value, illusts, index.value, "before")
+                drop!(index.value, illusts, dragStatus.dragging ? "MOVE" : "ADD")
             }
-        })
+        }, {stopPropagation: true})
         const { isDragover: rightDragover, ...rightDropEvents } = useDroppable("illusts", illusts => {
             if(droppable.value) {
-                drop!(index.value + 1, illusts, index.value, "after")
+                drop!(index.value + 1, illusts, dragStatus.dragging ? "MOVE" : "ADD")
             }
-        })
+        }, {stopPropagation: true})
         const isLeftDragover = computed(() => leftDragover.value && droppable.value)
         const isRightDragover = computed(() => rightDragover.value && droppable.value)
 
         return {isLeftDragover, isRightDragover, leftDropEvents, rightDropEvents}
+    }else{
+        return null
+    }
+}
+
+function useSummaryDropEvents() {
+    const { droppable, drop } = inject(contextInjection)!
+    if(droppable !== undefined) {
+        const { isDragover, ...dropEvents } = useDroppable("illusts", illusts => {
+            if(droppable.value) {
+                drop!(null, illusts, dragStatus.dragging ? "MOVE" : "ADD")
+            }
+        })
+
+        const dragStatus = {dragging: false}
+
+        const onDragstart = () => dragStatus.dragging = true
+        const onDragend = () => dragStatus.dragging = false
+
+        provide(dragStatusInjection, dragStatus)
+
+        return {...dropEvents, onDragstart, onDragend}
     }else{
         return null
     }
@@ -390,10 +410,11 @@ interface Context {
     columnNum: Ref<number>
     draggable: boolean
     droppable: Ref<boolean> | undefined
-    drop?(insertIndex: number, illusts: TypeDefinition["illusts"], dropIndex: number, at: "before" | "after"): void
+    drop?(insertIndex: number | null, illusts: TypeDefinition["illusts"], mode: "ADD" | "MOVE"): void
 }
 
 const contextInjection: InjectionKey<Context> = Symbol()
+const dragStatusInjection: InjectionKey<{dragging: boolean}> = Symbol()
 
 const FIT_TYPE_CLASS: {[key in FitType]: string} = {
     "cover": style.fitTypeCover,

@@ -35,10 +35,14 @@ interface Droppable {
     onDragover(e: DragEvent): void
 }
 
+interface DroppableOptions {
+    stopPropagation?: boolean
+}
+
 /**
  * 提供一组对应的函数，用于直接实现拖放功能，同时还负责解析拖放获得的传递数据。
  */
-export function useDroppable<T extends keyof TypeDefinition>(byType: T | T[], event: (data: TypeDefinition[T], type: T) => void) {
+export function useDroppable<T extends keyof TypeDefinition>(byType: T | T[], event: (data: TypeDefinition[T], type: T) => void, options?: DroppableOptions) {
     return useDroppableInternal<T>(typeof byType === "string" ? (data, type) => {
         if(byType === type) {
             event(<TypeDefinition[T]>data, type)
@@ -47,16 +51,21 @@ export function useDroppable<T extends keyof TypeDefinition>(byType: T | T[], ev
         if(byType.includes(type)) {
             event(<TypeDefinition[T]>data, type)
         }
-    })
+    }, options)
 }
 
-function useDroppableInternal<T extends keyof TypeDefinition>(event: (data: TypeDefinition[T], type: T) => void): Droppable {
+function useDroppableInternal<T extends keyof TypeDefinition>(event: (data: TypeDefinition[T], type: T) => void, options: DroppableOptions | undefined): Droppable {
     const isDragover: Ref<boolean> = ref(false)
     const onDragenter = () => isDragover.value = true
     const onDragleave = () => isDragover.value = false
 
     const onDrop = (e: DragEvent) => {
         e.preventDefault()
+        if(options?.stopPropagation) {
+            //阻止向上传递事件，以避免存在上下叠加的dropEvents时，误触上层的drop事件
+            e.stopImmediatePropagation()
+            e.stopPropagation()
+        }
         if(e.dataTransfer) {
             const type = <T>e.dataTransfer.getData("type")
             const data = JSON.parse(e.dataTransfer?.getData("data"))

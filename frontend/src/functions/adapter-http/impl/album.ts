@@ -208,7 +208,7 @@ export interface AlbumUpdateForm {
 
 export type AlbumImagesPartialUpdateForm = {
     /**
-     * 添加新项目。
+     * 添加新项目。这种模式执行添加时总是按照images列表的顺序添加，且允许选择已有项目(这将移动这些项目)。
      */
     action: "ADD"
     /**
@@ -218,10 +218,10 @@ export type AlbumImagesPartialUpdateForm = {
     /**
      * 插入位置。不填默认放在末尾。
      */
-    ordinal?: number
+    ordinal?: number | null
 } | {
     /**
-     * 移动现有项目的位置。
+     * 移动现有项目的位置。这种模式选取的image必须是已经存在的，且执行移动时，总是保持选取的image之间的相对排序不变。
      */
     action: "MOVE"
     /**
@@ -229,9 +229,9 @@ export type AlbumImagesPartialUpdateForm = {
      */
     images: number[]
     /**
-     * 放置的新位置。放置位置的判定是将要移动的项目全部移除后，再判定插入位置。
+     * 放置的新位置。不填默认放在末尾。
      */
-    ordinal: number
+    ordinal?: number | null
 } | {
     /**
      * 移除现有项目。
