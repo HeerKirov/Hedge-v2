@@ -258,9 +258,8 @@ class AlbumService(private val data: DataRepository,
                     //移动现存的项目。被移动的项目之间仍保持ordinal的顺序挪到新位置。
                     //不能用来添加新项目，会被忽略。
                     val formImages = form.images ?: throw be(ParamRequired("images"))
-                    val ordinal = form.ordinal ?: throw be(ParamRequired("ordinal"))
                     if(formImages.isNotEmpty()) {
-                        kit.moveSubImages(id, formImages, ordinal)
+                        kit.moveSubImages(id, formImages, form.ordinal)
                         //move操作不需要重置meta
                     }
                 }

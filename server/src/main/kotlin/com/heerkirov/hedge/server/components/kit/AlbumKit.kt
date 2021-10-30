@@ -360,7 +360,7 @@ class AlbumKit(private val data: DataRepository,
     /**
      * 移动一部分images的顺序。这部分images的相对顺序保持不变，移动到指定的新位置。
      */
-    fun moveSubImages(thisId: Int, imageIds: List<Int>, ordinal: Int) {
+    fun moveSubImages(thisId: Int, imageIds: List<Int>, ordinal: Int?) {
         val relations = retrieveSubOrdinalById(thisId, imageIds)
         val indexes = relations.map { it.ordinal }
         if(indexes.isNotEmpty()) {
@@ -381,7 +381,7 @@ class AlbumKit(private val data: DataRepository,
             }
             //实际的插入ordinal是指定ordinal减去ordinal之前被移除的项的数量的位置。这样保证最终插入位置确实是指定的插入位置，而不会发生偏移
             val countAfterDeleted = count - indexes.size
-            val finalOrdinal = if(ordinal <= count) ordinal - indexes.count { it < ordinal } //ordinal在count范围内，则正常计算即可
+            val finalOrdinal = if(ordinal != null && ordinal <= count) ordinal - indexes.count { it < ordinal } //ordinal在count范围内，则正常计算即可
             else countAfterDeleted //不在合法范围内，那么实际上就是放在最后，计算成countAfterDeleted即可
 
             //再向后挪动空出位置
