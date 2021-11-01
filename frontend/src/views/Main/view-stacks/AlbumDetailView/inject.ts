@@ -46,6 +46,7 @@ export interface PreviewContext {
         viewController: {
             fitType: Ref<FitType>
             columnNum: Ref<number>
+            editable: Ref<boolean>
         }
         selector: {
             selected: Ref<number[]>
@@ -163,9 +164,12 @@ function useViewController() {
         fitType: "cover", columnNum: 8
     })
 
+    const editable = useLocalStorageWithDefault<boolean>("album-detail/editable", false)
+
     return {
         columnNum: splitRef(storage, "columnNum"),
-        fitType: splitRef(storage, "fitType")
+        fitType: splitRef(storage, "fitType"),
+        editable
     }
 }
 

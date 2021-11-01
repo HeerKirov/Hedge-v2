@@ -112,7 +112,7 @@ export interface AlbumExceptions {
     "create": ResourceNotExist<"images", number[]>,
     "update": NotFound | ResourceNotExist<"topics" | "authors" | "tags", number[]> | ResourceNotSuitable<"tags", number[]> | ConflictingGroupMembersError
     "images.update": NotFound | ResourceNotExist<"images", number[]>
-    "images.partialUpdate": NotFound | ResourceNotExist<"images" | "itemIndexes", number[]>
+    "images.partialUpdate": NotFound | ResourceNotExist<"images", number[]>
 }
 
 export interface SimpleAlbum {

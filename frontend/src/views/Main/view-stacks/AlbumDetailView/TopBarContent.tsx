@@ -57,10 +57,10 @@ const ExternalButton = defineComponent({
 
 const EditLockButton = defineComponent({
     setup() {
-        const editable = ref(false)
+        const { editable } = usePreviewContext().images.viewController
         const click = () => editable.value = !editable.value
 
-        return () => <button class="square button no-drag radius-large is-white" onClick={click}>
+        return () => <button class={`square button no-drag radius-large is-${editable.value ? "danger" : "white"}`} onClick={click}>
             <span class="icon"><i class={`fa fa-${editable.value ? "unlock" : "lock"}`}/></span>
         </button>
     }

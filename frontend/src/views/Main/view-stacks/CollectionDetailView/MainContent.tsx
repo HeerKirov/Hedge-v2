@@ -9,6 +9,8 @@ import { Illust } from "@/functions/adapter-http/impl/illust"
 import { createProxySingleton, createSliceOfAll, createSliceOfList } from "@/functions/utils/endpoints/query-endpoint"
 import { useDroppable } from "@/functions/feature/drag"
 import { useDynamicPopupMenu } from "@/functions/module/popup-menu"
+import { useMessageBox } from "@/functions/module/message-box"
+import { useHttpClient } from "@/functions/app"
 import TopBarContent from "./TopBarContent"
 import { usePreviewContext, useMetadataEndpoint } from "./inject"
 
@@ -80,10 +82,11 @@ const ListView = defineComponent({
             afterDeleted: toastRefresh, //TODO 删除图像是能优化的，对上层的影响仅限于target自身
                                         //      调整context operator的回调，给出变动列表；调整preview context，增加一个重新请求target自己的方法。
                                         //      在此处回调时，只需要重新请求target自己并set，而不需要通知上层完全刷新。其他位置也要做同步修改。
-            afterRemovedFromCollection: toastRefresh //从集合移除图像对上层影响不可控，因此也只能刷新列表
         })
 
-        const menu = useContextmenu(operator)
+        const collectionOperator = useCollectionOperator()
+
+        const menu = useContextmenu(operator, collectionOperator)
 
         const dropEvents = useDropEvents()
 
@@ -94,7 +97,7 @@ const ListView = defineComponent({
     }
 })
 
-function useContextmenu(operator: GridContextOperatorResult<Illust>) {
+function useContextmenu(operator: GridContextOperatorResult<Illust>, collectionOperator: ReturnType<typeof useCollectionOperator>) {
     //TODO 完成collection右键菜单的功能
     return useDynamicPopupMenu<Illust>(illust => [
         {type: "normal", label: "查看详情", click: illust => operator.clickToOpenDetail(illust.id)},
@@ -118,8 +121,31 @@ function useContextmenu(operator: GridContextOperatorResult<Illust>) {
         {type: "normal", label: "导出"},
         {type: "separator"},
         {type: "normal", label: "删除项目", click: operator.deleteItem},
-        {type: "normal", label: "从集合移除此项目", click: operator.removeItemFromCollection}
+        {type: "normal", label: "从集合移除此项目", click: collectionOperator.removeItemFromCollection}
     ])
+}
+
+function useCollectionOperator() {
+    const messageBox = useMessageBox()
+    const httpClient = useHttpClient()
+    const { images: { dataView, selector: {  } }, data: { toastRefresh } } = usePreviewContext()
+
+    const removeItemFromCollection = async (illust: Illust) => {
+        //TODO 添加对selected的处理
+        if(await messageBox.showYesNoMessage("warn", "确定要从集合移除此项吗？")) {
+            const res = await httpClient.illust.image.relatedItems.update(illust.id, {collectionId: null})
+            if(res.ok) {
+                const index = dataView.proxy.syncOperations.find(i => i.id === illust.id)
+                if(index !== undefined) {
+                    dataView.proxy.syncOperations.remove(index)
+                    //从集合移除图像对上层影响不可控，因此也只能刷新列表
+                    toastRefresh()
+                }
+            }
+        }
+    }
+
+    return {removeItemFromCollection}
 }
 
 function useDropEvents() {

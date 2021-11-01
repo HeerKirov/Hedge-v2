@@ -27,7 +27,7 @@ const EditLockButton = defineComponent({
         const editable = useEditable()
         const click = () => editable.value = !editable.value
 
-        return () => <button class="square button no-drag radius-large is-white" onClick={click}>
+        return () => <button class={`square button no-drag radius-large is-${editable.value ? "danger" : "white"}`} onClick={click}>
             <span class="icon"><i class={`fa fa-${editable.value ? "unlock" : "lock"}`}/></span>
         </button>
     }

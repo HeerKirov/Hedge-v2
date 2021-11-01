@@ -83,7 +83,6 @@ export default defineComponent({
     }
 })
 
-//TODO 添加右下角的append区域和此区域相关的参数/事件，还有空白处
 const SelectedCountTag = defineComponent({
     setup() {
         const { selected } = inject(contextInjection)!

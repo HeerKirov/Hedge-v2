@@ -3,9 +3,13 @@ import TopBarLayout from "@/layouts/layouts/TopBarLayout"
 import SideDrawer from "@/layouts/layouts/SideDrawer"
 import IllustGrid, { GridContextOperatorResult, useGridContextOperator } from "@/layouts/data/IllustGrid"
 import MetaTagEditor from "@/layouts/drawers/MetaTagEditor"
+import { TypeDefinition } from "@/functions/feature/drag/definition"
 import { AlbumImage } from "@/functions/adapter-http/impl/album"
 import { createSliceOfAll, createSliceOfList } from "@/functions/utils/endpoints/query-endpoint"
 import { useDynamicPopupMenu } from "@/functions/module/popup-menu"
+import { useMessageBox } from "@/functions/module/message-box"
+import { useHttpClient } from "@/functions/app"
+import { useToast } from "@/functions/module/toast"
 import TopBarContent from "./TopBarContent"
 import { usePreviewContext } from "./inject"
 
@@ -48,7 +52,7 @@ const ListView = defineComponent({
         const {
             images: {
                 dataView, endpoint, scrollView,
-                viewController: { columnNum, fitType },
+                viewController: { columnNum, fitType, editable },
                 selector: { selected, lastSelected }
             },
             data: { toastRefresh }
@@ -71,19 +75,20 @@ const ListView = defineComponent({
             }),
             createCollection: {forceDialog: true},
             afterDeleted: toastRefresh, //TODO 删除图像是能优化的，对上层的影响仅限于target自身
-            afterRemovedFromAlbum: toastRefresh //TODO 移除图像也是能优化的，对上层的影响仅限于target自身
         })
 
-        const menu = useContextmenu(operator)
+        const albumOperator = useAlbumOperator()
 
-        return () => <IllustGrid data={markRaw(dataView.data.value)} onDataUpdate={dataView.dataUpdate} draggable={true} droppable={true}
+        const menu = useContextmenu(operator, albumOperator)
+
+        return () => <IllustGrid data={markRaw(dataView.data.value)} onDataUpdate={dataView.dataUpdate} draggable={true} droppable={editable.value}
                                  queryEndpoint={markRaw(endpoint.proxy)} fitType={fitType.value} columnNum={columnNum.value}
                                  selected={selected.value} lastSelected={lastSelected.value} onSelect={updateSelected}
-                                 onRightClick={i => menu.popup(i as AlbumImage)} onDblClick={operator.clickToOpenDetail} onEnter={operator.enterToOpenDetail}/>
+                                 onRightClick={i => menu.popup(i as AlbumImage)} onDblClick={operator.clickToOpenDetail} onEnter={operator.enterToOpenDetail} onDataDrop={albumOperator.dropEvent}/>
     }
 })
 
-function useContextmenu(operator: GridContextOperatorResult<AlbumImage>) {
+function useContextmenu(operator: GridContextOperatorResult<AlbumImage>, albumOperator: ReturnType<typeof useAlbumOperator>) {
     const { data: { id } } = usePreviewContext()
     //TODO 完成album images右键菜单的功能
     return useDynamicPopupMenu<AlbumImage>(image => [
@@ -107,6 +112,61 @@ function useContextmenu(operator: GridContextOperatorResult<AlbumImage>) {
         {type: "normal", label: "导出"},
         {type: "separator"},
         {type: "normal", label: "删除项目", click: operator.deleteItem},
-        {type: "normal", label: "从画集移除此项目", click: i => operator.removeItemFromAlbum(i, id.value!)}
+        {type: "normal", label: "从画集移除此项目", click: i => albumOperator.removeItemFromAlbum(i, id.value!)}
     ])
+}
+
+function useAlbumOperator() {
+    const toast = useToast()
+    const messageBox = useMessageBox()
+    const httpClient = useHttpClient()
+    const { images: { dataView, endpoint, selector: { selected } }, data: { id, toastRefresh } } = usePreviewContext()
+
+    const removeItemFromAlbum = async (illust: AlbumImage, albumId: number) => {
+        const images = selected.value.includes(illust.id) ? selected.value : [...selected.value, illust.id]
+        if(await messageBox.showYesNoMessage("warn", `确定要从画集移除${images.length > 1 ? "这些" : "此"}项吗？`)) {
+            const ok = await httpClient.album.images.partialUpdate(albumId, {action: "DELETE", images})
+            if(ok) {
+                if(images.length <= 1) {
+                    const index = dataView.proxy.syncOperations.find(i => i.id === illust.id)
+                    if(index !== undefined) {
+                        dataView.proxy.syncOperations.remove(index)
+                        //TODO 移除图像也是能优化的，对上层的影响仅限于target自身
+                        toastRefresh()
+                    }
+                }else{
+                    //删除数量大于2时，直接刷新
+                    endpoint.refresh()
+                    toastRefresh()
+                }
+            }
+        }
+    }
+
+    const dropEvent = async (insertIndex: number | null, illusts: TypeDefinition["illusts"], mode: "ADD" | "MOVE") => {
+        if(id.value !== null) {
+            if(mode === "ADD") {
+                //TODO 在添加之前，调用API检验已存在的项，并弹出提示框
+                const res = await httpClient.album.images.partialUpdate(id.value, {action: "ADD", images: illusts.map(i => i.id), ordinal: insertIndex})
+                if(res.ok) {
+                    //刷新列表数据
+                    endpoint.refresh()
+                }else{
+                    toast.handleException(res.exception)
+                }
+            }else{
+                //移动操作直接调用API即可
+                const res = await httpClient.album.images.partialUpdate(id.value, {action: "MOVE", images: illusts.map(i => i.id), ordinal: insertIndex})
+                if(res.ok) {
+                    //刷新列表数据
+                    endpoint.refresh()
+                }else{
+                    toast.handleException(res.exception)
+                }
+            }
+
+        }
+    }
+
+    return {removeItemFromAlbum, dropEvent}
 }
