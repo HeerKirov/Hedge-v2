@@ -1,0 +1,57 @@
+@import '@/styles/base/size.sass';
+@import '@/styles/base/color.scss';
+
+.content {
+  padding: 0.5rem;
+  max-height: 35rem;
+  min-height: 5rem;
+  width: 50rem;
+
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+
+  > .scroll-content {
+    height: 100%;
+    overflow-y: auto;
+    //列数
+    $column-number: 7;
+    display: flex;
+    flex-wrap: wrap;
+    margin-right: #{-$spacing-1};
+    //一个img项目，使用width和padding-bottom锁定长宽比
+    > .item {
+      position: relative;
+      height: 0;
+      width: #{percentage(1 / $column-number)};
+      padding-bottom: #{percentage(1 / $column-number)};
+      //内层img绝对定位以应用长宽比
+      > img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: calc(100% - #{$spacing-1});
+        height: calc(100% - #{$spacing-1});
+        object-fit: cover;
+        object-position: 50% 50%;
+      }
+      > .ordinal-flag {
+        position: absolute;
+        right: 0; bottom: 0;
+        border-bottom: 1rem solid $danger;
+        border-left: 1rem solid transparent;
+        > span {
+          position: absolute;
+          right: 0.25rem;
+          top: 0.75rem;
+          font-size: 0.5rem;
+          color: $literal-dm;
+          transform: translate(3px, -6px);
+        }
+      }
+    }
+  }
+  > .bottom {
+    padding-top: 0.5rem;
+  }
+}

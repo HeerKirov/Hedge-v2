@@ -6,6 +6,7 @@ import MetaTagEditor from "@/layouts/drawers/MetaTagEditor"
 import { TypeDefinition } from "@/functions/feature/drag/definition"
 import { AlbumImage } from "@/functions/adapter-http/impl/album"
 import { createSliceOfAll, createSliceOfList } from "@/functions/utils/endpoints/query-endpoint"
+import { useAddToAlbumDialog } from "@/layouts/dialogs/AddToAlbumDialog"
 import { useDynamicPopupMenu } from "@/functions/module/popup-menu"
 import { useMessageBox } from "@/functions/module/message-box"
 import { useHttpClient } from "@/functions/app"
@@ -120,6 +121,7 @@ function useAlbumOperator() {
     const toast = useToast()
     const messageBox = useMessageBox()
     const httpClient = useHttpClient()
+    const addToAlbum = useAddToAlbumDialog()
     const { images: { dataView, endpoint, selector: { selected } }, data: { id, toastRefresh } } = usePreviewContext()
 
     const removeItemFromAlbum = async (illust: AlbumImage, albumId: number) => {
@@ -146,15 +148,17 @@ function useAlbumOperator() {
     const dropEvent = async (insertIndex: number | null, illusts: TypeDefinition["illusts"], mode: "ADD" | "MOVE") => {
         if(id.value !== null) {
             if(mode === "ADD") {
-                //TODO 在添加之前，调用API检验已存在的项，并弹出提示框
-                const res = await httpClient.album.images.partialUpdate(id.value, {action: "ADD", images: illusts.map(i => i.id), ordinal: insertIndex})
-                if(res.ok) {
-                    //刷新列表数据
-                    endpoint.refresh()
-                }else{
-                    toast.handleException(res.exception)
+                const images = await addToAlbum.existsCheck(illusts.map(i => i.id), id.value)
+                if(images !== undefined && images.length > 0) {
+                    const res = await httpClient.album.images.partialUpdate(id.value, {action: "ADD", images, ordinal: insertIndex})
+                    if(res.ok) {
+                        //刷新列表数据
+                        endpoint.refresh()
+                    }else{
+                        toast.handleException(res.exception)
+                    }
                 }
-            }else{
+            }else if(illusts.length > 0) {
                 //移动操作直接调用API即可
                 const res = await httpClient.album.images.partialUpdate(id.value, {action: "MOVE", images: illusts.map(i => i.id), ordinal: insertIndex})
                 if(res.ok) {
