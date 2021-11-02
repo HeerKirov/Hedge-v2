@@ -1,7 +1,6 @@
 import { inject, InjectionKey, readonly, ref, Ref } from "vue"
-import { AppEnv, ClientPlatform, IpcService, State } from "@/functions/adapter-ipc/ipc"
+import { AppEnv, IpcService, State } from "@/functions/adapter-ipc/ipc"
 import { HttpClient, HttpInstanceConfig } from "@/functions/adapter-http"
-import { getOSName, OSName } from "@/utils/process"
 import { useLocalStorage } from "./app-storage"
 
 
@@ -38,7 +37,6 @@ export type AppInfo = AppInfoInClient | AppInfoInWeb
 
 export interface AppInfoInClient {
     clientMode: true
-    platform: ClientPlatform
     channel: string
     userDataPath: string
     debugMode: boolean
@@ -47,7 +45,6 @@ export interface AppInfoInClient {
 
 export interface AppInfoInWeb {
     clientMode: false
-    platform: OSName
     debugMode: false
     canPromptTouchID: false
 }
@@ -124,7 +121,7 @@ function useAppStateInClientMode(ipc: IpcService, appEnv: AppEnv, httpClientConf
 }
 
 function useAppStateInWebMode(api: HttpClient, httpClientConfig: HttpInstanceConfig): AppState {
-    const ls = useLocalStorage<{token: string}>("web-access", {clientMode: false, canPromptTouchID: false, debugMode: false, platform: getOSName()})
+    const ls = useLocalStorage<{token: string}>("web-access", {clientMode: false, canPromptTouchID: false, debugMode: false})
 
     const state: Ref<State | null> = ref(null)
 
@@ -179,7 +176,6 @@ function useAppStateInWebMode(api: HttpClient, httpClientConfig: HttpInstanceCon
 function getAppInfoInClient(env: AppEnv): AppInfo {
     return {
         clientMode: true,
-        platform: env.platform,
         channel: env.channel,
         userDataPath: env.userDataPath,
         debugMode: env.debugMode,
@@ -190,7 +186,6 @@ function getAppInfoInClient(env: AppEnv): AppInfo {
 function getAppInfoInWeb(): AppInfo {
     return {
         clientMode: false,
-        platform: getOSName(),
         debugMode: false,
         canPromptTouchID: false
     }

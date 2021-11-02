@@ -1,4 +1,5 @@
-import { defineComponent, Ref, ref, watch } from "vue"
+import { defineComponent, PropType, Ref, ref, watch } from "vue"
+import { createKeyboardEventChecker, KeyPress } from "@/functions/feature/keyboard"
 
 export default defineComponent({
     props: {
@@ -7,7 +8,8 @@ export default defineComponent({
         min: {type: Number, required: true},
         step: Number,
         refreshOnInput: {type: Boolean, default: false},
-        disabled: {type: Boolean, default: false}
+        disabled: {type: Boolean, default: false},
+        acceptEventKeys: null as any as PropType<KeyPress | KeyPress[]>
     },
     emits: {
         updateValue: (_: number) => true
@@ -25,9 +27,17 @@ export default defineComponent({
             }
         }
 
-        return () => {
-            const events = {[props.refreshOnInput ? "onInput" : "onChange"]: onUpdate}
-            return <input class="range" type="range" max={props.max} min={props.min} step={props.step} disabled={props.disabled} value={value.value} {...events}/>
+        const acceptKeyChecker = createKeyboardEventChecker(props.acceptEventKeys)
+        const defaultAcceptKeyChecker = createKeyboardEventChecker("Meta+Enter")
+        const onKeydown = (e: KeyboardEvent) => {
+            if(!acceptKeyChecker(e) && !defaultAcceptKeyChecker(e)) {
+                e.stopPropagation()
+                e.stopImmediatePropagation()
+            }
         }
+
+        const events = {[props.refreshOnInput ? "onInput" : "onChange"]: onUpdate, onKeydown}
+
+        return () => <input class="range" type="range" max={props.max} min={props.min} step={props.step} disabled={props.disabled} value={value.value} {...events}/>
     }
 })

@@ -1,8 +1,8 @@
 import { ComponentPublicInstance, computed, defineComponent, PropType, ref, toRef, watch } from "vue"
 import Input from "@/components/forms/Input"
 import { SimpleAnnotation } from "@/functions/adapter-http/impl/annotations"
-import { KeyboardSelectorItem, useKeyboardSelector, watchElementExcludeClick } from "@/functions/utils/element"
-import { onKeyEnter } from "@/utils/events"
+import { installArrowController, KeyboardSelectorItem, useArrowController, watchElementExcludeClick } from "@/functions/utils/element"
+import { KeyEvent } from "@/functions/feature/keyboard"
 import { sleep } from "@/utils/process"
 import { installData, useData, SearchRequestFunction, SearchResultAttachItem } from "./inject"
 import style from "./style.module.scss"
@@ -17,16 +17,17 @@ export default defineComponent({
     },
     emits: ["pick"],
     setup(props, { emit, slots }) {
-        const { updateSearch } = installData({initSize: props.initSize, continueSize: props.continueSize, request: props.request})
+        const { updateSearch, searchData, search, httpClient, handleException } = installData({initSize: props.initSize, continueSize: props.continueSize, request: props.request})
         const { pickerRef, showBoard, focus } = useBoard()
 
         const textBox = ref("")
 
-        const enter = (e: KeyboardEvent) => {
+        const enter = (e: KeyEvent) => {
             if(updateSearch(textBox.value.trim())) {
                 e.stopPropagation()
-                e.stopImmediatePropagation()
+                return
             }
+            arrowController.keypress(e)
         }
 
         const pick = (v: any) => {
@@ -44,13 +45,29 @@ export default defineComponent({
             updateSearch(value.trim())
         })
 
+        const attachItems = computed(() => props.searchResultAttachItems?.map(item => ({
+            key: item.key,
+            event() { item.click?.({search: search.value, pick, httpClient, handleException}) }
+        })) ?? [])
+        const arrowController = installArrowController(computed(() => {
+            const elements: KeyboardSelectorItem[] = searchData.data.result.map((item, i) => ({
+                key: i,
+                event() { pick(item) }
+            }))
+            if(searchData.showMore) elements.push({
+                key: "more",
+                event: searchData.next
+            })
+            elements.push(...attachItems.value)
+            return elements
+        }))
+
         const placeholder = toRef(props, "placeholder")
 
         return () => <div ref={pickerRef} class={style.searchBox}>
             <Input class="is-small is-width-medium" placeholder={placeholder.value}
                    value={textBox.value} onUpdateValue={v => textBox.value = v}
-                   onKeypress={onKeyEnter(enter)} onfocus={focus}
-                   refreshOnInput={true}/>
+                   onKeypress={enter} onfocus={focus} refreshOnInput={true}/>
             {showBoard.value && <div class={[style.searchBoxBoard, "popup-block"]}>
                 <PickerBoardContent onPick={pick} v-slots={slots} searchResultAttachItems={props.searchResultAttachItems}/>
             </div>}
@@ -97,26 +114,11 @@ const SearchResultContent = defineComponent({
 
         const { searchData, search, httpClient, handleException } = useData()
 
+        const { selectedKey, setElement, clearElement } = useArrowController()
         const attachItems = computed(() => props.searchResultAttachItems?.map(item => ({
             ...item,
             click() { item.click?.({search: search.value, pick, httpClient, handleException}) }
         })) ?? [])
-
-        const { selectedKey, setElement, clearElement } = useKeyboardSelector(computed(() => {
-            const elements: KeyboardSelectorItem[] = searchData.data.result.map((item, i) => ({
-                key: i,
-                event: onPick(item)
-            }))
-            if(searchData.showMore) elements.push({
-                key: "more",
-                event: searchData.next
-            })
-            elements.push(...attachItems.value.map(item => ({
-                key: item.key,
-                event: item.click
-            })))
-            return elements
-        }))
 
         const setRef = (i: number | string) => (el: Element | ComponentPublicInstance | null) => setElement(i, el)
         return () => {

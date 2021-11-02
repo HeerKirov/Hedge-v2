@@ -1,3 +1,5 @@
+import { ClientPlatform } from "@/functions/adapter-ipc/ipc"
+import { getOSName, OSName } from "@/utils/process"
 
 export interface RemoteClientAdapter {
     fullscreen: {
@@ -132,6 +134,8 @@ function createEmptyRemoteClientAdapter(): RemoteClientAdapter {
 }
 
 export const clientMode: boolean = !!window['clientMode']
+
+export const clientPlatform: OSName = clientMode ? window['platform'] as ClientPlatform : getOSName()
 
 export const ipcInvoke: IpcInvoke = clientMode ? window['ipcInvoke'] : forbidden
 

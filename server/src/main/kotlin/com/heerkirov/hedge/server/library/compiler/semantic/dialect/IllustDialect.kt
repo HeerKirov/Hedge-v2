@@ -37,9 +37,6 @@ object IllustDialect : QueryDialect<IllustDialect.IllustOrderItem> {
     enum class IllustOrderItem {
         ID, SCORE, ORDINAL, PARTITION, CREATE_TIME, UPDATE_TIME, SOURCE_ID, SOURCE_FROM
     }
-    enum class AnalyseStatus {
-        NO, ANALYZED, ERROR, MANUAL, NOT_FOUND
-    }
     enum class Tagme {
         TAG, AUTHOR, TOPIC, SOURCE
     }

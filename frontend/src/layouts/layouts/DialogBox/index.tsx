@@ -1,5 +1,5 @@
 import { defineComponent, PropType, Transition } from "vue"
-import { interceptGlobalKey } from "@/functions/feature/keyboard"
+import { watchGlobalKeyEvent } from "@/functions/feature/keyboard"
 import style from "./style.module.scss"
 
 export default defineComponent({
@@ -41,7 +41,14 @@ const BoxFramework = defineComponent({
     },
     inheritAttrs: false,
     setup(props, { emit, slots, attrs }) {
-        if(props.closeOnEscape) interceptGlobalKey(["Escape"], () => emit("close"))
+        watchGlobalKeyEvent(e => {
+            if(e.key === "Escape" && props.closeOnEscape) {
+                emit("close")
+                return
+            }
+            e.stopPropagation()
+            e.preventDefault()
+        })
 
         return () => <div class={{[style.boxFramework]: true, [style.absolute]: props.position === "absolute"}}>
             <div class={["popup-block", `is-overflow-${props.overflow}`]} {...attrs}>

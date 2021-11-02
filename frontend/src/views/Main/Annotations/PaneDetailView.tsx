@@ -7,7 +7,7 @@ import { Annotation, AnnotationTarget } from "@/functions/adapter-http/impl/anno
 import { useObjectEndpoint } from "@/functions/utils/endpoints/object-endpoint"
 import { useMessageBox } from "@/functions/module/message-box"
 import { useAnnotationContext } from "@/views/Main/Annotations/inject"
-import { onKeyEnter } from "@/utils/events"
+import { onKeyEnter } from "@/functions/feature/keyboard"
 import { checkTagName } from "@/utils/check"
 import { objects } from "@/utils/primitives"
 import { CAN_BE_EXPORTED_SELECT_ITEMS } from "@/definitions/annotation"

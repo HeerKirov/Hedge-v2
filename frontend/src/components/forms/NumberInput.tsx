@@ -1,4 +1,5 @@
-import { defineComponent, onMounted, Ref, ref, watch } from "vue"
+import { ComponentPublicInstance, defineComponent, nextTick, PropType, Ref, ref, watch } from "vue"
+import { createKeyboardEventChecker, KeyEvent, KeyPress, toKeyEvent } from "@/functions/feature/keyboard"
 
 export default defineComponent({
     props: {
@@ -8,7 +9,9 @@ export default defineComponent({
         min: Number,
         refreshOnInput: {type: Boolean, default: false},
         focusOnMounted: {type: Boolean, default: false},
-        disabled: {type: Boolean, default: false}
+        disabled: {type: Boolean, default: false},
+        acceptEventKeys: null as any as PropType<KeyPress | KeyPress[]>,
+        onKeypress: Function as PropType<(e: KeyEvent) => void>
     },
     emits: {
         updateValue: (_: number) => true
@@ -26,32 +29,27 @@ export default defineComponent({
             }
         }
 
-        const keyEventPrevent = (e: KeyboardEvent) => {
-            if(e.key === "Enter") {
-                //ignore
-            }else if(e.key === "ArrowUp" || e.key === "ArrowDown") {
-                //ignore
-            }else{
+        const acceptKeyChecker = createKeyboardEventChecker(props.acceptEventKeys)
+        const defaultAcceptKeyChecker = createKeyboardEventChecker("Meta+Enter")
+        const onKeydown = (e: KeyboardEvent) => {
+            if(!acceptKeyChecker(e) && !defaultAcceptKeyChecker(e)) {
                 e.stopPropagation()
                 e.stopImmediatePropagation()
             }
+            props.onKeypress?.(toKeyEvent(e))
         }
 
-        if(props.focusOnMounted) {
-            const dom = ref<HTMLInputElement>()
-
-            onMounted(() => dom.value?.focus())
-
-            return () => {
-                const events = {[props.refreshOnInput ? "onInput" : "onChange"]: onUpdate, "onKeydown": keyEventPrevent}
-                return <input ref={dom} class="input" type="number" max={props.max} min={props.min} disabled={props.disabled} value={value.value} {...events} placeholder={props.placeholder}/>
-            }
-        }else{
-            return () => {
-                const events = {[props.refreshOnInput ? "onInput" : "onChange"]: onUpdate, "onKeydown": keyEventPrevent}
-                return <input class="input" type="number" max={props.max} min={props.min} disabled={props.disabled} value={value.value} {...events} placeholder={props.placeholder}/>
+        //加载后聚焦
+        const focusOnMountedCallback = (props.focusOnMounted || undefined) && async function(el: Element | ComponentPublicInstance | null) {
+            const ref = (el as HTMLInputElement | null)
+            if(ref) {
+                await nextTick()
+                ref.focus()
             }
         }
 
+        const events = {[props.refreshOnInput ? "onInput" : "onChange"]: onUpdate, onKeydown}
+
+        return () => <input ref={focusOnMountedCallback} class="input" type="number" max={props.max} min={props.min} disabled={props.disabled} value={value.value} {...events} placeholder={props.placeholder}/>
     }
 })

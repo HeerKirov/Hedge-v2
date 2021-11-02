@@ -51,7 +51,7 @@ const Content = defineComponent({
         click: (_: string) => true
     },
     setup(props, { emit }) {
-        if(props.enter) interceptGlobalKey(["Enter"], () => {
+        if(props.enter) interceptGlobalKey("Enter", () => {
             if(props.enter) {
                 emit("click", props.enter)
             }

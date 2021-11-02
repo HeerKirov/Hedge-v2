@@ -1,7 +1,7 @@
 import { computed, defineComponent, PropType } from "vue"
 import NumberInput from "@/components/forms/NumberInput"
+import { onKeyEnter, KeyEvent } from "@/functions/feature/keyboard"
 import { date, getDaysOfMonth, LocalDate } from "@/utils/datetime"
-import { onKeyEnter } from "@/utils/events"
 
 export default defineComponent({
     props: {
@@ -15,16 +15,16 @@ export default defineComponent({
         const setMonth = (month: number) => emit("updateValue", date.withMonth(props.value, month))
         const setDay = (day: number) => emit("updateValue", date.withDay(props.value, day))
 
-        const enterOnYear = (e: KeyboardEvent) => setYear(parseInt((e.target as HTMLInputElement).value))
-        const enterOnMonth = (e: KeyboardEvent) => setMonth(parseInt((e.target as HTMLInputElement).value))
-        const enterOnDay = (e: KeyboardEvent) => setDay(parseInt((e.target as HTMLInputElement).value))
+        const enterOnYear = (e: KeyEvent) => setYear(parseInt((e.target as HTMLInputElement).value))
+        const enterOnMonth = (e: KeyEvent) => setMonth(parseInt((e.target as HTMLInputElement).value))
+        const enterOnDay = (e: KeyEvent) => setDay(parseInt((e.target as HTMLInputElement).value))
 
         return () => <div>
-            <NumberInput class="is-small is-width-half" placeholder="年" min={1970} value={props.value.year} onUpdateValue={setYear} onKeydown={onKeyEnter(enterOnYear)}/>
+            <NumberInput class="is-small is-width-half" placeholder="年" min={1970} value={props.value.year} onUpdateValue={setYear} onKeypress={onKeyEnter(enterOnYear)}/>
             -
-            <NumberInput class="is-small" placeholder="月" min={1} max={12} value={props.value.month} onUpdateValue={setMonth} onKeydown={onKeyEnter(enterOnMonth)}/>
+            <NumberInput class="is-small" placeholder="月" min={1} max={12} value={props.value.month} onUpdateValue={setMonth} onKeypress={onKeyEnter(enterOnMonth)}/>
             -
-            <NumberInput class="is-small" placeholder="日" min={1} max={maxDay.value} value={props.value.day} onUpdateValue={setDay} onKeydown={onKeyEnter(enterOnDay)}/>
+            <NumberInput class="is-small" placeholder="日" min={1} max={maxDay.value} value={props.value.day} onUpdateValue={setDay} onKeypress={onKeyEnter(enterOnDay)}/>
         </div>
     }
 })

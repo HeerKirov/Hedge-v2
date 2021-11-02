@@ -13,6 +13,7 @@ export interface IllustContext {
     dataView: PaginationDataView<Illust>
     endpoint: QueryEndpointResult<Illust>
     scrollView: Readonly<ScrollView>
+    query: Ref<string | undefined>
     viewController: {
         fitType: Ref<FitType>
         columnNum: Ref<number>
@@ -46,6 +47,7 @@ function useListContext(collectionMode: Ref<boolean>, partition: Ref<LocalDate> 
         type: collectionMode.value ? "COLLECTION" : "IMAGE",
         partition: partition?.value
     })
+    const query = splitRef(queryFilter, "query")
     watch(collectionMode, v => queryFilter.value.type = v ? "COLLECTION" : "IMAGE")
     if(partition !== null) watch(partition, p => queryFilter.value.partition = p)
 
@@ -56,7 +58,7 @@ function useListContext(collectionMode: Ref<boolean>, partition: Ref<LocalDate> 
     })
     const dataView = usePaginationDataView(endpoint)
 
-    return {endpoint, dataView, scrollView}
+    return {endpoint, dataView, scrollView, query}
 }
 
 function useViewController(partition: Ref<LocalDate> | null, partitionClose: (() => void) | undefined) {

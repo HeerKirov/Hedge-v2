@@ -1,8 +1,9 @@
 import { defineComponent, onMounted, ref } from "vue"
 import { useRouter } from "vue-router"
-import { State } from "@/functions/adapter-ipc"
-import { useAppInfo, useAppState } from "@/functions/app"
 import Input from "@/components/forms/Input"
+import { State } from "@/functions/adapter-ipc"
+import { onKeyEnter } from "@/functions/feature/keyboard"
+import { useAppInfo, useAppState } from "@/functions/app"
 
 export default defineComponent({
     setup() {
@@ -25,11 +26,6 @@ export default defineComponent({
             }else{
                 disabled.value = false
                 passwordWrong.value = true
-            }
-        }
-        const enter = async (e: KeyboardEvent) => {
-            if(e.key === "Enter") {
-                await doLogin()
             }
         }
 
@@ -56,7 +52,7 @@ export default defineComponent({
                     <i class="fa fa-3x fa-fingerprint mb-4"/>
                     <div class="is-size-medium">正在通过touch ID认证</div>
                 </div> : <div class="group">
-                    <Input class={{"has-text-centered": true, "is-width-small": true, "is-danger": passwordWrong.value}} type="password" focusOnMounted={true} refreshOnInput={true} value={password.value} onUpdateValue={v => password.value = v} onKeypress={enter}/>
+                    <Input class={{"has-text-centered": true, "is-width-small": true, "is-danger": passwordWrong.value}} type="password" focusOnMounted={true} refreshOnInput={true} value={password.value} onUpdateValue={v => password.value = v} onKeypress={onKeyEnter(doLogin)}/>
                     <button class="square button is-success" onClick={doLogin}><span class="icon"><i class="fa fa-check"/></span></button>
                 </div>}
             </div>

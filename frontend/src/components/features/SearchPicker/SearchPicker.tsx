@@ -1,7 +1,7 @@
 import { ComponentPublicInstance, computed, defineComponent, PropType, ref, toRef, watch } from "vue"
 import Input from "@/components/forms/Input"
-import { KeyboardSelectorItem, useKeyboardSelector } from "@/functions/utils/element"
-import { onKeyEnter } from "@/utils/events"
+import { installArrowController, KeyboardSelectorItem, useArrowController, } from "@/functions/utils/element"
+import { KeyEvent, onKeyEnter } from "@/functions/feature/keyboard"
 import { sleep } from "@/utils/process"
 import { installData, useData, SearchRequestFunction } from "./inject"
 import style from "./style.module.scss"
@@ -21,11 +21,17 @@ export default defineComponent({
     },
     emits: ["pick"],
     setup(props, { emit, slots }) {
-        const { updateSearch, contentType } = installData({initSize: props.initSize, continueSize: props.continueSize, request: props.request})
+        const { updateSearch, contentType, searchData } = installData({initSize: props.initSize, continueSize: props.continueSize, request: props.request})
 
         const textBox = ref("")
 
-        const enter = () => updateSearch(textBox.value.trim())
+        const enter = (e: KeyEvent) => {
+            if(e.key === "Enter" && updateSearch(textBox.value.trim())) {
+                e.stopPropagation()
+                return
+            }
+            arrowController.keypress(e)
+        }
 
         const pick = (v: any) => {
             emit("pick", v)
@@ -42,14 +48,25 @@ export default defineComponent({
             updateSearch(value.trim())
         })
 
+        const arrowController = installArrowController(computed(() => {
+            const elements: KeyboardSelectorItem[] = searchData.data.result.map((item, i) => ({
+                key: i,
+                event() { pick(item) }
+            }))
+            if(searchData.showMore) elements.push({
+                key: "more",
+                event: searchData.next
+            })
+            return elements
+        }))
+
         const placeholder = toRef(props, "placeholder")
 
         return () => <div class={style.searchPicker}>
             <div class={style.inputDiv}>
                 <Input class="is-small is-fullwidth" placeholder={placeholder.value}
                        value={textBox.value} onUpdateValue={v => textBox.value = v}
-                       onKeypress={onKeyEnter(enter)}
-                       refreshOnInput={true} focusOnMounted={true}/>
+                       onKeypress={enter} refreshOnInput={true} focusOnMounted={true}/>
             </div>
             {contentType.value === "recent"
                 ? <RecentContent onPick={pick}/>
@@ -60,6 +77,7 @@ export default defineComponent({
 
 const RecentContent = defineComponent({
     setup() {
+        //TODO 完成search picker的最近使用功能
         return () => <div class={style.recentContent}>
             <div class={style.scrollContent}>
                 <p class="has-text-grey is-size-small ml-1"><i>最近使用</i></p>
@@ -75,17 +93,7 @@ const SearchResultContent = defineComponent({
         const onPick = (pickedItem: any) => () => emit("pick", pickedItem)
 
         const { searchData } = useData()
-        const { selectedKey, setElement, clearElement } = useKeyboardSelector(computed(() => {
-            const elements: KeyboardSelectorItem[] = searchData.data.result.map((item, i) => ({
-                key: i,
-                event: onPick(item)
-            }))
-            if(searchData.showMore) elements.push({
-                key: "more",
-                event: searchData.next
-            })
-            return elements
-        }))
+        const { selectedKey, setElement, clearElement } = useArrowController()
 
         const setRef = (i: number | string) => (el: Element | ComponentPublicInstance | null) => setElement(i, el)
         return () => {

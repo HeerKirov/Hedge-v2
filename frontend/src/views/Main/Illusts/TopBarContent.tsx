@@ -5,7 +5,7 @@ import { useIllustContext } from "./inject"
 
 export default defineComponent({
     setup() {
-        const { viewController: { fitType, columnNum, collectionMode, partition, partitionClose }} = useIllustContext()
+        const { viewController: { fitType, columnNum, collectionMode, partition, partitionClose }, query } = useIllustContext()
 
         const setFitType = (v: FitType) => fitType.value = v
         const setColumnNum = (v: number) => columnNum.value = v
@@ -22,7 +22,7 @@ export default defineComponent({
             </div>
             <div class="layout-container">
                 <CollectionModeButton class="mr-1" value={collectionMode.value} onUpdateValue={setCollectionMode}/>
-                <SearchBox class="w-75 is-stretch-item"/>
+                <SearchBox class="w-75 is-stretch-item" value={query.value} onUpdateValue={v => query.value = v}/>
             </div>
             <div class="layout-container">
                 <DataRouter/>

@@ -1,5 +1,6 @@
 import { computed, defineComponent, inject, Transition } from "vue"
-import { useAppInfo, useFullscreen } from "@/functions/app"
+import { useFullscreen } from "@/functions/app"
+import { clientPlatform } from "@/functions/adapter-ipc"
 import { sideBarSwitchInjection } from "./index"
 import style from "./style.module.scss"
 
@@ -12,21 +13,30 @@ export default defineComponent({
         transparent: {type: Boolean, default: false}
     },
     setup(props, { slots }) {
-        const { platform } = useAppInfo()
         const isFullscreen = useFullscreen()
         const sideBarSwitch = inject(sideBarSwitchInjection)!
-
-        const hasDarwinButton = computed(() => platform === "darwin" && !isFullscreen.value && !sideBarSwitch.value)
-
         const openSideBar = () => { sideBarSwitch.value = true }
 
-        return () => <div class={{[style.topBar]: true, [style.background]: !props.transparent, [style.hasDarwinButton]: hasDarwinButton.value, "title-bar": true}}>
-            <Transition enterFromClass={style.transactionEnterFrom} leaveToClass={style.transactionLeaveTo} enterActiveClass={style.transactionEnterActive} leaveActiveClass={style.transactionLeaveActive}>
-                {!sideBarSwitch.value && <button class={[style.collapseButton, "no-drag", "button", "square", "is-white"]} onClick={openSideBar}><span class="icon"><i class="fa fa-lg fa-bars"/></span></button>}
-            </Transition>
-            <div class={{[style.content]: true, [style.hasClButton]: !sideBarSwitch.value}}>
-                {slots.default?.()}
+        if(clientPlatform === "darwin") {
+            const hasDarwinButton = computed(() => !(isFullscreen.value || sideBarSwitch.value))
+
+            return () => <div class={{[style.topBar]: true, [style.background]: !props.transparent, [style.hasDarwinButton]: hasDarwinButton.value, "title-bar": true}}>
+                <Transition enterFromClass={style.transactionEnterFrom} leaveToClass={style.transactionLeaveTo} enterActiveClass={style.transactionEnterActive} leaveActiveClass={style.transactionLeaveActive}>
+                    {!sideBarSwitch.value && <button class={[style.collapseButton, "no-drag", "button", "square", "is-white"]} onClick={openSideBar}><span class="icon"><i class="fa fa-lg fa-bars"/></span></button>}
+                </Transition>
+                <div class={{[style.content]: true, [style.hasClButton]: !sideBarSwitch.value}}>
+                    {slots.default?.()}
+                </div>
             </div>
-        </div>
+        }else{
+            return () => <div class={{[style.topBar]: true, [style.background]: !props.transparent, "title-bar": true}}>
+                <Transition enterFromClass={style.transactionEnterFrom} leaveToClass={style.transactionLeaveTo} enterActiveClass={style.transactionEnterActive} leaveActiveClass={style.transactionLeaveActive}>
+                    {!sideBarSwitch.value && <button class={[style.collapseButton, "no-drag", "button", "square", "is-white"]} onClick={openSideBar}><span class="icon"><i class="fa fa-lg fa-bars"/></span></button>}
+                </Transition>
+                <div class={{[style.content]: true, [style.hasClButton]: !sideBarSwitch.value}}>
+                    {slots.default?.()}
+                </div>
+            </div>
+        }
     }
 })

@@ -3,14 +3,23 @@ import Input from "@/components/forms/Input"
 import { TagAddressElement } from "@/layouts/elements"
 import { PaneBasicLayout } from "@/layouts/layouts/SplitPane"
 import { TagAddress } from "@/functions/api/tag-tree"
-import { useKeyboardSelector } from "@/functions/utils/element"
-import { onKeyEnter } from "@/utils/events"
+import { installArrowController, useArrowController } from "@/functions/utils/element"
+import { KeyEvent } from "@/functions/feature/keyboard"
 import { useTagPaneContext, useSearchService, useTagTreeAccessor } from "./inject"
 import style from "./style.module.scss"
 
 export default defineComponent({
     setup() {
         const { closePane } = useTagPaneContext()
+        const { result } = useSearchService()
+        const { scrollIntoView } = useTagTreeAccessor()
+
+        installArrowController(computed(() => {
+            return result.value.map(item => ({
+                key: item.id,
+                event: () => scrollIntoView(item.id)
+            }))
+        }))
 
         return () => <PaneBasicLayout class={style.paneSearchContent} onClose={closePane} overflow={false}>
             <SearchResultCount/>
@@ -34,19 +43,23 @@ const SearchResultCount = defineComponent({
 const SearchTextBox = defineComponent({
     setup() {
         const { searchText } = useSearchService()
+        const arrowController = useArrowController()
 
         const searchBoxText = ref<string>(searchText.value ?? "")
-        const enterForSearch = (e: KeyboardEvent) => {
-            const newValue = searchBoxText.value.trim()
-            if(searchText.value !== newValue) {
-                searchText.value = newValue
-                e.stopPropagation()
-                e.stopImmediatePropagation()
+        const enter = (e: KeyEvent) => {
+            if(e.key === "Enter") {
+                const newValue = searchBoxText.value.trim()
+                if(searchText.value !== newValue) {
+                    searchText.value = newValue
+                    e.stopPropagation()
+                    return
+                }
             }
+            arrowController.keypress(e)
         }
 
         return () => <Input class={style.searchInputBox} placeholder="搜索标签名称或别名" value={searchBoxText.value}
-                            onUpdateValue={v => searchBoxText.value = v} onKeydown={onKeyEnter(enterForSearch)}
+                            onUpdateValue={v => searchBoxText.value = v} onKeypress={enter}
                             focusOnMounted={true} refreshOnInput={true}/>
     }
 })
@@ -54,14 +67,8 @@ const SearchTextBox = defineComponent({
 const SearchResult = defineComponent({
     setup() {
         const { result } = useSearchService()
-        const { scrollIntoView } = useTagTreeAccessor()
 
-        const { selectedKey, setElement, clearElement } = useKeyboardSelector(computed(() => {
-            return result.value.map(item => ({
-                key: item.id,
-                event: () => scrollIntoView(item.id)
-            }))
-        }))
+        const { selectedKey, setElement, clearElement } = useArrowController()
 
         return () => {
             clearElement()

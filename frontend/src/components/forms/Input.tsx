@@ -1,4 +1,5 @@
-import { defineComponent, onMounted, PropType, ref, toRef, watch } from "vue"
+import { ComponentPublicInstance, defineComponent, nextTick, PropType, ref, toRef, watch } from "vue"
+import { createKeyboardEventChecker, KeyEvent, KeyPress, toKeyEvent } from "@/functions/feature/keyboard"
 
 export default defineComponent({
     props: {
@@ -7,7 +8,9 @@ export default defineComponent({
         type: {type: null as any as PropType<"text" | "password">, default: "text"},
         refreshOnInput: {type: Boolean, default: false},
         focusOnMounted: {type: Boolean, default: false},
-        disabled: {type: Boolean, default: false}
+        disabled: {type: Boolean, default: false},
+        acceptEventKeys: null as any as PropType<KeyPress | KeyPress[]>,
+        onKeypress: Function as PropType<(e: KeyEvent) => void>
     },
     emits: {
         updateValue: (_: string) => true
@@ -23,31 +26,34 @@ export default defineComponent({
             emit('updateValue', value.value)
         }
 
-        const keyEventPrevent = (e: KeyboardEvent) => {
-            if(e.key === "Enter") {
-                //ignore
-            }else if(e.key === "ArrowUp" || e.key === "ArrowDown") {
-                //ignore
-            }else{
-                e.stopPropagation()
-                e.stopImmediatePropagation()
+        const acceptKeyChecker = createKeyboardEventChecker(props.acceptEventKeys)
+        const defaultAcceptKeyChecker = createKeyboardEventChecker("Meta+Enter")
+        const onKeydown = (e: KeyboardEvent) => {
+            if(!composition) {
+                if(!acceptKeyChecker(e) && !defaultAcceptKeyChecker(e)) {
+                    e.stopPropagation()
+                    e.stopImmediatePropagation()
+                }
+                props.onKeypress?.(toKeyEvent(e))
             }
         }
 
-        if(props.focusOnMounted) {
-            const dom = ref<HTMLInputElement>()
+        //输入法合成器防抖
+        let composition = false
+        const onCompositionstart = () => composition = true
+        const onCompositionend = () => composition = false
 
-            onMounted(() => dom.value?.focus())
-
-            return () => {
-                const events = {[props.refreshOnInput ? "onInput" : "onChange"]: onUpdate, "onKeydown": keyEventPrevent}
-                return <input ref={dom} class="input is-monaco" type={type.value} disabled={props.disabled} value={value.value} {...events} placeholder={props.placeholder}/>
-            }
-        }else{
-            return () => {
-                const events = {[props.refreshOnInput ? "onInput" : "onChange"]: onUpdate, "onKeydown": keyEventPrevent}
-                return <input class="input is-monaco" type={type.value} value={value.value} disabled={props.disabled} {...events} placeholder={props.placeholder}/>
+        //加载后聚焦
+        const focusOnMountedCallback = (props.focusOnMounted || undefined) && async function(el: Element | ComponentPublicInstance | null) {
+            const ref = (el as HTMLInputElement | null)
+            if(ref) {
+                await nextTick()
+                ref.focus()
             }
         }
+
+        const events = {[props.refreshOnInput ? "onInput" : "onChange"]: onUpdate, onKeydown, onCompositionstart, onCompositionend}
+
+        return () => <input ref={focusOnMountedCallback} class="input is-monaco" type={type.value} disabled={props.disabled} value={value.value} placeholder={props.placeholder} {...events}/>
     }
 })

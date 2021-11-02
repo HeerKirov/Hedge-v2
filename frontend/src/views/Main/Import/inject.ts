@@ -86,9 +86,9 @@ function useImportOperationContext(dataView: PaginationDataView<ImportImage>, en
             if (res.ok) {
                 const { total, succeed } = res.data
                 if (succeed < total) {
-                    toast("导入结果", "warning", `${succeed}个项目已导入图库，${total - succeed}个项目导入失败。`)
+                    toast("导入项目", "warning", `${succeed}个项目已导入图库。${total - succeed}个项目导入失败，请等待处理完成。`)
                 } else {
-                    toast("导入结果", "success", `${total}个项目已导入图库。`)
+                    toast("导入项目", "success", `${total}个项目已导入图库。`)
                 }
                 endpoint.refresh()
                 pane.closePane()

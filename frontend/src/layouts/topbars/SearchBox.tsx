@@ -1,6 +1,6 @@
 import { defineComponent, ref, watch } from "vue"
 import Input from "@/components/forms/Input"
-import { onKeyEnter } from "@/utils/events"
+import { onKeyEnter } from "@/functions/feature/keyboard"
 import style from "./SearchBox.module.scss"
 
 export default defineComponent({

@@ -18,9 +18,9 @@ export default defineComponent({
         installMessageBoxManager()
         installWebPopupMenuManager()
         const { handleError } = installToastManager()
-        const { appInfo, appState } = installAppService({handleError})
+        const { appState } = installAppService({handleError})
         const initialized = computed(() => appState.state != null)
-        installGlobalKey(appInfo)
+        installGlobalKey()
 
         return () => <>
             {initialized.value && <RouterView/>}

@@ -5,7 +5,8 @@ import { useDraggable, useDroppable } from "@/functions/feature/drag"
 import { watchGlobalKeyEvent } from "@/functions/feature/keyboard"
 import { TypeDefinition } from "@/functions/feature/drag/definition"
 import { PaginationData, QueryEndpointInstance } from "@/functions/utils/endpoints/query-endpoint"
-import { assetsUrl, useAppInfo } from "@/functions/app"
+import { clientPlatform } from "@/functions/adapter-ipc"
+import { assetsUrl } from "@/functions/app"
 import { arrays } from "@/utils/collections"
 import { useGridContextOperator } from "./context"
 import type { SuitableIllust, GridContextOperatorResult } from "./context"
@@ -102,7 +103,6 @@ const Content = defineComponent({
         rightClick: (_: SuitableIllust) => true
     },
     setup(props, { emit }) {
-        const appInfo = useAppInfo()
         const { data, columnNum } = inject(contextInjection)!
 
         const selector = useSelector((selected, lastSelected) => emit("select", selected, lastSelected))
@@ -117,7 +117,7 @@ const Content = defineComponent({
             // 为了性能考虑，选择的项数上限为100
             if(e.shiftKey) {
                 selector.shiftSelect(index, illust.id).finally()
-            }else if((e.metaKey && appInfo.platform === "darwin") || (e.ctrlKey && appInfo.platform !== "darwin")) {
+            }else if((e.metaKey && clientPlatform === "darwin") || (e.ctrlKey && clientPlatform !== "darwin")) {
                 selector.appendSelect(index, illust.id)
             }else{
                 selector.select(index, illust.id)

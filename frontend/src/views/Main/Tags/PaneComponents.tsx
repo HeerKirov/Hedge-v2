@@ -8,7 +8,7 @@ import { OtherNameEditor } from "@/layouts/editors"
 import { IsGroup, TagLink } from "@/functions/adapter-http/impl/tag"
 import { useDroppable } from "@/functions/feature/drag"
 import { useMouseHover } from "@/functions/utils/element"
-import { onKeyEnter } from "@/utils/events"
+import { onKeyEnter } from "@/functions/feature/keyboard"
 import { useTagListContext } from "./inject"
 import style from "./style.module.scss"
 
