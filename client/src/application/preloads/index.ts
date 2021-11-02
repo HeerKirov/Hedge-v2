@@ -1,5 +1,6 @@
 import { ipcRenderer, contextBridge } from "electron"
 import { MenuTemplate, Menu, OpenDialogOptions, MessageOptions } from "./define"
+import { getNodePlatform } from "../../utils/process"
 
 /**
  * 定义在client，但实际上要注入页面在前端运行的脚本。
@@ -146,6 +147,7 @@ function ipcOn<T>(channel: string, event: (arg?: T) => void) {
 }
 
 contextBridge.exposeInMainWorld("clientMode", true)
+contextBridge.exposeInMainWorld("platform", getNodePlatform())
 contextBridge.exposeInMainWorld("ipcInvoke", ipcInvoke)
 contextBridge.exposeInMainWorld("ipcInvokeSync", ipcInvokeSync)
 contextBridge.exposeInMainWorld("ipcOn", ipcOn)

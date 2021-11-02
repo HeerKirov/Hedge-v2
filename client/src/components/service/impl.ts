@@ -17,7 +17,6 @@ import {
     AuthSetting,
     InitStateRes,
     LoginRes,
-    NewWindowOptions,
     ServerInfo,
     Service
 } from "./index"
