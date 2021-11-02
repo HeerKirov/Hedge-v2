@@ -67,7 +67,7 @@ export const [installImportService, useImportService] = installation(function():
                     if(warningList.length > 3) {
                         toast.toast("来源信息分析失败", "warning", `超过${warningList.length}个文件的来源信息分析失败，可能是因为正则表达式内容错误。`)
                     }else{
-                        toast.toast("来源信息分析失败", "warning", ["存在文件的来源信息分析失败，可能是因为正则表达式内容错误。", ...warningList.map(i => i.filepath)])
+                        toast.toast("来源信息分析失败", "warning", "存在文件的来源信息分析失败，可能是因为正则表达式内容错误。")
                     }
                     warningList.splice(0, warningList.length)
                 }

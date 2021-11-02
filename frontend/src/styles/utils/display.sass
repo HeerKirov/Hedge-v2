@@ -25,6 +25,11 @@
 .is-cursor-text
   cursor: text
 
+.has-pointer-events
+  pointer-events: auto
+.no-pointer-events
+  pointer-events: none
+
 //自订圆角
 @each $name, $size in $radius-size-map
   .has-radius-#{$name}

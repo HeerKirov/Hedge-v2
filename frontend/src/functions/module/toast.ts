@@ -4,7 +4,7 @@ import { BasicException } from "@/functions/adapter-http/exception"
 export type ToastType = "success" | "warning" | "danger" | "info" | "plain"
 
 export interface ToastManager {
-    toast(title: string, type: ToastType, content: string | string[] | undefined): void
+    toast(title: string, type: ToastType, content: string | undefined): void
     handleError(title: string, message: string | undefined): void
     handleException(e: BasicException): void
 }
@@ -17,7 +17,7 @@ interface Toast {
     uniqueKey: number
     title: string
     type: ToastType
-    content: string[]
+    content: string | undefined
 }
 
 export function installToastManager(): ToastConsumer {
@@ -25,8 +25,8 @@ export function installToastManager(): ToastConsumer {
 
     const toasts = reactive<Toast[]>([])
 
-    const toast = (title: string, type: ToastType, content: string | string[] | undefined) => {
-        toasts.push({uniqueKey: seq++, title, type, content: typeof content === "string" ? [content] : content ?? []})
+    const toast = (title: string, type: ToastType, content: string | undefined) => {
+        toasts.push({uniqueKey: seq++, title, type, content})
     }
     const handleError = (title: string, message: string | undefined) => toast(title, "danger", message)
     const handleException = (e: BasicException) => toast(`${e.status}: ${e.code}`, "danger", e.message)

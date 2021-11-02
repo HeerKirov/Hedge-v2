@@ -1,21 +1,88 @@
+@import '@/styles/base/color.scss';
+@import '@/styles/base/size.sass';
 
 .root {
   z-index: 100;
   position: fixed;
-  right: 0;
-  top: 0;
-  width: 18rem;
-  margin-top: 40px;
-  margin-right: 1rem;
-  max-height: calc(100% - 40px);
+  top: 0; right: 0;
+  margin-top: 46px;
+  margin-right: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: right;
+  pointer-events: none;
 
   .item {
-    padding: 1rem 0.8rem;
     margin-bottom: 0.5rem;
+    width: fit-content;
+    min-width: 4rem;
+    max-width: 36rem;
+    pointer-events: auto;
 
-    > .close-button {
-      margin-top: -0.3rem;
-      float: right;
+    &.transition-enter-from {
+      transform: translateX(100%);
+    }
+    &.transition-leave-to {
+      transform: translateY(-100%);
+      opacity: 0;
+    }
+    &.transition-enter-active {
+      transition: transform 0.15s ease-out;
+    }
+    &.transition-leave-active {
+      position: absolute; //需要将leave的element设置为absolute，以使其从文档流中抽出，从而使vue的list move class生效
+      transition: transform 0.3s ease-in, opacity 0.3s ease-in;
+    }
+    &.transition-list-move {
+      transition: transform 0.3s ease;
+    }
+
+    background-color: $bg;
+    border: 1px solid $deep-light;
+    border-radius: $radius-size-small;
+    box-shadow: 0.1em 0.1em 0.25em rgba(0, 0, 0, 0.2);
+
+    @media (prefers-color-scheme: dark) {
+      background-color: $bg-dm;
+      box-shadow: 0.1em 0.1em 0.25em rgba(255, 255, 255, 0.2);
+    }
+
+    $local-colors: (
+            "plain" ($deep-light $literal $grey $literal-dm),
+            "info" ($blue $blue-invert $blue-dark $blue-light),
+            "success" ($lightgreen $lightgreen-invert $lightgreen-dark $lightgreen-light),
+            "warning" ($yellow $yellow-invert $yellow-dark $yellow-light),
+            "danger" ($red $red-invert $red-dark $red-light)
+    );
+
+    @each $name, $pair in $local-colors {
+      $color: nth($pair, 1);
+      $color-invert: nth($pair, 2);
+      $color-dark: nth($pair, 3);
+      $color-light: nth($pair, 4);
+      &.is-#{$name} {
+        border-color: $color;
+        > .title-content {
+          background-color: $color;
+          color: $color-invert;
+          > .close-button {
+            color: $color-invert;
+          }
+        }
+      }
+    }
+
+    > .title-content {
+      padding: 0 0.125rem 0 0.5rem;
+      font-size: $font-size-small;
+      > .close-button {
+        float: right;
+      }
+    }
+    > .content {
+      padding: 2px 4px;
+      font-size: $font-size-small;
     }
   }
 }
