@@ -37,6 +37,10 @@ interface Navigation {
             ()
             detail(date: LocalDate)
         }
+        folders: {
+            ()
+            detail(folderId: number)
+        }
     }
     preferences: {
         image(imageId: number)
@@ -87,6 +91,13 @@ export function useNavigator(): Navigator {
                 detail(d: LocalDate) {
                     router.push({name: "MainPartitions", query: {detail: date.toISOString(d)}}).finally()
                 }
+            }),
+            folders: complexFunction(function () {
+                router.push({name: "MainFolders"}).finally()
+            }, {
+                detail(folderId: number) {
+                    router.push({name: "MainFolders", query: {detail: folderId}}).finally()
+                }
             })
         },
         preferences: {
@@ -133,6 +144,13 @@ export function useNavigator(): Navigator {
             }, {
                 detail(d: LocalDate) {
                     callNewWindow("main.partitions.detail", JSON.stringify(d))
+                }
+            }),
+            folders: complexFunction(function () {
+                callNewWindow("main.folders")
+            }, {
+                detail(folderId: number) {
+                    callNewWindow("main.folders.detail", folderId)
                 }
             })
         },

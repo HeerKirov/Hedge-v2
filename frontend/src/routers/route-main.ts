@@ -58,6 +58,11 @@ export default <RouteRecordRaw[]>[
                 name: 'MainSourceImage',
                 path: 'source-images',
                 component: () => import('@/views/Main/SourceImages')
+            },
+            {
+                name: 'MainFolders',
+                path: 'folders',
+                component: () => import('@/views/Main/Folders')
             }
         ]
     }

@@ -13,6 +13,7 @@ import { DepsTopic } from "./topic"
 import { DepsAuthor } from "./author"
 import { DepsTag } from "./tag"
 import { SourceTag } from "./source-tag-mapping"
+import { SimpleFolder } from "@/functions/adapter-http/impl/folder";
 
 export function createIllustEndpoint(http: HttpInstance): IllustEndpoint {
     return {
@@ -123,6 +124,7 @@ function mapToImageRelatedItems(data: any): ImageRelatedItems {
     return {
         collection: <IllustParent | null>data["collection"],
         albums: <SimpleAlbum[]>data["albums"],
+        folders: <SimpleFolder[]>data["folders"],
         associate: data["associate"] != null ? mapToAssociate(data["associate"]) : null
     }
 }
@@ -416,16 +418,6 @@ export interface SimpleIllust {
     thumbnailFile: string
 }
 
-export interface StandardIllust {
-    id: number
-    thumbnailFile: string
-    score: number | null
-    favorite: boolean
-    orderTime: LocalDateTime
-    type?: IllustType
-    childrenCount?: number | null
-}
-
 export interface IllustParent extends SimpleIllust {
     childrenCount: number
 }
@@ -456,6 +448,10 @@ export interface ImageRelatedItems {
      * image所属的画集列表。
      */
     albums: SimpleAlbum[]
+    /**
+     * image所属的文件夹列表。
+     */
+    folders: SimpleFolder[]
     /**
      * image所属的关联组。
      */

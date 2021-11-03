@@ -39,7 +39,7 @@ export default defineComponent({
                 <StdItemComponent name="源数据" icon="spider" routeName="MainSourceImage"/>
             </ScopeComponent>
             <ScopeComponent id="folder" name="文件夹">
-                <StdItemComponent name="所有文件夹" icon="archive" routeName="HedgeFolders"/>
+                <StdItemComponent name="所有文件夹" icon="archive" routeName="MainFolders"/>
                 <SubItemFolders routeName="HedgeFoldersDetail"/>
             </ScopeComponent>
         </aside>

@@ -1,5 +1,7 @@
-import { computed, defineComponent, PropType, TransitionGroup } from "vue"
+import { computed, defineComponent, onMounted, PropType, TransitionGroup } from "vue"
 import { ToastType, useToastConsumer } from "@/functions/module/toast"
+import { useMouseHover } from "@/functions/utils/element"
+import { sleep } from "@/utils/process"
 import style from "./style.module.scss"
 
 export default defineComponent({
@@ -10,7 +12,8 @@ export default defineComponent({
 
         const onClose = (index: number) => () => toasts.splice(index, 1)
 
-        return () => <TransitionGroup tag="div" class={style.root} enterFromClass={style.transitionEnterFrom}
+        return () => <TransitionGroup tag="div" class={style.root}
+                                      enterFromClass={style.transitionEnterFrom}
                                       leaveToClass={style.transitionLeaveTo}
                                       enterActiveClass={style.transitionEnterActive}
                                       leaveActiveClass={style.transitionLeaveActive}
@@ -30,10 +33,20 @@ const ToastItem = defineComponent({
         close: () => true
     },
     setup(props, { emit }) {
-        return () => <div class={[style.item, colorStyle[props.type]]}>
+        const { hover, ...hoverEvent } = useMouseHover()
+
+        onMounted(async () => {
+            //倒计时几秒后自动关闭
+            await sleep(1000 * 3)
+            emit("close")
+        })
+
+        return () => <div class={[style.item, colorStyle[props.type]]} {...hoverEvent}>
             <div class={style.titleContent}>
                 <b class={style.title}>{props.title}</b>
-                <a class={style.closeButton} onClick={() => emit("close")}><span class="icon"><i class="fa fa-times"/></span></a>
+                <a class={{[style.closeButton]: true, [style.show]: hover.value}} onClick={() => emit("close")}>
+                    <span class="icon"><i class="fa fa-times"/></span>
+                </a>
             </div>
             {props.content && <p class={style.content}>{props.content}</p>}
         </div>
