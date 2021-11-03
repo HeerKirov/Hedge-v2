@@ -64,13 +64,18 @@ CREATE INDEX album_image__index ON album_image_relation(album_id, image_id);
 CREATE TABLE folder(
     id 				INTEGER PRIMARY KEY,
     title 			TEXT COLLATE NOCASE NOT NULL DEFAULT '',   -- 文件夹标题，不存在时记空串
-    query 			TEXT,                       -- 虚拟查询表达式。此项不为NULL时，文件夹为虚拟文件夹
+    type            TINYINT NOT NULL,                          -- 类型{0=节点Node, 1=文件夹Folder, 2=查询Query}
+    parent_id       INTEGER DEFAULT NULL,                      -- 父节点的id
+    parent_address  TEXT COLLATE NOCASE DEFAULT NULL,          -- [冗余]父节点的每一节点构成的地址，由|分割
 
+    ordinal         INTEGER NOT NULL,           -- 排序下标，由系统维护，同一父节点一组从0开始
     pin             INTEGER,                    -- pin标记及其排序顺位
 
-    cached_count    INTEGER NOT NULL,           -- [冗余]文件夹中的图片数量，仅对非虚拟文件夹有效
-    create_time 	TIMESTAMP NOT NULL,         -- 此画集初次建立的真实时间
-    update_time 	TIMESTAMP NOT NULL          -- 对画集进行更新的真实更新时间(指画集内容变更，比如image source变化、图像替换增删)
+    query 			TEXT,                       -- Query类型的查询表达式
+    cached_count    INTEGER,                    -- [冗余]Folder类型文件夹中的图片数量
+
+    create_time 	TIMESTAMP NOT NULL,         -- 此文件夹初次建立的真实时间
+    update_time 	TIMESTAMP NOT NULL          -- 对内容进行更新的真实更新时间(指画集内容变更，比如image source变化、图像替换增删)
 );
 -- 文件夹与image的M:N关系
 CREATE TABLE folder_image_relation(

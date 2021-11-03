@@ -17,6 +17,7 @@ class FolderRoutes(private val folderService: FolderService) : Endpoints {
             path("api/folders") {
                 get(::list)
                 post(::create)
+                get("tree", ::tree)
                 path("pin") {
                     get(::pinList)
                     path("{id}") {
@@ -39,8 +40,13 @@ class FolderRoutes(private val folderService: FolderService) : Endpoints {
     }
 
     private fun list(ctx: Context) {
-        val filter = ctx.queryAsFilter<FolderFilter>()
+        val filter = ctx.queryAsFilter<FolderQueryFilter>()
         ctx.json(folderService.list(filter))
+    }
+
+    private fun tree(ctx: Context) {
+        val filter = ctx.queryAsFilter<FolderTreeFilter>()
+        ctx.json(folderService.tree(filter))
     }
 
     private fun create(ctx: Context) {

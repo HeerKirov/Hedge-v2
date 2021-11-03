@@ -11,6 +11,8 @@ import com.heerkirov.hedge.server.components.manager.*
 import com.heerkirov.hedge.server.components.manager.query.QueryManager
 import com.heerkirov.hedge.server.dao.album.AlbumImageRelations
 import com.heerkirov.hedge.server.dao.album.Albums
+import com.heerkirov.hedge.server.dao.collection.FolderImageRelations
+import com.heerkirov.hedge.server.dao.collection.Folders
 import com.heerkirov.hedge.server.dao.illust.*
 import com.heerkirov.hedge.server.dao.meta.Authors
 import com.heerkirov.hedge.server.dao.meta.Tags
@@ -233,9 +235,15 @@ class IllustService(private val data: DataRepository,
             .where { AlbumImageRelations.imageId eq id }
             .map { AlbumSimpleRes(it[Albums.id]!!, it[Albums.title]!!) }
 
+        val folders = data.db.from(Folders)
+            .innerJoin(FolderImageRelations, FolderImageRelations.folderId eq Folders.id)
+            .select(Folders.id, Folders.title, Folders.parentAddress, Folders.type)
+            .where { FolderImageRelations.imageId eq id }
+            .map { FolderSimpleRes(it[Folders.id]!!, (it[Folders.parentAddress] ?: emptyList()) + it[Folders.title]!!, it[Folders.type]!!) }
+
         val associate = associateManager.query(associateId, filter.limit)
 
-        return IllustImageRelatedRes(parent, albums, associate)
+        return IllustImageRelatedRes(parent, albums, folders, associate)
     }
 
     /**

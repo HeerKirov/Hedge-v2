@@ -11,17 +11,33 @@ data class Folder(val id: Int,
                    */
                   val title: String,
                   /**
-                   * 虚拟查询表达式。此项不为NULL时，文件夹为虚拟文件夹。
+                   * 类型。区分为节点、(真实)文件夹、(虚拟)查询三种。
                    */
-                  val query: String?,
+                  val type: FolderType,
+                  /**
+                   * 父节点id。
+                   */
+                  val parentId: Int?,
+                  /**
+                   * [cache field]父节点名称列表。
+                   */
+                  val parentAddress: List<String>?,
+                  /**
+                   * 局部排序顺位。从0开始。
+                   */
+                  val ordinal: Int,
                   /**
                    * pin标记及其排序顺位。pin指将文件夹pin在侧边栏上永久显示。没有pin时填null。
                    */
                   val pin: Int?,
                   /**
-                   * [cache field]文件夹包含的图片数量，仅对非虚拟文件夹有效。
+                   * Query类型的查询内容。
                    */
-                  val cachedCount: Int = 0,
+                  val query: String?,
+                  /**
+                   * [cache field]Folder类型包含的图片数量。
+                   */
+                  val cachedCount: Int?,
                   /**
                    * 文件夹创建时间。
                    */
@@ -29,4 +45,10 @@ data class Folder(val id: Int,
                   /**
                    * 文件夹中的项的更改时间/query查询表达式的更改时间。
                    */
-                  val updateTime: LocalDateTime)
+                  val updateTime: LocalDateTime) {
+    enum class FolderType {
+        NODE,
+        FOLDER,
+        QUERY
+    }
+}

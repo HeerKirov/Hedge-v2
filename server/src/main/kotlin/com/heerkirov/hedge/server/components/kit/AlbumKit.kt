@@ -9,6 +9,7 @@ import com.heerkirov.hedge.server.dao.types.EntityMetaRelationTable
 import com.heerkirov.hedge.server.exceptions.*
 import com.heerkirov.hedge.server.model.album.AlbumImageRelation
 import com.heerkirov.hedge.server.model.meta.Annotation
+import com.heerkirov.hedge.server.utils.DateTime
 import com.heerkirov.hedge.server.utils.business.checkScore
 import com.heerkirov.hedge.server.utils.ktorm.asSequence
 import com.heerkirov.hedge.server.utils.ktorm.firstOrNull
@@ -290,6 +291,7 @@ class AlbumKit(private val data: DataRepository,
                 where { it.id eq thisId }
                 if(refreshCount) set(it.cachedCount, count!!)
                 if(refreshFileId) set(it.fileId, fileId)
+                set(it.updateTime, DateTime.now())
             }
         }
     }
