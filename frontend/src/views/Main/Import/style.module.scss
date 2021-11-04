@@ -40,10 +40,6 @@
 }
 
 .pane-detail-content {
-  border-left: solid 1px $deep-sidebar;
-  @media (prefers-color-scheme: dark) {
-    border-left-color: $deep-sidebar-dm;
-  }
   .top {
     margin-top: 1.75rem;
   }

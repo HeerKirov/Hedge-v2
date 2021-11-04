@@ -319,7 +319,7 @@ function useIndexedData(requestedData: Ref<TagTreeNode[]>) {
             }
             processNode(id)
         }else{
-            console.error(`Error occurred while deleting tag${id}: not exist.`)
+            console.error(`Error occurred while deleting tag ${id}: not exist.`)
         }
     }
 

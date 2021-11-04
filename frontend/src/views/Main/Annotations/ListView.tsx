@@ -1,4 +1,4 @@
-import { defineComponent, PropType } from "vue"
+import { computed, defineComponent, PropType } from "vue"
 import { AnnotationTarget } from "@/functions/adapter-http/impl/annotations"
 import { useMessageBox } from "@/functions/module/message-box"
 import { usePopupMenu } from "@/functions/module/popup-menu"
@@ -49,7 +49,7 @@ export default defineComponent({
             <VirtualRow rowHeight={33} padding={0} bufferSize={10} onUpdate={dataView.dataUpdate} {...dataView.data.value.metrics}>
                 <table class="table is-hoverable is-fullwidth no-wrap">
                     <tbody>
-                        {dataView.data.value.result.map(item => <Item key={item.id} {...item} selected={detailMode.value === item.id} onRightClick={popupmenu.popup}/>)}
+                        {dataView.data.value.result.map(item => <Item key={item.id} {...item} onRightClick={popupmenu.popup}/>)}
                     </tbody>
                 </table>
             </VirtualRow>
@@ -65,18 +65,19 @@ const Item = defineComponent({
         id: {type: Number, required: true},
         name: {type: String, required: true},
         target: {type: null as any as PropType<AnnotationTarget[]>, required: true},
-        canBeExported: {type: Boolean, required: true},
-        selected: {type: Boolean, default: false}
+        canBeExported: {type: Boolean, required: true}
     },
     emits: ["rightClick"],
     setup(props, { emit }) {
-        const { openDetailPane } = useAnnotationContext()
+        const { openDetailPane, detailMode } = useAnnotationContext()
+
+        const selected = computed(() => detailMode.value === props.id)
 
         const click = () => openDetailPane(props.id)
 
         const rightClick = () => emit("rightClick", props.id)
 
-        return () => <tr onClick={click} onContextmenu={rightClick} class={{'is-selected': props.selected}} style="height: 33px">
+        return () => <tr onClick={click} onContextmenu={rightClick} class={{'is-selected': selected.value}} style="height: 33px">
             <td class="is-width-50"><b class="ml-1">[</b><span class="mx-1">{props.name}</span><b>]</b></td>
             <td class="is-width-15">{(props.canBeExported || null) && <i class="fa fa-share-square"/>}</td>
             <td class="is-width-35">

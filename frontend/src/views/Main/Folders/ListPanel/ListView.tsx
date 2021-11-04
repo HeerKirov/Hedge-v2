@@ -23,6 +23,10 @@ const Row = defineComponent({
         indent: Number
     },
     setup(props) {
+        const { pane } = useFolderContext()
+
+        const selected = computed(() => pane.detailMode.value === props.data.id)
+
         const indentStyle = computed(() => props.indent ? {"marginLeft": `${props.indent * 1.5}em`} : undefined)
 
         const message = computed(() => {
@@ -38,12 +42,15 @@ const Row = defineComponent({
 
         const isExpanded = props.data.type === "NODE" ? useExpandedValue(computed(() => props.data.id)) : undefined
 
-        const switchExpand = props.data.type === "NODE" ? () => {
+        const switchExpand = props.data.type === "NODE" ? (e: Event) => {
             isExpanded!.value = !isExpanded!.value
+            e.stopPropagation()
         } : undefined
 
+        const click = () => pane.openDetailPane(props.data.id)
+
         return () => <>
-            <tr>
+            <tr onClick={click} class={{"is-selected": selected.value}}>
                 <td class="is-width-45">
                     <span class="icon mr-1" style={indentStyle.value} onClick={switchExpand}>
                         {props.data.type === "FOLDER"

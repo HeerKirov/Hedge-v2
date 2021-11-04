@@ -32,6 +32,12 @@
 .pane-basic-layout {
   $main-padding-top: $spacing-1;
   height: 100%;
+
+  border-left: solid 1px $deep-sidebar;
+  @media (prefers-color-scheme: dark) {
+    border-left-color: $deep-sidebar-dm;
+  }
+
   > button {
     position: absolute;
     right: $spacing-1;

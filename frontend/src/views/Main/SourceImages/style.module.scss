@@ -3,11 +3,6 @@
 @import "@/styles/base/size.sass";
 
 .pane-detail-content {
-  border-left: solid 1px $deep-sidebar;
-  @media (prefers-color-scheme: dark) {
-    border-left-color: $deep-sidebar-dm;
-  }
-
   .thumbnail {
     text-align: center;
     > img {
