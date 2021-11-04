@@ -206,7 +206,7 @@ class MetaQueryer(private val data: DataRepository) : Queryer {
                             }
                         })?.runIf(!metaValue.includeBegin) { this + 1 } ?: 0
 
-                        val endOrdinal = (if(metaValue.end == null || metaValue.end.value.isBlank()) null else childrenGroup.indexOfLast { parser.isNameEqualOrMatch(metaValue.end, it) }.let {
+                        val endOrdinal = (if(metaValue.end == null || metaValue.end.value.isBlank()) null else childrenGroup.indexOfFirst { parser.isNameEqualOrMatch(metaValue.end, it) }.let {
                             if(it >= 0) it else {
                                 collector.warning(RangeElementNotFound(metaValue.end.revertToQueryString()))
                                 null

@@ -51,9 +51,9 @@ interface OrderByColumn<ORDER> : ExecuteBuilder {
             @Suppress("UNCHECKED_CAST")
             val definition = getOrderDeclareMapping(it.value as ORDER)
             if(definition.nullsLast) {
-                listOf(definition.column.isNull().desc(), if(it.isAscending()) definition.column.asc() else definition.column.desc())
+                listOf(definition.column.isNotNull().desc(), if(it.isAscending()) definition.column.asc() else definition.column.desc())
             }else{
-                Collections.singletonList(if(it.isAscending()) definition.column.asc() else definition.column.desc())
+                listOf(if(it.isAscending()) definition.column.asc() else definition.column.desc())
             }
         })
     }
