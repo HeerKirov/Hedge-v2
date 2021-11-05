@@ -1,27 +1,18 @@
-import { defineComponent } from "vue"
+import { computed, defineComponent } from "vue"
 import Input from "@/components/forms/Input"
 import { PaneBasicLayout } from "@/layouts/layouts/SplitPane"
 import { TimeDisplay } from "@/layouts/displays"
 import { ViewAndEditor } from "@/layouts/editors"
 import { useMessageBox } from "@/functions/module/message-box"
-import { useObjectEndpoint } from "@/functions/utils/endpoints/object-endpoint"
-import { Folder } from "@/functions/adapter-http/impl/folder"
 import { useFolderContext } from "../inject"
 import style from "./style.module.scss"
 
 export default defineComponent({
     setup() {
         const message = useMessageBox()
-        const { pane } = useFolderContext()
+        const { pane, list: { indexedData, updateFolder } } = useFolderContext()
 
-        const { data, setData } = useObjectEndpoint({
-            path: pane.detailMode,
-            get: httpClient => httpClient.folder.get,
-            update: httpClient => httpClient.folder.update,
-            afterUpdate(_, data: Folder) {
-
-            }
-        })
+        const data = computed(() => pane.detailMode.value ? indexedData.value[pane.detailMode.value] : null)
 
         const setTitle = async (title: string) => {
             if(title.trim().length <= 0) {
@@ -29,7 +20,7 @@ export default defineComponent({
                 return false
             }
 
-            return title === data.value?.title || await setData({title}, e => {
+            return title === data.value?.title || await updateFolder(pane.detailMode.value!, {title}, e => {
                 if (e.code === "ALREADY_EXISTS") {
                     message.showOkMessage("prompt", "该标题的文件夹已存在。")
                 } else {

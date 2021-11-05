@@ -1,10 +1,10 @@
 import { computed, onMounted, ref, Ref, watch } from "vue"
-import { FolderCreateForm, FolderTreeNode } from "@/functions/adapter-http/impl/folder"
+import { FolderCreateForm, FolderExceptions, FolderTreeNode, FolderType } from "@/functions/adapter-http/impl/folder"
 import { useRouterQueryNumber } from "@/functions/utils/properties/router-property"
 import { useFastObjectEndpoint } from "@/functions/utils/endpoints/object-fast-endpoint"
 import { installation } from "@/functions/utils/basic"
 import { useToast } from "@/functions/module/toast"
-import { useHttpClient } from "@/functions/app"
+import { useHttpClient, useLocalStorageWithDefault } from "@/functions/app"
 
 export interface FolderContext {
     list: {
@@ -23,11 +23,11 @@ export interface FolderContext {
         /**
          * 添加新的folder。
          */
-        createFolder(form: FolderCreateForm): void
+        createFolder(form: FolderCreateForm, handleError?: (e: FolderExceptions["create"]) => FolderExceptions["create"] | void): void
         /**
          * 更改folder。
          */
-        updateFolder(id: number, form: {title?: string, query?: string}): void
+        updateFolder(id: number, form: {title?: string, query?: string}, handle?: (e: FolderExceptions["update"]) => FolderExceptions["update"] | void): Promise<boolean>
         /**
          * 移动folder的位置。
          */
@@ -43,12 +43,23 @@ export interface FolderContext {
             get(key: number): boolean
             set(key: number, value: boolean): boolean
             setAllForChildren(key: number, value: boolean): void
+        },
+        /**
+         * 可编辑锁。
+         */
+        editable: Ref<boolean>
+        /**
+         * 创建用的临时行。
+         */
+        creator: {
+            position: Readonly<Ref<FolderCreateTemplate | null>>
+            type: Ref<FolderType>
+            openCreatorRow(parentId: number | null | undefined, ordinal: number | null | undefined): void
+            closeCreatorRow(): void
         }
     }
     pane: {
-        createMode: Readonly<Ref<FolderCreateTemplate | null>>
         detailMode: Readonly<Ref<number | null>>
-        openCreatePane(template?: FolderCreateTemplate): void
         openDetailPane(id: number): void
         closePane(): void
     }
@@ -60,8 +71,8 @@ export interface FolderContext {
 }
 
 export interface FolderCreateTemplate {
-    parentId?: number
-    ordinal?: number
+    parentId: number | undefined
+    ordinal: number | undefined
 }
 
 export const [installFolderContext, useFolderContext] = installation(function (): FolderContext {
@@ -95,9 +106,13 @@ function useFolderListContext() {
 
     const expandedInfo = useExpandedInfo(indexedData)
 
-    const operators = useOperators(refresh)
+    const operators = useOperators(indexedData, refresh)
 
-    return {data, indexedData, refresh, expandedInfo, ...operators}
+    const editable = useLocalStorageWithDefault<boolean>("folder-list/editable", false)
+
+    const creator = useCreatorRow()
+
+    return {data, indexedData, refresh, expandedInfo, ...operators, editable, creator}
 }
 
 function useIndexedData(data: Ref<FolderTreeNode[]>) {
@@ -112,8 +127,6 @@ function useIndexedData(data: Ref<FolderTreeNode[]>) {
     })
 
     function loadFolderNode(info: {[key: number]: FolderTreeNode}, folder: FolderTreeNode, ordinal: number, address: {id: number, title: string}[] = []) {
-        const parentId = address.length ? address[address.length - 1].id : null
-
         info[folder.id] = folder
 
         if(folder.children?.length) {
@@ -127,27 +140,48 @@ function useIndexedData(data: Ref<FolderTreeNode[]>) {
     return indexedData
 }
 
-function useOperators(refresh: () => void) {
+function useOperators(indexedData: Ref<{[id: number]: FolderTreeNode}>, refresh: () => void) {
+    const toast = useToast()
+    const httpClient = useHttpClient()
+
     const fastEndpoint = useFastObjectEndpoint({
         get: httpClient => httpClient.folder.get,
         update: httpClient => httpClient.folder.update,
         delete: httpClient => httpClient.folder.delete
     })
 
-    const createFolder = (form: FolderCreateForm) => {
-
+    const createFolder = async (form: FolderCreateForm, handleError?: (e: FolderExceptions["create"]) => FolderExceptions["create"] | void) => {
+        const res = await httpClient.folder.create(form)
+        if(res.ok) {
+            refresh()
+        }else{
+            const e = handleError?.(res.exception)
+            if(e !== undefined) toast.handleException(e)
+        }
     }
 
-    const updateFolder = (id: number, form: {title?: string, query?: string}) => {
-
+    const updateFolder = async (id: number, form: {title?: string, query?: string}, handleError?: (e: FolderExceptions["update"]) => FolderExceptions["update"] | void) => {
+        if(await fastEndpoint.setData(id, form, handleError)) {
+            const target = indexedData.value[id]
+            if(target) {
+                if(form.title !== undefined) target.title = form.title
+                if(form.query !== undefined) target.query = form.query
+            }
+            return true
+        }
+        return false
     }
 
-    const moveFolder = (id: number, parentId: number | null, ordinal: number) => {
-
+    const moveFolder = async (id: number, parentId: number | null, ordinal: number) => {
+        if(await fastEndpoint.setData(id, {parentId, ordinal})) {
+            refresh()
+        }
     }
 
-    const deleteFolder = (id: number) => {
-
+    const deleteFolder = async (id: number) => {
+        if(await fastEndpoint.deleteData(id)) {
+            refresh()
+        }
     }
 
     return {createFolder, updateFolder, moveFolder, deleteFolder}
@@ -177,26 +211,25 @@ function useExpandedInfo(indexedData: Ref<{[key: number]: FolderTreeNode}>) {
     return {get, set, setAllForChildren}
 }
 
+function useCreatorRow() {
+    const position = ref<FolderCreateTemplate | null>(null)
+    const type = ref<FolderType>("FOLDER")
+
+    const openCreatorRow = (parentId: number | null | undefined, ordinal: number | null | undefined) => position.value = {parentId: parentId ?? undefined, ordinal: ordinal ?? undefined}
+
+    const closeCreatorRow = () => position.value = null
+
+    return {position, type, openCreatorRow, closeCreatorRow}
+}
+
 function usePane() {
     const detailMode = ref<number | null>(null)
-    const createMode = ref<FolderCreateTemplate | null>(null)
 
-    const openCreatePane = (template?: FolderCreateTemplate) => {
-        createMode.value = template ?? {}
-        detailMode.value = null
-    }
+    const openDetailPane = (id: number) => detailMode.value = id
 
-    const openDetailPane = (id: number) => {
-        createMode.value = null
-        detailMode.value = id
-    }
+    const closePane = () => detailMode.value = null
 
-    const closePane = () => {
-        createMode.value = null
-        detailMode.value = null
-    }
-
-    return {detailMode, createMode, openCreatePane, openDetailPane, closePane}
+    return {detailMode, openDetailPane, closePane}
 }
 
 function usePanelView() {
