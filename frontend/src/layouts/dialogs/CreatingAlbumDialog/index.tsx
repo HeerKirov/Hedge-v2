@@ -1,13 +1,14 @@
 import { defineComponent, inject, InjectionKey, PropType, provide, ref, Ref } from "vue"
 import Input from "@/components/forms/Input"
 import Textarea from "@/components/forms/Textarea"
+import GridImage from "@/components/elements/GridImage"
 import DialogBox from "@/layouts/layouts/DialogBox"
 import { StarlightEditor } from "@/layouts/editors"
 import { AlbumCreateForm } from "@/functions/adapter-http/impl/album"
 import { IdResponse } from "@/functions/adapter-http/impl/generic"
 import { useObjectCreator } from "@/functions/utils/endpoints/object-creator"
 import { useAsyncComputed } from "@/functions/utils/basic"
-import { assetsUrl, useHttpClient } from "@/functions/app"
+import { useHttpClient } from "@/functions/app"
 import style from "./style.module.scss"
 
 export interface CreatingAlbumDialogContext {
@@ -89,7 +90,7 @@ const Content = defineComponent({
                 </div>
                 {(images.value.length || null) && <div class="mt-2">
                     <span class="label">图像列表预览</span>
-                    <ImageList images={images.value}/>
+                    <GridImage value={images.value.map(i => i.thumbnailFile)} columnNum={7}/>
                 </div>}
             </div>
             <div class={style.bottom}>
@@ -101,14 +102,6 @@ const Content = defineComponent({
         </div>
     }
 })
-
-function ImageList(props: {images: {id: number, thumbnailFile: string}[]}) {
-    return <div class={style.images}>
-        {props.images.map(item => <div key={item.id} class={style.item}>
-            <img src={assetsUrl(item.thumbnailFile)} alt={`item ${item.id}`}/>
-        </div>)}
-    </div>
-}
 
 export function installCreatingAlbumDialog() {
     provide(dialogInjection, { task: ref(null) })

@@ -1,10 +1,8 @@
 import { defineComponent, PropType } from "vue"
+import GridImage from "@/components/elements/GridImage"
 import { TagLinkElement } from "@/layouts/elements"
 import { IsGroup, TagLink, TagType } from "@/functions/adapter-http/impl/tag"
 import { SimpleIllust } from "@/functions/adapter-http/impl/illust"
-import { assetsUrl } from "@/functions/app"
-import style from "./TagDisplays.module.scss"
-import { arrays } from "@/utils/collections";
 
 export const TagTypeDisplay = defineComponent({
     props: {
@@ -77,20 +75,15 @@ export const TagExampleDisplay = defineComponent({
     props: {
         value: {type: Array as PropType<SimpleIllust[]>, required: true},
         columnNum: {type: Number as PropType<1 | 2 | 3 | 4 | 5>, default: 1},
+        aspect: {type: Number, default: 1},
         showEditButton: Boolean
     },
     emits: {
         edit: () => true
     },
     setup(props, { emit }) {
-        const columnNum = arrays.newArray(6, i => i > 0 ? style[`columnNum${i}`] : undefined)
-
         return () => props.value.length ? <>
-            <div class={[style.tagExamples, columnNum[props.columnNum]]}>
-                {props.value.map(example => <div class={style.example}>
-                    <img alt={example.thumbnailFile} src={assetsUrl(example.thumbnailFile)}/>
-                </div>)}
-            </div>
+            <GridImage value={props.value.map(e => e.thumbnailFile)} columnNum={props.columnNum} aspect={props.aspect} radius="std" boxShadow={true}/>
             {props.showEditButton && <button class="button is-white is-small has-text-link w-100" onClick={() => emit("edit")}>
                 <span class="icon"><i class="fa fa-edit"/></span>
             </button>}

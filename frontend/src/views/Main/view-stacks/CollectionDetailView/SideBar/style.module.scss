@@ -11,27 +11,6 @@
       @media (prefers-color-scheme: dark) {
         border-color: $deep-sidebar-dm;
       }
-
-      //列数
-      $column-number: 3;
-      display: flex;
-      flex-wrap: wrap;
-      > .image {
-        position: relative;
-        height: 0;
-        width: #{percentage(1 / $column-number)};
-        padding-bottom: #{percentage(1 / $column-number)};
-        > img {
-          position: absolute;
-          border-radius: $radius-size-small;
-          top: 0; left: 0;
-          width: calc(100% - 0.25rem);
-          height: calc(100% - 0.25rem);
-          object-fit: cover;
-          object-position: 50% 50%;
-          box-shadow: 0.1em 0.1em 0.25em rgba(0, 0, 0, 0.05);
-        }
-      }
     }
     > .more {
       float: right;

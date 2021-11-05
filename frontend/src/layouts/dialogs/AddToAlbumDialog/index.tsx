@@ -1,7 +1,8 @@
 import { defineComponent, inject, InjectionKey, provide, Ref, ref, SetupContext } from "vue"
+import GridImage from "@/components/elements/GridImage"
 import DialogBox from "@/layouts/layouts/DialogBox"
 import { AlbumSituation } from "@/functions/adapter-http/impl/util-illust"
-import { assetsUrl, useHttpClient } from "@/functions/app"
+import { useHttpClient } from "@/functions/app"
 import style from "./style.module.scss"
 
 export interface AddToAlbumDialogContext {
@@ -45,10 +46,10 @@ function Content(props: {duplicated: {id: number, thumbnailFile: string, ordinal
         <div class={style.scrollContent}>
             <p class="mt-2 pl-1 is-size-medium w-100"><b>添加图像到画集</b></p>
             <p class="mb-2 pl-1 w-100">存在重复添加的图像。请确认处理策略：</p>
-            {props.duplicated.map(item => <div key={item.id} class={style.item}>
-                <img src={assetsUrl(item.thumbnailFile)} alt={`item ${item.id}`}/>
+            <GridImage value={props.duplicated} columnNum={7} eachKey={i => i.id} divClass={style.item} eachSlot={(createImg, item, index) => <>
+                {createImg(item.thumbnailFile)}
                 <div class={style.ordinalFlag}><span>{item.ordinal + 1}</span></div>
-            </div>)}
+            </>}/>
         </div>
         <div class={style.bottom}>
             <span class="ml-2 is-line-height-std">移动选项将重复图像移动到新位置；忽略选项则将这些图像保留在原位置。</span>

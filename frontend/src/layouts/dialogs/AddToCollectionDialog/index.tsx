@@ -1,8 +1,9 @@
 import { computed, defineComponent, inject, InjectionKey, PropType, provide, Ref, ref, watch } from "vue"
 import CheckBox from "@/components/forms/CheckBox"
 import DialogBox from "@/layouts/layouts/DialogBox"
+import GridImage from "@/components/elements/GridImage"
 import { useToast } from "@/functions/module/toast"
-import { assetsUrl, useHttpClient } from "@/functions/app"
+import { useHttpClient } from "@/functions/app"
 import { arrays } from "@/utils/collections"
 import style from "./style.module.scss"
 
@@ -91,11 +92,11 @@ const Content = defineComponent({
             <div class={style.scrollContent}>
                 <p class="mt-2 pl-1 is-size-medium w-100"><b>添加图像到集合</b></p>
                 <p class="mb-2 pl-1 w-100">将图像添加到此集合。选择并确认需要添加的图像：</p>
-                {props.situations.map((item, index) => <div key={item.id} class={style.item}>
-                    <img src={assetsUrl(item.thumbnailFile)} alt={`item ${item.id}`}/>
+                <GridImage value={props.situations} columnNum={7} eachKey={i => i.id} divClass={style.item} eachSlot={(createImg, item, index) => <>
+                    {createImg(item.thumbnailFile)}
                     <CheckBox class={style.checkbox} value={selections.value[index]} onUpdateValue={v => selections.value[index] = v}/>
                     {item.hasParent && <div class={style.hasParentFlag}><i class="fa fa-exclamation"/></div>}
-                </div>)}
+                </>}/>
             </div>
             <div class={style.bottom}>
                 <button class="button is-white has-text-link" onClick={selectAll}>

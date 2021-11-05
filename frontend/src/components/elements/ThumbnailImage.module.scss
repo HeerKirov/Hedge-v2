@@ -1,0 +1,28 @@
+@import '@/styles/base/size.sass';
+@import '@/styles/base/color.scss';
+
+.thumbnail-image {
+  text-align: center;
+  position: relative;
+  > img {
+    width: 100%;
+    object-fit: contain;
+    object-position: center;
+    border-radius: $radius-size-std;
+    border: solid 1px $deep-sidebar;
+    @media (prefers-color-scheme: dark) {
+      border-color: $deep-sidebar-dm;
+    }
+    box-sizing: border-box;
+  }
+  > .num-tag {
+    position: absolute;
+    right: 0.35rem;
+    top: 0.35rem;
+    opacity: 75%;
+    border-radius: $radius-size-std;
+    > i {
+      margin-right: 0.25rem;
+    }
+  }
+}

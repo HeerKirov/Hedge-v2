@@ -1,8 +1,8 @@
 import { defineComponent, PropType } from "vue"
+import GridImage from "@/components/elements/GridImage"
 import { SimpleIllust } from "@/functions/adapter-http/impl/illust"
 import { useMessageBox } from "@/functions/module/message-box"
 import { useDroppable } from "@/functions/feature/drag"
-import { assetsUrl } from "@/functions/app"
 import style from "./TagEditors.module.scss"
 
 export const TagExampleEditor = defineComponent({
@@ -35,19 +35,20 @@ export const TagExampleEditor = defineComponent({
             if(append.length) emit("updateValue", [...props.value, ...append])
         })
 
-        return () => <div class={style.tagExamples}>
-            {props.value.map((example, index) => <div key={example.id} class={style.example}>
-                <img alt={example.thumbnailFile} src={assetsUrl(example.thumbnailFile)}/>
+        return () => <>
+            <GridImage value={props.value.map(e => e.thumbnailFile)} columnNum={1} aspect={1.5} radius="std" boxShadow={true}
+                       eachSlot={(createImg, file, index) => <>
+                {createImg(file)}
                 <button class={["button", "square", "is-small", "is-white", style.deleteButton]} onClick={onDeleteItem(index)}>
                     <span class="icon"><i class="fa fa-times"/></span>
                 </button>
-            </div>)}
+            </>}/>
             <div class={style.dropArea} {...dropEvents}>
                 <div class={{[style.dropping]: isDragover.value}}>拖动图像到此处以添加示例</div>
             </div>
             <button class="button is-white is-small has-text-link w-100 mt-1" onClick={() => emit("save")}>
                 <span class="icon"><i class="fa fa-edit"/></span><span>保存示例</span>
             </button>
-        </div>
+        </>
     }
 })

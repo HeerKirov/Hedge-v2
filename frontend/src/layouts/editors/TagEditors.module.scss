@@ -1,54 +1,38 @@
 @import "@/styles/base/color.scss";
 @import "@/styles/base/size.sass";
 
-.tag-examples {
-  display: flex;
-  flex-wrap: wrap;
-  > .example {
-    position: relative;
-    height: 0;
+.delete-button {
+  position: absolute;
+  right: 0.5rem; bottom: 0.5rem;
+}
+
+.drop-area {
+  position: relative;
+  height: 0;
+  width: 100%;
+  padding-top: 25%;
+  padding-bottom: 25%;
+
+  > div {
+    position: absolute;
+    border-radius: 6px;
+    top: 0;
+    left: 0;
     width: 100%;
-    padding-bottom: 66.7%;
-    margin-bottom: 0.25rem;
-    > img {
-      position: absolute;
-      border-radius: 6px;
-      top: 0; left: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      object-position: 50% 50%;
-      box-shadow: 0.1em 0.1em 0.25em rgba(0, 0, 0, 0.1);
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: $shallow-bg;
+
+    &.dropping {
+      background-color: $deep-sidebar;
     }
-    > .delete-button {
-      position: absolute;
-      right: 0.25rem; bottom: 0.25rem;
-    }
-  }
-  > .drop-area {
-    position: relative;
-    height: 0;
-    width: 100%;
-    padding-top: 25%;
-    padding-bottom: 25%;
-    > div {
-      position: absolute;
-      border-radius: 6px;
-      top: 0; left: 0;
-      width: 100%;
-      height: 100%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background-color: $shallow-bg;
+
+    @media (prefers-color-scheme: dark) {
+      background-color: $shallow-bg-dm;
       &.dropping {
-        background-color: $deep-sidebar;
-      }
-      @media (prefers-color-scheme: dark) {
-        background-color: $shallow-bg-dm;
-        &.dropping {
-          background-color: $deep-sidebar-dm;
-        }
+        background-color: $deep-sidebar-dm;
       }
     }
   }

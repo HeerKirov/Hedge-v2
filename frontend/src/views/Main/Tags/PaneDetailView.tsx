@@ -210,7 +210,7 @@ export default defineComponent({
                 <div class={style.examples}>
                     <label class="label">示例</label>
                     <ViewAndEditor data={data.value.examples} onSetData={setExamples} baseline="medium" showEditButton={false} showSaveButton={false} v-slots={{
-                        default: ({ value, edit }: VAEDisplay<SimpleIllust[]>) => <TagExampleDisplay value={value} showEditButton={true} onEdit={edit}/>,
+                        default: ({ value, edit }: VAEDisplay<SimpleIllust[]>) => <TagExampleDisplay value={value} columnNum={1} aspect={1.5} showEditButton={true} onEdit={edit}/>,
                         editor: ({ value, setValue, save }: VAEEditor<SimpleIllust[]>) => <TagExampleEditor value={value} onUpdateValue={setValue} onSave={save}/>
                     }}/>
                 </div>

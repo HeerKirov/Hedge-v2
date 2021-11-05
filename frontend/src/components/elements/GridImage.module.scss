@@ -1,0 +1,35 @@
+@import '@/styles/base/size.sass';
+
+.image-grid {
+  display: flex;
+  flex-wrap: wrap;
+
+  > .image {
+    position: relative;
+    height: 0;
+    width: var(--image-width);
+    padding-bottom: var(--image-padding-bottom);
+    > img {
+      position: absolute;
+      top: 0; left: 0;
+      width: var(--img-width);
+      height: var(--img-height);
+      object-fit: cover;
+      object-position: 50% 50%;
+    }
+  }
+
+  &.box-shadow > .image > img {
+    box-shadow: 0.1em 0.1em 0.25em rgba(0, 0, 0, 0.1);
+  }
+
+  &.radius-small > .image > img {
+    border-radius: $radius-size-small;
+  }
+  &.radius-std > .image > img {
+    border-radius: $radius-size-std;
+  }
+  &.radius-large > .image > img {
+    border-radius: $radius-size-large;
+  }
+}

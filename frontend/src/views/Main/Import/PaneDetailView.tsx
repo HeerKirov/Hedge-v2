@@ -11,6 +11,7 @@ import { objects } from "@/utils/primitives"
 import { date, datetime, LocalDateTime } from "@/utils/datetime"
 import { useImportContext } from "./inject"
 import style from "./style.module.scss"
+import ThumbnailImage from "@/components/elements/ThumbnailImage";
 
 export default defineComponent({
     setup() {
@@ -70,9 +71,7 @@ export default defineComponent({
         return () => <PaneBasicLayout class={style.paneDetailContent} onClose={closePane}>
             {data.value && <>
                 <p class={style.top}/>
-                <div class={style.thumbnail}>
-                    <img alt={data.value.fileName ?? undefined} src={assetsUrl(data.value.thumbnailFile)}/>
-                </div>
+                <ThumbnailImage value={data.value.thumbnailFile} minHeight="12rem" maxHeight="30rem"/>
                 {data.value.fileName && <p class={[style.filename, "can-be-selected"]}><b>{data.value.fileName}</b></p>}
                 {data.value.fileCreateTime && <p class="has-text-grey">文件创建时间 {datetime.toSimpleFormat(data.value.fileCreateTime)}</p>}
                 {data.value.fileUpdateTime && <p class="has-text-grey">文件修改时间 {datetime.toSimpleFormat(data.value.fileUpdateTime)}</p>}

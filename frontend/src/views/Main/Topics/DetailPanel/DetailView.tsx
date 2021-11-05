@@ -1,13 +1,14 @@
 import { defineComponent, PropType, watch } from "vue"
 import WrappedText from "@/components/elements/WrappedText"
 import Starlight from "@/components/elements/Starlight"
+import GridImage from "@/components/elements/GridImage"
 import TopBarTransparentLayout from "@/layouts/layouts/TopBarTransparentLayout"
 import { SourceTagMappingsDisplay } from "@/layouts/displays"
 import { AnnotationElement } from "@/layouts/elements"
 import { Link } from "@/functions/adapter-http/impl/generic"
 import { DetailTopic, ParentTopic, TopicType } from "@/functions/adapter-http/impl/topic"
 import { SourceMappingMetaItem } from "@/functions/adapter-http/impl/source-tag-mapping"
-import { clientMode, assetsUrl } from "@/functions/app"
+import { clientMode } from "@/functions/app"
 import { useElementPopupMenu } from "@/functions/module/popup-menu"
 import { useMessageBox } from "@/functions/module/message-box"
 import { openExternal, writeClipboard } from "@/functions/module/others"
@@ -17,7 +18,7 @@ import { TOPIC_TYPE_ENUMS, TOPIC_TYPE_ICONS, TOPIC_TYPE_NAMES } from "@/definiti
 import { useTopicContext } from "../inject"
 import { useTopicDetailContext } from "./inject"
 import { useSideBarContext } from "../../inject"
-import style from "./style.module.scss"
+
 
 export default defineComponent({
     setup() {
@@ -123,7 +124,7 @@ const Panel = defineComponent({
     setup() {
         const { data } = useTopicDetailContext()
 
-        return () => <div class={["container", "p-2", style.detailView]}>
+        return () => <div class="container p-2">
             {data.value && <MainContent data={data.value}/>}
             {data.value && <RelatedThemeContent data={data.value}/>}
             {data.value?.links.length ? <LinkContent class="mb-1" links={data.value.links}/> : null}
@@ -240,9 +241,9 @@ const ExampleContent = defineComponent({
 
         const more = () => navigator.goto.main.illusts({topicName: props.name})
 
-        return () => exampleData.value?.total ? <div class={style.examples}>
-            {exampleData.value!.result.map(illust => <div class={style.example}><img src={assetsUrl(illust.thumbnailFile)} alt="example"/></div>)}
-            <div class={style.more}>
+        return () => exampleData.value?.total ? <div>
+            <GridImage value={exampleData.value!.result.map(i => i.thumbnailFile)} columnNum={5} radius="std" boxShadow={true}/>
+            <div class="w-100 has-text-right">
                 <a class="no-wrap" onClick={more}>在图库搜索"{props.name}"的全部项目<i class="fa fa-angle-double-right ml-1 mr-1"/></a>
             </div>
         </div> : <div/>

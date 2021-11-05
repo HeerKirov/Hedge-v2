@@ -1,19 +1,16 @@
 import { defineComponent } from "vue"
-import { assetsUrl } from "@/functions/app"
+import ThumbnailImage from "@/components/elements/ThumbnailImage"
 import { numbers } from "@/utils/primitives"
 import { datetime } from "@/utils/datetime"
 import { usePreviewContext, useFileInfoEndpoint } from "../inject"
-import style from "./style.module.scss"
 
 export default defineComponent({
     setup() {
         const { detail: { target } } = usePreviewContext()
         const fileInfo = useFileInfoEndpoint()
 
-        return () => <div class={style.fileInfoPanel}>
-            {target.value !== null && <div class={style.thumbnail}>
-                <img src={assetsUrl(target.value.thumbnailFile)} alt="thumbnail image"/>
-            </div>}
+        return () => <div>
+            {target.value !== null && <ThumbnailImage value={target.value.thumbnailFile} maxHeight="16rem"/>}
             {fileInfo.data.value !== null && <>
                 <div class="can-be-selected mt-1">{fileInfo.data.value.file}</div>
                 <Extension class="mt-2" extension={fileInfo.data.value.extension}/>
