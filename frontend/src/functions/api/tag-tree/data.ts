@@ -327,6 +327,7 @@ function useIndexedData(requestedData: Ref<TagTreeNode[]>) {
      * 移动一个节点，同步更新其indexed data。
      */
     const move = (id: number, parentId: number | null, ordinal: number) => {
+        //TODO 这个函数在向后移动时未同步
         function processInfo(info: IndexedInfo, address: {id: number, name: string}[] | undefined, color: string | null | undefined) {
             if(address !== undefined) {
                 info.address = address
@@ -348,31 +349,39 @@ function useIndexedData(requestedData: Ref<TagTreeNode[]>) {
         const info = indexedInfo.value[id]
         if(!info) return
 
-        //将tag从旧的parent下移除，同时处理它后面的tag的ordinal
-        if(info.parentId == null) {
-            data.value.splice(info.ordinal, 1)
-            minusIndexedOrdinal(data.value.slice(info.ordinal))
+        if(parentId === info.parentId) {
+            //如果parent没有变化，那么在同一个parent下处理
+
         }else{
-            const parentInfo = indexedInfo.value[info.parentId]
-            if(parentInfo) {
-                const children = parentInfo.tag.children ?? (parentInfo.tag.children = [])
-                children.splice(info.ordinal, 1)
-                minusIndexedOrdinal(children.slice(info.ordinal))
+            //如果parent变化，那么在新旧parent下分别处理
+
+            //将tag从旧的parent下移除，同时处理它后面的tag的ordinal
+            if(info.parentId == null) {
+                data.value.splice(info.ordinal, 1)
+                minusIndexedOrdinal(data.value.slice(info.ordinal))
+            }else{
+                const parentInfo = indexedInfo.value[info.parentId]
+                if(parentInfo) {
+                    const children = parentInfo.tag.children ?? (parentInfo.tag.children = [])
+                    children.splice(info.ordinal, 1)
+                    minusIndexedOrdinal(children.slice(info.ordinal))
+                }
+            }
+
+            //将tag放置到新的parent下，同时处理它与它后面的tag的ordinal。分两步处理与API的target行为一致，便于理解
+            if(parentId == null) {
+                plusIndexedOrdinal(data.value.slice(ordinal))
+                data.value.splice(ordinal, 0, info.tag)
+            }else{
+                const parentInfo = indexedInfo.value[parentId]
+                if(parentInfo) {
+                    const children = parentInfo.tag.children ?? (parentInfo.tag.children = [])
+                    plusIndexedOrdinal(children.slice(ordinal))
+                    children.splice(ordinal, 0, info.tag)
+                }
             }
         }
 
-        //将tag放置到新的parent下，同时处理它与它后面的tag的ordinal。分两步处理与API的target行为一致，便于理解
-        if(parentId == null) {
-            plusIndexedOrdinal(data.value.slice(ordinal))
-            data.value.splice(ordinal, 0, info.tag)
-        }else{
-            const parentInfo = indexedInfo.value[parentId]
-            if(parentInfo) {
-                const children = parentInfo.tag.children ?? (parentInfo.tag.children = [])
-                plusIndexedOrdinal(children.slice(ordinal))
-                children.splice(ordinal, 0, info.tag)
-            }
-        }
 
         //更新此tag及其所有子节点的color, address, group props
         const parentInfo = parentId != null ? indexedInfo.value[parentId]! : null

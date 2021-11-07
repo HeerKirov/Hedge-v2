@@ -139,17 +139,17 @@ const NodeItem = defineComponent({
 
         return () => !!props.node.children?.length ? (<>
             <p>
-                <TagNodeElement setRef={setRef} node={props.node} clickable={isCursorPointer} draggable={draggable.value} onClick={click} onContextmenu={rightClick}>
-                    <NodeItemDropArea parentId={props.node.id}/>
-                </TagNodeElement>
+                <TagNodeElement setRef={setRef} node={props.node} clickable={isCursorPointer} draggable={draggable.value} onClick={click} onContextmenu={rightClick} v-slots={{
+                    backOfTag: () => <NodeItemDropArea parentId={props.node.id}/>
+                }}/>
                 <NodeItemExpandButton class="ml-1" isExpanded={isExpanded.value} color={props.node.color ?? undefined} parentId={props.node.id}
                                       onClick={() => isExpanded.value = !isExpanded.value} onContextmenu={rightClick}/>
             </p>
             {isExpanded.value && <NodeList class="ml-6" parentId={props.node.id} items={props.node.children ?? []} color={props.node.color}/>}
         </>) : (
-            <TagNodeElement setRef={setRef} node={props.node} clickable={isCursorPointer} draggable={draggable.value} onClick={click} onContextmenu={rightClick}>
-                <NodeItemDropArea parentId={props.node.id}/>
-            </TagNodeElement>
+            <TagNodeElement setRef={setRef} node={props.node} clickable={isCursorPointer} draggable={draggable.value} onClick={click} onContextmenu={rightClick} v-slots={{
+                backOfTag: () => <NodeItemDropArea parentId={props.node.id}/>
+            }}/>
         )
     }
 })

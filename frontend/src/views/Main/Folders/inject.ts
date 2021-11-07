@@ -23,7 +23,7 @@ export interface FolderContext {
         /**
          * 添加新的folder。
          */
-        createFolder(form: FolderCreateForm, handleError?: (e: FolderExceptions["create"]) => FolderExceptions["create"] | void): void
+        createFolder(form: FolderCreateForm, handleError?: (e: FolderExceptions["create"]) => FolderExceptions["create"] | void): Promise<boolean>
         /**
          * 更改folder。
          */
@@ -154,9 +154,11 @@ function useOperators(indexedData: Ref<{[id: number]: FolderTreeNode}>, refresh:
         const res = await httpClient.folder.create(form)
         if(res.ok) {
             refresh()
+            return true
         }else{
             const e = handleError?.(res.exception)
             if(e !== undefined) toast.handleException(e)
+            return false
         }
     }
 

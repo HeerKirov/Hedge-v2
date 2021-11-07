@@ -278,24 +278,27 @@ class TagService(private val data: DataRepository,
             }else{
                 //parentId没有变化，只在当前范围内变动
                 Pair(undefined(), if(form.ordinal.isUndefined || form.ordinal.value == record.ordinal) undefined() else {
-                    //ordinal发生了变化
+                    //ordinal发生了变化，为此需要确定新的ordinal、移动前后的其他tag
                     val tagsInParent = data.db.sequenceOf(Tags)
                         .filter { if(record.parentId != null) { Tags.parentId eq record.parentId }else{ Tags.parentId.isNull() } }
                         .toList()
                     val max = tagsInParent.size
                     val newOrdinal = if(form.ordinal.value > max) max else form.ordinal.value
                     if(newOrdinal > record.ordinal) {
+                        //插入位置在原位置之后时，实际上会使夹在中间的项前移，为了保证插入顺位与想要的顺位保持不变，因此final ordinal位置是要-1的。
                         data.db.update(Tags) {
-                            where { if(record.parentId != null) { Tags.parentId eq record.parentId }else{ Tags.parentId.isNull() } and (it.ordinal greater record.ordinal) and (it.ordinal lessEq newOrdinal) }
+                            where { if(record.parentId != null) { Tags.parentId eq record.parentId }else{ Tags.parentId.isNull() } and (it.ordinal greater record.ordinal) and (it.ordinal lessEq (newOrdinal - 1)) }
                             set(it.ordinal, it.ordinal - 1)
                         }
+                        optOf(newOrdinal - 1)
                     }else{
+                        //插入位置在原位置之前，则不需要final ordinal变更
                         data.db.update(Tags) {
                             where { if(record.parentId != null) { Tags.parentId eq record.parentId }else{ Tags.parentId.isNull() } and (it.ordinal greaterEq newOrdinal) and (it.ordinal less record.ordinal) }
                             set(it.ordinal, it.ordinal + 1)
                         }
+                        optOf(newOrdinal)
                     }
-                    optOf(newOrdinal)
                 })
             }
 
@@ -406,8 +409,11 @@ class TagService(private val data: DataRepository,
             }
         }
         data.db.transaction {
-            if(data.db.sequenceOf(Tags).none { it.id eq id }) {
-                throw be(NotFound())
+            val tag = data.db.sequenceOf(Tags).firstOrNull { it.id eq id } ?: throw be(NotFound())
+            //删除标签时，处理后面邻近记录ordinal
+            data.db.update(Tags) {
+                where { if(tag.parentId != null) { it.parentId eq tag.parentId }else{ it.parentId.isNull() } and (it.ordinal greater tag.ordinal) }
+                set(it.ordinal, it.ordinal - 1)
             }
             //删除标签时，将关联的illust/album重导出。只需要导出当前标签的关联，而不需要导出子标签的。
             data.db.from(IllustTagRelations)

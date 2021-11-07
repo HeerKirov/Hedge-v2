@@ -4,6 +4,7 @@ import Select from "@/components/forms/Select"
 import { FolderTreeNode, FolderType } from "@/functions/adapter-http/impl/folder"
 import { useMessageBox } from "@/functions/module/message-box"
 import { usePopupMenu } from "@/functions/module/popup-menu"
+import { onKeyEnter } from "@/functions/feature/keyboard"
 import { datetime } from "@/utils/datetime"
 import { useExpandedValue, useFolderContext } from "../inject"
 
@@ -137,7 +138,8 @@ const CreatorRow = defineComponent({
         indent: Number
     },
     setup(props) {
-        const { list: { creator: { type, closeCreatorRow } } } = useFolderContext()
+        const messageBox = useMessageBox()
+        const { list: { createFolder, creator: { type, closeCreatorRow } } } = useFolderContext()
 
         const indentStyle = computed(() => props.indent ? {"marginLeft": `${props.indent * 1.5}em`} : undefined)
 
@@ -149,15 +151,30 @@ const CreatorRow = defineComponent({
 
         const title = ref<string>()
 
+        const save = async () => {
+            if(!title.value?.trim()) {
+                messageBox.showOkMessage("prompt", "不合法的标题。", "标题不能为空。")
+                return
+            }
+            const ok = await createFolder({title: title.value!.trim(), type: type.value, parentId: props.parentId, ordinal: props.ordinal}, e => {
+                if(e.code === "ALREADY_EXISTS") {
+                    messageBox.showOkMessage("prompt", "该标题的文件夹已存在。")
+                }else{
+                    return e
+                }
+            })
+            if(ok) {
+                closeCreatorRow()
+            }
+        }
+
         return () => <tr>
-            <td>
+            <td colspan="3">
                 <Select items={selects} class="is-small" style={indentStyle.value} value={type.value} onUpdateValue={v => type.value = v as FolderType}/>
-                <Input class="is-small ml-1" value={title.value} onUpdateValue={v => title.value = v} placeholder="文件夹标题"/>
-                <button class="button is-small is-white ml-1"><span class="icon"><i class="fa fa-check"/></span><span>保存</span></button>
+                <Input class="is-small ml-1" value={title.value} onUpdateValue={v => title.value = v} placeholder="文件夹标题" refreshOnInput={true} onKeypress={onKeyEnter(save)}/>
+                <button class="button is-small is-white ml-1" onClick={save}><span class="icon"><i class="fa fa-check"/></span><span>保存</span></button>
                 <button class="button is-small is-white ml-1" onClick={closeCreatorRow}><span class="icon"><i class="fa fa-times"/></span><span>取消</span></button>
             </td>
-            <td/>
-            <td/>
         </tr>
     }
 })

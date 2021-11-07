@@ -179,13 +179,7 @@ export function useTagDrop(parentId: Ref<number | null>, ordinal: Ref<number | n
                 return {parentId: insertParentId, ordinal: count}
             }
         }else{
-            if(currentParentId === insertParentId && insertOrdinal > currentOrdinal) {
-                //目标parentId保持不变
-                //插入的位置在当前位置之后，这符合开头描述的特殊情况，因此发送给API的ordinal需要调整
-                return {parentId: insertParentId, ordinal: insertOrdinal - 1}
-            }else{
-                return {parentId: insertParentId, ordinal: insertOrdinal}
-            }
+            return {parentId: insertParentId, ordinal: insertOrdinal}
         }
     }
 
@@ -196,9 +190,7 @@ export function useTagDrop(parentId: Ref<number | null>, ordinal: Ref<number | n
      * @param insertOrdinal 插入目标节点后的排序顺位。null表示默认操作(追加到节点末尾，或者对于相同parent不执行移动)
      */
     const move = (sourceId: number, insertParentId: number | null, insertOrdinal: number | null) => {
-        //需要注意的是，前端的insert(parent, ordinal)含义与API的target(parent, ordinal)并不一致。
-        //API的含义是"移动到此目标位置"，也就是移动后的ordinal保证与给出的一致(除非超过最大值)。
-        //而前端的含义则是"插入到此目标之前"。与API相比，在parent不变、移动到靠后的位置时，调API的位置实际上要-1。
+        //FIXED: 前后端API含义不同问题已修复
 
         const info = indexedInfo.value[sourceId]
         if(!info) {

@@ -250,17 +250,20 @@ class FolderService(private val data: DataRepository,
                         .count()
                     val newOrdinal = if (form.ordinal.value > countInParent) countInParent else form.ordinal.value
                     if(newOrdinal > folder.ordinal) {
+                        //插入位置在原位置之后时，实际上会使夹在中间的项前移，为了保证插入顺位与想要的顺位保持不变，因此final ordinal位置是要-1的。
                         data.db.update(Folders) {
-                            where { if(folder.parentId != null) { Folders.parentId eq folder.parentId }else{ Folders.parentId.isNull() } and (it.ordinal greater folder.ordinal) and (it.ordinal lessEq newOrdinal) }
+                            where { if(folder.parentId != null) { Folders.parentId eq folder.parentId }else{ Folders.parentId.isNull() } and (it.ordinal greater folder.ordinal) and (it.ordinal lessEq (newOrdinal - 1)) }
                             set(it.ordinal, it.ordinal - 1)
                         }
+                        optOf(newOrdinal - 1)
                     }else{
+                        //插入位置在原位置之前，则不需要final ordinal变更
                         data.db.update(Folders) {
                             where { if(folder.parentId != null) { Folders.parentId eq folder.parentId }else{ Folders.parentId.isNull() } and (it.ordinal greaterEq newOrdinal) and (it.ordinal less folder.ordinal) }
                             set(it.ordinal, it.ordinal + 1)
                         }
+                        optOf(newOrdinal)
                     }
-                    optOf(newOrdinal)
                 })
             }
 
@@ -322,7 +325,13 @@ class FolderService(private val data: DataRepository,
             }
         }
         data.db.transaction {
-            data.db.sequenceOf(Folders).firstOrNull { it.id eq id } ?: throw be(NotFound())
+            val folder = data.db.sequenceOf(Folders).firstOrNull { it.id eq id } ?: throw be(NotFound())
+
+            //删除folder时，处理后面邻近记录ordinal
+            data.db.update(Folders) {
+                where { if(folder.parentId != null) { it.parentId eq folder.parentId }else{ it.parentId.isNull() } and (it.ordinal greater folder.ordinal) }
+                set(it.ordinal, it.ordinal - 1)
+            }
             recursiveDelete(id)
         }
     }
@@ -449,20 +458,23 @@ class FolderService(private val data: DataRepository,
                 //update
                 val ordinal = if(form.ordinal!! < count) form.ordinal else count
 
-                if(ordinal > form.ordinal) {
+                val finalOrdinal = if(ordinal > folder.ordinal) {
+                    //移动pin时存在和移动位置一样的问题，因此在向后移动时也要使实际位置-1。
                     data.db.update(Folders) {
-                        where { it.pin.isNotNull() and (it.pin greater form.ordinal) and (it.pin lessEq ordinal) }
+                        where { it.pin.isNotNull() and (it.pin greater folder.ordinal) and (it.pin lessEq (ordinal - 1)) }
                         set(it.pin, it.pin minus 1)
                     }
+                    ordinal - 1
                 }else{
                     data.db.update(Folders) {
-                        where { it.pin.isNotNull() and (it.pin greaterEq ordinal) and (it.pin less form.ordinal) }
+                        where { it.pin.isNotNull() and (it.pin greaterEq ordinal) and (it.pin less folder.ordinal) }
                         set(it.pin, it.pin plus 1)
                     }
+                    ordinal
                 }
                 data.db.update(Folders) {
                     where { it.id eq id }
-                    set(it.pin, ordinal)
+                    set(it.pin, finalOrdinal)
                 }
             }
         }
