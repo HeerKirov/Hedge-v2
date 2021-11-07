@@ -327,7 +327,6 @@ function useIndexedData(requestedData: Ref<TagTreeNode[]>) {
      * 移动一个节点，同步更新其indexed data。
      */
     const move = (id: number, parentId: number | null, ordinal: number) => {
-        //TODO 这个函数在向后移动时未同步
         function processInfo(info: IndexedInfo, address: {id: number, name: string}[] | undefined, color: string | null | undefined) {
             if(address !== undefined) {
                 info.address = address
@@ -351,12 +350,36 @@ function useIndexedData(requestedData: Ref<TagTreeNode[]>) {
 
         if(parentId === info.parentId) {
             //如果parent没有变化，那么在同一个parent下处理
-
+            if(parentId === null) {
+                data.value.splice(info.ordinal, 1)
+                if(ordinal > info.ordinal) {
+                    minusIndexedOrdinal(data.value.slice(info.ordinal, ordinal - 1))
+                    data.value.splice(ordinal - 1, 0, info.tag)
+                }else{
+                    plusIndexedOrdinal(data.value.slice(ordinal, info.ordinal - 1))
+                    data.value.splice(ordinal, 0, info.tag)
+                }
+                info.ordinal = ordinal
+            }else{
+                const parentInfo = indexedInfo.value[parentId]
+                if(parentInfo) {
+                    const children = parentInfo.tag.children ?? (parentInfo.tag.children = [])
+                    children.splice(info.ordinal, 1)
+                    if(ordinal > info.ordinal) {
+                        minusIndexedOrdinal(children.slice(info.ordinal, ordinal - 1))
+                        children.splice(ordinal - 1, 0, info.tag)
+                    }else{
+                        plusIndexedOrdinal(children.slice(ordinal, info.ordinal - 1))
+                        children.splice(ordinal, 0, info.tag)
+                    }
+                    info.ordinal = ordinal
+                }
+            }
         }else{
             //如果parent变化，那么在新旧parent下分别处理
 
             //将tag从旧的parent下移除，同时处理它后面的tag的ordinal
-            if(info.parentId == null) {
+            if(info.parentId === null) {
                 data.value.splice(info.ordinal, 1)
                 minusIndexedOrdinal(data.value.slice(info.ordinal))
             }else{
@@ -368,8 +391,8 @@ function useIndexedData(requestedData: Ref<TagTreeNode[]>) {
                 }
             }
 
-            //将tag放置到新的parent下，同时处理它与它后面的tag的ordinal。分两步处理与API的target行为一致，便于理解
-            if(parentId == null) {
+            //将tag放置到新的parent下，同时处理它与它后面的tag的ordinal
+            if(parentId === null) {
                 plusIndexedOrdinal(data.value.slice(ordinal))
                 data.value.splice(ordinal, 0, info.tag)
             }else{
@@ -380,25 +403,24 @@ function useIndexedData(requestedData: Ref<TagTreeNode[]>) {
                     children.splice(ordinal, 0, info.tag)
                 }
             }
+
+            //更新此tag及其所有子节点的color, address, group props
+            const parentInfo = parentId != null ? indexedInfo.value[parentId]! : null
+            info.parentId = parentId
+            info.ordinal = ordinal
+            info.isGroupMember = parentInfo == null ? "NO"
+                : parentInfo.tag.group === "FORCE_AND_SEQUENCE" || parentInfo.tag.group === "SEQUENCE" ? "SEQUENCE"
+                    : parentInfo.tag.group === "YES" || parentInfo.tag.group === "FORCE" ? "YES"
+                        : "NO"
+
+            const address = parentInfo == null ? [] : [...toRaw(parentInfo.address), {id: parentInfo.tag.id, name: parentInfo.tag.name}]
+            const color = parentInfo == null ? info.tag.color : parentInfo.tag.color
+
+            //监测这两项属性是否有修改。如果有，递归修改全部子标签
+            const newAddress = objects.deepEquals(address, info.address) ? undefined : address
+            const newColor = color === info.tag.color ? undefined : color
+            if(newAddress !== undefined || newColor !== undefined) processInfo(info, newAddress, newColor)
         }
-
-
-        //更新此tag及其所有子节点的color, address, group props
-        const parentInfo = parentId != null ? indexedInfo.value[parentId]! : null
-        info.parentId = parentId
-        info.ordinal = ordinal
-        info.isGroupMember = parentInfo == null ? "NO"
-            : parentInfo.tag.group === "FORCE_AND_SEQUENCE" || parentInfo.tag.group === "SEQUENCE" ? "SEQUENCE"
-                : parentInfo.tag.group === "YES" || parentInfo.tag.group === "FORCE" ? "YES"
-                    : "NO"
-
-        const address = parentInfo == null ? [] : [...toRaw(parentInfo.address), {id: parentInfo.tag.id, name: parentInfo.tag.name}]
-        const color = parentInfo == null ? info.tag.color : parentInfo.tag.color
-
-        //监测这两项属性是否有修改。如果有，递归修改全部子标签
-        const newAddress = objects.deepEquals(address, info.address) ? undefined : address
-        const newColor = color === info.tag.color ? undefined : color
-        if(newAddress !== undefined || newColor !== undefined) processInfo(info, newAddress, newColor)
     }
 
     return {data, indexedInfo, add, remove, move}
