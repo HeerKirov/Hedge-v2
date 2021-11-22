@@ -99,7 +99,7 @@ export async function createApplication(options?: AppOptions) {
 
         registerProtocol(configurationDriver)
         registerAppMenu(windowManager, {debugMode, platform})
-        registerDockMenu(windowManager)
+        registerDockMenu(windowManager, {platform})
 
         windowManager.load()
         windowManager.createWindow()

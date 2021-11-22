@@ -1,6 +1,7 @@
 import { defineComponent, PropType, ref } from "vue"
 import { useAppInfo } from "@/functions/app"
 import { useAuthSetting } from "@/functions/app/app-settings"
+import { clientPlatform } from "@/functions/adapter-ipc"
 import CheckBox from "@/components/forms/CheckBox"
 import Input from "@/components/forms/Input"
 
@@ -12,12 +13,12 @@ export default defineComponent({
         return () => authSetting.value === undefined ? <div/> : <div>
             <p class="mb-1 is-size-medium">安全选项</p>
             <PasswordBox password={authSetting.value?.password} onUpdate={v => authSetting.value!.password = v}/>
-            <div class="mt-4">
+            {clientPlatform === "darwin" && <div class="mt-4">
                 <label class="checkbox">
                     <CheckBox value={authSetting.value?.touchID} onUpdateValue={v => authSetting.value!.touchID = v}>使用touch ID进行登录认证</CheckBox>
                 </label>
                 <p class="is-size-7 has-text-grey">{appInfo.canPromptTouchID ? "您的mac支持touch ID。在每次登录前将首先尝试通过touch ID登录。" : "如果您的电脑支持touch ID，开启此选项，在每次登录前将首先尝试通过touch ID登录。"}</p>
-            </div>
+            </div>}
         </div>
     }
 })

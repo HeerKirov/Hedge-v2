@@ -10,7 +10,7 @@ version = "0.1.0"
 
 dependencies {
     val kotlinVersion = "1.5.30"
-    val javalinVersion = "4.0.0"
+    val javalinVersion = "4.1.1"
     val ktormVersion = "3.4.1"
     val sqliteVersion = "3.36.0"
     val jacksonVersion = "2.11.4" //fk, how to upgrade it?
@@ -18,6 +18,12 @@ dependencies {
     val plistVersion = "1.23"
     val slf4jVersion = "1.7.32"
     val junitVersion = "4.13.2"
+    val javePlatform = when(System.getProperty("os.name").toLowerCase()) {
+        "mac" -> "nativebin-osx64"
+        "linux" -> "nativebin-linux64"
+        "win" -> "nativebin-win64"
+        else -> "all-deps"
+    }
 
     implementation(group = "org.jetbrains.kotlin", name = "kotlin-stdlib-jdk8", version = kotlinVersion)
     implementation(group = "org.jetbrains.kotlin", name = "kotlin-reflect", version = kotlinVersion)
@@ -29,7 +35,7 @@ dependencies {
     implementation(group = "org.ktorm", name = "ktorm-support-sqlite", version = ktormVersion)
     implementation(group = "io.javalin", name = "javalin", version = javalinVersion)
     implementation(group = "ws.schild", name = "jave-core", version = javeVersion)
-    implementation(group = "ws.schild", name = "jave-nativebin-osx64", version = javeVersion)
+    implementation(group = "ws.schild", name = "jave-$javePlatform", version = javeVersion)
     implementation(group = "com.googlecode.plist", name = "dd-plist", version = plistVersion)
     implementation(group = "org.slf4j", name = "slf4j-simple", version = slf4jVersion)
     implementation(group = "org.slf4j", name = "slf4j-api", version = slf4jVersion)

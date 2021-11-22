@@ -46,9 +46,12 @@ export function createWindowManager(state: StateManager, theme: ThemeManager, op
     let guideWindow: BrowserWindow | null = null
     let settingWindow: BrowserWindow | null = null
 
+    const icon = createNativeIcon(options.platform, !!options.debug)
+
     function newBrowserWindow(hashURL: string, configure: BrowserWindowConstructorOptions = {}): BrowserWindow {
         const win = new BrowserWindow({
-            title: 'Hedge',
+            title: "Hedge",
+            icon,
             height: 720,
             width: 1080,
             minHeight: 480,
@@ -135,5 +138,15 @@ export function createWindowManager(state: StateManager, theme: ThemeManager, op
         openGuideWindow,
         openSettingWindow,
         getAllWindows
+    }
+}
+
+function createNativeIcon(platform: Platform, debug: boolean) {
+    if(platform === "linux") {
+        return debug ? path.join(__dirname, "../../build/linux/files/hedge.png") : path.join(__dirname, "../../../hedge.png")
+    }else if(platform === "win32") {
+        return debug ? path.join(__dirname, "../../build/win32/files/hedge.ico") : path.join(__dirname, "../../../hedge.ico")
+    }else{
+        return undefined
     }
 }

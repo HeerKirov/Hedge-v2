@@ -28,7 +28,7 @@ class ImportManager(private val data: DataRepository, private val importMetaMana
 
         val attr = sourceFile?.let { Files.readAttributes(it.toPath(), BasicFileAttributes::class.java) }
 
-        val fileFromSource = sourceFile?.let { XAttrProcessor.readWhereFromsMetaInMacOS(it.absolutePath) }
+        val fileFromSource = sourceFile?.let { XAttrProcessor.readWhereFromsMeta(it.absolutePath) }
 
         val fileImportTime = DateTime.now()
         val fileCreateTime = attr?.creationTime()?.toMillis()?.parseDateTime()

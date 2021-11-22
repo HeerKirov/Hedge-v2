@@ -9,7 +9,7 @@ export interface MenuOptions {
 
 export function registerAppMenu(windowManager: WindowManager, options: MenuOptions) {
     if(options.platform === "darwin") {
-        //目前只有macOS平台会设置菜单栏
+        //mac上的菜单栏
         Menu.setApplicationMenu(Menu.buildFromTemplate([
             {
                 label: "Hedge",
@@ -46,7 +46,7 @@ export function registerAppMenu(windowManager: WindowManager, options: MenuOptio
                 label: '显示',
                 submenu: [
                     {label: '重新加载', role: 'reload'},
-                    ...(options.debugMode ? [<MenuItemConstructorOptions>{label: '开发者工具', role: 'toggleDevTools'}] : []),
+                    {label: '开发者工具', role: 'toggleDevTools'},
                     {type: 'separator'},
                     {label: '全屏', role: 'togglefullscreen'}
                 ]
@@ -60,6 +60,64 @@ export function registerAppMenu(windowManager: WindowManager, options: MenuOptio
                     {label: '关闭窗口', role: 'close'},
                     {type: 'separator'},
                     {label: '新建窗口', accelerator: 'Command+N', click() { windowManager.createWindow() }}
+                ]
+            },
+            {
+                label: '帮助',
+                role: "help",
+                submenu: [
+                    {label: '帮助向导', click() { windowManager.openGuideWindow() }},
+                    {type: 'separator'},
+                    {label: 'Github', async click() { await shell.openExternal('https://github.com/HeerKirov/Hedge-v2') }}
+                ]
+            }
+        ]))
+    }else{
+        //windows & linux上的菜单栏
+        Menu.setApplicationMenu(Menu.buildFromTemplate([
+            {
+                label: "Hedge",
+                submenu: [
+                    {label: '关于Hedge', role: 'about'},
+                    {type: 'separator'},
+                    {label: '偏好设置', accelerator: 'Ctrl+,', click() { windowManager.openSettingWindow() }},
+                    {type: 'separator'},
+                    {label: '退出Hedge', role: 'quit'},
+                ]
+            },
+            {
+                label: '编辑',
+                role: 'editMenu',
+                submenu: [
+                    {label: '撤销', role: 'undo'},
+                    {label: '重做', role: 'redo'},
+                    {type: 'separator'},
+                    {label: '剪切', role: 'cut'},
+                    {label: '复制', role: 'copy'},
+                    {label: '粘贴', role: 'paste'},
+                    {label: '删除', role: 'delete'},
+                    {type: 'separator'},
+                    {label: '全选', role: 'selectAll'}
+                ]
+            },
+            {
+                label: '视图',
+                submenu: [
+                    {label: '重新加载', role: 'reload'},
+                    {label: '开发者工具', role: 'toggleDevTools'},
+                    {type: 'separator'},
+                    {label: '全屏', role: 'togglefullscreen'}
+                ]
+            },
+            {
+                label: '窗口',
+                role: 'windowMenu',
+                submenu: [
+                    {label: '最小化', role: 'minimize'},
+                    {label: '缩放', role: 'zoom'},
+                    {label: '关闭窗口', role: 'close'},
+                    {type: 'separator'},
+                    {label: '新建窗口', accelerator: 'Ctrl+N', click() { windowManager.createWindow() }}
                 ]
             },
             {

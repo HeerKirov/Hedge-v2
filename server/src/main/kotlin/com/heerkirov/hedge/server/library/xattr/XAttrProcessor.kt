@@ -2,6 +2,8 @@ package com.heerkirov.hedge.server.library.xattr
 
 import com.dd.plist.NSArray
 import com.dd.plist.PropertyListParser
+import com.heerkirov.hedge.server.utils.SystemPlatform
+import com.heerkirov.hedge.server.utils.systemPlatform
 import com.heerkirov.hedge.server.utils.tools.defer
 import java.io.BufferedReader
 import java.io.IOException
@@ -9,9 +11,19 @@ import java.io.InputStreamReader
 
 object XAttrProcessor {
     /**
+     * 从目标文件读取描述文件下载来源的元信息。仅会处理macOS系统。对于其他系统，将跳过此处理。
+     */
+    fun readWhereFromsMeta(path: String): List<String>? {
+        return when (systemPlatform) {
+            SystemPlatform.MacOS -> readWhereFromsMetaInMacOS(path)
+            else -> null
+        }
+    }
+
+    /**
      * 从目标文件读取描述文件下载来源的元信息。仅适用于macOS系统。
      */
-    fun readWhereFromsMetaInMacOS(path: String): List<String>? {
+    private fun readWhereFromsMetaInMacOS(path: String): List<String>? {
         val xattr = readXattrProp(path, "com.apple.metadata:kMDItemWhereFroms")
         return if(xattr == null) null else decodePList(xattr)
     }
