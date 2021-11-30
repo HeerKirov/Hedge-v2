@@ -19,6 +19,10 @@ class IllustRoutes(private val illustService: IllustService, private val associa
             path("api") {
                 path("illusts") {
                     get(::list)
+                    path("{id}") {
+                        patch(::update)
+                        delete(::delete)
+                    }
                     path("collection") {
                         post(::createCollection)
                         path("{id}") {
@@ -69,6 +73,18 @@ class IllustRoutes(private val illustService: IllustService, private val associa
     private fun list(ctx: Context) {
         val filter = ctx.queryAsFilter<IllustQueryFilter>()
         ctx.json(illustService.list(filter))
+    }
+
+    private fun update(ctx: Context) {
+        val id = ctx.pathParamAsClass<Int>("id").get()
+        val form = ctx.bodyAsForm<IllustImageUpdateForm>()
+        illustService.update(id, form)
+    }
+
+    private fun delete(ctx: Context) {
+        val id = ctx.pathParamAsClass<Int>("id").get()
+        illustService.delete(id)
+        ctx.status(204)
     }
 
     private fun createCollection(ctx: Context) {

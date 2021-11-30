@@ -175,6 +175,23 @@ class IllustService(private val data: DataRepository,
 
     /**
      * @throws NotFound 请求对象不存在
+     * @throws ResourceNotExist ("topics", number[]) 部分topics资源不存在。给出不存在的topic id列表
+     * @throws ResourceNotExist ("authors", number[]) 部分authors资源不存在。给出不存在的author id列表
+     * @throws ResourceNotExist ("tags", number[]) 部分tags资源不存在。给出不存在的tag id列表
+     * @throws ResourceNotSuitable ("tags", number[]) 部分tags资源不适用。地址段不适用于此项。给出不适用的tag id列表
+     * @throws ConflictingGroupMembersError 发现标签冲突组
+     */
+    fun update(id: Int, form: IllustImageUpdateForm) {
+        val illust = data.db.sequenceOf(Illusts).firstOrNull { Illusts.id eq id } ?: throw be(NotFound())
+        if(illust.type == Illust.Type.COLLECTION) {
+            updateCollection(id, form, illust)
+        }else{
+            updateImage(id, form, illust)
+        }
+    }
+
+    /**
+     * @throws NotFound 请求对象不存在
      */
     fun getCollectionRelatedItems(id: Int, filter: LimitFilter): IllustCollectionRelatedRes {
         val row = data.db.from(Illusts)
@@ -322,9 +339,9 @@ class IllustService(private val data: DataRepository,
      * @throws ResourceNotSuitable ("tags", number[]) 部分tags资源不适用。地址段不适用于此项。给出不适用的tag id列表
      * @throws ConflictingGroupMembersError 发现标签冲突组
      */
-    fun updateCollection(id: Int, form: IllustCollectionUpdateForm) {
+    fun updateCollection(id: Int, form: IllustCollectionUpdateForm, preIllust: Illust? = null) {
         data.db.transaction {
-            val illust = data.db.sequenceOf(Illusts).firstOrNull { retrieveCondition(id, Illust.IllustType.COLLECTION) } ?: throw be(NotFound())
+            val illust = preIllust ?: data.db.sequenceOf(Illusts).firstOrNull { retrieveCondition(id, Illust.IllustType.COLLECTION) } ?: throw be(NotFound())
 
             form.score.alsoOpt { if(it != null) kit.validateScore(it) }
 
@@ -424,9 +441,9 @@ class IllustService(private val data: DataRepository,
      * @throws ResourceNotSuitable ("tags", number[]) 部分tags资源不适用。地址段不适用于此项。给出不适用的tag id列表
      * @throws ConflictingGroupMembersError 发现标签冲突组
      */
-    fun updateImage(id: Int, form: IllustImageUpdateForm) {
+    fun updateImage(id: Int, form: IllustImageUpdateForm, preIllust: Illust? = null) {
         data.db.transaction {
-            val illust = data.db.sequenceOf(Illusts).firstOrNull { retrieveCondition(id, Illust.IllustType.IMAGE) } ?: throw be(NotFound())
+            val illust = preIllust ?: data.db.sequenceOf(Illusts).firstOrNull { retrieveCondition(id, Illust.IllustType.IMAGE) } ?: throw be(NotFound())
             val parent by lazy { if(illust.parentId == null) null else
                 data.db.sequenceOf(Illusts).first { (Illusts.type eq Illust.Type.COLLECTION) and (Illusts.id eq illust.parentId) }
             }
@@ -587,7 +604,7 @@ class IllustService(private val data: DataRepository,
     /**
      * @throws NotFound 请求对象不存在
      */
-    fun delete(id: Int, type: Illust.IllustType) {
+    fun delete(id: Int, type: Illust.IllustType? = null) {
         data.db.transaction {
             val illust = data.db.from(Illusts).select()
                 .where { retrieveCondition(id, type) }
@@ -636,11 +653,13 @@ class IllustService(private val data: DataRepository,
         }
     }
 
-    private fun retrieveCondition(id: Int, type: Illust.IllustType): BinaryExpression<Boolean> {
-        return (Illusts.id eq id) and if(type == Illust.IllustType.COLLECTION) {
-            Illusts.type eq Illust.Type.COLLECTION
-        }else{
-            (Illusts.type eq Illust.Type.IMAGE_WITH_PARENT) or (Illusts.type eq Illust.Type.IMAGE)
+    private fun retrieveCondition(id: Int, type: Illust.IllustType?): BinaryExpression<Boolean> {
+        return (Illusts.id eq id).runIf(type != null) {
+            this and if(type!! == Illust.IllustType.COLLECTION) {
+                Illusts.type eq Illust.Type.COLLECTION
+            }else{
+                (Illusts.type eq Illust.Type.IMAGE_WITH_PARENT) or (Illusts.type eq Illust.Type.IMAGE)
+            }
         }
     }
 }
