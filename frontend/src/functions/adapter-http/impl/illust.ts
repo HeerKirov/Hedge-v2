@@ -21,6 +21,8 @@ export function createIllustEndpoint(http: HttpInstance): IllustEndpoint {
             parseResponse: ({ total, result }: ListResult<any>) => ({total, result: result.map(mapToIllust)}),
             parseQuery: mapFromIllustFilter
         }),
+        update: http.createPathDataRequest(id => `/api/illusts/${id}`, "PATCH"),
+        delete: http.createPathRequest(id => `/api/illusts/${id}`, "DELETE"),
         collection: {
             create: http.createDataRequest("/api/illusts/collection", "POST"),
             get: http.createPathRequest(id => `/api/illusts/collection/${id}`, "GET", {
@@ -160,6 +162,20 @@ export interface IllustEndpoint {
      * 查询图库项目列表。
      */
     list(filter: IllustFilter): Promise<Response<ListResult<Illust>>>
+    /**
+     * 更改元数据。仅涉及公有部分。
+     * @exception NOT_FOUND
+     * @exception PARAM_ERROR ("score") score超出范围
+     * @exception NOT_EXIST ("tags"|"topics"|"authors", number[]) 选择的关联资源并不存在
+     * @exception NOT_SUITABLE ("tags", number[]) 选择的资源不适用。tag: 不能选择addr类型的tag
+     * @exception CONFLICTING_GROUP_MEMBERS ({[id: number]: {memberId: number, member: string}[]}) 违反tag冲突组约束。参数值是每一项冲突组的tagId，以及这个组下有冲突的tag的id和name列表
+     */
+    update(id: number, form: CollectionUpdateForm): Promise<Response<null, IllustExceptions["collection.update"]>>
+    /**
+     * 删除项目。
+     * @exception NOT_FOUND
+     */
+    delete(id: number): Promise<Response<null, NotFound>>
     /**
      * collection类型的项的操作API。collection是image的集合，不能为空，空集合会自动删除。每个image只能从属一个集合。
      */

@@ -130,13 +130,9 @@ export function useGridContextOperator<T extends SuitableIllust>(options: GridCo
     const creatingCollection = options.createCollection ? useCreatingCollectionDialog() : null
     const creatingAlbum = options.createAlbum ? useCreatingAlbumDialog() : null
 
-    const imageFastEndpoint = useFastObjectEndpoint({
-        update: httpClient => httpClient.illust.image.update,
-        delete: httpClient => httpClient.illust.image.delete
-    })
-    const collectionFastEndpoint = useFastObjectEndpoint({
-        update: httpClient => httpClient.illust.collection.update,
-        delete: httpClient => httpClient.illust.collection.delete
+    const commonFastEndpoint = useFastObjectEndpoint({
+        update: httpClient => httpClient.illust.update,
+        delete: httpClient => httpClient.illust.delete
     })
 
     const openAll = (illustId: number) => {
@@ -220,20 +216,22 @@ export function useGridContextOperator<T extends SuitableIllust>(options: GridCo
     }
 
     const openInNewWindow = (illust: T) => {
+        //TODO 增加对selected项的处理
         if(illust.type === "IMAGE") navigator.newWindow.preferences.image(illust.id)
         else navigator.newWindow.preferences.collection(illust.id)
     }
 
     const modifyFavorite = async (illust: T, favorite: boolean) => {
-        //TODO 增加对selected项的处理
-        const ok = illust.type === "IMAGE"
-            ? await imageFastEndpoint.setData(illust.id, { favorite })
-            : await collectionFastEndpoint.setData(illust.id, { favorite })
+        const items = selected.value.includes(illust.id) ? selected.value : [...selected.value, illust.id]
 
-        if(ok) {
-            const index = dataView.proxy.syncOperations.find(i => i.id === illust.id)
-            if(index !== undefined) {
-                dataView.proxy.syncOperations.modify(index, {...illust, favorite})
+        for (const itemId of items) {
+            const ok = await commonFastEndpoint.setData(itemId, { favorite })
+            if(ok) {
+                const index = dataView.proxy.syncOperations.find(i => i.id === itemId)
+                if(index !== undefined) {
+                    const illust = dataView.proxy.syncOperations.retrieve(index)!
+                    dataView.proxy.syncOperations.modify(index, {...illust, favorite})
+                }
             }
         }
     }
@@ -285,27 +283,36 @@ export function useGridContextOperator<T extends SuitableIllust>(options: GridCo
     } : () => {}
 
     const deleteItem = async (illust: T) => {
-        //TODO 添加对selected的处理
-
-        if(illust.type === "IMAGE") {
-            if(await messageBox.showYesNoMessage("warn", "确定要删除此项吗？", "此操作不可撤回。")) {
-                const ok = await imageFastEndpoint.deleteData(illust.id)
-                const index = dataView.proxy.syncOperations.find(i => i.id === illust.id)
-                if(ok && index !== undefined) {
-                    dataView.proxy.syncOperations.remove(index)
-                    options.afterDeleted?.()
+        if(selected.value.length <= 0 || (selected.value.length === 1 && selected.value[0] === illust.id)) {
+            if(illust.type === "IMAGE") {
+                if(await messageBox.showYesNoMessage("warn", "确定要删除此项吗？", "此操作不可撤回。")) {
+                    const ok = await commonFastEndpoint.deleteData(illust.id)
+                    const index = dataView.proxy.syncOperations.find(i => i.id === illust.id)
+                    if(ok && index !== undefined) {
+                        dataView.proxy.syncOperations.remove(index)
+                        options.afterDeleted?.()
+                    }
+                }
+            }else{
+                if(await messageBox.showYesNoMessage("warn", "确定要删除此集合吗？集合内的图像不会被删除。", "此操作不可撤回。")) {
+                    const ok = await commonFastEndpoint.deleteData(illust.id)
+                    if(ok) {
+                        //删除集合可能意味着内部图像拆分，必须刷新列表
+                        endpoint.refresh()
+                        if(options.afterDeleted) {
+                            const index = dataView.proxy.syncOperations.find(i => i.id === illust.id)
+                            if(index !== undefined) options.afterDeleted?.()
+                        }
+                    }
                 }
             }
         }else{
-            if(await messageBox.showYesNoMessage("warn", "确定要删除此集合吗？集合内的图像不会被删除。", "此操作不可撤回。")) {
-                const ok = await collectionFastEndpoint.deleteData(illust.id)
-                if(ok) {
-                    //删除集合可能意味着内部图像拆分，必须刷新列表
+            const items = selected.value.includes(illust.id) ? selected.value : [...selected.value, illust.id]
+            if(await messageBox.showYesNoMessage("warn", `确定要删除${items.length}个已选择项吗？`, "集合内的图像不会被删除。此操作不可撤回。")) {
+                const ok = await Promise.all(items.map(id => commonFastEndpoint.deleteData(id)))
+                if(ok.some(b => b)) {
                     endpoint.refresh()
-                    if(options.afterDeleted) {
-                        const index = dataView.proxy.syncOperations.find(i => i.id === illust.id)
-                        if(index !== undefined) options.afterDeleted?.()
-                    }
+                    options.afterDeleted?.()
                 }
             }
         }

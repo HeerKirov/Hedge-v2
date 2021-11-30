@@ -77,28 +77,28 @@ function mapToFolderImage(data: any): FolderImage {
 
 export interface FolderEndpoint {
     /**
-     * 查询文件夹列表。
+     * 查询目录列表。
      */
     list(filter: FolderFilter): Promise<Response<ListResult<Folder>>>
     /**
-     * 查询树状文件夹列表。
+     * 查询树状目录列表。
      */
     tree(filter: FolderTreeFilter): Promise<Response<FolderTreeNode[]>>
     /**
-     * 创建新的文件夹。
+     * 创建新的目录。
      */
     create(form: FolderCreateForm): Promise<Response<IdResponse, FolderExceptions["create"]>>
     /**
-     * 查看文件夹。
+     * 查看目录。
      * @param FolderId
      */
     get(FolderId: number): Promise<Response<Folder, NotFound>>
     /**
-     * 修改文件夹的元数据。
+     * 修改目录的元数据。
      */
     update(FolderId: number, form: FolderUpdateForm): Promise<Response<null, FolderExceptions["update"]>>
     /**
-     * 删除文件夹。
+     * 删除目录。
      */
     delete(FolderId: number): Promise<Response<null, NotFound>>
     images: {

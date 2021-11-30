@@ -41,7 +41,7 @@ export default defineComponent({
             <h2 class="is-size-4 mb-2">创建数据库</h2>
             <p>Hedge以数据库为单位管理资料。第一个数据库默认将存放在App数据目录下。</p>
             {isCustom.value ? <>
-                <p class="mt-4 is-size-7">已选择在自定义的位置保存数据库。请指定一个文件夹作为数据库的存储文件夹。</p>
+                <p class="mt-4 is-size-7">已选择在自定义的位置保存数据库。请指定一个位置作为数据库的存储目录。</p>
                 <div class="group mt-5">
                     <Input class="is-fullwidth" value={customFolderPath.value} onUpdateValue={v => customFolderPath.value = v}/>
                     <button class="button is-info" onClick={selectCustomPath}><i class="fa fa-folder-open mr-1"/>选择文件夹…</button>

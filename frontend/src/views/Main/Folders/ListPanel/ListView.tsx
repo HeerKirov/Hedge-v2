@@ -89,7 +89,7 @@ const Row = defineComponent({
 
         const menu = usePopupMenu([
             ...(props.data.type === "FOLDER" ? [
-                {type: "normal", label: "查看文件夹内容", click: () => view.openDetailView(props.data.id)}
+                {type: "normal", label: "查看目录内容", click: () => view.openDetailView(props.data.id)}
             ] as const : props.data.type === "QUERY" ? [
                 {type: "normal", label: "查询内容", click: () => view.openDetailView(props.data.id)}
             ] as const : [
@@ -101,7 +101,7 @@ const Row = defineComponent({
             {type: "normal", label: "在此节点之后新建", click: () => creator.openCreatorRow(props.parentId, props.ordinal + 1)},
             ...(props.data.type === "NODE" ? [{type: "normal", label: "在节点下新建", click: () => creator.openCreatorRow(props.data.id, null)}] as const : []),
             {type: "separator"},
-            {type: "normal", label: `删除${props.data.type === "FOLDER" ? "文件夹" : props.data.type === "QUERY" ? "查询" : "节点"}`, click: remove},
+            {type: "normal", label: `删除${props.data.type === "FOLDER" ? "目录" : props.data.type === "QUERY" ? "查询" : "节点"}`, click: remove},
         ])
 
         return () => <>
@@ -144,7 +144,7 @@ const CreatorRow = defineComponent({
         const indentStyle = computed(() => props.indent ? {"marginLeft": `${props.indent * 1.5}em`} : undefined)
 
         const selects = [
-            {value: "FOLDER", name: "文件夹"},
+            {value: "FOLDER", name: "目录"},
             {value: "QUERY", name: "查询"},
             {value: "NODE", name: "节点"},
         ]
@@ -158,7 +158,7 @@ const CreatorRow = defineComponent({
             }
             const ok = await createFolder({title: title.value!.trim(), type: type.value, parentId: props.parentId, ordinal: props.ordinal}, e => {
                 if(e.code === "ALREADY_EXISTS") {
-                    messageBox.showOkMessage("prompt", "该标题的文件夹已存在。")
+                    messageBox.showOkMessage("prompt", "此标题的目录已存在。")
                 }else{
                     return e
                 }
@@ -171,7 +171,7 @@ const CreatorRow = defineComponent({
         return () => <tr>
             <td colspan="3">
                 <Select items={selects} class="is-small" style={indentStyle.value} value={type.value} onUpdateValue={v => type.value = v as FolderType}/>
-                <Input class="is-small ml-1" value={title.value} onUpdateValue={v => title.value = v} placeholder="文件夹标题" refreshOnInput={true} onKeypress={onKeyEnter(save)}/>
+                <Input class="is-small ml-1" value={title.value} onUpdateValue={v => title.value = v} placeholder="目录标题" refreshOnInput={true} onKeypress={onKeyEnter(save)}/>
                 <button class="button is-small is-white ml-1" onClick={save}><span class="icon"><i class="fa fa-check"/></span><span>保存</span></button>
                 <button class="button is-small is-white ml-1" onClick={closeCreatorRow}><span class="icon"><i class="fa fa-times"/></span><span>取消</span></button>
             </td>

@@ -9,10 +9,9 @@ import { useSideBarContext } from "./inject"
  */
 export default defineComponent({
     setup() {
-        /*subitem给二级项目使用。包括画集、日历、标签、主题、所有文件夹。
+        /*subitem给二级项目使用。包括画集、日历、标签、主题、所有目录。
             在点进一个详情项目时，在subitem追加一条，并高亮显示。
             每个种类的subitem数量有上限，多了之后挤走旧的。
-            日历默认就显示最近的几个时间项。
         */
         return () => <aside class="menu">
             <ScopeComponent id="db" name="图库">
@@ -38,8 +37,8 @@ export default defineComponent({
                 <StdItemComponent name="文件管理" icon="folder-open" routeName="MainFile"/>
                 <StdItemComponent name="源数据" icon="spider" routeName="MainSourceImage"/>
             </ScopeComponent>
-            <ScopeComponent id="folder" name="文件夹">
-                <StdItemComponent name="所有文件夹" icon="archive" routeName="MainFolders"/>
+            <ScopeComponent id="folder" name="目录">
+                <StdItemComponent name="所有目录" icon="archive" routeName="MainFolders"/>
                 <SubItemFolders routeName="HedgeFoldersDetail"/>
             </ScopeComponent>
         </aside>
@@ -147,8 +146,8 @@ const SubItemFolders = defineComponent({
         const currentItemKey = ref<string>()
         const items: Ref<{key: string, title: string, virtual?: boolean}[]> = ref([
             //mock data，实际数据从server拉取folder列表
-            {key: "1", title: "文件夹A"},
-            {key: "2", title: "文件夹B", virtual: true}
+            {key: "1", title: "目录A"},
+            {key: "2", title: "目录B", virtual: true}
         ])
 
         watch(routeName, () => {
@@ -166,7 +165,7 @@ const SubItemFolders = defineComponent({
         return () => <>
             <li>
                 <a class={{"is-active": props.tmpKeyValue === currentItemKey.value}} onClick={onClick(props.tmpKeyValue)}>
-                    <span class="icon"><i class="fa fa-shopping-basket"/></span><span>临时文件夹</span>
+                    <span class="icon"><i class="fa fa-shopping-basket"/></span><span>临时目录</span>
                 </a>
             </li>
             {items.value.map(item => <li key={item.key}>

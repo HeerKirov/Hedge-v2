@@ -22,7 +22,7 @@ export default defineComponent({
 
             return title === data.value?.title || await updateFolder(pane.detailMode.value!, {title}, e => {
                 if (e.code === "ALREADY_EXISTS") {
-                    message.showOkMessage("prompt", "该标题的文件夹已存在。")
+                    message.showOkMessage("prompt", "此标题的目录已存在。")
                 } else {
                     return e
                 }
@@ -40,7 +40,7 @@ export default defineComponent({
                     {data.value.type === "QUERY"
                         ? <><i class="fa fa-search mr-1"/>查询</>
                     : data.value.type === "FOLDER"
-                        ? <><i class="fa fa-folder mr-1"/>文件夹</>
+                        ? <><i class="fa fa-folder mr-1"/>目录</>
                     :
                         <><i class="fa fa-angle-right mr-1"/>节点</>
                     }
