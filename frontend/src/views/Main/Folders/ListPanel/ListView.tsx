@@ -57,7 +57,7 @@ const Row = defineComponent({
     },
     setup(props) {
         const messageBox = useMessageBox()
-        const { pane, view, list: { deleteFolder, expandedInfo, creator } } = useFolderContext()
+        const { pane, view, pin, list: { deleteFolder, expandedInfo, creator } } = useFolderContext()
 
         const selected = computed(() => pane.detailMode.value === props.data.id)
 
@@ -65,9 +65,6 @@ const Row = defineComponent({
         const message = computed(() => {
             if(props.data.type === "FOLDER") {
                 return <span class="pl-1">{props.data.imageCount!}项</span>
-            }else if(props.data.type === "QUERY") {
-                const query = props.data.query!
-                return <code>{query.length > 25 ? query.substr(0, 25) + "..." : query}</code>
             }else{
                 return undefined
             }
@@ -80,6 +77,13 @@ const Row = defineComponent({
         } : undefined
 
         const click = () => pane.openDetailPane(props.data.id)
+        const dblClick = () => {
+            if(props.data.type === "FOLDER") {
+                view.openDetailView(props.data.id)
+            }else{
+                isExpanded!.value = !isExpanded!.value
+            }
+        }
 
         const remove = async () => {
             if(await messageBox.showYesNoMessage("warn", "确定要删除此项吗？", props.data.children?.length ? "此操作将级联删除下属的所有子项，且不可撤回。" : "此操作不可撤回。")) {
@@ -87,11 +91,11 @@ const Row = defineComponent({
             }
         }
 
-        const menu = usePopupMenu([
+        const menu = usePopupMenu(() => [
             ...(props.data.type === "FOLDER" ? [
-                {type: "normal", label: "查看目录内容", click: () => view.openDetailView(props.data.id)}
-            ] as const : props.data.type === "QUERY" ? [
-                {type: "normal", label: "查询内容", click: () => view.openDetailView(props.data.id)}
+                {type: "normal", label: "查看目录内容", click: () => view.openDetailView(props.data.id)},
+                {type: "separator"},
+                {type: "normal", label: props.data.pinned ? "取消固定到侧边栏" : "固定到侧边栏", click: () => props.data.pinned ? pin.unset(props.data.id) : pin.set(props.data.id)}
             ] as const : [
                 {type: "normal", label: "折叠全部节点", click: () => expandedInfo.setAllForChildren(props.data.id, false)},
                 {type: "normal", label: "展开全部节点", click: () => expandedInfo.setAllForChildren(props.data.id, true)}
@@ -101,23 +105,24 @@ const Row = defineComponent({
             {type: "normal", label: "在此节点之后新建", click: () => creator.openCreatorRow(props.parentId, props.ordinal + 1)},
             ...(props.data.type === "NODE" ? [{type: "normal", label: "在节点下新建", click: () => creator.openCreatorRow(props.data.id, null)}] as const : []),
             {type: "separator"},
-            {type: "normal", label: `删除${props.data.type === "FOLDER" ? "目录" : props.data.type === "QUERY" ? "查询" : "节点"}`, click: remove},
+            {type: "normal", label: `删除${props.data.type === "FOLDER" ? "目录" : "节点"}`, click: remove},
         ])
 
         return () => <>
-            <tr onClick={click} onContextmenu={() => menu.popup()} class={{"is-selected": selected.value}}>
+            <tr onClick={click} onDblclick={dblClick} onContextmenu={() => menu.popup()} class={{"is-selected": selected.value}}>
                 <td class="is-width-45">
                     <span class="icon mr-1" style={indentStyle.value} onClick={switchExpand}>
                         {props.data.type === "FOLDER"
                                 ? <i class="fa fa-folder"/>
-                        : props.data.type === "QUERY"
-                                ? <i class="fa fa-search"/>
                         : isExpanded!.value
                                 ? <i class="fa fa-angle-down ml-half is-cursor-pointer"/>
                                 : <i class="fa fa-angle-right ml-half is-cursor-pointer"/>
                         }
                     </span>
                     {props.data.title}
+                </td>
+                <td>
+                    {props.data.pinned && <i class="fa fa-map-pin"/>}
                 </td>
                 <td class="is-width-35">
                     {message.value}

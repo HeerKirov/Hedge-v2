@@ -37,17 +37,12 @@ export default defineComponent({
                     editor: ({ value, setValue }) => <Input value={value} onUpdateValue={setValue} refreshOnInput={true}/>
                 }}/>
                 <p class="mt-2">
-                    {data.value.type === "QUERY"
-                        ? <><i class="fa fa-search mr-1"/>查询</>
-                    : data.value.type === "FOLDER"
+                    {data.value.type === "FOLDER"
                         ? <><i class="fa fa-folder mr-1"/>目录</>
                     :
                         <><i class="fa fa-angle-right mr-1"/>节点</>
                     }
                 </p>
-                {data.value.type === "QUERY" && <div class="block mt-4 p-1">
-                    <code>{data.value.query}</code>
-                </div>}
                 {data.value.type === "FOLDER" && <div class="mt-4">
                     {/*TODO 添加examples展示*/}
                 </div>}

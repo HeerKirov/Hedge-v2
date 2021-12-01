@@ -44,6 +44,7 @@ export interface FolderContext {
             set(key: number, value: boolean): boolean
             setAllForChildren(key: number, value: boolean): void
         },
+        searchText: Ref<string>
         /**
          * 可编辑锁。
          */
@@ -57,6 +58,13 @@ export interface FolderContext {
             openCreatorRow(parentId: number | null | undefined, ordinal: number | null | undefined): void
             closeCreatorRow(): void
         }
+    }
+    /**
+     * pin fast endpoint。
+     */
+    pin: {
+        set(folderId: number): void
+        unset(folderId: number): void
     }
     pane: {
         detailMode: Readonly<Ref<number | null>>
@@ -78,11 +86,13 @@ export interface FolderCreateTemplate {
 export const [installFolderContext, useFolderContext] = installation(function (): FolderContext {
     const list = useFolderListContext()
 
+    const pin = usePinOperator(list.indexedData)
+
     const pane = usePane()
 
     const view = usePanelView()
 
-    return {list, pane, view}
+    return {list, pin, pane, view}
 })
 
 function useFolderListContext() {
@@ -102,6 +112,8 @@ function useFolderListContext() {
 
     onMounted(refresh)
 
+    const { data: filteredData, searchText } = useDataFilter(data)
+
     const indexedData = useIndexedData(data)
 
     const expandedInfo = useExpandedInfo(indexedData)
@@ -112,7 +124,36 @@ function useFolderListContext() {
 
     const creator = useCreatorRow()
 
-    return {data, indexedData, refresh, expandedInfo, ...operators, editable, creator}
+    return {data: filteredData, indexedData, refresh, expandedInfo, searchText, ...operators, editable, creator}
+}
+
+function useDataFilter(originData: Ref<FolderTreeNode[]>) {
+    const searchText = ref("")
+
+    function filter(node: FolderTreeNode): FolderTreeNode | null {
+        if(node.type === "NODE") {
+            if(node.title.toLowerCase().includes(searchText.value.toLowerCase())) {
+                return node
+            }else{
+                const children = (node.children ?? []).map(filter).filter(i => i !== null) as FolderTreeNode[]
+                if(children.length) {
+                    return {...node, children}
+                }else{
+                    return null
+                }
+            }
+        }else{
+            if(node.title.toLowerCase().includes(searchText.value.toLowerCase())) {
+                return node
+            }else{
+                return null
+            }
+        }
+    }
+
+    const data = computed(() => originData.value.map(filter).filter(i => i !== null) as FolderTreeNode[])
+
+    return {data, searchText}
 }
 
 function useIndexedData(data: Ref<FolderTreeNode[]>) {
@@ -222,6 +263,34 @@ function useCreatorRow() {
     const closeCreatorRow = () => position.value = null
 
     return {position, type, openCreatorRow, closeCreatorRow}
+}
+
+function usePinOperator(indexedData: Ref<{[id: number]: FolderTreeNode}>) {
+    const endpoint = useFastObjectEndpoint({
+        update: httpClient => httpClient.folder.pin.set,
+        delete: httpClient => httpClient.folder.pin.unset
+    })
+
+    return {
+        async set(folderId: number) {
+            const ok = await endpoint.setData(folderId, undefined)
+            if(ok) {
+                const d = indexedData.value[folderId]
+                if(d) {
+                    d.pinned = true
+                }
+            }
+        },
+        async unset(folderId: number) {
+            const ok = await endpoint.deleteData(folderId)
+            if(ok) {
+                const d = indexedData.value[folderId]
+                if(d) {
+                    d.pinned = false
+                }
+            }
+        }
+    }
 }
 
 function usePane() {

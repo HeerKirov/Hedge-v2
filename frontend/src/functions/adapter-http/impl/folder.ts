@@ -43,7 +43,8 @@ function mapToBaseFolder(data: any): BaseFolder {
         query: <string | null>data["query"],
         imageCount: <number | null>data["imageCount"],
         createTime: datetime.of(<string>data["createTime"]),
-        updateTime: datetime.of(<string>data["updateTime"])
+        updateTime: datetime.of(<string>data["updateTime"]),
+        pinned: <boolean>data["pinned"]
     }
 }
 
@@ -65,7 +66,6 @@ function mapToFolderTreeNode(data: any): FolderTreeNode {
 function mapToFolderImage(data: any): FolderImage {
     return {
         id: <number>data["id"],
-        ordinal: <number>data["ordinal"],
         file: <string>data["file"],
         thumbnailFile: <string>data["thumbnailFile"],
         score: <number | null>data["score"],
@@ -140,7 +140,7 @@ export interface FolderExceptions {
     "images.partialUpdate": NotFound | Reject | ResourceNotExist<"images", number[]>
 }
 
-export type FolderType = "NODE" | "FOLDER" | "QUERY"
+export type FolderType = "NODE" | "FOLDER"
 
 interface BaseFolder {
     /**
@@ -163,6 +163,10 @@ interface BaseFolder {
      * FOLDER类型的项目数量。
      */
     imageCount: number | null
+    /**
+     * 是否已固定到侧边栏。
+     */
+    pinned: boolean
     /**
      * 创建时间。
      */
@@ -199,7 +203,6 @@ export interface SimpleFolder {
 
 export interface FolderImage {
     id: number
-    ordinal: number
     file: string
     thumbnailFile: string
     score: number | null

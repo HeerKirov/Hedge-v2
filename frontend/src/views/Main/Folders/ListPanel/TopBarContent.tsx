@@ -4,13 +4,13 @@ import { useFolderContext } from "../inject"
 
 export default defineComponent({
     setup() {
-        const { list: { creator } } = useFolderContext()
+        const { list: { creator, searchText } } = useFolderContext()
         return () => <div class="middle-layout">
             <div class="layout-container">
 
             </div>
             <div class="layout-container">
-                <SearchBox class="w-75 is-stretch-item"/>
+                <SearchBox class="w-75 is-stretch-item" value={searchText.value} onUpdateValue={v => searchText.value = v ?? ""}/>
             </div>
             <div class="layout-container">
                 <button class="button square no-drag radius-large is-white" onClick={() => creator.openCreatorRow(null, null)}>
