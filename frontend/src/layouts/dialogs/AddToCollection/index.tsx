@@ -1,66 +1,29 @@
-import { computed, defineComponent, inject, InjectionKey, PropType, provide, Ref, ref, watch } from "vue"
+import { computed, defineComponent, ref, watch } from "vue"
 import CheckBox from "@/components/forms/CheckBox"
-import DialogBox from "@/layouts/layouts/DialogBox"
 import GridImage from "@/components/elements/GridImage"
 import { useToast } from "@/functions/module/toast"
 import { useHttpClient } from "@/functions/app"
 import { arrays } from "@/utils/collections"
+import { useDialogSelfContext, useDialogServiceContext } from "../all"
 import style from "./style.module.scss"
 
-export interface AddToCollectionDialogContext {
+export interface AddToCollectionContext {
     addToCollection(images: number[], collectionId: number, onAdded?: () => void)
 }
 
-export const AddToCollectionDialog = defineComponent({
-    setup() {
-        const httpClient = useHttpClient()
-        const { task } = inject(dialogInjection)!
+export interface AddToCollectionInjectionContext {
+    images: number[]
+    situations: {id: number, thumbnailFile: string, hasParent: boolean}[]
+    collectionId: number
+    onAdded?(): void
+}
 
-        const situations = ref<{id: number, thumbnailFile: string, hasParent: boolean}[]>([])
-
-        const close = () => task.value = null
-
-        const addedEvent = () => {
-            if(task.value) {
-                task.value.onAdded?.()
-                task.value = null
-            }
-        }
-
-        watch(task, async (t) => {
-            if(t !== null) {
-                const res = await httpClient.illustUtil.getImageSituation(t.images)
-                if(res.ok) {
-                    situations.value = res.data
-                        .filter(item => item.belong === null || item.belong.id !== t.collectionId) //排除当前集合的项
-                        .map(item => ({id: item.id, thumbnailFile: item.thumbnailFile, hasParent: item.belong !== null}))
-                    if(situations.value.length <= 0) {
-                        //如果解析后的结果列表为空，那么直接终止此操作
-                        close()
-                    }
-                }
-            }else{
-                situations.value = []
-            }
-        })
-
-        return () => <DialogBox visible={situations.value.length > 0} onClose={close}>
-            <Content collectionId={task.value!.collectionId} situations={situations.value} onAdded={addedEvent}/>
-        </DialogBox>
-    }
-})
-
-const Content = defineComponent({
-    props: {
-        situations: {type: Array as PropType<{id: number, thumbnailFile: string, hasParent: boolean}[]>, required: true},
-        collectionId: {type: Number, required: true}
-    },
-    emits: {
-        added: () => true
-    },
-    setup(props, { emit }) {
+export const AddToCollectionContent = defineComponent({
+    emits: ["close"],
+    setup(_, { emit }) {
         const toast = useToast()
         const httpClient = useHttpClient()
+        const props = useDialogSelfContext("addToCollection")
 
         const selections = ref<boolean[]>([])
         const selectedCount = computed(() => selections.value.filter(i => i).length)
@@ -81,7 +44,8 @@ const Content = defineComponent({
             if(addedItems.length) {
                 const res = await httpClient.illust.collection.images.update(props.collectionId, [props.collectionId, ...addedItems])
                 if(res.ok) {
-                    emit("added")
+                    props.onAdded?.()
+                    emit("close")
                 }else{
                     toast.handleException(res.exception)
                 }
@@ -117,26 +81,26 @@ const Content = defineComponent({
     }
 })
 
-export function installAddToCollectionDialog() {
-    provide(dialogInjection, { task: ref(null) })
-}
-
-export function useAddToCollectionDialog(): AddToCollectionDialogContext {
-    const { task } = inject(dialogInjection)!
+export function useAddToCollectionService(): AddToCollectionContext {
+    const httpClient = useHttpClient()
+    const { push } = useDialogServiceContext()
 
     return {
-        addToCollection(images, collectionId, onAdded) {
-            task.value = {images, collectionId, onAdded}
+        async addToCollection(images, collectionId, onAdded) {
+            const res = await httpClient.illustUtil.getImageSituation(images)
+            if(res.ok) {
+                const situations = res.data
+                    .filter(item => item.belong === null || item.belong.id !== collectionId) //排除当前集合的项
+                    .map(item => ({id: item.id, thumbnailFile: item.thumbnailFile, hasParent: item.belong !== null}))
+                if(situations.length > 0) {
+                    //解析后的列表如果不为空，那么确定打开对话框
+                    push({
+                        type: "addToCollection",
+                        context: {images, collectionId, situations, onAdded}
+                    })
+                }
+            }
+
         }
     }
 }
-
-interface InjectionContext {
-    task: Ref<{
-        images: number[]
-        collectionId: number
-        onAdded?(): void
-    } | null>
-}
-
-const dialogInjection: InjectionKey<InjectionContext> = Symbol()

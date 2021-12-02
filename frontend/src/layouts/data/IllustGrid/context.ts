@@ -2,8 +2,8 @@ import { Ref } from "vue"
 import { ScrollView } from "@/components/features/VirtualScrollView"
 import { PaginationDataView, QueryEndpointInstance, QueryEndpointResult, SingletonDataView, SliceDataView } from "@/functions/utils/endpoints/query-endpoint"
 import { Illust, IllustType } from "@/functions/adapter-http/impl/illust"
-import { useCreatingCollectionDialog } from "@/layouts/dialogs/CreatingCollectionDialog"
-import { useCreatingAlbumDialog } from "@/layouts/dialogs/CreatingAlbumDialog"
+import { useCreatingCollectionService } from "@/layouts/dialogs/CreatingCollection"
+import { useCreatingAlbumService } from "@/layouts/dialogs"
 import { useFastObjectEndpoint } from "@/functions/utils/endpoints/object-fast-endpoint"
 import { useNavigator } from "@/functions/feature/navigator"
 import { useMessageBox } from "@/functions/module/message-box"
@@ -127,8 +127,8 @@ export function useGridContextOperator<T extends SuitableIllust>(options: GridCo
     const httpClient = useHttpClient()
     const viewStacks = useViewStack()
     const { dataView, endpoint, scrollView, selected } = options
-    const creatingCollection = options.createCollection ? useCreatingCollectionDialog() : null
-    const creatingAlbum = options.createAlbum ? useCreatingAlbumDialog() : null
+    const creatingCollection = options.createCollection ? useCreatingCollectionService() : null
+    const creatingAlbum = options.createAlbum ? useCreatingAlbumService() : null
 
     const commonFastEndpoint = useFastObjectEndpoint({
         update: httpClient => httpClient.illust.update,
@@ -243,10 +243,13 @@ export function useGridContextOperator<T extends SuitableIllust>(options: GridCo
 
         const refreshWhenCreated = typeof options.createCollection === "object" && options.createCollection.refreshAfterCreated
         const whenCreated = typeof options.createCollection === "object" && options.createCollection.afterCreated || undefined
-        const onCreated = refreshWhenCreated || whenCreated ? (collectionId: number) => {
+        const onCreated = refreshWhenCreated || whenCreated ? (collectionId: number, newCollection: boolean) => {
             if(refreshWhenCreated) endpoint.refresh()
             whenCreated?.(collectionId)
-        } : undefined
+            toast.toast(newCollection ? "已创建" : "已合并", "success",  newCollection ? "已创建新集合。" : "已将图像合并至指定集合。")
+        } : (_, newCollection: boolean) => {
+            toast.toast(newCollection ? "已创建" : "已合并", "success",  newCollection ? "已创建新集合。" : "已将图像合并至指定集合。")
+        }
 
         if(forceDialog) {
             creatingCollection!.createCollectionForceDialog(items, onCreated)
@@ -279,7 +282,7 @@ export function useGridContextOperator<T extends SuitableIllust>(options: GridCo
 
     const createAlbum = options.createAlbum ? (illust: T) => {
         const items = selected.value.includes(illust.id) ? selected.value : [...selected.value, illust.id]
-        creatingAlbum!.createAlbum(items)
+        creatingAlbum!.createAlbum(items, () => toast.toast("已创建", "success", "已创建新画集。"))
     } : () => {}
 
     const deleteItem = async (illust: T) => {

@@ -1,12 +1,12 @@
-import { computed, defineComponent, inject, InjectionKey, PropType, provide, ref, Ref } from "vue"
-import DialogBox from "@/layouts/layouts/DialogBox"
+import { computed, defineComponent, PropType, ref, Ref } from "vue"
 import { SourceImageEditor, SourceKeyEditor, useSourceImageEditorData } from "@/layouts/editors"
 import { useObjectEndpoint } from "@/functions/utils/endpoints/object-endpoint"
 import { useHttpClient } from "@/functions/app"
 import { useMessageBox } from "@/functions/module/message-box"
+import { useDialogSelfContext, useDialogServiceContext } from "../all"
 import style from "./style.module.scss"
 
-export interface SourceImageEditDialogContext {
+export interface EditSourceImageContext {
     /**
      * 打开新建模式的面板。此模式下，从三种不同的创建模式选择其一并执行新建。
      */
@@ -17,26 +17,31 @@ export interface SourceImageEditDialogContext {
     edit(key: SourceKey, onUpdated?: () => void): void
 }
 
+export type EditSourceImageInjectionContext = {
+    mode: "create"
+    onCreated?(): void
+} | {
+    mode: "update"
+    source: string
+    sourceId: number
+    onUpdated?(): void
+}
+
 interface SourceKey {
     source: string
     sourceId: number
 }
 
-export const SourceImageEditDialog = defineComponent({
-    setup() {
-        const { task } = inject(dialogInjection)!
+export const EditSourceImageContent = defineComponent({
+    emits: ["close"],
+    setup(_, { emit }) {
+        const props = useDialogSelfContext("editSourceImage")
 
-        const visible = computed(() => task.value !== null)
+        const close = () => emit("close")
 
-        const close = () => task.value = null
-
-        return () => <DialogBox visible={visible.value} onClose={close}>
-            {task.value?.mode === "create"
-                ? <CreateContent onCreated={task.value!.onCreated} onClose={close}/>
-            : task.value?.mode === "update"
-                ? <EditContent source={task.value!.source} sourceId={task.value!.sourceId} onUpdated={task.value!.onUpdated} onClose={close}/>
-            : null}
-        </DialogBox>
+        return () => props.mode === "create"
+            ? <CreateContent onCreated={props.onCreated} onClose={close}/>
+            : <EditContent source={props.source} sourceId={props.sourceId} onUpdated={props.onUpdated} onClose={close}/>
     }
 })
 
@@ -133,33 +138,21 @@ function useEditorData(key: Ref<SourceKey>) {
     return {data, setData, info}
 }
 
-export function installSourceImageEditDialog() {
-    provide(dialogInjection, { task: ref(null) })
-}
-
-export function useSourceImageEditDialog(): SourceImageEditDialogContext {
-    const { task } = inject(dialogInjection)!
+export function useEditSourceImageService(): EditSourceImageContext {
+    const { push } = useDialogServiceContext()
 
     return {
         openCreateDialog(onCreated) {
-            task.value = {mode: "create", onCreated}
+            push({
+                type: "editSourceImage",
+                context: {mode: "create", onCreated}
+            })
         },
         edit(key, onUpdated) {
-            task.value = {mode: "update", ...key, onUpdated}
+            push({
+                type: "editSourceImage",
+                context: {mode: "update", ...key, onUpdated}
+            })
         }
     }
 }
-
-interface InjectionContext {
-    task: Ref<{
-        mode: "create"
-        onCreated?(): void
-    } | {
-        mode: "update"
-        source: string
-        sourceId: number
-        onUpdated?(): void
-    } | null>
-}
-
-const dialogInjection: InjectionKey<InjectionContext> = Symbol()

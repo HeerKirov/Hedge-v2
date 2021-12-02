@@ -1,11 +1,11 @@
-import { computed, defineComponent, inject, InjectionKey, PropType, provide, ref, Ref } from "vue"
-import DialogBox from "@/layouts/layouts/DialogBox"
+import { defineComponent, ref } from "vue"
 import { CollectionSituation } from "@/functions/adapter-http/impl/util-illust"
 import { assetsUrl, useHttpClient } from "@/functions/app"
 import { useToast } from "@/functions/module/toast"
+import { useDialogSelfContext, useDialogServiceContext } from "../all"
 import style from "./style.module.scss"
 
-export interface CreatingCollectionDialogContext {
+export interface CreatingCollectionContext {
     /**
      * 传入一组images，创建一个集合。
      * 会对这组images做校验。如果images都是真正的image，且都不属于任何集合，那么会干脆利落地直接创建；
@@ -20,32 +20,18 @@ export interface CreatingCollectionDialogContext {
     createCollectionForceDialog(images: number[], onCreated?: (collectionId: number, newCollection: boolean) => void): void
 }
 
-export const CreatingCollectionDialog = defineComponent({
-    setup() {
-        const { task } = inject(dialogInjection)!
+export interface CreatingCollectionInjectionContext {
+    situations:CollectionSituation[]
+    images: number[]
+    onCreated?(collectionId: number, newCollection: boolean): void
+}
 
-        const visible = computed(() => task.value !== null)
-
-        const close = () => task.value = null
-
-        return () => <DialogBox visible={visible.value} onClose={close}>
-            <Content {...task.value!} onClose={close}/>
-        </DialogBox>
-    }
-})
-
-const Content = defineComponent({
-    props: {
-        situations: {type: Array as PropType<CollectionSituation[]>, required: true},
-        images: {type: Array as PropType<number[]>, required: true},
-        onCreated: Function as PropType<(collectionId: number, newCollection: boolean) => void>
-    },
-    emits: {
-        close: () => true
-    },
-    setup(props, { emit }) {
+export const CreatingCollectionContent = defineComponent({
+    emits: ["close"],
+    setup(_, { emit }) {
         const toast = useToast()
         const httpClient = useHttpClient()
+        const props = useDialogSelfContext("creatingCollection")
 
         const selected = ref<number | "new">("new")
 
@@ -121,14 +107,10 @@ function SituationItem(props: {selected: boolean, situation: CollectionSituation
     </div>
 }
 
-export function installCreatingCollectionDialog() {
-    provide(dialogInjection, { task: ref(null) })
-}
-
-export function useCreatingCollectionDialog(): CreatingCollectionDialogContext {
+export function useCreatingCollectionService(): CreatingCollectionContext {
     const toast = useToast()
     const httpClient = useHttpClient()
-    const { task } = inject(dialogInjection)!
+    const { push } = useDialogServiceContext()
 
     return {
         async createCollection(images, onCreated) {
@@ -137,7 +119,10 @@ export function useCreatingCollectionDialog(): CreatingCollectionDialogContext {
                 const situations = res.data
                 if(situations.length > 0) {
                     //若存在任何返回的situations，则需要对集合做决断，打开dialog
-                    task.value = {situations, images, onCreated}
+                    push({
+                        type: "creatingCollection",
+                        context: {situations, images, onCreated}
+                    })
                 }else{
                     //不需要决断，则直接创建新集合
                     const res = await httpClient.illust.collection.create({images})
@@ -155,20 +140,13 @@ export function useCreatingCollectionDialog(): CreatingCollectionDialogContext {
             const res = await httpClient.illustUtil.getCollectionSituation(images)
             if(res.ok) {
                 //总是打开dialog，对内容做确认
-                task.value = {situations: res.data, images, onCreated}
+                push({
+                    type: "creatingCollection",
+                    context: {situations: res.data, images, onCreated}
+                })
             }else{
                 toast.handleException(res.exception)
             }
         }
     }
 }
-
-interface InjectionContext {
-    task: Ref<{
-        situations:CollectionSituation[]
-        images: number[]
-        onCreated?(collectionId: number, newCollection: boolean): void
-    } | null>
-}
-
-const dialogInjection: InjectionKey<InjectionContext> = Symbol()

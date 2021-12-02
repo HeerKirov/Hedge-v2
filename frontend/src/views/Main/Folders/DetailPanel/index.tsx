@@ -1,34 +1,36 @@
-import { defineComponent, markRaw } from "vue"
+import { defineComponent, markRaw, watch } from "vue"
 import TopBarLayout from "@/layouts/layouts/TopBarLayout"
-import { CreatingCollectionDialog, installCreatingCollectionDialog } from "@/layouts/dialogs/CreatingCollectionDialog"
-import { CreatingAlbumDialog, installCreatingAlbumDialog } from "@/layouts/dialogs/CreatingAlbumDialog"
 import { ColumnNumButton, DataRouter, FitTypeButton } from "@/layouts/topbars"
 import IllustGrid, { FitType, GridContextOperatorResult, useGridContextOperator } from "@/layouts/data/IllustGrid"
 import { FolderImage } from "@/functions/adapter-http/impl/folder"
 import { TypeDefinition } from "@/functions/feature/drag/definition"
+import { useAddToFolderService } from "@/layouts/dialogs/AddToFolder"
 import { createSliceOfAll, createSliceOfList } from "@/functions/utils/endpoints/query-endpoint"
 import { useDynamicPopupMenu } from "@/functions/module/popup-menu"
 import { useMessageBox } from "@/functions/module/message-box"
 import { useHttpClient } from "@/functions/app"
 import { useToast } from "@/functions/module/toast"
+import { useSideBarContext } from "@/views/Main/inject"
 import { useFolderContext } from "../inject"
 import { installDetailContext, useDetailContext } from "./inject"
 
 export default defineComponent({
     setup() {
-        installDetailContext()
-        installCreatingCollectionDialog()
-        installCreatingAlbumDialog()
+        const { pushSubItem } = useSideBarContext()
+        const { detail: { data } } = installDetailContext()
+
+        watch(data, data => {
+            if(data !== null) {
+                const title = [...data.parentAddress, data.title].join("/")
+                pushSubItem(data.id.toString(), title)
+            }
+        })
 
         const topBarLayoutSlots = {
             topBar: () => <TopBarContent/>,
             default: () => <ListView/>
         }
-        return () => <>
-            <TopBarLayout v-slots={topBarLayoutSlots}/>
-            <CreatingCollectionDialog/>
-            <CreatingAlbumDialog/>
-        </>
+        return () => <TopBarLayout v-slots={topBarLayoutSlots}/>
     }
 })
 
@@ -108,7 +110,7 @@ const ListView = defineComponent({
 })
 
 function useContextmenu(operator: GridContextOperatorResult<FolderImage>, folderOperator: ReturnType<typeof useFolderOperator>) {
-    //TODO 完成folder illust右键菜单的功能
+    //TODO 完成folder illust右键菜单的功能 (信息预览，剪贴板，关联组，目录，导出)
     return useDynamicPopupMenu<FolderImage>(illust => [
         {type: "normal", label: "查看详情", click: i => operator.clickToOpenDetail(i.id)},
         {type: "separator"},
@@ -136,9 +138,10 @@ function useContextmenu(operator: GridContextOperatorResult<FolderImage>, folder
 }
 
 function useFolderOperator() {
+    const toast = useToast()
     const messageBox = useMessageBox()
     const httpClient = useHttpClient()
-    const toast = useToast()
+    const addToFolder = useAddToFolderService()
     const { dataView, endpoint, selector: { selected }, detail: { id } } = useDetailContext()
 
     const removeItemFromFolder = async (illust: FolderImage) => {
@@ -161,8 +164,7 @@ function useFolderOperator() {
 
     const dropEvent = async (insertIndex: number | null, illusts: TypeDefinition["illusts"], mode: "ADD" | "MOVE") => {
         if(mode === "ADD") {
-            //TODO 仿照album，添加一个对话框过滤已存在项。也需要后端API支持。
-            const images = illusts.map(i => i.id)
+            const images = await addToFolder.existsCheck(illusts.map(i => i.id), id.value)
             if(images !== undefined && images.length > 0) {
                 const res = await httpClient.folder.images.partialUpdate(id.value, {action: "ADD", images, ordinal: insertIndex})
                 if(res.ok) {

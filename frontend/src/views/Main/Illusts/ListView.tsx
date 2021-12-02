@@ -37,7 +37,7 @@ export default defineComponent({
 })
 
 function useContextmenu(operator: GridContextOperatorResult<Illust>) {
-    //TODO 完成illust右键菜单的功能
+    //TODO 完成illust右键菜单的功能 (信息预览，剪贴板，关联组，目录，导出)
     return useDynamicPopupMenu<Illust>(illust => [
         {type: "normal", label: "查看详情", click: i => operator.clickToOpenDetail(i.id)},
         (illust.type === "COLLECTION" || null) && {type: "normal", label: "查看集合详情", click: i => operator.openCollectionDetail(i.id)},

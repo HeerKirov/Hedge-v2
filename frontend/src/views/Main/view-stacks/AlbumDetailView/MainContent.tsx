@@ -6,7 +6,7 @@ import MetaTagEditor from "@/layouts/drawers/MetaTagEditor"
 import { TypeDefinition } from "@/functions/feature/drag/definition"
 import { AlbumImage } from "@/functions/adapter-http/impl/album"
 import { createSliceOfAll, createSliceOfList } from "@/functions/utils/endpoints/query-endpoint"
-import { useAddToAlbumDialog } from "@/layouts/dialogs/AddToAlbumDialog"
+import { useAddToAlbumService } from "@/layouts/dialogs"
 import { useDynamicPopupMenu } from "@/functions/module/popup-menu"
 import { useMessageBox } from "@/functions/module/message-box"
 import { useHttpClient } from "@/functions/app"
@@ -75,7 +75,7 @@ const ListView = defineComponent({
                 from: data => data
             }),
             createCollection: {forceDialog: true},
-            afterDeleted: toastRefresh, //TODO 删除图像是能优化的，对上层的影响仅限于target自身
+            afterDeleted: toastRefresh, //FUTURE 删除图像是能优化的，对上层的影响仅限于target自身
         })
 
         const albumOperator = useAlbumOperator()
@@ -91,7 +91,7 @@ const ListView = defineComponent({
 
 function useContextmenu(operator: GridContextOperatorResult<AlbumImage>, albumOperator: ReturnType<typeof useAlbumOperator>) {
     const { data: { id } } = usePreviewContext()
-    //TODO 完成album images右键菜单的功能
+    //TODO 完成album images右键菜单的功能 (信息预览，剪贴板，关联组，目录，导出)
     return useDynamicPopupMenu<AlbumImage>(image => [
         {type: "normal", label: "查看详情", click: image => operator.clickToOpenDetail(image.id)},
         {type: "separator"},
@@ -121,7 +121,7 @@ function useAlbumOperator() {
     const toast = useToast()
     const messageBox = useMessageBox()
     const httpClient = useHttpClient()
-    const addToAlbum = useAddToAlbumDialog()
+    const addToAlbum = useAddToAlbumService()
     const { images: { dataView, endpoint, selector: { selected } }, data: { id, toastRefresh } } = usePreviewContext()
 
     const removeItemFromAlbum = async (illust: AlbumImage, albumId: number) => {
@@ -133,7 +133,7 @@ function useAlbumOperator() {
                     const index = dataView.proxy.syncOperations.find(i => i.id === illust.id)
                     if(index !== undefined) {
                         dataView.proxy.syncOperations.remove(index)
-                        //TODO 移除图像也是能优化的，对上层的影响仅限于target自身
+                        //FUTURE 移除图像也是能优化的，对上层的影响仅限于target自身
                         toastRefresh()
                     }
                 }else{

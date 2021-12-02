@@ -1,12 +1,12 @@
 import { defineComponent } from "vue"
 import { DataRouter, ColumnNumButton, SearchBox } from "@/layouts/topbars"
-import { useCreatingAlbumDialog } from "@/layouts/dialogs/CreatingAlbumDialog"
+import { useCreatingAlbumService } from "@/layouts/dialogs/CreatingAlbum"
 import { useAlbumContext } from "./inject"
 
 export default defineComponent({
     setup() {
         const { endpoint, viewController: { columnNum }} = useAlbumContext()
-        const { createAlbum } = useCreatingAlbumDialog()
+        const { createAlbum } = useCreatingAlbumService()
 
         const setColumnNum = (v: number) => columnNum.value = v
 

@@ -1,9 +1,11 @@
 @import '@/styles/base/size.sass';
+@import '@/styles/base/color.scss';
 
 .content {
   padding: 0.5rem;
-  height: 35rem;
-  width: 40rem;
+  max-height: 45rem;
+  min-height: 10rem;
+  width: 50rem;
 
   display: flex;
   flex-direction: column;
@@ -12,16 +14,9 @@
   > .scroll-content {
     height: 100%;
     overflow-y: auto;
-
-
+    overflow-x: hidden;
   }
   > .bottom {
     padding-top: 0.5rem;
-    padding-bottom: 0.25rem;
-  }
-
-  > .center-board {
-    text-align: center;
-    padding: 1rem 0;
   }
 }

@@ -1,7 +1,5 @@
 import { computed, defineComponent, PropType } from "vue"
 import TopBarLayout from "@/layouts/layouts/TopBarLayout"
-import { CreatingCollectionDialog, installCreatingCollectionDialog } from "@/layouts/dialogs/CreatingCollectionDialog"
-import { CreatingAlbumDialog, installCreatingAlbumDialog } from "@/layouts/dialogs/CreatingAlbumDialog"
 import { LocalDate } from "@/utils/datetime"
 import TopBarContent from "./TopBarContent"
 import ListView from "./ListView"
@@ -18,17 +16,11 @@ export default defineComponent({
         const partition = props.partitionTime !== undefined ? computed(() => props.partitionTime!) : null
         const partitionClose = props.partitionTime !== undefined ? () => emit("partitionClose") : undefined
         installIllustContext(partition, partitionClose)
-        installCreatingCollectionDialog()
-        installCreatingAlbumDialog()
 
         const topBarLayoutSlots = {
             topBar: () => <TopBarContent/>,
             default: () => <ListView/>
         }
-        return () => <>
-            <TopBarLayout v-slots={topBarLayoutSlots}/>
-            <CreatingCollectionDialog/>
-            <CreatingAlbumDialog/>
-        </>
+        return () => <TopBarLayout v-slots={topBarLayoutSlots}/>
     }
 })

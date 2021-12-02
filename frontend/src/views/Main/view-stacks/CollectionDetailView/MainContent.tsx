@@ -3,7 +3,7 @@ import TopBarLayout from "@/layouts/layouts/TopBarLayout"
 import SideDrawer from "@/layouts/layouts/SideDrawer"
 import MetaTagEditor from "@/layouts/drawers/MetaTagEditor"
 import IllustGrid, { GridContextOperatorResult, useGridContextOperator } from "@/layouts/data/IllustGrid"
-import { AddToCollectionDialog, useAddToCollectionDialog } from "@/layouts/dialogs/AddToCollectionDialog"
+import { useAddToCollectionService } from "@/layouts/dialogs"
 import { installExpandedInfoStorage } from "@/layouts/data/TagTree"
 import { Illust } from "@/functions/adapter-http/impl/illust"
 import { createProxySingleton, createSliceOfAll, createSliceOfList } from "@/functions/utils/endpoints/query-endpoint"
@@ -32,7 +32,6 @@ export default defineComponent({
         return () => <>
             <TopBarLayout v-slots={topBarLayoutSlots}/>
             <SideDrawer tab={drawerTab.value} onClose={closeDrawerTab} v-slots={sideDrawerSlots}/>
-            <AddToCollectionDialog/>
         </>
     }
 })
@@ -79,7 +78,7 @@ const ListView = defineComponent({
                 afterCreated: toastRefresh //拆分动作幅度太大，对于上层只能重新刷新列表
             },
             createAlbum: true,
-            afterDeleted: toastRefresh, //TODO 删除图像是能优化的，对上层的影响仅限于target自身
+            afterDeleted: toastRefresh, //FUTURE 删除图像是能优化的，对上层的影响仅限于target自身
                                         //      调整context operator的回调，给出变动列表；调整preview context，增加一个重新请求target自己的方法。
                                         //      在此处回调时，只需要重新请求target自己并set，而不需要通知上层完全刷新。其他位置也要做同步修改。
         })
@@ -98,7 +97,7 @@ const ListView = defineComponent({
 })
 
 function useContextmenu(operator: GridContextOperatorResult<Illust>, collectionOperator: ReturnType<typeof useCollectionOperator>) {
-    //TODO 完成collection右键菜单的功能
+    //TODO 完成collection右键菜单的功能 (信息预览，剪贴板，关联组，目录，导出)
     return useDynamicPopupMenu<Illust>(illust => [
         {type: "normal", label: "查看详情", click: illust => operator.clickToOpenDetail(illust.id)},
         {type: "separator"},
@@ -128,19 +127,23 @@ function useContextmenu(operator: GridContextOperatorResult<Illust>, collectionO
 function useCollectionOperator() {
     const messageBox = useMessageBox()
     const httpClient = useHttpClient()
-    const { images: { dataView, selector: {  } }, data: { toastRefresh } } = usePreviewContext()
+    const { images: { dataView, selector: { selected } }, data: { toastRefresh } } = usePreviewContext()
 
     const removeItemFromCollection = async (illust: Illust) => {
-        //TODO 添加对selected的处理
-        if(await messageBox.showYesNoMessage("warn", "确定要从集合移除此项吗？")) {
-            const res = await httpClient.illust.image.relatedItems.update(illust.id, {collectionId: null})
-            if(res.ok) {
-                const index = dataView.proxy.syncOperations.find(i => i.id === illust.id)
-                if(index !== undefined) {
-                    dataView.proxy.syncOperations.remove(index)
-                    //从集合移除图像对上层影响不可控，因此也只能刷新列表
-                    toastRefresh()
+        const images = selected.value.includes(illust.id) ? selected.value : [...selected.value, illust.id]
+        if(await messageBox.showYesNoMessage("warn", `确定要从集合移除${images.length > 1 ? "这些" : "此"}项吗？`)) {
+            const ok = await Promise.all(images.map(illustId => httpClient.illust.image.relatedItems.update(illustId, {collectionId: null})))
+            for (let i = 0; i < ok.length; i++) {
+                if(ok[i]) {
+                    const index = dataView.proxy.syncOperations.find(ill => ill.id === images[i])
+                    if(index !== undefined) {
+                        dataView.proxy.syncOperations.remove(index)
+                    }
                 }
+            }
+            if(ok.some(b => b)) {
+                //从集合移除图像对上层影响不可控，因此也只能刷新列表
+                toastRefresh()
             }
         }
     }
@@ -150,11 +153,11 @@ function useCollectionOperator() {
 
 function useDropEvents() {
     const { data: { id }, images: { endpoint } } = usePreviewContext()
-    const addToCollectionDialog = useAddToCollectionDialog()
+    const addToCollectionService = useAddToCollectionService()
 
     const { isDragover: _, ...dropEvents } = useDroppable("illusts", (illusts) => {
         if(id.value !== null) {
-            addToCollectionDialog.addToCollection(illusts.map(i => i.id), id.value, () => endpoint.refresh())
+            addToCollectionService.addToCollection(illusts.map(i => i.id), id.value, () => endpoint.refresh())
         }
     })
 

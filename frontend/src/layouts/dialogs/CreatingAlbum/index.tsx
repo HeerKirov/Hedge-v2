@@ -1,17 +1,17 @@
-import { defineComponent, inject, InjectionKey, PropType, provide, ref, Ref } from "vue"
+import { defineComponent, ref } from "vue"
 import Input from "@/components/forms/Input"
 import Textarea from "@/components/forms/Textarea"
 import GridImage from "@/components/elements/GridImage"
-import DialogBox from "@/layouts/layouts/DialogBox"
 import { StarlightEditor } from "@/layouts/editors"
 import { AlbumCreateForm } from "@/functions/adapter-http/impl/album"
 import { IdResponse } from "@/functions/adapter-http/impl/generic"
 import { useObjectCreator } from "@/functions/utils/endpoints/object-creator"
 import { useAsyncComputed } from "@/functions/utils/basic"
 import { useHttpClient } from "@/functions/app"
+import { useDialogSelfContext, useDialogServiceContext } from "../all"
 import style from "./style.module.scss"
 
-export interface CreatingAlbumDialogContext {
+export interface CreatingAlbumContext {
     /**
      * 打开对话框以创建一个新的画集。
      * 对话框中可以编辑画集的基本信息，并显示初始images项列表。
@@ -21,37 +21,19 @@ export interface CreatingAlbumDialogContext {
     createAlbum(images?: number[], onCreated?: (albumId: number) => void): void
 }
 
-export const CreatingAlbumDialog = defineComponent({
-    setup() {
-        const { task } = inject(dialogInjection)!
+export interface CreatingAlbumInjectionContext {
+    images: number[]
+    onCreated?(albumId: number): void
+}
 
-        const close = () => task.value = null
-
-        const onCreated = (albumId: number) => {
-            if(task.value) {
-                task.value.onCreated?.(albumId)
-                task.value = null
-            }
-        }
-
-        return () => <DialogBox visible={task.value !== null} onClose={close}>
-            <Content initImages={task.value!.images} onCreated={onCreated}/>
-        </DialogBox>
-    }
-})
-
-const Content = defineComponent({
-    props: {
-        initImages: {type: Array as PropType<number[]>, required: true}
-    },
-    emits: {
-        created: (_: number) => true
-    },
-    setup(props, { emit }) {
+export const CreatingAlbumContent = defineComponent({
+    emits: ["close"],
+    setup(_, { emit }) {
         const httpClient = useHttpClient()
+        const props = useDialogSelfContext("creatingAlbum")
 
         const form = ref<AlbumCreateForm>({
-            images: props.initImages
+            images: props.images
         })
 
         const creator = useObjectCreator({
@@ -59,13 +41,14 @@ const Content = defineComponent({
             mapForm: f => f,
             create: httpClient => httpClient.album.create,
             afterCreate(result: IdResponse) {
-                emit("created", result.id)
+                props.onCreated?.(result.id)
+                emit("close")
             }
         })
 
         const images = useAsyncComputed([], async () => {
-            if(props.initImages.length > 0) {
-                const res = await httpClient.illustUtil.getImageSituation(props.initImages)
+            if(props.images.length > 0) {
+                const res = await httpClient.illustUtil.getImageSituation(props.images)
                 if(res.ok) {
                     return res.data.map(item => ({id: item.id, thumbnailFile: item.thumbnailFile}))
                 }
@@ -103,25 +86,15 @@ const Content = defineComponent({
     }
 })
 
-export function installCreatingAlbumDialog() {
-    provide(dialogInjection, { task: ref(null) })
-}
-
-export function useCreatingAlbumDialog(): CreatingAlbumDialogContext {
-    const { task } = inject(dialogInjection)!
+export function useCreatingAlbumService(): CreatingAlbumContext {
+    const { push } = useDialogServiceContext()
 
     return {
         createAlbum(images, onCreated) {
-            task.value = {images: images ?? [], onCreated}
+            push({
+                type: "creatingAlbum",
+                context: {images: images ?? [], onCreated}
+            })
         }
     }
 }
-
-interface InjectionContext {
-    task: Ref<{
-        images: number[]
-        onCreated?(albumId: number): void
-    } | null>
-}
-
-const dialogInjection: InjectionKey<InjectionContext> = Symbol()

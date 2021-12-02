@@ -1,6 +1,6 @@
 import { defineComponent } from "vue"
 import { DataRouter, SearchBox } from "@/layouts/topbars"
-import { useSourceImageEditDialog } from "@/layouts/dialogs/SourceImageEditDialog"
+import { useEditSourceImageService } from "@/layouts/dialogs/EditSourceImage"
 import { useSourceImageContext } from "./inject"
 
 export default defineComponent({
@@ -24,7 +24,7 @@ export default defineComponent({
 const AddButton = defineComponent({
     setup() {
         const { list: { endpoint } } = useSourceImageContext()
-        const { openCreateDialog } = useSourceImageEditDialog()
+        const { openCreateDialog } = useEditSourceImageService()
 
         const click = () => {
             openCreateDialog(() => endpoint.refresh())

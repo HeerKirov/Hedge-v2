@@ -4,7 +4,7 @@ import { useMessageBox } from "@/functions/module/message-box"
 import { usePopupMenu } from "@/functions/module/popup-menu"
 import { SourceImage } from "@/functions/adapter-http/impl/source-image"
 import { useFastObjectEndpoint } from "@/functions/utils/endpoints/object-fast-endpoint"
-import { useSourceImageEditDialog } from "@/layouts/dialogs/SourceImageEditDialog"
+import { useEditSourceImageService } from "@/layouts/dialogs/EditSourceImage"
 import { useHttpClient } from "@/functions/app"
 import { datetime } from "@/utils/datetime"
 import { useSourceImageContext, keyEqual, SourceKey } from "./inject"
@@ -14,7 +14,7 @@ export default defineComponent({
         const httpClient = useHttpClient()
         const messageBox = useMessageBox()
         const { list: { dataView, endpoint }, pane: { detailMode, openDetailPane, closePane } } = useSourceImageContext()
-        const { edit } = useSourceImageEditDialog()
+        const { edit } = useEditSourceImageService()
 
         const fastEndpoint = useFastObjectEndpoint({
             delete: httpClient => httpClient.sourceImage.delete
