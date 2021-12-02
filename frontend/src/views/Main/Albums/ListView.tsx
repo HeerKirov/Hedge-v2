@@ -74,7 +74,7 @@ function useContextmenu(openDetail: (album: Album) => void) {
     const navigator = useNavigator()
     const { switchFavorite, deleteItem } = useContextOperator()
 
-    //TODO 完成album contextmenu
+    //TODO 完成album contextmenu (信息预览，导出)
     const menu = useDynamicPopupMenu<Album>(album => [
         {type: "normal", label: "查看详情", click: openDetail},
         {type: "separator"},

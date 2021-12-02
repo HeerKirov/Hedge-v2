@@ -1,8 +1,12 @@
-import { computed, defineComponent } from "vue"
+import { computed, defineComponent, ref, watch } from "vue"
 import Input from "@/components/forms/Input"
+import GridImage from "@/components/elements/GridImage"
 import { PaneBasicLayout } from "@/layouts/layouts/SplitPane"
-import { TimeDisplay } from "@/layouts/displays"
 import { ViewAndEditor } from "@/layouts/editors"
+import { FolderImage } from "@/functions/adapter-http/impl/folder"
+import { useHttpClient } from "@/functions/app"
+import { useToast } from "@/functions/module/toast"
+import { TimeDisplay } from "@/layouts/displays"
 import { useMessageBox } from "@/functions/module/message-box"
 import { useFolderContext } from "../inject"
 import style from "./style.module.scss"
@@ -43,11 +47,42 @@ export default defineComponent({
                         <><i class="fa fa-angle-right mr-1"/>节点</>
                     }
                 </p>
-                {data.value.type === "FOLDER" && <div class="mt-4">
-                    {/*TODO 添加examples展示*/}
-                </div>}
+                {data.value.type === "FOLDER" && <FolderExamples class="mt-4" id={pane.detailMode.value!}/>}
                 <TimeDisplay class="mt-4" createTime={data.value.createTime} updateTime={data.value.updateTime}/>
             </>}
         </PaneBasicLayout>
+    }
+})
+
+const FolderExamples = defineComponent({
+    props: {
+        id: {type: Number, required: true}
+    },
+    setup(props) {
+        const toast = useToast()
+        const httpClient = useHttpClient()
+        const { view } = useFolderContext()
+
+        const more = () => view.openDetailView(props.id)
+
+        const items = ref<FolderImage[]>([])
+
+        watch(() => props.id, async id => {
+            items.value = []
+            const res = await httpClient.folder.images.get(id, {offset: 0, limit: 9, order: "-ordinal"})
+            if(res.ok) {
+                items.value = res.data.result
+            }else{
+                toast.handleException(res.exception)
+                items.value = []
+            }
+        }, {immediate: true})
+
+        return () => items.value.length > 0 && <div>
+            <GridImage value={items.value.map(e => e.thumbnailFile)} columnNum={3} radius="std" boxShadow={true}/>
+            <div class="w-100 has-text-right">
+                <a class="no-wrap" onClick={more}>查看全部内容<i class="fa fa-angle-double-right ml-1 mr-1"/></a>
+            </div>
+        </div>
     }
 })

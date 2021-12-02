@@ -27,7 +27,7 @@ export interface FolderContext {
         /**
          * 更改folder。
          */
-        updateFolder(id: number, form: {title?: string, query?: string}, handle?: (e: FolderExceptions["update"]) => FolderExceptions["update"] | void): Promise<boolean>
+        updateFolder(id: number, form: {title?: string}, handle?: (e: FolderExceptions["update"]) => FolderExceptions["update"] | void): Promise<boolean>
         /**
          * 移动folder的位置。
          */
@@ -203,12 +203,11 @@ function useOperators(indexedData: Ref<{[id: number]: FolderTreeNode}>, refresh:
         }
     }
 
-    const updateFolder = async (id: number, form: {title?: string, query?: string}, handleError?: (e: FolderExceptions["update"]) => FolderExceptions["update"] | void) => {
+    const updateFolder = async (id: number, form: {title?: string}, handleError?: (e: FolderExceptions["update"]) => FolderExceptions["update"] | void) => {
         if(await fastEndpoint.setData(id, form, handleError)) {
             const target = indexedData.value[id]
             if(target) {
                 if(form.title !== undefined) target.title = form.title
-                if(form.query !== undefined) target.query = form.query
             }
             return true
         }

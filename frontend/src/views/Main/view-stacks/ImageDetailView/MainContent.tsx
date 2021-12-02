@@ -83,7 +83,7 @@ function useContextmenu() {
         }
     }
 
-    //TODO 完成image detail view右键菜单功能
+    //TODO 完成image detail view右键菜单功能 (剪贴板，目录，导出)
     return usePopupMenu([
         {type: "normal", label: "在新窗口中打开", click: openInNewWindow},
         {type: "separator"},

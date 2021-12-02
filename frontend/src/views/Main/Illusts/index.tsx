@@ -1,4 +1,4 @@
-import { computed, defineComponent, PropType } from "vue"
+import { computed, defineComponent, PropType, ref } from "vue"
 import TopBarLayout from "@/layouts/layouts/TopBarLayout"
 import { LocalDate } from "@/utils/datetime"
 import TopBarContent from "./TopBarContent"
@@ -17,10 +17,12 @@ export default defineComponent({
         const partitionClose = props.partitionTime !== undefined ? () => emit("partitionClose") : undefined
         installIllustContext(partition, partitionClose)
 
+        const topBarExpand = ref(true)
+
         const topBarLayoutSlots = {
             topBar: () => <TopBarContent/>,
             default: () => <ListView/>
         }
-        return () => <TopBarLayout v-slots={topBarLayoutSlots}/>
+        return () => <TopBarLayout v-slots={topBarLayoutSlots} expanded={topBarExpand.value} onUpdateExpanded={v => topBarExpand.value = v}/>
     }
 })

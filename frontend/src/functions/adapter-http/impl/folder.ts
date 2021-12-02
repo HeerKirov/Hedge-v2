@@ -40,7 +40,6 @@ function mapToBaseFolder(data: any): BaseFolder {
         id: <number>data["id"],
         title: <string>data["title"],
         type: <FolderType>data["type"],
-        query: <string | null>data["query"],
         imageCount: <number | null>data["imageCount"],
         createTime: datetime.of(<string>data["createTime"]),
         updateTime: datetime.of(<string>data["updateTime"]),
@@ -155,10 +154,6 @@ interface BaseFolder {
      * 类型。
      */
     type: FolderType
-    /**
-     * QUERY类型的查询语句。
-     */
-    query: string | null
     /**
      * FOLDER类型的项目数量。
      */

@@ -48,6 +48,7 @@ const RowList = defineComponent({
     }
 })
 
+//TODO 拖放改变排序功能的实现
 const Row = defineComponent({
     props: {
         data: {type: Object as PropType<FolderTreeNode>, required: true},
@@ -122,7 +123,7 @@ const Row = defineComponent({
                     {props.data.title}
                 </td>
                 <td>
-                    {props.data.pinned && <i class="fa fa-map-pin"/>}
+                    {props.data.pinned && <i class="fa fa-thumbtack"/>}
                 </td>
                 <td class="is-width-35">
                     {message.value}
@@ -150,7 +151,6 @@ const CreatorRow = defineComponent({
 
         const selects = [
             {value: "FOLDER", name: "目录"},
-            {value: "QUERY", name: "查询"},
             {value: "NODE", name: "节点"},
         ]
 

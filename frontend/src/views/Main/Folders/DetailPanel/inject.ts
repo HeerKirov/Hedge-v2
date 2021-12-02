@@ -70,6 +70,12 @@ function useListContext() {
     })
     const dataView = usePaginationDataView(endpoint)
 
+    watch(detailView, v => {
+        if(v !== null) {
+            endpoint.refresh()
+        }
+    })
+
     return {endpoint, dataView, scrollView}
 }
 

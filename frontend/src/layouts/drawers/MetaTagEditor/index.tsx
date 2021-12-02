@@ -10,7 +10,7 @@ import RightColumn from "./RightColumn"
 import { installPanelContext, usePanelContext, SetData } from "./inject"
 import style from "./style.module.scss"
 
-/* TODO tag editor内容优化清单
+/* FUTURE tag editor内容优化清单
     - 标签来源追踪：双击tag会在右侧跳转到此tag的位置。
  */
 export default defineComponent({

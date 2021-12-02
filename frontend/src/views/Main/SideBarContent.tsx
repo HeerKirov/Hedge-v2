@@ -1,8 +1,12 @@
-import { computed, ComputedRef, defineComponent, Ref, ref, toRef, watch } from "vue"
-import { useRoute, useRouter } from "vue-router"
+import { computed, ComputedRef, defineComponent, onMounted, PropType, Ref, ref, toRef, watch } from "vue"
+import { parseQuery, useRoute, useRouter } from "vue-router"
 import { usePopupMenu } from "@/functions/module/popup-menu"
 import { installation } from "@/functions/utils/basic"
+import { useHttpClient } from "@/functions/app"
+import { useToast } from "@/functions/module/toast"
+import { useDroppable } from "@/functions/feature/drag"
 import { useSideBarContext } from "./inject"
+import { useAddToFolderService } from "@/layouts/dialogs/AddToFolder";
 
 /**
  * 主要界面的侧边菜单栏。内嵌在通用布局内使用。
@@ -38,8 +42,7 @@ export default defineComponent({
                 <StdItemComponent name="源数据" icon="spider" routeName="MainSourceImage"/>
             </ScopeComponent>
             <ScopeComponent id="folder" name="目录">
-                <StdItemComponent name="所有目录" icon="archive" routeName="MainFolders"/>
-                <SubItemFolders routeName="HedgeFoldersDetail"/>
+                <StdItemFolders routeName="MainFolders" detailKey="detail"/>
             </ScopeComponent>
         </aside>
     }
@@ -131,48 +134,105 @@ const [installStdItemContext, useStdItemContext] = installation(function(routeNa
     return {routeName, isActive, ifDetailActive, goto, gotoDetail}
 })
 
-const SubItemFolders = defineComponent({
+const StdItemFolders = defineComponent({
     props: {
         routeName: {type: String, required: true},
-        paramKey: {type: String, default: "id"},
-        tmpKeyValue: {type: String, default: "tmp"}
+        detailKey: {type: String, default: "detail"},
+        tmpDetailKey: {type: String, default: "tmp"}
     },
     setup(props) {
         const route = useRoute()
         const router = useRouter()
-        const routeName = toRef(route, 'name')
-        const routeParams = toRef(route, 'params')
+        const isCurrentRouteName = computed(() => route.name === props.routeName)
+        const currentItemKey: Ref<string | null> = computed(() => isCurrentRouteName.value ? route.query[props.detailKey] as string | null : null)
+        const isActive = computed(() => isCurrentRouteName.value && currentItemKey.value == null)
+        const ifDetailActive = (key: string) => isCurrentRouteName.value && currentItemKey.value === key
 
-        const currentItemKey = ref<string>()
-        const items: Ref<{key: string, title: string, virtual?: boolean}[]> = ref([
-            //mock data，实际数据从server拉取folder列表
-            {key: "1", title: "目录A"},
-            {key: "2", title: "目录B", virtual: true}
-        ])
+        const { subItems, clearSubItem } = useSideBarContext()
+        const items: ComputedRef<readonly {readonly key: string, readonly title: string}[]> = computed(() => subItems[props.routeName] ?? [])
 
-        watch(routeName, () => {
-            currentItemKey.value = routeName.value === props.routeName ? route.params[props.paramKey] as string : undefined
-        }, {immediate: true})
+        const { pinnedItems } = usePinnedFolders(props.routeName)
+        const pins: ComputedRef<readonly {readonly key: string, readonly title: string}[]> = computed(() => pinnedItems[props.routeName] ?? [])
 
-        watch(routeParams, params => {
-            if(routeName.value === props.routeName) {
-                currentItemKey.value = params[props.paramKey] as string
-            }
-        })
+        const { onDrop } = useDropIllusts()
 
-        const onClick = (key: string) => () => router.push({name: props.routeName, params: {[props.paramKey]: key}})
+        const onClick = (key: string | undefined) => () => router.push({name: props.routeName, query: {[props.detailKey]: key}})
+
+        const menu = usePopupMenu([{type: "normal", label: "清空历史记录", click: () => clearSubItem(props.routeName)}])
 
         return () => <>
             <li>
-                <a class={{"is-active": props.tmpKeyValue === currentItemKey.value}} onClick={onClick(props.tmpKeyValue)}>
-                    <span class="icon"><i class="fa fa-shopping-basket"/></span><span>临时目录</span>
+                <a class={{"is-active": isActive.value}} onClick={onClick(undefined)}>
+                    <span class="icon"><i class="fa fa-archive"/></span><span>所有目录</span>
                 </a>
             </li>
-            {items.value.map(item => <li key={item.key}>
-                <a class={{"is-active": item.key === currentItemKey.value}} onClick={onClick(item.key)}>
-                    <span class="icon"><i class={`fa fa-${item.virtual ? "folder-minus" : "folder"}`}/></span><span>{item.title}</span>
-                </a>
-            </li>)}
+            {pins.value.map(item => <StdItemFolderItem key={item.key} item={item} isActive={ifDetailActive(item.key)} pinned={true}
+                                                       onClick={onClick(item.key)} onContextmenu={() => menu.popup()} onDropToHere={onDrop(item.key)}/>)}
+            {items.value.map(item => <StdItemFolderItem key={item.key} item={item} isActive={ifDetailActive(item.key)}
+                                                        onClick={onClick(item.key)} onContextmenu={() => menu.popup()} onDropToHere={onDrop(item.key)}/>)}
         </>
     }
 })
+
+const StdItemFolderItem = defineComponent({
+    props: {
+        item: {type: Object as PropType<{readonly key: string, readonly title: string}>, required: true},
+        pinned: Boolean,
+        isActive: Boolean
+    },
+    emits: {
+        click: () => true,
+        contextmenu: () => true,
+        dropToHere: (_: number[]) => true
+    },
+    setup(props, { emit }) {
+        const { isDragover: _, ...dropEvents } = useDroppable("illusts", illusts => emit("dropToHere", illusts.map(i => i.id)))
+
+        return () => <li class="relative" {...dropEvents}>
+            <a class={{"is-active": props.isActive}} onClick={() => emit("click")} onContextmenu={() => emit("contextmenu")}>
+                <span class="icon"><i class="fa fa-folder"/></span><span>{props.item.title}</span>
+                {props.pinned && <i class="fa fa-thumbtack absolute right mr-2 mt-half"/>}
+            </a>
+        </li>
+    }
+})
+
+function usePinnedFolders(routeName: string) {
+    const toast = useToast()
+    const httpClient = useHttpClient()
+    const { setPinnedItems, pinnedItems } = useSideBarContext()
+
+    onMounted(async () => {
+        const res = await httpClient.folder.pin.list()
+        if(res.ok) {
+            const items = res.data.map(item => ({key: item.id.toString(), title: item.address.join("/")}))
+            setPinnedItems(routeName, items)
+        }else{
+            toast.handleException(res.exception)
+            setPinnedItems(routeName, [])
+        }
+    })
+
+    return {pinnedItems}
+}
+
+function useDropIllusts() {
+    const toast = useToast()
+    const httpClient = useHttpClient()
+    const addToFolder = useAddToFolderService()
+
+    const onDrop = (key: string) => async (imageIds: number[]) => {
+        const folderId = parseInt(key)
+        const images = await addToFolder.existsCheck(imageIds, folderId)
+        if(images !== undefined && images.length > 0) {
+            const res = await httpClient.folder.images.partialUpdate(folderId, {action: "ADD", images})
+            if(res.ok) {
+                toast.toast("已添加", "success", "新的项已添加到目录。")
+            }else{
+                toast.handleException(res.exception)
+            }
+        }
+    }
+
+    return {onDrop}
+}

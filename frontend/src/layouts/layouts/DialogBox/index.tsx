@@ -42,12 +42,12 @@ const BoxFramework = defineComponent({
     inheritAttrs: false,
     setup(props, { emit, slots, attrs }) {
         watchGlobalKeyEvent(e => {
+            e.stopPropagation()
+            e.preventDefault()
             if(e.key === "Escape" && props.closeOnEscape) {
                 emit("close")
                 return
             }
-            e.stopPropagation()
-            e.preventDefault()
         })
 
         return () => <div class={{[style.boxFramework]: true, [style.absolute]: props.position === "absolute"}}>

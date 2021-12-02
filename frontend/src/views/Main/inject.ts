@@ -25,13 +25,21 @@ export interface SideBarContext {
      * 保存每个scope的折叠状态。
      */
     scopeStatus: {[scopeName: string]: boolean}
+    /**
+     * 提供一个机制，用于在侧边栏固定一组子项。固定之后，相同项将无法再推入历史记录列表。
+     */
+    pinnedItems: Readonly<{readonly [routeName: string]: readonly {readonly key: string, readonly title: string}[]}>,
+    /**
+     * 修改这组固定子项。
+     */
+    setPinnedItems(routeName: string, items: {key: string, title: string}[])
 }
 
 export const [installSideBarContext, useSideBarContext] = installation(function(maxCount: number = 5): SideBarContext {
-    const { subItems, pushSubItem, clearSubItem } = useSubItems(maxCount)
+    const { subItems, pinnedItems, setPinnedItems, pushSubItem, clearSubItem } = useSubItems(maxCount)
     const { scopeStatus } = useScopeStatus()
 
-    return {subItems, pushSubItem, clearSubItem, scopeStatus}
+    return {subItems, pinnedItems, setPinnedItems, pushSubItem, clearSubItem, scopeStatus}
 })
 
 function useSubItems(maxCount: number) {
@@ -42,6 +50,11 @@ function useSubItems(maxCount: number) {
     const pushSubItem = (key: string, title: string) => {
         const routeName = route.name as string
         const items = subItems[routeName] || (subItems[routeName] = [])
+
+        if(pinnedItems[routeName]?.find(item => item.key === key)) {
+            return
+        }
+
         for(let i = 0; i < items.length; ++i) {
             const item = items[i]
             if(item.key === key) {
@@ -59,7 +72,21 @@ function useSubItems(maxCount: number) {
 
     const clearSubItem = (routeName: string) => subItems[routeName] = []
 
-    return {subItems: readonly(subItems), pushSubItem, clearSubItem}
+    const pinnedItems = reactive<{[routeName: string]: {key: string, title: string}[]}>({})
+
+    const setPinnedItems = (routeName: string, items: {key: string, title: string}[]) => {
+        pinnedItems[routeName] = items
+        const pinnedItemKeys = items.map(item => item.key)
+        const subItemList = subItems[routeName]
+        if(subItemList) {
+            const notPinnedSubItemList = subItemList.filter(item => !pinnedItemKeys.includes(item.key))
+            if(notPinnedSubItemList.length < subItemList.length) {
+                subItems[routeName] = notPinnedSubItemList
+            }
+        }
+    }
+
+    return {subItems: readonly(subItems), pinnedItems, setPinnedItems, pushSubItem, clearSubItem}
 }
 
 function useScopeStatus() {

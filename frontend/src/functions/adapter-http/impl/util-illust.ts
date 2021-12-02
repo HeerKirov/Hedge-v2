@@ -12,7 +12,8 @@ export function createUtilIllustEndpoint(http: HttpInstance): UtilIllustEndpoint
             parseData: illustIds => ({illustIds}),
             parseResponse: d => (<any[]>d).map(mapToImageSituation)
         }),
-        getAlbumSituation: http.createDataRequest("/api/utils/illust/album-situation", "POST")
+        getAlbumSituation: http.createDataRequest("/api/utils/illust/album-situation", "POST"),
+        getFolderSituation: http.createDataRequest("/api/utils/illust/folder-situation", "POST")
     }
 }
 
@@ -51,6 +52,10 @@ export interface UtilIllustEndpoint {
      * 查询一组illust的展开图像在指定画集中的所属情况。查询它们展开后的全部images列表，并给出每个image是否属于当前画集。
      */
     getAlbumSituation(form: AlbumSituationForm): Promise<Response<AlbumSituation[]>>
+    /**
+     * 查询一组illust的展开图像在指定目录中的所属情况。查询它们展开后的全部images列表，并给出每个image是否属于当前目录。
+     */
+    getFolderSituation(form: FolderSituationForm): Promise<Response<FolderSituation[]>>
 }
 
 export interface CollectionSituation {
@@ -110,6 +115,8 @@ export interface AlbumSituation {
     ordinal: number | null
 }
 
+export interface FolderSituation extends AlbumSituation {}
+
 export interface AlbumSituationForm {
     /**
      * 要检验的illust id列表。
@@ -119,6 +126,21 @@ export interface AlbumSituationForm {
      * 指定的album。
      */
     albumId: number
+    /**
+     * 是否只返回已在画集中存在的项。
+     */
+    onlyExists?: boolean
+}
+
+export interface FolderSituationForm {
+    /**
+     * 要检验的illust id列表。
+     */
+    illustIds: number[]
+    /**
+     * 指定的folder。
+     */
+    folderId: number
     /**
      * 是否只返回已在画集中存在的项。
      */

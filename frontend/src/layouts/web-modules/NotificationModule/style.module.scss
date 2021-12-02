@@ -76,7 +76,7 @@
 
     > .title-content {
       padding: 0.125rem 0.125rem 0.125rem 0.5rem;
-      font-size: $font-size-small;
+      font-size: $font-size-std;
       > .close-button {
         float: right;
         visibility: hidden;
@@ -87,7 +87,7 @@
     }
     > .content {
       padding: 0.25rem 0.5rem;
-      font-size: $font-size-small;
+      font-size: $font-size-std;
     }
   }
 }

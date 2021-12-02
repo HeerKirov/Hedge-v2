@@ -1,5 +1,6 @@
 import { defineComponent } from "vue"
 import { DataRouter, ColumnNumButton, FitTypeButton, CollectionModeButton, SearchBox } from "@/layouts/topbars"
+import { QueryBox } from "@/layouts/topbars/Query"
 import { FitType } from "@/layouts/data/IllustGrid"
 import { useIllustContext } from "./inject"
 
@@ -22,7 +23,7 @@ export default defineComponent({
             </div>
             <div class="layout-container">
                 <CollectionModeButton class="mr-1" value={collectionMode.value} onUpdateValue={setCollectionMode}/>
-                <SearchBox class="w-75 is-stretch-item" value={query.value} onUpdateValue={v => query.value = v}/>
+                <QueryBox class="w-75 is-stretch-item" value={query.value} onUpdateValue={v => query.value = v}/>
             </div>
             <div class="layout-container">
                 <DataRouter/>
