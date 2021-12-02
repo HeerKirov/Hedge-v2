@@ -77,7 +77,7 @@ fun runApplication(options: ApplicationOptions) {
             val illustService = IllustService(repo, illustKit, illustManager, albumManager, associateManager, folderManager, fileManager, sourceManager, partitionManager, queryManager, entityExporter)
             val albumService = AlbumService(repo, albumKit, albumManager, illustManager, queryManager)
             val associateService = AssociateService(repo, associateManager)
-            val folderService = FolderService(repo, folderKit, queryManager, illustManager)
+            val folderService = FolderService(repo, folderKit, illustManager)
             val partitionService = PartitionService(repo)
             val annotationService = AnnotationService(repo, annotationKit, queryManager)
             val tagService = TagService(repo, tagKit, fileManager, queryManager, tagExporter, sourceMappingManager, entityExporter)

@@ -3,9 +3,8 @@ package com.heerkirov.hedge.server.components.http.routes
 import com.heerkirov.hedge.server.components.http.Endpoints
 import com.heerkirov.hedge.server.components.service.IllustUtilService
 import com.heerkirov.hedge.server.dto.AlbumSituationForm
+import com.heerkirov.hedge.server.dto.FolderSituationForm
 import com.heerkirov.hedge.server.dto.IllustIdForm
-import com.heerkirov.hedge.server.exceptions.ParamTypeError
-import com.heerkirov.hedge.server.exceptions.be
 import com.heerkirov.hedge.server.library.form.bodyAsForm
 import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder.path
@@ -19,6 +18,7 @@ class UtilIllustRoutes(private val illustUtilService: IllustUtilService) : Endpo
                 post("collection-situation", ::getCollectionSituation)
                 post("image-situation", ::getImageSituation)
                 post("album-situation", ::getAlbumSituation)
+                post("folder-situation", ::getFolderSituation)
             }
         }
     }
@@ -36,5 +36,10 @@ class UtilIllustRoutes(private val illustUtilService: IllustUtilService) : Endpo
     private fun getAlbumSituation(ctx: Context) {
         val form = ctx.bodyAsForm<AlbumSituationForm>()
         ctx.json(illustUtilService.getAlbumSituation(form.illustIds, form.albumId, form.onlyExists))
+    }
+
+    private fun getFolderSituation(ctx: Context) {
+        val form = ctx.bodyAsForm<FolderSituationForm>()
+        ctx.json(illustUtilService.getFolderSituation(form.illustIds, form.folderId, form.onlyExists))
     }
 }

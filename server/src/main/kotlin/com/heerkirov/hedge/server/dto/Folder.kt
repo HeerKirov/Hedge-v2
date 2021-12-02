@@ -8,12 +8,12 @@ import com.heerkirov.hedge.server.utils.types.OrderItem
 import java.time.LocalDateTime
 
 data class FolderTreeNode(val id: Int, val title: String, val type: Folder.FolderType,
-                          val query: String?, val imageCount: Int?,
+                          val imageCount: Int?, val pinned: Boolean,
                           val createTime: LocalDateTime, val updateTime: LocalDateTime,
                           val children: List<FolderTreeNode>?)
 
 data class FolderRes(val id: Int, val title: String, val parentId: Int?, val parentAddress: List<String>,
-                     val type: Folder.FolderType, val query: String?, val imageCount: Int?,
+                     val type: Folder.FolderType, val imageCount: Int?, val pinned: Boolean,
                      val createTime: LocalDateTime, val updateTime: LocalDateTime)
 
 data class FolderSimpleRes(val id: Int, val address: List<String>, val type: Folder.FolderType)

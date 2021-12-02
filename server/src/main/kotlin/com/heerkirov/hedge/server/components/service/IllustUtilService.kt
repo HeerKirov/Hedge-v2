@@ -2,6 +2,7 @@ package com.heerkirov.hedge.server.components.service
 
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.dao.album.AlbumImageRelations
+import com.heerkirov.hedge.server.dao.collection.FolderImageRelations
 import com.heerkirov.hedge.server.dao.illust.Illusts
 import com.heerkirov.hedge.server.dao.illust.FileRecords
 import com.heerkirov.hedge.server.dto.*
@@ -153,5 +154,47 @@ class IllustUtilService(private val data: DataRepository) {
             .toMap()
 
         return result.map { AlbumSituationRes(it.first, it.second, exists[it.first]) }.letIf(onlyExists) { it.filter { r -> r.ordinal != null } }
+    }
+
+    /**
+     * 查询一组illust对目标folder的所属情况。列出所有展开后的images，并点出哪些image已属于此folder。
+     */
+    fun getFolderSituation(illustIds: List<Int>, folderId: Int, onlyExists: Boolean): List<FolderSituationRes> {
+        data class Row(val id: Int, val type: Illust.Type, val thumbnailFile: String)
+        data class ChildrenRow(val id: Int, val thumbnailFile: String)
+        //先根据id列表把所有的illust查询出来, 然后从中分离collection和image
+        val (collectionRows, imageRows) = data.db.from(Illusts)
+            .innerJoin(FileRecords, Illusts.fileId eq FileRecords.id)
+            .select(Illusts.id, Illusts.type, Illusts.parentId, Illusts.orderTime, Illusts.cachedChildrenCount, FileRecords.id, FileRecords.folder, FileRecords.extension, FileRecords.status)
+            .where { Illusts.id inList illustIds }
+            .map { row ->
+                val thumbnailFile = takeThumbnailFilepath(row)
+                Row(row[Illusts.id]!!, row[Illusts.type]!!, thumbnailFile)
+            }
+            .filterInto { it.type == Illust.Type.COLLECTION }
+
+        //对于collection，查询下属的所有children
+        val childrenRows = data.db.from(Illusts)
+            .innerJoin(FileRecords, Illusts.fileId eq FileRecords.id)
+            .select(Illusts.id, Illusts.parentId, Illusts.orderTime, FileRecords.id, FileRecords.folder, FileRecords.extension, FileRecords.status)
+            .where { (Illusts.parentId inList collectionRows.map { it.id }) and (Illusts.type eq Illust.Type.IMAGE_WITH_PARENT) }
+            .map { row ->
+                val thumbnailFile = takeThumbnailFilepath(row)
+                ChildrenRow(row[Illusts.id]!!, thumbnailFile)
+            }
+
+        //将childrenRows和imageRows组合编排成结果集
+        val childrenResult = childrenRows.asSequence().map { Pair(it.id, it.thumbnailFile) }
+        val imageResult = imageRows.asSequence().map { Pair(it.id, it.thumbnailFile) }
+        val result = (childrenResult + imageResult).distinctBy { it.first }.toList()
+
+        //从folder中查询已存在的项
+        val resultIds = result.map { it.first }
+        val exists = data.db.from(FolderImageRelations).select(FolderImageRelations.imageId, FolderImageRelations.ordinal)
+            .where { (FolderImageRelations.folderId eq folderId) and (FolderImageRelations.imageId inList resultIds) }
+            .map { Pair(it[FolderImageRelations.imageId]!!, it[FolderImageRelations.ordinal]!!) }
+            .toMap()
+
+        return result.map { FolderSituationRes(it.first, it.second, exists[it.first]) }.letIf(onlyExists) { it.filter { r -> r.ordinal != null } }
     }
 }

@@ -4,7 +4,6 @@ import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.database.transaction
 import com.heerkirov.hedge.server.components.kit.FolderKit
 import com.heerkirov.hedge.server.components.manager.IllustManager
-import com.heerkirov.hedge.server.components.manager.query.QueryManager
 import com.heerkirov.hedge.server.dao.collection.FolderImageRelations
 import com.heerkirov.hedge.server.dao.collection.Folders
 import com.heerkirov.hedge.server.dao.illust.Illusts
@@ -12,7 +11,6 @@ import com.heerkirov.hedge.server.dao.illust.FileRecords
 import com.heerkirov.hedge.server.dto.*
 import com.heerkirov.hedge.server.exceptions.*
 import com.heerkirov.hedge.server.model.collection.Folder
-import com.heerkirov.hedge.server.model.illust.Illust
 import com.heerkirov.hedge.server.utils.business.takeAllFilepath
 import com.heerkirov.hedge.server.utils.DateTime
 import com.heerkirov.hedge.server.utils.DateTime.parseDateTime
@@ -21,7 +19,6 @@ import com.heerkirov.hedge.server.utils.ktorm.OrderTranslator
 import com.heerkirov.hedge.server.utils.ktorm.first
 import com.heerkirov.hedge.server.utils.ktorm.firstOrNull
 import com.heerkirov.hedge.server.utils.ktorm.orderBy
-import com.heerkirov.hedge.server.utils.runIf
 import com.heerkirov.hedge.server.utils.tuples.Tuple3
 import com.heerkirov.hedge.server.utils.types.*
 import org.ktorm.dsl.*
@@ -29,7 +26,6 @@ import org.ktorm.entity.*
 
 class FolderService(private val data: DataRepository,
                     private val kit: FolderKit,
-                    private val queryManager: QueryManager,
                     private val illustManager: IllustManager) {
     private val orderTranslator = OrderTranslator {
         "id" to Folders.id
@@ -64,11 +60,11 @@ class FolderService(private val data: DataRepository,
                 val parentId = it[Folders.parentId]
                 val parentAddress = it[Folders.parentAddress] ?: emptyList()
                 val type = it[Folders.type]!!
-                val query = it[Folders.query]
+                val pinned = it[Folders.pin] != null
                 val imageCount = it[Folders.cachedCount]
                 val createTime = it[Folders.createTime]!!
                 val updateTime = it[Folders.updateTime]!!
-                FolderRes(id, title, parentId, parentAddress, type, query, imageCount, createTime, updateTime)
+                FolderRes(id, title, parentId, parentAddress, type, imageCount, pinned, createTime, updateTime)
             }
     }
 
@@ -77,7 +73,7 @@ class FolderService(private val data: DataRepository,
 
         fun generateNodeList(key: Int?): List<FolderTreeNode>? = records[key]
             ?.sortedBy { it.ordinal }
-            ?.map { FolderTreeNode(it.id, it.title, it.type, it.query, it.cachedCount, it.createTime, it.updateTime, generateNodeList(it.id)) }
+            ?.map { FolderTreeNode(it.id, it.title, it.type, it.cachedCount, it.pin != null, it.createTime, it.updateTime, generateNodeList(it.id)) }
 
         return generateNodeList(filter.parent) ?: emptyList()
     }
@@ -99,8 +95,6 @@ class FolderService(private val data: DataRepository,
             val images = if(form.type == Folder.FolderType.FOLDER) {
                 if(!form.images.isNullOrEmpty()) illustManager.unfoldImages(form.images) else emptyList()
             }else null
-
-            val query = if(form.type == Folder.FolderType.QUERY) form.query else null
 
             val parent = form.parentId?.let { parentId ->
                 val p = data.db.sequenceOf(Folders).firstOrNull { it.id eq parentId } ?: throw be(ResourceNotExist("parentId", parentId))
@@ -138,7 +132,6 @@ class FolderService(private val data: DataRepository,
                 set(it.parentAddress, parentAddress)
                 set(it.ordinal, ordinal)
                 set(it.pin, null)
-                set(it.query, query)
                 set(it.cachedCount, images?.size)
                 set(it.createTime, createTime)
                 set(it.updateTime, createTime)
@@ -164,11 +157,11 @@ class FolderService(private val data: DataRepository,
         val parentId = row[Folders.parentId]
         val parentAddress = row[Folders.parentAddress] ?: emptyList()
         val type = row[Folders.type]!!
-        val query = row[Folders.query]
+        val pinned = row[Folders.pin] != null
         val imageCount = row[Folders.cachedCount]
         val createTime = row[Folders.createTime]!!
         val updateTime = row[Folders.updateTime]!!
-        return FolderRes(id, title, parentId, parentAddress, type, query, imageCount, createTime, updateTime)
+        return FolderRes(id, title, parentId, parentAddress, type, imageCount, pinned, createTime, updateTime)
     }
 
     /**
@@ -183,7 +176,6 @@ class FolderService(private val data: DataRepository,
             val folder = data.db.sequenceOf(Folders).firstOrNull { it.id eq id } ?: throw be(NotFound())
 
             form.title.letOpt { kit.validateTitle(it) }
-            val newQuery = if(folder.type == Folder.FolderType.QUERY && form.query.isPresent) form.query else undefined()
 
             val (newParentId, newParentAddress, newOrdinal) = if(form.parentId.isPresent && form.parentId.value != folder.parentId) {
                 //parentId发生了变化
@@ -299,11 +291,10 @@ class FolderService(private val data: DataRepository,
                 recursiveUpdateAddress(id, childrenParentAddress)
             }
 
-            if(anyOpt(form.title, newQuery, newParentId, newParentAddress, newOrdinal)) {
+            if(anyOpt(form.title, newParentId, newParentAddress, newOrdinal)) {
                 data.db.update(Folders) {
                     where { it.id eq id }
                     form.title.applyOpt { set(it.title, this) }
-                    newQuery.applyOpt { set(it.query, this) }
                     newParentId.applyOpt { set(it.parentId, this) }
                     newParentAddress.applyOpt { set(it.parentAddress, this) }
                     newOrdinal.applyOpt { set(it.ordinal, this) }
@@ -341,11 +332,10 @@ class FolderService(private val data: DataRepository,
      * @throws Reject 不能访问NODE类型的images
      */
     fun getImages(id: Int, filter: FolderImagesFilter): ListResult<FolderImageRes> {
-        val row = data.db.from(Folders).select(Folders.type, Folders.query).where { Folders.id eq id }.firstOrNull() ?: throw be(NotFound())
+        val row = data.db.from(Folders).select(Folders.type).where { Folders.id eq id }.firstOrNull() ?: throw be(NotFound())
 
         return when(row[Folders.type]!!) {
             Folder.FolderType.FOLDER -> getSubItemImages(id, filter)
-            Folder.FolderType.QUERY -> getVirtualQueryResult(row[Folders.query]!!, filter)
             Folder.FolderType.NODE -> throw be(Reject("Cannot access images of NODE."))
         }
     }
@@ -516,36 +506,6 @@ class FolderService(private val data: DataRepository,
                 val orderTime = it[Illusts.orderTime]!!.parseDateTime()
                 val (file, thumbnailFile) = takeAllFilepath(it)
                 FolderImageRes(itemId, ordinal, file, thumbnailFile, score, favorite, tagme, orderTime)
-            }
-    }
-
-    private fun getVirtualQueryResult(query: String, filter: FolderImagesFilter): ListResult<FolderImageRes> {
-        //在虚拟文件夹查询中，filter只有limit, offset参数生效。
-        val schema = if(query.isBlank()) null else {
-            queryManager.querySchema(query, QueryManager.Dialect.ILLUST).executePlan ?: return ListResult(0, emptyList())
-        }
-        return data.db.from(Illusts)
-            .innerJoin(FileRecords, Illusts.fileId eq FileRecords.id)
-            .let { schema?.joinConditions?.fold(it) { acc, join -> if(join.left) acc.leftJoin(join.table, join.condition) else acc.innerJoin(join.table, join.condition) } ?: it }
-            .select(Illusts.id, Illusts.exportedScore, Illusts.favorite, Illusts.tagme, Illusts.orderTime,
-                FileRecords.id, FileRecords.folder, FileRecords.extension, FileRecords.status)
-            .whereWithConditions {
-                it += (Illusts.type eq Illust.Type.IMAGE) or (Illusts.type eq Illust.Type.IMAGE_WITH_PARENT)
-                if(schema != null && schema.whereConditions.isNotEmpty()) {
-                    it.addAll(schema.whereConditions)
-                }
-            }
-            .runIf(schema?.distinct == true) { groupBy(Illusts.id) }
-            .limit(filter.offset, filter.limit)
-            .orderBy(imagesOrderTranslator, filter.order, schema?.orderConditions, default = descendingOrderItem("orderTime"))
-            .toListResult {
-                val itemId = it[Illusts.id]!!
-                val score = it[Illusts.exportedScore]
-                val favorite = it[Illusts.favorite]!!
-                val tagme = it[Illusts.tagme]!!
-                val orderTime = it[Illusts.orderTime]!!.parseDateTime()
-                val (file, thumbnailFile) = takeAllFilepath(it)
-                FolderImageRes(itemId, -1, file, thumbnailFile, score, favorite, tagme, orderTime)
             }
     }
 }

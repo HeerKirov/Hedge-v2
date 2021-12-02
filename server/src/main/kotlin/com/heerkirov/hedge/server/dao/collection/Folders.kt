@@ -15,7 +15,6 @@ object Folders : BaseTable<Folder>("folder") {
     val parentAddress = json("parent_address", typeRef<List<String>>())
     val ordinal = int("ordinal")
     val pin = int("pin")
-    val query = varchar("query")
     val cachedCount = int("cached_count")
     val createTime = datetime("create_time")
     val updateTime = datetime("update_time")
@@ -28,7 +27,6 @@ object Folders : BaseTable<Folder>("folder") {
         parentAddress = row[parentAddress],
         ordinal = row[ordinal]!!,
         pin = row[pin],
-        query = row[query],
         cachedCount = row[cachedCount],
         createTime = row[createTime]!!,
         updateTime = row[updateTime]!!

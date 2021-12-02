@@ -31,10 +31,6 @@ data class Folder(val id: Int,
                    */
                   val pin: Int?,
                   /**
-                   * Query类型的查询内容。
-                   */
-                  val query: String?,
-                  /**
                    * [cache field]Folder类型包含的图片数量。
                    */
                   val cachedCount: Int?,
@@ -48,7 +44,6 @@ data class Folder(val id: Int,
                   val updateTime: LocalDateTime) {
     enum class FolderType {
         NODE,
-        FOLDER,
-        QUERY
+        FOLDER
     }
 }
