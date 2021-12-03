@@ -13,6 +13,7 @@ import com.heerkirov.hedge.server.library.compiler.utils.ErrorCollector
 import com.heerkirov.hedge.server.library.compiler.utils.TranslatorError
 import com.heerkirov.hedge.server.model.meta.Annotation
 import com.heerkirov.hedge.server.model.meta.Tag
+import com.heerkirov.hedge.server.model.meta.Topic
 import com.heerkirov.hedge.server.utils.ktorm.first
 import com.heerkirov.hedge.server.utils.runIf
 import com.heerkirov.hedge.server.utils.types.CacheMap
@@ -295,11 +296,11 @@ class MetaQueryer(private val data: DataRepository) : Queryer {
                 topicId == null -> false
                 else -> {
                     val topic = topicItemsPool.computeIfAbsent(topicId) {
-                        data.db.from(Topics).select(Topics.id, Topics.name, Topics.otherNames, Topics.parentId)
+                        data.db.from(Topics).select(Topics.id, Topics.name, Topics.otherNames, Topics.parentId, Topics.type)
                             .where { Topics.id eq topicId }
                             .limit(0, 1)
                             .first()
-                            .let { TopicItem(it[Topics.id]!!, it[Topics.name]!!, it[Topics.otherNames]!!, it[Topics.parentId]) }
+                            .let { TopicItem(it[Topics.id]!!, it[Topics.name]!!, it[Topics.otherNames]!!, it[Topics.parentId], it[Topics.type]!!) }
                     }
                     isAddressMatches(topic.parentId, address, if(parser.isNameEqualOrMatch(address[nextAddr], topic)) { nextAddr - 1 }else{ nextAddr })
                 }
@@ -308,16 +309,18 @@ class MetaQueryer(private val data: DataRepository) : Queryer {
 
         return topicCacheMap.computeIfAbsent(metaValue.value) { address ->
             val lastAddr = address.last()
-            val topics = data.db.from(Topics).select(Topics.id, Topics.name, Topics.otherNames, Topics.parentId)
+            val topics = data.db.from(Topics).select(Topics.id, Topics.name, Topics.otherNames, Topics.parentId, Topics.type)
                 .where { parser.compileNameString(lastAddr, Topics) }
                 .limit(0, queryLimit)
-                .map { TopicItem(it[Topics.id]!!, it[Topics.name]!!, it[Topics.otherNames]!!, it[Topics.parentId]) }
+                .map { TopicItem(it[Topics.id]!!, it[Topics.name]!!, it[Topics.otherNames]!!, it[Topics.parentId], it[Topics.type]!!) }
 
             topicItemsPool.putAll(topics.map { it.id to it })
 
+            val colors = data.metadata.meta.topicColors
+
             topics.asSequence()
                 .filter { isAddressMatches(it.parentId, address, address.size - 2) }
-                .map { ElementTopic(it.id, it.name) }
+                .map { ElementTopic(it.id, it.name, colors[it.type]) }
                 .toList()
         }.also {
             if(it.isEmpty()) {
@@ -334,10 +337,12 @@ class MetaQueryer(private val data: DataRepository) : Queryer {
             return emptyList()
         }
         return authorCacheMap.computeIfAbsent(metaValue.singleValue) { metaString ->
+            val colors = data.metadata.meta.authorColors
+
             data.db.from(Authors).select(Authors.id, Authors.name)
                 .where { parser.compileNameString(metaString, Authors) }
                 .limit(0, queryLimit)
-                .map { ElementAuthor(it[Authors.id]!!, it[Authors.name]!!) }
+                .map { ElementAuthor(it[Authors.id]!!, it[Authors.name]!!, colors[it[Authors.type]!!]) }
         }.also {
             if(it.isEmpty()) {
                 //查询结果为空时抛出无匹配警告
@@ -470,7 +475,7 @@ class MetaQueryer(private val data: DataRepository) : Queryer {
         val otherNames: List<String>
     }
 
-    private data class TopicItem(val id: Int, override val name: String, override val otherNames: List<String>, val parentId: Int?) : ItemInterface
+    private data class TopicItem(val id: Int, override val name: String, override val otherNames: List<String>, val parentId: Int?, val type: Topic.Type) : ItemInterface
 
     private data class TagItem(val id: Int, override val name: String, override val otherNames: List<String>, val parentId: Int?, val type: Tag.Type, val isGroup: Tag.IsGroup, val color: String?) : ItemInterface
 

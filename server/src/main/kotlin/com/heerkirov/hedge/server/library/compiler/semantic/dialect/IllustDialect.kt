@@ -15,20 +15,20 @@ object IllustDialect : QueryDialect<IllustDialect.IllustOrderItem> {
     }
     override val elements: Array<out ElementFieldDefinition> = arrayOf(MetaTagElementField, AnnotationElementField, SourceTagElementField(true))
 
-    val favorite = flagField("favorite", "favorite", "f")
-    val id = patternNumberField("id", "id")
-    val score = numberField("score", "score")
-    val partition = dateField("partition", "partition", "pt")
-    val ordinal = dateField("ordinal", "ordinal", "ord")
-    val createTime = dateField("create-time", "create", "create-time", "ct")
-    val updateTime = dateField("update-time", "update", "update-time", "ut")
-    val description = patternStringField("description", "description", "desc")
-    val extension = stringField("extension", "extension", "ext")
-    val filesize = sizeField("filesize", "filesize", "size")
-    val sourceId = patternNumberField("source-id", "^id", "source-id")
-    val sourceFrom = stringField("source-from", "^from", "source-from")
-    val sourceDescription = patternStringField("source-description", "^description", "^desc", "source-description", "source-desc")
-    val tagme = compositionField<Tagme>("tagme", "tagme") {
+    val favorite = flagField("FAVORITE", "favorite", "f")
+    val id = patternNumberField("ID", "id")
+    val score = numberField("SCORE", "score")
+    val partition = dateField("PARTITION", "partition", "pt")
+    val ordinal = dateField("ORDINAL", "ordinal", "ord")
+    val createTime = dateField("CREATE_TIME", "create", "create-time", "ct")
+    val updateTime = dateField("UPDATE_TIME", "update", "update-time", "ut")
+    val description = patternStringField("DESCRIPTION", "description", "desc")
+    val extension = stringField("EXTENSION", "extension", "ext")
+    val filesize = sizeField("FILESIZE", "filesize", "size")
+    val sourceId = patternNumberField("SOURCE_ID", "^id", "source-id")
+    val sourceFrom = stringField("SOURCE_FROM", "^from", "source-from")
+    val sourceDescription = patternStringField("SOURCE_DESCRIPTION", "^description", "^desc", "source-description", "source-desc")
+    val tagme = compositionField<Tagme>("TAGME", "tagme") {
         for (value in Tagme.values()) {
             item(value, value.name)
         }

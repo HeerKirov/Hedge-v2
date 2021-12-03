@@ -17,7 +17,6 @@ import com.heerkirov.hedge.server.library.compiler.translator.visual.*
 import com.heerkirov.hedge.server.model.illust.Illust
 import com.heerkirov.hedge.server.model.meta.Annotation
 import com.heerkirov.hedge.server.model.meta.Tag
-import com.heerkirov.hedge.server.model.source.SourceImage
 import com.heerkirov.hedge.server.utils.*
 import com.heerkirov.hedge.server.utils.types.*
 import com.heerkirov.hedge.server.utils.ktorm.compositionAny
@@ -34,7 +33,6 @@ import org.ktorm.schema.ColumnDeclaring
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
-import java.util.*
 import kotlin.collections.ArrayList
 
 interface ExecutePlanBuilder : ExecuteBuilder {
@@ -151,7 +149,7 @@ class IllustExecutePlanBuilder(private val db: Database) : ExecutePlanBuilder, O
         IllustDialect.IllustOrderItem.CREATE_TIME to OrderByColumn.ColumnDefinition(Illusts.createTime),
         IllustDialect.IllustOrderItem.UPDATE_TIME to OrderByColumn.ColumnDefinition(Illusts.updateTime),
         IllustDialect.IllustOrderItem.SOURCE_ID to OrderByColumn.ColumnDefinition(Illusts.sourceId, nullsLast = true),
-        IllustDialect.IllustOrderItem.SOURCE_FROM to OrderByColumn.ColumnDefinition(SourceImages.source, nullsLast = true)
+        IllustDialect.IllustOrderItem.SOURCE_FROM to OrderByColumn.ColumnDefinition(Illusts.source, nullsLast = true)
     )
 
     private val filterDeclareMapping = mapOf(

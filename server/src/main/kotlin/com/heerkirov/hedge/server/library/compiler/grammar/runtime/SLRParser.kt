@@ -90,7 +90,7 @@ abstract class SLRParser(private val syntaxExpressions: Map<Int, SyntaxExpressio
      * 对词素序列做预处理，去掉空格词素，添加EOF词素。
      */
     private fun preProcess(lexicalList: List<LexicalItem>): List<LexicalItem> {
-        val eofIndex = lexicalList.last().endIndex
+        val eofIndex = lexicalList.lastOrNull()?.endIndex ?: 0
         return lexicalList.filter { it.morpheme !is Space } + LexicalItem(Symbol.of("∑"), eofIndex, eofIndex + 1)
     }
 

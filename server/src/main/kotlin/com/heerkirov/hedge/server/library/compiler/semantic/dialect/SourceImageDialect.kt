@@ -9,10 +9,10 @@ object SourceImageDialect : QueryDialect<SourceImageDialect.OrderItem> {
     }
     override val elements: Array<out ElementFieldDefinition> = arrayOf(SourceTagElementField(false))
 
-    val source = stringField("source", "src", "s")
-    val sourceId = patternNumberField("source-id", "source-id", "id")
-    val title = patternStringField("title", "title")
-    val description = patternStringField("description", "description", "desc")
+    val source = stringField("SOURCE", "source", "src", "s")
+    val sourceId = patternNumberField("SOURCE_ID", "source-id", "id")
+    val title = patternStringField("TITLE", "title")
+    val description = patternStringField("DESCRIPTION", "description", "desc")
 
     enum class OrderItem {
         SOURCE, SOURCE_ID

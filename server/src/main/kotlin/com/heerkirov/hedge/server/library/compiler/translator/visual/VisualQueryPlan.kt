@@ -82,11 +82,11 @@ data class ElementAnnotation(override val id: Int, override val name: String) : 
     override val type: String get() = "annotation"
 }
 
-data class ElementTopic(override val id: Int, override val name: String) : ElementMeta {
+data class ElementTopic(override val id: Int, override val name: String, val color: String?) : ElementMeta {
     override val type: String get() = "topic"
 }
 
-data class ElementAuthor(override val id: Int, override val name: String) : ElementMeta {
+data class ElementAuthor(override val id: Int, override val name: String, val color: String?) : ElementMeta {
     override val type: String get() = "author"
 }
 
