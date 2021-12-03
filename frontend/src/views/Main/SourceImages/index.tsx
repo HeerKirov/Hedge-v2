@@ -1,4 +1,5 @@
 import { defineComponent } from "vue"
+import { ExpandArea } from "@/layouts/topbars/Query"
 import TopBarLayout from "@/layouts/layouts/TopBarLayout"
 import SplitPane from "@/layouts/layouts/SplitPane"
 import TopBarContent from "./TopBarContent"
@@ -8,14 +9,16 @@ import { installSourceImageContext } from "./inject"
 
 export default defineComponent({
     setup() {
-        const { pane: { detailMode } } = installSourceImageContext()
+        const { pane: { detailMode }, querySchema: { schema, expanded } } = installSourceImageContext()
 
-        return () => <TopBarLayout v-slots={{
+        const topBarLayoutSlots = {
             topBar: () => <TopBarContent/>,
+            expand: () => schema.value && <ExpandArea schema={schema.value}/>,
             default: () => <SplitPane showPane={detailMode.value !== null} v-slots={{
                 default: () => <ListView/>,
                 pane: () => <PaneDetailView/>
             }}/>
-        }}/>
+        }
+        return () => <TopBarLayout v-slots={topBarLayoutSlots} expanded={expanded.value} onUpdateExpanded={v => expanded.value = v}/>
     }
 })

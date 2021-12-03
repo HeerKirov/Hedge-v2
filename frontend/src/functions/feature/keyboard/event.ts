@@ -47,7 +47,7 @@ export function onKeyEnter(func: (e: KeyEvent) => void) {
  * 判断一个事件是否符合给定的keypress。
  */
 export function keyboardEventCheck(key: AnalysedKeyPress, e: KeyboardEvent): boolean {
-    return key.key === e.key && key.altKey === e.altKey && key.shiftKey === e.shiftKey && key.metaKey === ((clientPlatform === "darwin" && e.metaKey) || (clientPlatform !== "darwin" && e.ctrlKey))
+    return key.key === e.code && key.altKey === e.altKey && key.shiftKey === e.shiftKey && ((clientPlatform === "darwin" && key.metaKey === e.metaKey) || (clientPlatform !== "darwin" && key.metaKey === e.ctrlKey))
 }
 
 /**
@@ -92,7 +92,7 @@ export function createKeyEventChecker(key: KeyPress | KeyPress[] | undefined): (
  */
 export function toKeyEvent(e: KeyboardEvent): KeyEvent {
     return {
-        key: e.key as KeyCode,
+        key: e.code as KeyCode,
         altKey: e.altKey,
         shiftKey: e.shiftKey,
         metaKey: (clientPlatform === "darwin" && e.metaKey) || (clientPlatform !== "darwin" && e.ctrlKey),

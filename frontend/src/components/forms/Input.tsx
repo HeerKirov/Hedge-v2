@@ -1,14 +1,15 @@
 import { ComponentPublicInstance, defineComponent, nextTick, PropType, ref, toRef, watch } from "vue"
-import { createKeyboardEventChecker, KeyEvent, KeyPress, toKeyEvent } from "@/functions/feature/keyboard"
+import { createKeyboardEventChecker, interceptGlobalKey, KeyEvent, KeyPress, toKeyEvent } from "@/functions/feature/keyboard"
 
 export default defineComponent({
     props: {
         value: String,
         placeholder: String,
         type: {type: null as any as PropType<"text" | "password">, default: "text"},
+        disabled: {type: Boolean, default: false},
         refreshOnInput: {type: Boolean, default: false},
         focusOnMounted: {type: Boolean, default: false},
-        disabled: {type: Boolean, default: false},
+        focusOnKeypress: null as any as PropType<KeyPress | KeyPress[]>,
         acceptEventKeys: null as any as PropType<KeyPress | KeyPress[]>,
         onKeypress: Function as PropType<(e: KeyEvent) => void>
     },
@@ -30,7 +31,7 @@ export default defineComponent({
         const defaultAcceptKeyChecker = createKeyboardEventChecker("Meta+Enter")
         const onKeydown = (e: KeyboardEvent) => {
             if(!composition) {
-                if(!acceptKeyChecker(e) && !defaultAcceptKeyChecker(e)) {
+                if(!(acceptKeyChecker(e) || defaultAcceptKeyChecker(e))) {
                     e.stopPropagation()
                     e.stopImmediatePropagation()
                 }
@@ -43,17 +44,25 @@ export default defineComponent({
         const onCompositionstart = () => composition = true
         const onCompositionend = () => composition = false
 
-        //加载后聚焦
-        const focusOnMountedCallback = (props.focusOnMounted || undefined) && async function(el: Element | ComponentPublicInstance | null) {
+        //聚焦
+        let inputRef: HTMLInputElement | null = null
+
+        const mountedCallback = (props.focusOnKeypress || props.focusOnMounted || undefined) && async function(el: Element | ComponentPublicInstance | null) {
             const ref = (el as HTMLInputElement | null)
-            if(ref) {
+            if(props.focusOnKeypress) inputRef = ref
+            if(props.focusOnMounted && ref) {
                 await nextTick()
                 ref.focus()
             }
         }
 
+        //按键时聚焦
+        if(props.focusOnKeypress) interceptGlobalKey(props.focusOnKeypress, () => {
+            inputRef?.focus()
+        })
+
         const events = {[props.refreshOnInput ? "onInput" : "onChange"]: onUpdate, onKeydown, onCompositionstart, onCompositionend}
 
-        return () => <input ref={focusOnMountedCallback} class="input is-monaco" type={type.value} disabled={props.disabled} value={value.value} placeholder={props.placeholder} {...events}/>
+        return () => <input ref={mountedCallback} class="input is-monaco" type={type.value} disabled={props.disabled} value={value.value} placeholder={props.placeholder} {...events}/>
     }
 })

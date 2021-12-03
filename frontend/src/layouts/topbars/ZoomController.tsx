@@ -1,6 +1,6 @@
 import { computed, defineComponent, ref } from "vue"
 import RangeInput from "@/components/forms/RangeInput"
-import { watchGlobalKeyEvent } from "@/functions/feature/keyboard"
+import { interceptGlobalKey } from "@/functions/feature/keyboard"
 import { useDashboardZoom } from "@/layouts/data/Dashboard"
 import { watchElementExcludeClick } from "@/functions/utils/element"
 import { numbers } from "@/utils/primitives"
@@ -19,17 +19,13 @@ export default defineComponent({
         const open = () => visible.value = true
         const close = () => visible.value = false
 
-        watchGlobalKeyEvent(e => {
-            if(e.metaKey && (e.key === "-" || e.key === "=" || e.key === "0")) {
-                if(e.key === "=") {
-                    if(zoom.value < ZOOM_MAX) zoom.value += ZOOM_STEP
-                }else if(e.key === "-") {
-                    if(zoom.value > ZOOM_MIN) zoom.value -= ZOOM_STEP
-                }else{
-                    zoom.value = 100
-                }
-                e.preventDefault()
-                e.stopPropagation()
+        interceptGlobalKey(["Meta+Minus", "Meta+Equal", "Meta+Digit0"], e => {
+            if(e.key === "Equal") {
+                if(zoom.value < ZOOM_MAX) zoom.value += ZOOM_STEP
+            }else if(e.key === "Minus") {
+                if(zoom.value > ZOOM_MIN) zoom.value -= ZOOM_STEP
+            }else{
+                zoom.value = 100
             }
         })
 

@@ -1,0 +1,86 @@
+@import "@/styles/base/size.sass";
+@import "@/styles/base/color.scss";
+
+.query-box {
+  position: relative;
+  > .input {
+    width: 100%;
+    border-radius: $radius-size-circle;
+    padding: 0 calc(1em - 1px);
+    &:focus {
+      box-shadow: none;
+    }
+    &.nested-by-expand-button {
+      padding-right: calc(#{$height-small} + 4px);
+    }
+  }
+  > .expand-button {
+    position: absolute;
+    right: 0;
+    margin: 2px 2px 2px 0;
+  }
+}
+
+.expand-area {
+  padding: 0.25rem;
+
+  > .query-plan {
+    padding: 0 0.25rem;
+
+    //一行元素
+    > .element {
+      display: flex;
+      flex-wrap: nowrap;
+      //左侧的类型名称列，固定宽度
+      > .element-type {
+        flex-shrink: 0;
+        width: 4.5em;
+        padding: 0.125rem 0.25rem 0 0.25rem;
+        text-align: right;
+      }
+      //右侧的内容
+      > .intersect-items {
+
+      }
+    }
+    //一行过滤器
+    > .filter-item {
+      display: flex;
+      flex-wrap: nowrap;
+      //开头的exclude列，固定宽度
+      > .exclude {
+        flex-shrink: 0;
+        width: 0.5em;
+      }
+      //过滤器内容
+      > .fields {
+        //一个名称块
+        > .field-name {
+          display: inline-block;
+          padding: 0 0.25rem;
+          &:first-child {
+            min-width: 4em;
+            text-align: right;
+          }
+        }
+      }
+    }
+    //排序器
+    > .order-item {
+      display: flex;
+      flex-wrap: nowrap;
+      > .name {
+        flex-shrink: 0;
+        width: 4.5em;
+        padding: 0.125rem 0.25rem 0 0.25rem;
+        text-align: right;
+      }
+    }
+
+    //一个tag前面的前置符号
+    .prefix-symbol {
+      margin-right: 0.25rem;
+      margin-left: -0.125rem;
+    }
+  }
+}

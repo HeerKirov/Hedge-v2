@@ -7,12 +7,23 @@ type KeyFuncAlt = "Alt"
 type KeyFuncMeta = "Meta"
 type KeyFuncShift = "Shift"
 
-export type KeyCode = "Enter" | "Escape" | "Backspace" | "Tab" | " "  | KeyCodeArrow | KeyCodeNumber | KeyCodeAlpha | KeyCodeSignal
+export type KeyCode = "Enter" | "Escape" | "Backspace" | "Tab" | "Space"  | KeyCodeArrow | KeyCodeDigit | KeyCodeKey | KeyCodeSignal
 
 type KeyCodeArrow = "ArrowUp" | "ArrowDown" | "ArrowLeft" | "ArrowRight"
-type KeyCodeSignal = "-" | "=" | "[" | "]" | ";" | "'" | "," | "." | "/" | "`"
-type KeyCodeNumber = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
-type KeyCodeAlpha = "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J" | "K" | "L" | "M" | "N" | "O" | "P" | "Q" | "R" | "S" | "T" | "U" | "V" | "W" | "X" | "Y" | "Z"
+type KeyCodeSignal
+    = /* ` */ "Backquote"
+    | /* - */ "Minus"
+    | /* = */ "Equal"
+    | /* [ */ "BracketLeft"
+    | /* ] */ "BracketRight"
+    | /* \ */ "Backslash"
+    | /* ; */ "Semicolon"
+    | /* ' */ "Quote"
+    | /* , */ "Comma"
+    | /* . */ "Period"
+    | /* / */ "Slash"
+type KeyCodeDigit = `Digit${"0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"}`
+type KeyCodeKey = `Key${"A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J" | "K" | "L" | "M" | "N" | "O" | "P" | "Q" | "R" | "S" | "T" | "U" | "V" | "W" | "X" | "Y" | "Z"}`
 
 export interface AnalysedKeyPress {key: KeyCode, altKey: boolean, shiftKey: boolean, metaKey: boolean}
 

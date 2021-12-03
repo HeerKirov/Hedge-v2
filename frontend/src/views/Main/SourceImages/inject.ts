@@ -1,5 +1,6 @@
-import { readonly, ref, Ref } from "vue"
+import { readonly, ref, Ref, watch } from "vue"
 import { ScrollView, useScrollView } from "@/components/features/VirtualScrollView"
+import { QuerySchemaContext, useQuerySchemaContext } from "@/layouts/topbars/Query"
 import { PaginationDataView, QueryEndpointResult, usePaginationDataView, useQueryEndpoint } from "@/functions/utils/endpoints/query-endpoint"
 import { SourceImage, SourceImageQueryFilter } from "@/functions/adapter-http/impl/source-image"
 import { installation } from "@/functions/utils/basic"
@@ -13,6 +14,7 @@ export interface SourceImageContext {
         scrollView: Readonly<ScrollView>
         queryFilter: Ref<SourceImageQueryFilter>
     }
+    querySchema: QuerySchemaContext
     pane: {
         detailMode: Readonly<Ref<SourceKey | null>>
         openDetailPane(key: SourceKey): void
@@ -27,10 +29,11 @@ export function keyEqual(key: SourceKey | null | undefined, key2: SourceKey | nu
 }
 
 export const [installSourceImageContext, useSourceImageContext] = installation(function (): SourceImageContext {
-    const list = useSourceImageListContext()
+    const querySchema = useQuerySchemaContext("SOURCE_IMAGE")
+    const list = useSourceImageListContext(querySchema.query)
     const pane = usePaneContext()
 
-    return {list, pane}
+    return {list, pane, querySchema}
 })
 
 function usePaneContext() {
@@ -45,7 +48,7 @@ function usePaneContext() {
     return {detailMode: readonly(detailMode), openDetailPane, closePane}
 }
 
-function useSourceImageListContext() {
+function useSourceImageListContext(query: Ref<string | undefined>) {
     const httpClient = useHttpClient()
     const { handleError } = useToast()
     const scrollView = useScrollView()
@@ -53,6 +56,7 @@ function useSourceImageListContext() {
     const queryFilter = ref<SourceImageQueryFilter>({
         order: "-rowId"
     })
+    watch(query, v => queryFilter.value.query = v)
 
     const endpoint = useQueryEndpoint({
         filter: queryFilter,

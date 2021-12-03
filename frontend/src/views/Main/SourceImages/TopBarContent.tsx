@@ -1,17 +1,21 @@
 import { defineComponent } from "vue"
-import { DataRouter, SearchBox } from "@/layouts/topbars"
+import { DataRouter } from "@/layouts/topbars"
+import { QueryBox, QueryNotifyBadge } from "@/layouts/topbars/Query"
 import { useEditSourceImageService } from "@/layouts/dialogs/EditSourceImage"
 import { useSourceImageContext } from "./inject"
 
 export default defineComponent({
     setup() {
-        const {} = useSourceImageContext()
+        const { querySchema } = useSourceImageContext()
         return () => <div class="middle-layout">
             <div class="layout-container">
 
             </div>
             <div class="layout-container">
-                <SearchBox class="w-75 is-stretch-item"/>
+                <QueryBox class="w-75 is-stretch-item"
+                          value={querySchema.searchBoxText.value} onUpdateValue={v => querySchema.searchBoxText.value = v}
+                          expanded={querySchema.expanded.value} onUpdateExpanded={v => querySchema.expanded.value = v}/>
+                <QueryNotifyBadge class="ml-1" schema={querySchema.schema.value} onClick={() => querySchema.expanded.value = true}/>
             </div>
             <div class="layout-container">
                 <DataRouter/>

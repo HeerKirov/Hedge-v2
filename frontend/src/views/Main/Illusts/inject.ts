@@ -1,6 +1,7 @@
 import { ref, Ref, watch } from "vue"
 import { useScrollView, ScrollView } from "@/components/features/VirtualScrollView"
 import { FitType } from "@/layouts/data/IllustGrid"
+import { QuerySchemaContext, useQuerySchemaContext } from "@/layouts/topbars/Query"
 import { PaginationDataView, QueryEndpointResult, usePaginationDataView, useQueryEndpoint } from "@/functions/utils/endpoints/query-endpoint"
 import { Illust, IllustQueryFilter } from "@/functions/adapter-http/impl/illust"
 import { useHttpClient, useLocalStorageWithDefault } from "@/functions/app"
@@ -13,13 +14,13 @@ export interface IllustContext {
     dataView: PaginationDataView<Illust>
     endpoint: QueryEndpointResult<Illust>
     scrollView: Readonly<ScrollView>
-    query: Ref<string | undefined>
+    querySchema: QuerySchemaContext
     viewController: {
         fitType: Ref<FitType>
         columnNum: Ref<number>
         collectionMode: Ref<boolean>
         partition: Ref<LocalDate> | null
-        partitionClose?: () => void
+        closePartition?: () => void
     }
     selector: {
         selected: Ref<number[]>
@@ -27,17 +28,19 @@ export interface IllustContext {
     }
 }
 
-export const [installIllustContext, useIllustContext] = installation(function(partition: Ref<LocalDate> | null, partitionClose: (() => void) | undefined): IllustContext {
-    const viewController = useViewController(partition, partitionClose)
+export const [installIllustContext, useIllustContext] = installation(function(partition: Ref<LocalDate> | null, closePartition: (() => void) | undefined): IllustContext {
+    const querySchema = useQuerySchemaContext("ILLUST")
 
-    const list = useListContext(viewController.collectionMode, partition)
+    const viewController = useViewController(partition, closePartition)
+
+    const list = useListContext(viewController.collectionMode, partition, querySchema.query)
 
     const selector = useSelector(list.endpoint)
 
-    return {...list, viewController, selector}
+    return {...list, querySchema, viewController, selector}
 })
 
-function useListContext(collectionMode: Ref<boolean>, partition: Ref<LocalDate> | null) {
+function useListContext(collectionMode: Ref<boolean>, partition: Ref<LocalDate> | null, query: Ref<string | undefined>) {
     const httpClient = useHttpClient()
     const { handleError } = useToast()
     const scrollView = useScrollView()
@@ -47,7 +50,7 @@ function useListContext(collectionMode: Ref<boolean>, partition: Ref<LocalDate> 
         type: collectionMode.value ? "COLLECTION" : "IMAGE",
         partition: partition?.value
     })
-    const query = splitRef(queryFilter, "query")
+    watch(query, v => queryFilter.value.query = v)
     watch(collectionMode, v => queryFilter.value.type = v ? "COLLECTION" : "IMAGE")
     if(partition !== null) watch(partition, p => queryFilter.value.partition = p)
 
@@ -61,7 +64,7 @@ function useListContext(collectionMode: Ref<boolean>, partition: Ref<LocalDate> 
     return {endpoint, dataView, scrollView, query}
 }
 
-function useViewController(partition: Ref<LocalDate> | null, partitionClose: (() => void) | undefined) {
+function useViewController(partition: Ref<LocalDate> | null, closePartition: (() => void) | undefined) {
     const storage = useLocalStorageWithDefault<{
         fitType: FitType, columnNum: number, collectionMode: boolean
     }>("illust-grid/view-controller", {
@@ -72,7 +75,7 @@ function useViewController(partition: Ref<LocalDate> | null, partitionClose: (()
         fitType: splitRef(storage, "fitType"),
         columnNum: splitRef(storage, "columnNum"),
         collectionMode: splitRef(storage, "collectionMode"),
-        partition, partitionClose
+        partition, closePartition
     }
 }
 

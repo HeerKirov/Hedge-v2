@@ -36,7 +36,7 @@ export default defineComponent({
         })
 
         watchGlobalKeyEvent(e => {
-            if(e.key === " ") {
+            if(e.key === "Space") {
                 playOrPause()
                 e.preventDefault()
                 e.stopPropagation()

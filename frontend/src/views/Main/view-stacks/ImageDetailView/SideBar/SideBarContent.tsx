@@ -1,7 +1,7 @@
 import { defineComponent, PropType, toRef } from "vue"
 import { SideBar } from "@/layouts/layouts/SideLayout"
 import { useLocalStorageWithDefault } from "@/functions/app"
-import { watchGlobalKeyEvent } from "@/functions/feature/keyboard"
+import { interceptGlobalKey } from "@/functions/feature/keyboard"
 import SideBarDetailInfo from "./SideBarDetailInfo"
 import SideBarOriginData from "./SideBarOriginData"
 import SideBarRelatedItems from "./SideBarRelatedItems"
@@ -12,12 +12,8 @@ export default defineComponent({
         const tab = useLocalStorageWithDefault<TabType>("detail-view/side-bar/tab", "info")
         const updateTab = (v: TabType) => tab.value = v
 
-        watchGlobalKeyEvent(e => {
-            if(e.metaKey && (e.key === "1" || e.key === "2" || e.key === "3" || e.key === "4")) {
-                updateTab(TAB_BUTTONS[parseInt(e.key) - 1].key)
-                e.stopPropagation()
-                e.preventDefault()
-            }
+        interceptGlobalKey(["Meta+Digit1", "Meta+Digit2", "Meta+Digit3", "Meta+Digit4"], e => {
+            updateTab(TAB_BUTTONS[parseInt(e.key.substr(5, 1)) - 1].key)
         })
 
         const sideBarSlots = {

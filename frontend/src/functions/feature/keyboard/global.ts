@@ -34,7 +34,7 @@ const [installGlobalKey, useGlobalKey] = installation(function() {
 
     function keydown(keyboardEvent: KeyboardEvent) {
         const consumer: KeyEvent = {
-            key: keyboardEvent.key as KeyCode,
+            key: keyboardEvent.code as KeyCode,
             altKey: keyboardEvent.altKey,
             shiftKey: keyboardEvent.shiftKey,
             metaKey: (clientPlatform === "darwin" && keyboardEvent.metaKey) || (clientPlatform !== "darwin" && keyboardEvent.ctrlKey),

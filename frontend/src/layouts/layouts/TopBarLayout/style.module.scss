@@ -22,7 +22,7 @@
         left: 0; right: 0; bottom: 0;
         background: rgba(0, 0, 0, 0.25);
         @media (prefers-color-scheme: dark) {
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(0, 0, 0, 0.4);
         }
 
         &.transaction-active {
@@ -36,7 +36,7 @@
         position: absolute;
         top: $title-bar-height;
         width: 100%;
-        min-height: 10rem;
+        min-height: 2rem;
         max-height: calc(75% - #{$title-bar-height});
 
         @media (prefers-color-scheme: light) {

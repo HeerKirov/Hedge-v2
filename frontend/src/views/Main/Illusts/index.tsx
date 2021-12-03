@@ -1,5 +1,6 @@
-import { computed, defineComponent, PropType, ref } from "vue"
+import { computed, defineComponent, PropType } from "vue"
 import TopBarLayout from "@/layouts/layouts/TopBarLayout"
+import { ExpandArea } from "@/layouts/topbars/Query"
 import { LocalDate } from "@/utils/datetime"
 import TopBarContent from "./TopBarContent"
 import ListView from "./ListView"
@@ -14,15 +15,14 @@ export default defineComponent({
     },
     setup(props, { emit }) {
         const partition = props.partitionTime !== undefined ? computed(() => props.partitionTime!) : null
-        const partitionClose = props.partitionTime !== undefined ? () => emit("partitionClose") : undefined
-        installIllustContext(partition, partitionClose)
-
-        const topBarExpand = ref(true)
+        const closePartition = props.partitionTime !== undefined ? () => emit("partitionClose") : undefined
+        const { querySchema: { expanded, schema } } = installIllustContext(partition, closePartition)
 
         const topBarLayoutSlots = {
             topBar: () => <TopBarContent/>,
-            default: () => <ListView/>
+            default: () => <ListView/>,
+            expand: () => schema.value && <ExpandArea schema={schema.value}/>,
         }
-        return () => <TopBarLayout v-slots={topBarLayoutSlots} expanded={topBarExpand.value} onUpdateExpanded={v => topBarExpand.value = v}/>
+        return () => <TopBarLayout v-slots={topBarLayoutSlots} expanded={expanded.value} onUpdateExpanded={v => expanded.value = v}/>
     }
 })
