@@ -470,7 +470,7 @@ function useMetaDatabaseAuthorContext(httpClient: HttpClient, { handleError }: T
     const search = ref<string>()
 
     const data = useContinuousEndpoint({
-        request: (offset, limit) => httpClient.author.list({ offset, limit, search: search.value, order: "-updateTime" }),
+        request: (offset, limit) => httpClient.author.list({ offset, limit, query: search.value, order: "-updateTime" }),
         handleError,
         initSize: 40,
         continueSize: 20
@@ -485,7 +485,7 @@ function useMetaDatabaseTopicContext(httpClient: HttpClient, { handleError }: To
     const search = ref<string>()
 
     const data = useContinuousEndpoint({
-        request: (offset, limit) => httpClient.topic.list({ offset, limit, search: search.value, order: "-updateTime" }),
+        request: (offset, limit) => httpClient.topic.list({ offset, limit, query: search.value, order: "-updateTime" }),
         handleError,
         initSize: 40,
         continueSize: 20

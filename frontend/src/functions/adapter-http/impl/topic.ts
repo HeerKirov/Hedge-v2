@@ -93,6 +93,14 @@ export interface Topic {
      */
     keywords: string[]
     /**
+     * 所属的分组根节点。
+     */
+    parentRoot: ParentTopic | null
+    /**
+     * 父节点id。
+     */
+    parentId: number | null,
+    /**
      * 主题类型。
      */
     type: TopicType
@@ -122,7 +130,11 @@ export interface DetailTopic extends Topic {
     /**
      * 主题的父标签。
      */
-    parent: ParentTopic | null
+    parents: ParentTopic[]
+    /**
+     * 主题的子标签。
+     */
+    children: TopicChildrenNode[] | null
     /**
      * 简介。
      */
@@ -137,18 +149,19 @@ export interface DetailTopic extends Topic {
     mappingSourceTags: SourceMappingMetaItem[]
 }
 
-export interface ParentTopic {
+export interface SimpleTopic {
     id: number
     name: string
     type: TopicType
     color: string | null
 }
 
-export interface SimpleTopic {
-    id: number
-    name: string
-    type: TopicType
-    color: string | null
+export interface TopicChildrenNode extends SimpleTopic {
+    children: TopicChildrenNode[] | null
+}
+
+export interface ParentTopic extends SimpleTopic {
+
 }
 
 export interface DepsTopic extends SimpleTopic {
@@ -186,7 +199,7 @@ export interface TopicUpdateForm {
 export type TopicFilter = TopicQueryFilter & LimitAndOffsetFilter
 
 export interface TopicQueryFilter {
-    search?: string
+    query?: string
     order?: OrderList<"id" | "name" | "score" | "count" | "createTime" | "updateTime">
     type?: TopicType
     favorite?: boolean

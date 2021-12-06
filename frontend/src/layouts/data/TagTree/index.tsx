@@ -100,7 +100,7 @@ export const NodeList = defineComponent({
     },
     setup(props) {
         return () => (props.multiLine || props.items.some(t => !!t.children?.length))
-            ? <div class={[style.nodeList]}>
+            ? <div class={style.nodeList}>
                 {props.items.flatMap((node, index) => [
                     <Gap parentId={props.parentId} ordinal={index}/>,
                     <div class={style.child} key={node.id}><NodeItem node={node}/></div>

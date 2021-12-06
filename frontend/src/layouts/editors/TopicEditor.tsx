@@ -48,7 +48,7 @@ const TopicPickerBoard = defineComponent({
     },
     setup(_, { emit }) {
         const request: SearchRequestFunction = (httpClient, offset, limit, search) =>
-            httpClient.topic.list({offset, limit, search, order: "-updateTime"})
+            httpClient.topic.list({offset, limit, query: search, order: "-updateTime"})
 
         const pick = (v: ParentTopic) => emit("pick", v)
 

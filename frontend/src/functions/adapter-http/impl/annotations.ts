@@ -97,7 +97,7 @@ export interface AnnotationUpdateForm {
 export type AnnotationFilter = AnnotationQueryFilter & LimitAndOffsetFilter
 
 export interface AnnotationQueryFilter {
-    search?: string
+    query?: string
     order?: OrderList<"id" | "name" | "createTime">
     name?: string
     canBeExported?: boolean

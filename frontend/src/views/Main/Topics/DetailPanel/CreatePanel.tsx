@@ -123,7 +123,7 @@ function mapCreatorData(mode: Partial<DetailTopic>): CreatorData {
     return {
         name: mode.name ?? "",
         otherNames: mode.otherNames ?? [],
-        parent: mode.parent ?? null,
+        parent: mode.parents?.length ? mode.parents[mode.parents.length - 1] : null,
         type: mode.type ?? "UNKNOWN",
         description: mode.description ?? "",
         keywords: mode.keywords ?? [],

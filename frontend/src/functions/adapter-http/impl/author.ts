@@ -164,7 +164,7 @@ export interface AuthorUpdateForm {
 export type AuthorFilter = AuthorQueryFilter & LimitAndOffsetFilter
 
 export interface AuthorQueryFilter {
-    search?: string
+    query?: string
     order?: OrderList<"id" | "name" | "score" | "count" | "createTime" | "updateTime">
     type?: AuthorType
     favorite?: boolean

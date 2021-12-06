@@ -31,7 +31,7 @@ export default defineComponent({
         return () => <div class="middle-layout">
             <div class="layout-container"/>
             <div class="layout-container">
-                <SearchBox class="w-75 is-stretch-item" value={queryFilter.value.search} onUpdateValue={v => queryFilter.value.search = v}/>
+                <SearchBox class="w-75 is-stretch-item" value={queryFilter.value.query} onUpdateValue={v => queryFilter.value.query = v}/>
                 <AddOnFilter class="ml-1" templates={addOnTemplates} value={addOnFilter.value} onUpdateValue={v => addOnFilter.value = v} onClear={clear}/>
             </div>
             <div class="layout-container">
@@ -133,7 +133,7 @@ const TopicSelector = defineComponent({
     emits: ["pick"],
     setup(_, { emit }) {
         const request: SearchRequestFunction = (httpClient, offset, limit, search) =>
-            httpClient.topic.list({offset, limit, search, order: "-updateTime"})
+            httpClient.topic.list({offset, limit, query: search, order: "-updateTime"})
 
         const pick = (v: ParentTopic) => emit("pick", v)
 
@@ -149,7 +149,7 @@ const AnnotationSelector = defineComponent({
     emits: ["pick"],
     setup(_, { emit }) {
         const request: SearchRequestFunction = (httpClient, offset, limit, search) =>
-            httpClient.annotation.list({offset, limit, search, order: "-createTime"})
+            httpClient.annotation.list({offset, limit, query: search, order: "-createTime"})
 
         const pick = (v: SimpleAnnotation) => emit("pick", v)
 

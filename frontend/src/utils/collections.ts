@@ -29,6 +29,18 @@ export const arrays = {
 
         return result
     },
+    filterInfo<T>(arr: T[], condition: (value: T) => boolean): [T[], T[]] {
+        const r1: T[] = []
+        const r2: T[] = []
+        for (const item of arr) {
+            if(condition(item)) {
+                r1.push(item)
+            }else{
+                r2.push(item)
+            }
+        }
+        return [r1, r2]
+    },
     window<T>(arr: T[], size: number): T[][] {
         const result: T[][] = []
         let beginIndex = 0

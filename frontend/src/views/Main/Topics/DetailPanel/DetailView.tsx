@@ -1,4 +1,4 @@
-import { defineComponent, PropType, watch } from "vue"
+import { computed, defineComponent, PropType, Ref, SetupContext, watch } from "vue"
 import WrappedText from "@/components/elements/WrappedText"
 import Starlight from "@/components/elements/Starlight"
 import GridImage from "@/components/elements/GridImage"
@@ -6,9 +6,9 @@ import TopBarTransparentLayout from "@/layouts/layouts/TopBarTransparentLayout"
 import { SourceTagMappingsDisplay } from "@/layouts/displays"
 import { AnnotationElement } from "@/layouts/elements"
 import { Link } from "@/functions/adapter-http/impl/generic"
-import { DetailTopic, ParentTopic, TopicType } from "@/functions/adapter-http/impl/topic"
+import { DetailTopic, ParentTopic, SimpleTopic, TopicChildrenNode, TopicType } from "@/functions/adapter-http/impl/topic"
 import { SourceMappingMetaItem } from "@/functions/adapter-http/impl/source-tag-mapping"
-import { clientMode } from "@/functions/app"
+import { clientMode, useLocalStorageWithDefault } from "@/functions/app"
 import { useElementPopupMenu } from "@/functions/module/popup-menu"
 import { useMessageBox } from "@/functions/module/message-box"
 import { openExternal, writeClipboard } from "@/functions/module/others"
@@ -18,7 +18,7 @@ import { TOPIC_TYPE_ENUMS, TOPIC_TYPE_ICONS, TOPIC_TYPE_NAMES } from "@/definiti
 import { useTopicContext } from "../inject"
 import { useTopicDetailContext } from "./inject"
 import { useSideBarContext } from "../../inject"
-
+import style from "./style.module.scss"
 
 export default defineComponent({
     setup() {
@@ -66,7 +66,7 @@ const TopBarContent = defineComponent({
                     name: topic.name,
                     otherNames: topic.otherNames,
                     type: topic.type,
-                    parent: topic.parent,
+                    parents: topic.parents,
                     annotations: topic.annotations,
                     keywords: topic.keywords,
                     description: topic.description,
@@ -81,12 +81,12 @@ const TopBarContent = defineComponent({
             const topic = data.value
             if(topic != undefined) {
                 openCreatePane({
-                    parent: {
+                    parents: [{
                         id: topic.id,
                         name: topic.name,
                         type: topic.type,
                         color: topic.color
-                    }
+                    }]
                 })
             }
         }
@@ -126,7 +126,7 @@ const Panel = defineComponent({
 
         return () => <div class="container p-2">
             {data.value && <MainContent data={data.value}/>}
-            {data.value && <RelatedThemeContent data={data.value}/>}
+            {data.value && <RelatedTopicContent data={data.value}/>}
             {data.value?.links.length ? <LinkContent class="mb-1" links={data.value.links}/> : null}
             {data.value?.mappingSourceTags.length ? <SourceTagMappingContent class="mb-1" mappings={data.value.mappingSourceTags}/> : null}
             {data.value && <ExampleContent name={data.value.name}/>}
@@ -166,45 +166,156 @@ const MainContent = defineComponent({
     }
 })
 
-const RelatedThemeContent = defineComponent({
+const RelatedTopicContent = defineComponent({
     props: {
         data: {type: null as any as PropType<DetailTopic>, required: true}
     },
     setup(props) {
-        const navigator = useNavigator()
         const { openDetailPane } = useTopicContext()
-        const { subThemeData } = useTopicDetailContext()
 
-        const more = () => {
-            const parent: ParentTopic = {id: props.data.id, name: props.data.name, color: props.data.color, type: props.data.type}
-            navigator.goto.main.topics({parent})
-        }
+        const childrenMode = useLocalStorageWithDefault<"tree" | "list">("topic-detail/children-view-mode", "tree")
 
-        return () => (subThemeData.value?.total || props.data.parent) ? <div class="box mb-1">
-            {props.data.parent && <div class="mt-1">
-                <div class="mb-1"><i class="fa fa-chess-queen mr-2"/><span>父主题</span></div>
-                <div>
-                    <a class={["tag", "mr-1", "mb-1", "is-light", `is-${props.data.parent.color}`]} onClick={() => openDetailPane(props.data.parent!.id)}>
-                        {TYPE_ICON_ELEMENTS[props.data.parent.type]}
-                        {props.data.parent.name}
-                    </a>
+        return () => (props.data.children && props.data.children.length > 0 || props.data.parents.length > 0) ? <div class="box mb-1">
+            {props.data.parents.length > 0 && <>
+                <div class="mt-2 mb-1"><i class="fa fa-chess-queen mr-2"/><span>父主题</span></div>
+                <RelatedParentsContent parents={props.data.parents} onClick={openDetailPane}/>
+            </>}
+            {props.data.children && props.data.children.length > 0 && <>
+                <div class="mt-3 mb-1">
+                    <i class="fa fa-chess mr-2"/><span>子主题</span>
+                    <span class="float-right">
+                        <a class={{"has-text-grey": childrenMode.value !== "tree"}} onClick={() => childrenMode.value = "tree"}><i class="fa fa-tree mr-1"/>树形视图</a>
+                        <span class="mx-1">|</span>
+                        <a class={{"has-text-grey": childrenMode.value !== "list"}} onClick={() => childrenMode.value = "list"}><i class="fa fa-list mr-1"/>列表视图</a>
+                    </span>
                 </div>
-            </div>}
-            {(subThemeData.value?.total || null) && <>
-                <div class="mt-3 mb-1"><i class="fa fa-chess mr-2"/><span>子主题</span></div>
-                <div>
-                    {subThemeData.value!.result.map(topic => <a class={["tag", "mr-1", "mb-1", "is-light", `is-${topic.color}`]} onClick={() => openDetailPane(topic.id)}>
-                        {TYPE_ICON_ELEMENTS[topic.type]}
-                        {topic.name}
-                    </a>)}
-                    <p>
-                        <a class="no-wrap mb-1" onClick={more}>在主题列表搜索全部子主题<i class="fa fa-angle-double-right ml-1"/></a>
-                    </p>
-                </div>
+                <RelatedChildrenContent children={props.data.children ?? []} mode={childrenMode.value} onClick={openDetailPane}/>
             </>}
         </div> : <div/>
     }
 })
+
+const RelatedParentsContent = defineComponent({
+    props: {
+        parents: {type: Array as PropType<ParentTopic[]>, required: true}
+    },
+    emits: {
+        click: (_: number) => true
+    },
+    setup(props, { emit }) {
+        return () => <div>
+            {props.parents.map(topic => <a key={topic.id} class={["tag", "mr-1", "mb-1", "is-light", `is-${topic.color}`]} onClick={() => emit("click", topic.id)}>
+                {TYPE_ICON_ELEMENTS[topic.type]}
+                {topic.name}
+            </a>)}
+        </div>
+    }
+})
+
+const RelatedChildrenContent = defineComponent({
+    props: {
+        children: {type: Array as PropType<TopicChildrenNode[]>, required: true},
+        mode: {type: String as PropType<"tree" | "list">, required: true}
+    },
+    emits: {
+        click: (_: number) => true
+    },
+    setup(props, { emit }) {
+        const list: Ref<{[key in TopicType]: SimpleTopic[]}> = computed(() => {
+            const workList: SimpleTopic[] = []
+            const characterList: SimpleTopic[] = []
+            const unknownList: SimpleTopic[] = []
+
+            function recursive(children: TopicChildrenNode[]) {
+                for (const child of children) {
+                    if(child.type === "WORK") workList.push(child)
+                    else if(child.type === "CHARACTER") characterList.push(child)
+                    else if(child.type === "UNKNOWN") unknownList.push(child)
+                    if(child.type !== "CHARACTER" && child.children?.length) recursive(child.children)
+                }
+            }
+             recursive(props.children)
+
+            return {
+                "COPYRIGHT": [],
+                "WORK": workList,
+                "CHARACTER": characterList,
+                "UNKNOWN": unknownList
+            }
+        })
+
+        return () => props.mode === "list" ? <>
+            <div>
+                {list.value!["WORK"].map(topic => <a key={topic.id} class={["tag", "mr-1", "mb-1", "is-light", `is-${topic.color}`]} onClick={() => emit("click", topic.id)}>
+                    {TYPE_ICON_ELEMENTS[topic.type]}
+                    {topic.name}
+                </a>)}
+            </div>
+            <div>
+                {list.value!["CHARACTER"].map(topic => <a key={topic.id} class={["tag", "mr-1", "mb-1", "is-light", `is-${topic.color}`]} onClick={() => emit("click", topic.id)}>
+                    {TYPE_ICON_ELEMENTS[topic.type]}
+                    {topic.name}
+                </a>)}
+            </div>
+            <div>
+                {list.value!["UNKNOWN"].map(topic => <a key={topic.id} class={["tag", "mr-1", "mb-1", "is-light", `is-${topic.color}`]} onClick={() => emit("click", topic.id)}>
+                    {TYPE_ICON_ELEMENTS[topic.type]}
+                    {topic.name}
+                </a>)}
+            </div>
+        </> : <RelatedChildrenList children={props.children} onClick={i => emit("click", i)}/>
+    }
+})
+
+const RelatedChildrenList = defineComponent({
+    props: {
+        children: {type: Array as PropType<TopicChildrenNode[]>, required: true}
+    },
+    emits: {
+        click: (_: number) => true
+    },
+    setup(props, { emit }) {
+        //分离work和character，work动态决定是multiLine还是inline，character放在最后总是inline
+        const [characters, others] = arrays.filterInfo(props.children, i => i.type === "CHARACTER")
+        //others中存在嵌套的列表
+        const hasAnyChildren = others.some(child => child.children?.length)
+
+        return () => hasAnyChildren ? <div>
+            <div class={style.childrenList}>
+                {others.map(child => <div key={child.id} class={style.child}><RelatedChildrenListItem child={child} onClick={i => emit("click", i)}/></div>)}
+            </div>
+            {characters.length > 0 && <div class={[style.childrenList, style.inline]}>
+                {characters.map(child => <RelatedChildrenListItem class={style.child} key={child.id} child={child} onClick={i => emit("click", i)}/>)}
+            </div>}
+        </div> : <div class={[style.childrenList, style.inline]}>
+            {[...others, ...characters].map(child => <RelatedChildrenListItem class={style.child} key={child.id} child={child} onClick={i => emit("click", i)}/>)}
+        </div>
+    }
+})
+
+const RelatedChildrenListItem = defineComponent({
+    props: {
+        child: {type: Object as PropType<TopicChildrenNode>, required: true}
+    },
+    emits: {
+        click: (_: number) => true
+    },
+    setup(props, { emit }) {
+        return () => (props.child.type !== "CHARACTER" && !!props.child.children?.length) ? (<>
+            <p><RelatedItemElement topic={props.child} onClick={() => emit("click", props.child.id)}/></p>
+            <RelatedChildrenList class="ml-6" children={props.child.children}/>
+        </>) : (
+            <RelatedItemElement topic={props.child} onClick={() => emit("click", props.child.id)}/>
+        )
+    }
+})
+
+function RelatedItemElement({ topic }: {topic: SimpleTopic}, { emit }: SetupContext<{click()}>) {
+    return <a key={topic.id} class={["tag", "mr-1", "mb-1", "is-light", `is-${topic.color}`]} onClick={() => emit("click")}>
+        {TYPE_ICON_ELEMENTS[topic.type]}
+        {topic.name}
+    </a>
+}
 
 const LinkContent = defineComponent({
     props: {

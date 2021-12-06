@@ -53,7 +53,7 @@ export default defineComponent({
                     name: topic.name,
                     otherNames: topic.otherNames,
                     type: topic.type,
-                    parent: topic.parent,
+                    parents: topic.parents,
                     annotations: topic.annotations,
                     keywords: topic.keywords,
                     description: topic.description,
@@ -70,12 +70,12 @@ export default defineComponent({
                 const topic = dataView.proxy.syncOperations.retrieve(index)
                 if(topic != undefined) {
                     openCreatePane({
-                        parent: {
+                        parents: [{
                             id: topic.id,
                             name: topic.name,
                             type: topic.type,
                             color: topic.color
-                        }
+                        }]
                     })
                 }
             }
@@ -135,6 +135,10 @@ const Item = defineComponent({
         return () => <tr onContextmenu={rightClick} {...hoverEvents} style="height: 50px">
             <td class="is-width-45 is-cursor-pointer" onClick={click}>
                 <span class={`has-text-${props.value.color}`} draggable={true} {...dragEvents}>{props.value.name}</span>
+                {props.value.parentRoot && <span class={`tag is-light ml-4 is-${props.value.parentRoot.color}`}>
+                    {TYPE_ICON_ELEMENTS[props.value.parentRoot.type]}
+                    {props.value.parentRoot.name}
+                </span>}
                 {(props.value.otherNames?.length || null) && <p class="has-text-grey">
                     ({generateOtherNames(props.value.otherNames)})
                 </p>}
@@ -204,6 +208,9 @@ const AnnotationAndKeywordsList = defineComponent({
 
 const TYPE_ITEM_ELEMENTS: {[type in TopicType]: JSX.Element} =
     arrays.toMap(TOPIC_TYPE_ENUMS, type => <><i class={`fa fa-${TOPIC_TYPE_ICONS[type]} mr-1`}/><span class="mr-2">{TOPIC_TYPE_NAMES[type]}</span></>)
+
+const TYPE_ICON_ELEMENTS: {[type in TopicType]: JSX.Element} =
+    arrays.toMap(TOPIC_TYPE_ENUMS, type => <i class={`fa fa-${TOPIC_TYPE_ICONS[type]} mr-1`}/>)
 
 const STAR_ICON = <span class="icon ml-1"><i class="fa fa-star"/></span>
 

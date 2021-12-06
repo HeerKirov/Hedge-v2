@@ -19,7 +19,7 @@ export default defineComponent({
         return () => <div class="middle-layout">
             <div class="layout-container"/>
             <div class="layout-container">
-                <SearchBox class="w-75 is-stretch-item" value={queryFilter.value.search} onUpdateValue={v => queryFilter.value.search = v}/>
+                <SearchBox class="w-75 is-stretch-item" value={queryFilter.value.query} onUpdateValue={v => queryFilter.value.query = v}/>
                 <AddOnFilter class="ml-1" templates={addOnTemplates} value={addOnFilter.value} onUpdateValue={v => addOnFilter.value = v} onClear={clear}/>
             </div>
             <div class="layout-container">

@@ -58,12 +58,12 @@ const TopicDetail = defineComponent({
             <p class="is-size-7 mt-2">
                 {TOPIC_TYPE_ITEM_ELEMENTS[data.value.type]}
             </p>
-            {data.value.parent && <div class="mt-1">
+            {data.value.parents.length > 0 && <div class="mt-1">
                 <i class="fa fa-chess-queen mr-2"/><span>父主题</span>
-                <a class={["tag", "ml-2", "is-light", `is-${data.value.parent.color}`]}>
-                    {TOPIC_TYPE_ICON_ELEMENTS[data.value.parent.type]}
-                    {data.value.parent.name}
-                </a>
+                {data.value.parents.map(parent => <a class={["tag", "ml-2", "is-light", `is-${parent.color}`]}>
+                    {TOPIC_TYPE_ICON_ELEMENTS[parent.type]}
+                    {parent.name}
+                </a>)}
             </div>}
             <p class="mt-2">
                 {data.value.annotations.map(annotation => <AnnotationElement value={annotation} class="mr-1 mb-1" canBeSelected={true}/>)}

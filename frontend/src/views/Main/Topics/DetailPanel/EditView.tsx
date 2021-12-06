@@ -17,7 +17,7 @@ export default defineComponent({
             name: data.value.name,
             otherNames: data.value.otherNames,
             type: data.value.type,
-            parent: data.value.parent,
+            parent: data.value.parents.length > 0 ? data.value.parents[data.value.parents.length - 1] : null,
             annotations: data.value.annotations,
             keywords: data.value.keywords,
             description: data.value.description,
@@ -36,7 +36,7 @@ export default defineComponent({
             if(editorData.value && data.value) {
                 const form: TopicUpdateForm = {
                     type: editorData.value.type !== data.value.type ? editorData.value.type : undefined,
-                    parentId: (editorData.value.parent?.id ?? null) !== (data.value.parent?.id ?? null) ? (editorData.value.parent?.id ?? null) : undefined,
+                    parentId: (editorData.value.parent?.id ?? null) !== data.value.parentId ? (editorData.value.parent?.id ?? null) : undefined,
                     annotations: !objects.deepEquals(editorData.value.annotations.map(i => i.id), data.value.annotations.map(i => i.id)) ? editorData.value.annotations.map(i => i.id) : undefined,
                     keywords: !objects.deepEquals(editorData.value.keywords, data.value.keywords) ? editorData.value.keywords : undefined,
                     description: editorData.value.description !== data.value.description ? editorData.value.description : undefined,
