@@ -118,13 +118,13 @@ object Translator {
         return (if(element.metaType == null) {
             //未标记类型时，按tag->topic->author的顺序，依次进行搜索。由于整个合取项的类型统一，一旦某种类型找到了至少1个结果，就从这个类型返回
             val tagCollector = ErrorCollector<TranslatorError<*>>()
-            val tagResult = element.items.flatMap { queryer.findTag(it, tagCollector) }
+            val tagResult = element.items.flatMap { queryer.findTag(it, tagCollector) }.let { queryer.flatUnionTag(it) }
             if(tagResult.isNotEmpty() || element !is TopicElement<*>) {
                 collector.collect(tagCollector)
                 tagResult to "tag"
             }else{
                 val topicCollector = ErrorCollector<TranslatorError<*>>()
-                val topicResult = element.items.flatMap { queryer.findTopic(it, topicCollector) }
+                val topicResult = element.items.flatMap { queryer.findTopic(it, topicCollector) }.let { queryer.flatUnionTopic(it) }
                 if(topicResult.isNotEmpty() || element !is AuthorElement) {
                     collector.collect(topicCollector)
                     topicResult to "topic"
@@ -138,8 +138,8 @@ object Translator {
         }else when (element.metaType) {
             //标记了类型时，按author->topic->tag的顺序，确定实际的类型是什么，然后根据单一类型确定查询结果
             MetaType.AUTHOR -> (element as AuthorElement).items.flatMap { queryer.findAuthor(it, collector) } to "author"
-            MetaType.TOPIC -> (element as TopicElement<*>).items.flatMap { queryer.findTopic(it, collector) } to "topic"
-            MetaType.TAG -> element.items.flatMap { queryer.findTag(it, collector) } to "tag"
+            MetaType.TOPIC -> (element as TopicElement<*>).items.flatMap { queryer.findTopic(it, collector) }.let { queryer.flatUnionTopic(it) } to "topic"
+            MetaType.TAG -> element.items.flatMap { queryer.findTag(it, collector) }.let { queryer.flatUnionTag(it) } to "tag"
         }).also { (result, _) ->
             if(result.isEmpty()) collector.warning(WholeElementMatchesNone(element.items.map { it.revertToQueryString() }))
             else if(options!= null && result.size >= options.warningLimitOfUnionItems) collector.warning(NumberOfUnionItemExceed(element.items.map { it.revertToQueryString() }, options.warningLimitOfUnionItems))

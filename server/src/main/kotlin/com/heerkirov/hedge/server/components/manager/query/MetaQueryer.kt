@@ -407,6 +407,34 @@ class MetaQueryer(private val data: DataRepository) : Queryer {
         }
     }
 
+    override fun flatUnionTag(tags: List<ElementTag>): List<ElementTag> {
+        if(tags.size <= 1) return tags
+        val ids = tags.map { it.id }.toMutableSet()
+        return tags.filter { tag -> flatFindParent(tag.id, tagItemsPool, ids) }
+    }
+
+    override fun flatUnionTopic(topics: List<ElementTopic>): List<ElementTopic> {
+        if(topics.size <= 1) return topics
+        val ids = topics.map { it.id }.toMutableSet()
+        return topics.filter { topic -> flatFindParent(topic.id, topicItemsPool, ids) }
+    }
+
+    private tailrec fun flatFindParent(tid: Int, pool: CacheMap<Int, out ItemInterfaceWithParent>, idRecords: MutableSet<Int>): Boolean {
+        //同源推定的规则较为简单。记下所有列表中的id，然后将列表中的每个项向上溯源。一旦某个项溯源到了已记录的id，就将其排除在外，同时记录所有溯源过程中的id。
+        //溯源直接使用缓存池。尽管缓存池不是100%确定稳定的，但绝大部分情况下它都已经能确保溯源项的缓存可查了。即使不能溯源，也只是影响优化而不是结果准确度。
+        val cache = pool[tid]
+        return if (cache?.parentId == null) {
+            //找不到项时放弃溯源
+            true
+        } else if(cache.parentId in idRecords) {
+            //发现溯源记录，同时添加自己的id到溯源记录池
+            idRecords.add(tid)
+            false
+        }else{
+            flatFindParent(cache.parentId!!, pool, idRecords)
+        }
+    }
+
     internal fun flushCacheOf(cacheType: QueryManager.CacheType) {
         when (cacheType) {
             QueryManager.CacheType.AUTHOR -> {
@@ -471,13 +499,18 @@ class MetaQueryer(private val data: DataRepository) : Queryer {
     private val tagByStringPool = CacheMap<MetaString, List<TagItem>>(256)
 
     internal interface ItemInterface {
+        val id: Int
         val name: String
         val otherNames: List<String>
     }
 
-    private data class TopicItem(val id: Int, override val name: String, override val otherNames: List<String>, val parentId: Int?, val type: Topic.Type) : ItemInterface
+    private interface ItemInterfaceWithParent : ItemInterface {
+        val parentId: Int?
+    }
 
-    private data class TagItem(val id: Int, override val name: String, override val otherNames: List<String>, val parentId: Int?, val type: Tag.Type, val isGroup: Tag.IsGroup, val color: String?) : ItemInterface
+    private data class TopicItem(override val id: Int, override val name: String, override val otherNames: List<String>, override val parentId: Int?, val type: Topic.Type) : ItemInterfaceWithParent
+
+    private data class TagItem(override val id: Int, override val name: String, override val otherNames: List<String>, override val parentId: Int?, val type: Tag.Type, val isGroup: Tag.IsGroup, val color: String?) : ItemInterfaceWithParent
 
     private data class AnnotationCacheKey(val precise: Boolean, val value: String, val exportedFromAuthor: Boolean, val exportedFromTopic: Boolean, val exportedFromTag: Boolean)
 

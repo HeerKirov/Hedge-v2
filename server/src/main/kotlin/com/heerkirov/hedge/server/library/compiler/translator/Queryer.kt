@@ -18,4 +18,8 @@ interface Queryer {
     fun findAnnotation(metaString: MetaString, metaType: Set<MetaType>, isForMeta: Boolean, collector: ErrorCollector<TranslatorError<*>>): List<ElementAnnotation>
 
     fun findSourceTag(metaString: MetaString, collector: ErrorCollector<TranslatorError<*>>): List<ElementSourceTag>
+
+    fun flatUnionTag(tags: List<ElementTag>): List<ElementTag> = tags
+
+    fun flatUnionTopic(topics: List<ElementTopic>): List<ElementTopic> = topics
 }
