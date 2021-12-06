@@ -1,6 +1,6 @@
-import { Element } from "@/functions/adapter-http/impl/utils-query"
+import { ElementGroup } from "@/functions/adapter-http/impl/utils-query"
 
-export const ELEMENT_TYPES: {[key in Element["type"]]: string} = {
+export const ELEMENT_TYPES: {[key in ElementGroup["type"]]: string} = {
     "name": "名称",
     "annotation": "注解",
     "meta-tag": "标签",

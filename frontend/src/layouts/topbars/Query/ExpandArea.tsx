@@ -1,8 +1,9 @@
 import { defineComponent, PropType } from "vue"
 import {
-    CompileError, QueryPlan, QueryRes, Element, ElementValue,
-    ElementItem, FilterItem, FilterOfOneField, FilterValue
+    CompileError, QueryPlan, QueryRes, ElementGroup, ElementValue,
+    ElementItem, FilterGroup, FilterOfOneField, FilterValue, ElementAuthor, ElementTopic, ElementTag
 } from "@/functions/adapter-http/impl/utils-query"
+import MetaTagCallout, { installMetaTagCallout, useMetaTagCallout } from "@/layouts/data/MetaTagCallout"
 import { arrays } from "@/utils/collections"
 import { ELEMENT_TYPES, FIELD_NAMES } from "./translate"
 import style from "./style.module.scss"
@@ -12,10 +13,13 @@ export default defineComponent({
         schema: {type: Object as PropType<QueryRes>, required: true}
     },
     setup(props) {
+        installMetaTagCallout()
+
         return () => <div class={style.expandArea}>
             {props.schema.queryPlan && <QueryPlanDisplay plan={props.schema.queryPlan}/>}
             {props.schema.errors.map(e => <CompileErrorToast e={e} type="danger"/>)}
             {props.schema.warnings.map(e => <CompileErrorToast e={e} type="warning"/>)}
+            <MetaTagCallout/>
         </div>
     }
 })
@@ -38,7 +42,7 @@ function OrderItemDisplay({ orders }: {orders: string[]}) {
     </div>
 }
 
-function FilterItemDisplay({ filterItem }: {filterItem: FilterItem}) {
+function FilterItemDisplay({ filterItem }: {filterItem: FilterGroup}) {
     return <div class={style.filterItem}>
         <div class={style.exclude}>{filterItem.exclude ? "-" : ""}</div>
         <div class={style.fields}>
@@ -71,7 +75,7 @@ function FilterValueDisplay({ value }: {value: FilterValue}) {
             <span class="tag"><b class={style.prefixSymbol}>{value.includeEnd ? "≤" : "<"}</b>{value.end}</span>
 }
 
-function ElementDisplay({ element }: {element: Element}) {
+function ElementDisplay({ element }: {element: ElementGroup}) {
     const type = ELEMENT_TYPES[element.type]
 
     return <div class={style.element}>
@@ -92,10 +96,24 @@ function ElementItemDisplay({ intersectItem }: {intersectItem: ElementItem<Eleme
 function ElementValueDisplay({ value }: {value: ElementValue}) {
     return value.type === "annotation" ? <span class="tag"><b>[</b><span class="mx-1">{value.name}</span><b>]</b></span>
         : value.type === "source-tag" ? <span class="tag">{value.name}</span>
-        : value.type === "tag" ? <span class={{"tag": true, [`is-${value.color}`]: !!value.color, "is-light": value.tagType !== "TAG"}}>{value.name}</span>
-        : value.type !== undefined ? <span class={{"tag": true, [`is-${value.color}`]: !!value.color}}>{value.name}</span>
+        : value.type !== undefined ? <ElementValueMetaTag value={value}/>
         : /* name */ <span class="tag">{value.value}</span>
 }
+
+const ElementValueMetaTag = defineComponent({
+    props: {
+        value: {type: Object as PropType<ElementAuthor | ElementTopic | ElementTag>, required: true}
+    },
+    setup(props) {
+        const callout = useMetaTagCallout()
+
+        const click = (e: MouseEvent) => callout.open((e.currentTarget as Element).getBoundingClientRect(), props.value.type, props.value.id)
+
+        return () => props.value.type === "tag"
+            ? <a onClick={click} class={{"tag": true, [`is-${props.value.color}`]: !!props.value.color, "is-light": props.value.tagType !== "TAG"}}>{props.value.name}</a>
+            : <a onClick={click} class={{"tag": true, [`is-${props.value.color}`]: !!props.value.color}}>{props.value.name}</a>
+    }
+})
 
 function CompileErrorToast({ e, type }: {e: CompileError, type: "warning" | "danger"}) {
     //TODO 完成所有编译错误信息的翻译

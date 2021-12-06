@@ -26,24 +26,24 @@ export interface QueryRes {
 
 export interface QueryPlan {
     orders: string[]
-    elements: Element[]
-    filters: FilterItem[]
+    elements: ElementGroup[]
+    filters: FilterGroup[]
 }
 
-export type Element = { type: "name", intersectItems: ElementItem<ElementString>[] }
+export type ElementGroup = { type: "name", intersectItems: ElementItem<ElementString>[] }
     | { type: "annotation", intersectItems: ElementItem<ElementAnnotation>[] }
     | { type: "meta-tag", intersectItems: ElementItem<ElementTopic | ElementAuthor | ElementTag>[] }
     | { type: "source-tag", intersectItems: ElementItem<ElementSourceTag>[] }
 export interface ElementItem<V> { exclude: boolean, unionItems: V[] }
 export type ElementValue = ElementString | ElementSourceTag | ElementAnnotation | ElementTopic | ElementAuthor | ElementTag
 interface ElementString { type: undefined, value: string, precise: boolean }
-interface ElementSourceTag { type: "source-tag", id: number, name: string }
-interface ElementAnnotation { type: "annotation", id: number, name: string }
-interface ElementTopic { type: "topic", id: number, name: string, color: string | null }
-interface ElementAuthor { type: "author", id: number, name: string, color: string | null }
-interface ElementTag { type: "tag", id: number, name: string, tagType: TagType, color: string | null, realTags: { id: number, name: string, tagType: TagType }[] }
+export interface ElementSourceTag { type: "source-tag", id: number, name: string }
+export interface ElementAnnotation { type: "annotation", id: number, name: string }
+export interface ElementTopic { type: "topic", id: number, name: string, color: string | null }
+export interface ElementAuthor { type: "author", id: number, name: string, color: string | null }
+export interface ElementTag { type: "tag", id: number, name: string, tagType: TagType, color: string | null, realTags: { id: number, name: string, tagType: TagType }[] }
 
-export interface FilterItem { exclude: boolean, fields: FilterOfOneField[] }
+export interface FilterGroup { exclude: boolean, fields: FilterOfOneField[] }
 export interface FilterOfOneField { name: string, values: FilterValue[] }
 export type FilterValue = { type: "equal", value: string | number }
     | { type: "match", value: string | number }
