@@ -9,7 +9,7 @@ data class AnnotationRes(val id: Int, val name: String, val canBeExported: Boole
 
 data class AnnotationFilter(@Limit val limit: Int,
                             @Offset val offset: Int,
-                            @Search val search: String?,
+                            @Search val query: String?,
                             @Order(options = ["id", "name", "createTime"])
                             val order: List<OrderItem>? = null,
                             val name: String? = null,

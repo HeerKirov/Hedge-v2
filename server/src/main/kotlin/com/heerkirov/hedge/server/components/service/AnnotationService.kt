@@ -6,10 +6,7 @@ import com.heerkirov.hedge.server.components.kit.AnnotationKit
 import com.heerkirov.hedge.server.components.manager.query.QueryManager
 import com.heerkirov.hedge.server.dao.album.AlbumAnnotationRelations
 import com.heerkirov.hedge.server.dao.illust.IllustAnnotationRelations
-import com.heerkirov.hedge.server.dao.meta.Annotations
-import com.heerkirov.hedge.server.dao.meta.AuthorAnnotationRelations
-import com.heerkirov.hedge.server.dao.meta.TagAnnotationRelations
-import com.heerkirov.hedge.server.dao.meta.TopicAnnotationRelations
+import com.heerkirov.hedge.server.dao.meta.*
 import com.heerkirov.hedge.server.exceptions.NotFound
 import com.heerkirov.hedge.server.dto.*
 import com.heerkirov.hedge.server.exceptions.AlreadyExists
@@ -20,6 +17,7 @@ import com.heerkirov.hedge.server.utils.types.anyOpt
 import com.heerkirov.hedge.server.utils.ktorm.compositionContains
 import com.heerkirov.hedge.server.utils.ktorm.compositionEmpty
 import com.heerkirov.hedge.server.utils.ktorm.orderBy
+import com.heerkirov.hedge.server.utils.runIf
 import com.heerkirov.hedge.server.utils.types.ListResult
 import com.heerkirov.hedge.server.utils.types.ascendingOrderItem
 import com.heerkirov.hedge.server.utils.types.toListResult
@@ -35,15 +33,23 @@ class AnnotationService(private val data: DataRepository, private val kit: Annot
     }
 
     fun list(filter: AnnotationFilter): ListResult<AnnotationRes> {
-        return data.db.from(Annotations).select()
+        val schema = if(filter.query.isNullOrBlank()) null else {
+            queryManager.querySchema(filter.query, QueryManager.Dialect.TOPIC).executePlan ?: return ListResult(0, emptyList())
+        }
+        return data.db.from(Annotations)
+            .let { schema?.joinConditions?.fold(it) { acc, join -> if(join.left) acc.leftJoin(join.table, join.condition) else acc.innerJoin(join.table, join.condition) } ?: it }
+            .select()
             .whereWithConditions {
                 if(filter.name != null) { it += Annotations.name eq filter.name }
                 if(filter.canBeExported != null) { it += Annotations.canBeExported eq filter.canBeExported }
                 if(filter.target != null) { it += (Annotations.target compositionContains filter.target) or Annotations.target.compositionEmpty() }
-                if(filter.search != null) { it += Annotations.name like "%${filter.search}%" }
+                if(schema != null && schema.whereConditions.isNotEmpty()) {
+                    it.addAll(schema.whereConditions)
+                }
             }
+            .runIf(schema?.distinct == true) { groupBy(Annotations.id) }
             .limit(filter.offset, filter.limit)
-            .orderBy(orderTranslator, filter.order, default = ascendingOrderItem("id"))
+            .orderBy(orderTranslator, filter.order, schema?.orderConditions, default = ascendingOrderItem("id"))
             .toListResult { newAnnotationRes(Annotations.createEntity(it)) }
     }
 

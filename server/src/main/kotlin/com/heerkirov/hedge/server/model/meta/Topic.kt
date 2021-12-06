@@ -21,11 +21,15 @@ data class Topic(val id: Int,
                  /**
                   * 父标签的id。
                   * 可行的父子关系有：
-                  * copyright的父标签：copyright。
+                  * copyright的父标签：null。
                   * work的父标签：copyright, work。
-                  * character的父标签：copyright, work。
+                  * character的父标签：character, copyright, work。
                   */
                  val parentId: Int?,
+                 /**
+                  * 父根标签的id。
+                  */
+                 val parentRootId: Int?,
                  /**
                   * 标签类型。
                   */

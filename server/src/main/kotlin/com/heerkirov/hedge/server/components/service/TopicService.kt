@@ -18,6 +18,9 @@ import com.heerkirov.hedge.server.exceptions.*
 import com.heerkirov.hedge.server.utils.DateTime
 import com.heerkirov.hedge.server.utils.ktorm.OrderTranslator
 import com.heerkirov.hedge.server.utils.ktorm.orderBy
+import com.heerkirov.hedge.server.utils.runIf
+import com.heerkirov.hedge.server.utils.tuples.Tuple2
+import com.heerkirov.hedge.server.utils.tuples.Tuple3
 import com.heerkirov.hedge.server.utils.types.*
 import org.ktorm.dsl.*
 import org.ktorm.entity.firstOrNull
@@ -38,6 +41,10 @@ class TopicService(private val data: DataRepository,
     }
 
     fun list(filter: TopicFilter): ListResult<TopicRes> {
+        val schema = if(filter.query.isNullOrBlank()) null else {
+            queryManager.querySchema(filter.query, QueryManager.Dialect.TOPIC).executePlan ?: return ListResult(0, emptyList())
+        }
+        val rootAliased = Topics.aliased("tr")
         return data.db.from(Topics)
             .let {
                 if(filter.annotationIds.isNullOrEmpty()) it else {
@@ -48,16 +55,24 @@ class TopicService(private val data: DataRepository,
                     }
                 }
             }
-            .select()
+            .leftJoin(rootAliased, rootAliased.id eq Topics.parentRootId)
+            .let { schema?.joinConditions?.fold(it) { acc, join -> if(join.left) acc.leftJoin(join.table, join.condition) else acc.innerJoin(join.table, join.condition) } ?: it }
+            .select(*Topics.columns.toTypedArray(), rootAliased.id, rootAliased.name, rootAliased.type)
             .whereWithConditions {
                 if(filter.favorite != null) { it += Topics.favorite eq filter.favorite }
                 if(filter.type != null) { it += Topics.type eq filter.type }
                 if(filter.parentId != null) { it += Topics.parentId eq filter.parentId }
-                if(filter.search != null) { it += (Topics.name like "%${filter.search}%") or (Topics.otherNames like "%${filter.search}%") }
+                if(schema != null && schema.whereConditions.isNotEmpty()) {
+                    it.addAll(schema.whereConditions)
+                }
             }
-            .orderBy(orderTranslator, filter.order, default = ascendingOrderItem("id"))
+            .runIf(schema?.distinct == true) { groupBy(Topics.id) }
+            .orderBy(orderTranslator, filter.order, schema?.orderConditions, default = ascendingOrderItem("id"))
             .limit(filter.offset, filter.limit)
-            .toListResult { newTopicRes(Topics.createEntity(it), data.metadata.meta.topicColors) }
+            .toListResult {
+                val root = it[rootAliased.id]?.let { rootId -> Tuple3(rootId, it[rootAliased.name]!!, it[rootAliased.type]!!) }
+                newTopicRes(Topics.createEntity(it), root, data.metadata.meta.topicColors)
+            }
     }
 
     /**
@@ -70,11 +85,11 @@ class TopicService(private val data: DataRepository,
      */
     fun create(form: TopicCreateForm): Int {
         data.db.transaction {
-            val name = kit.validateName(form.name)
+            val (parentId, parentRootId) = if(form.parentId != null) kit.validateParent(form.parentId, form.type) else Tuple2(null, null)
+
+            val name = kit.validateName(form.name, form.type, parentRootId)
             val otherNames = kit.validateOtherNames(form.otherNames)
             val keywords = kit.validateKeywords(form.keywords)
-
-            val parentId = form.parentId?.apply { kit.validateParentType(this, form.type) }
 
             val annotations = kit.validateAnnotations(form.annotations, form.type)
 
@@ -84,6 +99,7 @@ class TopicService(private val data: DataRepository,
                 set(it.name, name)
                 set(it.otherNames, otherNames)
                 set(it.parentId, parentId)
+                set(it.parentRootId, parentRootId)
                 set(it.keywords, keywords)
                 set(it.description, form.description)
                 set(it.type, form.type)
@@ -109,9 +125,10 @@ class TopicService(private val data: DataRepository,
      */
     fun get(id: Int): TopicDetailRes {
         val topic = data.db.sequenceOf(Topics).firstOrNull { it.id eq id } ?: throw be(NotFound())
-        val parent = topic.parentId?.let { parentId -> data.db.sequenceOf(Topics).firstOrNull { it.id eq parentId } }
+        val parents = kit.getAllParents(topic)
+        val children = kit.getAllChildren(topic, data.metadata.meta.topicColors)
         val mappingSourceTags = sourceMappingManager.query(MetaType.TOPIC, id)
-        return newTopicDetailRes(topic, parent, data.metadata.meta.topicColors, mappingSourceTags)
+        return newTopicDetailRes(topic, parents, children, data.metadata.meta.topicColors, mappingSourceTags)
     }
 
     /**
@@ -128,21 +145,27 @@ class TopicService(private val data: DataRepository,
         data.db.transaction {
             val record = data.db.sequenceOf(Topics).firstOrNull { it.id eq id } ?: throw be(NotFound())
 
-            val newName = form.name.letOpt { kit.validateName(it, id) }
+            val newParentId = if(form.parentId.isPresent || form.type.isPresent) {
+                val parentId = form.parentId.unwrapOr { record.parentId }
+                if(parentId != null) optOf(kit.validateParent(parentId, form.type.unwrapOr { record.type }, id))
+                else optOf(Tuple2(null, null))
+            }else undefined()
+
+            val newName = if(form.name.isPresent || newParentId.isPresent || form.type.isPresent) {
+                //name/parentId/type变化时，需要重新校验名称重复
+                val name = form.name.unwrapOr { record.name }
+                val parentRootId = if(newParentId.isPresent) newParentId.unwrap { f2 } else record.parentRootId
+                val type = form.type.unwrapOr { record.type }
+                val validatedName = kit.validateName(name, type, parentRootId, id)
+                //校验通过。只有在name确实变化时，才提交一个opt以更改值
+                if(form.name.isPresent) optOf(validatedName) else undefined()
+            }else undefined()
             val newOtherNames = form.otherNames.letOpt { kit.validateOtherNames(it) }
             val newKeywords = form.keywords.letOpt { kit.validateKeywords(it) }
 
-            val newParentId = if(form.parentId.isPresent || form.type.isPresent) {
-                form.parentId.also {
-                    it.unwrapOr { record.parentId }?.let { parentId ->
-                        kit.validateParentType(parentId, form.type.unwrapOr { record.type }, id)
-                    }
-                }
-            }else undefined()
+            val newAnnotations = form.annotations.letOpt { kit.validateAnnotations(it, form.type.unwrapOr { record.type }) }
 
             form.type.letOpt { type -> kit.checkChildrenType(id, type) }
-
-            val newAnnotations = form.annotations.letOpt { kit.validateAnnotations(it, form.type.unwrapOr { record.type }) }
 
             form.mappingSourceTags.letOpt { sourceMappingManager.update(MetaType.TOPIC, id, it ?: emptyList()) }
 
@@ -151,7 +174,10 @@ class TopicService(private val data: DataRepository,
                     where { it.id eq id }
                     newName.applyOpt { set(it.name, this) }
                     newOtherNames.applyOpt { set(it.otherNames, this) }
-                    newParentId.applyOpt { set(it.parentId, this) }
+                    newParentId.applyOpt {
+                        set(it.parentId, this.f1)
+                        set(it.parentRootId, this.f2)
+                    }
                     newKeywords.applyOpt { set(it.keywords, this) }
                     form.type.applyOpt { set(it.type, this) }
                     form.description.applyOpt { set(it.description, this) }
@@ -162,10 +188,14 @@ class TopicService(private val data: DataRepository,
                 }
             }
 
-
             newAnnotations.letOpt { annotations -> kit.processAnnotations(id, annotations.asSequence().map { it.id }.toSet()) }
 
-            if(newAnnotations.isPresent || (newParentId.isPresent && newParentId.value != record.parentId)) {
+            if((newParentId.isPresent && newParentId.value.f1 != record.parentId) || (form.type.isPresent && form.type.value != record.type)) {
+                //当parent/type变化时，需要重新导出所有children的parentRootId
+                kit.exportChildren(id, form.type.unwrapOr { record.type }, form.parentId.unwrapOr { record.parentId })
+            }
+
+            if(newAnnotations.isPresent || (newParentId.isPresent && newParentId.value.f1 != record.parentId)) {
                 //发生关系类变化时，将关联的illust/album重导出
                 data.db.from(IllustTopicRelations)
                     .select(IllustTopicRelations.illustId)

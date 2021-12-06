@@ -5,9 +5,7 @@ import com.heerkirov.hedge.server.library.compiler.grammar.GrammarAnalyzer
 import com.heerkirov.hedge.server.library.compiler.lexical.LexicalAnalyzer
 import com.heerkirov.hedge.server.library.compiler.lexical.LexicalOptions
 import com.heerkirov.hedge.server.library.compiler.semantic.SemanticAnalyzer
-import com.heerkirov.hedge.server.library.compiler.semantic.dialect.AlbumDialect
-import com.heerkirov.hedge.server.library.compiler.semantic.dialect.IllustDialect
-import com.heerkirov.hedge.server.library.compiler.semantic.dialect.SourceImageDialect
+import com.heerkirov.hedge.server.library.compiler.semantic.dialect.*
 import com.heerkirov.hedge.server.library.compiler.translator.*
 import com.heerkirov.hedge.server.library.compiler.translator.visual.*
 import com.heerkirov.hedge.server.library.compiler.utils.CompileError
@@ -35,6 +33,8 @@ class QueryManager(private val data: DataRepository) {
             val semanticResult = SemanticAnalyzer.parse(grammarResult.result, when (key.dialect) {
                 Dialect.ILLUST -> IllustDialect::class
                 Dialect.ALBUM -> AlbumDialect::class
+                Dialect.AUTHOR, Dialect.TOPIC -> AuthorAndTopicDialect::class
+                Dialect.ANNOTATION -> AnnotationDialect::class
                 Dialect.SOURCE_IMAGE -> SourceImageDialect::class
             })
             if(semanticResult.result == null) {
@@ -43,6 +43,9 @@ class QueryManager(private val data: DataRepository) {
             val builder = when (key.dialect) {
                 Dialect.ILLUST -> IllustExecutePlanBuilder(data.db)
                 Dialect.ALBUM -> AlbumExecutePlanBuilder(data.db)
+                Dialect.AUTHOR -> AuthorExecutePlanBuilder(data.db)
+                Dialect.TOPIC -> TopicExecutePlanBuilder(data.db)
+                Dialect.ANNOTATION -> AnnotationExecutePlanBuilder()
                 Dialect.SOURCE_IMAGE -> SourceImageExecutePlanBuilder(data.db)
             }
             val translatorResult = Translator.parse(semanticResult.result, queryer, builder, options)
@@ -64,7 +67,7 @@ class QueryManager(private val data: DataRepository) {
         queryer.flushCacheOf(cacheType)
     }
 
-    enum class Dialect { ILLUST, ALBUM, SOURCE_IMAGE }
+    enum class Dialect { ILLUST, ALBUM, TOPIC, AUTHOR, ANNOTATION, SOURCE_IMAGE }
 
     enum class CacheType { TAG, TOPIC, AUTHOR, ANNOTATION, SOURCE_TAG }
 

@@ -231,8 +231,8 @@ class TagService(private val data: DataRepository,
                 val newParentId = form.parentId.value
 
                 if(newParentId != null) {
-                    tailrec fun recursiveCheckParent(id: Int, chains: Set<Int>) {
-                        if(id in chains) {
+                    tailrec fun recursiveCheckParent(id: Int) {
+                        if(id == record.id) {
                             //在过去经历过的parent中发现了重复的id，判定存在闭环
                             throw be(RecursiveParentError())
                         }
@@ -245,10 +245,10 @@ class TagService(private val data: DataRepository,
                             //检查parent是否存在
                             ?: throw be(ResourceNotExist("parentId", newParentId))
                         val parentId = parent.value
-                        if(parentId != null) recursiveCheckParent(parentId, chains + id)
+                        if(parentId != null) recursiveCheckParent(parentId)
                     }
 
-                    recursiveCheckParent(newParentId, setOf(id))
+                    recursiveCheckParent(newParentId)
                 }
 
                 //调整旧的parent下的元素顺序

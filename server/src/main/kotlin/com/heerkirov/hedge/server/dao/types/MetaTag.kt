@@ -7,7 +7,7 @@ import java.time.LocalDateTime
 /**
  * 标签表。
  */
-abstract class MetaTag<T : Any>(tableName: String, schema: String? = null) : BaseTable<T>(tableName = tableName, schema = schema) {
+abstract class MetaTag<T : Any>(tableName: String, schema: String? = null, alias: String? = null) : BaseTable<T>(tableName = tableName, schema = schema, alias = alias) {
     abstract val id: Column<Int>
     abstract val name: Column<String>
     abstract val otherNames: Column<List<String>>

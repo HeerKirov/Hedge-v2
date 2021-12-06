@@ -21,7 +21,7 @@ data class AuthorDetailRes(val id: Int, val name: String, val otherNames: List<S
 
 data class AuthorFilter(@Limit val limit: Int,
                         @Offset val offset: Int,
-                        @Search val search: String?,
+                        @Search val query: String?,
                         @Order(options = ["id", "name", "score", "count", "createTime", "updateTime"])
                         val order: List<OrderItem>? = null,
                         val type: Author.Type? = null,
