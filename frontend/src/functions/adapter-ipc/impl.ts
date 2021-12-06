@@ -45,7 +45,7 @@ function createIpcService(): IpcService {
             list: invoke("/channel/list"),
             getDefault: invoke("/channel/get-default"),
             setDefault: invoke("/channel/set-default"),
-            change: invokeSync("/channel/change")
+            change: invoke("/channel/change")
         }
     }
 }

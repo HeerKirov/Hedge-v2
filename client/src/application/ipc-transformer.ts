@@ -25,7 +25,7 @@ export function registerIpcTransformer(service: Service) {
     ipcHandle("/channel/list", service.channel.list)
     ipcHandle("/channel/get-default", service.channel.getDefault)
     ipcHandle("/channel/set-default", service.channel.setDefault)
-    ipcHandleSync("/channel/change", service.channel.change)
+    ipcHandle("/channel/change", service.channel.change)
 
     ipcEvent("/app/state/changed", service.app.onStateChanged)
     ipcEvent("/app/init/changed", service.app.onInitStateChanged)

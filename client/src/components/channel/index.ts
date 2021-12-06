@@ -2,6 +2,7 @@ import { app } from "electron"
 import { readdir, readFile, writeFile } from "../../utils/fs"
 import { DATA_FILE } from "../../definitions/file"
 import { ClientException } from "../../exceptions"
+import { sleep } from "../../utils/process";
 /**
  * 信道和启动参数管理器。它没有初始化函数，但构造函数异步，初始化在所有组件之前，因为需要依赖此组件获得channel属性。
  */
@@ -11,7 +12,7 @@ export interface Channel {
     getChannelList(): Promise<string[]>
     getDefaultChannel(): Promise<string>
     setDefaultChannel(channel: string): Promise<void>
-    restartWithChannel(channel: string): void
+    restartWithChannel(channel: string): Promise<void>
 }
 
 export interface ChannelOptions {
@@ -54,7 +55,9 @@ export async function createChannel(options: ChannelOptions): Promise<Channel> {
 
     async function restartWithChannel(channel: string) {
         //懒得从旧参数里剔除--channel了。放在开头覆盖就行。
-        app.relaunch({args: ["--channel", channel].concat(process.argv.slice(2))})
+        await sleep(100)
+        console.log(`restart with channel ${channel}`)
+        app.relaunch({args: ["--channel", channel, ...process.argv.slice(2)]})
         app.exit(0)
     }
 
