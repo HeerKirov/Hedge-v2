@@ -8,6 +8,7 @@ import com.heerkirov.hedge.server.dao.meta.*
 import com.heerkirov.hedge.server.dao.types.EntityMetaRelationTable
 import com.heerkirov.hedge.server.exceptions.*
 import com.heerkirov.hedge.server.model.album.AlbumImageRelation
+import com.heerkirov.hedge.server.model.illust.Illust
 import com.heerkirov.hedge.server.model.meta.Annotation
 import com.heerkirov.hedge.server.utils.DateTime
 import com.heerkirov.hedge.server.utils.business.checkScore
@@ -16,9 +17,9 @@ import com.heerkirov.hedge.server.utils.ktorm.firstOrNull
 import com.heerkirov.hedge.server.utils.types.Opt
 import org.ktorm.dsl.*
 import org.ktorm.entity.*
+import org.ktorm.schema.ColumnDeclaring
 
-class AlbumKit(private val data: DataRepository,
-               private val metaManager: MetaManager) {
+class AlbumKit(private val data: DataRepository, private val metaManager: MetaManager) {
     /**
      * 检查score的值，不允许其超出范围。
      */
@@ -300,7 +301,13 @@ class AlbumKit(private val data: DataRepository,
      * 应用images列表。对列表进行整体替换。
      */
     fun updateSubImages(thisId: Int, imageIds: List<Int>) {
+        val removedImageIds = data.db.from(AlbumImageRelations)
+            .select(AlbumImageRelations.imageId)
+            .where { AlbumImageRelations.albumId eq thisId }
+            .map { it[AlbumImageRelations.imageId]!! }
+
         data.db.delete(AlbumImageRelations) { it.albumId eq thisId }
+
         data.db.batchInsert(AlbumImageRelations) {
             imageIds.forEachIndexed { index, imageId ->
                 item {
@@ -310,6 +317,8 @@ class AlbumKit(private val data: DataRepository,
                 }
             }
         }
+
+        exportAlbumFlag((imageIds + removedImageIds))
     }
 
     /**
@@ -357,6 +366,8 @@ class AlbumKit(private val data: DataRepository,
         //刷新fileId的条件是indexes第一项是0，也就是说之前的cover被移走了。由于indexes有序，第一项肯定是最小的。
         //或者另一个条件是ordinal/finalOrdinal为0，也就是插入位置是首位。
         refreshFirstCover(thisId, refreshCount = true, refreshFileId = ordinal == 0 || finalOrdinal == 0 || indexes.firstOrNull() == 0)
+
+        exportAlbumFlag(imageIds)
     }
 
     /**
@@ -434,6 +445,8 @@ class AlbumKit(private val data: DataRepository,
 
             //刷新fileId的条件是indexes第一项是0，也就是说之前的cover被删除了。由于indexes有序，第一项肯定是最小的。
             refreshFirstCover(thisId, refreshCount = true, refreshFileId = indexes.first() == 0)
+
+            exportAlbumFlag(imageIds)
         }
     }
 
@@ -445,5 +458,48 @@ class AlbumKit(private val data: DataRepository,
             .filter { (it.albumId eq thisId) and (it.imageId inList imageIds) }
             .sortedBy { it.ordinal.asc() }
             .toList()
+    }
+
+    /**
+     * 重新导出列表中所有images的album flag。随后，再重新导出它们关联的collection。
+     */
+    private fun exportAlbumFlag(imageIds: List<Int>) {
+        val images = data.db.from(Illusts)
+            .leftJoin(AlbumImageRelations, AlbumImageRelations.imageId eq Illusts.id)
+            .select(Illusts.id, Illusts.parentId, count(AlbumImageRelations.albumId).aliased("count"))
+            .where { (Illusts.type notEq Illust.Type.COLLECTION) and (Illusts.id inList imageIds) }
+            .groupBy(Illusts.id)
+            .map { Tuple3(it[Illusts.id]!!, it[Illusts.parentId], it.getInt("count")) }
+
+        if(images.isNotEmpty()) {
+            data.db.batchUpdate(Illusts) {
+                for ((id, _, cnt) in images) {
+                    item {
+                        where { it.id eq id }
+                        set(it.cachedAlbumCount, cnt)
+                    }
+                }
+            }
+
+            val parentIds = images.mapNotNull { (_, parentId, _) -> parentId }.toSet()
+            val j = Illusts.aliased("joined_image")
+            val parents = data.db.from(Illusts)
+                .leftJoin(j, Illusts.id eq j.parentId)
+                .select(Illusts.id, sum((j.cachedAlbumCount greater 0) as ColumnDeclaring<Number>).aliased("count"))
+                .where { (Illusts.type eq Illust.Type.COLLECTION) and (Illusts.id inList parentIds) }
+                .groupBy(Illusts.id)
+                .map { Tuple2(it[Illusts.id]!!, it.getInt("count")) }
+
+            if(parents.isNotEmpty()) {
+                data.db.batchUpdate(Illusts) {
+                    for ((id, cnt) in parents) {
+                        item {
+                            where { it.id eq id }
+                            set(it.cachedAlbumCount, cnt)
+                        }
+                    }
+                }
+            }
+        }
     }
 }

@@ -60,13 +60,13 @@ interface OrderByColumn<ORDER> : ExecuteBuilder {
 }
 
 interface FilterByColumn : ExecuteBuilder {
-    fun getFilterDeclareMapping(field: FilterFieldDefinition<*>): Column<*>
+    fun getFilterDeclareMapping(field: FilterFieldDefinition<*>): ColumnDeclaring<*>
 
     fun addWhereCondition(whereCondition: ColumnDeclaring<Boolean>)
 
     fun mapFilterSpecial(field: FilterFieldDefinition<*>, value: Any): Any
 
-    fun mapCompositionFilterSpecial(field: FilterFieldDefinition<*>, column: Column<*>, values: Collection<Any>): ColumnDeclaring<Boolean> {
+    fun mapCompositionFilterSpecial(field: FilterFieldDefinition<*>, column: ColumnDeclaring<*>, values: Collection<Any>): ColumnDeclaring<Boolean> {
         throw RuntimeException("Implemented composition field ${field.key}.")
     }
 
@@ -77,33 +77,31 @@ interface FilterByColumn : ExecuteBuilder {
                 @Suppress("UNCHECKED_CAST")
                 when (filter) {
                     is EqualFilter<*> -> if (filter.values.size == 1) {
-                        (column as Column<Any>) eq mapFilterSpecial(filter.field, filter.values.first().equalValue)
+                        (column as ColumnDeclaring<Any>) eq mapFilterSpecial(filter.field, filter.values.first().equalValue)
                     } else {
-                        (column as Column<Any>) inList filter.values.map { mapFilterSpecial(filter.field, it.equalValue) }
+                        (column as ColumnDeclaring<Any>) inList filter.values.map { mapFilterSpecial(filter.field, it.equalValue) }
                     }
                     is MatchFilter<*> -> filter.values.map { column escapeLike MetaParserUtil.mapMatchToSqlLike(mapFilterSpecial(filter.field, it.matchValue) as String) }.reduce { a, b -> a or b }
                     is RangeFilter<*> -> {
                         val conditions = ArrayList<ScalarExpression<Boolean>>(2)
                         if (filter.begin != null) {
                             conditions.add(if (filter.includeBegin) {
-                                (column as Column<Comparable<Any>>) greaterEq mapFilterSpecial(filter.field, filter.begin.compareValue) as Comparable<Any>
+                                (column as ColumnDeclaring<Comparable<Any>>) greaterEq mapFilterSpecial(filter.field, filter.begin.compareValue) as Comparable<Any>
                             } else {
-                                (column as Column<Comparable<Any>>) greater mapFilterSpecial(filter.field, filter.begin.compareValue) as Comparable<Any>
+                                (column as ColumnDeclaring<Comparable<Any>>) greater mapFilterSpecial(filter.field, filter.begin.compareValue) as Comparable<Any>
                             })
                         }
                         if (filter.end != null) {
                             conditions.add(if (filter.includeEnd) {
-                                (column as Column<Comparable<Any>>) lessEq mapFilterSpecial(filter.field, filter.end.compareValue) as Comparable<Any>
+                                (column as ColumnDeclaring<Comparable<Any>>) lessEq mapFilterSpecial(filter.field, filter.end.compareValue) as Comparable<Any>
                             } else {
-                                (column as Column<Comparable<Any>>) less mapFilterSpecial(filter.field, filter.end.compareValue) as Comparable<Any>
+                                (column as ColumnDeclaring<Comparable<Any>>) less mapFilterSpecial(filter.field, filter.end.compareValue) as Comparable<Any>
                             })
                         }
                         conditions.reduce { a, b -> a and b }
                     }
                     is CompositionFilter<*> -> mapCompositionFilterSpecial(filter.field, column, filter.values.map { it.equalValue })
-                    is FlagFilter -> {
-                        (column as Column<Boolean>).asExpression()
-                    }
+                    is FlagFilter -> column as ColumnDeclaring<Boolean>
                     else -> throw RuntimeException("Unsupported filter type ${filter::class.simpleName}.")
                 }
             }.reduce { a, b -> a or b }.let {
@@ -155,6 +153,7 @@ class IllustExecutePlanBuilder(private val db: Database) : ExecutePlanBuilder, O
     private val filterDeclareMapping = mapOf(
         IllustDialect.id to Illusts.id,
         IllustDialect.favorite to Illusts.favorite,
+        IllustDialect.albumMember to (((Illusts.type notEq Illust.Type.COLLECTION) and (Illusts.cachedAlbumCount greater 0)) or (((Illusts.type eq Illust.Type.COLLECTION) and (Illusts.cachedAlbumCount eq Illusts.cachedChildrenCount)))),
         IllustDialect.score to Illusts.exportedScore,
         IllustDialect.partition to Illusts.partitionTime,
         IllustDialect.ordinal to Illusts.orderTime,
@@ -173,7 +172,7 @@ class IllustExecutePlanBuilder(private val db: Database) : ExecutePlanBuilder, O
         return orderDeclareMapping[order]!!
     }
 
-    override fun getFilterDeclareMapping(field: FilterFieldDefinition<*>): Column<*> {
+    override fun getFilterDeclareMapping(field: FilterFieldDefinition<*>): ColumnDeclaring<*> {
         if(field == IllustDialect.sourceDescription) {
             joinSourceImage = true
         }
@@ -196,7 +195,7 @@ class IllustExecutePlanBuilder(private val db: Database) : ExecutePlanBuilder, O
         }
     }
 
-    override fun mapCompositionFilterSpecial(field: FilterFieldDefinition<*>, column: Column<*>, values: Collection<Any>): ColumnDeclaring<Boolean> {
+    override fun mapCompositionFilterSpecial(field: FilterFieldDefinition<*>, column: ColumnDeclaring<*>, values: Collection<Any>): ColumnDeclaring<Boolean> {
         return when (field) {
             IllustDialect.tagme -> {
                 val tagme = if(values.isEmpty()) Illust.Tagme.baseElements.union() else values.map {
@@ -208,7 +207,7 @@ class IllustExecutePlanBuilder(private val db: Database) : ExecutePlanBuilder, O
                     }
                 }.union()
                 @Suppress("UNCHECKED_CAST")
-                (column as Column<Illust.Tagme>) compositionAny tagme
+                (column as ColumnDeclaring<Illust.Tagme>) compositionAny tagme
             }
             else -> super.mapCompositionFilterSpecial(field, column, values)
         }

@@ -31,6 +31,10 @@ data class Illust(val id: Int,
                    */
                   val cachedChildrenCount: Int = 0,
                   /**
+                   * [cache field]image的关联album数量，或者collection的子项中至少关联了1个album的项的数量。
+                   */
+                  val cachedAlbumCount: Int = 0,
+                  /**
                    * 链接的来源网站的图像id。
                    */
                   val sourceImageId: Int? = null,
