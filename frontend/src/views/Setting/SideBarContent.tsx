@@ -1,6 +1,5 @@
 import { defineComponent, toRef } from "vue"
 import { useRoute, useRouter } from "vue-router"
-import style from "./style.module.scss"
 
 /**
  * 主页面的侧栏内容的框架模块。只提供布局框架，以及基本功能，比如折叠按钮，以及底栏的基本功能按钮。
@@ -45,10 +44,8 @@ const settings: SettingScope[] = [
     {
         label: "应用程序",
         list: [
-            {route: "SettingAppSecurity", name: "认证", icon: "key"},
-            {route: "SettingAppearance", name: "外观", icon: "cloud-sun"},
-            {route: "SettingWebAccess", name: "局域网访问", icon: "network-wired"},
-            {route: "SettingBackup", name: "备份与还原", icon: "sync-alt"}
+            {route: "SettingAppGeneral", name: "通用", icon: "cloud-sun"},
+            {route: "SettingWebAccess", name: "局域网访问", icon: "network-wired"}
         ]
     },
     {

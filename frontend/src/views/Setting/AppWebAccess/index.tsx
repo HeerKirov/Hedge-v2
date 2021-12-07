@@ -36,6 +36,7 @@ export default defineComponent({
             </div> : <div class="block">
                 <p class="is-size-6"><i class="fa fa-network-wired mr-1"/>局域网Web访问: 已关闭</p>
                 <p class="mt-3 mb-1">局域网Web访问服务允许通过浏览器，在本机或同一局域网上的其他电脑使用Hedge。</p>
+                <p><i>局域网访问功能处于实验中。</i></p>
                 <button class="button mt-2 is-white" onClick={() => data.value!.access = true}><i class="fa fa-door-open mr-1"/>启动Web访问</button>
             </div>}
             <p class="mt-3 mb-3 is-size-medium">Web访问服务选项</p>

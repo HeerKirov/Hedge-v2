@@ -1,14 +1,14 @@
-import { computed, defineComponent, inject, ref, watch } from "vue"
+import { computed, defineComponent, ref, watch } from "vue"
 import { Site } from "@/functions/adapter-http/impl/setting-source"
 import SelectList from "@/components/forms/SelectList"
 import Input from "@/components/forms/Input"
 import CheckBox from "@/components/forms/CheckBox"
-import { settingSiteInjection } from "."
+import { useSettingSite } from "@/functions/api/setting"
 import style from "./style.module.scss"
 
 export default defineComponent({
     setup() {
-        const { data, createItem, updateItem, deleteItem } = inject(settingSiteInjection)!
+        const { data, createItem, updateItem, deleteItem } = useSettingSite()
 
         const sites = computed(() => data.value.map(site => ({name: site.title, value: `_${site.name}`})).concat([{name: "新建站点…", value: "CREATE"}]))
 

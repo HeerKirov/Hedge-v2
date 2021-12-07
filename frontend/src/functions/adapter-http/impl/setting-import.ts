@@ -51,10 +51,6 @@ export interface ImportOption {
      * source分析的规则列表。
      */
     sourceAnalyseRules: SourceAnalyseRule[]
-    /**
-     * 指定系统的下载历史数据库位置。null表示不设定。
-     */
-    systemDownloadHistoryPath: string | null
 }
 
 export interface ImportOptionUpdateForm {
@@ -76,7 +72,7 @@ export type TimeType = "IMPORT_TIME" | "CREATE_TIME" | "UPDATE_TIME"
  * 一条source解析规则。
  */
 export interface SourceAnalyseRule {
-    type: "name" | "from-meta" | "system-history"
+    type: "name" | "from-meta"
     site: string
     regex: string
     idIndex: number

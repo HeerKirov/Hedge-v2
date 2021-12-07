@@ -12,27 +12,17 @@ export default <RouteRecordRaw[]>[
             {
                 name: 'SettingIndex',
                 path: '',
-                redirect: {name: "SettingAppSecurity"}
+                redirect: {name: "SettingAppGeneral"}
             },
             {
-                name: 'SettingAppSecurity',
-                path: 'app/security',
-                component: () => import('@/views/Setting/AppSecurity')
-            },
-            {
-                name: 'SettingAppearance',
-                path: 'app/appearance',
-                component: () => import('@/views/Setting/AppAppearance')
+                name: 'SettingAppGeneral',
+                path: 'app/general',
+                component: () => import('@/views/Setting/AppGeneral')
             },
             {
                 name: 'SettingWebAccess',
                 path: 'app/web-access',
                 component: () => import('@/views/Setting/AppWebAccess')
-            },
-            {
-                name: 'SettingBackup',
-                path: 'app/backup',
-                component: () => import('@/views/Setting/AppBackup')
             },
             {
                 name: 'SettingDBMeta',
@@ -47,7 +37,7 @@ export default <RouteRecordRaw[]>[
             {
                 name: 'SettingDBOrigin',
                 path: 'db/origin',
-                component: () => import('@/views/Setting/DBOrigin')
+                component: () => import('@/views/Setting/DBSource')
             },
             {
                 name: 'SettingDBImport',

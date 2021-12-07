@@ -1,0 +1,20 @@
+@import "@/styles/base/size.sass";
+@import "@/styles/base/color.scss";
+
+.root {
+  .site-board {
+    $height: 12.5rem;
+    display: flex;
+    flex-flow: nowrap;
+    > .left {
+      width: 45%;
+      height: $height;
+      padding-right: 0.5rem;
+    }
+    > .right {
+      width: 55%;
+      height: $height;
+      margin-left: 0.5rem;
+    }
+  }
+}

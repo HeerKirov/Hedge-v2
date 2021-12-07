@@ -1,11 +1,12 @@
-import { defineComponent, PropType, ref, watch } from "vue"
+import { computed, defineComponent, PropType, ref, watch } from "vue"
 import Input from "@/components/forms/Input"
+import Select from "@/components/forms/Select"
 import CheckBox from "@/components/forms/CheckBox"
 import StdColorSelector from "@/components/forms/StdColorSelector"
 import { TopicType } from "@/functions/adapter-http/impl/topic"
 import { AuthorType } from "@/functions/adapter-http/impl/author"
 import { useSettingMeta } from "@/functions/api/setting"
-import style from "./style.module.scss"
+import { arrays } from "@/utils/collections"
 
 export default defineComponent({
     setup() {
@@ -18,7 +19,7 @@ export default defineComponent({
             }
         }
 
-        return () => loading.value ? <div/> : <div class={style.root}>
+        return () => loading.value ? <div/> : <div>
             <p class="mb-1 is-size-medium">元数据选项</p>
             <label class="label mt-2">标签颜色</label>
             <MetaColorBoard topicColors={data.value!.topicColors} authorColors={data.value!.authorColors} onUpdateTopic={v => data.value!.topicColors = v} onUpdateAuthor={v => data.value!.authorColors = v}/>
@@ -76,16 +77,25 @@ const ScoreBoard = defineComponent({
     },
     emits: ["update"],
     setup(props, { emit }) {
+        const selectListItems = arrays.newArray(10, i => ({value: (10 - i).toString(), name: `${10 - i} 分`}))
+
         const descriptions = ref<{score: number, word: string, content: string}[]>(mapDescriptionFromData(props.descriptions, 10))
 
+        const selectedScore = ref<number>(10)
+        const selectedDescription = computed(() => selectedScore.value ? descriptions.value[selectedScore.value - 1] : undefined)
+
         const changed = ref(false)
-        const onChangeDescriptionWord = (index: number) => (v: string) => {
-            descriptions.value[index].word = v
-            changed.value = true
+        const changeDescriptionWord = (v: string) => {
+            if(selectedScore.value) {
+                descriptions.value[selectedScore.value - 1].word = v
+                changed.value = true
+            }
         }
-        const onChangeDescriptionContent = (index: number) => (v: string) => {
-            descriptions.value[index].content = v
-            changed.value = true
+        const changeDescriptionContent = (v: string) => {
+            if(selectedScore.value) {
+                descriptions.value[selectedScore.value - 1].content = v
+                changed.value = true
+            }
         }
 
         const save = () => {
@@ -101,12 +111,14 @@ const ScoreBoard = defineComponent({
         })
 
         return () => <div>
-            {descriptions.value.map(({ score, word, content }, index) => <div key={score} class={style.scoreDescription}>
-                <span class={style.score}>{score}</span>
-                <Input class={[style.word, "is-small"]} value={word} onUpdateValue={onChangeDescriptionWord(index)}/>
-                <Input class={[style.content, "is-small"]} value={content} onUpdateValue={onChangeDescriptionContent(index)}/>
-            </div>)}
-            {changed.value && <button class="button is-small is-info mt-1" onClick={save}><span class="icon"><i class="fa fa-save"/></span><span>保存更改</span></button>}
+            <div>
+                <Select items={selectListItems} value={selectedScore.value?.toString()} onUpdateValue={v => selectedScore.value = parseInt(v)}/>
+                {changed.value && <button class="button is-small is-info mt-half ml-2" onClick={save}><span class="icon"><i class="fa fa-save"/></span><span>保存更改</span></button>}
+            </div>
+            <div class="mt-1">
+                <Input class="is-small" placeholder="简述" value={selectedDescription.value?.word} onUpdateValue={changeDescriptionWord}/>
+                <Input class="is-small ml-1 is-width-2x" placeholder="详述" value={selectedDescription.value?.content} onUpdateValue={changeDescriptionContent}/>
+            </div>
         </div>
     }
 })

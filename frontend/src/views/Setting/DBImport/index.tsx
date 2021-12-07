@@ -1,8 +1,6 @@
 import { defineComponent, inject, InjectionKey, provide, Ref, ref } from "vue"
 import { ImportOption, TimeType } from "@/functions/adapter-http/impl/setting-import"
-import { dialogManager } from "@/functions/module/dialog"
 import { usePropertySot } from "@/functions/utils/properties/setter-property"
-import Input from "@/components/forms/Input"
 import CheckBox from "@/components/forms/CheckBox"
 import NumberInput from "@/components/forms/NumberInput"
 import Select from "@/components/forms/Select"
@@ -20,7 +18,6 @@ export default defineComponent({
             <AutoOptionsBoard/>
             <TimeTypeBoard/>
             <PartitionTimeDelayBoard/>
-            <HistoryPathBoard/>
             <SourceAnalyseRuleBoard/>
         </div>
     }
@@ -85,34 +82,6 @@ const PartitionTimeDelayBoard = defineComponent({
                 {partitionTimeDelaySot.value && <button class="square button is-info" onClick={savePartitionTimeDelay}><span class="icon"><i class="fa fa-save"/></span></button>}
             </div>
             <p class="is-size-7 has-text-grey">从创建时间生成分区时间时，会将0点以后延迟一定时间内的时间点仍然视作前一天。</p>
-        </div>
-    }
-})
-
-const HistoryPathBoard = defineComponent({
-    setup() {
-        const data = inject(dataInjection)!
-
-        const [ historyPath, historyPathSot, setHistoryPath, saveHistoryPath ] = usePropertySot(ref(data.value?.systemDownloadHistoryPath ?? ""),
-            () => data.value?.systemDownloadHistoryPath,
-            newValue => newValue || "",
-            v => data.value!.systemDownloadHistoryPath = v || null)
-
-        const selectHistoryPath = async () => {
-            const res = await dialogManager.openDialog({properties: ["openFile"], defaultPath: "~/Library"})
-            if(res) {
-                setHistoryPath(res[0])
-            }
-        }
-
-        return () => <div class="mt-2">
-            <label class="label">系统下载数据库位置</label>
-            <div class="group mt-1">
-                <Input class="is-small is-width-2x" value={historyPath.value} onUpdateValue={setHistoryPath} refreshOnInput={true}/>
-                <button class="button is-small is-info" onClick={selectHistoryPath}><span class="icon"><i class="fa fa-folder-open"/></span><span>选择数据库…</span></button>
-                {historyPathSot.value && <button class="square button is-small is-info" onClick={saveHistoryPath}><span class="icon"><i class="fa fa-save"/></span></button>}
-            </div>
-            <p class="is-size-7 has-text-grey">当使用"从系统下载数据库"分析功能时，所引用的数据库。</p>
         </div>
     }
 })

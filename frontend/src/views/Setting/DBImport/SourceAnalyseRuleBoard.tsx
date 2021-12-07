@@ -187,12 +187,10 @@ function generateRuleName(rule: SourceAnalyseRule): string {
 
 const ruleTypes = [
     {value: "name", name: "按文件名"},
-    {value: "from-meta", name: "按文件元数据:下载来源"},
-    {value: "system-history", name: "从系统下载历史搜索"}
+    {value: "from-meta", name: "按文件元数据:下载来源"}
 ]
 
 const ruleIntroduction = {
     ["name"]: "使用正则表达式匹配文件名不包含扩展名的部分。",
-    ["from-meta"]: "尝试使用正则表达式匹配文件元数据中\"下载来源\"URL。",
-    ["system-history"]: "在系统的下载历史数据库中，尝试按文件名搜索下载项，随后尝试使用正则表达式匹配此文件的源URL。"
+    ["from-meta"]: "尝试使用正则表达式匹配文件元数据中\"下载来源\"URL。"
 }

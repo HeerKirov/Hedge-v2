@@ -1,16 +1,54 @@
 import { defineComponent, PropType, ref } from "vue"
-import { useAppInfo } from "@/functions/app"
-import { useAuthSetting } from "@/functions/app/app-settings"
-import { clientPlatform } from "@/functions/adapter-ipc"
-import CheckBox from "@/components/forms/CheckBox"
 import Input from "@/components/forms/Input"
+import CheckBox from "@/components/forms/CheckBox"
+import { useAppearance, useAppInfo } from "@/functions/app"
+import { clientPlatform, NativeTheme } from "@/functions/adapter-ipc"
+import { useAuthSetting } from "@/functions/app/app-settings"
 
 export default defineComponent({
+    setup() {
+        return () => <div>
+            <Appearance/>
+            <Security/>
+        </div>
+    }
+})
+
+const Appearance = defineComponent({
+    setup() {
+        const appearance = useAppearance()
+
+        const onClick = (value: NativeTheme) => () => {
+            if(appearance.value) {
+                appearance.value.theme = value
+            }
+        }
+
+        return () => appearance.value && <div class="mb-6">
+            <p class="is-size-medium">外观选项</p>
+            <label class="label mt-2">主题</label>
+            <div class="mt-2">
+                {buttons.map(([name, title, icon, style]) => <button onClick={onClick(name)} class={`button ${appearance.value?.theme === name ? "is-info" : ""} ${style}`}>
+                    <span class="icon"><i class={`fa fa-${icon}`}/></span>
+                    {appearance.value?.theme === name && <span>{title}</span>}
+                </button>)}
+            </div>
+        </div>
+    }
+})
+
+const buttons: [NativeTheme, string, string, string][] = [
+    ["light", "标准模式", "sun", "no-radius-right"],
+    ["dark", "暗黑模式", "moon", "no-radius-right no-radius-left"],
+    ["system", "跟随系统", "cloud-sun", "no-radius-left"]
+]
+
+const Security = defineComponent({
     setup() {
         const appInfo = useAppInfo()
         const authSetting = useAuthSetting()
 
-        return () => authSetting.value === undefined ? <div/> : <div>
+        return () => authSetting.value && <div>
             <p class="mb-1 is-size-medium">安全选项</p>
             <PasswordBox password={authSetting.value?.password} onUpdate={v => authSetting.value!.password = v}/>
             {clientPlatform === "darwin" && <div class="mt-4">
