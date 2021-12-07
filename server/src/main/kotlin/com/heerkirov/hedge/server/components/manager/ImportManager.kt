@@ -51,7 +51,7 @@ class ImportManager(private val data: DataRepository, private val importMetaMana
 
         val (source, sourceId, sourcePart) = if(options.autoAnalyseMeta) {
             try {
-                importMetaManager.analyseSourceMeta(fileName, fileFromSource, fileCreateTime)
+                importMetaManager.analyseSourceMeta(fileName, fileFromSource)
             }catch (e: BusinessException) {
                 warnings.add(e.exception)
                 Triple(null, null, null)

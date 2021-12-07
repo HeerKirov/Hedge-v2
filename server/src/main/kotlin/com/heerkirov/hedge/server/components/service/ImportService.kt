@@ -197,7 +197,7 @@ class ImportService(private val data: DataRepository,
 
             for(record in records) {
                 val (source, sourceId, sourcePart) = try {
-                    importMetaManager.analyseSourceMeta(record.fileName, record.fileFromSource, record.fileCreateTime)
+                    importMetaManager.analyseSourceMeta(record.fileName, record.fileFromSource)
                 }catch (e: BusinessException) {
                     errors[record.id] = ErrorResult(e.exception)
                     continue

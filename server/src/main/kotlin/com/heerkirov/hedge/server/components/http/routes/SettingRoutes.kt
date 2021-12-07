@@ -13,7 +13,6 @@ class SettingRoutes(settingMetaService: SettingMetaService,
                     settingQueryService: SettingQueryService,
                     settingImportService: SettingImportService,
                     settingSourceService: SettingSourceService,
-                    settingSpiderService: SettingSpiderService,
                     settingAppdataService: SettingAppdataService) : Endpoints {
     override fun handle(javalin: Javalin) {
         javalin.routes {
@@ -52,11 +51,6 @@ class SettingRoutes(settingMetaService: SettingMetaService,
                             delete(site::delete)
                         }
                     }
-                    path("spider") {
-                        get("usable-rules", spider::getRuleList)
-                        get(spider::get)
-                        patch(spider::update)
-                    }
                 }
                 path("file") {
                     get(::notImplemented)
@@ -70,7 +64,6 @@ class SettingRoutes(settingMetaService: SettingMetaService,
     private val query = Query(settingQueryService)
     private val import = Import(settingImportService)
     private val site = Site(settingSourceService)
-    private val spider = Spider(settingSpiderService)
     private val web = Web(settingAppdataService)
     private val service = Service(settingAppdataService)
     private val proxy = Proxy(settingAppdataService)
@@ -171,21 +164,6 @@ class SettingRoutes(settingMetaService: SettingMetaService,
             val name = ctx.pathParam("name")
             service.delete(name)
             ctx.status(204)
-        }
-    }
-
-    private class Spider(private val service: SettingSpiderService) {
-        fun getRuleList(ctx: Context) {
-            ctx.json(service.getSpiderRuleList())
-        }
-
-        fun get(ctx: Context) {
-            ctx.json(service.get())
-        }
-
-        fun update(ctx: Context) {
-            val form = ctx.bodyAsForm<SpiderOptionUpdateForm>()
-            service.update(form)
         }
     }
 }

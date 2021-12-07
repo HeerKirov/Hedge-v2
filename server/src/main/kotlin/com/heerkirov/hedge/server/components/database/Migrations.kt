@@ -31,19 +31,7 @@ object MetadataMigrationStrategy : JsonObjectStrategy<Metadata>(Metadata::class)
                 setTagmeOfSource = true,
                 setTimeBy = ImportOption.TimeType.UPDATE_TIME,
                 setPartitionTimeDelay = null,
-                sourceAnalyseRules = emptyList(),
-                systemDownloadHistoryPath = null
-            ),
-            spider = SpiderOption(
-                rules = mutableMapOf(),
-                publicRule = SpiderOption.SpiderRule(
-                    useProxy = false,
-                    disableProxyAfterTimes = null,
-                    timeout = 15000,
-                    retryCount = 3,
-                    tryInterval = 8000
-                ),
-                siteRules = emptyMap()
+                sourceAnalyseRules = emptyList()
             )
         )
     }

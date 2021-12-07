@@ -75,7 +75,6 @@ class HttpServerImpl(private val allServices: AllServices,
                 allServices.settingQuery,
                 allServices.settingImport,
                 allServices.settingSource,
-                allServices.settingSpider,
                 allServices.settingAppdata))
             .handle(UtilQueryRoutes(allServices.queryService))
             .handle(UtilMetaRoutes(allServices.metaUtilService))

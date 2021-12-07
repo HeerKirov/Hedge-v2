@@ -1,6 +1,6 @@
 plugins {
     application
-    kotlin("jvm").version("1.5.30")
+    kotlin("jvm").version("1.6.0")
     id("com.github.johnrengelman.shadow").version("4.0.3")
     id("org.beryx.jlink").version("2.24.1")
 }
@@ -9,7 +9,7 @@ group = "com.heerkirov.hedge.server"
 version = "0.1.0"
 
 dependencies {
-    val kotlinVersion = "1.5.30"
+    val kotlinVersion = "1.6.0"
     val javalinVersion = "4.1.1"
     val ktormVersion = "3.4.1"
     val sqliteVersion = "3.36.0"
@@ -43,7 +43,7 @@ dependencies {
     testImplementation(group = "junit", name = "junit", version = junitVersion)
 }
 
-val javaVersion = "11"
+val javaVersion = "17"
 val projectMainModule = "com.heerkirov.hedge.server"
 val projectMainClass = "com.heerkirov.hedge.server.ApplicationKt"
 val projectBinaryName = "hedge-v2-server"
@@ -56,20 +56,19 @@ application {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
 }
 
 
 repositories {
     mavenCentral()
-    jcenter()
 }
 
 sourceSets {
     //使开发模式下的gradle能正确处理资源文件的位置，防止读取不到
     main.configure {
-        output.setResourcesDir(java.outputDir)
+        output.setResourcesDir(java.classesDirectory)
     }
 }
 
@@ -86,7 +85,7 @@ tasks {
     compileTestKotlin {
         kotlinOptions.jvmTarget = javaVersion
     }
-    compileKotlin.get().destinationDir = compileJava.get().destinationDir
+    compileKotlin.get().destinationDirectory.set(compileJava.get().destinationDirectory)
 
     shadowJar {
         manifestContentCharset = "utf-8"

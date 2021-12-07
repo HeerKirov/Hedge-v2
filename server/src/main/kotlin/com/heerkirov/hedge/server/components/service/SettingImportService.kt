@@ -32,7 +32,6 @@ class SettingImportService(private val data: DataRepository) {
                 form.setTagmeOfSource.alsoOpt { import.setTagmeOfSource = it }
                 form.setTimeBy.alsoOpt { import.setTimeBy = it }
                 form.setPartitionTimeDelay.alsoOpt { import.setPartitionTimeDelay = it }
-                form.systemDownloadHistoryPath.alsoOpt { import.systemDownloadHistoryPath = it }
                 form.sourceAnalyseRules.alsoOpt { import.sourceAnalyseRules = it }
             }
         }

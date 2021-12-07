@@ -9,8 +9,7 @@ data class Metadata(
     val meta: MetaOption,
     val query: QueryOption,
     val source: SourceOption,
-    val import: ImportOption,
-    val spider: SpiderOption
+    val import: ImportOption
 )
 
 data class MetaOption(
@@ -97,11 +96,7 @@ data class ImportOption(
     /**
      * 解析来源时，使用的规则列表。
      */
-    var sourceAnalyseRules: List<SourceAnalyseRule>,
-    /**
-     * 指定系统的下载历史数据库的位置路径。
-     */
-    var systemDownloadHistoryPath: String?,
+    var sourceAnalyseRules: List<SourceAnalyseRule>
 ) {
     enum class TimeType {
         IMPORT_TIME,
@@ -112,8 +107,7 @@ data class ImportOption(
     @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
     @JsonSubTypes(value = [
         JsonSubTypes.Type(value = SourceAnalyseRuleByName::class, name = "name"),
-        JsonSubTypes.Type(value = SourceAnalyseRuleByFromMeta::class, name = "from-meta"),
-        JsonSubTypes.Type(value = SourceAnalyseRuleBySystemHistory::class, name = "system-history")
+        JsonSubTypes.Type(value = SourceAnalyseRuleByFromMeta::class, name = "from-meta")
     ])
     interface SourceAnalyseRule { val site: String }
 
@@ -135,54 +129,4 @@ data class ImportOption(
      * @param regex 使用此正则表达式匹配并分析下载来源URL，分析id。
      */
     class SourceAnalyseRuleByFromMeta(override val site: String, override val regex: String, override val idIndex: Int, override val secondaryIdIndex: Int?) : SourceAnalyseRuleOfRegex
-
-    /**
-     * 规则类型system-history：通过查阅系统下载历史数据库来分析。仅对macOS有效。
-     * 这是一个用法比较狭隘的分析法。macOS有一个记载下载历史的数据库，如果已经丢失了文件的所有可供分析的元信息但仍保留文件名，那么可以尝试通过查询下载历史得到下载来源。
-     * 也不是所有的下载历史查询都能得到正确的下载来源，但至少是最后的保留手段。
-     * @param pattern 在{LSQuarantineDataURLString}列中，使用此正则表达式匹配文件名。
-     * @param regex 在{LSQuarantineOriginURLString}列中，使用此正则表达式匹配并分析id。
-     */
-    class SourceAnalyseRuleBySystemHistory(override val site: String, override val regex: String, override val idIndex: Int, override val secondaryIdIndex: Int?) : SourceAnalyseRuleOfRegex
-}
-
-/**
- * 与爬虫相关的选项。
- */
-data class SpiderOption(
-    /**
-     * 爬虫算法的配对规则。key:value=siteName:爬虫算法名称。爬虫算法名称在系统中写死。
-     */
-    var rules: Map<String, String>,
-    /**
-     * 全局的爬虫规则。
-     */
-    var publicRule: SpiderRule,
-    /**
-     * 针对每种不同的site单独设置的爬虫规则。这些规则可空，空时从全局取默认值。
-     */
-    var siteRules: Map<String, SpiderRule>
-) {
-    class SpiderRule(
-        /**
-         * 开启使用代理。
-         */
-        val useProxy: Boolean,
-        /**
-         * 在失败指定的次数后，移除代理并尝试直连。设为null表示总是使用代理。
-         */
-        val disableProxyAfterTimes: Int?,
-        /**
-         * 单次请求多久未响应视作超时，单位毫秒。
-         */
-        val timeout: Long,
-        /**
-         * 失败重试的次数。
-         */
-        val retryCount: Int,
-        /**
-         * 在完成一个项目后等待多长时间，防止因频率过高引起的封禁。
-         */
-        val tryInterval: Long
-    )
 }

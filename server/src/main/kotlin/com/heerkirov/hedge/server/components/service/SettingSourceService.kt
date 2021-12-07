@@ -100,9 +100,6 @@ class SettingSourceService(private val data: DataRepository) {
             if(data.metadata.import.sourceAnalyseRules.any { it.site == name }) {
                 throw be(CascadeResourceExists("SourceAnalyseRule"))
             }
-            if(data.metadata.spider.rules.any { (site, _) -> site == name }) {
-                throw be(CascadeResourceExists("SpiderRule"))
-            }
 
             data.syncMetadata {
                 saveMetadata {

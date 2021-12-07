@@ -92,7 +92,6 @@ fun runApplication(options: ApplicationOptions) {
             val settingQueryService = SettingQueryService(repo)
             val settingImportService = SettingImportService(repo)
             val settingSiteService = SettingSourceService(repo)
-            val settingSpiderService = SettingSpiderService(repo)
 
             AllServices(
                 illustService,
@@ -112,7 +111,6 @@ fun runApplication(options: ApplicationOptions) {
                 settingQueryService,
                 settingImportService,
                 settingSiteService,
-                settingSpiderService,
                 queryService,
                 metaService,
                 illustUtilService
