@@ -103,6 +103,27 @@ class IllustService(private val data: DataRepository,
             }
     }
 
+    fun findByIds(imageIds: List<Int>): List<IllustRes> {
+        return data.db.from(Illusts)
+            .innerJoin(FileRecords, Illusts.fileId eq FileRecords.id)
+            .select(Illusts.id, Illusts.type, Illusts.exportedScore, Illusts.favorite, Illusts.tagme, Illusts.orderTime, Illusts.cachedChildrenCount,
+                FileRecords.id, FileRecords.folder, FileRecords.extension, FileRecords.status)
+            .where { Illusts.id inList imageIds }
+            .map {
+                val id = it[Illusts.id]!!
+                val type = if(it[Illusts.type]!! == Illust.Type.COLLECTION) Illust.IllustType.COLLECTION else Illust.IllustType.IMAGE
+                val score = it[Illusts.exportedScore]
+                val favorite = it[Illusts.favorite]!!
+                val tagme = it[Illusts.tagme]!!
+                val orderTime = it[Illusts.orderTime]!!.parseDateTime()
+                val (file, thumbnailFile) = takeAllFilepath(it)
+                val childrenCount = it[Illusts.cachedChildrenCount]!!.takeIf { type == Illust.IllustType.COLLECTION }
+                id to IllustRes(id, type, childrenCount, file, thumbnailFile, score, favorite, tagme, orderTime)
+            }
+            .toMap()
+            .let { r -> imageIds.mapNotNull { r[it] } }
+    }
+
     /**
      * @throws NotFound 请求对象不存在
      */

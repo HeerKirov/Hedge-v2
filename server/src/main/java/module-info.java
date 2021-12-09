@@ -1,6 +1,7 @@
 module com.heerkirov.hedge.server {
     requires java.base;
     requires java.sql;
+    requires java.desktop;
     requires kotlin.stdlib;
     requires kotlin.reflect;
     requires kotlin.stdlib.jdk7;
@@ -11,7 +12,6 @@ module com.heerkirov.hedge.server {
     requires org.xerial.sqlitejdbc;
     requires com.fasterxml.jackson.databind;
     requires jackson.module.kotlin;
-    requires java.desktop;
     requires jave.core;
     requires org.slf4j;
     requires dd.plist;

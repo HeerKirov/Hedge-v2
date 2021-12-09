@@ -19,6 +19,7 @@ class IllustRoutes(private val illustService: IllustService, private val associa
             path("api") {
                 path("illusts") {
                     get(::list)
+                    post("find-by-ids", ::findByIds)
                     path("{id}") {
                         patch(::update)
                         delete(::delete)
@@ -73,6 +74,13 @@ class IllustRoutes(private val illustService: IllustService, private val associa
     private fun list(ctx: Context) {
         val filter = ctx.queryAsFilter<IllustQueryFilter>()
         ctx.json(illustService.list(filter))
+    }
+
+    private fun findByIds(ctx: Context) {
+        val images = try { ctx.bodyAsClass<List<Int>>() } catch (e: Exception) {
+            throw be(ParamTypeError("images", e.message ?: "cannot convert to List<Int>"))
+        }
+        ctx.json(illustService.findByIds(images))
     }
 
     private fun update(ctx: Context) {
