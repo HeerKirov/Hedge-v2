@@ -34,7 +34,7 @@ class AnnotationService(private val data: DataRepository, private val kit: Annot
 
     fun list(filter: AnnotationFilter): ListResult<AnnotationRes> {
         val schema = if(filter.query.isNullOrBlank()) null else {
-            queryManager.querySchema(filter.query, QueryManager.Dialect.TOPIC).executePlan ?: return ListResult(0, emptyList())
+            queryManager.querySchema(filter.query, QueryManager.Dialect.ANNOTATION).executePlan ?: return ListResult(0, emptyList())
         }
         return data.db.from(Annotations)
             .let { schema?.joinConditions?.fold(it) { acc, join -> if(join.left) acc.leftJoin(join.table, join.condition) else acc.innerJoin(join.table, join.condition) } ?: it }

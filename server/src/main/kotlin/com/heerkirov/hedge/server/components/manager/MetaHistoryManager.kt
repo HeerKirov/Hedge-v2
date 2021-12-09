@@ -45,9 +45,9 @@ class MetaHistoryManager(private val data: DataRepository) {
 
         return metaHistory.mapValues { (type, list) ->
             val requiredCount = if(type === MetaType.TAG) metaRecentTagCount else metaRecentCount
-            list.distinctBy { it.metaId }
-                .let { if(it.size > requiredCount) it.subList(it.size - requiredCount, it.size) else it }
-                .reversed()
+            list.reversed()
+                .distinctBy { it.metaId }
+                .let { if(it.size > requiredCount) it.subList(0, requiredCount) else it }
                 .map { it.metaId }
         }
     }
