@@ -8,7 +8,7 @@ import SourceEditor from "@/layouts/drawers/SourceEditor"
 import { assetsUrl } from "@/functions/app"
 import { usePopupMenu } from "@/functions/module/popup-menu"
 import { useMessageBox } from "@/functions/module/message-box"
-import { useNavigator } from "@/functions/feature/navigator"
+import { useRouterNavigator } from "@/functions/feature/router"
 import TopBarContent from "./TopBarContent"
 import { useMetadataEndpoint, useOriginDataEndpoint, usePreviewContext } from "./inject"
 
@@ -69,13 +69,11 @@ const SourceEditorPanel = defineComponent({
 })
 
 function useContextmenu() {
-    const navigator = useNavigator()
+    const navigator = useRouterNavigator()
     const messageBox = useMessageBox()
     const { detail } = usePreviewContext()
 
-    const openInNewWindow = () => {
-        navigator.newWindow.preferences.image(detail.id.value!)
-    }
+    const openInNewWindow = () => navigator.newWindow({routeName: "Preview", params: {type: "image", imageIds: [detail.id.value!]}})
 
     const del = async () => {
         if(await messageBox.showYesNoMessage("warn", "确定要删除此项吗？", "此操作不可撤回。")) {

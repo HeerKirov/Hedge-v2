@@ -42,7 +42,7 @@ function useContextmenu(operator: GridContextOperatorResult<Illust>) {
         {type: "normal", label: "查看详情", click: i => operator.clickToOpenDetail(i.id)},
         (illust.type === "COLLECTION" || null) && {type: "normal", label: "查看集合详情", click: i => operator.openCollectionDetail(i.id)},
         {type: "separator"},
-        {type: "normal", label: "在新窗口中打开", click: operator.openInNewWindow},
+        {type: "normal", label: illust.type === "COLLECTION" ? "在新窗口中打开集合" : "在新窗口中打开", click: operator.openInNewWindow},
         {type: "normal", label: "显示信息预览"},
         {type: "separator"},
         illust.favorite

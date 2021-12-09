@@ -24,5 +24,13 @@ export default <RouteRecordRaw[]>[
         meta: {
             title: "Hedge"
         }
+    },
+    {
+        name: 'Preview',
+        path: '/preview',
+        component: () => import('@/views/Preview'),
+        meta: {
+            title: "Hedge"
+        }
     }
 ]

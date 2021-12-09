@@ -5,7 +5,7 @@ import { installTitleWatcher } from "@/functions/document/title"
 import { installToastManager } from "@/functions/module/toast"
 import { installMessageBoxManager } from "@/functions/module/message-box"
 import { installWebPopupMenuManager } from "@/functions/document/web-popup-menu"
-import { installNavigatorManager } from "@/functions/feature/navigator/navigator-event"
+import { installRouterParamManager } from "@/functions/feature/router"
 import { installGlobalKey } from "@/functions/feature/keyboard"
 import NotificationModule from "@/layouts/web-modules/NotificationModule"
 import MessageBoxModule from "@/layouts/web-modules/MessageBoxModule"
@@ -14,7 +14,7 @@ import PopupMenuModule from "@/layouts/web-modules/PopupMenuModule"
 export default defineComponent({
     setup() {
         installTitleWatcher()
-        installNavigatorManager()
+        installRouterParamManager()
         installMessageBoxManager()
         installWebPopupMenuManager()
         const { handleError } = installToastManager()

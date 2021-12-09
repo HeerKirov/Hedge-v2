@@ -5,7 +5,7 @@ import { SimpleMetaTagElement } from "@/layouts/elements"
 import { useMetaTagCallout } from "@/layouts/data/MetaTagCallout"
 import { SimpleAuthor, SimpleTopic, SimpleTag, MetaTagTypes, MetaTagTypeValues } from "@/functions/adapter-http/impl/all"
 import { Tagme } from "@/functions/adapter-http/impl/illust"
-import { useNavigator } from "@/functions/feature/navigator"
+import { useRouterNavigator } from "@/functions/feature/router"
 import { usePopupMenu } from "@/functions/module/popup-menu"
 import { writeClipboard } from "@/functions/module/others"
 import { date, datetime, LocalDate, LocalDateTime } from "@/utils/datetime"
@@ -80,15 +80,11 @@ export const PartitionTimeDisplay = defineComponent({
         partitionTime: {type: null as any as PropType<LocalDate>, required: true}
     },
     setup(props) {
-        const navigator = useNavigator()
+        const navigator = useRouterNavigator()
         const text = computed(() => date.toISOString(props.partitionTime))
 
-        const openPartition = () => {
-            navigator.goto.main.partitions.detail(props.partitionTime)
-        }
-        const openPartitionInNewWindow = () => {
-            navigator.newWindow.main.partitions.detail(props.partitionTime)
-        }
+        const openPartition = () => navigator.goto({routeName: "MainPartitions", query: {detail: props.partitionTime}})
+        const openPartitionInNewWindow = () => navigator.newWindow({routeName: "MainPartitions", query: {detail: props.partitionTime}})
         const menu = usePopupMenu([
             {type: "normal", "label": "查看时间分区", click: openPartition},
             {type: "normal", "label": "在新窗口中打开时间分区", click: openPartitionInNewWindow}
@@ -109,31 +105,30 @@ export const MetaTagListDisplay = defineComponent({
     },
     setup(props) {
         const metaTagCallout = useMetaTagCallout()
-        const navigator = useNavigator()
+        const navigator = useRouterNavigator()
 
         const openMetaTagDetail = ({ type, value }: MetaTagTypeValues) => {
-            if(type === "tag") navigator.goto.main.tags.detail(value.id)
-            else if(type === "topic") navigator.goto.main.topics.detail(value.id)
-            else if(type === "author") navigator.goto.main.authors.detail(value.id)
+            if(type === "tag") navigator.goto({routeName: "MainTags", query: {detail: value.id}})
+            else if(type === "topic") navigator.goto({routeName: "MainTopics", query: {detail: value.id}})
+            else if(type === "author") navigator.goto({routeName: "MainAuthors", query: {detail: value.id}})
         }
         const openMetaTagDetailInNewWindow = ({ type, value }: MetaTagTypeValues) => {
-            if(type === "tag") navigator.newWindow.main.tags.detail(value.id)
-            else if(type === "topic") navigator.newWindow.main.topics.detail(value.id)
-            else if(type === "author") navigator.newWindow.main.authors.detail(value.id)
+            if(type === "tag") navigator.newWindow({routeName: "MainTags", query: {detail: value.id}})
+            else if(type === "topic") navigator.newWindow({routeName: "MainTopics", query: {detail: value.id}})
+            else if(type === "author") navigator.newWindow({routeName: "MainAuthors", query: {detail: value.id}})
         }
         const searchInIllusts = ({ type, value }: MetaTagTypeValues) => {
-            if(type === "tag") navigator.goto.main.illusts({tagName: value.name})
-            else if(type === "topic") navigator.goto.main.illusts({topicName: value.name})
-            else if(type === "author") navigator.goto.main.illusts({authorName: value.name})
+            if(type === "tag") navigator.goto({routeName: "MainIllusts", params: {tagName: value.name}})
+            else if(type === "topic") navigator.goto({routeName: "MainIllusts", params: {topicName: value.name}})
+            else if(type === "author") navigator.goto({routeName: "MainIllusts", params: {authorName: value.name}})
         }
         const searchInAlbums = ({ type, value }: MetaTagTypeValues) => {
-            if(type === "tag") navigator.goto.main.albums({tagName: value.name})
-            else if(type === "topic") navigator.goto.main.albums({topicName: value.name})
-            else if(type === "author") navigator.goto.main.albums({authorName: value.name})
+            if(type === "tag") navigator.goto({routeName: "MainAlbums", params: {tagName: value.name}})
+            else if(type === "topic") navigator.goto({routeName: "MainAlbums", params: {topicName: value.name}})
+            else if(type === "author") navigator.goto({routeName: "MainAlbums", params: {authorName: value.name}})
         }
-        const copyMetaTagName = ({ value }: MetaTagTypeValues) => {
-            writeClipboard(value.name)
-        }
+        const copyMetaTagName = ({ value }: MetaTagTypeValues) => writeClipboard(value.name)
+
         const menu = usePopupMenu<MetaTagTypeValues>([
             {type: "normal", "label": "查看标签详情", click: openMetaTagDetail},
             {type: "normal", "label": "在新窗口中打开标签详情", click: openMetaTagDetailInNewWindow},

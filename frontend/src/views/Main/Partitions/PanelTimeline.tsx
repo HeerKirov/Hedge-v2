@@ -2,10 +2,10 @@ import { computed, defineComponent, inject, InjectionKey, nextTick, onBeforeMoun
 import { useHttpClient } from "@/functions/app"
 import { useToast } from "@/functions/module/toast"
 import { SendRefEmitter, useListeningEvent, useRefEmitter } from "@/functions/utils/emitter"
+import { date } from "@/utils/datetime"
 import { sleep } from "@/utils/process"
 import { usePartitionContext } from "./inject"
 import style from "./style.module.scss"
-import { date } from "@/utils/datetime";
 
 /**
  * 时间线形态的面板。

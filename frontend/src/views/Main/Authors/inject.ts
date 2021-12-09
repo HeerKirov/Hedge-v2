@@ -4,7 +4,7 @@ import { useHttpClient } from "@/functions/app"
 import { useToast } from "@/functions/module/toast"
 import { useScrollView, ScrollView } from "@/components/features/VirtualScrollView"
 import { PaginationDataView, QueryEndpointResult, usePaginationDataView, useQueryEndpoint } from "@/functions/utils/endpoints/query-endpoint"
-import { useRouterQueryNumber } from "@/functions/utils/properties/router-property"
+import { useRouterQueryNumber } from "@/functions/feature/router"
 import { installation } from "@/functions/utils/basic"
 
 export interface AuthorContext {

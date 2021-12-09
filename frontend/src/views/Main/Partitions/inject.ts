@@ -1,7 +1,7 @@
 import { ref, Ref, watch } from "vue"
 import { installation } from "@/functions/utils/basic"
 import { useLocalStorageWithDefault } from "@/functions/app"
-import { useRouterQuery } from "@/functions/utils/properties/router-property"
+import { useRouterQueryLocalDate } from "@/functions/feature/router"
 import { date, datetime, LocalDate } from "@/utils/datetime"
 import { useSideBarContext } from "../inject"
 
@@ -23,7 +23,7 @@ export const [installPartitionContext, usePartitionContext] = installation(funct
     const today = datetime.now()
     const calendarDate = ref<YearAndMonth>({year: today.year, month: today.month})
 
-    const detail = useRouterQuery<LocalDate>("MainPartitions", "detail", date.toISOString, date.of)
+    const detail = useRouterQueryLocalDate("MainPartitions", "detail")
 
     const { pushSubItem } = useSideBarContext()
     watch(detail, d => {

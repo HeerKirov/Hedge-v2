@@ -1,6 +1,7 @@
 import { SingletonDataView, SliceDataView, createInvokeSingleton } from "@/functions/utils/endpoints/query-endpoint"
 import { ModifiedEvent } from "@/functions/utils/endpoints/query-endpoint/instance"
 import { useFastObjectEndpoint } from "@/functions/utils/endpoints/object-fast-endpoint"
+import { createSliceByInvoke } from "@/functions/utils/endpoints/query-endpoint/slice-data-view"
 import { Illust } from "@/functions/adapter-http/impl/illust"
 import { Album } from "@/functions/adapter-http/impl/album"
 import ImageDetailView from "./ImageDetailView"
@@ -50,9 +51,17 @@ export const { ViewStack, installViewStack, useViewStack } = defineViewStackComp
         }
         return undefined
     },
-    operations({ push, close }) {
+    operations({ push, setRootView, close }) {
         const { getData: getCollectionDetail } = useFastObjectEndpoint({ get: httpClient => httpClient.illust.collection.get })
         const { getData: getAlbumDetail } = useFastObjectEndpoint({ get: httpClient => httpClient.album.get })
+        const { getData: getImageByIds } = useFastObjectEndpoint({ get: httpClient => httpClient.illust.findByIds })
+
+        const generateImagesData = (data: SliceDataView<Illust> | number[]): SliceDataView<Illust> => {
+            if(data instanceof Array) {
+                return createSliceByInvoke(async () => await getImageByIds(data) ?? [])
+            }
+            return data
+        }
 
         const generateCollectionData = (data: SingletonDataView<Illust> | number): SingletonDataView<Illust> => {
             if(typeof data === "number") {
@@ -95,9 +104,10 @@ export const { ViewStack, installViewStack, useViewStack } = defineViewStackComp
         }
 
         return {
-            openImageView(data: SliceDataView<Illust>, currentIndex: number, onIndexModified?: (modifiedIndex: number) => void) {
+            openImageView(data: SliceDataView<Illust> | number[], currentIndex: number, onIndexModified?: (modifiedIndex: number) => void, isRootView?: boolean) {
                 //index modified机制：通过组件的update事件调用{updateValue}回调，以记录组件更改currentIndex的行为；
                 //index modified回调：在关闭视图时，回调{onIndexModified}函数，将更改后的currentIndex通过传入的回调函数通知到上级。
+                const finalData = generateImagesData(data)
                 let modifiedIndex: number | null = null
                 const currentIndexModified: ModifiedCallback | undefined = onIndexModified && {
                     updateValue(index: number) {
@@ -111,16 +121,17 @@ export const { ViewStack, installViewStack, useViewStack } = defineViewStackComp
                 }
                 //内容变更监听机制：监听到内容列表清零就自动关闭
                 const modifiedEvent = (e: ModifiedEvent<Illust>) => {
-                    if(e.type === "remove" && data.count() <= 0) {
+                    if(e.type === "remove" && finalData.count() <= 0) {
                         close(info)
                     }
                 }
-                data.syncOperations.modified.addEventListener(modifiedEvent)
+                finalData.syncOperations.modified.addEventListener(modifiedEvent)
                 //push stack
-                const info: StackViewImageInfo = {type: "image", data, currentIndex, currentIndexModified, modifiedEvent}
-                push(info)
+                const info: StackViewImageInfo = {type: "image", data: finalData, currentIndex, currentIndexModified, modifiedEvent}
+                const call = (isRootView ? setRootView : push)
+                call(info)
             },
-            openCollectionView(data: SingletonDataView<Illust> | number, onToastRefresh?: () => void) {
+            openCollectionView(data: SingletonDataView<Illust> | number, onToastRefresh?: () => void, isRootView?: boolean) {
                 //先处理data，如果data是illustId就请求数据并处理成illust model
                 const finalData = generateCollectionData(data)
                 if(finalData !== undefined) {
@@ -144,10 +155,11 @@ export const { ViewStack, installViewStack, useViewStack } = defineViewStackComp
                     }
                     finalData.syncOperations.modified.addEventListener(modifiedEvent)
                     const info: StackViewCollectionInfo = {type: "collection", data: finalData, toastRefresh, modifiedEvent}
-                    push(info)
+                    const call = (isRootView ? setRootView : push)
+                    call(info)
                 }
             },
-            openAlbumView(data: SingletonDataView<Album> | number, onToastRefresh?: () => void) {
+            openAlbumView(data: SingletonDataView<Album> | number, onToastRefresh?: () => void, isRootView?: boolean) {
                 //先处理data，如果data是albumId就请求数据并处理成illust model
                 const finalData = generateAlbumData(data)
                 if(finalData !== undefined) {
@@ -165,7 +177,8 @@ export const { ViewStack, installViewStack, useViewStack } = defineViewStackComp
                     }
                     //tips: album没有内容列表清零就自动关闭的机制
                     const info: StackViewAlbumInfo = {type: "album", data: finalData, toastRefresh}
-                    push(info)
+                    const call = (isRootView ? setRootView : push)
+                    call(info)
                 }
             }
         }

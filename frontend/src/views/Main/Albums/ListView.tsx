@@ -5,10 +5,10 @@ import { useFastObjectEndpoint } from "@/functions/utils/endpoints/object-fast-e
 import { createProxySingleton } from "@/functions/utils/endpoints/query-endpoint"
 import { useDynamicPopupMenu } from "@/functions/module/popup-menu"
 import { useMessageBox } from "@/functions/module/message-box"
-import { useNavigator } from "@/functions/feature/navigator"
+import { useRouterNavigator } from "@/functions/feature/router"
 import { assetsUrl } from "@/functions/app"
 import { arrays } from "@/utils/collections"
-import { useViewStack } from "../view-stacks"
+import { useViewStack } from "../../../layouts/view-stacks"
 import { useAlbumContext } from "./inject"
 import style from "./style.module.scss"
 
@@ -71,7 +71,7 @@ const COLUMN_MAX = 16
 const COLUMN_NUMBER_CLASS = arrays.newArray(COLUMN_MAX + 1, i => style[`columnNum${i}`])
 
 function useContextmenu(openDetail: (album: Album) => void) {
-    const navigator = useNavigator()
+    const navigator = useRouterNavigator()
     const { switchFavorite, deleteItem } = useContextOperator()
 
     //TODO 完成album contextmenu (信息预览，导出)
@@ -90,9 +90,7 @@ function useContextmenu(openDetail: (album: Album) => void) {
         {type: "normal", label: "删除画集", click: deleteItem}
     ])
 
-    const openInNewWindow = (album: Album) => {
-        navigator.newWindow.preferences.album(album.id)
-    }
+    const openInNewWindow = (album: Album) => navigator.newWindow({routeName: "Preview", params: {type: "album", albumId: album.id}})
 
     return menu
 }

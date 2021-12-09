@@ -1,4 +1,4 @@
-import { HttpInstance, Response } from "@/functions/adapter-http"
+import { HttpInstance, Response } from ".."
 import { ConflictingGroupMembersError, NotFound, ResourceNotExist } from "../exception"
 import { IdentityType, MetaType } from "./generic"
 import { DepsTag } from "./tag"

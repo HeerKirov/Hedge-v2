@@ -3,6 +3,7 @@ import { Annotation, AnnotationQueryFilter } from "@/functions/adapter-http/impl
 import { useHttpClient } from "@/functions/app"
 import { useToast } from "@/functions/module/toast"
 import { useScrollView, ScrollView } from "@/components/features/VirtualScrollView"
+import { useRouterQueryNumber } from "@/functions/feature/router"
 import { PaginationDataView, QueryEndpointResult, usePaginationDataView, useQueryEndpoint } from "@/functions/utils/endpoints/query-endpoint"
 import { installation } from "@/functions/utils/basic"
 
@@ -46,7 +47,7 @@ function useAnnotationList() {
 
 function usePane() {
     const createMode = ref<Partial<Annotation> | null>(null)
-    const detailMode = ref<number | null>(null)
+    const detailMode = useRouterQueryNumber("MainAnnotations", "detail")
 
     const openCreatePane = (template?: Partial<Annotation>) => {
         createMode.value = template ? {...template} : {}

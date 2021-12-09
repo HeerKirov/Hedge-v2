@@ -4,7 +4,6 @@ import { AnnotationElement } from "@/layouts/elements"
 import { DataRouter, SearchBox, AddOnFilter, AddOnTemplate } from "@/layouts/topbars"
 import { ParentTopic, TopicQueryFilter, TopicType } from "@/functions/adapter-http/impl/topic"
 import { SimpleAnnotation } from "@/functions/adapter-http/impl/annotations"
-import { watchNavigatorEvent } from "@/functions/feature/navigator"
 import { TOPIC_TYPE_ENUMS_WITHOUT_UNKNOWN, TOPIC_TYPE_ICONS, TOPIC_TYPE_NAMES } from "@/definitions/topic"
 import { useTopicContext } from "../inject"
 
@@ -13,12 +12,6 @@ export default defineComponent({
         const addOnFilter = ref<AddOnFilterType>({...addOnFilterDefault})
 
         const clear = () => addOnFilter.value = {...addOnFilterDefault}
-
-        watchNavigatorEvent("MainTopics", (params: {parent?: ParentTopic}) => {
-            if(params.parent != undefined) {
-                addOnFilter.value.parent = params.parent
-            }
-        })
 
         const { openCreatePane, queryFilter } = useTopicContext()
 

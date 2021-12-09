@@ -12,7 +12,7 @@ import { clientMode, useLocalStorageWithDefault } from "@/functions/app"
 import { useElementPopupMenu } from "@/functions/module/popup-menu"
 import { useMessageBox } from "@/functions/module/message-box"
 import { openExternal, writeClipboard } from "@/functions/module/others"
-import { useNavigator } from "@/functions/feature/navigator"
+import { useRouterNavigator } from "@/functions/feature/router"
 import { arrays } from "@/utils/collections"
 import { TOPIC_TYPE_ENUMS, TOPIC_TYPE_ICONS, TOPIC_TYPE_NAMES } from "@/definitions/topic"
 import { useTopicContext } from "../inject"
@@ -347,10 +347,10 @@ const ExampleContent = defineComponent({
         name: {type: String, required: true},
     },
     setup(props) {
-        const navigator = useNavigator()
+        const navigator = useRouterNavigator()
         const { exampleData } = useTopicDetailContext()
 
-        const more = () => navigator.goto.main.illusts({topicName: props.name})
+        const more = () => navigator.goto({routeName: "MainIllusts", params: {topicName: props.name}})
 
         return () => exampleData.value?.total ? <div>
             <GridImage value={exampleData.value!.result.map(i => i.thumbnailFile)} columnNum={5} radius="std" boxShadow={true}/>

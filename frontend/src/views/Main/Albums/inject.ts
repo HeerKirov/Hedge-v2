@@ -4,6 +4,7 @@ import { QuerySchemaContext, useQuerySchemaContext } from "@/layouts/topbars/Que
 import { PaginationDataView, QueryEndpointResult, usePaginationDataView, useQueryEndpoint } from "@/functions/utils/endpoints/query-endpoint"
 import { Album, AlbumQueryFilter } from "@/functions/adapter-http/impl/album"
 import { useHttpClient, useLocalStorageWithDefault } from "@/functions/app"
+import { useRouterParamEvent } from "@/functions/feature/router"
 import { useToast } from "@/functions/module/toast"
 import { installation, splitRef } from "@/functions/utils/basic"
 
@@ -20,7 +21,7 @@ export interface AlbumContext {
 export const [installAlbumContext, useAlbumContext] = installation(function (): AlbumContext {
     const querySchema = useQuerySchemaContext("ALBUM")
     const viewController = useViewController()
-    const list = useListContext(querySchema.query)
+    const list = useListContext(querySchema)
 
     return {
         ...list,
@@ -29,7 +30,7 @@ export const [installAlbumContext, useAlbumContext] = installation(function (): 
     }
 })
 
-function useListContext(query: Ref<string | undefined>) {
+function useListContext(querySchema: QuerySchemaContext) {
     const httpClient = useHttpClient()
     const { handleError } = useToast()
     const scrollView = useScrollView()
@@ -37,7 +38,16 @@ function useListContext(query: Ref<string | undefined>) {
     const queryFilter = ref<AlbumQueryFilter>({
         order: "-updateTime"
     })
-    watch(query, v => queryFilter.value.query = v)
+    watch(querySchema.query, v => queryFilter.value.query = v)
+
+    useRouterParamEvent("MainAlbums", params => {
+        //监听router event。
+        //对于meta tag，将其简单地转换为DSL的一部分。
+        //FUTURE 当然这其实是有问题的，对于topic/tag，还应该使用地址去限制它们。
+        querySchema.searchBoxText.value = (params.tagName ? `$\`${params.tagName}\`` : "")
+            + " " + params.topicName ? `#\`${params.topicName}\`` : ""
+            + " " + params.authorName ? `@\`${params.authorName}\`` : ""
+    })
 
     const endpoint = useQueryEndpoint({
         filter: queryFilter,

@@ -1,10 +1,11 @@
 import { ref, Ref, watch } from "vue"
-import { useScrollView, ScrollView } from "@/components/features/VirtualScrollView"
+import { ScrollView, useScrollView } from "@/components/features/VirtualScrollView"
 import { FitType } from "@/layouts/data/IllustGrid"
 import { QuerySchemaContext, useQuerySchemaContext } from "@/layouts/topbars/Query"
 import { PaginationDataView, QueryEndpointResult, usePaginationDataView, useQueryEndpoint } from "@/functions/utils/endpoints/query-endpoint"
 import { Illust, IllustQueryFilter } from "@/functions/adapter-http/impl/illust"
 import { useHttpClient, useLocalStorageWithDefault } from "@/functions/app"
+import { useRouterParamEvent } from "@/functions/feature/router"
 import { useToast } from "@/functions/module/toast"
 import { useListeningEvent } from "@/functions/utils/emitter"
 import { installation, splitRef } from "@/functions/utils/basic"
@@ -33,14 +34,14 @@ export const [installIllustContext, useIllustContext] = installation(function(pa
 
     const viewController = useViewController(partition, closePartition)
 
-    const list = useListContext(viewController.collectionMode, partition, querySchema.query)
+    const list = useListContext(viewController.collectionMode, partition, querySchema)
 
     const selector = useSelector(list.endpoint)
 
     return {...list, querySchema, viewController, selector}
 })
 
-function useListContext(collectionMode: Ref<boolean>, partition: Ref<LocalDate> | null, query: Ref<string | undefined>) {
+function useListContext(collectionMode: Ref<boolean>, partition: Ref<LocalDate> | null, querySchema: QuerySchemaContext) {
     const httpClient = useHttpClient()
     const { handleError } = useToast()
     const scrollView = useScrollView()
@@ -50,9 +51,18 @@ function useListContext(collectionMode: Ref<boolean>, partition: Ref<LocalDate> 
         type: collectionMode.value ? "COLLECTION" : "IMAGE",
         partition: partition?.value
     })
-    watch(query, v => queryFilter.value.query = v)
+    watch(querySchema.query, v => queryFilter.value.query = v)
     watch(collectionMode, v => queryFilter.value.type = v ? "COLLECTION" : "IMAGE")
     if(partition !== null) watch(partition, p => queryFilter.value.partition = p)
+
+    useRouterParamEvent("MainIllusts", params => {
+        //监听router event。只监听Illust的，Partition没有。
+        //对于meta tag，将其简单地转换为DSL的一部分。
+        //FUTURE 当然这其实是有问题的，对于topic/tag，还应该使用地址去限制它们。
+        querySchema.searchBoxText.value = (params.tagName ? `$\`${params.tagName}\`` : "")
+            + " " + params.topicName ? `#\`${params.topicName}\`` : ""
+            + " " + params.authorName ? `@\`${params.authorName}\`` : ""
+    })
 
     const endpoint = useQueryEndpoint({
         filter: queryFilter,
@@ -61,7 +71,7 @@ function useListContext(collectionMode: Ref<boolean>, partition: Ref<LocalDate> 
     })
     const dataView = usePaginationDataView(endpoint)
 
-    return {endpoint, dataView, scrollView, query}
+    return {endpoint, dataView, scrollView, query: querySchema.query}
 }
 
 function useViewController(partition: Ref<LocalDate> | null, closePartition: (() => void) | undefined) {

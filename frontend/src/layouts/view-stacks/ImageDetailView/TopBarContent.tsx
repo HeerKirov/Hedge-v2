@@ -2,7 +2,7 @@ import { computed, defineComponent } from "vue"
 import { ZoomController } from "@/layouts/topbars"
 import { useElementPopupMenu } from "@/functions/module/popup-menu"
 import { watchGlobalKeyEvent } from "@/functions/feature/keyboard"
-import { BackspaceButton } from ".."
+import { BackspaceButton } from "../index"
 import { usePreviewContext } from "./inject"
 import style from "./style.module.scss"
 

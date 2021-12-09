@@ -1,6 +1,6 @@
 import { ResourceNotExist } from "../exception"
 import { HttpInstance, Response } from ".."
-import { SimpleAuthor, SimpleTopic, SimpleTag } from "@/functions/adapter-http/impl/all"
+import { SimpleAuthor, SimpleTopic, SimpleTag } from "./all"
 import { MetaType } from "./generic"
 
 export function createSourceTagMappingEndpoint(http: HttpInstance): SourceTagMappingEndpoint {

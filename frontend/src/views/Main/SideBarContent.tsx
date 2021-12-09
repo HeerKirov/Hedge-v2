@@ -1,12 +1,12 @@
-import { computed, ComputedRef, defineComponent, onMounted, PropType, Ref, ref, toRef, watch } from "vue"
-import { parseQuery, useRoute, useRouter } from "vue-router"
+import { computed, ComputedRef, defineComponent, onMounted, PropType, Ref, ref, toRef } from "vue"
+import { useRoute, useRouter } from "vue-router"
+import { useAddToFolderService } from "@/layouts/dialogs/AddToFolder"
 import { usePopupMenu } from "@/functions/module/popup-menu"
 import { installation } from "@/functions/utils/basic"
 import { useHttpClient } from "@/functions/app"
 import { useToast } from "@/functions/module/toast"
 import { useDroppable } from "@/functions/feature/drag"
 import { useSideBarContext } from "./inject"
-import { useAddToFolderService } from "@/layouts/dialogs/AddToFolder";
 
 /**
  * 主要界面的侧边菜单栏。内嵌在通用布局内使用。
@@ -38,7 +38,7 @@ export default defineComponent({
             </ScopeComponent>
             <ScopeComponent id="tool" name="工具箱">
                 <StdItemComponent name="导入项目" icon="plus-square" routeName="MainImport"/>
-                <StdItemComponent name="文件管理" icon="folder-open" routeName="MainFile"/>
+                {/*<StdItemComponent name="文件管理" icon="folder-open" routeName="MainFile"/>*/}
                 <StdItemComponent name="源数据" icon="spider" routeName="MainSourceImage"/>
             </ScopeComponent>
             <ScopeComponent id="folder" name="目录">

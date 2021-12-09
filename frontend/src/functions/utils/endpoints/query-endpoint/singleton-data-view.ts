@@ -1,5 +1,5 @@
 import { ModifiedEvent, QueryEndpointInstance } from "@/functions/utils/endpoints/query-endpoint/instance"
-import { createEmitter, Emitter } from "@/utils/emitter";
+import { createEmitter, Emitter } from "@/utils/emitter"
 
 /**
  * 一个单个数据的代理实例，和slice类似，不过它只代理单个数据记录。

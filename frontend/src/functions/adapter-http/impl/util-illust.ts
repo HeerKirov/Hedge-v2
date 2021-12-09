@@ -1,5 +1,5 @@
-import { HttpInstance, Response } from "@/functions/adapter-http"
-import { IllustParent, SimpleIllust } from "@/functions/adapter-http/impl/illust"
+import { HttpInstance, Response } from ".."
+import { IllustParent, SimpleIllust } from "./illust"
 import { datetime, LocalDateTime } from "@/utils/datetime"
 
 export function createUtilIllustEndpoint(http: HttpInstance): UtilIllustEndpoint {

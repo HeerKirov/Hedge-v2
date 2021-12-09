@@ -2,7 +2,7 @@ import { defineComponent } from "vue"
 import GridImage from "@/components/elements/GridImage"
 import ThumbnailImage from "@/components/elements/ThumbnailImage"
 import { SimpleAlbum } from "@/functions/adapter-http/impl/album"
-import { useViewStack } from "../.."
+import { useViewStack } from "../../index"
 import { useRelatedItemsEndpoint } from "../inject"
 import style from "./style.module.scss"
 

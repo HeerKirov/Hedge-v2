@@ -1,13 +1,13 @@
-import { computed, defineComponent } from "vue"
-import { ColumnNumButton, DataRouter, FitTypeButton } from "@/layouts/topbars"
-import { FitType } from "@/layouts/data/IllustGrid"
+import { computed, defineComponent, ref } from "vue"
 import { useElementPopupMenu } from "@/functions/module/popup-menu"
-import { BackspaceButton } from ".."
+import { FitType } from "@/layouts/data/IllustGrid"
+import { ColumnNumButton, DataRouter, FitTypeButton } from "@/layouts/topbars"
+import { BackspaceButton } from "@/layouts/view-stacks"
 import { usePreviewContext } from "./inject"
 
 export default defineComponent({
     setup() {
-        const { images: { viewController: { fitType, columnNum } } } = usePreviewContext()
+        const { data: { target }, images: { viewController: { fitType, columnNum } } } = usePreviewContext()
 
         const setFitType = (v: FitType) => fitType.value = v
         const setColumnNum = (v: number) => columnNum.value = v
@@ -15,10 +15,12 @@ export default defineComponent({
         return () => <div class="middle-layout">
             <div class="layout-container">
                 <BackspaceButton/>
+                {target.value && <span class="ml-2 is-size-medium">{target.value.title}</span>}
             </div>
             <div class="layout-container">
                 <FavoriteButton/>
                 <ExternalButton/>
+                <EditLockButton/>
                 <DataRouter/>
                 <FitTypeButton value={fitType.value} onUpdateValue={setFitType}/>
                 <ColumnNumButton value={columnNum.value} onUpdateValue={setColumnNum}/>
@@ -50,5 +52,16 @@ const ExternalButton = defineComponent({
         ], {position: "bottom", offsetY: 6})
 
         return () => <button ref={menu.element} class="square button is-white no-drag" onClick={() => menu.popup()}><span class="icon"><i class="fa fa-external-link-alt"/></span></button>
+    }
+})
+
+const EditLockButton = defineComponent({
+    setup() {
+        const { editable } = usePreviewContext().images.viewController
+        const click = () => editable.value = !editable.value
+
+        return () => <button class={`square button no-drag radius-large is-${editable.value ? "danger" : "white"}`} onClick={click}>
+            <span class="icon"><i class={`fa fa-${editable.value ? "unlock" : "lock"}`}/></span>
+        </button>
     }
 })

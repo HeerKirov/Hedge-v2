@@ -1,6 +1,6 @@
 import { computed, onMounted, ref, Ref, watch } from "vue"
 import { FolderCreateForm, FolderExceptions, FolderTreeNode, FolderType } from "@/functions/adapter-http/impl/folder"
-import { useRouterQueryNumber } from "@/functions/utils/properties/router-property"
+import { useRouterQueryNumber } from "@/functions/feature/router"
 import { useFastObjectEndpoint } from "@/functions/utils/endpoints/object-fast-endpoint"
 import { installation } from "@/functions/utils/basic"
 import { useToast } from "@/functions/module/toast"

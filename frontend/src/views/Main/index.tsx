@@ -2,7 +2,7 @@ import { defineComponent, ref, provide } from "vue"
 import { installImportService } from "@/functions/api/install"
 import { sideBarSwitchInjection, sideBarWidthInjection, DEFAULT_WIDTH } from "@/layouts/layouts/SideLayout"
 import { DialogService, installDialogServiceContext } from "@/layouts/dialogs"
-import { ViewStack, installViewStack } from "./view-stacks"
+import { ViewStack, installViewStack } from "@/layouts/view-stacks"
 import { installSideBarContext } from "./inject"
 import RootView from "./RootView"
 

@@ -5,11 +5,11 @@ import { Illust, IllustType } from "@/functions/adapter-http/impl/illust"
 import { useCreatingCollectionService } from "@/layouts/dialogs/CreatingCollection"
 import { useCreatingAlbumService } from "@/layouts/dialogs"
 import { useFastObjectEndpoint } from "@/functions/utils/endpoints/object-fast-endpoint"
-import { useNavigator } from "@/functions/feature/navigator"
+import { useRouterNavigator } from "@/functions/feature/router"
 import { useMessageBox } from "@/functions/module/message-box"
 import { useToast } from "@/functions/module/toast"
 import { useHttpClient } from "@/functions/app"
-import { useViewStack } from "@/views/Main/view-stacks"
+import { useViewStack } from "@/layouts/view-stacks"
 import { LocalDateTime } from "@/utils/datetime"
 
 export interface SuitableIllust {
@@ -123,7 +123,7 @@ export interface GridContextOperatorResult<T> {
 export function useGridContextOperator<T extends SuitableIllust>(options: GridContextOperatorOptions<T>): GridContextOperatorResult<T> {
     const toast = useToast()
     const messageBox = useMessageBox()
-    const navigator = useNavigator()
+    const navigator = useRouterNavigator()
     const httpClient = useHttpClient()
     const viewStacks = useViewStack()
     const { dataView, endpoint, scrollView, selected } = options
@@ -216,9 +216,13 @@ export function useGridContextOperator<T extends SuitableIllust>(options: GridCo
     }
 
     const openInNewWindow = (illust: T) => {
-        //TODO 增加对selected项的处理
-        if(illust.type === "IMAGE") navigator.newWindow.preferences.image(illust.id)
-        else navigator.newWindow.preferences.collection(illust.id)
+        if(illust.type === "IMAGE") {
+            const imageIds = selected.value.includes(illust.id) ? selected.value : [...selected.value, illust.id]
+            const currentIndex = imageIds.indexOf(illust.id)
+            navigator.newWindow({routeName: "Preview", params: { type: "image", imageIds, currentIndex}})
+        }else{
+            navigator.newWindow({routeName: "Preview", params: {type: "collection", collectionId: illust.id}})
+        }
     }
 
     const modifyFavorite = async (illust: T, favorite: boolean) => {

@@ -45,7 +45,7 @@ const TopBarContent = defineComponent({
         return () => <div class="middle-layout">
             <div class="layout-container">
                 <button class="square button no-drag radius-large is-white mr-1" onClick={closeView}>
-                    <span class="icon"><i class="fa fa-times"/></span>
+                    <span class="icon"><i class="fa fa-arrow-left"/></span>
                 </button>
                 <span class="ml-2 is-size-medium">{data.value?.title}</span>
             </div>

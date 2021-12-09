@@ -1,6 +1,6 @@
-import { SimpleTag } from "@/functions/adapter-http/impl/tag"
-import { SimpleTopic } from "@/functions/adapter-http/impl/topic"
-import { SimpleAuthor } from "@/functions/adapter-http/impl/author"
+import { SimpleTag } from "./tag"
+import { SimpleTopic } from "./topic"
+import { SimpleAuthor } from "./author"
 
 export { SimpleTopic, SimpleTag, SimpleAuthor }
 

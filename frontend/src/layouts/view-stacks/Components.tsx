@@ -13,16 +13,20 @@ export type ViewStacks<OPT extends object> = OPT & CommonOperations
 
 interface CommonOperations {
     size(): number
+    isClosable(): boolean
     closeView(): void
     closeAll(): void
 }
 
 interface StacksContext<INFO> {
     stacks: Ref<INFO[]>
+    hasRootView: Ref<boolean>
 }
 
 interface StacksOperationContext<INFO> {
     stacks: Readonly<Ref<INFO[]>>
+    hasRootView: Readonly<Ref<boolean>>
+    setRootView(info: INFO): void
     push(info: INFO): void
     close(info: INFO): void
 }
@@ -83,7 +87,10 @@ export function defineViewStackComponents<INFO, OPT extends object>({ slots, ope
     })
 
     function installViewStack(): ViewStacks<OPT> {
-        const stacksContext: StacksContext<INFO> = {stacks: ref([])}
+        const stacksContext: StacksContext<INFO> = {
+            stacks: ref([]),
+            hasRootView: ref(false)
+        }
 
         provide(viewStacksInjection, stacksContext)
 
@@ -106,6 +113,11 @@ export function defineViewStackComponents<INFO, OPT extends object>({ slots, ope
     function createViewStacksOperations(stacksContext: StacksContext<INFO>, stackIndex: number | undefined): ViewStacks<OPT> {
         const stackOperationContext: StacksOperationContext<INFO> = {
             stacks: stacksContext.stacks,
+            hasRootView: stacksContext.hasRootView,
+            setRootView(info: INFO) {
+                stacksContext.stacks.value = [info]
+                stacksContext.hasRootView.value = true
+            },
             push(info: INFO) {
                 stacksContext.stacks.value.push(info)
             },
@@ -123,19 +135,20 @@ export function defineViewStackComponents<INFO, OPT extends object>({ slots, ope
         }
     }
 
-    function createCommonOperations({ stacks }: StacksContext<INFO>, stackIndex: number | undefined): CommonOperations {
+    function createCommonOperations({ stacks, hasRootView }: StacksContext<INFO>, stackIndex: number | undefined): CommonOperations {
         return {
             size() {
                 return stacks.value.length
             },
+            isClosable() {
+                return !hasRootView.value || stackIndex !== undefined && stackIndex > 0
+            },
             closeView() {
-                if(stackIndex === undefined) {
-                    if(stacks.value.length > 0) {
-                        const pops = stacks.value.splice(stacks.value.length - 1, 1)
-                        if(onClose) pops.forEach(onClose)
-                    }
-                }else{
+                if(stackIndex !== undefined) {
                     const pops = stacks.value.splice(stackIndex, 1)
+                    if(onClose) pops.forEach(onClose)
+                }else if(stacks.value.length > 0) {
+                    const pops = stacks.value.splice(stacks.value.length - 1, 1)
                     if(onClose) pops.forEach(onClose)
                 }
             },

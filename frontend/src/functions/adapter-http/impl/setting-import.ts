@@ -1,5 +1,5 @@
 import { HttpInstance, Response } from "../server"
-import { InvalidRuleIndexError, ResourceNotExist } from "@/functions/adapter-http/exception";
+import { InvalidRuleIndexError, ResourceNotExist } from "../exception"
 
 export function createSettingImportEndpoint(http: HttpInstance): SettingImportEndpoint {
     return {

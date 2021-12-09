@@ -12,14 +12,17 @@ import { SimpleAlbum } from "./album"
 import { DepsTopic } from "./topic"
 import { DepsAuthor } from "./author"
 import { DepsTag } from "./tag"
+import { SimpleFolder } from "./folder"
 import { SourceTag } from "./source-tag-mapping"
-import { SimpleFolder } from "@/functions/adapter-http/impl/folder";
 
 export function createIllustEndpoint(http: HttpInstance): IllustEndpoint {
     return {
         list: http.createQueryRequest("/api/illusts", "GET", {
             parseResponse: ({ total, result }: ListResult<any>) => ({total, result: result.map(mapToIllust)}),
             parseQuery: mapFromIllustFilter
+        }),
+        findByIds: http.createDataRequest("/api/illusts/find-by-ids", "POST", {
+            parseResponse: (result: any[]) => result.map(mapToIllust)
         }),
         update: http.createPathDataRequest(id => `/api/illusts/${id}`, "PATCH"),
         delete: http.createPathRequest(id => `/api/illusts/${id}`, "DELETE"),
@@ -162,6 +165,10 @@ export interface IllustEndpoint {
      * 查询图库项目列表。
      */
     list(filter: IllustFilter): Promise<Response<ListResult<Illust>>>
+    /**
+     * 根据条件执行高级查询。
+     */
+    findByIds(imageIds: number[]): Promise<Response<Illust[]>>
     /**
      * 更改元数据。仅涉及公有部分。
      * @exception NOT_FOUND

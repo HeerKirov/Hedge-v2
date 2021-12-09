@@ -12,7 +12,7 @@ import { clientMode } from "@/functions/app"
 import { useMessageBox } from "@/functions/module/message-box"
 import { useElementPopupMenu } from "@/functions/module/popup-menu"
 import { openExternal, writeClipboard } from "@/functions/module/others"
-import { useNavigator } from "@/functions/feature/navigator"
+import { useRouterNavigator } from "@/functions/feature/router"
 import { arrays } from "@/utils/collections"
 import { AUTHOR_TYPE_ENUMS, AUTHOR_TYPE_ICONS, AUTHOR_TYPE_NAMES } from "@/definitions/author"
 import { useSideBarContext } from "../../inject"
@@ -178,10 +178,10 @@ const ExampleContent = defineComponent({
         name: {type: String, required: true},
     },
     setup(props) {
-        const navigator = useNavigator()
+        const navigator = useRouterNavigator()
         const { exampleData } = useAuthorDetailContext()
 
-        const more = () => navigator.goto.main.illusts({topicName: props.name})
+        const more = () => navigator.goto({routeName: "MainIllusts", params: {topicName: props.name}})
 
         return () => exampleData.value?.total ? <div>
             <GridImage value={exampleData.value!.result.map(i => i.thumbnailFile)} columnNum={5} radius="std" boxShadow={true}/>

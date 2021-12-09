@@ -1,5 +1,5 @@
+import { createEmitter, Emitter } from "@/utils/emitter"
 import { ModifiedEvent, QueryEndpointInstance } from "./instance"
-import { createEmitter, Emitter } from "@/utils/emitter";
 
 /**
  * 一个queryInstance的代理切片，根据规则从实例中映射出一些数据项，并把一些操作映射回原实例。
@@ -34,7 +34,7 @@ export interface SliceDataView<T> {
     }
 }
 
-export function createSliceOfAll<T, R>(instance: QueryEndpointInstance<T>, mapper: Mapper<T, R>): SliceDataView<R>;
+export function createSliceOfAll<T, R>(instance: QueryEndpointInstance<T>, mapper: Mapper<T, R>): SliceDataView<R>
 export function createSliceOfAll<T>(instance: QueryEndpointInstance<T>): SliceDataView<T>;
 
 /**
@@ -82,8 +82,8 @@ export function createSliceOfAll<T, R = T>(instance: QueryEndpointInstance<T>, m
     }
 }
 
-export function createSliceOfList<T, R>(instance: QueryEndpointInstance<T>, indexList: number[], mapper: Mapper<T, R>): SliceDataView<R>;
-export function createSliceOfList<T>(instance: QueryEndpointInstance<T>, indexList: number[]): SliceDataView<T>;
+export function createSliceOfList<T, R>(instance: QueryEndpointInstance<T>, indexList: number[], mapper: Mapper<T, R>): SliceDataView<R>
+export function createSliceOfList<T>(instance: QueryEndpointInstance<T>, indexList: number[]): SliceDataView<T>
 
 /**
  * 创建一个instance中，根据index列表得到的切片。
@@ -176,6 +176,45 @@ export function createSliceOfList<T, R = T>(instance: QueryEndpointInstance<T>, 
                 modified
             }
         } as any as SliceDataView<R>
+    }
+}
+
+/**
+ * 创建一个切片，然而它的数据通过异步函数一次性取得。
+ * @param invoke
+ */
+export function createSliceByInvoke<R>(invoke: () => Promise<R[]>): SliceDataView<R> {
+    const modified = createEmitter<ModifiedEvent<R>>()
+    let data: R[] | undefined = undefined
+
+    return {
+        async get(index: number): Promise<R | undefined> {
+            if(data === undefined) data = await invoke()
+            return data![index]
+        },
+        count(): number {
+            return data?.length ?? 0
+        },
+        syncOperations: {
+            modify(index: number, newData: R): boolean {
+                if(data !== undefined) {
+                    const oldValue = data[index]
+                    data[index] = newData
+                    modified.emit({type: "modify", index, value: newData, oldValue})
+                    return true
+                }
+                return false
+            },
+            remove(index: number): boolean {
+                if(data !== undefined) {
+                    const [oldValue] = data.splice(index, 1)
+                    modified.emit({type: "remove", index, oldValue})
+                    return true
+                }
+                return false
+            },
+            modified
+        }
     }
 }
 

@@ -3,13 +3,13 @@ import { useRouter } from "vue-router"
 import ProgressFlag from "@/components/elements/ProgressFlag"
 import { State } from "@/functions/adapter-ipc"
 import { useAppState } from "@/functions/app"
-import { useNavigatorAnalyzer } from "@/functions/feature/navigator"
+import { useNewWindowRouteReceiver } from "@/functions/feature/router"
 
 export default defineComponent({
     setup() {
         const router = useRouter()
         const { state } = useAppState()
-        const { analyseForNewWindow } = useNavigatorAnalyzer()
+        const { receiveRoute } = useNewWindowRouteReceiver()
 
         watch(state, async () => {
             if(state.value === State.NOT_INIT) {
@@ -20,7 +20,7 @@ export default defineComponent({
                 await router.push({name: "Login"})
             }else if(state.value === State.LOADED) {
                 //已经加载的状态，则首先查看是否存在route navigator参数
-                const navigated = analyseForNewWindow()
+                const navigated = receiveRoute()
                 //最后，默认跳转到main index首页
                 if(!navigated) {
                     await router.push({name: "MainIndex"})

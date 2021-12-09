@@ -1,4 +1,4 @@
-import { ClientPlatform } from "@/functions/adapter-ipc/ipc"
+import { ClientPlatform } from "./ipc"
 import { getOSName, OSName } from "@/utils/process"
 
 export interface RemoteClientAdapter {

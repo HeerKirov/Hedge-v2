@@ -5,6 +5,7 @@ import { useLocalStorageWithDefault } from "@/functions/app"
 import { createPopupMenu } from "@/functions/module/popup-menu"
 import { installSearchService, installTagListContext, useTagListContext, useSearchService, TagListContext, IndexedInfo } from "@/functions/api/tag-tree"
 import { installTagTreeContext, useTagTreeAccessor, TagTreeEventCallbackContext } from "@/layouts/data/TagTree"
+import { useRouterQueryNumber } from "@/functions/feature/router"
 export type { TagListContext, IndexedInfo }
 
 export { installTagListContext, useTagListContext, installSearchService, useSearchService, useTagTreeAccessor }
@@ -25,7 +26,7 @@ export interface TagCreateTemplate {
 }
 
 export const [installTagPaneContext, useTagPaneContext] = installation(function(): TagPaneContext {
-    const detailMode = ref<number | null>(null)
+    const detailMode = useRouterQueryNumber("MainTags", "detail")
     const createMode = ref<TagCreateTemplate | null>(null)
     const searchMode = ref(false)
 
