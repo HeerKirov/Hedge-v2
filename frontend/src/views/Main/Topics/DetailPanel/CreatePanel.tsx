@@ -3,12 +3,14 @@ import TopBarTransparentLayout from "@/layouts/layouts/TopBarTransparentLayout"
 import { useMessageBox } from "@/functions/module/message-box"
 import { DetailTopic, TopicCreateForm, TopicExceptions } from "@/functions/adapter-http/impl/topic"
 import { useObjectCreator } from "@/functions/utils/endpoints/object-creator"
+import { useHttpClient } from "@/functions/app"
 import { checkTagName } from "@/utils/check"
 import FormEditor, { FormEditorData } from "./FormEditor"
 import { useTopicContext } from "../inject"
 
 export default defineComponent({
     setup() {
+        const httpClient = useHttpClient()
         const message = useMessageBox()
         const { createMode, endpoint, closePane } = useTopicContext()
 
@@ -51,6 +53,9 @@ export default defineComponent({
                 }
             },
             afterCreate() {
+                if(form.value.parent) {
+                    httpClient.metaUtil.editorHistory.metaTags.push([{type: "TOPIC", id: form.value.parent.id}]).finally()
+                }
                 closePane()
                 endpoint.refresh()
             },

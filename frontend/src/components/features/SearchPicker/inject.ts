@@ -1,4 +1,4 @@
-import { computed, reactive, readonly, ref, watch } from "vue"
+import { computed, onBeforeMount, reactive, readonly, ref, watch } from "vue"
 import { HttpClient, Response } from "@/functions/adapter-http"
 import { ListResult } from "@/functions/adapter-http/impl/generic"
 import { useContinuousEndpoint } from "@/functions/utils/endpoints/continuous-endpoint"
@@ -7,6 +7,8 @@ import { useHttpClient } from "@/functions/app"
 import { installation } from "@/functions/utils/basic"
 
 export type SearchRequestFunction = (client: HttpClient, offset: number, limit: number, search: string) => Promise<Response<ListResult<any>>>
+
+export type HistoryRequestFunction = (client: HttpClient, limit: number) => Promise<Response<any[]>>
 
 export interface SearchResultAttachItem {
     key: string
@@ -19,9 +21,17 @@ interface DataOptions {
     initSize: number
     continueSize: number
     request: SearchRequestFunction
+    historyRequest: HistoryRequestFunction | undefined
 }
 
-export const [installData, useData] = installation(function({ initSize, continueSize, request } : DataOptions) {
+export const [installData, useData] = installation(function(options: DataOptions) {
+    const searchData = useSearchData(options)
+    const historyData = useHistoryData(options)
+
+    return {...searchData, ...historyData}
+})
+
+function useSearchData({ initSize, continueSize, request }: DataOptions) {
     const httpClient = useHttpClient()
     const { handleError, handleException } = useToast()
 
@@ -66,4 +76,27 @@ export const [installData, useData] = installation(function({ initSize, continue
     })
 
     return {updateSearch, contentType, searchData, search: readonly(search), httpClient, handleException}
-})
+}
+
+function useHistoryData({ historyRequest }: DataOptions) {
+    if(historyRequest === undefined) {
+        return {}
+    }
+
+    const limit = 10
+    const httpClient = useHttpClient()
+    const toast = useToast()
+
+    const historyData = ref<any[]>([])
+
+    onBeforeMount(async () => {
+        const res = await historyRequest(httpClient, limit)
+        if(res.ok) {
+            historyData.value = res.data
+        }else{
+            toast.handleException(res.exception)
+        }
+    })
+
+    return {historyData}
+}

@@ -2,6 +2,7 @@ import { defineComponent } from "vue"
 import TopBarTransparentLayout from "@/layouts/layouts/TopBarTransparentLayout"
 import { TopicUpdateForm } from "@/functions/adapter-http/impl/topic"
 import { useMessageBox } from "@/functions/module/message-box"
+import { useHttpClient } from "@/functions/app"
 import { useMutableComputed } from "@/functions/utils/basic"
 import { objects } from "@/utils/primitives"
 import { checkTagName } from "@/utils/check"
@@ -10,6 +11,7 @@ import { useTopicDetailContext } from "./inject"
 
 export default defineComponent({
     setup() {
+        const httpClient = useHttpClient()
         const message = useMessageBox()
         const { data, setData, editMode } = useTopicDetailContext()
 
@@ -97,7 +99,10 @@ export default defineComponent({
                     }
                 })
                 if(r) {
-                   editMode.value = false
+                    if(form.parentId) {
+                        httpClient.metaUtil.editorHistory.metaTags.push([{type: "TOPIC", id: form.parentId}]).finally()
+                    }
+                    editMode.value = false
                 }
             }
         }

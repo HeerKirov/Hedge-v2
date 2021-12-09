@@ -1,27 +1,32 @@
 import { ComponentPublicInstance, computed, defineComponent, PropType, ref, toRef, watch } from "vue"
 import Input from "@/components/forms/Input"
 import { installArrowController, KeyboardSelectorItem, useArrowController, } from "@/functions/utils/element"
-import { KeyEvent, onKeyEnter } from "@/functions/feature/keyboard"
+import { KeyEvent } from "@/functions/feature/keyboard"
 import { sleep } from "@/utils/process"
-import { installData, useData, SearchRequestFunction } from "./inject"
+import { installData, useData, SearchRequestFunction, HistoryRequestFunction } from "./inject"
 import style from "./style.module.scss"
 
 /**
  * 搜索编辑器的面板区域。它会在多处复用，因此将核心的搜索和键控逻辑抽离为独立组件。
  * 这只是搜索面板内容，根据props处理其显示和搜索的内容，并通过事件上报其选择项。
  * 如果需要弹出面板等组件，则需要结合其他组件一起实现。
- * FUTURE: 添加recent面板的实现props
  */
 export default defineComponent({
     props: {
         placeholder: String,
         initSize: {type: Number, default: 8},
         continueSize: {type: Number, default: 4},
-        request: {type: null as any as PropType<SearchRequestFunction>, required: true}
+        request: {type: null as any as PropType<SearchRequestFunction>, required: true},
+        historyRequest: null as any as PropType<HistoryRequestFunction>
     },
     emits: ["pick"],
     setup(props, { emit, slots }) {
-        const { updateSearch, contentType, searchData } = installData({initSize: props.initSize, continueSize: props.continueSize, request: props.request})
+        const { updateSearch, contentType, searchData, historyData } = installData({
+            initSize: props.initSize,
+            continueSize: props.continueSize,
+            request: props.request,
+            historyRequest: props.historyRequest
+        })
 
         const textBox = ref("")
 
@@ -49,15 +54,22 @@ export default defineComponent({
         })
 
         const arrowController = installArrowController(computed(() => {
-            const elements: KeyboardSelectorItem[] = searchData.data.result.map((item, i) => ({
-                key: i,
-                event() { pick(item) }
-            }))
-            if(searchData.showMore) elements.push({
-                key: "more",
-                event: searchData.next
-            })
-            return elements
+            if(contentType.value === "recent" && historyData !== undefined) {
+                return historyData.value.map((item, i) => ({
+                    key: i,
+                    event() { pick(item) }
+                }))
+            }else{
+                const elements: KeyboardSelectorItem[] = searchData.data.result.map((item, i) => ({
+                    key: i,
+                    event() { pick(item) }
+                }))
+                if(searchData.showMore) elements.push({
+                    key: "more",
+                    event: searchData.next
+                })
+                return elements
+            }
         }))
 
         const placeholder = toRef(props, "placeholder")
@@ -69,21 +81,39 @@ export default defineComponent({
                        onKeypress={enter} refreshOnInput={true} focusOnMounted={true}/>
             </div>
             {contentType.value === "recent"
-                ? <RecentContent onPick={pick}/>
+                ? <RecentContent onPick={pick} v-slots={slots}/>
                 : <SearchResultContent onPick={pick} v-slots={slots}/>}
         </div>
     }
 })
 
 const RecentContent = defineComponent({
-    setup() {
-        //TODO 完成search picker的最近使用功能
-        return () => <div class={style.recentContent}>
-            <div class={style.scrollContent}>
+    emits: ["pick"],
+    setup(_, { emit, slots }) {
+        const onPick = (pickedItem: any) => () => emit("pick", pickedItem)
+        const { historyData } = useData()
+        const { selectedKey, setElement, clearElement } = useArrowController()
+        const setRef = (i: number | string) => (el: Element | ComponentPublicInstance | null) => setElement(i, el)
+
+        return () => {
+            clearElement()
+
+            return historyData !== undefined ? <div class={style.recentContent}>
+                <div class={style.scrollContent}>
+                    <p class="has-text-grey is-size-small ml-1"><i>最近使用</i></p>
+                    {historyData.value.length > 0 ? historyData.value.map((item, i) => (
+                        <div key={i} ref={setRef(i)}
+                             class={{[style.item]: true, [style.selected]: i === selectedKey.value}}
+                             onClick={onPick(item)}>
+                            {slots.default?.(item)}
+                        </div>
+                    )) : <div class="has-text-grey m-2 has-text-centered">无最近使用项</div>}
+                </div>
+            </div> : <div class={style.recentContent}>
                 <p class="has-text-grey is-size-small ml-1"><i>最近使用</i></p>
                 <div class="has-text-grey m-2 has-text-centered">无最近使用项</div>
             </div>
-        </div>
+        }
     }
 })
 

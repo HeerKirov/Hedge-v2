@@ -4,7 +4,7 @@ import { SimpleAnnotation } from "@/functions/adapter-http/impl/annotations"
 import { installArrowController, KeyboardSelectorItem, useArrowController, watchElementExcludeClick } from "@/functions/utils/element"
 import { KeyEvent } from "@/functions/feature/keyboard"
 import { sleep } from "@/utils/process"
-import { installData, useData, SearchRequestFunction, SearchResultAttachItem } from "./inject"
+import { installData, useData, SearchRequestFunction, SearchResultAttachItem, HistoryRequestFunction } from "./inject"
 import style from "./style.module.scss"
 
 export default defineComponent({
@@ -13,11 +13,17 @@ export default defineComponent({
         initSize: {type: Number, default: 8},
         continueSize: {type: Number, default: 4},
         request: {type: null as any as PropType<SearchRequestFunction>, required: true},
+        historyRequest: null as any as PropType<HistoryRequestFunction>,
         searchResultAttachItems: Array as PropType<SearchResultAttachItem[]>
     },
     emits: ["pick"],
     setup(props, { emit, slots }) {
-        const { updateSearch, searchData, search, httpClient, handleException } = installData({initSize: props.initSize, continueSize: props.continueSize, request: props.request})
+        const { contentType, updateSearch, searchData, historyData, search, httpClient, handleException } = installData({
+            initSize: props.initSize,
+            continueSize: props.continueSize,
+            request: props.request,
+            historyRequest: props.historyRequest
+        })
         const { pickerRef, showBoard, focus } = useBoard()
 
         const textBox = ref("")
@@ -50,16 +56,23 @@ export default defineComponent({
             event() { item.click?.({search: search.value, pick, httpClient, handleException}) }
         })) ?? [])
         const arrowController = installArrowController(computed(() => {
-            const elements: KeyboardSelectorItem[] = searchData.data.result.map((item, i) => ({
-                key: i,
-                event() { pick(item) }
-            }))
-            if(searchData.showMore) elements.push({
-                key: "more",
-                event: searchData.next
-            })
-            elements.push(...attachItems.value)
-            return elements
+            if(contentType.value === "recent" && historyData !== undefined) {
+                return historyData.value.map((item, i) => ({
+                    key: i,
+                    event() { pick(item) }
+                }))
+            }else{
+                const elements: KeyboardSelectorItem[] = searchData.data.result.map((item, i) => ({
+                    key: i,
+                    event() { pick(item) }
+                }))
+                if(searchData.showMore) elements.push({
+                    key: "more",
+                    event: searchData.next
+                })
+                elements.push(...attachItems.value)
+                return elements
+            }
         }))
 
         const placeholder = toRef(props, "placeholder")
@@ -86,20 +99,38 @@ const PickerBoardContent = defineComponent({
         const pick = (v: SimpleAnnotation) => emit("pick", v)
 
         return () => contentType.value === "recent"
-            ? <RecentContent onPick={pick}/>
+            ? <RecentContent onPick={pick} v-slots={slots}/>
             : <SearchResultContent onPick={pick} v-slots={slots} searchResultAttachItems={props.searchResultAttachItems}/>
     }
 })
 
 const RecentContent = defineComponent({
     emits: ["pick"],
-    setup(_, { }) {
-        return () => <div class={style.recentContent}>
-            <div class={style.scrollContent}>
+    setup(_, { emit, slots }) {
+        const onPick = (pickedItem: any) => () => emit("pick", pickedItem)
+        const { historyData } = useData()
+        const { selectedKey, setElement, clearElement } = useArrowController()
+        const setRef = (i: number | string) => (el: Element | ComponentPublicInstance | null) => setElement(i, el)
+
+        return () => {
+            clearElement()
+
+            return historyData !== undefined ? <div class={style.recentContent}>
+                <div class={style.scrollContent}>
+                    <p class="has-text-grey is-size-small ml-1"><i>最近使用</i></p>
+                    {historyData.value.length > 0 ? historyData.value.map((item, i) => (
+                        <div key={i} ref={setRef(i)}
+                             class={{[style.item]: true, [style.selected]: i === selectedKey.value}}
+                             onClick={onPick(item)}>
+                            {slots.default?.(item)}
+                        </div>
+                    )) : <div class="has-text-grey m-2 has-text-centered">无最近使用项</div>}
+                </div>
+            </div> : <div class={style.recentContent}>
                 <p class="has-text-grey is-size-small ml-1"><i>最近使用</i></p>
                 <div class="has-text-grey m-2 has-text-centered">无最近使用项</div>
             </div>
-        </div>
+        }
     }
 })
 
