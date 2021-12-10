@@ -7,8 +7,8 @@ import { useHttpClient } from "@/functions/app"
 import { installation } from "@/functions/utils/basic"
 
 export type SearchRequestFunction = (client: HttpClient, offset: number, limit: number, search: string) => Promise<Response<ListResult<any>>>
-
 export type HistoryRequestFunction = (client: HttpClient, limit: number) => Promise<Response<any[]>>
+export type HistoryPushFunction = (client: HttpClient, item: any) => Promise<Response<null>>
 
 export interface SearchResultAttachItem {
     key: string
@@ -22,6 +22,7 @@ interface DataOptions {
     continueSize: number
     request: SearchRequestFunction
     historyRequest: HistoryRequestFunction | undefined
+    historyPush: HistoryPushFunction | undefined
 }
 
 export const [installData, useData] = installation(function(options: DataOptions) {
@@ -78,7 +79,7 @@ function useSearchData({ initSize, continueSize, request }: DataOptions) {
     return {updateSearch, contentType, searchData, search: readonly(search), httpClient, handleException}
 }
 
-function useHistoryData({ historyRequest }: DataOptions) {
+function useHistoryData({ historyRequest, historyPush }: DataOptions) {
     if(historyRequest === undefined) {
         return {}
     }
@@ -98,5 +99,13 @@ function useHistoryData({ historyRequest }: DataOptions) {
         }
     })
 
-    return {historyData}
+    const pushHistoryData = historyPush && ((item: any) => {
+        historyPush(httpClient, item).then(res => {
+            if(!res.ok) {
+                toast.handleException(res.exception)
+            }
+        })
+    })
+
+    return {historyData, pushHistoryData}
 }

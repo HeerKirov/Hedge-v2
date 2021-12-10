@@ -221,10 +221,10 @@ function useSaveMethod(tags: Ref<SimpleTag[]>,
     const sendEditorHistoryStatistics = (metas: MetaTagTypeValues[]) => {
         //发送一条对象编辑记录
         const identity = context.identity.value
-        if(identity !== null) httpClient.metaUtil.editorHistory.identities.push(identity).finally()
+        if(identity !== null) httpClient.metaUtil.history.identities.push(identity).finally()
         //将编辑器撤销栈里的内容发送到标签使用记录
         const metaTags = metas.map(({ type, value }) => ({type: type.toUpperCase() as MetaType, id: value.id}))
-        httpClient.metaUtil.editorHistory.metaTags.push(metaTags).finally()
+        httpClient.metaUtil.history.metaTags.push(metaTags).finally()
     }
 
     watchGlobalKeyEvent(e => {

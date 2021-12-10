@@ -1,9 +1,9 @@
 import { defineComponent, ref, watch } from "vue"
-import { SearchPicker, SearchRequestFunction } from "@/components/features/SearchPicker"
+import { HistoryPushFunction, HistoryRequestFunction, SearchPicker, SearchRequestFunction } from "@/components/features/SearchPicker"
 import { AnnotationElement } from "@/layouts/elements"
 import { DataRouter, SearchBox, AddOnFilter, AddOnTemplate } from "@/layouts/topbars"
 import { AuthorQueryFilter, AuthorType } from "@/functions/adapter-http/impl/author"
-import { SimpleAnnotation } from "@/functions/adapter-http/impl/annotations"
+import { Annotation, SimpleAnnotation } from "@/functions/adapter-http/impl/annotations"
 import { AUTHOR_TYPE_ENUMS_WITHOUT_UNKNOWN, AUTHOR_TYPE_ICONS, AUTHOR_TYPE_NAMES } from "@/definitions/author"
 import { useAuthorContext } from "../inject"
 
@@ -111,6 +111,8 @@ const AnnotationSelector = defineComponent({
     setup(_, { emit }) {
         const request: SearchRequestFunction = (httpClient, offset, limit, search) =>
             httpClient.annotation.list({offset, limit, query: search, order: "-createTime"})
+        const historyRequest: HistoryRequestFunction = httpClient => httpClient.pickerUtil.history.annotations()
+        const historyPush: HistoryPushFunction = (httpClient, item: Annotation) => httpClient.pickerUtil.history.push({type: "ANNOTATION", id: item.id})
 
         const pick = (v: SimpleAnnotation) => emit("pick", v)
 
@@ -118,6 +120,6 @@ const AnnotationSelector = defineComponent({
             default: (a: SimpleAnnotation) => <AnnotationElement value={a}/>
         }
 
-        return () => <SearchPicker placeholder="搜索注解" request={request} onPick={pick} v-slots={slots}/>
+        return () => <SearchPicker placeholder="搜索注解" request={request} historyRequest={historyRequest} historyPush={historyPush} onPick={pick} v-slots={slots}/>
     }
 })

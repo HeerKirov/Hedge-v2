@@ -1,14 +1,11 @@
 import { defineComponent, ref, watch } from "vue"
-import { SearchPicker, SearchRequestFunction } from "@/components/features/SearchPicker"
+import { SearchPicker, SearchRequestFunction, HistoryRequestFunction, HistoryPushFunction } from "@/components/features/SearchPicker"
 import { AnnotationElement } from "@/layouts/elements"
 import { DataRouter, SearchBox, AddOnFilter, AddOnTemplate } from "@/layouts/topbars"
 import { ParentTopic, SimpleTopic, TopicQueryFilter, TopicType } from "@/functions/adapter-http/impl/topic"
-import { SimpleAnnotation } from "@/functions/adapter-http/impl/annotations"
+import { Annotation, SimpleAnnotation } from "@/functions/adapter-http/impl/annotations"
 import { TOPIC_TYPE_ENUMS_WITHOUT_UNKNOWN, TOPIC_TYPE_ICONS, TOPIC_TYPE_NAMES } from "@/definitions/topic"
 import { useTopicContext } from "../inject"
-import { HistoryRequestFunction } from "@/components/features/SearchPicker/inject";
-import { useFastObjectEndpoint } from "@/functions/utils/endpoints/object-fast-endpoint";
-import { useHttpClient } from "@/functions/app";
 
 export default defineComponent({
     setup() {
@@ -128,30 +125,18 @@ const ClearButton = defineComponent({
 const TopicSelector = defineComponent({
     emits: ["pick"],
     setup(_, { emit }) {
-        const httpClient = useHttpClient()
-        const historyPush = (item: SimpleTopic) => httpClient.metaUtil.editorHistory.metaTags.push([{type: "TOPIC", id: item.id}])
-
         const request: SearchRequestFunction = (httpClient, offset, limit, search) =>
             httpClient.topic.list({offset, limit, query: search, order: "-updateTime"})
-        const historyRequest: HistoryRequestFunction = async (httpClient, limit) => {
-            const res = await httpClient.metaUtil.editorHistory.metaTags.recent()
-            if(res.ok) {
-                return {ok: true, data: res.data.topics, status: res.status}
-            }else{
-                return res
-            }
-        }
+        const historyRequest: HistoryRequestFunction = httpClient => httpClient.pickerUtil.history.topics()
+        const historyPush: HistoryPushFunction = (httpClient, item: SimpleTopic) => httpClient.pickerUtil.history.push({type: "TOPIC", id: item.id})
 
-        const pick = (v: ParentTopic) => {
-            emit("pick", v)
-            historyPush(v).finally()
-        }
+        const pick = (v: ParentTopic) => emit("pick", v)
 
         const slots = {
             default: (topic: ParentTopic) => <span class="tag">{topic.name}</span>
         }
 
-        return () => <SearchPicker placeholder="搜索父主题" request={request} historyRequest={historyRequest} onPick={pick} v-slots={slots}/>
+        return () => <SearchPicker placeholder="搜索父主题" request={request} historyRequest={historyRequest} historyPush={historyPush} onPick={pick} v-slots={slots}/>
     }
 })
 
@@ -160,6 +145,8 @@ const AnnotationSelector = defineComponent({
     setup(_, { emit }) {
         const request: SearchRequestFunction = (httpClient, offset, limit, search) =>
             httpClient.annotation.list({offset, limit, query: search, order: "-createTime"})
+        const historyRequest: HistoryRequestFunction = httpClient => httpClient.pickerUtil.history.annotations()
+        const historyPush: HistoryPushFunction = (httpClient, item: Annotation) => httpClient.pickerUtil.history.push({type: "ANNOTATION", id: item.id})
 
         const pick = (v: SimpleAnnotation) => emit("pick", v)
 
@@ -167,6 +154,6 @@ const AnnotationSelector = defineComponent({
             default: (a: SimpleAnnotation) => <AnnotationElement value={a}/>
         }
 
-        return () => <SearchPicker placeholder="搜索注解" request={request} onPick={pick} v-slots={slots}/>
+        return () => <SearchPicker placeholder="搜索注解" request={request} onPick={pick} historyRequest={historyRequest} historyPush={historyPush} v-slots={slots}/>
     }
 })

@@ -1,4 +1,4 @@
-import { ElementGroup } from "@/functions/adapter-http/impl/utils-query"
+import { ElementGroup } from "@/functions/adapter-http/impl/util-query"
 
 export const ELEMENT_TYPES: {[key in ElementGroup["type"]]: string} = {
     "name": "名称",

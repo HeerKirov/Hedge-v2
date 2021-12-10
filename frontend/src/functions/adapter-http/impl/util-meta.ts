@@ -8,21 +8,21 @@ import { SimpleAlbum } from "./album"
 
 export function createUtilMetaEndpoint(http: HttpInstance): UtilMetaEndpoint {
     return {
-        validate: http.createDataRequest("/api/utils/meta/validate", "POST"),
-        suggest: http.createDataRequest("/api/utils/meta/suggest", "POST"),
-        editorHistory: {
+        validate: http.createDataRequest("/api/utils/meta-editor/validate", "POST"),
+        suggest: http.createDataRequest("/api/utils/meta-editor/suggest", "POST"),
+        history: {
             identities: {
-                list: http.createRequest("/api/utils/meta/editor-history/identities"),
-                get: http.createPathRequest(i => `/api/utils/meta/editor-history/identities/${i.type}/${i.id}`),
-                push: http.createDataRequest("/api/utils/meta/editor-history/identities", "POST"),
+                list: http.createRequest("/api/utils/meta-editor/history/identities"),
+                get: http.createPathRequest(i => `/api/utils/meta-editor/history/identities/${i.type}/${i.id}`),
+                push: http.createDataRequest("/api/utils/meta-editor/history/identities", "POST"),
             },
             metaTags: {
-                recent: http.createRequest("/api/utils/meta/editor-history/meta-tags/recent"),
-                frequent: http.createRequest("/api/utils/meta/editor-history/meta-tags/frequent"),
-                push: http.createDataRequest("/api/utils/meta/editor-history/meta-tags", "POST", {
+                recent: http.createRequest("/api/utils/meta-editor/history/meta-tags/recent"),
+                frequent: http.createRequest("/api/utils/meta-editor/history/meta-tags/frequent"),
+                push: http.createDataRequest("/api/utils/meta-editor/history/meta-tags", "POST", {
                     parseData: (metas: MetaUtilMetaForm[]) => ({metas})
                 }),
-                clear: http.createRequest("/api/utils/meta/editor-history/meta-tags", "DELETE"),
+                clear: http.createRequest("/api/utils/meta-editor/history/meta-tags", "DELETE"),
             }
         }
     }
@@ -42,11 +42,10 @@ export interface UtilMetaEndpoint {
      * 根据给出的元素对象，推导出建议使用的元数据列表。
      */
     suggest(form: MetaUtilIdentity): Promise<Response<MetaUtilSuggestion[], ResourceNotExist<"tags" | "topics" | "authors", number>>>
-
     /**
      * 元数据标签的使用记录器。
      */
-    editorHistory: {
+    history: {
         /**
          * 被编辑的对象记录。它是不持久化存储的，一旦程序退出就会清空。
          */

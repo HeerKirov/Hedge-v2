@@ -1,9 +1,9 @@
 import { ComponentPublicInstance, computed, defineComponent, PropType, ref, toRef, watch } from "vue"
 import Input from "@/components/forms/Input"
-import { installArrowController, KeyboardSelectorItem, useArrowController, } from "@/functions/utils/element"
+import { installArrowController, KeyboardSelectorItem, useArrowController } from "@/functions/utils/element"
 import { KeyEvent } from "@/functions/feature/keyboard"
 import { sleep } from "@/utils/process"
-import { installData, useData, SearchRequestFunction, HistoryRequestFunction } from "./inject"
+import { installData, useData, SearchRequestFunction, HistoryRequestFunction, HistoryPushFunction } from "./inject"
 import style from "./style.module.scss"
 
 /**
@@ -17,15 +17,17 @@ export default defineComponent({
         initSize: {type: Number, default: 8},
         continueSize: {type: Number, default: 4},
         request: {type: null as any as PropType<SearchRequestFunction>, required: true},
-        historyRequest: null as any as PropType<HistoryRequestFunction>
+        historyRequest: null as any as PropType<HistoryRequestFunction>,
+        historyPush: null as any as PropType<HistoryPushFunction>
     },
     emits: ["pick"],
     setup(props, { emit, slots }) {
-        const { updateSearch, contentType, searchData, historyData } = installData({
+        const { updateSearch, contentType, searchData, historyData, pushHistoryData } = installData({
             initSize: props.initSize,
             continueSize: props.continueSize,
             request: props.request,
-            historyRequest: props.historyRequest
+            historyRequest: props.historyRequest,
+            historyPush: props.historyPush
         })
 
         const textBox = ref("")
@@ -42,6 +44,7 @@ export default defineComponent({
             emit("pick", v)
             updateSearch("")
             textBox.value = ""
+            pushHistoryData?.(v)
         }
 
         watch(textBox, async (value, _, onInvalidate) => {

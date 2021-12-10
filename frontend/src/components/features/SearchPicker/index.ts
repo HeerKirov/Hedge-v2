@@ -1,9 +1,9 @@
 import SearchPicker from "./SearchPicker"
 import SearchBoxPicker from "./SearchBoxPicker"
-import { SearchRequestFunction, SearchResultAttachItem } from "./inject"
+import { SearchRequestFunction, HistoryPushFunction, HistoryRequestFunction, SearchResultAttachItem } from "./inject"
 
 export { SearchPicker, SearchBoxPicker }
-export type { SearchRequestFunction, SearchResultAttachItem }
+export type { SearchRequestFunction, HistoryPushFunction, HistoryRequestFunction, SearchResultAttachItem }
 
 /*
  * 此处提供搜索选择器组件。作用是从指定的方式中搜索并pick出选择项。

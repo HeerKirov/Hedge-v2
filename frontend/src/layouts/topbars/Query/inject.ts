@@ -1,5 +1,5 @@
 import { ref, Ref, watch } from "vue"
-import { Dialect, QueryRes } from "@/functions/adapter-http/impl/utils-query"
+import { Dialect, QueryRes } from "@/functions/adapter-http/impl/util-query"
 import { useHttpClient } from "@/functions/app"
 import { useToast } from "@/functions/module/toast"
 

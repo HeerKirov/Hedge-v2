@@ -21,7 +21,8 @@ import { createSourceImageEndpoint, SourceImageEndpoint } from "./impl/source-im
 import { createSourceTagMappingEndpoint, SourceTagMappingEndpoint } from "./impl/source-tag-mapping"
 import { createUtilMetaEndpoint, UtilMetaEndpoint } from "./impl/util-meta"
 import { createUtilIllustEndpoint, UtilIllustEndpoint } from "./impl/util-illust"
-import { createUtilQueryEndpoint, UtilQueryEndpoint } from "./impl/utils-query"
+import { createUtilQueryEndpoint, UtilQueryEndpoint } from "./impl/util-query"
+import { createUtilPickerEndpoint, UtilPickerEndpoint } from "./impl/util-picker"
 
 export { HttpInstance, HttpInstanceConfig, Response, ResponseOk, ResponseError, ResponseConnectionError, createHttpInstance }
 
@@ -48,6 +49,7 @@ export interface HttpClient {
     metaUtil: UtilMetaEndpoint
     illustUtil: UtilIllustEndpoint
     queryUtil: UtilQueryEndpoint
+    pickerUtil: UtilPickerEndpoint
 }
 
 export function createHttpClient(http: HttpInstance): HttpClient {
@@ -73,6 +75,7 @@ export function createHttpClient(http: HttpInstance): HttpClient {
         sourceTagMapping: createSourceTagMappingEndpoint(http),
         metaUtil: createUtilMetaEndpoint(http),
         illustUtil: createUtilIllustEndpoint(http),
-        queryUtil: createUtilQueryEndpoint(http)
+        queryUtil: createUtilQueryEndpoint(http),
+        pickerUtil: createUtilPickerEndpoint(http)
     }
 }

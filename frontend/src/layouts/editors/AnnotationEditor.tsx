@@ -1,7 +1,7 @@
 import { defineComponent, PropType } from "vue"
 import { AnnotationElement } from "@/layouts/elements"
-import { SearchBoxPicker, SearchRequestFunction, SearchResultAttachItem } from "@/components/features/SearchPicker"
-import { AnnotationTarget, SimpleAnnotation } from "@/functions/adapter-http/impl/annotations"
+import { HistoryPushFunction, HistoryRequestFunction, SearchBoxPicker, SearchRequestFunction, SearchResultAttachItem } from "@/components/features/SearchPicker"
+import { Annotation, AnnotationTarget, SimpleAnnotation } from "@/functions/adapter-http/impl/annotations"
 import { HttpClient } from "@/functions/adapter-http"
 import { ToastManager } from "@/functions/module/toast"
 import { useMessageBox } from "@/functions/module/message-box"
@@ -27,6 +27,8 @@ export default defineComponent({
 
         const request: SearchRequestFunction = (httpClient, offset, limit, search) =>
             httpClient.annotation.list({offset, limit, query: search, order: "-createTime", target: props.target})
+        const historyRequest: HistoryRequestFunction = httpClient => httpClient.pickerUtil.history.annotations()
+        const historyPush: HistoryPushFunction = (httpClient, item: Annotation) => httpClient.pickerUtil.history.push({type: "ANNOTATION", id: item.id})
 
         const create = async (name: string, httpClient: HttpClient, handleException: ToastManager["handleException"]): Promise<SimpleAnnotation | null> => {
             const existRes = await httpClient.annotation.list({name, limit: 1})
@@ -77,7 +79,7 @@ export default defineComponent({
             {props.value.map((annotation, i) => <AnnotationElement value={annotation} class="mr-1 mb-1" v-slots={{
                 backOfTag: () => <a class="tag-button" onClick={onRemoveItem(i)}><i class="fa fa-times"/></a>
             }}/>)}
-            <SearchBoxPicker placeholder="搜索注解" request={request} searchResultAttachItems={attachItems} onPick={pick} v-slots={slots}/>
+            <SearchBoxPicker placeholder="搜索注解" request={request} historyRequest={historyRequest} historyPush={historyPush} searchResultAttachItems={attachItems} onPick={pick} v-slots={slots}/>
         </div>
     }
 })

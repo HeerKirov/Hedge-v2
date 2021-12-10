@@ -31,7 +31,7 @@ function useRecentItems() {
 
     onBeforeMount(async () => {
         //查询identity编辑历史
-        const res = await httpClient.metaUtil.editorHistory.identities.list()
+        const res = await httpClient.metaUtil.history.identities.list()
         if(res.ok) {
             identities.push(...res.data)
             const identityList = res.data
@@ -46,16 +46,16 @@ function useRecentItems() {
 
     watch(selected, async () => {
         if(selected.value === "frequent") {
-            const res = await httpClient.metaUtil.editorHistory.metaTags.frequent()
+            const res = await httpClient.metaUtil.history.metaTags.frequent()
             if(res.ok) selectedMetas.value = res.data
             else selectedMetas.value = {authors: [], topics: [], tags: []}
         }else if(selected.value === "recent") {
-            const res = await httpClient.metaUtil.editorHistory.metaTags.recent()
+            const res = await httpClient.metaUtil.history.metaTags.recent()
             if(res.ok) selectedMetas.value = res.data
             else selectedMetas.value = {authors: [], topics: [], tags: []}
         }else{
             const [type, id] = selected.value.split("-", 2)
-            const res = await httpClient.metaUtil.editorHistory.identities.get({type: type as IdentityType, id: parseInt(id)})
+            const res = await httpClient.metaUtil.history.identities.get({type: type as IdentityType, id: parseInt(id)})
             if(res.ok) selectedMetas.value = res.data
             else selectedMetas.value = {authors: [], topics: [], tags: []}
         }

@@ -2,7 +2,7 @@ import { defineComponent, PropType } from "vue"
 import {
     CompileError, QueryPlan, QueryRes, ElementGroup, ElementValue,
     ElementItem, FilterGroup, FilterOfOneField, FilterValue, ElementAuthor, ElementTopic, ElementTag
-} from "@/functions/adapter-http/impl/utils-query"
+} from "@/functions/adapter-http/impl/util-query"
 import MetaTagCallout, { installMetaTagCallout, useMetaTagCallout } from "@/layouts/data/MetaTagCallout"
 import { arrays } from "@/utils/collections"
 import { ELEMENT_TYPES, FIELD_NAMES } from "./translate"

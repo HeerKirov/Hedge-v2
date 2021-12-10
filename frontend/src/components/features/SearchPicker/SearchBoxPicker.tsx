@@ -4,7 +4,7 @@ import { SimpleAnnotation } from "@/functions/adapter-http/impl/annotations"
 import { installArrowController, KeyboardSelectorItem, useArrowController, watchElementExcludeClick } from "@/functions/utils/element"
 import { KeyEvent } from "@/functions/feature/keyboard"
 import { sleep } from "@/utils/process"
-import { installData, useData, SearchRequestFunction, SearchResultAttachItem, HistoryRequestFunction } from "./inject"
+import { installData, useData, SearchRequestFunction, SearchResultAttachItem, HistoryRequestFunction, HistoryPushFunction } from "./inject"
 import style from "./style.module.scss"
 
 export default defineComponent({
@@ -14,15 +14,17 @@ export default defineComponent({
         continueSize: {type: Number, default: 4},
         request: {type: null as any as PropType<SearchRequestFunction>, required: true},
         historyRequest: null as any as PropType<HistoryRequestFunction>,
+        historyPush: null as any as PropType<HistoryPushFunction>,
         searchResultAttachItems: Array as PropType<SearchResultAttachItem[]>
     },
     emits: ["pick"],
     setup(props, { emit, slots }) {
-        const { contentType, updateSearch, searchData, historyData, search, httpClient, handleException } = installData({
+        const { contentType, updateSearch, searchData, historyData, pushHistoryData, search, httpClient, handleException } = installData({
             initSize: props.initSize,
             continueSize: props.continueSize,
             request: props.request,
-            historyRequest: props.historyRequest
+            historyRequest: props.historyRequest,
+            historyPush: props.historyPush
         })
         const { pickerRef, showBoard, focus } = useBoard()
 
@@ -40,6 +42,7 @@ export default defineComponent({
             emit("pick", v)
             updateSearch("")
             textBox.value = ""
+            pushHistoryData?.(v)
         }
 
         watch(textBox, async (value, _, onInvalidate) => {

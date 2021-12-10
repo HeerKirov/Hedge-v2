@@ -1,35 +1,43 @@
 import { defineComponent, inject, InjectionKey, provide, Ref, ref } from "vue"
 import DialogBox from "@/layouts/layouts/DialogBox"
 import { AddToAlbumContent, AddToAlbumInjectionContext } from "./AddToAlbum"
+import { AddToFolderContent, AddToFolderInjectionContext } from "./AddToFolder"
 import { AddToCollectionContent, AddToCollectionInjectionContext } from "./AddToCollection"
 import { CreatingAlbumContent, CreatingAlbumInjectionContext } from "./CreatingAlbum"
 import { CreatingCollectionContent, CreatingCollectionInjectionContext } from "./CreatingCollection"
 import { EditSourceImageContent, EditSourceImageInjectionContext } from "./EditSourceImage"
+import { CloneImageContent, CloneImageInjectionContext } from "./CloneImage"
 
 interface InjectionContextMap {
     addToAlbum: AddToAlbumInjectionContext
+    addToFolder: AddToFolderInjectionContext
     addToCollection: AddToCollectionInjectionContext
     creatingAlbum: CreatingAlbumInjectionContext
     creatingCollection: CreatingCollectionInjectionContext
     editSourceImage: EditSourceImageInjectionContext
+    cloneImage: CloneImageInjectionContext
 }
 
 const contextMap = {
     addToAlbum: AddToAlbumContent,
+    addToFolder: AddToFolderContent,
     addToCollection: AddToCollectionContent,
     creatingAlbum: CreatingAlbumContent,
     creatingCollection: CreatingCollectionContent,
-    editSourceImage: EditSourceImageContent
+    editSourceImage: EditSourceImageContent,
+    cloneImage: CloneImageContent
 }
 
 interface InjectionContextTemplate<T extends keyof InjectionContextMap> { type: T, context: InjectionContextMap[T] }
 
 type InjectionContext =
     | InjectionContextTemplate<"addToAlbum">
+    | InjectionContextTemplate<"addToFolder">
     | InjectionContextTemplate<"addToCollection">
     | InjectionContextTemplate<"creatingAlbum">
     | InjectionContextTemplate<"creatingCollection">
     | InjectionContextTemplate<"editSourceImage">
+    | InjectionContextTemplate<"cloneImage">
 
 export function installDialogServiceContext() {
     provide(dialogInjection, ref(null))

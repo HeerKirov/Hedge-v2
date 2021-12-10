@@ -1,5 +1,5 @@
 import { SetupContext } from "vue"
-import { QueryRes } from "@/functions/adapter-http/impl/utils-query"
+import { QueryRes } from "@/functions/adapter-http/impl/util-query"
 
 export default function ({ schema }: {schema: QueryRes | undefined}, { emit }: SetupContext<{ click() }>) {
     return (schema && (schema.warnings.length || schema.errors.length)) ? <button class="button is-small is-white" onClick={() => emit("click")}>

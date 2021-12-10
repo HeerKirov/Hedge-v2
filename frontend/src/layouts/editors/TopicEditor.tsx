@@ -1,6 +1,6 @@
 import { defineComponent, PropType, ref } from "vue"
-import { SearchPicker, SearchRequestFunction } from "@/components/features/SearchPicker"
-import { ParentTopic, TopicType } from "@/functions/adapter-http/impl/topic"
+import { HistoryPushFunction, HistoryRequestFunction, SearchPicker, SearchRequestFunction } from "@/components/features/SearchPicker"
+import { ParentTopic, SimpleTopic, TopicType } from "@/functions/adapter-http/impl/topic"
 import { watchElementExcludeClick } from "@/functions/utils/element"
 import style from "./TopicEditor.module.scss"
 
@@ -49,6 +49,8 @@ const TopicPickerBoard = defineComponent({
     setup(_, { emit }) {
         const request: SearchRequestFunction = (httpClient, offset, limit, search) =>
             httpClient.topic.list({offset, limit, query: search, order: "-updateTime"})
+        const historyRequest: HistoryRequestFunction = httpClient => httpClient.pickerUtil.history.topics()
+        const historyPush: HistoryPushFunction = (httpClient, item: SimpleTopic) => httpClient.pickerUtil.history.push({type: "TOPIC", id: item.id})
 
         const pick = (v: ParentTopic) => emit("pick", v)
 
@@ -57,7 +59,7 @@ const TopicPickerBoard = defineComponent({
         }
 
         return () => <div class={[style.pickerBoard, "popup-block"]}>
-            <SearchPicker placeholder="搜索主题作为父主题" request={request} onPick={pick} v-slots={slots}/>
+            <SearchPicker placeholder="搜索主题作为父主题" request={request} historyRequest={historyRequest} historyPush={historyPush} onPick={pick} v-slots={slots}/>
         </div>
     }
 })
