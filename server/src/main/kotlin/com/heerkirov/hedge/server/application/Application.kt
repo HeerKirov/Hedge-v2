@@ -54,13 +54,13 @@ fun runApplication(options: ApplicationOptions) {
             val annotationManager = AnnotationManager(repo)
 
             val tagExporter = define { TagExporterImpl(repo) }
+            val historyRecordManager = HistoryRecordManager(repo)
             val authorKit = AuthorKit(repo, annotationManager)
             val topicKit = TopicKit(repo, annotationManager)
             val tagKit = TagKit(repo, annotationManager)
             val metaUtilKit = MetaUtilKit(repo)
             val metaManager = MetaManager(repo)
-            val metaHistoryManager = MetaHistoryManager(repo)
-            val metaService = MetaUtilService(repo, metaUtilKit, metaManager, metaHistoryManager)
+            val metaService = MetaUtilService(repo, metaUtilKit, metaManager, historyRecordManager)
 
             val partitionManager = PartitionManager(repo)
 
@@ -86,6 +86,7 @@ fun runApplication(options: ApplicationOptions) {
             val importService = ImportService(repo, fileManager, importManager, illustManager, sourceManager, importMetaManager, thumbnailGenerator)
 
             val illustUtilService = IllustUtilService(repo)
+            val pickerUtilService = PickerUtilService(repo, historyRecordManager)
 
             val settingAppdataService = SettingAppdataService(appdata, webController)
             val settingMetaService = SettingMetaService(repo)
@@ -113,7 +114,8 @@ fun runApplication(options: ApplicationOptions) {
                 settingSiteService,
                 queryService,
                 metaService,
-                illustUtilService
+                illustUtilService,
+                pickerUtilService
             )
         }
 

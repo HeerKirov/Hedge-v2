@@ -14,10 +14,10 @@ import io.javalin.http.Context
 class UtilMetaRoutes(private val metaUtilService: MetaUtilService) : Endpoints {
     override fun handle(javalin: Javalin) {
         javalin.routes {
-            path("api/utils/meta") {
+            path("api/utils/meta-editor") {
                 post("validate", ::validate)
                 post("suggest", ::suggest)
-                path("editor-history") {
+                path("history") {
                     path("identities") {
                         get(::getHistoryIdentityList)
                         get("{type}/{id}", ::getHistoryIdentityDetail)

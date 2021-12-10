@@ -331,11 +331,11 @@ CREATE TABLE system_db.exporter_task(
     create_time             TIMESTAMP NOT NULL      -- 此任务建立的时间
 );
 
--- [系统表]meta editor metaTag历史表
-CREATE TABLE system_db.me_history_meta_tag(
+-- [系统表]通用历史记录表
+CREATE TABLE system_db.history_record(
     sequence_id         BIGINT NOT NULL,            -- 需要手动设置和重置的ID，按类型隔离
-    meta_type           TINYINT NOT NULL,           -- 目标类型{0=TAG, 1=TOPIC, 2=AUTHOR}
-    meta_id             INT NOT NULL,               -- 目标标签的ID
+    type                TINYINT NOT NULL,           -- 目标类型
+    key                 TEXT NOT NULL,              -- 目标标识
     record_time         BIGINT NOT NULL             -- 记录时间
 );
-CREATE UNIQUE INDEX system_db.me_history_meta_tag__index ON me_history_meta_tag(meta_type, sequence_id);
+CREATE UNIQUE INDEX system_db.history_record__index ON history_record(type, sequence_id);

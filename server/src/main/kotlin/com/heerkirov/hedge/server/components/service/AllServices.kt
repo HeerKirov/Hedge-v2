@@ -21,4 +21,5 @@ class AllServices(val illust: IllustService,
                   val settingSource: SettingSourceService,
                   val queryService: QueryService,
                   val metaUtilService: MetaUtilService,
-                  val illustUtilService: IllustUtilService) : Component
+                  val illustUtilService: IllustUtilService,
+                  val pickerUtilService: PickerUtilService) : Component

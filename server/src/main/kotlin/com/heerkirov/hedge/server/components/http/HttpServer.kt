@@ -79,6 +79,7 @@ class HttpServerImpl(private val allServices: AllServices,
             .handle(UtilQueryRoutes(allServices.queryService))
             .handle(UtilMetaRoutes(allServices.metaUtilService))
             .handle(UtilIllustRoutes(allServices.illustUtilService))
+            .handle(UtilPickerRoutes(allServices.pickerUtilService))
             .handle(IllustRoutes(allServices.illust, allServices.associate))
             .handle(AlbumRoutes(allServices.album))
             .handle(FolderRoutes(allServices.folder))

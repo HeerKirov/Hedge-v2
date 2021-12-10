@@ -3,9 +3,8 @@ package com.heerkirov.hedge.server.components.service
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.database.transaction
 import com.heerkirov.hedge.server.components.kit.MetaUtilKit
-import com.heerkirov.hedge.server.components.manager.MetaHistoryManager
+import com.heerkirov.hedge.server.components.manager.HistoryRecordManager
 import com.heerkirov.hedge.server.components.manager.MetaManager
-import com.heerkirov.hedge.server.components.manager.SourceMappingManager
 import com.heerkirov.hedge.server.dao.album.Albums
 import com.heerkirov.hedge.server.dao.illust.Illusts
 import com.heerkirov.hedge.server.dao.meta.Authors
@@ -20,6 +19,7 @@ import com.heerkirov.hedge.server.exceptions.ResourceNotExist
 import com.heerkirov.hedge.server.exceptions.be
 import com.heerkirov.hedge.server.model.illust.Illust
 import com.heerkirov.hedge.server.model.meta.Tag
+import com.heerkirov.hedge.server.model.system.HistoryRecord
 import com.heerkirov.hedge.server.utils.filterInto
 import com.heerkirov.hedge.server.utils.ktorm.firstOrNull
 import org.ktorm.dsl.*
@@ -27,11 +27,17 @@ import org.ktorm.entity.any
 import org.ktorm.entity.filter
 import org.ktorm.entity.sequenceOf
 import org.ktorm.entity.toList
+import java.util.*
 
 class MetaUtilService(private val data: DataRepository,
                       private val kit: MetaUtilKit,
                       private val metaManager: MetaManager,
-                      private val metaHistoryManager: MetaHistoryManager) {
+                      private val historyRecordManager: HistoryRecordManager) {
+    private val limitMetaTagCount = 20
+    private val limitMetaCount = 10
+    private val identityMaxStorageCount = 10
+    private val identityHistory: LinkedList<MetaUtilIdentity> = LinkedList()
+
     /**
      * 对metaTag做内容校验和推导。它实际上是metaTag保存流程的一部分。
      * 这个API用于metaTag编辑器，实时对metaTag列表做验证，获得全局的推导结果，并提前得知错误关系。
@@ -149,7 +155,7 @@ class MetaUtilService(private val data: DataRepository,
      * 查看编辑过的对象的历史列表。
      */
     fun getHistoryIdentityList(): List<MetaUtilIdentity> {
-        return metaHistoryManager.getIdentities()
+        return identityHistory
     }
 
     /**
@@ -177,14 +183,25 @@ class MetaUtilService(private val data: DataRepository,
      * 添加对象到历史。
      */
     fun pushHistoryIdentity(form: MetaUtilIdentityForm) {
-        metaHistoryManager.addIdentity(form.type, form.id)
+        val model = MetaUtilIdentity(form.type, form.id)
+        //首先尝试移除可能已存在的model，防止重复
+        identityHistory.remove(model)
+        //然后再次添加到队首
+        identityHistory.addFirst(model)
+        if(identityHistory.size > identityMaxStorageCount) {
+            identityHistory.removeLast()
+        }
     }
 
     /**
      * 查看最近使用过的metaTag的列表。
      */
     fun getHistoryMetaRecent(): MetaUtilRes {
-        val metas = metaHistoryManager.getMetasByRecent()
+        val metas = mapOf(
+            MetaType.TAG to historyRecordManager.getRecent(HistoryRecord.Type.META_EDITOR_TAG, limitMetaTagCount).map { it.toInt() },
+            MetaType.TOPIC to historyRecordManager.getRecent(HistoryRecord.Type.META_EDITOR_TOPIC, limitMetaCount).map { it.toInt() },
+            MetaType.AUTHOR to historyRecordManager.getRecent(HistoryRecord.Type.META_EDITOR_AUTHOR, limitMetaCount).map { it.toInt() }
+        )
         return mapMetasToEntities(metas)
     }
 
@@ -192,7 +209,11 @@ class MetaUtilService(private val data: DataRepository,
      * 查看最近一段时间统计的metaTag最高频率使用的列表。
      */
     fun getHistoryMetaFrequent(): MetaUtilRes {
-        val metas = metaHistoryManager.getMetasByFrequent()
+        val metas = mapOf(
+            MetaType.TAG to historyRecordManager.getFrequent(HistoryRecord.Type.META_EDITOR_TAG, limitMetaTagCount).map { (it, _) -> it.toInt() },
+            MetaType.TOPIC to historyRecordManager.getFrequent(HistoryRecord.Type.META_EDITOR_TOPIC, limitMetaCount).map { (it, _) -> it.toInt() },
+            MetaType.AUTHOR to historyRecordManager.getFrequent(HistoryRecord.Type.META_EDITOR_AUTHOR, limitMetaCount).map { (it, _) -> it.toInt() }
+        )
         return mapMetasToEntities(metas)
     }
 
@@ -201,7 +222,13 @@ class MetaUtilService(private val data: DataRepository,
      */
     fun pushHistoryMeta(form: MetaUtilMetaForm) {
         data.db.transaction {
-            form.metas.forEach { (type, id) -> metaHistoryManager.addMeta(type, id) }
+            form.metas.forEach { (type, id) ->
+                historyRecordManager.push(when (type) {
+                    MetaType.TAG -> HistoryRecord.Type.META_EDITOR_TAG
+                    MetaType.TOPIC -> HistoryRecord.Type.META_EDITOR_TOPIC
+                    MetaType.AUTHOR -> HistoryRecord.Type.META_EDITOR_AUTHOR
+                }, id.toString())
+            }
         }
     }
 
@@ -209,7 +236,9 @@ class MetaUtilService(private val data: DataRepository,
      * 清空所有metaTag历史记录。
      */
     fun deleteAllHistoryMeta() {
-        metaHistoryManager.clearMeta()
+        historyRecordManager.clear(HistoryRecord.Type.META_EDITOR_TAG)
+        historyRecordManager.clear(HistoryRecord.Type.META_EDITOR_TOPIC)
+        historyRecordManager.clear(HistoryRecord.Type.META_EDITOR_AUTHOR)
     }
 
     /**

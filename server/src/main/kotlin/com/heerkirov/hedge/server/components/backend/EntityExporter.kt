@@ -6,11 +6,11 @@ import com.heerkirov.hedge.server.components.kit.AlbumKit
 import com.heerkirov.hedge.server.components.kit.IllustKit
 import com.heerkirov.hedge.server.dao.album.Albums
 import com.heerkirov.hedge.server.dao.illust.Illusts
-import com.heerkirov.hedge.server.dao.system.ExporterTasks
+import com.heerkirov.hedge.server.dao.system.ExporterRecords
 import com.heerkirov.hedge.server.enums.LoadStatus
 import com.heerkirov.hedge.server.library.framework.StatefulComponent
 import com.heerkirov.hedge.server.model.illust.Illust
-import com.heerkirov.hedge.server.model.system.ExporterTask
+import com.heerkirov.hedge.server.model.system.ExporterRecord
 import com.heerkirov.hedge.server.utils.DateTime
 import com.heerkirov.hedge.server.utils.tools.controlledThread
 import com.heerkirov.hedge.server.utils.ktorm.firstOrNull
@@ -91,7 +91,7 @@ class EntityExporterImpl(private val data: DataRepository,
     override fun load() {
         if(data.status == LoadStatus.LOADED) {
             //组件加载时，从db加载剩余数量，若存在剩余数量就直接开始daemon task。
-            taskCount.set(data.db.sequenceOf(ExporterTasks).count())
+            taskCount.set(data.db.sequenceOf(ExporterRecords).count())
             totalTaskCount.set(taskCount.get())
             if(taskCount.get() > 0) {
                 daemonTask.start()
@@ -102,11 +102,11 @@ class EntityExporterImpl(private val data: DataRepository,
     override fun appendNewTask(tasks: Collection<EntityExporterTask>) {
         synchronized(this) {
             val now = DateTime.now()
-            data.db.batchInsert(ExporterTasks) {
+            data.db.batchInsert(ExporterRecords) {
                 for (task in tasks) {
                     val model = task.toModel(now)
                     item {
-                        set(it.entityType, model.entityType)
+                        set(it.type, model.type)
                         set(it.entityId, model.entityId)
                         set(it.exportFirstCover, model.exportFirstCover)
                         set(it.exportDescription, model.exportDescription)
@@ -136,7 +136,7 @@ class EntityExporterImpl(private val data: DataRepository,
             }
         }
 
-        val model = data.db.sequenceOf(ExporterTasks).firstOrNull()
+        val model = data.db.sequenceOf(ExporterRecords).firstOrNull()
         if(model == null) {
             taskCount.set(0)
             totalTaskCount.set(0)
@@ -152,7 +152,7 @@ class EntityExporterImpl(private val data: DataRepository,
             else -> throw UnsupportedOperationException("Unsupported task type ${task::class.simpleName}.")
         }
 
-        data.db.delete(ExporterTasks) { it.id eq model.id }
+        data.db.delete(ExporterRecords) { it.id eq model.id }
         taskCount.decrementAndGet()
     }
 
@@ -247,16 +247,16 @@ class EntityExporterImpl(private val data: DataRepository,
     }
 }
 
-private fun EntityExporterTask.toModel(now: LocalDateTime = DateTime.now()): ExporterTask {
+private fun EntityExporterTask.toModel(now: LocalDateTime = DateTime.now()): ExporterRecord {
     return when(this) {
-        is IllustExporterTask -> ExporterTask(0, ExporterTask.EntityType.ILLUST, id, exportFirstCover, exportDescription, exportScore, exportMeta, now)
-        is AlbumExporterTask -> ExporterTask(0, ExporterTask.EntityType.ALBUM, id, exportFirstCover = false, exportDescription = false, exportScore = false, exportMeta, now)
+        is IllustExporterTask -> ExporterRecord(0, ExporterRecord.Type.ILLUST, id, exportFirstCover, exportDescription, exportScore, exportMeta, now)
+        is AlbumExporterTask -> ExporterRecord(0, ExporterRecord.Type.ALBUM, id, exportFirstCover = false, exportDescription = false, exportScore = false, exportMeta, now)
         else -> throw UnsupportedOperationException("Unknown exporter task class ${this::class.simpleName}.")
     }
 }
 
-private fun ExporterTask.toTask(): EntityExporterTask {
-    return if(this.entityType == ExporterTask.EntityType.ALBUM) {
+private fun ExporterRecord.toTask(): EntityExporterTask {
+    return if(this.type == ExporterRecord.Type.ALBUM) {
         AlbumExporterTask(this.entityId, exportMeta)
     }else{
         IllustExporterTask(this.entityId, exportScore, exportMeta, exportDescription, exportFirstCover)
