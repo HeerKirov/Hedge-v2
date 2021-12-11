@@ -1,8 +1,6 @@
 package com.heerkirov.hedge.server.application
 
 import com.heerkirov.hedge.server.components.appdata.AppDataDriverImpl
-import com.heerkirov.hedge.server.components.backend.EntityExporterImpl
-import com.heerkirov.hedge.server.components.backend.TagExporterImpl
 import com.heerkirov.hedge.server.components.backend.FileGeneratorImpl
 import com.heerkirov.hedge.server.components.backend.exporter.BackendExporterImpl
 import com.heerkirov.hedge.server.components.configuration.ConfigurationDriverImpl
@@ -54,7 +52,6 @@ fun runApplication(options: ApplicationOptions) {
             val annotationKit = AnnotationKit(repo)
             val annotationManager = AnnotationManager(repo)
 
-            val tagExporter = define { TagExporterImpl(repo) }
             val historyRecordManager = HistoryRecordManager(repo)
             val authorKit = AuthorKit(repo, annotationManager)
             val topicKit = TopicKit(repo, annotationManager)
@@ -68,23 +65,22 @@ fun runApplication(options: ApplicationOptions) {
             val illustKit = IllustKit(repo, metaManager)
             val albumKit = AlbumKit(repo, metaManager)
             val backendExporter = define { BackendExporterImpl(repo, illustKit, albumKit) }
-            val entityExporter = define { EntityExporterImpl(repo, illustKit, albumKit) }
-            val illustManager = IllustManager(repo, illustKit, sourceManager, partitionManager, entityExporter)
-            val albumManager = AlbumManager(repo, albumKit, illustManager, entityExporter)
+            val illustManager = IllustManager(repo, illustKit, sourceManager, partitionManager, backendExporter)
+            val albumManager = AlbumManager(repo, albumKit, illustManager, backendExporter)
             val associateManager = AssociateManager(repo)
 
             val folderKit = FolderKit(repo)
             val folderManager = FolderManager(repo, folderKit, illustManager)
 
-            val illustService = IllustService(repo, illustKit, illustManager, albumManager, associateManager, folderManager, fileManager, sourceManager, partitionManager, queryManager, entityExporter)
-            val albumService = AlbumService(repo, albumKit, albumManager, illustManager, queryManager)
+            val illustService = IllustService(repo, illustKit, illustManager, albumManager, associateManager, folderManager, fileManager, sourceManager, partitionManager, queryManager, backendExporter)
+            val albumService = AlbumService(repo, albumKit, albumManager, illustManager, queryManager, backendExporter)
             val associateService = AssociateService(repo, associateManager)
             val folderService = FolderService(repo, folderKit, illustManager)
             val partitionService = PartitionService(repo)
             val annotationService = AnnotationService(repo, annotationKit, queryManager)
-            val tagService = TagService(repo, tagKit, fileManager, queryManager, tagExporter, sourceMappingManager, entityExporter)
-            val authorService = AuthorService(repo, authorKit, queryManager, sourceMappingManager, entityExporter)
-            val topicService = TopicService(repo, topicKit, queryManager, sourceMappingManager, entityExporter)
+            val tagService = TagService(repo, tagKit, queryManager, sourceMappingManager, backendExporter)
+            val authorService = AuthorService(repo, authorKit, queryManager, sourceMappingManager, backendExporter)
+            val topicService = TopicService(repo, topicKit, queryManager, sourceMappingManager, backendExporter)
             val importService = ImportService(repo, fileManager, importManager, illustManager, sourceManager, importMetaManager, thumbnailGenerator)
 
             val illustUtilService = IllustUtilService(repo)

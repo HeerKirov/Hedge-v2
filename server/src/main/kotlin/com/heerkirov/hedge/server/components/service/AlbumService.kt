@@ -1,5 +1,7 @@
 package com.heerkirov.hedge.server.components.service
 
+import com.heerkirov.hedge.server.components.backend.exporter.BackendExporter
+import com.heerkirov.hedge.server.components.backend.exporter.IllustAlbumMemberExporterTask
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.database.transaction
 import com.heerkirov.hedge.server.components.kit.AlbumKit
@@ -31,7 +33,8 @@ class AlbumService(private val data: DataRepository,
                    private val kit: AlbumKit,
                    private val albumManager: AlbumManager,
                    private val illustManager: IllustManager,
-                   private val queryManager: QueryManager) {
+                   private val queryManager: QueryManager,
+                   private val backendExporter: BackendExporter) {
     private val orderTranslator = OrderTranslator {
         "id" to Albums.id
         "createTime" to Albums.createTime
@@ -228,9 +231,12 @@ class AlbumService(private val data: DataRepository,
                 set(it.updateTime, DateTime.now())
             }
 
-            kit.updateSubImages(id, images.map { it.id })
+            val imageIds = images.map { it.id }
+            val removed = kit.updateSubImages(id, imageIds)
 
             kit.refreshAllMeta(id)
+
+            backendExporter.add(IllustAlbumMemberExporterTask(imageIds + removed))
         }
     }
 
@@ -250,8 +256,10 @@ class AlbumService(private val data: DataRepository,
                     val formImages = form.images ?: throw be(ParamRequired("images"))
                     val images = illustManager.unfoldImages(formImages)
                     if(images.isNotEmpty()) {
-                        kit.upsertSubImages(id, images.map { it.id }, form.ordinal)
+                        val imageIds = images.map { it.id }
+                        kit.upsertSubImages(id, imageIds, form.ordinal)
                         kit.refreshAllMeta(id)
+                        backendExporter.add(IllustAlbumMemberExporterTask(imageIds))
                     }
                 }
                 BatchAction.MOVE -> {
@@ -260,7 +268,8 @@ class AlbumService(private val data: DataRepository,
                     val formImages = form.images ?: throw be(ParamRequired("images"))
                     if(formImages.isNotEmpty()) {
                         kit.moveSubImages(id, formImages, form.ordinal)
-                        //move操作不需要重置meta
+                        //tips: move操作不需要重置meta
+                        backendExporter.add(IllustAlbumMemberExporterTask(formImages))
                     }
                 }
                 BatchAction.DELETE -> {
@@ -268,6 +277,7 @@ class AlbumService(private val data: DataRepository,
                     if(formImages.isNotEmpty()) {
                         kit.deleteSubImages(id, formImages)
                         kit.refreshAllMeta(id)
+                        backendExporter.add(IllustAlbumMemberExporterTask(formImages))
                     }
                 }
             }

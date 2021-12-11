@@ -1,7 +1,7 @@
 package com.heerkirov.hedge.server.components.manager
 
-import com.heerkirov.hedge.server.components.backend.AlbumExporterTask
-import com.heerkirov.hedge.server.components.backend.EntityExporter
+import com.heerkirov.hedge.server.components.backend.exporter.AlbumMetadataExporterTask
+import com.heerkirov.hedge.server.components.backend.exporter.BackendExporter
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.kit.AlbumKit
 import com.heerkirov.hedge.server.dao.album.AlbumImageRelations
@@ -17,7 +17,7 @@ import org.ktorm.entity.toList
 class AlbumManager(private val data: DataRepository,
                    private val kit: AlbumKit,
                    private val illustManager: IllustManager,
-                   private val entityExporter: EntityExporter) {
+                   private val backendExporter: BackendExporter) {
     /**
      * 从所有的albums中平滑移除一个image项。将数量统计-1。如果删掉的image是封面，重新获得下一张封面。
      */
@@ -43,7 +43,7 @@ class AlbumManager(private val data: DataRepository,
                 }
             }
             if(exportMetaTags) {
-                entityExporter.appendNewTask(AlbumExporterTask(albumId, exportMeta = true))
+                backendExporter.add(AlbumMetadataExporterTask(albumId, exportMetaTag = true))
             }
         }
         data.db.delete(AlbumImageRelations) { it.imageId eq imageId }

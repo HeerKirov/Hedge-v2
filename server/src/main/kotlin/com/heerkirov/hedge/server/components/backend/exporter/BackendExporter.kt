@@ -1,6 +1,7 @@
 package com.heerkirov.hedge.server.components.backend.exporter
 
 import com.heerkirov.hedge.server.components.database.DataRepository
+import com.heerkirov.hedge.server.components.database.transaction
 import com.heerkirov.hedge.server.components.kit.AlbumKit
 import com.heerkirov.hedge.server.components.kit.IllustKit
 import com.heerkirov.hedge.server.dao.system.ExporterRecords
@@ -10,9 +11,10 @@ import com.heerkirov.hedge.server.utils.DateTime
 import com.heerkirov.hedge.server.utils.parseJSONObject
 import com.heerkirov.hedge.server.utils.toJSONString
 import com.heerkirov.hedge.server.utils.tools.ControlledLoopThread
+import com.heerkirov.hedge.server.utils.tuples.Tuple3
 import org.ktorm.dsl.*
-import org.ktorm.entity.firstOrNull
-import org.ktorm.entity.sequenceOf
+import org.ktorm.entity.*
+import org.slf4j.LoggerFactory
 import java.lang.IllegalArgumentException
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.reflect.KClass
@@ -23,6 +25,10 @@ import kotlin.reflect.KClass
  */
 interface BackendExporter : StatefulComponent {
     fun add(tasks: List<ExporterTask>)
+
+    fun add(task: ExporterTask) {
+        add(listOf(task))
+    }
 }
 
 sealed interface ExporterTask
@@ -85,7 +91,8 @@ interface MergedProcessWorker<T : ExporterTask> {
 private val EXPORTER_TYPE_INDEX = listOf(
     IllustMetadataExporterTask::class,
     AlbumMetadataExporterTask::class,
-    TagGlobalSortExporterTask::class
+    TagGlobalSortExporterTask::class,
+    IllustAlbumMemberExporterTask::class
 )
 private val EXPORTER_TYPES = EXPORTER_TYPE_INDEX.mapIndexed { index, kClass -> kClass to index }.toMap()
 
@@ -94,7 +101,7 @@ class BackendExporterImpl(private val data: DataRepository,
                           private val albumKit: AlbumKit) : BackendExporter {
     private val workerThreads: MutableMap<KClass<out ExporterTask>, ExporterWorkerThread<*>> = mutableMapOf()
 
-    override val isIdle: Boolean get() = workerThreads.values.sumOf { it.taskCount } <= 0
+    override val isIdle: Boolean get() = !workerThreads.values.any { it.isAlive }
 
     override fun load() {
         if(data.status == LoadStatus.LOADED) {
@@ -130,6 +137,7 @@ class BackendExporterImpl(private val data: DataRepository,
             IllustMetadataExporterTask::class -> IllustMetadataExporter(data, illustKit)
             AlbumMetadataExporterTask::class -> AlbumMetadataExporter(data, albumKit)
             TagGlobalSortExporterTask::class -> TagGlobalSortExporter(data)
+            IllustAlbumMemberExporterTask::class -> IllustAlbumMemberExporter(data, illustKit)
             else -> throw IllegalArgumentException("Unsupported task type ${type.simpleName}.")
         } as ExporterWorker<T>
     }
@@ -150,6 +158,8 @@ class BackendExporterImpl(private val data: DataRepository,
 
 class ExporterWorkerThread<T : ExporterTask>(private val data: DataRepository,
                                              private val worker: ExporterWorker<T>) : ControlledLoopThread() {
+    private val log = LoggerFactory.getLogger(ExporterWorkerThread::class.java)
+
     @Suppress("UNCHECKED_CAST")
     private val merge: MergedProcessWorker<T>? = if(worker is MergedProcessWorker<*>) worker as MergedProcessWorker<T> else null
     private val latency: LatencyProcessWorker? = if(worker is LatencyProcessWorker) worker else null
@@ -159,9 +169,6 @@ class ExporterWorkerThread<T : ExporterTask>(private val data: DataRepository,
     private var _currentKey: String? = null
     private val _taskCount = AtomicInteger(0)
     private val _totalTaskCount = AtomicInteger(0)
-
-    val taskCount: Int get() = _taskCount.get()
-    val totalTaskCount: Int get() = _totalTaskCount.get()
 
     fun load(initializeTaskCount: Int) {
         _taskCount.set(initializeTaskCount)
@@ -173,47 +180,64 @@ class ExporterWorkerThread<T : ExporterTask>(private val data: DataRepository,
 
     fun add(tasks: List<T>) {
         val now = DateTime.now()
-        data.db.batchInsert(ExporterRecords) {
-            //TODO 在merge生效时，处理合并问题。并且如果currentKey也包含在其中，需要打断任务。
-            for (task in tasks) {
-                item {
-                    set(it.type, typeIndex)
-                    set(it.key, merge?.keyof(task) ?: "")
-                    set(it.content, worker.serialize(task))
-                    set(it.createTime, now)
+        synchronized(this) {
+            //锁定thread时，处于对models的读写合并状态，以排斥线程任务对相同内容的修改
+
+            val finalTasks = analyseMergeTasks(tasks)
+
+            data.db.batchInsert(ExporterRecords) {
+                for (task in finalTasks) {
+                    item {
+                        set(it.type, typeIndex)
+                        set(it.key, merge?.keyof(task) ?: "")
+                        set(it.content, worker.serialize(task))
+                        set(it.createTime, now)
+                    }
                 }
             }
+
+            _totalTaskCount.addAndGet(finalTasks.size)
+            _taskCount.addAndGet(finalTasks.size)
         }
 
-        synchronized(this) {
-            _totalTaskCount.addAndGet(tasks.size)
-            _taskCount.addAndGet(tasks.size)
-            if(!this.isAlive) {
-                this.start()
+        if(!this.isAlive) {
+            //默认情况下，启动daemon task
+            this.start()
+        }
+    }
+
+    private fun analyseMergeTasks(tasks: List<T>): List<T> {
+        return if(merge != null) {
+            //在merge生效时，处理合并问题
+            val groupedNewTasks = tasks.groupBy { merge.keyof(it) }
+            data.db.transaction {
+                val groupedDbTasks = data.db.sequenceOf(ExporterRecords)
+                    .filter { (it.key inList groupedNewTasks.keys) and (it.type eq typeIndex) }
+                    .map { Tuple3(it.id, it.key, worker.deserialize(it.content)) }
+                    .groupBy { it.f2 }
+                if(groupedNewTasks.values.any { it.size > 1 } || groupedDbTasks.isNotEmpty()) {
+                    //newTasks存在超过1个相同key，或从数据库中查出的内容不为空，就认为存在需要merge的项，执行merge过程
+                    val deleteIds = groupedDbTasks.values.flatten().map { (id, _) -> id }
+                    data.db.delete(ExporterRecords) {
+                        it.id inList deleteIds
+                    }
+                    _totalTaskCount.addAndGet(deleteIds.size)
+                    _taskCount.addAndGet(deleteIds.size)
+
+                    groupedNewTasks.map { (key, newTasks) ->
+                        val dbTasks = groupedDbTasks[key]?.map { it.f3 } ?: emptyList()
+                        merge.merge(newTasks + dbTasks)
+                    }
+                }else{
+                    tasks
+                }
             }
+        }else{
+            tasks
         }
     }
 
     override fun run() {
-        if(_taskCount.get() <= 0) {
-            synchronized(this) {
-                _totalTaskCount.set(0)
-                this.stop()
-                return
-            }
-        }
-
-        val model = data.db.sequenceOf(ExporterRecords).firstOrNull { it.type eq typeIndex }
-        if(model == null) {
-            this.stop()
-            return
-        }
-
-        val task = worker.deserialize(model.content)
-        merge?.let {
-            this._currentKey = it.keyof(task)
-        }
-
         latency?.let {
             try {
                 Thread.sleep(it.latency)
@@ -224,13 +248,29 @@ class ExporterWorkerThread<T : ExporterTask>(private val data: DataRepository,
             }
         }
 
+        val model = synchronized(this) {
+            //锁定thread时，处于对一个model的数据库读写状态，以排斥add指令对相同内容的修改
+            val model = data.db.sequenceOf(ExporterRecords).firstOrNull { it.type eq typeIndex }
+            if(model == null) {
+                log.info("${_totalTaskCount.get()} ${worker.clazz.simpleName} processed.")
+                _taskCount.set(0)
+                _totalTaskCount.set(0)
+                this.stop()
+                return
+            }
+            data.db.delete(ExporterRecords) { it.id eq model.id }
+            model
+        }
+
+        val task = worker.deserialize(model.content)
+        this._currentKey = merge?.keyof(task)
         try {
             worker.run(task)
         }catch (e: Exception) {
-
+            val logTaskName = worker.clazz.simpleName + if(this._currentKey.isNullOrEmpty())  "" else " [${this._currentKey}]"
+            log.error("Error occurred in export worker for $logTaskName.", e)
         }
 
         this._currentKey = null
-        data.db.delete(ExporterRecords) { it.id eq model.id }
     }
 }

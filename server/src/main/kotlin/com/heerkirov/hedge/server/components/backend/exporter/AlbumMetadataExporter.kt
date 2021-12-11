@@ -20,7 +20,7 @@ class AlbumMetadataExporter(private val data: DataRepository,
     override fun keyof(task: AlbumMetadataExporterTask): String = task.id.toString()
 
     override fun merge(tasks: List<AlbumMetadataExporterTask>): AlbumMetadataExporterTask {
-        TODO("Not yet implemented")
+        return AlbumMetadataExporterTask(tasks.first().id, exportMetaTag = tasks.any { it.exportMetaTag })
     }
 
     override fun run(task: AlbumMetadataExporterTask) {

@@ -1,8 +1,8 @@
 package com.heerkirov.hedge.server.components.service
 
-import com.heerkirov.hedge.server.components.backend.AlbumExporterTask
-import com.heerkirov.hedge.server.components.backend.IllustExporterTask
-import com.heerkirov.hedge.server.components.backend.EntityExporter
+import com.heerkirov.hedge.server.components.backend.exporter.AlbumMetadataExporterTask
+import com.heerkirov.hedge.server.components.backend.exporter.BackendExporter
+import com.heerkirov.hedge.server.components.backend.exporter.IllustMetadataExporterTask
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.database.transaction
 import com.heerkirov.hedge.server.dto.*
@@ -30,7 +30,7 @@ class TopicService(private val data: DataRepository,
                    private val kit: TopicKit,
                    private val queryManager: QueryManager,
                    private val sourceMappingManager: SourceMappingManager,
-                   private val entityExporter: EntityExporter) {
+                   private val backendExporter: BackendExporter) {
     private val orderTranslator = OrderTranslator {
         "id" to Topics.id
         "name" to Topics.name
@@ -200,13 +200,13 @@ class TopicService(private val data: DataRepository,
                 data.db.from(IllustTopicRelations)
                     .select(IllustTopicRelations.illustId)
                     .where { IllustTopicRelations.topicId eq id }
-                    .map { IllustExporterTask(it[IllustTopicRelations.illustId]!!, exportMeta = true, exportDescription = false, exportFirstCover = false, exportScore = false) }
-                    .let { entityExporter.appendNewTask(it) }
+                    .map { IllustMetadataExporterTask(it[IllustTopicRelations.illustId]!!, exportMetaTag = true, exportDescription = false, exportFirstCover = false, exportScore = false) }
+                    .let { backendExporter.add(it) }
                 data.db.from(AlbumTopicRelations)
                     .select(AlbumTopicRelations.albumId)
                     .where { AlbumTopicRelations.topicId eq id }
-                    .map { AlbumExporterTask(it[AlbumTopicRelations.albumId]!!, exportMeta = true) }
-                    .let { entityExporter.appendNewTask(it) }
+                    .map { AlbumMetadataExporterTask(it[AlbumTopicRelations.albumId]!!, exportMetaTag = true) }
+                    .let { backendExporter.add(it) }
 
                 queryManager.flushCacheOf(QueryManager.CacheType.TOPIC)
             }

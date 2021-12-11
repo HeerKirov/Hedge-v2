@@ -2,6 +2,7 @@ package com.heerkirov.hedge.server.components.kit
 
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.manager.MetaManager
+import com.heerkirov.hedge.server.dao.album.AlbumImageRelations
 import com.heerkirov.hedge.server.dao.illust.*
 import com.heerkirov.hedge.server.dao.meta.*
 import com.heerkirov.hedge.server.dao.types.EntityMetaRelationTable
@@ -17,6 +18,7 @@ import com.heerkirov.hedge.server.utils.types.union
 import org.ktorm.dsl.*
 import org.ktorm.dsl.where
 import org.ktorm.entity.*
+import org.ktorm.schema.ColumnDeclaring
 import java.time.LocalDate
 import kotlin.math.roundToInt
 
@@ -340,5 +342,49 @@ class IllustKit(private val data: DataRepository,
         val score = images.asSequence().mapNotNull { it.score }.average().run { if(isNaN()) null else this }?.roundToInt()
 
         return Tuple4(fileId, score, partitionTime, orderTime)
+    }
+
+    /**
+     * 重新导出列表中所有images的album flag。随后，再重新导出它们关联的collection。
+     */
+    fun exportAlbumFlag(imageIds: List<Int>) {
+        val images = data.db.from(Illusts)
+            .leftJoin(AlbumImageRelations, AlbumImageRelations.imageId eq Illusts.id)
+            .select(Illusts.id, Illusts.parentId, count(AlbumImageRelations.albumId).aliased("count"))
+            .where { (Illusts.type notEq Illust.Type.COLLECTION) and (Illusts.id inList imageIds) }
+            .groupBy(Illusts.id)
+            .map { Tuple3(it[Illusts.id]!!, it[Illusts.parentId], it.getInt("count")) }
+
+        if(images.isNotEmpty()) {
+            data.db.batchUpdate(Illusts) {
+                for ((id, _, cnt) in images) {
+                    item {
+                        where { it.id eq id }
+                        set(it.cachedAlbumCount, cnt)
+                    }
+                }
+            }
+
+            val parentIds = images.mapNotNull { (_, parentId, _) -> parentId }.toSet()
+            val j = Illusts.aliased("joined_image")
+            @Suppress("UNCHECKED_CAST")
+            val parents = data.db.from(Illusts)
+                .leftJoin(j, Illusts.id eq j.parentId)
+                .select(Illusts.id, sum((j.cachedAlbumCount greater 0) as ColumnDeclaring<Number>).aliased("count"))
+                .where { (Illusts.type eq Illust.Type.COLLECTION) and (Illusts.id inList parentIds) }
+                .groupBy(Illusts.id)
+                .map { Tuple2(it[Illusts.id]!!, it.getInt("count")) }
+
+            if(parents.isNotEmpty()) {
+                data.db.batchUpdate(Illusts) {
+                    for ((id, cnt) in parents) {
+                        item {
+                            where { it.id eq id }
+                            set(it.cachedAlbumCount, cnt)
+                        }
+                    }
+                }
+            }
+        }
     }
 }

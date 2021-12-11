@@ -23,7 +23,7 @@ class TagGlobalSortExporter(private val data: DataRepository): ExporterWorker<Ta
     override fun keyof(task: TagGlobalSortExporterTask) = ""
 
     override fun merge(tasks: List<TagGlobalSortExporterTask>): TagGlobalSortExporterTask {
-        TODO("Not yet implemented")
+        return TagGlobalSortExporterTask
     }
 
     override fun run(task: TagGlobalSortExporterTask) {

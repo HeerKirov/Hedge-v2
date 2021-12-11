@@ -33,7 +33,12 @@ class IllustMetadataExporter(private val data: DataRepository,
     override fun keyof(task: IllustMetadataExporterTask) = task.id.toString()
 
     override fun merge(tasks: List<IllustMetadataExporterTask>): IllustMetadataExporterTask {
-        TODO("Not yet implemented")
+        return IllustMetadataExporterTask(tasks.first().id,
+            exportScore = tasks.any { it.exportScore },
+            exportMetaTag = tasks.any { it.exportMetaTag },
+            exportDescription = tasks.any { it.exportDescription },
+            exportFirstCover = tasks.any { it.exportFirstCover }
+        )
     }
 
     override fun run(task: IllustMetadataExporterTask) {

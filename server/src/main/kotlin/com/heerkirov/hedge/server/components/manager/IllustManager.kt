@@ -1,8 +1,7 @@
 package com.heerkirov.hedge.server.components.manager
 
-import com.heerkirov.hedge.server.components.backend.CollectionExporterTask
-import com.heerkirov.hedge.server.components.backend.EntityExporter
-import com.heerkirov.hedge.server.components.backend.ImageExporterTask
+import com.heerkirov.hedge.server.components.backend.exporter.BackendExporter
+import com.heerkirov.hedge.server.components.backend.exporter.IllustMetadataExporterTask
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.kit.IllustKit
 import com.heerkirov.hedge.server.dao.illust.*
@@ -22,7 +21,7 @@ class IllustManager(private val data: DataRepository,
                     private val kit: IllustKit,
                     private val sourceManager: SourceImageManager,
                     private val partitionManager: PartitionManager,
-                    private val entityExporter: EntityExporter) {
+                    private val backendExporter: BackendExporter) {
     /**
      * 创建新的image。
      * @throws ResourceNotExist ("source", string) 给出的source不存在
@@ -95,7 +94,7 @@ class IllustManager(private val data: DataRepository,
 
         if(collection != null) {
             //对parent做重导出。尽管重导出有多个可分离的部分，但分开判定太费劲且收益不高，就统一只要有parent就重导出了
-            entityExporter.appendNewTask(CollectionExporterTask(collection.id, exportFirstCover = true, exportMeta = true))
+            backendExporter.add(IllustMetadataExporterTask(collection.id, exportFirstCover = true, exportMetaTag = true))
         }
 
         return id
@@ -156,7 +155,7 @@ class IllustManager(private val data: DataRepository,
             set(it.type, Illust.Type.IMAGE)
             set(it.parentId, null)
         }
-        entityExporter.appendNewTask(deleteIds.map { ImageExporterTask(it, exportDescription = true, exportScore = true, exportMeta = true) })
+        backendExporter.add(deleteIds.map { IllustMetadataExporterTask(it, exportDescription = true, exportScore = true, exportMetaTag = true) })
 
         //处理移入项，修改它们的type/parentId，并视情况执行重新导出
         val addIds = imageIds - oldImageIds
@@ -165,7 +164,7 @@ class IllustManager(private val data: DataRepository,
             set(it.parentId, collectionId)
             set(it.type, Illust.Type.IMAGE_WITH_PARENT)
         }
-        entityExporter.appendNewTask(addIds.map { ImageExporterTask(it, exportDescription = true, exportScore = true, exportMeta = true) })
+        backendExporter.add(addIds.map { IllustMetadataExporterTask(it, exportDescription = true, exportScore = true, exportMetaTag = true) })
         //这些image有旧的parent，需要对旧parent做重新导出
         val now = DateTime.now()
         images.asSequence()
@@ -196,7 +195,7 @@ class IllustManager(private val data: DataRepository,
         }
 
         if(exportMetaTags || exportScore) {
-            entityExporter.appendNewTask(CollectionExporterTask(collectionId, exportScore = exportScore, exportMeta = exportMetaTags))
+            backendExporter.add(IllustMetadataExporterTask(collectionId, exportScore = exportScore, exportMetaTag = exportMetaTags))
         }
     }
 
@@ -226,7 +225,7 @@ class IllustManager(private val data: DataRepository,
             }
 
             if(exportMetaTags || exportScore) {
-                entityExporter.appendNewTask(CollectionExporterTask(collectionId, exportScore = exportScore, exportMeta = exportMetaTags))
+                backendExporter.add(IllustMetadataExporterTask(collectionId, exportScore = exportScore, exportMetaTag = exportMetaTags))
             }
         }else{
             //此collection已经没有项了，将其删除

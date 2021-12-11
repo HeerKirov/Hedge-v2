@@ -51,6 +51,8 @@ abstract class ControlledLoopThread(start: Boolean = false) {
         while(isAlive) {
             try {
                 run()
+            }catch (e: InterruptedException) {
+                continue
             }catch(e: Exception) {
                 isAlive = false
                 throw e

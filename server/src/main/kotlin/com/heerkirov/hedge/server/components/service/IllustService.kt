@@ -1,9 +1,8 @@
 package com.heerkirov.hedge.server.components.service
 
-import com.heerkirov.hedge.server.components.backend.AlbumExporterTask
-import com.heerkirov.hedge.server.components.backend.CollectionExporterTask
-import com.heerkirov.hedge.server.components.backend.EntityExporter
-import com.heerkirov.hedge.server.components.backend.ImageExporterTask
+import com.heerkirov.hedge.server.components.backend.exporter.AlbumMetadataExporterTask
+import com.heerkirov.hedge.server.components.backend.exporter.BackendExporter
+import com.heerkirov.hedge.server.components.backend.exporter.IllustMetadataExporterTask
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.database.transaction
 import com.heerkirov.hedge.server.components.kit.IllustKit
@@ -52,7 +51,7 @@ class IllustService(private val data: DataRepository,
                     private val sourceManager: SourceImageManager,
                     private val partitionManager: PartitionManager,
                     private val queryManager: QueryManager,
-                    private val entityExporter: EntityExporter) {
+                    private val backendExporter: BackendExporter) {
     private val orderTranslator = OrderTranslator {
         "id" to Illusts.id
         "createTime" to Illusts.createTime
@@ -403,10 +402,10 @@ class IllustService(private val data: DataRepository,
 
             if(anyOpt(form.tags, form.authors, form.topics, form.description, form.score)) {
                 val children = data.db.from(Illusts).select(Illusts.id).where { Illusts.parentId eq id }.map { it[Illusts.id]!! }
-                entityExporter.appendNewTask(children.map { ImageExporterTask(it,
+                backendExporter.add(children.map { IllustMetadataExporterTask(it,
                     exportScore = form.score.isPresent,
                     exportDescription = form.description.isPresent,
-                    exportMeta = anyOpt(form.tags, form.topics, form.authors)) })
+                    exportMetaTag = anyOpt(form.tags, form.topics, form.authors)) })
             }
         }
     }
@@ -515,7 +514,7 @@ class IllustService(private val data: DataRepository,
                 val exportFirstCover = anyOpt(form.orderTime, form.partitionTime) && kit.getFirstChildOfCollection(illust.parentId).id == id
                 //添加task
                 if(exportScore || exportMeta || exportFirstCover) {
-                    entityExporter.appendNewTask(CollectionExporterTask(illust.parentId, exportScore = exportScore, exportMeta = exportMeta, exportFirstCover = exportFirstCover))
+                    backendExporter.add(IllustMetadataExporterTask(illust.parentId, exportScore = exportScore, exportMetaTag = exportMeta, exportFirstCover = exportFirstCover))
                 }
             }
 
@@ -529,7 +528,7 @@ class IllustService(private val data: DataRepository,
                 val exportMeta = anyOpt(form.tags, form.authors, form.topics)
                 if(exportMeta) {
                     for (albumId in albumIds) {
-                        entityExporter.appendNewTask(AlbumExporterTask(albumId, exportMeta = true))
+                        backendExporter.add(AlbumMetadataExporterTask(albumId, exportMetaTag = true))
                     }
                 }
             }
@@ -666,10 +665,10 @@ class IllustService(private val data: DataRepository,
                     set(it.type, Illust.Type.IMAGE)
                 }
                 //对children做重导出
-                entityExporter.appendNewTask(children.map { ImageExporterTask(it,
+                backendExporter.add(children.map { IllustMetadataExporterTask(it,
                     exportDescription = illust.description.isNotEmpty(),
                     exportScore = illust.score != null,
-                    exportMeta = anyNotExportedMetaExists) })
+                    exportMetaTag = anyNotExportedMetaExists) })
             }
         }
     }
