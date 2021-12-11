@@ -2,7 +2,7 @@ package com.heerkirov.hedge.server.utils.tools
 
 import kotlin.concurrent.thread
 
-class ThreadController(start: Boolean = false, private val call: () -> Unit) {
+abstract class ControlledLoopThread(start: Boolean = false) {
     private var thread: Thread? = null
 
     init {
@@ -50,19 +50,25 @@ class ThreadController(start: Boolean = false, private val call: () -> Unit) {
     private fun loop() {
         while(isAlive) {
             try {
-                call()
+                run()
             }catch(e: Exception) {
                 isAlive = false
                 throw e
             }
         }
     }
+
+    abstract fun run()
 }
 
 /**
  * 产生一个受控线程。这是一个长期任务类的持久化线程，被控制器控制启动或停止。
  * @param thread 任务启动后，call函数将作为daemon thread无限运行。
  */
-fun controlledThread(start: Boolean = false, thread: () -> Unit): ThreadController {
-    return ThreadController(start, thread)
+inline fun controlledThread(start: Boolean = false, crossinline thread: () -> Unit): ControlledLoopThread {
+    return object : ControlledLoopThread(start) {
+        override fun run() {
+            thread()
+        }
+    }
 }

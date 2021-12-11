@@ -4,6 +4,7 @@ import com.heerkirov.hedge.server.components.appdata.AppDataDriverImpl
 import com.heerkirov.hedge.server.components.backend.EntityExporterImpl
 import com.heerkirov.hedge.server.components.backend.TagExporterImpl
 import com.heerkirov.hedge.server.components.backend.FileGeneratorImpl
+import com.heerkirov.hedge.server.components.backend.exporter.BackendExporterImpl
 import com.heerkirov.hedge.server.components.configuration.ConfigurationDriverImpl
 import com.heerkirov.hedge.server.components.database.DataRepositoryImpl
 import com.heerkirov.hedge.server.components.health.HealthImpl
@@ -66,6 +67,7 @@ fun runApplication(options: ApplicationOptions) {
 
             val illustKit = IllustKit(repo, metaManager)
             val albumKit = AlbumKit(repo, metaManager)
+            val backendExporter = define { BackendExporterImpl(repo, illustKit, albumKit) }
             val entityExporter = define { EntityExporterImpl(repo, illustKit, albumKit) }
             val illustManager = IllustManager(repo, illustKit, sourceManager, partitionManager, entityExporter)
             val albumManager = AlbumManager(repo, albumKit, illustManager, entityExporter)
