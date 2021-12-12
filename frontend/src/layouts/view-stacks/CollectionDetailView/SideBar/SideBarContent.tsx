@@ -7,7 +7,7 @@ import SideBarRelatedItems from "./SideBarRelatedItems"
 
 export default defineComponent({
     setup() {
-        const tab = useLocalStorageWithDefault<TabType>("detail-view/side-bar/tab", "info")
+        const tab = useLocalStorageWithDefault<TabType>("detail-view/image-side-bar/tab", "info")
         const updateTab = (v: TabType) => tab.value = v
 
         interceptGlobalKey(["Meta+Digit1", "Meta+Digit2"], e => {

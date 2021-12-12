@@ -75,10 +75,11 @@ const ListView = defineComponent({
                 from: data => data
             }),
             createCollection: {forceDialog: true},
+            addToFolder: true,
             afterDeleted: toastRefresh, //FUTURE 删除图像是能优化的，对上层的影响仅限于target自身
         })
 
-        const albumOperator = useAlbumOperator()
+        const albumOperator = useAlbumOperator(operator)
 
         const menu = useContextmenu(operator, albumOperator)
 
@@ -91,7 +92,7 @@ const ListView = defineComponent({
 
 function useContextmenu(operator: GridContextOperatorResult<AlbumImage>, albumOperator: ReturnType<typeof useAlbumOperator>) {
     const { data: { id } } = usePreviewContext()
-    //TODO 完成album images右键菜单的功能 (信息预览，剪贴板，关联组，目录，导出)
+    //TODO 完成album images右键菜单的功能 (信息预览，剪贴板，关联组，导出)
     return useDynamicPopupMenu<AlbumImage>(image => [
         {type: "normal", label: "查看详情", click: image => operator.clickToOpenDetail(image.id)},
         {type: "separator"},
@@ -104,11 +105,9 @@ function useContextmenu(operator: GridContextOperatorResult<AlbumImage>, albumOp
         {type: "separator"},
         {type: "normal", label: "加入剪贴板"},
         {type: "separator"},
-        {type: "normal", label: "创建图像集合", click: operator.createCollection},
+        {type: "normal", label: "创建图像集合…", click: operator.createCollection},
         {type: "normal", label: "创建关联组"},
-        {type: "normal", label: "添加到目录"},
-        {type: "normal", label: "添加到\"X\""},
-        {type: "normal", label: "添加到临时目录"},
+        {type: "normal", label: "添加到目录…", click: operator.addToFolder},
         {type: "separator"},
         {type: "normal", label: "导出"},
         {type: "separator"},
@@ -117,15 +116,15 @@ function useContextmenu(operator: GridContextOperatorResult<AlbumImage>, albumOp
     ])
 }
 
-function useAlbumOperator() {
+function useAlbumOperator(operator: GridContextOperatorResult<AlbumImage>) {
     const toast = useToast()
     const messageBox = useMessageBox()
     const httpClient = useHttpClient()
     const addToAlbum = useAddToAlbumService()
-    const { images: { dataView, endpoint, selector: { selected } }, data: { id, toastRefresh } } = usePreviewContext()
+    const { images: { dataView, endpoint }, data: { id, toastRefresh } } = usePreviewContext()
 
     const removeItemFromAlbum = async (illust: AlbumImage, albumId: number) => {
-        const images = selected.value.includes(illust.id) ? selected.value : [...selected.value, illust.id]
+        const images = operator.getEffectedItems(illust)
         if(await messageBox.showYesNoMessage("warn", `确定要从画集移除${images.length > 1 ? "这些" : "此"}项吗？`)) {
             const ok = await httpClient.album.images.partialUpdate(albumId, {action: "DELETE", images})
             if(ok) {

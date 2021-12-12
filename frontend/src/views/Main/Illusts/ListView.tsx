@@ -24,7 +24,8 @@ export default defineComponent({
             createSliceOfList: createSliceOfList,
             createSliceOfSingleton: createProxySingleton,
             createCollection: {refreshAfterCreated: true},
-            createAlbum: true
+            createAlbum: true,
+            addToFolder: true
         })
 
         const menu = useContextmenu(operator)
@@ -37,7 +38,7 @@ export default defineComponent({
 })
 
 function useContextmenu(operator: GridContextOperatorResult<Illust>) {
-    //TODO 完成illust右键菜单的功能 (信息预览，剪贴板，关联组，目录，导出)
+    //TODO 完成illust右键菜单的功能 (信息预览，剪贴板，关联组，导出)
     return useDynamicPopupMenu<Illust>(illust => [
         {type: "normal", label: "查看详情", click: i => operator.clickToOpenDetail(i.id)},
         (illust.type === "COLLECTION" || null) && {type: "normal", label: "查看集合详情", click: i => operator.openCollectionDetail(i.id)},
@@ -52,11 +53,9 @@ function useContextmenu(operator: GridContextOperatorResult<Illust>) {
         {type: "normal", label: "加入剪贴板"},
         {type: "separator"},
         {type: "normal", label: "创建图像集合", click: operator.createCollection},
-        {type: "normal", label: "创建画集", click: operator.createAlbum},
+        {type: "normal", label: "创建画集…", click: operator.createAlbum},
         {type: "normal", label: "创建关联组"},
-        {type: "normal", label: "添加到目录"},
-        {type: "normal", label: "添加到\"X\""},
-        {type: "normal", label: "添加到临时目录"},
+        {type: "normal", label: "添加到目录…", click: operator.addToFolder},
         {type: "separator"},
         {type: "normal", label: "导出"},
         {type: "separator"},

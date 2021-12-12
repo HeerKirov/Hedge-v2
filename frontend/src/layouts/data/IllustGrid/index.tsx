@@ -3,7 +3,7 @@ import { useScrollView, VirtualGrid } from "@/components/features/VirtualScrollV
 import { useToast } from "@/functions/module/toast"
 import { useDraggable, useDroppable } from "@/functions/feature/drag"
 import { watchGlobalKeyEvent } from "@/functions/feature/keyboard"
-import { TypeDefinition } from "@/functions/feature/drag/definition"
+import { DraggingIllust, TypeDefinition } from "@/functions/feature/drag/definition"
 import { PaginationData, QueryEndpointInstance } from "@/functions/utils/endpoints/query-endpoint"
 import { clientPlatform } from "@/functions/adapter-ipc"
 import { assetsUrl } from "@/functions/app"
@@ -335,14 +335,24 @@ function useDragEvents(getDataRef: () => Ref<SuitableIllust>) {
     if(draggable && queryEndpoint !== undefined) {
         const data = getDataRef()
         const dragEvents = useDraggable("illusts", () => {
-            const selectedItems = selected.value.length <= 0 ? [] : selected.value.map(illustId => {
-                const index = queryEndpoint.syncOperations.find(i => i.id === illustId)!
-                const illust = queryEndpoint.syncOperations.retrieve(index)!
-                return {id: illust.id, type: illust.type ?? "IMAGE", thumbnailFile: illust.thumbnailFile, childrenCount: illust.childrenCount ?? null}
-            })
-            const clickItems = selected.value.includes(data.value.id) ? [] : [{id: data.value.id, type: data.value.type ?? "IMAGE", thumbnailFile: data.value.thumbnailFile, childrenCount: data.value.childrenCount ?? null}]
-
-            return selectedItems.concat(clickItems)
+            //拖曳行为：与context的复数选择行为一致。当拖曳项是选择项时，拖曳全部选择项；不是时，仅拖曳拖曳项。
+            if(selected.value.includes(data.value.id)) {
+                return selected.value.map(illustId => {
+                    if(illustId !== data.value.id) {
+                        const index = queryEndpoint.syncOperations.find(i => i.id === illustId)
+                        if(index !== undefined) {
+                            const illust = queryEndpoint.syncOperations.retrieve(index)!
+                            return {id: illust.id, type: illust.type ?? "IMAGE", thumbnailFile: illust.thumbnailFile, childrenCount: illust.childrenCount ?? null}
+                        }else{
+                            return null
+                        }
+                    }else{
+                        return {id: data.value.id, type: data.value.type ?? "IMAGE", thumbnailFile: data.value.thumbnailFile, childrenCount: data.value.childrenCount ?? null}
+                    }
+                }).filter(i => i !== null) as DraggingIllust[]
+            }else{
+                return [{id: data.value.id, type: data.value.type ?? "IMAGE", thumbnailFile: data.value.thumbnailFile, childrenCount: data.value.childrenCount ?? null}]
+            }
         })
         return {...dragEvents, draggable: true}
     }else{

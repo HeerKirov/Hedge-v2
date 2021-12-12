@@ -73,6 +73,7 @@ export function installLocalTagDataContext(tagPaneContext: TagPaneContext, tagLi
     installTagTreeContext({
         tagListContext,
         editable,
+        draggable: () => true,
         click: tag => tagPaneContext.openDetailPane(tag.id),
         rightClick: contextmenu
     })

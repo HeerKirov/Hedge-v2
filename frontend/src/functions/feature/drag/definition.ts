@@ -10,7 +10,7 @@ export interface TypeDefinition {
     illusts: DraggingIllust[]
 }
 
-interface DraggingIllust {
+export interface DraggingIllust {
     id: number
     thumbnailFile: string
     type: IllustType

@@ -3,7 +3,7 @@ import { ScrollView } from "@/components/features/VirtualScrollView"
 import { PaginationDataView, QueryEndpointInstance, QueryEndpointResult, SingletonDataView, SliceDataView } from "@/functions/utils/endpoints/query-endpoint"
 import { Illust, IllustType } from "@/functions/adapter-http/impl/illust"
 import { useCreatingCollectionService } from "@/layouts/dialogs/CreatingCollection"
-import { useCreatingAlbumService } from "@/layouts/dialogs"
+import { useCreatingAlbumService, useAddToFolderService } from "@/layouts/dialogs"
 import { useFastObjectEndpoint } from "@/functions/utils/endpoints/object-fast-endpoint"
 import { useRouterNavigator } from "@/functions/feature/router"
 import { useMessageBox } from "@/functions/module/message-box"
@@ -67,6 +67,10 @@ interface GridContextOperatorOptions<T extends SuitableIllust> {
      */
     createAlbum?: boolean
     /**
+     * 启用{addToFolder}功能。
+     */
+    addToFolder?: boolean
+    /**
      * 调用deleteItem后，附加的回调。
      */
     afterDeleted?(): void
@@ -110,14 +114,23 @@ export interface GridContextOperatorResult<T> {
      */
     splitToGenerateNewCollection(illust: T): void
     /**
-     * 创建album。选用的items列表是已选择项加上当前目标项。
-     * 打开一个对话框，以供编辑项列表和填写基本信息。
+     * 创建album。打开一个对话框，以供编辑项列表和填写基本信息。
      */
     createAlbum(illust: T): void
+    /**
+     * 添加到目录。打开一个对话框，以选择要添加到的目录。
+     * @param illust
+     */
+    addToFolder(illust: T): void
     /**
      * 删除项目。
      */
     deleteItem(illust: T): void
+    /**
+     * 获得当前操作中，应该受到影响的对象id列表。此方法被提供给外部实现的其他函数，用于和context内的选择行为统一。
+     * 选择行为指：当存在选中项时，在选择项之外右键将仅使用右键项而不包括选择项。它需要影响那些有多项目操作的行为。
+     */
+    getEffectedItems(illust: T): number[]
 }
 
 export function useGridContextOperator<T extends SuitableIllust>(options: GridContextOperatorOptions<T>): GridContextOperatorResult<T> {
@@ -127,13 +140,18 @@ export function useGridContextOperator<T extends SuitableIllust>(options: GridCo
     const httpClient = useHttpClient()
     const viewStacks = useViewStack()
     const { dataView, endpoint, scrollView, selected } = options
-    const creatingCollection = options.createCollection ? useCreatingCollectionService() : null
-    const creatingAlbum = options.createAlbum ? useCreatingAlbumService() : null
+    const creatingCollectionService = options.createCollection ? useCreatingCollectionService() : null
+    const creatingAlbumService = options.createAlbum ? useCreatingAlbumService() : null
+    const addToFolderService = options.addToFolder ? useAddToFolderService() : null
 
     const commonFastEndpoint = useFastObjectEndpoint({
         update: httpClient => httpClient.illust.update,
         delete: httpClient => httpClient.illust.delete
     })
+
+    const getEffectedItems = (illust: T): number[] => {
+        return selected.value.includes(illust.id) ? selected.value : [illust.id]
+    }
 
     const openAll = (illustId: number) => {
         const currentIndex = dataView.proxy.syncOperations.find(i => i.id === illustId)
@@ -217,7 +235,7 @@ export function useGridContextOperator<T extends SuitableIllust>(options: GridCo
 
     const openInNewWindow = (illust: T) => {
         if(illust.type === "IMAGE") {
-            const imageIds = selected.value.includes(illust.id) ? selected.value : [...selected.value, illust.id]
+            const imageIds = getEffectedItems(illust)
             const currentIndex = imageIds.indexOf(illust.id)
             navigator.newWindow({routeName: "Preview", params: { type: "image", imageIds, currentIndex}})
         }else{
@@ -226,7 +244,7 @@ export function useGridContextOperator<T extends SuitableIllust>(options: GridCo
     }
 
     const modifyFavorite = async (illust: T, favorite: boolean) => {
-        const items = selected.value.includes(illust.id) ? selected.value : [...selected.value, illust.id]
+        const items = getEffectedItems(illust)
 
         for (const itemId of items) {
             const ok = await commonFastEndpoint.setData(itemId, { favorite })
@@ -241,7 +259,7 @@ export function useGridContextOperator<T extends SuitableIllust>(options: GridCo
     }
 
     const createCollection = options.createCollection ? (illust: T) => {
-        const items = selected.value.includes(illust.id) ? selected.value : [...selected.value, illust.id]
+        const items = getEffectedItems(illust)
 
         const forceDialog = typeof options.createCollection === "object" && options.createCollection.forceDialog
 
@@ -256,9 +274,9 @@ export function useGridContextOperator<T extends SuitableIllust>(options: GridCo
         }
 
         if(forceDialog) {
-            creatingCollection!.createCollectionForceDialog(items, onCreated)
+            creatingCollectionService!.createCollectionForceDialog(items, onCreated)
         }else{
-            creatingCollection!.createCollection(items, onCreated)
+            creatingCollectionService!.createCollection(items, onCreated)
         }
     } : () => {}
 
@@ -285,8 +303,13 @@ export function useGridContextOperator<T extends SuitableIllust>(options: GridCo
     } : async () => {}
 
     const createAlbum = options.createAlbum ? (illust: T) => {
-        const items = selected.value.includes(illust.id) ? selected.value : [...selected.value, illust.id]
-        creatingAlbum!.createAlbum(items, () => toast.toast("已创建", "success", "已创建新画集。"))
+        const items = getEffectedItems(illust)
+        creatingAlbumService!.createAlbum(items, () => toast.toast("已创建", "success", "已创建新画集。"))
+    } : () => {}
+
+    const addToFolder = options.addToFolder ? (illust: T) => {
+        const items = getEffectedItems(illust)
+        addToFolderService!.addToFolder(items, () => toast.toast("已添加", "success", "已将图像添加到指定目录。"))
     } : () => {}
 
     const deleteItem = async (illust: T) => {
@@ -314,7 +337,7 @@ export function useGridContextOperator<T extends SuitableIllust>(options: GridCo
                 }
             }
         }else{
-            const items = selected.value.includes(illust.id) ? selected.value : [...selected.value, illust.id]
+            const items = getEffectedItems(illust)
             if(await messageBox.showYesNoMessage("warn", `确定要删除${items.length}个已选择项吗？`, "集合内的图像不会被删除。此操作不可撤回。")) {
                 const ok = await Promise.all(items.map(id => commonFastEndpoint.deleteData(id)))
                 if(ok.some(b => b)) {
@@ -327,7 +350,7 @@ export function useGridContextOperator<T extends SuitableIllust>(options: GridCo
 
     return {
         clickToOpenDetail, enterToOpenDetail, openCollectionDetail, openInNewWindow, modifyFavorite,
-        createCollection, splitToGenerateNewCollection, createAlbum,
-        deleteItem
+        createCollection, splitToGenerateNewCollection, createAlbum, addToFolder,
+        deleteItem, getEffectedItems
     }
 }

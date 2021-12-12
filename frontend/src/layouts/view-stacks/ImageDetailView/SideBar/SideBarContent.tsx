@@ -9,7 +9,7 @@ import SideBarFileInfo from "./SideBarFileInfo"
 
 export default defineComponent({
     setup() {
-        const tab = useLocalStorageWithDefault<TabType>("detail-view/side-bar/tab", "info")
+        const tab = useLocalStorageWithDefault<TabType>("detail-view/collection-side-bar/tab", "info")
         const updateTab = (v: TabType) => tab.value = v
 
         interceptGlobalKey(["Meta+Digit1", "Meta+Digit2", "Meta+Digit3", "Meta+Digit4"], e => {

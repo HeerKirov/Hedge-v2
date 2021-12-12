@@ -355,24 +355,28 @@ function useIndexedData(requestedData: Ref<TagTreeNode[]>) {
                 if(ordinal > info.ordinal) {
                     minusIndexedOrdinal(data.value.slice(info.ordinal, ordinal - 1))
                     data.value.splice(ordinal - 1, 0, info.tag)
+                    info.ordinal = ordinal - 1
                 }else{
-                    plusIndexedOrdinal(data.value.slice(ordinal, info.ordinal - 1))
+                    plusIndexedOrdinal(data.value.slice(ordinal, info.ordinal))
                     data.value.splice(ordinal, 0, info.tag)
+                    info.ordinal = ordinal
                 }
-                info.ordinal = ordinal
             }else{
                 const parentInfo = indexedInfo.value[parentId]
                 if(parentInfo) {
                     const children = parentInfo.tag.children ?? (parentInfo.tag.children = [])
                     children.splice(info.ordinal, 1)
                     if(ordinal > info.ordinal) {
+                        //向后移动
                         minusIndexedOrdinal(children.slice(info.ordinal, ordinal - 1))
                         children.splice(ordinal - 1, 0, info.tag)
+                        info.ordinal = ordinal - 1
                     }else{
-                        plusIndexedOrdinal(children.slice(ordinal, info.ordinal - 1))
+                        //向前移动
+                        plusIndexedOrdinal(children.slice(ordinal, info.ordinal))
                         children.splice(ordinal, 0, info.tag)
+                        info.ordinal = ordinal
                     }
-                    info.ordinal = ordinal
                 }
             }
         }else{

@@ -94,11 +94,12 @@ const ListView = defineComponent({
                 to: data => ({...data, type: "IMAGE", childrenCount: null}),
                 from: data => data
             }),
-            createCollection: {refreshAfterCreated: true},
-            createAlbum: true
+            createCollection: {forceDialog: true, refreshAfterCreated: true},
+            createAlbum: true,
+            addToFolder: true
         })
 
-        const folderOperator = useFolderOperator()
+        const folderOperator = useFolderOperator(operator)
 
         const menu = useContextmenu(operator, folderOperator)
 
@@ -110,7 +111,7 @@ const ListView = defineComponent({
 })
 
 function useContextmenu(operator: GridContextOperatorResult<FolderImage>, folderOperator: ReturnType<typeof useFolderOperator>) {
-    //TODO 完成folder illust右键菜单的功能 (信息预览，剪贴板，关联组，目录，导出)
+    //TODO 完成folder illust右键菜单的功能 (信息预览，剪贴板，关联组，导出)
     return useDynamicPopupMenu<FolderImage>(illust => [
         {type: "normal", label: "查看详情", click: i => operator.clickToOpenDetail(i.id)},
         {type: "separator"},
@@ -123,12 +124,10 @@ function useContextmenu(operator: GridContextOperatorResult<FolderImage>, folder
         {type: "separator"},
         {type: "normal", label: "加入剪贴板"},
         {type: "separator"},
-        {type: "normal", label: "创建图像集合", click: operator.createCollection},
-        {type: "normal", label: "创建画集", click: operator.createAlbum},
+        {type: "normal", label: "创建图像集合…", click: operator.createCollection},
+        {type: "normal", label: "创建画集…", click: operator.createAlbum},
         {type: "normal", label: "创建关联组"},
-        {type: "normal", label: "添加到目录"},
-        {type: "normal", label: "添加到\"X\""},
-        {type: "normal", label: "添加到临时目录"},
+        {type: "normal", label: "添加到目录…", click: operator.addToFolder},
         {type: "separator"},
         {type: "normal", label: "导出"},
         {type: "separator"},
@@ -137,15 +136,15 @@ function useContextmenu(operator: GridContextOperatorResult<FolderImage>, folder
     ])
 }
 
-function useFolderOperator() {
+function useFolderOperator(operator: GridContextOperatorResult<FolderImage>) {
     const toast = useToast()
     const messageBox = useMessageBox()
     const httpClient = useHttpClient()
     const addToFolder = useAddToFolderService()
-    const { dataView, endpoint, selector: { selected }, detail: { id } } = useDetailContext()
+    const { dataView, endpoint, detail: { id } } = useDetailContext()
 
     const removeItemFromFolder = async (illust: FolderImage) => {
-        const images = selected.value.includes(illust.id) ? selected.value : [...selected.value, illust.id]
+        const images = operator.getEffectedItems(illust)
         if(await messageBox.showYesNoMessage("warn", `确定要从目录移除${images.length > 1 ? "这些" : "此"}项吗？`)) {
             const ok = await httpClient.folder.images.partialUpdate(id.value, {action: "DELETE", images})
             if(ok) {
