@@ -2,6 +2,7 @@ package com.heerkirov.hedge.server.components.manager
 
 import com.heerkirov.hedge.server.components.backend.exporter.AlbumMetadataExporterTask
 import com.heerkirov.hedge.server.components.backend.exporter.BackendExporter
+import com.heerkirov.hedge.server.components.backend.exporter.IllustAlbumMemberExporterTask
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.kit.AlbumKit
 import com.heerkirov.hedge.server.dao.album.AlbumImageRelations
@@ -51,6 +52,19 @@ class AlbumManager(private val data: DataRepository,
             where { it.id inList albumIds }
             set(it.cachedCount, it.cachedCount minus 1)
         }
+    }
+
+    /**
+     * 向所有指定的albums中平滑添加一个image项，数量+1，并重新导出。
+     * @param albums (albumId, ordinal)[]
+     */
+    fun addItemInFolders(imageId: Int, albums: List<Pair<Int, Int>>, exportMetaTags: Boolean = false) {
+        val imageIds = listOf(imageId)
+        for ((albumId, ordinal) in albums) {
+            kit.upsertSubImages(albumId, imageIds, ordinal)
+            if(exportMetaTags) backendExporter.add(AlbumMetadataExporterTask(albumId, exportMetaTag = true))
+        }
+        backendExporter.add(IllustAlbumMemberExporterTask(imageIds))
     }
 
     /**

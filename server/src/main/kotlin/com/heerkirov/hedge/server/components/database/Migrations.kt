@@ -42,20 +42,6 @@ object MetadataMigrationStrategy : JsonObjectStrategy<Metadata>(Metadata::class)
 
 }
 
-object StorageMigrationStrategy : JsonObjectStrategy<Storage>(Storage::class) {
-    override fun defaultData(): Storage {
-        return Storage(
-            tagExporter = TagExporter(
-                refreshGlobalOrdinal = false
-            )
-        )
-    }
-
-    override fun migrations(register: MigrationRegister<JsonNode>) {
-        register.empty("0.1.0")
-    }
-}
-
 object DatabaseMigrationStrategy : SimpleStrategy<Database>() {
     override fun migrations(register: MigrationRegister<Database>) {
         register.useSQL("0.1.0")

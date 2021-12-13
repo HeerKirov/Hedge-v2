@@ -36,17 +36,9 @@ interface DataRepository : Component {
      */
     val metadata: Metadata
     /**
-     * 获得内部使用的存储类数据。
-     */
-    val storage: Storage
-    /**
      * 保存数据。
      */
     fun saveMetadata()
-    /**
-     * 保存数据。
-     */
-    fun saveStorage()
 }
 
 class DataRepositoryImpl(private val configurationDriver: ConfigurationDriver) : DataRepository {
@@ -62,14 +54,8 @@ class DataRepositoryImpl(private val configurationDriver: ConfigurationDriver) :
 
     override val metadata: Metadata get() = instance?.metadata ?: throw RuntimeException("DB is not loaded yet.")
 
-    override val storage: Storage get() = instance?.storage ?: throw RuntimeException("DB is not loaded yet.")
-
     override fun saveMetadata() {
         instance?.saveData() ?: throw RuntimeException("DB is not loaded yet.")
-    }
-
-    override fun saveStorage() {
-        instance?.saveStorage() ?: throw RuntimeException("DB is not loaded yet.")
     }
 
     override fun load() {
@@ -104,12 +90,4 @@ inline fun <T> DataRepository.syncMetadata(func: DataRepository.() -> T): T {
 inline fun DataRepository.saveMetadata(call: Metadata.() -> Unit) {
     metadata.call()
     saveMetadata()
-}
-
-/**
- * 保存数据，并在之前执行一段处理代码。
- */
-inline fun DataRepository.saveStorage(call: Storage.() -> Unit) {
-    storage.call()
-    saveStorage()
 }

@@ -3,10 +3,12 @@ package com.heerkirov.hedge.server.components.kit
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.manager.MetaManager
 import com.heerkirov.hedge.server.dao.album.AlbumImageRelations
+import com.heerkirov.hedge.server.dao.collection.FolderImageRelations
 import com.heerkirov.hedge.server.dao.illust.*
 import com.heerkirov.hedge.server.dao.meta.*
 import com.heerkirov.hedge.server.dao.types.EntityMetaRelationTable
 import com.heerkirov.hedge.server.dao.types.MetaTag
+import com.heerkirov.hedge.server.dto.ImagePropsCloneForm
 import com.heerkirov.hedge.server.exceptions.*
 import com.heerkirov.hedge.server.model.illust.Illust
 import com.heerkirov.hedge.server.model.meta.Annotation
@@ -14,6 +16,7 @@ import com.heerkirov.hedge.server.utils.business.checkScore
 import com.heerkirov.hedge.server.utils.DateTime
 import com.heerkirov.hedge.server.utils.ktorm.asSequence
 import com.heerkirov.hedge.server.utils.types.Opt
+import com.heerkirov.hedge.server.utils.types.optOf
 import com.heerkirov.hedge.server.utils.types.union
 import org.ktorm.dsl.*
 import org.ktorm.dsl.where
@@ -112,16 +115,9 @@ class IllustKit(private val data: DataRepository,
         val topicCount = topics.size
         val authorCount = authors.size
 
-        fun deleteAllMeta(remainNotExported: Boolean = false) {
-            if(tagCount == 0) metaManager.deleteMetaTags(thisId, IllustTagRelations, Tags, analyseStatisticCount, remainNotExported)
-            if(authorCount == 0) metaManager.deleteMetaTags(thisId, IllustAuthorRelations, Authors, analyseStatisticCount, remainNotExported)
-            if(topicCount == 0) metaManager.deleteMetaTags(thisId, IllustTopicRelations, Topics, analyseStatisticCount, remainNotExported)
-            metaManager.deleteAnnotations(thisId, IllustAnnotationRelations)
-        }
-
         if(tagCount == 0 && topicCount == 0 && authorCount == 0) {
             //若发现当前列表数全部为0，那么从依赖项拷贝tag。在拷贝之前，清空全列表，防止duplicated key。
-            deleteAllMeta()
+            deleteAllMeta(thisId, analyseStatisticCount = analyseStatisticCount, tagCount = tagCount, topicCount = topicCount, authorCount = authorCount)
             if (copyFromChildren) {
                 copyAllMetaFromChildren(thisId)
             }else if(copyFromParent != null && anyNotExportedMetaExists(copyFromParent)) {
@@ -130,7 +126,7 @@ class IllustKit(private val data: DataRepository,
         }else if(tagCount > 0 || topicCount > 0 || authorCount > 0) {
             //至少一个列表不为0时，清空所有为0的列表的全部tag
             //在copyFromChildren为false的情况下，认为是image的更改，要求修改统计计数；否则不予修改
-            deleteAllMeta(remainNotExported = true)
+            deleteAllMeta(thisId, remainNotExported = true, analyseStatisticCount = analyseStatisticCount, tagCount = tagCount, topicCount = topicCount, authorCount = authorCount)
 
             val tagAnnotations = metaManager.processMetaTags(thisId, false, analyseStatisticCount,
                 metaTag = Tags,
@@ -244,6 +240,17 @@ class IllustKit(private val data: DataRepository,
         copyOneMeta(IllustAuthorRelations)
         copyOneMeta(IllustTopicRelations)
         copyAnnotation()
+    }
+
+    /**
+     * 删除所有的meta。
+     */
+    private fun deleteAllMeta(thisId: Int, remainNotExported: Boolean = false, analyseStatisticCount: Boolean? = null,
+                              tagCount: Int? = null, authorCount: Int? = null, topicCount: Int? = null) {
+        if(tagCount == 0) metaManager.deleteMetaTags(thisId, IllustTagRelations, Tags, analyseStatisticCount ?: false, remainNotExported)
+        if(authorCount == 0) metaManager.deleteMetaTags(thisId, IllustAuthorRelations, Authors, analyseStatisticCount ?: false, remainNotExported)
+        if(topicCount == 0) metaManager.deleteMetaTags(thisId, IllustTopicRelations, Topics, analyseStatisticCount ?: false, remainNotExported)
+        metaManager.deleteAnnotations(thisId, IllustAnnotationRelations)
     }
 
     /**

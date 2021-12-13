@@ -73,3 +73,20 @@ class IllustImageRelatedUpdateForm(val associateId: Opt<Int?>, val collectionId:
 class IllustImageOriginUpdateForm(val source: Opt<String?>, val sourceId: Opt<Long?>, val sourcePart: Opt<Int?>,
                                   val title: Opt<String?>, val description: Opt<String?>, val tags: Opt<List<SourceTagDto>>,
                                   val pools: Opt<List<String>>, val children: Opt<List<Int>>, val parents: Opt<List<Int>>)
+
+class ImagePropsCloneForm(val props: Props, val merge: Boolean = false, val deleteFrom: Boolean = false, val from: Int, val to: Int) {
+    data class Props(
+        val score: Boolean = false,
+        val favorite: Boolean = false,
+        val description: Boolean = false,
+        val tagme: Boolean = false,
+        val metaTags: Boolean = false,
+        val partitionTime: Boolean = false,
+        val orderTime: Boolean = false,
+        val collection: Boolean = false,
+        val albums: Boolean = false,
+        val folders: Boolean = false,
+        val associate: Boolean = false,
+        val source: Boolean = false
+    )
+}

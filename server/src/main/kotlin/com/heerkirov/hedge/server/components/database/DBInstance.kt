@@ -16,7 +16,6 @@ class DBInstance(val dbPath: String) : Closeable {
 
     val database: Database
     val metadata: Metadata
-    val storage: Storage
 
     private val conn: Connection
 
@@ -41,19 +40,11 @@ class DBInstance(val dbPath: String) : Closeable {
                 if(changed) { Fs.writeText(metadataFilePath, d.toJSONString()) }
                 metadata = d
             }
-            it.migrate(Fs.readText(storageFilePath), StorageMigrationStrategy).let { (d, changed) ->
-                if(changed) { Fs.writeText(storageFilePath, d.toJSONString()) }
-                storage = d
-            }
         }
     }
 
     fun saveData() {
         Fs.writeFile(metadataFilePath, metadata)
-    }
-
-    fun saveStorage() {
-        Fs.writeFile(storageFilePath, storage)
     }
 
     override fun close() {

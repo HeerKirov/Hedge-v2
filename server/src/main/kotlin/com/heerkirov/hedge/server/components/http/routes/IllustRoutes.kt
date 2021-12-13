@@ -19,7 +19,6 @@ class IllustRoutes(private val illustService: IllustService, private val associa
             path("api") {
                 path("illusts") {
                     get(::list)
-                    post("find-by-ids", ::findByIds)
                     path("{id}") {
                         patch(::update)
                         delete(::delete)
@@ -58,6 +57,8 @@ class IllustRoutes(private val illustService: IllustService, private val associa
                             }
                         }
                     }
+                    post("find-by-ids", ::findByIds)
+                    post("clone-image-props", ::cloneImageProps)
                 }
                 path("associates") {
                     post(::createAssociate)
@@ -215,5 +216,10 @@ class IllustRoutes(private val illustService: IllustService, private val associa
         val id = ctx.pathParamAsClass<Int>("id").get()
         associateService.delete(id)
         ctx.status(204)
+    }
+
+    private fun cloneImageProps(ctx: Context) {
+        val form = ctx.bodyAsForm<ImagePropsCloneForm>()
+        illustService.cloneImageProps(form)
     }
 }

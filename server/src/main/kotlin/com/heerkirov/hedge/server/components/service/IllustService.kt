@@ -653,7 +653,7 @@ class IllustService(private val data: DataRepository,
                 //对parent的导出处理
                 if(illust.parentId != null) illustManager.processCollectionChildrenRemoved(illust.parentId, listOf(illust))
 
-                //删除关联的file。无法撤销的删除放到最后，这样不必回滚
+                //删除关联的file
                 fileManager.trashFile(illust.fileId)
             }else{
                 val children = data.db.from(Illusts).select(Illusts.id)
@@ -669,6 +669,168 @@ class IllustService(private val data: DataRepository,
                     exportDescription = illust.description.isNotEmpty(),
                     exportScore = illust.score != null,
                     exportMetaTag = anyNotExportedMetaExists) })
+            }
+        }
+    }
+
+    /**
+     * 克隆图像的属性。
+     * @throws ResourceNotExist ("from" | "to", number) 源或目标不存在
+     * @throws ResourceNotSuitable ("from" | "to", number) 源或目标类型不适用，不能使用集合
+     */
+    fun cloneImageProps(form: ImagePropsCloneForm) {
+        data.db.transaction {
+            val props = form.props
+            val fromIllust = data.db.sequenceOf(Illusts).firstOrNull { it.id eq form.from } ?: throw be(ResourceNotExist("from", form.from))
+            val toIllust = data.db.sequenceOf(Illusts).firstOrNull { it.id eq form.to } ?: throw be(ResourceNotExist("to", form.to))
+            if(fromIllust.type == Illust.Type.COLLECTION) throw be(ResourceNotSuitable("from", form.from))
+            if(toIllust.type == Illust.Type.COLLECTION) throw be(ResourceNotSuitable("to", form.to))
+
+            //根据是否更改了parent，有两种不同的处理路径
+            val parentChanged = props.collection && fromIllust.parentId != toIllust.parentId
+            val newParent = if(parentChanged && fromIllust.parentId != null) data.db.sequenceOf(Illusts).first { (it.id eq fromIllust.parentId) and (it.type eq Illust.Type.COLLECTION) } else null
+            val parentId = if(parentChanged) toIllust.parentId else fromIllust.parentId
+
+            data.db.update(Illusts) {
+                where { it.id eq toIllust.id }
+                if(parentChanged) {
+                    set(it.parentId, newParent?.id)
+                    set(it.type, if(newParent != null) Illust.Type.IMAGE_WITH_PARENT else Illust.Type.IMAGE)
+                    set(it.exportedScore, if(props.score) { fromIllust.score }else{ toIllust.score } ?: newParent?.score)
+                    set(it.exportedDescription, if(props.description) { fromIllust.description }else{ toIllust.description }.ifEmpty { newParent?.description ?: "" })
+                }
+                if(props.favorite) set(it.favorite, fromIllust.favorite)
+                if(props.tagme) set(it.tagme, if(form.merge) { fromIllust.tagme + toIllust.tagme }else{ fromIllust.tagme })
+                if(props.score) set(it.score, fromIllust.score)
+                if(props.description) set(it.description, fromIllust.description)
+                if(props.orderTime) set(it.orderTime, fromIllust.orderTime)
+                if(props.partitionTime && fromIllust.partitionTime != toIllust.partitionTime) {
+                    set(it.partitionTime, fromIllust.partitionTime)
+                    partitionManager.addItemInPartition(fromIllust.partitionTime)
+                }
+
+                if(props.source) {
+                    set(it.source, fromIllust.source)
+                    set(it.sourceId, fromIllust.sourceId)
+                    set(it.sourcePart, fromIllust.sourcePart)
+                    set(it.sourceImageId, fromIllust.sourceImageId)
+                }
+            }
+
+            if(parentChanged) {
+                //刷新新旧parent的时间&封面、导出属性 (metaTag不包含在其中，它稍后处理)
+                val now = DateTime.now()
+                if(newParent != null) illustManager.processCollectionChildrenAdded(newParent.id, toIllust, now, exportScore = true)
+                if(toIllust.parentId != null) illustManager.processCollectionChildrenRemoved(toIllust.parentId, listOf(toIllust), now, exportScore = true)
+            }else{
+                //刷新parent的导出属性，适时刷新封面&时间 (metaTag不包含在其中，它稍后处理)
+                if(toIllust.parentId != null) {
+                    val exportScore = props.score
+                    val exportMeta = !kit.anyNotExportedMetaExists(toIllust.parentId)
+                    val exportFirstCover = (props.orderTime || props.partitionTime) && kit.getFirstChildOfCollection(toIllust.parentId).id == toIllust.id
+                    if(exportScore || exportMeta || exportFirstCover) {
+                        backendExporter.add(IllustMetadataExporterTask(toIllust.parentId, exportScore = exportScore, exportMetaTag = exportMeta, exportFirstCover = exportFirstCover))
+                    }
+                }
+            }
+
+            if(props.metaTags) {
+                val tagIds = data.db.from(IllustTagRelations).select(IllustTagRelations.tagId)
+                    .where { (IllustTagRelations.illustId eq fromIllust.id) and IllustTagRelations.isExported.not() }
+                    .map { it[IllustTagRelations.tagId]!! }
+                val topicIds = data.db.from(IllustTopicRelations).select(IllustTopicRelations.topicId)
+                    .where { (IllustTopicRelations.illustId eq fromIllust.id) and IllustTopicRelations.isExported.not() }
+                    .map { it[IllustTopicRelations.topicId]!! }
+                val authorIds = data.db.from(IllustAuthorRelations).select(IllustAuthorRelations.authorId)
+                    .where { (IllustAuthorRelations.illustId eq fromIllust.id) and IllustAuthorRelations.isExported.not() }
+                    .map { it[IllustAuthorRelations.authorId]!! }
+                if(form.merge) {
+                    val originTagIds = data.db.from(IllustTagRelations).select(IllustTagRelations.tagId)
+                        .where { (IllustTagRelations.illustId eq toIllust.id) and IllustTagRelations.isExported.not() }
+                        .map { it[IllustTagRelations.tagId]!! }
+                    val originTopicIds = data.db.from(IllustTopicRelations).select(IllustTopicRelations.topicId)
+                        .where { (IllustTopicRelations.illustId eq toIllust.id) and IllustTopicRelations.isExported.not() }
+                        .map { it[IllustTopicRelations.topicId]!! }
+                    val originAuthorIds = data.db.from(IllustAuthorRelations).select(IllustAuthorRelations.authorId)
+                        .where { (IllustAuthorRelations.illustId eq toIllust.id) and IllustAuthorRelations.isExported.not() }
+                        .map { it[IllustAuthorRelations.authorId]!! }
+
+                    kit.updateMeta(toIllust.id,
+                        optOf((tagIds + originTagIds).distinct()),
+                        optOf((topicIds + originTopicIds).distinct()),
+                        optOf((authorIds + originAuthorIds).distinct()),
+                        copyFromParent = parentId)
+                }else{
+                    kit.updateMeta(toIllust.id, optOf(tagIds), optOf(topicIds), optOf(authorIds), copyFromParent = parentId)
+                }
+
+                if(parentChanged) {
+                    //如果复制了parent，那么需要处理新旧parent的重导出
+                    if(newParent != null) backendExporter.add(IllustMetadataExporterTask(newParent.id, exportMetaTag = true))
+                    if(toIllust.parentId != null) backendExporter.add(IllustMetadataExporterTask(toIllust.parentId, exportMetaTag = true))
+                }else if(toIllust.parentId != null && !kit.anyNotExportedMetaExists(toIllust.parentId)) {
+                    //如果没有复制，那么当parent没有任何not exported meta时，处理parent的重导出
+                    backendExporter.add(IllustMetadataExporterTask(toIllust.parentId, exportMetaTag = true))
+                }
+            }else if(parentChanged) {
+                //即使没有选择复制metaTags，但是如果选择复制了parent，那么也仍然需要处理新旧parent的重导出
+                //尽管这可以作为processCollection的一部分，但为了代码清晰起见把它们分开了
+                if(kit.anyNotExportedMetaExists(toIllust.id)) {
+                    //只有当toIllust包含not exported meta时，才有必要处理parent的重导出
+                    if(newParent != null) backendExporter.add(IllustMetadataExporterTask(newParent.id, exportMetaTag = true))
+                    if(toIllust.parentId != null) backendExporter.add(IllustMetadataExporterTask(toIllust.parentId, exportMetaTag = true))
+                }
+            }
+
+            if(props.associate) {
+                associateManager.changeAssociate(toIllust, fromIllust.associateId)
+            }
+
+            if(props.albums) {
+                val albums = data.db.from(AlbumImageRelations)
+                    .select(AlbumImageRelations.albumId, AlbumImageRelations.ordinal)
+                    .where { AlbumImageRelations.imageId eq fromIllust.id }
+                    .map { Pair(it[AlbumImageRelations.albumId]!!, it[AlbumImageRelations.ordinal]!! + 1 /* +1 使新项插入到旧项后面 */) }
+
+                if(form.merge) {
+                    val existsAlbums = data.db.from(AlbumImageRelations)
+                        .select(AlbumImageRelations.albumId)
+                        .where { AlbumImageRelations.imageId eq toIllust.id }
+                        .map { it[AlbumImageRelations.albumId]!! }
+                        .toSet()
+
+                    val newAlbums = albums.filter { (id, _) -> id !in existsAlbums }
+                    if(newAlbums.isNotEmpty()) albumManager.addItemInFolders(toIllust.id, newAlbums, exportMetaTags = true)
+                }else{
+                    albumManager.removeItemInAllAlbums(toIllust.id, exportMetaTags = true)
+                    albumManager.addItemInFolders(toIllust.id, albums, exportMetaTags = true)
+                }
+
+            }
+
+            if(props.folders) {
+                val folders = data.db.from(FolderImageRelations)
+                    .select(FolderImageRelations.folderId, FolderImageRelations.ordinal)
+                    .where { FolderImageRelations.imageId eq fromIllust.id }
+                    .map { Pair(it[FolderImageRelations.folderId]!!, it[FolderImageRelations.ordinal]!! + 1 /* +1 使新项插入到旧项后面 */) }
+
+                if(form.merge) {
+                    val existsFolders = data.db.from(FolderImageRelations)
+                        .select(FolderImageRelations.folderId)
+                        .where { FolderImageRelations.imageId eq toIllust.id }
+                        .map { it[FolderImageRelations.folderId]!! }
+                        .toSet()
+
+                    val newFolders = folders.filter { (id, _) -> id !in existsFolders }
+                    if(newFolders.isNotEmpty()) folderManager.addItemInFolders(toIllust.id, newFolders)
+                }else{
+                    folderManager.removeItemInAllFolders(toIllust.id)
+                    folderManager.addItemInFolders(toIllust.id, folders)
+                }
+            }
+
+            if(form.deleteFrom) {
+                delete(fromIllust.id, Illust.IllustType.IMAGE)
             }
         }
     }

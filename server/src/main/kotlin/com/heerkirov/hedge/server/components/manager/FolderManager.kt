@@ -4,6 +4,7 @@ import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.kit.FolderKit
 import com.heerkirov.hedge.server.dao.collection.FolderImageRelations
 import com.heerkirov.hedge.server.dao.collection.Folders
+import com.heerkirov.hedge.server.utils.DateTime
 import org.ktorm.dsl.*
 import org.ktorm.entity.filter
 import org.ktorm.entity.sequenceOf
@@ -27,6 +28,30 @@ class FolderManager(private val data: DataRepository, private val kit: FolderKit
         data.db.update(Folders) {
             where { it.id inList folderIds }
             set(it.cachedCount, it.cachedCount minus 1)
+        }
+    }
+
+    /**
+     * 向所有指定的folders中平滑添加一个image项。数量+1。
+     * @param folders (folderId, ordinal)[]
+     */
+    fun addItemInFolders(imageId: Int, folders: List<Pair<Int, Int>>) {
+        val imageIds = listOf(imageId)
+        val imageCounts = mutableMapOf<Int, Int>()
+        for ((folderId, ordinal) in folders) {
+            imageCounts[folderId] = kit.upsertSubImages(folderId, imageIds, ordinal)
+        }
+        if(imageCounts.isNotEmpty()) {
+            val now = DateTime.now()
+            data.db.batchUpdate(Folders) {
+                for ((folderId, imageCount) in imageCounts) {
+                    item {
+                        where { it.id eq folderId }
+                        set(it.cachedCount, imageCount)
+                        set(it.updateTime, now)
+                    }
+                }
+            }
         }
     }
 }
