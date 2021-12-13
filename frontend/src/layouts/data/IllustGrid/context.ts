@@ -3,7 +3,7 @@ import { ScrollView } from "@/components/features/VirtualScrollView"
 import { PaginationDataView, QueryEndpointInstance, QueryEndpointResult, SingletonDataView, SliceDataView } from "@/functions/utils/endpoints/query-endpoint"
 import { Illust, IllustType } from "@/functions/adapter-http/impl/illust"
 import { useCreatingCollectionService } from "@/layouts/dialogs/CreatingCollection"
-import { useCreatingAlbumService, useAddToFolderService } from "@/layouts/dialogs"
+import { useCreatingAlbumService, useAddToFolderService, useCloneImageService } from "@/layouts/dialogs"
 import { useFastObjectEndpoint } from "@/functions/utils/endpoints/object-fast-endpoint"
 import { useRouterNavigator } from "@/functions/feature/router"
 import { useMessageBox } from "@/functions/module/message-box"
@@ -71,6 +71,10 @@ interface GridContextOperatorOptions<T extends SuitableIllust> {
      */
     addToFolder?: boolean
     /**
+     * 启用{cloneImage}功能。
+     */
+    cloneImage?: boolean
+    /**
      * 调用deleteItem后，附加的回调。
      */
     afterDeleted?(): void
@@ -123,6 +127,10 @@ export interface GridContextOperatorResult<T> {
      */
     addToFolder(illust: T): void
     /**
+     * 打开对话框，执行属性克隆操作。将选择项放入from和to。
+     */
+    cloneImage(illust: T): void
+    /**
      * 删除项目。
      */
     deleteItem(illust: T): void
@@ -143,6 +151,7 @@ export function useGridContextOperator<T extends SuitableIllust>(options: GridCo
     const creatingCollectionService = options.createCollection ? useCreatingCollectionService() : null
     const creatingAlbumService = options.createAlbum ? useCreatingAlbumService() : null
     const addToFolderService = options.addToFolder ? useAddToFolderService() : null
+    const cloneImageService = options.cloneImage ? useCloneImageService() : null
 
     const commonFastEndpoint = useFastObjectEndpoint({
         update: httpClient => httpClient.illust.update,
@@ -348,9 +357,28 @@ export function useGridContextOperator<T extends SuitableIllust>(options: GridCo
         }
     }
 
+    const cloneImage = options.cloneImage ? async (illust: T) => {
+        const items = getEffectedItems(illust)
+        if(items.length > 2) {
+            toast.toast("选择项过多", "warning", "选择项过多。属性克隆中，请使用1或2个选择项。")
+            return
+        }
+        cloneImageService!.clone({from: items[0], to: items.length >= 2 ? items[1] : undefined}, (from, _, deleted) => {
+            if(deleted) {
+                const index = dataView.proxy.syncOperations.find(i => i.id === from)
+                if(index !== undefined) {
+                    dataView.proxy.syncOperations.remove(index)
+                }
+                toast.toast("完成", "success", "已完成属性克隆。源图像已删除。")
+            }else{
+                toast.toast("完成", "success", "已完成属性克隆。")
+            }
+        })
+    } : () => {}
+
     return {
         clickToOpenDetail, enterToOpenDetail, openCollectionDetail, openInNewWindow, modifyFavorite,
-        createCollection, splitToGenerateNewCollection, createAlbum, addToFolder,
+        createCollection, splitToGenerateNewCollection, createAlbum, addToFolder, cloneImage,
         deleteItem, getEffectedItems
     }
 }

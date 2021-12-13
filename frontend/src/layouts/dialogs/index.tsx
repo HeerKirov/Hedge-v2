@@ -4,4 +4,5 @@ export { useAddToFolderService } from "./AddToFolder"
 export { useAddToCollectionService } from "./AddToCollection"
 export { useCreatingAlbumService } from "./CreatingAlbum"
 export { useEditSourceImageService } from "./EditSourceImage"
+export { useCloneImageService } from "./CloneImage"
 

@@ -73,7 +73,8 @@ export function createIllustEndpoint(http: HttpInstance): IllustEndpoint {
             get: http.createPathQueryRequest(id => `/api/associates/${id}`, "GET"),
             update: http.createPathDataRequest(id => `/api/associates/${id}`, "PUT"),
             delete: http.createPathRequest(id => `/api/associates/${id}`, "DELETE")
-        }
+        },
+        cloneImageProps: http.createDataRequest("/api/illusts/clone-image-props", "POST")
     }
 }
 
@@ -336,6 +337,10 @@ export interface IllustEndpoint {
          */
         delete(id: number): Promise<Response<null>>
     }
+    /**
+     * 将一个图像的属性和关系克隆到另一个图像。
+     */
+    cloneImageProps(form: ImagePropsCloneForm): Promise<Response<null>>
 }
 
 export interface IllustExceptions {
@@ -591,6 +596,26 @@ export interface ImageOriginUpdateForm {
     pools?: string[]
     children?: number[]
     parents?: number[]
+}
+
+export interface ImagePropsCloneForm {
+    from: number
+    to: number
+    props: {
+        score?: boolean
+        favorite?: boolean
+        description?: boolean
+        tagme?: boolean
+        metaTags?: boolean
+        partitionTime?: boolean
+        orderTime?: boolean
+        collection?: boolean
+        albums?: boolean
+        folders?: boolean
+        source?: boolean
+    }
+    merge?: boolean
+    deleteFrom?: boolean
 }
 
 export type IllustFilter = IllustQueryFilter & LimitAndOffsetFilter

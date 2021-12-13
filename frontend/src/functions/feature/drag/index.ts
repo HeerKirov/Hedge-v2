@@ -68,7 +68,17 @@ function useDroppableInternal<T extends keyof TypeDefinition>(event: (data: Type
         }
         if(e.dataTransfer) {
             const type = <T>e.dataTransfer.getData("type")
-            const data = JSON.parse(e.dataTransfer?.getData("data"))
+            if(!type) {
+                //可能发过来的并不是droppable的东西
+                return
+            }
+            let data: any
+            try {
+                data = JSON.parse(e.dataTransfer?.getData("data"))
+            }catch (e) {
+                //可能发过来的并不是droppable的东西
+                return
+            }
             event(data, type)
         }
         isDragover.value = false

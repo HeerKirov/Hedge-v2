@@ -96,7 +96,8 @@ const ListView = defineComponent({
             }),
             createCollection: {forceDialog: true, refreshAfterCreated: true},
             createAlbum: true,
-            addToFolder: true
+            addToFolder: true,
+            cloneImage: true
         })
 
         const folderOperator = useFolderOperator(operator)
@@ -128,6 +129,7 @@ function useContextmenu(operator: GridContextOperatorResult<FolderImage>, folder
         {type: "normal", label: "创建画集…", click: operator.createAlbum},
         {type: "normal", label: "创建关联组"},
         {type: "normal", label: "添加到目录…", click: operator.addToFolder},
+        {type: "normal", label: "克隆图像属性…", click: operator.cloneImage},
         {type: "separator"},
         {type: "normal", label: "导出"},
         {type: "separator"},

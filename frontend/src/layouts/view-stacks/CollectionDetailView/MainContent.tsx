@@ -79,6 +79,7 @@ const ListView = defineComponent({
             },
             createAlbum: true,
             addToFolder: true,
+            cloneImage: true,
             afterDeleted: toastRefresh, //FUTURE 删除图像是能优化的，对上层的影响仅限于target自身
                                         //      调整context operator的回调，给出变动列表；调整preview context，增加一个重新请求target自己的方法。
                                         //      在此处回调时，只需要重新请求target自己并set，而不需要通知上层完全刷新。其他位置也要做同步修改。
@@ -115,6 +116,7 @@ function useContextmenu(operator: GridContextOperatorResult<Illust>, collectionO
         {type: "normal", label: "创建画集", click: operator.createAlbum},
         {type: "normal", label: "创建关联组"},
         {type: "normal", label: "添加到目录…", click: operator.addToFolder},
+        {type: "normal", label: "克隆图像属性…", click: operator.cloneImage},
         {type: "separator"},
         {type: "normal", label: "导出"},
         {type: "separator"},

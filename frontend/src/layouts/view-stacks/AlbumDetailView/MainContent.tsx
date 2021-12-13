@@ -76,6 +76,7 @@ const ListView = defineComponent({
             }),
             createCollection: {forceDialog: true},
             addToFolder: true,
+            cloneImage: true,
             afterDeleted: toastRefresh, //FUTURE 删除图像是能优化的，对上层的影响仅限于target自身
         })
 
@@ -108,6 +109,7 @@ function useContextmenu(operator: GridContextOperatorResult<AlbumImage>, albumOp
         {type: "normal", label: "创建图像集合…", click: operator.createCollection},
         {type: "normal", label: "创建关联组"},
         {type: "normal", label: "添加到目录…", click: operator.addToFolder},
+        {type: "normal", label: "克隆图像属性…", click: operator.cloneImage},
         {type: "separator"},
         {type: "normal", label: "导出"},
         {type: "separator"},
