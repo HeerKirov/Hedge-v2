@@ -1,5 +1,5 @@
 import { defineComponent, markRaw } from "vue"
-import IllustGrid, { GridContextOperatorResult, useGridContextOperator } from "@/layouts/data/IllustGrid"
+import { IllustGrid, GridContextOperatorResult, useGridContextOperator } from "@/layouts/data/IllustGrid"
 import { Illust } from "@/functions/adapter-http/impl/illust"
 import { createProxySingleton, createSliceOfAll, createSliceOfList } from "@/functions/utils/endpoints/query-endpoint"
 import { useDynamicPopupMenu } from "@/functions/module/popup-menu"

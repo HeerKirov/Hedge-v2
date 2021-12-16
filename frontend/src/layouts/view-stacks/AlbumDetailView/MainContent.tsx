@@ -1,7 +1,7 @@
 import { defineComponent, markRaw } from "vue"
 import TopBarLayout from "@/layouts/layouts/TopBarLayout"
 import SideDrawer from "@/layouts/layouts/SideDrawer"
-import IllustGrid, { GridContextOperatorResult, useGridContextOperator } from "@/layouts/data/IllustGrid"
+import { IllustGrid, GridContextOperatorResult, useGridContextOperator } from "@/layouts/data/IllustGrid"
 import MetaTagEditor from "@/layouts/drawers/MetaTagEditor"
 import { TypeDefinition } from "@/functions/feature/drag/definition"
 import { AlbumImage } from "@/functions/adapter-http/impl/album"

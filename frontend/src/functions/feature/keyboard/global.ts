@@ -21,9 +21,9 @@ export function interceptGlobalKey(keys: KeyPress | KeyPress[], event: (e: Analy
     const checker = createKeyEventChecker(keys)
     watchGlobalKeyEvent(e => {
         if(checker(e)) {
-            event(e)
             e.preventDefault()
             e.stopPropagation()
+            event(e)
         }
     })
 }

@@ -1,7 +1,7 @@
 import { defineComponent, markRaw, watch } from "vue"
 import TopBarLayout from "@/layouts/layouts/TopBarLayout"
 import { ColumnNumButton, DataRouter, FitTypeButton } from "@/layouts/topbars"
-import IllustGrid, { FitType, GridContextOperatorResult, useGridContextOperator } from "@/layouts/data/IllustGrid"
+import { IllustGrid, FitType, GridContextOperatorResult, useGridContextOperator } from "@/layouts/data/IllustGrid"
 import { FolderImage } from "@/functions/adapter-http/impl/folder"
 import { TypeDefinition } from "@/functions/feature/drag/definition"
 import { useAddToFolderService } from "@/layouts/dialogs/AddToFolder"

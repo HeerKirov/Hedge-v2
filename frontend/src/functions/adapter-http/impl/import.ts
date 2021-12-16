@@ -1,14 +1,10 @@
 import { date, datetime, LocalDate, LocalDateTime } from "@/utils/datetime"
 import {
-    FileNotFoundError,
-    IllegalFileExtensionError,
-    NotFound,
-    ParamError, ParamNotRequired,
-    ParamRequired,
-    ResourceNotExist
+    FileNotFoundError, FileNotReadyError, IllegalFileExtensionError,
+    NotFound, ResourceNotExist, ParamError, ParamNotRequired, ParamRequired
 } from "../exception"
 import { HttpInstance, Response } from "../server"
-import { ErrorResult, IdResponseWithWarnings, LimitAndOffsetFilter, ListResult, mapFromOrderList, OrderList } from "./generic"
+import { IdResponseWithWarnings, LimitAndOffsetFilter, ListResult, mapFromOrderList, OrderList } from "./generic"
 import { Tagme } from "./illust"
 import { TimeType } from "./setting-import"
 
@@ -23,7 +19,6 @@ export function createImportEndpoint(http: HttpInstance): ImportEndpoint {
         delete: http.createPathRequest(id => `/api/imports/${id}`, "DELETE"),
         import: http.createDataRequest("/api/imports/import", "POST"),
         upload: http.createDataRequest("/api/imports/upload", "POST", { parseData: mapFromUploadFile }),
-        analyseMeta: http.createDataRequest("/api/imports/analyse-meta", "POST"),
         batchUpdate: http.createDataRequest("/api/imports/batch-update", "POST", { parseData: mapFromBatchUpdateForm }),
         save: http.createRequest("/api/imports/save", "POST")
     }
@@ -119,20 +114,15 @@ export interface ImportEndpoint {
      */
     delete(id: number): Promise<Response<null, NotFound>>
     /**
-     * 分析导入项目的元数据。
+     * 批量更新导入项目的元数据。
      * @exception:warning INVALID_REGEX (regex) 解析错误，解析规则的正则表达式有误。
      */
-    analyseMeta(form: AnalyseMetaForm): Promise<Response<AnalyseMetaResponse, ResourceNotExist<"target", number[]>>>
-    /**
-     * 批量更新导入项目的元数据。
-     */
-    batchUpdate(form: ImportBatchUpdateForm): Promise<Response<null, ResourceNotExist<"target", number[]>>>
+    batchUpdate(form: ImportBatchUpdateForm): Promise<Response<IdResponseWithWarnings[], ResourceNotExist<"target", number[]>>>
     /**
      * 确认导入，将所有项目导入到图库。
-     * @exception:warning PARAM_REQUIRED ("sourceId"/"sourcePart") 需要这些参数
-     * @exception:warning PARAM_NOT_REQUIRED ("sourcePart") 不需要这些参数
+     * @exception FILE_NOT_READY
      */
-    save(): Promise<Response<ImportSaveResponse>>
+    save(): Promise<Response<ImportSaveResponse, FileNotReadyError>>
 }
 
 export interface ImportImage {
@@ -157,17 +147,8 @@ export interface DetailImportImage extends ImportImage {
     createTime: LocalDateTime
 }
 
-export interface AnalyseMetaResponse {
-    total: number
-    succeed: number
-    failed: number
-    errors: {[id: number]: ErrorResult}
-}
-
 export interface ImportSaveResponse {
     total: number
-    succeed: number
-    errors: {[id: number]: ErrorResult}
 }
 
 export interface ImportForm {
@@ -191,14 +172,12 @@ export interface ImportBatchUpdateForm {
     serCreateTimeBy?: TimeType
     setOrderTimeBy?: TimeType
     partitionTime?: LocalDate
-}
-
-export interface AnalyseMetaForm {
-    target?: number[]
+    analyseSource?: boolean
 }
 
 export type ImportFilter = ImportQueryFilter & LimitAndOffsetFilter
 
 export interface ImportQueryFilter {
+    search?: string
     order?: OrderList<"id" | "fileCreateTime" | "fileUpdateTime" | "fileImportTime" | "orderTime">
 }

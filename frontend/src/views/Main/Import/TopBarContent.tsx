@@ -1,12 +1,18 @@
 import { computed, defineComponent } from "vue"
-import { DataRouter } from "@/layouts/topbars"
+import { ColumnNumButton, DataRouter, FitTypeButton } from "@/layouts/topbars"
 import { useImportService } from "@/functions/api/import"
 import { useElementPopupMenu } from "@/functions/module/popup-menu"
+import { FitType } from "@/layouts/data/IllustGrid"
 import { useImportContext } from "./inject"
 import style from "./style.module.scss"
 
 export default defineComponent({
     setup() {
+        const { viewController: { fitType, columnNum } } = useImportContext()
+
+        const setFitType = (v: FitType) => fitType.value = v
+        const setColumnNum = (v: number) => columnNum.value = v
+
         return () => <div class={["middle-layout", style.topBarContent]}>
             <div class="layout-container">
                 <AddButton/>
@@ -17,6 +23,8 @@ export default defineComponent({
             <div class="layout-container">
                 <ImportButton/>
                 <DataRouter/>
+                <FitTypeButton value={fitType.value} onUpdateValue={setFitType}/>
+                <ColumnNumButton value={columnNum.value} onUpdateValue={setColumnNum}/>
                 <MenuButton/>
             </div>
         </div>

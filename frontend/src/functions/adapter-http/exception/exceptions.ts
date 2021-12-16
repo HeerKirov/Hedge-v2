@@ -22,6 +22,7 @@ export type CheckedException =
     AlreadyExists<string, string, unknown> |
     CascadeResourceExists<string> |
     FileNotFoundError |
+    FileNotReadyError |
     IllegalFileExtensionError |
     ContentParseError |
     RecursiveParentError |
@@ -29,8 +30,7 @@ export type CheckedException =
     IllegalConstraintError<string, string, unknown> |
     ConflictingGroupMembersError |
     InvalidRegexError |
-    InvalidRuleIndexError |
-    InvalidOptionError<string>
+    InvalidRuleIndexError
 
 //== 背景异常：不属于详细业务异常，应该统一处理 ==
 
@@ -60,6 +60,7 @@ export type CascadeResourceExists<P extends string> = BadRequestException<"CASCA
 //== 扩展异常：因为业务原因抛出的非通用异常，这些异常用在特定的API中描述具体的事项 ==
 
 export type FileNotFoundError = BadRequestException<"FILE_NOT_FOUND", null>
+export type FileNotReadyError = BadRequestException<"FILE_NOT_READY", null>
 export type IllegalFileExtensionError = BadRequestException<"ILLEGAL_FILE_EXTENSION", string>
 export type ContentParseError = BadRequestException<"CONTENT_PARSE_ERROR", string>
 export type RecursiveParentError = BadRequestException<"RECURSIVE_PARENT", null>
@@ -68,7 +69,6 @@ export type IllegalConstraintError<P extends string, R extends string, V> = BadR
 export type ConflictingGroupMembersError = BadRequestException<"CONFLICTING_GROUP_MEMBERS", ConflictingMembers[]>
 export type InvalidRegexError = BadRequestException<"INVALID_REGEX", string>
 export type InvalidRuleIndexError = BadRequestException<"INVALID_RULE_INDEX", [string, string]>
-export type InvalidOptionError<O extends string> = BadRequestException<"INVALID_OPTION", O>
 
 interface ConflictingMembers { group: Member, force: boolean, members: Member[] }
 interface Member { id: number, name: string, color: string | null, isExported: boolean }

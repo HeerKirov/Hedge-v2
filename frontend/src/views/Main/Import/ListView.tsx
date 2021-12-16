@@ -1,16 +1,20 @@
-import { computed, defineComponent, PropType } from "vue"
-import { VirtualRow } from "@/components/features/VirtualScrollView"
+import { defineComponent, markRaw } from "vue"
+import { ImportImageGrid } from "@/layouts/data/IllustGrid"
+import { ImportImage } from "@/functions/adapter-http/impl/import"
 import { useFastObjectEndpoint } from "@/functions/utils/endpoints/object-fast-endpoint"
 import { useMessageBox } from "@/functions/module/message-box"
 import { usePopupMenu } from "@/functions/module/popup-menu"
-import { datetime, LocalDateTime } from "@/utils/datetime"
 import { useImportContext } from "./inject"
-import style from "./style.module.scss"
 
 export default defineComponent({
     setup() {
         const messageBox = useMessageBox()
-        const { list: { dataView }, pane } = useImportContext()
+        const { list: { dataView, endpoint }, viewController: { fitType, columnNum }, selector: { selected, lastSelected }, pane } = useImportContext()
+
+        const updateSelected = (selectedValue: number[], lastSelectedValue: number | null) => {
+            selected.value = selectedValue
+            lastSelected.value = lastSelectedValue
+        }
 
         const fastEndpoint = useFastObjectEndpoint({
             delete: httpClient => httpClient.import.delete
@@ -26,38 +30,15 @@ export default defineComponent({
             }
         }
 
-        const popupmenu = usePopupMenu<number>([
-            {type: "normal", label: "查看详情", click: pane.openDetailPane},
+        const popupmenu = usePopupMenu<ImportImage>([
+            {type: "normal", label: "查看详情", click: i => pane.openDetailPane(i.id)},
             {type: "separator"},
-            {type: "normal", label: "删除此项目", click: deleteItem},
+            {type: "normal", label: "删除此项目", click: i => deleteItem(i.id)},
         ])
 
-        return () => <div class={style.listView}>
-            <VirtualRow rowHeight={35} padding={5} bufferSize={10} onUpdate={dataView.dataUpdate} {...dataView.data.value.metrics}>
-                {dataView.data.value.result.map(item => <Item key={item.id} {...item} onRightClick={popupmenu.popup}/>)}
-            </VirtualRow>
-        </div>
-    }
-})
-
-const Item = defineComponent({
-    props: {
-        id: {type: Number, required: true},
-        fileName: {type: null as any as PropType<string | null>, required: true},
-        fileImportTime: {type: Object as PropType<LocalDateTime | null>, required: true}
-    },
-    emits: ["rightClick"],
-    setup(props, { emit }) {
-        const { pane: { detailMode, openDetailPane } } = useImportContext()
-
-        const selected = computed(() => detailMode.value === props.id)
-
-        const click = () => openDetailPane(props.id)
-        const rightClick = () => emit("rightClick", props.id)
-
-        return () => <div class={{[style.listItem]: true, "has-bg-link": selected.value, "has-text-white": selected.value}} onClick={click} onContextmenu={rightClick}>
-            <span class={style.filename}>{props.fileName}</span>
-            <span class={{[style.time]: true, "has-text-grey": !selected.value}}>{props.fileImportTime ? datetime.toSimpleFormat(props.fileImportTime) : ""}</span>
-        </div>
+        return () => <ImportImageGrid data={markRaw(dataView.data.value)} onDataUpdate={dataView.dataUpdate} draggable={true}
+                                 queryEndpoint={markRaw(endpoint.proxy)} fitType={fitType.value} columnNum={columnNum.value}
+                                 selected={selected.value} lastSelected={lastSelected.value} onSelect={updateSelected}
+                                 onRightClick={i => popupmenu.popup(i)}/>
     }
 })

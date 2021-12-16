@@ -3,8 +3,8 @@ import { BaseException, InternalError, UnknownError } from "./base-exceptions"
 export {
     ParamError, ParamTypeError, ParamRequired, ParamNotRequired, PasswordWrong,
     NotFound, Reject, ResourceNotExist, ResourceNotSuitable, AlreadyExists, CascadeResourceExists,
-    FileNotFoundError, IllegalFileExtensionError, ContentParseError, RecursiveParentError, CannotGiveColorError,
-    IllegalConstraintError, ConflictingGroupMembersError, InvalidRegexError, InvalidRuleIndexError, InvalidOptionError
+    FileNotFoundError, FileNotReadyError, IllegalFileExtensionError, ContentParseError, RecursiveParentError, CannotGiveColorError,
+    IllegalConstraintError, ConflictingGroupMembersError, InvalidRegexError, InvalidRuleIndexError
 } from "./exceptions"
 
 export type AllException =

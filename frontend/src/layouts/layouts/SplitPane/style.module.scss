@@ -1,5 +1,6 @@
 @import "@/styles/variable.sass";
 @import "@/styles/base/size.sass";
+@import "@/styles/base/color.scss";
 
 .split-pane {
   //主要内容区域的布局定位
@@ -8,6 +9,7 @@
     top: 0;
     bottom: 0;
     left: 0;
+    min-width: 24rem;
     //transition: right 0.4s ease;
   }
   //侧边栏内容区域的布局定位
@@ -17,6 +19,10 @@
     bottom: 0;
     right: 0;
     //transition: transform 0.4s ease;
+    background-color: $bg;
+    @media (prefers-color-scheme: dark) {
+      background-color: $bg-dm;
+    }
   }
   //拖拽区域的布局定位
   > .resize-content {

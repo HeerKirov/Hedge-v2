@@ -1,4 +1,4 @@
-import { defineComponent, PropType, Transition } from "vue"
+import { defineComponent, onBeforeMount, PropType, Transition } from "vue"
 import { watchGlobalKeyEvent } from "@/functions/feature/keyboard"
 import style from "./style.module.scss"
 
@@ -47,6 +47,14 @@ const BoxFramework = defineComponent({
             if(e.key === "Escape" && props.closeOnEscape) {
                 emit("close")
                 return
+            }
+        })
+
+        onBeforeMount(() => {
+            //挂载dialog时，添加一个额外的小动作，使当前正在聚焦的元素失去焦点，以避免造成“焦点在input等元素上造成快捷键失灵”的问题
+            const el = document.activeElement
+            if(el instanceof HTMLElement) {
+                el.blur()
             }
         })
 
