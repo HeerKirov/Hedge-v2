@@ -2,7 +2,6 @@ package com.heerkirov.hedge.server.components.manager
 
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.database.ImportOption
-import com.heerkirov.hedge.server.exceptions.InvalidOptionError
 import com.heerkirov.hedge.server.exceptions.InvalidRegexError
 import com.heerkirov.hedge.server.exceptions.be
 import java.util.concurrent.ConcurrentHashMap
@@ -12,7 +11,6 @@ class ImportMetaManager(private val data: DataRepository) {
     /**
      * 对一条import记录的内容进行解析，得到source元数据。
      * @throws InvalidRegexError (regex) 执行正则表达式时发生错误，怀疑是表达式或相关参数没写对
-     * @throws InvalidOptionError ("import.systemDownloadHistoryPath") 试图使用系统下载数据库，但没有配置数据库路径
      */
     fun analyseSourceMeta(filename: String?, fromSource: List<String>?): Triple<String?, Long?, Int?> {
         for (rule in data.metadata.import.sourceAnalyseRules) {

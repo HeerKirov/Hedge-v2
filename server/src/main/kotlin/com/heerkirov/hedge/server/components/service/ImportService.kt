@@ -18,8 +18,10 @@ import com.heerkirov.hedge.server.utils.business.takeAllFilepathOrNull
 import com.heerkirov.hedge.server.utils.tools.defer
 import com.heerkirov.hedge.server.utils.deleteIfExists
 import com.heerkirov.hedge.server.utils.ktorm.OrderTranslator
+import com.heerkirov.hedge.server.utils.ktorm.escapeLike
 import com.heerkirov.hedge.server.utils.ktorm.firstOrNull
 import com.heerkirov.hedge.server.utils.ktorm.orderBy
+import com.heerkirov.hedge.server.utils.tuples.Tuple4
 import com.heerkirov.hedge.server.utils.types.ListResult
 import com.heerkirov.hedge.server.utils.types.Opt
 import com.heerkirov.hedge.server.utils.types.toListResult
@@ -49,6 +51,11 @@ class ImportService(private val data: DataRepository,
         return data.db.from(ImportImages)
             .innerJoin(FileRecords, FileRecords.id eq ImportImages.fileId)
             .select(ImportImages.id, ImportImages.fileName, ImportImages.fileImportTime, FileRecords.id, FileRecords.folder, FileRecords.extension, FileRecords.status)
+            .whereWithConditions {
+                if(!filter.search.isNullOrBlank()) {
+                    it += ImportImages.fileName escapeLike filter.search.split(" ").map(String::trim).filter(String::isNotEmpty).joinToString("%", "%", "%")
+                }
+            }
             .orderBy(orderTranslator, filter.order)
             .limit(filter.offset, filter.limit)
             .toListResult {
@@ -177,102 +184,74 @@ class ImportService(private val data: DataRepository,
     /**
      * @throws ResourceNotExist ("target", number[]) 要进行解析的对象不存在。给出不存在的source image id列表
      * @warn InvalidRegexError (regex) 执行正则表达式时发生错误，怀疑是表达式或相关参数没写对
-     * @warn InvalidOptionError ("import.systemDownloadHistoryPath") 试图使用系统下载数据库，但没有配置数据库路径
      */
-    fun analyseMeta(form: AnalyseMetaForm): AnalyseMetaRes {
+    fun batchUpdate(form: ImportBatchUpdateForm): Map<Int, List<BaseException<*>>> {
         data.db.transaction {
-            val records = if(form.target.isNullOrEmpty()) {
-                data.db.sequenceOf(ImportImages).toList()
-            }else{
-                data.db.sequenceOf(ImportImages).filter { ImportImages.id inList form.target }.toList().also { records ->
-                    if(records.size < form.target.size) {
-                        throw be(ResourceNotExist("target", form.target.toSet() - records.asSequence().map { it.id }.toSet()))
-                    }
-                }
-            }
-
-            val setTagmeOfSource = data.metadata.import.setTagmeOfSource
-            val errors = mutableMapOf<Int, ErrorResult>()
-            val batch = mutableListOf<Tuple5<Int, String, Long?, Int?, Illust.Tagme?>>()
-
-            for(record in records) {
-                val (source, sourceId, sourcePart) = try {
-                    importMetaManager.analyseSourceMeta(record.fileName, record.fileFromSource)
-                }catch (e: BusinessException) {
-                    errors[record.id] = ErrorResult(e.exception)
-                    continue
-                }
-                if(source != null) {
-                    val tagme = if(setTagmeOfSource && Illust.Tagme.SOURCE in record.tagme) record.tagme - Illust.Tagme.SOURCE else null
-                    batch.add(Tuple5(record.id, source, sourceId, sourcePart, tagme))
-                }
-            }
-
-            if(batch.isNotEmpty()) {
-                data.db.batchUpdate(ImportImages) {
-                    for ((id, source, sourceId, sourcePart, tagme) in batch) {
-                        item {
-                            where { it.id eq id }
-                            set(it.source, source)
-                            set(it.sourceId, sourceId)
-                            set(it.sourcePart, sourcePart)
-                            if(tagme != null) set(it.tagme, tagme)
+            if(form.tagme != null || form.partitionTime != null || form.setCreateTimeBy != null || form.setOrderTimeBy != null || form.analyseSource) {
+                val records = if(form.target.isNullOrEmpty()) {
+                    data.db.sequenceOf(ImportImages).toList()
+                }else{
+                    data.db.sequenceOf(ImportImages).filter { ImportImages.id inList form.target }.toList().also { records ->
+                        if(records.size < form.target.size) {
+                            throw be(ResourceNotExist("target", form.target.toSet() - records.map { it.id }.toSet()))
                         }
                     }
                 }
-            }
 
-            return AnalyseMetaRes(records.size, batch.size, records.size - batch.size - errors.size, errors)
-        }
-    }
+                val sourceResultMap = mutableMapOf<Int, Tuple4<String, Long?, Int?, Illust.Tagme?>>()
+                val errors = mutableMapOf<Int, List<BaseException<*>>>()
+                if(form.analyseSource) {
+                    val autoSetTagmeOfSource = data.metadata.import.setTagmeOfSource
 
-    /**
-     * @throws ResourceNotExist ("target", number[]) 要进行解析的对象不存在。给出不存在的source image id列表
-     * @warn InvalidRegexError (regex) 执行正则表达式时发生错误，怀疑是表达式或相关参数没写对
-     * @warn InvalidOptionError ("import.systemDownloadHistoryPath") 试图使用系统下载数据库，但没有配置数据库路径
-     */
-    fun batchUpdate(form: ImportBatchUpdateForm) {
-        data.db.transaction {
-            val records = if(form.target.isNullOrEmpty()) {
-                data.db.sequenceOf(ImportImages).toList()
-            }else{
-                data.db.sequenceOf(ImportImages).filter { ImportImages.id inList form.target }.toList().also { records ->
-                    if(records.size < form.target.size) {
-                        throw be(ResourceNotExist("target", form.target.toSet() - records.map { it.id }.toSet()))
+                    for (record in records) {
+                        val (source, sourceId, sourcePart) = try {
+                            importMetaManager.analyseSourceMeta(record.fileName, record.fileFromSource)
+                        } catch (e: BusinessException) {
+                            errors[record.id] = listOf(e.exception)
+                            continue
+                        }
+                        if (source != null) {
+                            val tagme = if (autoSetTagmeOfSource && Illust.Tagme.SOURCE in record.tagme) record.tagme - Illust.Tagme.SOURCE else null
+                            sourceResultMap[record.id] = Tuple4(source, sourceId, sourcePart, tagme)
+                        }
                     }
                 }
-            }
 
-            if(form.tagme.isPresent || form.partitionTime.isPresent || form.setCreateTimeBy.isPresent || form.setOrderTimeBy.isPresent) {
                 data.db.batchUpdate(ImportImages) {
                     for (record in records) {
                         item {
                             where { it.id eq record.id }
-                            form.tagme.applyOpt { set(it.tagme, this) }
-                            form.partitionTime.applyOpt { set(it.partitionTime, this) }
-                            form.setCreateTimeBy.alsoOpt { by ->
-                                when(by) {
-                                    ImportOption.TimeType.CREATE_TIME -> set(it.createTime, record.fileCreateTime ?: record.fileImportTime)
-                                    ImportOption.TimeType.UPDATE_TIME -> set(it.createTime, record.fileUpdateTime ?: record.fileImportTime)
-                                    ImportOption.TimeType.IMPORT_TIME -> set(it.createTime, it.fileImportTime)
-                                }
+                            sourceResultMap[record.id]?.let { (source, sourceId, sourcePart, tagme) ->
+                                set(it.source, source)
+                                set(it.sourceId, sourceId)
+                                set(it.sourcePart, sourcePart)
+                                if(tagme != null && form.tagme == null) set(it.tagme, tagme)
                             }
-                            form.setOrderTimeBy.alsoOpt { by ->
-                                set(it.orderTime, when(by) {
-                                    ImportOption.TimeType.CREATE_TIME -> record.fileCreateTime ?: record.fileImportTime
-                                    ImportOption.TimeType.UPDATE_TIME -> record.fileUpdateTime ?: record.fileImportTime
-                                    ImportOption.TimeType.IMPORT_TIME -> record.fileImportTime
-                                }.toMillisecond())
-                            }
+                            if(form.tagme != null) set(it.tagme, form.tagme)
+                            if(form.partitionTime != null) set(it.partitionTime, form.partitionTime)
+                            if(form.setCreateTimeBy != null) set(it.createTime, when(form.setCreateTimeBy) {
+                                ImportOption.TimeType.CREATE_TIME -> record.fileCreateTime ?: record.fileImportTime
+                                ImportOption.TimeType.UPDATE_TIME -> record.fileUpdateTime ?: record.fileImportTime
+                                ImportOption.TimeType.IMPORT_TIME -> record.fileImportTime
+                            })
+                            if(form.setOrderTimeBy != null) set(it.orderTime, when(form.setOrderTimeBy) {
+                                ImportOption.TimeType.CREATE_TIME -> record.fileCreateTime ?: record.fileImportTime
+                                ImportOption.TimeType.UPDATE_TIME -> record.fileUpdateTime ?: record.fileImportTime
+                                ImportOption.TimeType.IMPORT_TIME -> record.fileImportTime
+                            }.toMillisecond())
                         }
                     }
                 }
+                return errors
             }
         }
+
+        return emptyMap()
     }
 
     /**
      * 保存。
+     * @throws NotReadyFileError 还存在文件没有准备好，因此保险期间阻止了所有的导入。
      */
     fun save(): ImportSaveRes {
         data.db.transaction {
@@ -281,46 +260,26 @@ class ImportService(private val data: DataRepository,
                 .select()
                 .map { Pair(ImportImages.createEntity(it), FileRecords.createEntity(it)) }
 
-            val errors = mutableMapOf<Int, ErrorResult>()
-            val succeeds = mutableListOf<Int>()
+            if(records.any { (_, file) -> file.status == FileRecord.FileStatus.NOT_READY }) throw be(NotReadyFileError())
 
-            for ((record, file) in records) {
-                if(file.status != FileRecord.FileStatus.NOT_READY) {
-                    try {
-                        illustManager.newImage(
-                            fileId = record.fileId,
-                            tagme = record.tagme,
-                            source = record.source,
-                            sourceId = record.sourceId,
-                            sourcePart = record.sourcePart,
-                            partitionTime = record.partitionTime,
-                            orderTime = record.orderTime,
-                            createTime = record.createTime)
-                    }catch (e: BusinessException) {
-                        errors[record.id] = ErrorResult(e.exception)
-                        continue
-                    }
-                    succeeds.add(record.id)
-                }else{
-                    errors[record.id] = ErrorResult(NotReadyFileError())
-                }
+            for ((record, _) in records) {
+                illustManager.newImage(
+                    fileId = record.fileId,
+                    tagme = record.tagme,
+                    source = record.source,
+                    sourceId = record.sourceId,
+                    sourcePart = record.sourcePart,
+                    partitionTime = record.partitionTime,
+                    orderTime = record.orderTime,
+                    createTime = record.createTime)
+                // 虽然{newImage}方法会抛出很多异常，但那都与这里无关。
+                // source虽然是唯一看似有关的，但通过业务逻辑限制，使得不可能删除有实例的site。
+                // 就算最后真的出了bug，抛出去当unknown error处理算了。
             }
 
-            data.db.delete(ImportImages) { it.id inList succeeds }
+            data.db.deleteAll(ImportImages)
 
-            return ImportSaveRes(records.size, succeeds.size, errors)
+            return ImportSaveRes(records.size)
         }
     }
 }
-
-/* 导入性能测试：
-    将导入过程划分为几个阶段测试，排除jdbc初始化等的影响后，可以发现这么几个性能影响点：
-    1. 生成缩略图的函数。初次可达800ms，平时200ms。对这个过程做分解后：
-        1. 做类型转换的部分，初次可达700ms, 平时300ms。可以看到这部分影响很大。继续分解这一过程：
-            1. 消除alpha通道的算法，初次460ms，平时270ms。可以看到这个算法的耗时很长。接着拆：
-                1. 计算rgb的过程，初次170ms，平时120ms，比我以为的要更长。
-                2. 设置rgb的过程，平均20～40ms。
-            2. 真正的转换过程，平均150ms。
-        2. 做缩放的部分，初次可达200~300ms，平时50～100ms。
-    2. 分析sourceFromMeta的函数，平均可达400～600ms，且每次都这样，带来的影响非常大。这个函数调用的是shell工具。
- */

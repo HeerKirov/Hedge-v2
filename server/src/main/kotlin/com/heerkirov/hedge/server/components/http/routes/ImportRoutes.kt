@@ -18,7 +18,6 @@ class ImportRoutes(private val importService: ImportService) : Endpoints {
                 get(::list)
                 post("import", ::import)
                 post("upload", ::upload)
-                post("analyse-meta", ::analyseMeta)
                 post("batch-update", ::batchUpdate)
                 post("save", ::save)
                 path("{id}") {
@@ -64,14 +63,10 @@ class ImportRoutes(private val importService: ImportService) : Endpoints {
         ctx.status(204)
     }
 
-    private fun analyseMeta(ctx: Context) {
-        val form = ctx.bodyAsForm<AnalyseMetaForm>()
-        ctx.json(importService.analyseMeta(form))
-    }
-
     private fun batchUpdate(ctx: Context) {
         val form = ctx.bodyAsForm<ImportBatchUpdateForm>()
-        importService.batchUpdate(form)
+        val warnings = importService.batchUpdate(form)
+        ctx.status(200).json(warnings.map { (id, values) -> IdResWithWarnings(id, values.map { ErrorResult(it) }) })
     }
 
     private fun save(ctx: Context) {

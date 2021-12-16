@@ -97,12 +97,3 @@ class InvalidRegexError(regex: String, msg: String): BadRequestException<String>
  * info: (string, string): site名称, regex内容
  */
 class InvalidRuleIndexError(site: String, regex: String) : BadRequestException<Tuple2<String, String>>("INVALID_RULE_INDEX", "Rule [$site] $regex has secondaryId config which not suit to site config.", t2(site, regex))
-
-/**
- * 当业务所需的某种选项内容不支持当前业务时，抛出此异常。
- * 抛出位置：
- * - 当使用SystemDownloadHistory解析source但未设置systemDownloadHistoryPath时
- *
- * info: string: 发生错误的选项名称
- */
-class InvalidOptionError(option: String, msg: String) : BadRequestException<String>("INVALID_OPTION", "Option '$option' is invalid: $msg", option)

@@ -21,7 +21,7 @@ import javax.imageio.plugins.jpeg.JPEGImageWriteParam
 import kotlin.math.sqrt
 
 object ImageProcessor {
-    private const val RESIZE_AREA = 1 shl 19
+    private const val RESIZE_AREA = 1 shl 20
 
     init {
         //在mac上，调用Graphics组件时，会生成一个愚蠢的dock栏进程。为了隐藏掉这个进程，需要设置此属性
@@ -35,15 +35,11 @@ object ImageProcessor {
      * @throws IllegalFileExtensionError 不支持的扩展名
      */
     fun process(src: File): ProcessResult {
-        val extension = src.extension.lowercase()
-        val snapshot = if(extension == "jpeg" || extension == "jpg") {
-            null
-        }else if(extension == "png" || extension == "gif") {
-            translateImageToJpg(src)
-        }else if(extension == "mp4" || extension == "webm") {
-            translateVideoToJpg(src, timePercent = 0.05F) //取5%进度位置的帧作为截图
-        }else{
-            throw be(IllegalFileExtensionError(src.extension))
+        val snapshot = when (src.extension.lowercase()) {
+            "jpeg", "jpg" -> null
+            "png", "gif" -> translateImageToJpg(src)
+            "mp4", "webm" -> translateVideoToJpg(src, timePercent = 0.05F) //取5%进度位置的帧作为截图
+            else -> throw be(IllegalFileExtensionError(src.extension))
         }
         val resolution: Pair<Int, Int>
         val resized = try {
@@ -51,7 +47,7 @@ object ImageProcessor {
             val source = ImageIO.read(file)
             resolution = Pair(source.width, source.height)
             whetherResize(source, file.extension) { w, h ->
-                //当原始图像的面积超过262144~=512*512时，对其缩放，保持比例收缩至小于此面积。
+                //当原始图像的面积超过1024*1024时，对其缩放，保持比例收缩至小于此面积。
                 if(w * h > RESIZE_AREA) {
                     /* nw * nh = RA
                      * w * h = area
