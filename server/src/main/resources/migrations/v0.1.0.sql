@@ -327,7 +327,7 @@ CREATE TABLE system_db.exporter_record(
     content                 TEXT NOT NULL,          -- 任务内容
     create_time             TIMESTAMP NOT NULL      -- 此任务建立的时间
 );
-CREATE INDEX system_db.exporter_record__index ON history_record(type, key);
+CREATE INDEX system_db.exporter_record__index ON exporter_record(type, key);
 
 -- [系统表]通用历史记录表
 CREATE TABLE system_db.history_record(

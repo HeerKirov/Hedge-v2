@@ -643,7 +643,7 @@ class IllustService(private val data: DataRepository,
             //移除illust时，执行「从associate移除一个项目」的检查流程，修改并检查引用计数
             associateManager.removeFromAssociate(illust)
 
-            if(type == Illust.IllustType.IMAGE) {
+            if(illust.type != Illust.Type.COLLECTION) {
                 //从所有album中移除并重导出
                 albumManager.removeItemInAllAlbums(id, exportMetaTags = anyNotExportedMetaExists)
                 //从所有folder中移除
