@@ -16,12 +16,18 @@ class AppRoutes(private val lifetime: Lifetime, private val appdata: AppDataDriv
         javalin.routes {
             path("app") {
                 get("health", ::health)
-                post("signal", ::signal)
                 path("lifetime") {
-                    post(::addLifetime)
-                    path("{id}") {
-                        put(::updateLifetime)
-                        delete(::deleteLifetime)
+                    path("permanent") {
+                        get(::getPermanentList)
+                        post(::updatePermanent)
+                    }
+                    path("signal") {
+                        get(::getSignal)
+                        post(::addSignal)
+                        path("{id}") {
+                            put(::updateSignal)
+                            delete(::deleteSignal)
+                        }
                     }
                 }
             }
@@ -40,34 +46,51 @@ class AppRoutes(private val lifetime: Lifetime, private val appdata: AppDataDriv
         ctx.json(HealthResponse(status = status))
     }
 
-    private fun addLifetime(ctx: Context) {
-        val form = ctx.bodyAsForm<OptionalSignalForm>()
-        val id = this.lifetime.register(form.interval)
-        ctx.json(AddResponse(id = id))
+    private fun getPermanentList(ctx: Context) {
+        ctx.json(this.lifetime.permanent.stats)
     }
 
-    private fun updateLifetime(ctx: Context) {
-        val id = ctx.pathParam("id")
-        val form = ctx.bodyAsForm<OptionalSignalForm>()
-        this.lifetime.heart(id, form.interval)
+    private fun updatePermanent(ctx: Context) {
+        val form = ctx.bodyAsForm<PermanentForm>()
+        this.lifetime.permanent[form.type] = form.value
+        ctx.json(this.lifetime.permanent.stats)
     }
 
-    private fun deleteLifetime(ctx: Context) {
+    private fun getSignal(ctx: Context) {
+        val clients = this.lifetime.heartSignal.clients
+        val standaloneSignal = this.lifetime.heartSignal.signal
+        ctx.json(SignalResponse(clients, standaloneSignal))
+    }
+
+    private fun addSignal(ctx: Context) {
+        val form = ctx.bodyAsForm<SignalForm>()
+        if(form.standalone) {
+            this.lifetime.heartSignal.signal(form.interval)
+        }else{
+            val id = this.lifetime.heartSignal.register(form.interval)
+            ctx.json(AddResponse(id = id))
+        }
+    }
+
+    private fun updateSignal(ctx: Context) {
         val id = ctx.pathParam("id")
-        this.lifetime.unregister(id)
+        val form = ctx.bodyAsForm<SignalForm>()
+        this.lifetime.heartSignal.heart(id, form.interval)
+    }
+
+    private fun deleteSignal(ctx: Context) {
+        val id = ctx.pathParam("id")
+        this.lifetime.heartSignal.unregister(id)
         ctx.status(204)
     }
 
-    private fun signal(ctx: Context) {
-        val form = ctx.bodyAsForm<SignalForm>()
-        this.lifetime.signal(form.interval)
-    }
+    data class PermanentForm(val type: String, val value: Boolean)
 
-    data class SignalForm(val interval: Long)
-
-    data class OptionalSignalForm(val interval: Long?)
+    data class SignalForm(val interval: Long?, val standalone: Boolean = false)
 
     data class AddResponse(val id: String)
 
     data class HealthResponse(val status: LoadStatus)
+
+    data class SignalResponse(val clients: Map<String, Long>, val standaloneSignal: Long?)
 }

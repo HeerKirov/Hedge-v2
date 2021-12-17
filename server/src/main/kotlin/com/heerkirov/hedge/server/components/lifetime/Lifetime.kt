@@ -3,11 +3,8 @@ package com.heerkirov.hedge.server.components.lifetime
 import com.heerkirov.hedge.server.library.framework.FrameworkContext
 import com.heerkirov.hedge.server.library.framework.StatefulComponent
 import com.heerkirov.hedge.server.library.framework.ThreadComponent
-import com.heerkirov.hedge.server.utils.Token
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.util.*
-import java.util.concurrent.ConcurrentHashMap
 
 /**
  * 负责生命周期维持的组件。因为server一般不允许无限制地在后台运行，就需要各种机制来配合web、client、cli，确保它们在使用时server不会退出。
@@ -17,36 +14,14 @@ import java.util.concurrent.ConcurrentHashMap
  */
 interface Lifetime : ThreadComponent {
     /**
-     * 生命周期维持组件被标记为永久存续。如果标记为真，那么无视其他一切生命周期信号，永久保持运行。
+     * 永久存续标记管理。当存在永久存续标记时，server不会退出。
      */
-    var permanent: Boolean
+    val permanent: Permanent
 
     /**
-     * 注册一个新的客户端。
-     * @param interval 此客户端的心跳信号时长。未指定时使用默认值。
-     * @return 新客户端的响应id。
+     * 心跳状态管理。仍存在可用的心跳信号时，server不会退出。
      */
-    fun register(interval: Long? = null): String
-
-    /**
-     * 接收一个客户端的心跳信号。
-     * 如果此客户端id不存在，会直接创建此客户端。如果此时没有指定interval会使用默认值。
-     * @param lifetimeId 客户端id
-     * @param interval 更新心跳时间为一个新数字
-     */
-    fun heart(lifetimeId: String, interval: Long? = null)
-
-    /**
-     * 移除一个客户端。
-     * @param lifetimeId 客户端id
-     */
-    fun unregister(lifetimeId: String)
-
-    /**
-     * 接收一个瞬时的心跳信号。
-     * @param interval 此心跳信号的有效时长。
-     */
-    fun signal(interval: Long)
+    val heartSignal: HeartSignal
 
     /**
      * 启动生命周期维持线程。使用此方法阻塞主线程。
@@ -56,7 +31,7 @@ interface Lifetime : ThreadComponent {
 
 data class LifetimeOptions(
     val permanent: Boolean = false,
-    val defaultInterval: Long = 1000L * 60,
+    val defaultSignalInterval: Long = 1000L * 60,
     val threadInterval: Long = 1000L * 5,
     val threadContinuousCount: Int = 1
 )
@@ -66,43 +41,13 @@ class LifetimeImpl(private val context: FrameworkContext, private val options: L
 
     private lateinit var statefulComponents: List<StatefulComponent>
 
-    private val lifetimes: MutableMap<String, LifetimeRow> = ConcurrentHashMap()
-    private val signals: MutableList<Long> = LinkedList()
-
-    override var permanent: Boolean = options.permanent
-
-    override fun register(interval: Long?): String {
-        val id = Token.uuid()
-        val now = System.currentTimeMillis()
-        val realInterval = interval ?: options.defaultInterval
-        lifetimes[id] = LifetimeRow(now + realInterval, realInterval)
-        return id
-    }
-
-    override fun heart(lifetimeId: String, interval: Long?) {
-        val now = System.currentTimeMillis()
-
-        val lifetimeRow = lifetimes[lifetimeId]
-        if(lifetimeRow != null) {
-            if(interval != null) { lifetimeRow.interval = interval }
-            lifetimeRow.timestamp = now + lifetimeRow.interval
-        }else{
-            val realInterval = interval ?: options.defaultInterval
-            lifetimes[lifetimeId] = LifetimeRow(now + realInterval, realInterval)
-        }
-    }
-
-    override fun unregister(lifetimeId: String) {
-        lifetimes.remove(lifetimeId)
-    }
-
-    override fun signal(interval: Long) {
-        synchronized(signals) {
-            signals.add(System.currentTimeMillis() + interval)
-        }
-    }
+    override val heartSignal: HeartSignal = HeartSignal(options)
+    override val permanent: Permanent = Permanent()
 
     override fun load() {
+        if(options.permanent) {
+            permanent["Startup Permanent Flag"] = true
+        }
         statefulComponents = context.getComponents().filterIsInstance<StatefulComponent>()
     }
 
@@ -111,26 +56,7 @@ class LifetimeImpl(private val context: FrameworkContext, private val options: L
         while (true) {
             Thread.sleep(options.threadInterval)
             //进行信号清理
-            val now = System.currentTimeMillis()
-            if(lifetimes.isNotEmpty()) {
-                for ((id, row) in lifetimes.entries) {
-                    val (timestamp, _) = row
-                    if(timestamp <= now) {
-                        lifetimes.remove(id)
-                    }
-                }
-            }
-            if(signals.isNotEmpty()) {
-                synchronized(signals) {
-                    val iterator = signals.listIterator()
-                    while (iterator.hasNext()) {
-                        val signal = iterator.next()
-                        if(signal <= now) {
-                            iterator.remove()
-                        }
-                    }
-                }
-            }
+            heartSignal.update()
 
             if(anySignal(statefulComponents)) {
                 //存在任意一种信号响应，就继续循环
@@ -152,10 +78,10 @@ class LifetimeImpl(private val context: FrameworkContext, private val options: L
     }
 
     private fun anySignal(statefulComponents: List<StatefulComponent>): Boolean {
-        if(permanent) {
+        if(permanent.anyPermanent) {
             //在开启永久模式时，不会执行其他判断，总是继续循环
             return true
-        }else if(lifetimes.isNotEmpty() || signals.isNotEmpty()) {
+        }else if(heartSignal.anySignal) {
             //还存在未过期的信号，意味着继续执行
             return true
         }else if(statefulComponents.any { !it.isIdle }) {
@@ -164,6 +90,4 @@ class LifetimeImpl(private val context: FrameworkContext, private val options: L
         }
         return false
     }
-
-    private data class LifetimeRow(var timestamp: Long, var interval: Long)
 }
