@@ -170,7 +170,7 @@ function createNativeServerManager(options: ServerManagerOptions): ServerManager
         }
     }, async () => {
         if(lifetimeId != null) {
-            const res = await request({url: `${connectionInfo!.url}/app/lifetime/${lifetimeId!}`, method: "delete", headers: {'Authorization': `Bearer ${connectionInfo!.token}`}})
+            const res = await request({url: `${connectionInfo!.url}/app/lifetime/signal/${lifetimeId!}`, method: "delete", headers: {'Authorization': `Bearer ${connectionInfo!.token}`}})
             if(!res.ok) {
                 console.warn(`Error occurred in deleting heart from server: ${res.message}`)
             }
@@ -219,7 +219,7 @@ function createNativeServerManager(options: ServerManagerOptions): ServerManager
     }
 
     async function registerLifetime() {
-        const res = await request({url: `${connectionInfo!.url}/app/lifetime`, method: "post", headers: {'Authorization': `Bearer ${connectionInfo!.token}`}, data: {interval: 1000 * 120}})
+        const res = await request({url: `${connectionInfo!.url}/app/lifetime/signal`, method: "post", headers: {'Authorization': `Bearer ${connectionInfo!.token}`}, data: {interval: 1000 * 120}})
         if(res.ok) {
             lifetimeId = (<{id: string}>res.data).id
         }else{
@@ -229,7 +229,7 @@ function createNativeServerManager(options: ServerManagerOptions): ServerManager
 
     async function checkForLifetime(): Promise<boolean> {
         const res = await request({
-            url: `${connectionInfo!.url}/app/lifetime/${lifetimeId!}`,
+            url: `${connectionInfo!.url}/app/lifetime/signal/${lifetimeId!}`,
             method: "put",
             headers: { 'Authorization': `Bearer ${connectionInfo!.token}` },
             data: { interval: 1000 * 60 }
