@@ -58,7 +58,7 @@ export function createWindowManager(state: StateManager, theme: ThemeManager, op
             minWidth: 640,
             titleBarStyle: "hiddenInset",
             webPreferences: {
-                devTools: !!options.debug,
+                devTools: true,
                 preload: path.join(__dirname, 'preloads/index.js')
             },
             backgroundColor: theme.getRuntimeTheme() === "dark" ? "#212121" : "#FFFFFF",

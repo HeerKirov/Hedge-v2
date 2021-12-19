@@ -20,7 +20,7 @@ const panicErrorMapping: {[key in PanicError]: string} = {
     "APPDATA_LOAD_ERROR": "无法读取app基础数据。",
     "CONFIGURATION_LOAD_ERROR": "无法读取public configuration。",
     "RESOURCE_LOAD_ERROR": "无法加载资源状态信息。",
-    "RESOURCE_UPDATE_ERROR": "升级资源时发生错误。",
+    "RESOURCE_UPDATE_ERROR": "部署资源时发生错误。",
     "SERVER_EXEC_ERROR": "开启核心服务失败。",
     "SERVER_WAITING_EXIT": "核心服务异常退出，开启核心服务失败。",
     "SERVER_WAITING_TIMEOUT": "等待核心服务可用超时。",

@@ -1,7 +1,7 @@
 export const APP_FILE = {
     FRONTEND_FOLDER: "../frontend",
     SERVER_ZIP: "../server.zip",
-    CLI_ZIP: "../cli.zip"
+    CLI_FOLDER: "../cli"
 }
 
 export const DATA_FILE = {

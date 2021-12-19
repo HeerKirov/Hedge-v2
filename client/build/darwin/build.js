@@ -19,7 +19,6 @@ function build(argv, target) {
                 case "install-frontend": installFrontend(target); break
                 case "build-server": buildServer(); break
                 case "install-server": installServer(target); break
-                case "build-cli": buildCli(); break
                 case "install-cli": installCli(target); break
                 default: throw new Error(`unknown command: ${arg}`)
             }
@@ -32,7 +31,6 @@ function build(argv, target) {
         installFrontend(target)
         buildServer()
         installServer(target)
-        buildCli()
         installCli(target)
     }
     console.log("build completed.")
@@ -101,12 +99,17 @@ function installServer(target) {
     child.spawnSync("cp", ["-R", "../server/build/image.zip", path.join(resourcePath, "server.zip")])
 }
 
-function buildCli() {
-    //to be completed
-}
-
 function installCli(target) {
-    //to be completed
+    console.log("install cli...")
+    const resourcePath = path.join(target, APP_NAME, "resources/cli")
+    if(fs.existsSync(resourcePath)) {
+        fs.rmSync(resourcePath, {recursive: true, force: true})
+    }
+    fs.mkdirSync(resourcePath)
+    child.spawnSync("cp", ["-R", "../cli/src", resourcePath])
+    child.spawnSync("cp", ["../cli/requirements.txt", resourcePath])
+    child.spawnSync("cp", ["../cli/startup.sh", resourcePath])
+    child.spawnSync("cp", ["../cli/install.sh", resourcePath])
 }
 
 module.exports = { build }

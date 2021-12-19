@@ -1,6 +1,7 @@
 import nodeFs, { Dirent, Mode } from "fs"
 import unzipper from "unzipper"
-import { spawn } from "child_process"
+import { exec, spawn } from "child_process"
+import { promisify } from "util";
 
 export function writeFile<T>(file: string, data: T): Promise<T> {
     return new Promise(((resolve, reject) => {
@@ -9,6 +10,18 @@ export function writeFile<T>(file: string, data: T): Promise<T> {
                 reject(e)
             }else{
                 resolve(data)
+            }
+        })
+    }))
+}
+
+export function appendFileStr(file: string, data: string): Promise<void> {
+    return new Promise(((resolve, reject) => {
+        nodeFs.appendFile(file, data, {encoding: "utf8"}, e => {
+            if(e) {
+                reject(e)
+            }else{
+                resolve()
             }
         })
     }))
@@ -24,6 +37,21 @@ export async function readFile<T>(file: string): Promise<T | null> {
                 reject(e)
             }else{
                 resolve(JSON.parse(data) as T)
+            }
+        })
+    }))
+}
+
+export async function readFileStr(file: string): Promise<string | null> {
+    if(!await existsFile(file)) {
+        return null
+    }
+    return new Promise(((resolve, reject) => {
+        nodeFs.readFile(file, {encoding: "utf8"}, (e, data) => {
+            if(e) {
+                reject(e)
+            }else{
+                resolve(data)
             }
         })
     }))
@@ -64,11 +92,7 @@ export async function rmdir(path: string): Promise<void> {
     if(!await existsFile(path)) {
         return
     }
-    return new Promise(((resolve, reject) => {
-        const s = spawn("rm", ["-rf", path])
-        s.on("close", resolve)
-        s.on("error", reject)
-    }))
+    await promisify(exec)(`rm -rf ${path}`)
 }
 
 export function cpR(src: string, dest: string): Promise<void> {

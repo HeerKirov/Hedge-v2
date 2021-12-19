@@ -1,9 +1,23 @@
 import path from "path"
+import { promisify } from "util"
+import { exec, execFile } from "child_process"
 import { arrays } from "../../utils/types"
-import { cpR, unzip, rename, chmod, rmdir, readFile, writeFile } from "../../utils/fs"
+import {
+    cpR,
+    unzip,
+    rename,
+    chmod,
+    rmdir,
+    readFile,
+    writeFile,
+    existsFile,
+    readFileStr,
+    appendFileStr, mkdir
+} from "../../utils/fs"
 import { DATA_FILE, APP_FILE, RESOURCE_FILE } from "../../definitions/file"
 import { Version, VersionLock, VersionStatus, VersionStatusSet } from "./model"
 import { ClientException } from "../../exceptions"
+import { Platform } from "../../utils/process"
 
 /**
  * 记录系统中资源组件的最新版本号。必须更新此记录值至最新，才能正确触发版本更新。
@@ -60,6 +74,10 @@ export enum ResourceStatus {
  */
 export interface ResourceManagerOptions {
     /**
+     * 系统平台。
+     */
+    platform: Platform
+    /**
      * app的数据目录。
      */
     userDataPath: string
@@ -67,6 +85,10 @@ export interface ResourceManagerOptions {
      * app的资源目录，指代/Resource/app目录，在此目录下寻找资源。
      */
     appPath: string
+    /**
+     * 用户目录。
+     */
+    homePath: string
     /**
      * 在调试模式下运行，默认将禁用资源管理，除非指定其他选项，对资源管理进行调试。
      */
@@ -129,7 +151,9 @@ function createProductionResourceManager(options: ResourceManagerOptions): Resou
                 }else{
                     status = ResourceStatus.LATEST
                 }
-                if(version.cli?.latestVersion) {
+                if(!versionLock.cli) {
+                    cliStatus = ResourceStatus.NOT_INIT
+                }else if(version.cli?.latestVersion) {
                     cliStatus = ResourceStatus.NEED_UPDATE
                 }else{
                     cliStatus = ResourceStatus.LATEST
@@ -192,25 +216,92 @@ function createProductionResourceManager(options: ResourceManagerOptions): Resou
         await unzip(options.debug?.serverFromResource || path.join(options.appPath, APP_FILE.SERVER_ZIP), options.userDataPath)
         await rename(originDest, dest)
         //通过unzipper解压后，可执行信息丢失，需要重新添加。
-        await chmod(path.join(options.userDataPath, DATA_FILE.RESOURCE.SERVER_FOLDER, RESOURCE_FILE.SERVER.BIN), "755")
-        await chmod(path.join(options.userDataPath, DATA_FILE.RESOURCE.SERVER_FOLDER, "bin/java"), "755")
-        await chmod(path.join(options.userDataPath, DATA_FILE.RESOURCE.SERVER_FOLDER, "bin/keytool"), "755")
-        await chmod(path.join(options.userDataPath, DATA_FILE.RESOURCE.SERVER_FOLDER, "lib/jspawnhelper"), "755")
+        await chmod(path.join(dest, RESOURCE_FILE.SERVER.BIN), "755")
+        await chmod(path.join(dest, "bin/java"), "755")
+        await chmod(path.join(dest, "bin/keytool"), "755")
+        await chmod(path.join(dest, "lib/jspawnhelper"), "755")
         version.server = {lastUpdateTime: new Date(), currentVersion: version.server?.latestVersion ?? VERSION.server}
     }
 
     async function updatePartFrontend() {
-        const dest = path.join(options.userDataPath, DATA_FILE.RESOURCE.FRONTEND_FOLDER);
+        const dest = path.join(options.userDataPath, DATA_FILE.RESOURCE.FRONTEND_FOLDER)
         await rmdir(dest)
         await cpR(options.debug?.frontendFromFolder || path.join(options.appPath, APP_FILE.FRONTEND_FOLDER), dest)
         version.frontend = {lastUpdateTime: new Date(), currentVersion: version.frontend?.latestVersion ?? VERSION.frontend}
     }
 
     async function updatePartCli() {
-        const dest = path.join(options.userDataPath, DATA_FILE.RESOURCE.CLI_FOLDER);
-        await rmdir(dest)
-        await unzip(path.join(options.appPath, APP_FILE.CLI_ZIP), dest)
-        version.cli = {lastUpdateTime: new Date(), currentVersion: version.cli!.latestVersion ?? VERSION.cli}
+        async function whichCommand(goal: string): Promise<string | null> {
+            try {
+                const { stdout } = await promisify(exec)(`which ${goal}`)
+                return stdout.trim()
+            }catch (e) {
+                return null
+            }
+        }
+
+        async function appendSourceInShellRc(rc: string, dest: string): Promise<boolean> {
+            const appendContent = `PATH="$PATH:${dest}"`
+            const content = await readFileStr(rc)
+            if(content !== null) {
+                if(!content.includes(appendContent)) {
+                    await appendFileStr(rc, `\n\n# Hedge CLI PATH\n${appendContent}\n`)
+                }
+                return true
+            }else{
+                return false
+            }
+        }
+
+        const dest = path.join(options.userDataPath, DATA_FILE.RESOURCE.CLI_FOLDER)
+        //首先判断python3和virtualenv是否可用
+        const python3Path = await whichCommand("python3")
+        const virtualenvPath = await whichCommand("virtualenv")
+        if(python3Path == null) {
+            throw "Cli depends on 'python3' but which is not found."
+        }else if(virtualenvPath == null) {
+            throw "Cli depends on 'virtualenv' but which is not found."
+        }
+
+        //将src, requirements.txt, startup.sh等关键文件覆盖过来
+        await rmdir(path.join(dest, "src"))
+        await mkdir(path.join(dest, "src"))
+        await cpR(path.join(options.appPath, APP_FILE.CLI_FOLDER, "src"), dest)
+        await cpR(path.join(options.appPath, APP_FILE.CLI_FOLDER, "requirements.txt"), dest)
+        await cpR(path.join(options.appPath, APP_FILE.CLI_FOLDER, "startup.sh"), path.join(dest, "hedge"))
+        await chmod(path.join(dest, "hedge"), "755")
+
+        //PATH路径注入
+        if(options.platform === "darwin" || options.platform === "linux") {
+            if(await appendSourceInShellRc(path.join(options.homePath, ".zshrc"), dest)) {
+                //do nothing
+            }else if(await appendSourceInShellRc(path.join(options.homePath, ".bashrc"), dest)) {
+                //do nothing
+            }else if(await appendSourceInShellRc(path.join(options.homePath, ".profile"), dest)) {
+                //do nothing
+            }else{
+                console.warn(`No any shell found in ${options.homePath} (such as .zshrc, .bashrc, .profile). PATH inject failed.`)
+            }
+        }
+
+        //判断python虚拟环境是否已安装，并尝试安装
+        if(!await existsFile(path.join(dest, "venv"))) {
+            await promisify(exec)(`${virtualenvPath} ${path.join(dest, "venv")}`)
+        }
+
+        //尝试更新依赖
+        await cpR(path.join(options.appPath, APP_FILE.CLI_FOLDER, "install.sh"), dest)
+        await chmod(path.join(dest, "install.sh"), "755")
+        await promisify(execFile)(path.join(dest, "install.sh"))
+        await rmdir(path.join(dest, "install.sh"))
+
+        //添加一个conf.local.json文件
+        await writeFile(path.join(dest, "conf.local.json"), {
+            "userDataPath": options.userDataPath,
+            "appPath": path.join(options.appPath, "../..")
+        })
+
+        version.cli = {lastUpdateTime: new Date(), currentVersion: version.cli?.latestVersion ?? VERSION.cli}
     }
 
     return {

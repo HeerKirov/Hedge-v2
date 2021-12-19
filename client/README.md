@@ -53,7 +53,6 @@ clean               # 清空dist目录
 build-client        # 对client项目执行编译
 build-frontend      # 对frontend项目执行生产环境编译
 build-server        # 对server项目执行生产环境编译打包
-build-cli           # 对cli项目执行生产环境编译打包
 install-app         # 在dist目录下添加electron应用程序的内容
 install-client      # 将client资源添加到electron程序
 install-frontend    # 将frontend资源添加到electron应用程序

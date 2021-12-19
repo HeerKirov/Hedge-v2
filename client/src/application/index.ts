@@ -68,6 +68,7 @@ export async function createApplication(options?: AppOptions) {
     const debugMode = !!options?.debug
     const appPath = app.getAppPath()
     const userDataPath = options?.debug?.localDataPath ?? app.getPath("userData")
+    const homePath = app.getPath("home")
 
     try {
         const channelManager = await createChannel({userDataPath, defaultChannel: "default", manualChannel: options?.channel})
@@ -76,7 +77,7 @@ export async function createApplication(options?: AppOptions) {
 
         const configurationDriver = createConfigurationDriver({userDataPath, channel: channelManager.currentChannel()})
 
-        const resourceManager = createResourceManager({userDataPath, appPath, debug: options?.debug && {frontendFromFolder: options.debug.frontendFromFolder, serverFromResource: options.debug.serverFromResource}})
+        const resourceManager = createResourceManager({platform, userDataPath, appPath, homePath, debug: options?.debug && {frontendFromFolder: options.debug.frontendFromFolder, serverFromResource: options.debug.serverFromResource}})
 
         const serverManager = createServerManager({userDataPath, channel: channelManager.currentChannel(), debug: options?.debug && {serverFromURL: options.debug.serverFromURL, serverFromFolder: options.debug.serverFromFolder, frontendFromFolder: options.debug.frontendFromFolder}})
 
