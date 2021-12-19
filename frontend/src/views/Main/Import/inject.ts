@@ -77,6 +77,8 @@ function useImportListContext() {
     })
     const dataView = usePaginationDataView(endpoint)
 
+    useListContentUpdater(dataView)
+
     watch(isProgressing, (v, o) => {
         if(!v && o) {
             endpoint.refresh()
@@ -144,4 +146,55 @@ function useImportOperationContext(dataView: PaginationDataView<ImportImage>, en
     }
 
     return {canSave, save}
+}
+
+function useListContentUpdater(dataView: PaginationDataView<ImportImage>) {
+    const toast = useToast()
+    const httpClient = useHttpClient()
+    const needUpdateItemSet = new Set<number>()
+    let timer: number | null = null
+
+    watch(dataView.data, data => {
+        //当dataView数据视图的内容发生变化时，从中过滤出缩略图为null的项。这些项需要通过实时轮询获得更新
+        const filtered = data.result.filter(item => item.thumbnailFile === null)
+        if(filtered.length > 0) {
+            filtered.forEach(item => needUpdateItemSet.add(item.id))
+            if(needUpdateItemSet.size > 0 && timer === null) {
+                timer = setInterval(async () => {
+                    for (const itemId of needUpdateItemSet.keys()) {
+                         const res = await httpClient.import.get(itemId)
+                        if(res.ok) {
+                            if(res.data.thumbnailFile !== null) {
+                                const index = dataView.proxy.syncOperations.find(i => i.id === itemId)
+                                if(index !== undefined) {
+                                    dataView.proxy.syncOperations.modify(index, {
+                                        id: res.data.id,
+                                        file: res.data.file,
+                                        thumbnailFile: res.data.thumbnailFile,
+                                        fileName: res.data.fileName,
+                                        fileImportTime: res.data.fileImportTime
+                                    })
+                                }
+                                needUpdateItemSet.delete(itemId)
+                            }
+                        }else if (res.exception.code === "NOT_FOUND") {
+                            //404，那么将这个项移除
+                            const index = dataView.proxy.syncOperations.find(i => i.id === itemId)
+                            if(index !== undefined) {
+                                dataView.proxy.syncOperations.remove(index)
+                            }
+                            needUpdateItemSet.delete(itemId)
+                        }else{
+                            toast.handleException(res.exception)
+                        }
+                    }
+
+                    if(needUpdateItemSet.size <= 0 && timer !== null) {
+                        clearInterval(timer)
+                        timer = null
+                    }
+                }, 500)
+            }
+        }
+    })
 }
