@@ -1,7 +1,7 @@
 import { onMounted, ref, watch, toRaw, computed, onUnmounted, readonly } from "vue"
 import { AppearanceSetting, clientMode, ipc, ResourceStatus, AuthSetting } from "@/functions/adapter-ipc"
-import { useToast } from "@/functions/module/toast"
 import { useAppInfo } from "./app-state"
+import { useMessageBox } from "@/functions/module/message-box"
 
 export function useAuthSetting() {
     if(!clientMode) {
@@ -25,7 +25,7 @@ export function useCliController() {
     if(!clientMode) {
         throw new Error("Cannot access appearance in web.")
     }
-    const toast = useToast()
+    const messageBox = useMessageBox()
 
     const status = ref<ResourceStatus>(ResourceStatus.LATEST)
 
@@ -37,7 +37,7 @@ export function useCliController() {
                 status.value = ResourceStatus.LATEST
             }else{
                 status.value = ResourceStatus.NOT_INIT
-                toast.handleError("CLI部署失败", res.errorMessage)
+                messageBox.showOkMessage("error", "CLI部署失败", res.errorMessage)
                 console.error(res.errorMessage)
             }
         }
