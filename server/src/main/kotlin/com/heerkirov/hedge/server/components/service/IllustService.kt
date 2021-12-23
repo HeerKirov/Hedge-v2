@@ -654,7 +654,7 @@ class IllustService(private val data: DataRepository,
                 if(illust.parentId != null) illustManager.processCollectionChildrenRemoved(illust.parentId, listOf(illust))
 
                 //删除关联的file
-                fileManager.trashFile(illust.fileId)
+                fileManager.deleteFile(illust.fileId)
             }else{
                 val children = data.db.from(Illusts).select(Illusts.id)
                     .where { Illusts.parentId eq id }

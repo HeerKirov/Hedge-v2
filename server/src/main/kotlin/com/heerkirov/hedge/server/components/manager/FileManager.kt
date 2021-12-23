@@ -26,8 +26,7 @@ class FileManager(private val configurationDriver: ConfigurationDriver, private 
      * 将指定的File载入到数据库中，同时创建一条新记录。
      * - folder指定为载入时的本地日期。
      * - extension指定为此file的扩展名。
-     * - 自动生成thumbnail。
-     * - 自动计算大小。
+     * - thumbnail和大小等信息留白，处于NOT READY状态，需要调用FileGenerator生成这些信息。
      * @return file id。使用此id来索引物理文件记录。
      * @throws IllegalFileExtensionError (extension) 此文件扩展名不受支持
      */
@@ -56,18 +55,6 @@ class FileManager(private val configurationDriver: ConfigurationDriver, private 
         }
 
         return id
-    }
-
-    /**
-     * 撤销新建的File。此方法仅用于newFile后产生失败，回滚对物理文件的写入。不能用于删除业务，因为它会完全移除记录。
-     */
-    fun revertNewFile(fileId: Int) {
-        val fileRecord = getFile(fileId) ?: return
-        File("${configurationDriver.dbPath}/${Filename.FOLDER}/${getFilepath(fileRecord.folder, fileRecord.id, fileRecord.extension)}").deleteIfExists()
-        if(fileRecord.status == FileRecord.FileStatus.READY) {
-            File("${configurationDriver.dbPath}/${Filename.FOLDER}/${getThumbnailFilepath(fileRecord.folder, fileRecord.id)}").deleteIfExists()
-        }
-        data.db.delete(FileRecords) { it.id eq fileId }
     }
 
     /**

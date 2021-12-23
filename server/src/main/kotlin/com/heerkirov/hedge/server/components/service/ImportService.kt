@@ -75,7 +75,7 @@ class ImportService(private val data: DataRepository,
         if(!file.exists() || !file.canRead()) throw be(FileNotFoundError())
 
         val fileId = data.db.transaction { fileManager.newFile(file) }.alsoExcept { fileId ->
-            fileManager.revertNewFile(fileId)
+            fileManager.deleteFile(fileId)
         }.alsoReturns {
             fileGenerator.appendTask(it)
         }
@@ -96,7 +96,7 @@ class ImportService(private val data: DataRepository,
         }
 
         val fileId = data.db.transaction { fileManager.newFile(file) }.alsoExcept { fileId ->
-            fileManager.revertNewFile(fileId)
+            fileManager.deleteFile(fileId)
         }.alsoReturns {
             fileGenerator.appendTask(it)
         }
@@ -177,7 +177,7 @@ class ImportService(private val data: DataRepository,
         data.db.transaction {
             val row = data.db.from(ImportImages).select(ImportImages.fileId).where { ImportImages.id eq id }.firstOrNull() ?: throw be(NotFound())
             data.db.delete(ImportImages) { it.id eq id }
-            fileManager.trashFile(row[ImportImages.fileId]!!)
+            fileManager.deleteFile(row[ImportImages.fileId]!!)
         }
     }
 
