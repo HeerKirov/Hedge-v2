@@ -322,7 +322,7 @@ export function useGridContextOperator<T extends SuitableIllust>(options: GridCo
     } : () => {}
 
     const deleteItem = async (illust: T) => {
-        if(selected.value.length <= 0 || (selected.value.length === 1 && selected.value[0] === illust.id)) {
+        if(selected.value.length === 0 || !selected.value.includes(illust.id)) {
             if(illust.type === "IMAGE") {
                 if(await messageBox.showYesNoMessage("warn", "确定要删除此项吗？", "此操作不可撤回。")) {
                     const ok = await commonFastEndpoint.deleteData(illust.id)

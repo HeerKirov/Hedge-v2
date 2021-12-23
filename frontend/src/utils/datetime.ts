@@ -61,6 +61,12 @@ export interface LocalDateTime extends LocalDate {
 
 export const date = {
     /**
+     * 获得当前日期。
+     */
+    now(): LocalDate {
+        return nativeDateToDate(new Date())
+    },
+    /**
      * 将一个UTC时间戳转换为LocalDate。字符串时间戳必须符合yyyy-MM-dd的格式。
      */
     of(time: string): LocalDate {

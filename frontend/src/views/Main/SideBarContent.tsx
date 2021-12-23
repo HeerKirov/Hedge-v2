@@ -1,4 +1,4 @@
-import { computed, ComputedRef, defineComponent, onMounted, PropType, Ref, ref, toRef } from "vue"
+import { computed, ComputedRef, defineComponent, onMounted, PropType, Ref, ref } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import { useAddToFolderService } from "@/layouts/dialogs/AddToFolder"
 import { usePopupMenu } from "@/functions/module/popup-menu"
@@ -27,18 +27,17 @@ export default defineComponent({
                 </StdItemComponent>
             </ScopeComponent>
             <ScopeComponent id="meta" name="元数据">
-                <StdItemComponent name="标签" icon="tag" routeName="MainTags"/>
                 <StdItemComponent name="作者" icon="user-tag" routeName="MainAuthors" detailKey="detail">
                     <SubItemDetails/>
                 </StdItemComponent>
                 <StdItemComponent name="主题" icon="hashtag" routeName="MainTopics" detailKey="detail">
                     <SubItemDetails/>
                 </StdItemComponent>
+                <StdItemComponent name="标签" icon="tag" routeName="MainTags"/>
                 <StdItemComponent name="注解" icon="code" routeName="MainAnnotations"/>
             </ScopeComponent>
             <ScopeComponent id="tool" name="工具箱">
                 <StdItemComponent name="导入项目" icon="plus-square" routeName="MainImport"/>
-                {/*<StdItemComponent name="文件管理" icon="folder-open" routeName="MainFile"/>*/}
                 <StdItemComponent name="源数据" icon="spider" routeName="MainSourceImage"/>
             </ScopeComponent>
             <ScopeComponent id="folder" name="目录">

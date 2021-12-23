@@ -1,7 +1,6 @@
 import { computed, defineComponent } from "vue"
 import { ColumnNumButton, DataRouter, FitTypeButton } from "@/layouts/topbars"
 import { useImportService } from "@/functions/api/import"
-import { useElementPopupMenu } from "@/functions/module/popup-menu"
 import { FitType } from "@/layouts/data/IllustGrid"
 import { useImportContext } from "./inject"
 import style from "./style.module.scss"
@@ -25,7 +24,6 @@ export default defineComponent({
                 <DataRouter/>
                 <FitTypeButton value={fitType.value} onUpdateValue={setFitType}/>
                 <ColumnNumButton value={columnNum.value} onUpdateValue={setColumnNum}/>
-                <MenuButton/>
             </div>
         </div>
     }
@@ -55,30 +53,14 @@ const LoadingBox = defineComponent({
 const ImportButton = defineComponent({
     setup() {
         const { isProgressing } = useImportService()
-        const { operation: { canSave, save } } = useImportContext()
+        const { operation: { canSave, save }, list: { dataView } } = useImportContext()
 
         const enableImport = computed(() => !isProgressing.value && canSave.value)
 
-        return () => <button class="button no-drag radius-large is-white mr-1" disabled={!enableImport.value} onClick={save}>
-            <span class="icon"><i class="fa fa-check"/></span>
-            <span>导入</span>
-        </button>
-    }
-})
-
-const MenuButton = defineComponent({
-    setup() {
-        const { operation: { canSave, save } } = useImportContext()
-
-        const menu = useElementPopupMenu(() => [
-            {type: "normal", label: "导入", enabled: canSave.value, click: save},
-            {type: "separator"},
-            {type: "normal", label: "分析来源"},
-            {type: "normal", label: "批量设定属性"}
-        ], {position: "bottom", align: "left", offsetY: 4})
-
-        return () => <button ref={menu.element} class="square button no-drag radius-large is-white" onClick={() => menu.popup()}>
-            <span class="icon"><i class="fa fa-ellipsis-v"/></span>
-        </button>
+        return () => dataView.data.value.metrics.total && dataView.data.value.metrics.total > 0 &&
+            <button class="button no-drag radius-large is-info mr-1" disabled={!enableImport.value} onClick={save}>
+                <span class="icon"><i class="fa fa-check"/></span>
+                <span>确认导入图库</span>
+            </button>
     }
 })

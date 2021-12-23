@@ -169,7 +169,7 @@ export interface ImportUpdateForm {
 export interface ImportBatchUpdateForm {
     target?: number[]
     tagme?: Tagme[]
-    serCreateTimeBy?: TimeType
+    setCreateTimeBy?: TimeType
     setOrderTimeBy?: TimeType
     partitionTime?: LocalDate
     analyseSource?: boolean

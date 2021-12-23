@@ -1,4 +1,4 @@
-import { computed, readonly, ref, Ref, watch } from "vue"
+import { computed, ref, Ref, watch } from "vue"
 import { ScrollView, useScrollView } from "@/components/features/VirtualScrollView"
 import { FitType } from "@/layouts/data/IllustGrid"
 import { ImportImage } from "@/functions/adapter-http/impl/import"
@@ -28,10 +28,13 @@ export interface ImportContext {
         save(): void
     }
     pane: {
-        detailMode: Readonly<Ref<number | null>>
-        infoMode: Readonly<Ref<boolean>>
-        openDetailPane(id: number): void
-        openInfoPane(): void
+        paneMode: Readonly<Ref<"detail" | "batchUpdate" | null>>
+        paneDetail: Readonly<Ref<number[] | null>>
+        paneLastDetail: Readonly<Ref<number | null>>
+        paneEnabled: Readonly<Ref<boolean>>
+        enableDetailPane(id?: number): void
+        disableDetailPane(): void
+        openBatchUpdatePane(): void
         closePane(): void
     }
 }
@@ -40,29 +43,57 @@ export const [installImportContext, useImportContext] = installation(function():
     const list = useImportListContext()
     const viewController = useViewController()
     const selector = useSelector(list.endpoint)
-    const pane = usePaneContext()
+    const pane = usePaneContext(selector)
     const operation = useImportOperationContext(list.dataView, list.endpoint, pane)
 
     return {list, viewController, selector, pane, operation}
 })
 
-function usePaneContext() {
-    const detailMode = ref<number | null>(null)
-    const infoMode = ref(false)
+function usePaneContext(selector: ReturnType<typeof useSelector>) {
+    const paneMode = ref<"detail" | "batchUpdate" | null>(null)
+    const paneDetail = ref<number[] | null>(null)
+    const paneLastDetail = ref<number | null>(null)
+    const paneEnabled = computed(() => paneMode.value === "detail" && paneDetail.value !== null || paneMode.value === "batchUpdate")
 
-    const openDetailPane = (id: number) => {
-        detailMode.value = id
-        infoMode.value = false
+    watch(() => [selector.selected.value, selector.lastSelected.value] as const, ([selected, lastSelected]) => {
+        if(paneMode.value !== null) {
+            if(selected.length > 0) {
+                paneDetail.value = [...selected]
+            }else{
+                paneDetail.value = null
+            }
+            paneLastDetail.value = lastSelected ?? (selected.length > 0 ? selected[selected.length - 1] : null)
+        }
+    })
+
+    const enableDetailPane = (id?: number) => {
+        paneMode.value = "detail"
+        if(id !== undefined) {
+            paneDetail.value = [id]
+        }else if(selector.selected.value.length > 0) {
+            paneDetail.value = [...selector.selected.value]
+        }else{
+            paneDetail.value = null
+        }
+        paneLastDetail.value = id ?? selector.lastSelected.value ?? (selector.selected.value.length > 0 ? selector.selected.value[selector.selected.value.length - 1] : null)
     }
-    const openInfoPane = () => {
-        detailMode.value = null
-        infoMode.value = true
+
+    const disableDetailPane = () => {
+        paneMode.value = null
+        paneDetail.value = null
+        paneLastDetail.value = null
     }
+
+    const openBatchUpdatePane = () => {
+        paneMode.value = "batchUpdate"
+    }
+
     const closePane = () => {
-        detailMode.value = null
-        infoMode.value = false
+        paneMode.value = null
+        paneDetail.value = null
+        paneLastDetail.value = null
     }
-    return {detailMode: readonly(detailMode), infoMode: readonly(infoMode), openDetailPane, openInfoPane, closePane}
+    return {paneMode, paneDetail, paneLastDetail, paneEnabled, enableDetailPane, disableDetailPane, openBatchUpdatePane, closePane}
 }
 
 function useImportListContext() {

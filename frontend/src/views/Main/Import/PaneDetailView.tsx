@@ -1,4 +1,7 @@
-import { defineComponent } from "vue"
+import { computed, defineComponent, PropType, reactive, toRef } from "vue"
+import CheckBox from "@/components/forms/CheckBox"
+import Select from "@/components/forms/Select"
+import ThumbnailImage from "@/components/elements/ThumbnailImage"
 import { SourceIdentityEditor, TagmeEditor, DateTimeEditor, ViewAndEditor, DateEditor } from "@/layouts/editors"
 import { SourceInfo, TagmeInfo } from "@/layouts/displays"
 import { PaneBasicLayout } from "@/layouts/layouts/SplitPane"
@@ -6,20 +9,36 @@ import { useMessageBox } from "@/functions/module/message-box"
 import { useObjectEndpoint } from "@/functions/utils/endpoints/object-endpoint"
 import { DetailImportImage } from "@/functions/adapter-http/impl/import"
 import { Tagme } from "@/functions/adapter-http/impl/illust"
-import { assetsUrl } from "@/functions/app"
+import { TimeType } from "@/functions/adapter-http/impl/setting-import"
+import { useHttpClient } from "@/functions/app"
+import { useToast } from "@/functions/module/toast"
 import { objects } from "@/utils/primitives"
-import { date, datetime, LocalDateTime } from "@/utils/datetime"
+import { date, datetime, LocalDate, LocalDateTime } from "@/utils/datetime"
 import { useImportContext } from "./inject"
 import style from "./style.module.scss"
-import ThumbnailImage from "@/components/elements/ThumbnailImage";
 
 export default defineComponent({
     setup() {
+        const { pane: { paneMode, paneDetail, paneLastDetail, closePane, enableDetailPane } } = useImportContext()
+
+        return () => <PaneBasicLayout class={style.paneDetailContent} onClose={closePane}>
+            {paneMode.value === "detail" ? <DetailViewPane detailId={paneLastDetail.value}/>
+            : paneMode.value === "batchUpdate" ? <BatchUpdatePane selected={paneDetail.value} onClose={() => enableDetailPane()}/>
+            : undefined}
+        </PaneBasicLayout>
+    }
+})
+
+const DetailViewPane = defineComponent({
+    props: {
+        detailId: {type: null as any as PropType<number | null>, required: true}
+    },
+    setup(props) {
         const message = useMessageBox()
-        const { pane: { detailMode, closePane }, list: { dataView } } = useImportContext()
+        const { list: { dataView } } = useImportContext()
 
         const { data, setData } = useObjectEndpoint({
-            path: detailMode,
+            path: toRef(props, "detailId"),
             get: httpClient => httpClient.import.get,
             update: httpClient => httpClient.import.update,
             afterUpdate(id, data: DetailImportImage) {
@@ -68,38 +87,122 @@ export default defineComponent({
             return orderTime.timestamp === data.value?.orderTime?.timestamp || await setData({orderTime})
         }
 
-        return () => <PaneBasicLayout class={style.paneDetailContent} onClose={closePane}>
-            {data.value && <>
-                <p class={style.top}/>
-                <ThumbnailImage value={data.value.thumbnailFile} minHeight="12rem" maxHeight="40rem"/>
-                {data.value.fileName && <p class={[style.filename, "can-be-selected"]}><b>{data.value.fileName}</b></p>}
-                {data.value.fileCreateTime && <p class="has-text-grey">文件创建时间 {datetime.toSimpleFormat(data.value.fileCreateTime)}</p>}
-                {data.value.fileUpdateTime && <p class="has-text-grey">文件修改时间 {datetime.toSimpleFormat(data.value.fileUpdateTime)}</p>}
-                {data.value.fileImportTime && <p class="has-text-grey">文件导入时间 {datetime.toSimpleFormat(data.value.fileImportTime)}</p>}
-                <div class={style.separator}/>
-                <ViewAndEditor data={{source: data.value.source, sourceId: data.value.sourceId, sourcePart: data.value.sourcePart}} onSetData={setSourceInfo} v-slots={{
-                    default: ({ value }: {value: {source: string | null, sourceId: number | null, sourcePart: number | null}}) => <SourceInfo {...value}/>,
-                    editor: ({ value, setValue }) => <SourceIdentityEditor {...value} onUpdateValue={setValue}/>
-                }}/>
-                <div class={style.spacing}/>
-                <ViewAndEditor data={data.value.tagme} onSetData={setTagme} v-slots={{
-                    default: ({ value }) => <TagmeInfo value={value}/>,
-                    editor: ({ value, setValue }) => <TagmeEditor value={value} onUpdateValue={setValue}/>
-                }}/>
-                <div class={style.spacing}/>
-                <ViewAndEditor data={data.value.partitionTime} onSetData={setPartitionTime} v-slots={{
-                    default: ({ value }) => <p class="has-text-grey">时间分区 {date.toISOString(value)}</p>,
-                    editor: ({ value, setValue }) => <DateEditor value={value} onUpdateValue={setValue}/>
-                }}/>
-                <ViewAndEditor data={data.value.createTime} onSetData={setCreateTime} v-slots={{
-                    default: ({ value }) => <p class="has-text-grey">创建时间 {datetime.toSimpleFormat(value)}</p>,
-                    editor: ({ value, setValue }) => <DateTimeEditor value={value} onUpdateValue={setValue}/>
-                }}/>
-                <ViewAndEditor data={data.value.orderTime} onSetData={setOrderTime} v-slots={{
-                    default: ({ value }) => <p class="has-text-grey">排序时间 {datetime.toSimpleFormat(value)}</p>,
-                    editor: ({ value, setValue }) => <DateTimeEditor value={value} onUpdateValue={setValue}/>
-                }}/>
-            </>}
-        </PaneBasicLayout>
+        return () => data.value && <>
+            <p class={style.top}/>
+            <ThumbnailImage value={data.value.thumbnailFile} minHeight="12rem" maxHeight="40rem"/>
+            {data.value.fileName && <p class={[style.filename, "can-be-selected"]}><b>{data.value.fileName}</b></p>}
+            {data.value.fileCreateTime && <p class="has-text-grey">文件创建时间 {datetime.toSimpleFormat(data.value.fileCreateTime)}</p>}
+            {data.value.fileUpdateTime && <p class="has-text-grey">文件修改时间 {datetime.toSimpleFormat(data.value.fileUpdateTime)}</p>}
+            {data.value.fileImportTime && <p class="has-text-grey">文件导入时间 {datetime.toSimpleFormat(data.value.fileImportTime)}</p>}
+            <div class={style.separator}/>
+            <ViewAndEditor data={{source: data.value.source, sourceId: data.value.sourceId, sourcePart: data.value.sourcePart}} onSetData={setSourceInfo} v-slots={{
+                default: ({ value }: {value: {source: string | null, sourceId: number | null, sourcePart: number | null}}) => <SourceInfo {...value}/>,
+                editor: ({ value, setValue }) => <SourceIdentityEditor {...value} onUpdateValue={setValue}/>
+            }}/>
+            <div class={style.spacing}/>
+            <ViewAndEditor data={data.value.tagme} onSetData={setTagme} v-slots={{
+                default: ({ value }) => <TagmeInfo value={value}/>,
+                editor: ({ value, setValue }) => <TagmeEditor value={value} onUpdateValue={setValue}/>
+            }}/>
+            <div class={style.spacing}/>
+            <ViewAndEditor data={data.value.partitionTime} onSetData={setPartitionTime} v-slots={{
+                default: ({ value }) => <p class="has-text-grey">时间分区 {date.toISOString(value)}</p>,
+                editor: ({ value, setValue }) => <DateEditor value={value} onUpdateValue={setValue}/>
+            }}/>
+            <ViewAndEditor data={data.value.createTime} onSetData={setCreateTime} v-slots={{
+                default: ({ value }) => <p class="has-text-grey">创建时间 {datetime.toSimpleFormat(value)}</p>,
+                editor: ({ value, setValue }) => <DateTimeEditor value={value} onUpdateValue={setValue}/>
+            }}/>
+            <ViewAndEditor data={data.value.orderTime} onSetData={setOrderTime} v-slots={{
+                default: ({ value }) => <p class="has-text-grey">排序时间 {datetime.toSimpleFormat(value)}</p>,
+                editor: ({ value, setValue }) => <DateTimeEditor value={value} onUpdateValue={setValue}/>
+            }}/>
+        </>
     }
 })
+
+const BatchUpdatePane = defineComponent({
+    props: {
+        selected: {type: null as any as PropType<number[] | null>, required: true}
+    },
+    emits: ["close"],
+    setup(props, { emit }) {
+        const toast = useToast()
+        const httpClient = useHttpClient()
+
+        const enabled = reactive({
+            tagme: false,
+            setCreatedTimeBy: false,
+            setOrderTimeBy: false,
+            partitionTime: false
+        })
+        const form = reactive<{
+            tagme: Tagme[]
+            setCreatedTimeBy: TimeType
+            setOrderTimeBy: TimeType
+            partitionTime: LocalDate
+            analyseSource: boolean
+        }>({
+            tagme: [],
+            setCreatedTimeBy: "UPDATE_TIME",
+            setOrderTimeBy: "UPDATE_TIME",
+            partitionTime: date.now(),
+            analyseSource: false
+        })
+
+        const anyEnabled = computed(() => enabled.tagme || enabled.setCreatedTimeBy || enabled.setOrderTimeBy || enabled.partitionTime || form.analyseSource)
+
+        const submit = async () => {
+            if(anyEnabled.value) {
+                const res = await httpClient.import.batchUpdate({
+                    target: props.selected ?? undefined,
+                    tagme: enabled.tagme ? form.tagme : undefined,
+                    setCreateTimeBy: enabled.setCreatedTimeBy ? form.setCreatedTimeBy : undefined,
+                    setOrderTimeBy: enabled.setOrderTimeBy ? form.setOrderTimeBy : undefined,
+                    partitionTime: enabled.partitionTime ? form.partitionTime : undefined,
+                    analyseSource: form.analyseSource
+                })
+                if(res.ok) {
+                    if(res.data.length > 0) {
+                        if(res.data.length > 3) {
+                            toast.toast("来源信息分析失败", "warning", `超过${res.data.length}个文件的来源信息分析失败，可能是因为正则表达式内容错误。`)
+                        }else{
+                            toast.toast("来源信息分析失败", "warning", "存在文件的来源信息分析失败，可能是因为正则表达式内容错误。")
+                        }
+                    }else{
+                        toast.toast("批量编辑完成", "info", "已完成所选项目的信息批量编辑。")
+                    }
+                    emit("close")
+                }else{
+                    toast.handleException(res.exception)
+                }
+            }
+        }
+
+        return () => <>
+            <p class={style.top}/>
+            {props.selected?.length ? <p>已选择{props.selected.length}项</p> : <p>未选择，使用全部导入项</p>}
+            <p class="mt-4"><CheckBox value={enabled.tagme} onUpdateValue={v => enabled.tagme = v}>设置Tagme</CheckBox></p>
+            {enabled.tagme && <TagmeEditor class="mt-1 mb-2" value={form.tagme} onUpdateValue={v => form.tagme = v}/>}
+            <p class="mt-1"><CheckBox value={enabled.setCreatedTimeBy} onUpdateValue={v => enabled.setCreatedTimeBy = v}>设置创建时间</CheckBox></p>
+            {enabled.setCreatedTimeBy && <Select class="mt-1 mb-2" items={timeTypes} value={form.setCreatedTimeBy} onUpdateValue={(v: TimeType) => form.setCreatedTimeBy = v}/>}
+            <p class="mt-1"><CheckBox value={enabled.setOrderTimeBy} onUpdateValue={v => enabled.setOrderTimeBy = v}>设置排序时间</CheckBox></p>
+            {enabled.setOrderTimeBy && <Select class="mt-1 mb-2" items={timeTypes} value={form.setOrderTimeBy} onUpdateValue={(v: TimeType) => form.setOrderTimeBy = v}/>}
+            <p class="mt-1"><CheckBox value={enabled.partitionTime} onUpdateValue={v => enabled.partitionTime = v}>设置时间分区</CheckBox></p>
+            {enabled.partitionTime && <DateEditor class="mt-1 mb-2" value={form.partitionTime} onUpdateValue={v => form.partitionTime = v}/>}
+            <p class="mt-1"><CheckBox value={form.analyseSource} onUpdateValue={v => form.analyseSource = v}>分析来源数据</CheckBox></p>
+            <button class="button is-info w-100 mt-6" disabled={!anyEnabled.value} onClick={submit}>
+                <span class="icon"><i class="fa fa-check"/></span><span>提交批量更改</span>
+            </button>
+            <button class="button is-white w-100 mt-1" onClick={() => emit("close")}>
+                <span class="icon"><i class="fa fa-times"/></span><span>取消</span>
+            </button>
+        </>
+    }
+})
+
+const timeTypes: {value: TimeType, name: string}[] = [
+    {value: "IMPORT_TIME", name: "按 项目导入时间 设定"},
+    {value: "CREATE_TIME", name: "按 文件创建时间 设定"},
+    {value: "UPDATE_TIME", name: "按 文件修改时间 设定"}
+]
