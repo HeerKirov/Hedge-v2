@@ -1,0 +1,17 @@
+kind: source
+version: v1
+spec:
+  - source: ""
+    sourceId: 0
+    title: ""
+    description: ""
+    tags:
+      - name: ""
+        displayName: ""
+        type: ""
+    pools:
+      - ""
+    children:
+      - 0
+    parents:
+      - 0

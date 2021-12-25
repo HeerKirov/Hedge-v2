@@ -1,0 +1,25 @@
+kind: topic
+version: v1
+spec:
+  - name: ""
+    otherNames: [""]
+    type: "UNKNOWN"
+    description: ""
+    keywords: [""]
+    favorite: false
+    score: 10
+    links:
+      - title: ""
+        link: ""
+    annotations:
+      - "annotationName"
+      - 1
+    mappingSourceTags:
+      - source: ""
+        name: ""
+        displayName: ""
+        type: ""
+    # parentId: 1
+    # parent: "A.B.C"
+    children:
+      - {}

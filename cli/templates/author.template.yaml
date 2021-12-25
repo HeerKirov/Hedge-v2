@@ -1,0 +1,21 @@
+kind: author
+version: v1
+spec:
+  - name: ""
+    otherNames: [""]
+    type: "UNKNOWN"
+    description: ""
+    keywords: [""]
+    favorite: false
+    score: 10
+    links:
+      - title: ""
+        link: ""
+    annotations:
+      - "annotationName"
+      - 1
+    mappingSourceTags:
+      - source: ""
+        name: ""
+        displayName: ""
+        type: ""

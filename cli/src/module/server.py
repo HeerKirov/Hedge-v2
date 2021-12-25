@@ -14,7 +14,7 @@ class Server:
         self.__appdata_path = local_config.appdata_path
         self.__frontend_path = local_config.frontend_path
         self.__channel = channel
-        self.__http_client = ServerHttpClient()
+        self.http_client = ServerHttpClient()
 
     def status(self):
         """
@@ -31,10 +31,10 @@ class Server:
             return {"status": "STOP"}
         elif pid_file.get("port", None) is None or pid_file.get("token", None) is None:
             return {"status": "STARTING", "pid": pid_file["pid"], "port": pid_file["port"], "start_time": pid_file["startTime"]}
-        self.__http_client.set_access(pid_file["port"], pid_file["token"])
+        self.http_client.set_access(pid_file["port"], pid_file["token"])
 
         try:
-            ok, data = self.__http_client.req("GET", "/app/health")
+            ok, data = self.http_client.req("GET", "/app/health")
         except requests.RequestException:
             return {"status": "STARTING", "pid": pid_file["pid"], "port": pid_file["port"], "start_time": pid_file["startTime"]}
 
@@ -62,13 +62,13 @@ class Server:
         设置永久存续标记。用于保持服务器永久后台运行。
         :param value: 存续标记开关
         """
-        self.__http_client.req("POST", "/app/lifetime/permanent", body={"type": "CLI Background Running", "value": value})
+        self.http_client.req("POST", "/app/lifetime/permanent", body={"type": "CLI Background Running", "value": value})
 
     def register_signal(self):
         """
         注册一次生命周期信号，用于暂时维持server不关闭。
         """
-        self.__http_client.req("PUT", "/app/lifetime/signal/cli-lifetime-access", {"interval": 1000 * 30})
+        self.http_client.req("PUT", "/app/lifetime/signal/cli-lifetime-access", {"interval": 1000 * 30})
 
     def __get_pid_path(self):
         return os.path.join(self.__appdata_path, "channel", self.__channel.current(), "server.pid")
@@ -96,9 +96,9 @@ class Server:
             pid_file = self.__read_pid_path()
             if pid_file is None:
                 continue
-            self.__http_client.set_access(pid_file["port"], pid_file["token"])
+            self.http_client.set_access(pid_file["port"], pid_file["token"])
             try:
-                ok, data = self.__http_client.req("GET", "/app/health")
+                ok, data = self.http_client.req("GET", "/app/health")
             except requests.RequestException:
                 continue
             if ok and data["status"] == "LOADED":
@@ -115,11 +115,17 @@ class ServerHttpClient:
         self.__address = "http://%s:%s" % ("localhost", port)
         self.__headers = {"Authorization": "Bearer %s" % (token,)}
 
-    def req(self, method, path, body=None):
+    def req(self, method, path, body=None, query=None):
         """
         向server发出一个HTTP请求。
         """
         if self.__address is None:
             raise Exception("Port & token is not set.")
-        res = requests.request(method=method, url="%s%s" % (self.__address, path), headers=self.__headers, data=json.dumps(body) if body is not None else None)
-        return res.ok, res.json()
+        res = requests.request(method=method, url="%s%s" % (self.__address, path),
+                               headers=self.__headers, params=query,
+                               data=json.dumps(body) if body is not None else None)
+        try:
+            content = res.json()
+        except json.JSONDecodeError:
+            content = None
+        return res.ok, content

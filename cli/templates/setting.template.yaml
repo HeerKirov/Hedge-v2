@@ -1,0 +1,34 @@
+kind: setting
+version: v1
+spec:
+  meta:
+    scoreDescriptions: []
+    autoCleanTagme: true
+    topicColors: {}
+    authorColors: {}
+
+  import:
+    autoAnalyseMeta: true
+    setTagmeOfTag: true
+    setTagmeOfSource: true
+    setTimeBy: "UPDATE_TIME"
+    setPartitionTimeDelay: 0
+    sourceAnalyseRules:
+      - type: "name"
+        site: ""
+        regex: ""
+        idIndex: 1
+        secondaryIdIndex: 2
+
+  query:
+    chineseSymbolReflect: true
+    translateUnderscoreToSpace: true
+    queryLimitOfQueryItems: 10
+    warningLimitOfUnionItems: 10
+    warningLimitOfIntersectItems: 10
+
+  source:
+    sites:
+      - name: ""
+        title: ""
+        hasSecondaryId: false

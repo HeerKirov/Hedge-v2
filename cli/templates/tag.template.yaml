@@ -1,0 +1,29 @@
+kind: tag
+version: v1
+spec:
+  - name: ""
+    otherNames: [""]
+    type: "TAG"
+    description: ""
+    color: ""
+    group:
+      force: false
+      sequence: false
+    links:
+      - "A.B.C"
+      - 1
+    annotations:
+      - "annotationName"
+      - 1
+    examples:
+      - 1
+    mappingSourceTags:
+      - source: ""
+        name: ""
+        displayName: ""
+        type: ""
+    # parentId: 1
+    # parent: "A.B.C"
+    # ordinal: 1
+    children:
+      - {}
