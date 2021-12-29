@@ -15,7 +15,7 @@ data class SourceImageRes(val source: String, val sourceTitle: String, val sourc
 
 data class SourceImageDetailRes(val source: String, val sourceTitle: String, val sourceId: Long,
                                 val title: String, val description: String, val tags: List<SourceTagDto>,
-                                val pools: List<String>, val children: List<Int>, val parents: List<Int>,
+                                val pools: List<String>, val relations: List<Int>,
                                 val createTime: LocalDateTime, val updateTime: LocalDateTime)
 
 data class SourceTagDto(val name: String, val displayName: String?, val type: String?)
@@ -29,19 +29,13 @@ data class SourceImageQueryFilter(@Limit val limit: Int,
                                   val sourceTag: String? = null,
                                   val imageId: Int? = null)
 
-data class SourceImportForm(val filepath: String)
-
-data class SourceUploadForm(val content: InputStream, val extension: String)
-
-data class SourceUploadModel(val source: String, val sourceId: Long,
-                             val title: String? = null, val description: String? = null, val tags: List<SourceTagDto>? = null,
-                             val pools: List<String>? = null, val children: List<Int>? = null, val parents: List<Int>? = null)
-
 data class SourceImageBulkCreateForm(val items: List<SourceImageCreateForm>)
 
 data class SourceImageCreateForm(val source: String, val sourceId: Long,
-                                 val title: Opt<String?>, val description: Opt<String?>, val tags: Opt<List<SourceTagDto>>,
-                                 val pools: Opt<List<String>>, val children: Opt<List<Int>>, val parents: Opt<List<Int>>)
+                                 val title: Opt<String?>, val description: Opt<String?>, val tags: Opt<List<SourceTagForm>>,
+                                 val pools: Opt<List<String>>, val relations: Opt<List<Int>>)
 
-data class SourceImageUpdateForm(val title: Opt<String?>, val description: Opt<String?>, val tags: Opt<List<SourceTagDto>>,
-                                 val pools: Opt<List<String>>, val children: Opt<List<Int>>, val parents: Opt<List<Int>>)
+data class SourceImageUpdateForm(val title: Opt<String?>, val description: Opt<String?>, val tags: Opt<List<SourceTagForm>>,
+                                 val pools: Opt<List<String>>, val relations: Opt<List<Int>>)
+
+data class SourceTagForm(val name: String, val displayName: Opt<String?>, val type: Opt<String?>)

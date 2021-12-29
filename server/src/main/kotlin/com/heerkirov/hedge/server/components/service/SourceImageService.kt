@@ -1,6 +1,5 @@
 package com.heerkirov.hedge.server.components.service
 
-import com.fasterxml.jackson.core.type.TypeReference
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.database.transaction
 import com.heerkirov.hedge.server.components.manager.SourceImageManager
@@ -16,11 +15,9 @@ import com.heerkirov.hedge.server.utils.business.takeThumbnailFilepath
 import com.heerkirov.hedge.server.utils.ktorm.OrderTranslator
 import com.heerkirov.hedge.server.utils.ktorm.firstOrNull
 import com.heerkirov.hedge.server.utils.ktorm.orderBy
-import com.heerkirov.hedge.server.utils.parseJSONObject
 import com.heerkirov.hedge.server.utils.runIf
 import com.heerkirov.hedge.server.utils.types.*
 import org.ktorm.dsl.*
-import java.io.File
 
 class SourceImageService(private val data: DataRepository, private val sourceManager: SourceImageManager, private val queryManager: QueryManager) {
     private val orderTranslator = OrderTranslator {
@@ -74,7 +71,7 @@ class SourceImageService(private val data: DataRepository, private val sourceMan
             sourceManager.checkSource(form.source, form.sourceId)
             sourceManager.createOrUpdateSourceImage(form.source, form.sourceId,
                 title = form.title, description = form.description, tags = form.tags,
-                pools = form.pools, children = form.children, parents = form.parents,
+                pools = form.pools, relations = form.relations,
                 allowUpdate = false)
         }
     }
@@ -88,79 +85,8 @@ class SourceImageService(private val data: DataRepository, private val sourceMan
             forms.forEach { form ->
                 sourceManager.createOrUpdateSourceImage(form.source, form.sourceId,
                     title = form.title, description = form.description, tags = form.tags,
-                    pools = form.pools, children = form.children, parents = form.parents)
+                    pools = form.pools, relations = form.relations)
             }
-        }
-    }
-
-    /**
-     * @throws ResourceNotExist ("source", string) 给出的source不存在
-     * @throws IllegalFileExtensionError 此扩展名不受支持
-     * @throws ContentParseError 内容解析失败
-     */
-    fun upload(form: SourceUploadForm) {
-        createByContent(form.content.reader().readText(), form.extension)
-    }
-
-    /**
-     * @throws ResourceNotExist ("source", string) 给出的source不存在
-     * @throws FileNotFoundError 此文件不存在
-     * @throws IllegalFileExtensionError 此扩展名不受支持
-     * @throws ContentParseError 内容解析失败
-     */
-    fun import(form: SourceImportForm) {
-        val file = File(form.filepath)
-        if(!file.exists() || !file.canRead()) throw be(FileNotFoundError())
-        val content = file.readText()
-        val extension = file.extension
-        createByContent(content, extension)
-    }
-
-    /**
-     * 使用file content执行创建。
-     * @throws ResourceNotExist ("source", string) 给出的source不存在
-     * @throws ContentParseError 内容解析失败
-     */
-    private fun createByContent(content: String, type: String) {
-        when (type) {
-            "json" -> {
-                val forms = try {
-                    content.parseJSONObject(object : TypeReference<List<SourceUploadModel>>() {})
-                }catch (e: Exception) {
-                    throw be(ContentParseError(e.message ?: ""))
-                }
-                createBulk(forms.map {
-                    SourceImageCreateForm(it.source, it.sourceId,
-                        if(it.title.isNullOrBlank()) undefined() else optOf(it.title.trim()),
-                        if(it.description.isNullOrBlank()) undefined() else optOf(it.description.trim()),
-                        if(it.tags.isNullOrEmpty()) undefined() else optOf(it.tags),
-                        if(it.pools.isNullOrEmpty()) undefined() else optOf(it.pools),
-                        if(it.children.isNullOrEmpty()) undefined() else optOf(it.children),
-                        if(it.parents.isNullOrEmpty()) undefined() else optOf(it.parents)
-                    )
-                })
-            }
-            "txt" -> {
-                val rows = content.split('\n').filter { it.isNotBlank() }.map { it.split(',').map(String::trim) }
-                val forms = try {
-                    rows.map { row ->
-                        SourceImageCreateForm(
-                            row[0],
-                            row[1].toLong(),
-                            row.getOrNull(2).let { if(it.isNullOrEmpty()) undefined() else optOf(it) },
-                            row.getOrNull(3).let { if(it.isNullOrEmpty()) undefined() else optOf(it) },
-                            undefined(),
-                            undefined(),
-                            undefined(),
-                            undefined()
-                        )
-                    }
-                }catch (e: Exception) {
-                    throw be(ContentParseError(e.message ?: ""))
-                }
-                createBulk(forms)
-            }
-            else -> throw be(IllegalFileExtensionError(type))
         }
     }
 
@@ -174,7 +100,6 @@ class SourceImageService(private val data: DataRepository, private val sourceMan
             ?: throw be(NotFound())
 
         val sourceRowId = row[SourceImages.id]!!
-        val relation = row[SourceImages.relations]
         val createTime = row[SourceImages.createTime]!!
         val updateTime = row[SourceImages.updateTime]!!
         val sourceTags = data.db.from(SourceTags)
@@ -186,11 +111,9 @@ class SourceImageService(private val data: DataRepository, private val sourceMan
 
         return SourceImageDetailRes(source, sourceTitle ?: source, sourceId,
             row[SourceImages.title] ?: "",
-            row[SourceImages.description] ?: "",
-            sourceTags,
-            relation?.pools ?: emptyList(),
-            relation?.children ?: emptyList(),
-            relation?.parents ?: emptyList(),
+            row[SourceImages.description] ?: "", sourceTags,
+            row[SourceImages.pools] ?: emptyList(),
+            row[SourceImages.relations] ?: emptyList(),
             createTime, updateTime)
     }
 
@@ -214,7 +137,7 @@ class SourceImageService(private val data: DataRepository, private val sourceMan
         sourceManager.checkSource(source, sourceId)
         sourceManager.createOrUpdateSourceImage(source, sourceId,
             title = form.title, description = form.description, tags = form.tags,
-            pools = form.pools, children = form.children, parents = form.parents,
+            pools = form.pools, relations = form.relations,
             allowCreate = false)
     }
 

@@ -4,7 +4,7 @@ import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.manager.query.QueryManager
 import com.heerkirov.hedge.server.dao.source.SourceImages
 import com.heerkirov.hedge.server.dao.source.SourceTagRelations
-import com.heerkirov.hedge.server.dto.SourceTagDto
+import com.heerkirov.hedge.server.dto.SourceTagForm
 import com.heerkirov.hedge.server.exceptions.*
 import com.heerkirov.hedge.server.model.source.SourceImage
 import com.heerkirov.hedge.server.utils.DateTime
@@ -12,8 +12,7 @@ import com.heerkirov.hedge.server.utils.types.Opt
 import com.heerkirov.hedge.server.utils.types.anyOpt
 import com.heerkirov.hedge.server.utils.types.undefined
 import org.ktorm.dsl.*
-import org.ktorm.entity.firstOrNull
-import org.ktorm.entity.sequenceOf
+import org.ktorm.entity.*
 
 class SourceImageManager(private val data: DataRepository,
                          private val queryManager: QueryManager,
@@ -95,36 +94,36 @@ class SourceImageManager(private val data: DataRepository,
     fun createOrUpdateSourceImage(source: String, sourceId: Long,
                                   title: Opt<String?> = undefined(),
                                   description: Opt<String?> = undefined(),
-                                  tags: Opt<List<SourceTagDto>> = undefined(),
+                                  tags: Opt<List<SourceTagForm>> = undefined(),
                                   pools: Opt<List<String>> = undefined(),
-                                  children: Opt<List<Int>> = undefined(),
-                                  parents: Opt<List<Int>> = undefined(),
+                                  relations: Opt<List<Int>> = undefined(),
                                   allowCreate: Boolean = true,
                                   allowUpdate: Boolean = true): Triple<Int?, String?, Long?> {
         val sourceImage = data.db.sequenceOf(SourceImages).firstOrNull { (it.source eq source) and (it.sourceId eq sourceId) }
         if(sourceImage == null) {
             if(!allowCreate) throw be(NotFound())
             //新建
-            val relations = if(anyOpt(pools, children, parents)) {
-                SourceImage.SourceRelation(
-                    pools.runOpt { takeIf { t -> t.isNotEmpty() } }.unwrapOr { null },
-                    parents.runOpt { takeIf { t -> t.isNotEmpty() } }.unwrapOr { null },
-                    children.runOpt { takeIf { t -> t.isNotEmpty() } }.unwrapOr { null }
-                )
-            }else null
             val sourceCount = SourceImage.SourceCount(
                 tags.letOpt { it.size }.unwrapOr { 0 },
-                relations?.pools?.size ?: 0,
-                (relations?.children?.size ?: 0) + (relations?.parents?.size ?: 0))
+                pools.letOpt { it.size }.unwrapOr { 0 },
+                relations.letOpt { it.size }.unwrapOr { 0 }
+            )
+            val empty = title.letOpt { it.isNullOrEmpty() }.unwrapOr { true }
+                    && description.letOpt { it.isNullOrEmpty() }.unwrapOr { true }
+                    && tags.letOpt { it.isEmpty() }.unwrapOr { true }
+                    && pools.letOpt { it.isEmpty() }.unwrapOr { true }
+                    && relations.letOpt { it.isEmpty() }.unwrapOr { true }
 
             val now = DateTime.now()
             val id = data.db.insertAndGenerateKey(SourceImages) {
                 set(it.source, source)
                 set(it.sourceId, sourceId)
-                set(it.title, title.unwrapOr { null })
-                set(it.description, description.unwrapOr { null })
-                set(it.relations, relations)
+                set(it.title, title.unwrapOrNull())
+                set(it.description, description.unwrapOrNull())
+                set(it.relations, relations.unwrapOrNull())
+                set(it.pools, pools.unwrapOrNull())
                 set(it.cachedCount, sourceCount)
+                set(it.empty, empty)
                 set(it.createTime, now)
                 set(it.updateTime, now)
             } as Int
@@ -148,21 +147,19 @@ class SourceImageManager(private val data: DataRepository,
         }else{
             if(!allowUpdate) throw be(AlreadyExists("SourceImage", "sourceId", sourceId))
             //更新
-            val relations = if(anyOpt(pools, children, parents)) {
-                Opt(SourceImage.SourceRelation(
-                    pools.runOpt { takeIf { t -> t.isNotEmpty() } }.unwrapOr { sourceImage.relations?.pools },
-                    parents.runOpt { takeIf { t -> t.isNotEmpty() } }.unwrapOr { sourceImage.relations?.parents },
-                    children.runOpt { takeIf { t -> t.isNotEmpty() } }.unwrapOr { sourceImage.relations?.children }
-                ))
-            }else undefined()
-            val sourceCount = if(anyOpt(tags, pools, children, parents)) {
+            val sourceCount = if(anyOpt(tags, pools, relations)) {
                 Opt(SourceImage.SourceCount(
                     tags.letOpt { it.size }.unwrapOr { sourceImage.cachedCount.tagCount },
                     pools.letOpt { it.size }.unwrapOr { sourceImage.cachedCount.poolCount },
-                    children.letOpt { it.size }.unwrapOr { sourceImage.relations?.children?.size ?: 0 } +
-                            parents.letOpt { it.size }.unwrapOr { sourceImage.relations?.parents?.size ?: 0 }
+                    relations.letOpt { it.size }.unwrapOr { sourceImage.cachedCount.relationCount }
                 ))
             }else undefined()
+
+            val empty = title.unwrapOr { sourceImage.title }.isNullOrEmpty()
+                    && description.unwrapOr { sourceImage.description }.isNullOrEmpty()
+                    && if(pools.isPresent) { pools.value } else { sourceImage.pools }.isNullOrEmpty()
+                    && if(relations.isPresent) { relations.value } else { sourceImage.relations }.isNullOrEmpty()
+                    && if(tags.isPresent) { tags.value.isEmpty() } else { data.db.sequenceOf(SourceTagRelations).count { it.sourceId eq sourceImage.id } == 0 }
 
             if(title.isPresent || description.isPresent || relations.isPresent || sourceCount.isPresent) {
                 data.db.update(SourceImages) {
@@ -170,7 +167,9 @@ class SourceImageManager(private val data: DataRepository,
                     title.applyOpt { set(it.title, this) }
                     description.applyOpt { set(it.description, this) }
                     relations.applyOpt { set(it.relations, this) }
+                    pools.applyOpt { set(it.pools, this) }
                     sourceCount.applyOpt { set(it.cachedCount, this) }
+                    set(it.empty, empty)
                     set(it.updateTime, DateTime.now())
                 }
             }

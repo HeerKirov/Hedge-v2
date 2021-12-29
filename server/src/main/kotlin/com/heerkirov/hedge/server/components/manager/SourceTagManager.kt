@@ -3,6 +3,7 @@ package com.heerkirov.hedge.server.components.manager
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.dao.source.SourceTags
 import com.heerkirov.hedge.server.dto.SourceTagDto
+import com.heerkirov.hedge.server.dto.SourceTagForm
 import com.heerkirov.hedge.server.exceptions.ResourceNotExist
 import com.heerkirov.hedge.server.exceptions.be
 import com.heerkirov.hedge.server.model.source.SourceTag
@@ -44,7 +45,7 @@ class SourceTagManager(private val data:DataRepository) {
      * 这个方法的逻辑是，source tags总是基于其name做唯一定位，当name不变时，修改其他属性视为更新，而改变name即认为是不同的对象。
      * 不会校验source的合法性，因为假设之前已经手动校验过了。
      */
-    fun getAndUpsertSourceTags(source: String, tags: List<SourceTagDto>): List<Int> {
+    fun getAndUpsertSourceTags(source: String, tags: List<SourceTagForm>): List<Int> {
         val tagMap = tags.associateBy { it.name }
 
         val dbTags = data.db.sequenceOf(SourceTags).filter { (it.source eq source) and (it.name inList tagMap.keys) }.toList()
@@ -61,15 +62,23 @@ class SourceTagManager(private val data:DataRepository) {
                     item {
                         set(it.source, source)
                         set(it.name, name)
-                        set(it.displayName, tag.displayName)
-                        set(it.type, tag.type)
+                        set(it.displayName, tag.displayName.unwrapOrNull())
+                        set(it.type, tag.type.unwrapOrNull())
                     }
                 }
             }
         }
 
         //挑选出在数据库里有，但是发生了变化的tag
-        val common = tagMap.keys.intersect(dbTagMap.keys).filter { tagMap[it]!! != dbTagMap[it]!!.mapToDto() }
+        val common = tagMap.keys.intersect(dbTagMap.keys).filter { key ->
+            val form = tagMap[key]!!
+            if(form.type.isPresent || form.displayName.isPresent) {
+                val dto = dbTagMap[key]!!.mapToDto()
+                form.type.letOpt { it != dto.type }.unwrapOr { false } || form.displayName.letOpt { it != dto.displayName }.unwrapOr { false }
+            }else{
+                false
+            }
+        }
         if(common.isNotEmpty()) {
             data.db.batchUpdate(SourceTags) {
                 for (name in common) {
@@ -77,8 +86,8 @@ class SourceTagManager(private val data:DataRepository) {
                     val dbTag = dbTagMap[name]!!
                     item {
                         where { it.id eq dbTag.id }
-                        set(it.displayName, tag.displayName)
-                        set(it.type, tag.type)
+                        tag.displayName.applyOpt { set(it.displayName, this) }
+                        tag.type.applyOpt { set(it.type, this) }
                     }
                 }
             }

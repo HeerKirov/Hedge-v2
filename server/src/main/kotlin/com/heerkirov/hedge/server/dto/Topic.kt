@@ -46,7 +46,7 @@ data class TopicCreateForm(@NotBlank val name: String,
                            val annotations: List<Any>? = null,
                            val favorite: Boolean = false,
                            val score: Int? = null,
-                           val mappingSourceTags: List<SourceMappingMetaItem>? = null)
+                           val mappingSourceTags: List<SourceMappingMetaItemForm>? = null)
 
 data class TopicUpdateForm(@NotBlank val name: Opt<String>,
                            val otherNames: Opt<List<String>?>,
@@ -58,7 +58,7 @@ data class TopicUpdateForm(@NotBlank val name: Opt<String>,
                            val annotations: Opt<List<Any>?>,
                            val favorite: Opt<Boolean>,
                            val score: Opt<Int?>,
-                           val mappingSourceTags: Opt<List<SourceMappingMetaItem>?>)
+                           val mappingSourceTags: Opt<List<SourceMappingMetaItemForm>?>)
 
 fun newTopicRes(topic: Topic, rootTopic: Tuple3<Int, String, Topic.Type>?, colors: Map<Topic.Type, String>) = TopicRes(topic.id, topic.name,
     rootTopic?.let { (id, name, type) -> TopicParent(id, name, type, colors[type]) }, topic.parentId,

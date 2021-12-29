@@ -26,11 +26,19 @@ data class SourceImage(val id: Int,
                        /**
                         * 原数据的关系信息。
                         */
-                       val relations: SourceRelation? = null,
+                       val relations: List<Int>? = null,
+                       /**
+                        * 原数据的集合所属信息。
+                        */
+                       val pools: List<String>? = null,
                        /**
                         * 关系信息的数量的缓存。
                         */
                        val cachedCount: SourceCount,
+                       /**
+                        * 内容是否为空的缓存标记。
+                        */
+                       val empty: Boolean,
                        /**
                         * 初次建立的真实时间。
                         */
@@ -39,8 +47,6 @@ data class SourceImage(val id: Int,
                         * 上次更新的真实更新时间。
                         */
                        val updateTime: LocalDateTime) {
-
-    data class SourceRelation(val pools: List<String>?, val parents: List<Int>?, val children: List<Int>?)
 
     data class SourceCount(val tagCount: Int, val poolCount: Int, val relationCount: Int)
 }

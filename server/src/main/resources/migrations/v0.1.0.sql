@@ -267,8 +267,10 @@ CREATE TABLE source_db.source_image(
 
     title 			TEXT DEFAULT NULL,                  -- 原数据的标题信息，有些会有，比如pixiv
     description     TEXT DEFAULT NULL,                  -- 原数据的描述信息，有些会有，比如pixiv
-    relations 		TEXT DEFAULT NULL,                  -- 原数据的关系信息::json<SourceRelations>
+    relations 		TEXT DEFAULT NULL,                  -- 原数据的关系信息::json<Int>
+    pools    		TEXT DEFAULT NULL,                  -- 原数据的从属集合::json<String>
     cached_count    TEXT NOT NULL,                      -- 关系信息的数量缓存::json<SourceCount>
+    empty           BOOLEAN NOT NULL,                   -- 是否为空
 
     create_time 	TIMESTAMP NOT NULL,                 -- 初次建立的真实时间
     update_time 	TIMESTAMP NOT NULL                  -- 上次更新的真实更新时间

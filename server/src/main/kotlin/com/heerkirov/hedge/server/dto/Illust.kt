@@ -37,8 +37,7 @@ data class AssociateRes(val id: Int, val totalCount: Int, val items: List<Illust
 
 data class IllustImageOriginRes(val source: String?, val sourceTitle: String?, val sourceId: Long?, val sourcePart: Int?,
                                 val title: String?, val description: String?,
-                                val tags: List<SourceTagDto>?,
-                                val pools: List<String>?, val children: List<Int>?, val parents: List<Int>?)
+                                val tags: List<SourceTagDto>?, val pools: List<String>?, val relations: List<Int>?)
 
 data class IllustImageFileInfoRes(val file: String, val extension: String, val size: Long, val thumbnailSize: Long?, val resolutionWidth: Int, val resolutionHeight: Int, val createTime: LocalDateTime)
 
@@ -71,8 +70,8 @@ class IllustImageUpdateForm(topics: Opt<List<Int>>, authors: Opt<List<Int>>, tag
 class IllustImageRelatedUpdateForm(val associateId: Opt<Int?>, val collectionId: Opt<Int?>)
 
 class IllustImageOriginUpdateForm(val source: Opt<String?>, val sourceId: Opt<Long?>, val sourcePart: Opt<Int?>,
-                                  val title: Opt<String?>, val description: Opt<String?>, val tags: Opt<List<SourceTagDto>>,
-                                  val pools: Opt<List<String>>, val children: Opt<List<Int>>, val parents: Opt<List<Int>>)
+                                  val title: Opt<String?>, val description: Opt<String?>, val tags: Opt<List<SourceTagForm>>,
+                                  val pools: Opt<List<String>>, val relations: Opt<List<Int>>)
 
 class ImagePropsCloneForm(val props: Props, val merge: Boolean = false, val deleteFrom: Boolean = false, val from: Int, val to: Int) {
     data class Props(

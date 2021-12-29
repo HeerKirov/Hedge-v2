@@ -308,16 +308,15 @@ class IllustService(private val data: DataRepository,
                     .map { SourceTags.createEntity(it) }
                     .map { SourceTagDto(it.name, it.displayName, it.type) }
 
-                val relation = sourceRow[SourceImages.relations]
                 IllustImageOriginRes(source, sourceTitle ?: source, sourceId, sourcePart,
                     sourceRow[SourceImages.title] ?: "", sourceRow[SourceImages.description] ?: "", sourceTags,
-                    relation?.pools ?: emptyList(), relation?.children ?: emptyList(), relation?.parents ?: emptyList())
+                    sourceRow[SourceImages.pools] ?: emptyList(), sourceRow[SourceImages.relations] ?: emptyList())
             }else{
                 IllustImageOriginRes(source, sourceTitle ?: source, sourceId, sourcePart,
-                    "", "", emptyList(), emptyList(), emptyList(), emptyList())
+                    "", "", emptyList(), emptyList(), emptyList())
             }
         }else{
-            IllustImageOriginRes(null, null, null, null, null, null, null, null, null, null)
+            IllustImageOriginRes(null, null, null, null, null, null, null, null, null)
         }
     }
 
@@ -603,7 +602,7 @@ class IllustService(private val data: DataRepository,
             if(form.source.isPresent || form.sourceId.isPresent || form.sourcePart.isPresent) {
                 val newSourcePart = form.sourcePart.unwrapOr { sourcePart }
                 val (newSourceImageId, newSource, newSourceId) = sourceManager.checkSource(form.source.unwrapOr { source }, form.sourceId.unwrapOr { sourceId }, newSourcePart)
-                    ?.let { (source, sourceId) -> sourceManager.createOrUpdateSourceImage(source, sourceId, form.title, form.description, form.tags, form.pools, form.children, form.parents) }
+                    ?.let { (source, sourceId) -> sourceManager.createOrUpdateSourceImage(source, sourceId, form.title, form.description, form.tags, form.pools, form.relations) }
                     ?: Triple(null, null, null)
                 data.db.update(Illusts) {
                     where { it.id eq id }
@@ -615,7 +614,7 @@ class IllustService(private val data: DataRepository,
                 }
             }else{
                 sourceManager.checkSource(source, sourceId, sourcePart)?.let { (source, sourceId) ->
-                    sourceManager.createOrUpdateSourceImage(source, sourceId, form.title, form.description, form.tags, form.pools, form.children, form.parents)
+                    sourceManager.createOrUpdateSourceImage(source, sourceId, form.title, form.description, form.tags, form.pools, form.relations)
                 }
             }
         }

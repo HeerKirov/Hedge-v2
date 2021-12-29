@@ -62,7 +62,7 @@ data class TagCreateForm(@NotBlank @Length(32) val name: String,
                          val description: String = "",
                          val color: String? = null,
                          val examples: List<Int>? = null,
-                         val mappingSourceTags: List<SourceMappingMetaItem>? = null)
+                         val mappingSourceTags: List<SourceMappingMetaItemForm>? = null)
 
 data class TagUpdateForm(@NotBlank @Length(32) val name: Opt<String>,
                          val otherNames: Opt<List<String>?>,
@@ -75,7 +75,7 @@ data class TagUpdateForm(@NotBlank @Length(32) val name: Opt<String>,
                          val description: Opt<String>,
                          val color: Opt<String>,
                          val examples: Opt<List<Int>?>,
-                         val mappingSourceTags: Opt<List<SourceMappingMetaItem>?>)
+                         val mappingSourceTags: Opt<List<SourceMappingMetaItemForm>?>)
 
 fun newTagRes(tag: Tag) = TagRes(tag.id, tag.ordinal, tag.parentId, tag.name, tag.otherNames, tag.type, tag.isGroup, tag.color)
 

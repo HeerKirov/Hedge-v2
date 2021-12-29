@@ -4,8 +4,6 @@ import com.heerkirov.hedge.server.components.http.Endpoints
 import com.heerkirov.hedge.server.components.service.SourceImageService
 import com.heerkirov.hedge.server.components.service.SourceMappingService
 import com.heerkirov.hedge.server.dto.*
-import com.heerkirov.hedge.server.exceptions.ParamRequired
-import com.heerkirov.hedge.server.exceptions.be
 import com.heerkirov.hedge.server.library.form.bodyAsForm
 import com.heerkirov.hedge.server.library.form.bodyAsListForm
 import com.heerkirov.hedge.server.library.form.queryAsFilter
@@ -22,8 +20,6 @@ class SourceRoutes(private val sourceImageService: SourceImageService,
                     get(sourceImages::list)
                     post(sourceImages::create)
                     post("bulk", sourceImages::createBulk)
-                    post("upload", sourceImages::upload)
-                    post("import", sourceImages::import)
                     path("{source}/{source_id}") {
                         get(sourceImages::get)
                         patch(sourceImages::update)
@@ -58,18 +54,6 @@ class SourceRoutes(private val sourceImageService: SourceImageService,
         fun createBulk(ctx: Context) {
             val form = ctx.bodyAsForm<SourceImageBulkCreateForm>()
             sourceImageService.createBulk(form.items)
-            ctx.status(201)
-        }
-
-        fun upload(ctx: Context) {
-            val form = ctx.uploadedFile("file")?.let { SourceUploadForm(it.content, it.extension.trimStart('.')) } ?: throw be(ParamRequired("file"))
-            sourceImageService.upload(form)
-            ctx.status(201)
-        }
-
-        fun import(ctx: Context) {
-            val form = ctx.bodyAsForm<SourceImportForm>()
-            sourceImageService.import(form)
             ctx.status(201)
         }
 

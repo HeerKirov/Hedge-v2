@@ -100,7 +100,7 @@ class SourceMappingManager(private val data: DataRepository, private val sourceT
      * @throws NotFound 请求对象不存在
      * @throws ResourceNotExist ("source", string) 给出的source不存在
      */
-    fun update(metaType: MetaType, metaId: Int, mappings: List<SourceMappingMetaItem>) {
+    fun update(metaType: MetaType, metaId: Int, mappings: List<SourceMappingMetaItemForm>) {
         //查询meta tag确定存在
         if(!when (metaType) {
             MetaType.TAG -> data.db.sequenceOf(Tags).any { it.id eq metaId }
@@ -112,9 +112,9 @@ class SourceMappingManager(private val data: DataRepository, private val sourceT
         val mappingGroups = mappings.groupBy { it.source }
         mappingGroups.forEach { (source, _) -> sourceTagManager.checkSource(source) }
         val current = mappingGroups.flatMap { (source, row) ->
-            val sourceTags = row.map { SourceTagDto(it.name, it.displayName, it.type) }
+            val sourceTags = row.map { SourceTagForm(it.name, it.displayName, it.type) }
             sourceTagManager.getAndUpsertSourceTags(source, sourceTags).map { source to it }
-        }
+        }.toSet()
 
         //查询目前所有已存在的mapping source tag
         val old = data.db.sequenceOf(SourceTagMappings)
