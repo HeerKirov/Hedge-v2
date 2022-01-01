@@ -17,6 +17,7 @@ import { TAG_TYPE_SELECT_ITEMS } from "./define"
 import { TagGroupEditor, NameAndOtherNamesEditor, TagLinkEditor, NameAndOtherNameDisplay, DescriptionDisplay } from "./PaneComponents"
 import { useTagPaneContext, useTagListContext, useTagTreeAccessor } from "./inject"
 import style from "./style.module.scss"
+import { patchMappingSourceTagToForm } from "@/utils/translator";
 
 export default defineComponent({
     setup() {
@@ -130,7 +131,9 @@ export default defineComponent({
         }
 
         const setMappingSourceTags = async (mappingSourceTags: SourceMappingMetaItem[]) => {
-            return objects.deepEquals(mappingSourceTags, data.value?.mappingSourceTags) || await setData({ mappingSourceTags }, e => {
+            return objects.deepEquals(mappingSourceTags, data.value?.mappingSourceTags) || await setData({
+                mappingSourceTags: patchMappingSourceTagToForm(mappingSourceTags, data.value?.mappingSourceTags ?? [])
+            }, e => {
                 if(e.code === "NOT_EXIST") {
                     message.showOkMessage("error", "选择的来源类型不存在。")
                 }else{

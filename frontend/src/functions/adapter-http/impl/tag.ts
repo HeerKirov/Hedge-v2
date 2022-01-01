@@ -2,7 +2,7 @@ import { HttpInstance, Response } from "../server"
 import { IdResponse, LimitAndOffsetFilter, ListResult, OrderList } from "./generic"
 import { DepsAnnotation } from "./annotations"
 import { SimpleIllust } from "./illust"
-import { SourceMappingMetaItem } from "./source-tag-mapping"
+import { SourceMappingMetaItem, SourceMappingMetaItemForm } from "./source-tag-mapping"
 import {
     AlreadyExists,
     CannotGiveColorError, NotFound, RecursiveParentError,
@@ -190,7 +190,7 @@ export interface TagCreateForm {
     description?: string
     color?: string | null
     examples?: number[] | null
-    mappingSourceTags?: SourceMappingMetaItem[] | null
+    mappingSourceTags?: SourceMappingMetaItemForm[] | null
 }
 
 export interface TagUpdateForm {
@@ -205,7 +205,7 @@ export interface TagUpdateForm {
     description?: string
     color?: string
     examples?: number[] | null
-    mappingSourceTags?: SourceMappingMetaItem[] | null
+    mappingSourceTags?: SourceMappingMetaItemForm[] | null
 }
 
 export interface TagFilter extends LimitAndOffsetFilter {

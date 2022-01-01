@@ -1,7 +1,7 @@
 import { HttpInstance, Response } from "../server"
 import { IdResponse, LimitAndOffsetFilter, Link, ListResult, mapFromOrderList, OrderList } from "./generic"
 import { SimpleAnnotation } from "./annotations"
-import { SourceMappingMetaItem } from "./source-tag-mapping"
+import { SourceMappingMetaItem, SourceMappingMetaItemForm } from "./source-tag-mapping"
 import {
     AlreadyExists, IllegalConstraintError, NotFound,
     RecursiveParentError,
@@ -179,7 +179,7 @@ export interface TopicCreateForm {
     annotations?: (string | number)[] | null
     favorite?: boolean
     score?: number | null
-    mappingSourceTags?: SourceMappingMetaItem[] | null
+    mappingSourceTags?: SourceMappingMetaItemForm[] | null
 }
 
 export interface TopicUpdateForm {
@@ -193,7 +193,7 @@ export interface TopicUpdateForm {
     annotations?: (string | number)[] | null
     favorite?: boolean
     score?: number | null
-    mappingSourceTags?: SourceMappingMetaItem[] | null
+    mappingSourceTags?: SourceMappingMetaItemForm[] | null
 }
 
 export type TopicFilter = TopicQueryFilter & LimitAndOffsetFilter

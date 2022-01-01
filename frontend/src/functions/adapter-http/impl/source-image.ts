@@ -1,8 +1,8 @@
-import { AlreadyExists, ContentParseError, FileNotFoundError, IllegalFileExtensionError, NotFound, ResourceNotExist } from "../exception"
+import { AlreadyExists, NotFound, ResourceNotExist } from "../exception"
 import { HttpInstance, Response } from ".."
 import { LimitAndOffsetFilter, ListResult, mapFromOrderList, OrderList } from "./generic"
 import { SimpleIllust } from "./illust"
-import { SourceTag } from "./source-tag-mapping"
+import { SourceTag, SourceTagForm } from "./source-tag-mapping"
 import { datetime, LocalDateTime } from "@/utils/datetime"
 
 export function createSourceImageEndpoint(http: HttpInstance): SourceImageEndpoint {
@@ -15,10 +15,6 @@ export function createSourceImageEndpoint(http: HttpInstance): SourceImageEndpoi
         bulk: http.createDataRequest("/api/source-images/bulk", "POST", {
             parseData: items => ({items})
         }),
-        upload: http.createDataRequest("/api/source-images/upload", "POST", {
-            parseData: mapFromUploadFile
-        }),
-        import: http.createDataRequest("/api/source-images/import", "POST"),
         get: http.createPathRequest(({ source, sourceId }) => `/api/source-images/${encodeURIComponent(source)}/${encodeURIComponent(sourceId)}`, "GET", {
             parseResponse: mapToDetailSourceImage
         }),
@@ -51,18 +47,10 @@ function mapFromSourceImageFilter(filter: SourceImageFilter): any {
     }
 }
 
-function mapFromUploadFile(file: File): FormData {
-    const form = new FormData()
-    form.set("file", file)
-    return form
-}
-
 export interface SourceImageEndpoint {
     list(filter: SourceImageFilter): Promise<Response<ListResult<SourceImage>>>
     create(form: SourceImageCreateForm): Promise<Response<null, SourceImageExceptions["create"]>>
     bulk(items: SourceImageCreateForm[]): Promise<Response<null, SourceImageExceptions["bulk"]>>
-    upload(file: File): Promise<Response<null,  SourceImageExceptions["upload"]>>
-    import(form: SourceImportForm): Promise<Response<null,  SourceImageExceptions["import"]>>
     get(key: SourceKey): Promise<Response<DetailSourceImage, NotFound>>
     getRelatedImages(key: SourceKey): Promise<Response<SimpleIllust[]>>
     update(key: SourceKey, form: SourceImageUpdateForm): Promise<Response<null, NotFound>>
@@ -74,8 +62,6 @@ interface SourceKey { source: string, sourceId: number }
 export interface SourceImageExceptions {
     "create": ResourceNotExist<"source", string> | AlreadyExists<"SourceImage", "sourceId", number>
     "bulk": ResourceNotExist<"source", string>
-    "upload": ResourceNotExist<"source", string> | IllegalFileExtensionError | ContentParseError
-    "import": ResourceNotExist<"source", string> | IllegalFileExtensionError | FileNotFoundError | ContentParseError
 }
 
 interface BasicSourceImage {
@@ -106,14 +92,9 @@ export interface DetailSourceImage extends BasicSourceImage {
     description: string
     tags: SourceTag[]
     pools: string[]
-    children: number[]
-    parents: number[]
+    relations: number[]
     createTime: LocalDateTime
     updateTime: LocalDateTime
-}
-
-export interface SourceImportForm {
-    filepath: string
 }
 
 export interface SourceImageCreateForm extends SourceImageUpdateForm {
@@ -124,10 +105,9 @@ export interface SourceImageCreateForm extends SourceImageUpdateForm {
 export interface SourceImageUpdateForm {
     title?: string
     description?: string
-    tags?: SourceTag[]
+    tags?: SourceTagForm[]
     pools?: string[]
-    children?: number[]
-    parents?: number[]
+    relations?: number[]
 }
 
 export type SourceImageFilter = SourceImageQueryFilter & LimitAndOffsetFilter

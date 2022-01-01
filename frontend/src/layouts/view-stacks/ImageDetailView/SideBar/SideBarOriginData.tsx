@@ -50,7 +50,7 @@ export default defineComponent({
                 <ViewAndEditable class="mt-2" baseline="medium" onEdit={openSourceEditor} color="deep-light">
                     <TitleDisplay value={data.value.title}/>
                     <DescriptionDisplay value={data.value.description}/>
-                    <SourceRelationsDisplay parents={data.value.parents} children={data.value.children} pools={data.value.pools}/>
+                    <SourceRelationsDisplay relations={data.value.relations} pools={data.value.pools}/>
                     <SourceTagListDisplay value={data.value.tags}/>
                 </ViewAndEditable>
             </> : <NoOriginDataBoard/>)}

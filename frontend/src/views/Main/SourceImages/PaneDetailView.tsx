@@ -30,7 +30,7 @@ export default defineComponent({
             {data.value && <>
                 <TitleDisplay value={data.value.title}/>
                 <DescriptionDisplay value={data.value.description}/>
-                <SourceRelationsDisplay parents={data.value.parents} children={data.value.children} pools={data.value.pools}/>
+                <SourceRelationsDisplay relations={data.value.relations} pools={data.value.pools}/>
                 <SourceTagListDisplay value={data.value.tags}/>
                 <TimeDisplay class="mt-1" createTime={data.value.createTime} updateTime={data.value.updateTime}/>
             </>}

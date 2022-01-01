@@ -7,6 +7,7 @@ import { objects } from "@/utils/primitives"
 import { checkTagName } from "@/utils/check"
 import FormEditor, { FormEditorData } from "./FormEditor"
 import { useAuthorDetailContext } from "./inject"
+import { patchMappingSourceTagToForm } from "@/utils/translator";
 
 export default defineComponent({
     setup() {
@@ -39,7 +40,7 @@ export default defineComponent({
                     keywords: !objects.deepEquals(editorData.value.keywords, data.value.keywords) ? editorData.value.keywords : undefined,
                     description: editorData.value.description !== data.value.description ? editorData.value.description : undefined,
                     score: editorData.value.score !== data.value.score ? editorData.value.score : undefined,
-                    mappingSourceTags: !objects.deepEquals(editorData.value.mappingSourceTags, data.value.mappingSourceTags) ? editorData.value.mappingSourceTags : undefined
+                    mappingSourceTags: !objects.deepEquals(editorData.value.mappingSourceTags, data.value.mappingSourceTags) ? patchMappingSourceTagToForm(editorData.value.mappingSourceTags, data.value.mappingSourceTags) : undefined
                 }
                 if(editorData.value.name !== data.value.name) {
                     if(!checkTagName(editorData.value.name)) {

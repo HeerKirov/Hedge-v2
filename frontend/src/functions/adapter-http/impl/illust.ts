@@ -13,7 +13,7 @@ import { DepsTopic } from "./topic"
 import { DepsAuthor } from "./author"
 import { DepsTag } from "./tag"
 import { SimpleFolder } from "./folder"
-import { SourceTag } from "./source-tag-mapping"
+import { SourceTag, SourceTagForm } from "./source-tag-mapping"
 
 export function createIllustEndpoint(http: HttpInstance): IllustEndpoint {
     return {
@@ -520,13 +520,9 @@ export type ImageOriginData = {
      */
     pools: string[]
     /**
-     * 来源数据：关联的children的id列表。
+     * 来源数据：关联项的id列表。
      */
-    children: number[]
-    /**
-     * 来源数据：关联的parent的id列表。
-     */
-    parents: number[]
+    relations: number[]
 } | {
     source: null
     sourceTitle: null
@@ -536,8 +532,7 @@ export type ImageOriginData = {
     description: null
     tags: null
     pools: null
-    children: null
-    parents: null
+    relations: null
 }
 
 export interface Associate {
@@ -592,10 +587,9 @@ export interface ImageOriginUpdateForm {
     sourcePart?: number | null
     title?: string | null
     description?: string | null
-    tags?: SourceTag[]
+    tags?: SourceTagForm[]
     pools?: string[]
-    children?: number[]
-    parents?: number[]
+    relations?: number[]
 }
 
 export interface ImagePropsCloneForm {

@@ -2,16 +2,16 @@ import { computed, defineComponent, PropType, reactive, Ref, watch } from "vue"
 import Input from "@/components/forms/Input"
 import Textarea from "@/components/forms/Textarea"
 import { SourcePoolEditor, SourceRelationEditor, SourceTagEditor } from "@/layouts/editors/SourceEditors"
-import { SourceTag } from "@/functions/adapter-http/impl/source-tag-mapping"
+import { SourceTag, SourceTagForm } from "@/functions/adapter-http/impl/source-tag-mapping"
 import { SourceImageUpdateForm } from "@/functions/adapter-http/impl/source-image"
+import { patchSourceTagToForm } from "@/utils/translator";
 
 export interface SourceImageEditorData {
     title: string,
     description: string,
     tags: SourceTag[],
     pools: string[],
-    children: number[],
-    parents: number[]
+    relations: number[]
 }
 
 export type SourceImageEditorSetData = (form: SourceImageUpdateForm) => void
@@ -47,10 +47,8 @@ export const SourceImageEditor = defineComponent({
                     <SourcePoolEditor value={props.data.pools} onUpdateValue={v => set("pools", v)}/>
                 </div>
                 <div class="is-width-40">
-                    <span class="label">父关联关系</span>
-                    <SourceRelationEditor value={props.data.parents} onUpdateValue={v => set("parents", v)}/>
-                    <span class="label">子关联关系</span>
-                    <SourceRelationEditor value={props.data.children} onUpdateValue={v => set("children", v)}/>
+                    <span class="label">关联关系</span>
+                    <SourceRelationEditor value={props.data.relations} onUpdateValue={v => set("relations", v)}/>
                 </div>
             </div>
         </>
@@ -63,13 +61,12 @@ export function useSourceImageEditorData(data: Ref<SourceImageEditorData | null 
         description: "",
         tags: [],
         pools: [],
-        children: [],
-        parents: []
+        relations: []
     })
 
-    const changed = reactive({title: false, description: false, tags: false, pools: false, children: false, parents: false})
+    const changed = reactive({title: false, description: false, tags: false, pools: false, relations: false})
 
-    const anyChanged = computed(() => changed.title || changed.description || changed.tags || changed.parents || changed.children || changed.pools)
+    const anyChanged = computed(() => changed.title || changed.description || changed.tags || changed.relations || changed.pools)
 
     function set<K extends keyof (typeof editorData)>(key: K, value: (typeof editorData)[K]) {
         editorData[key] = value
@@ -82,14 +79,12 @@ export function useSourceImageEditorData(data: Ref<SourceImageEditorData | null 
             editorData.description = d?.description ?? ""
             editorData.tags = d?.tags ? [...d.tags] : []
             editorData.pools = d?.pools ? [...d.pools] : []
-            editorData.children = d?.children ? [...d.children] : []
-            editorData.parents = d?.parents ? [...d.parents] : []
+            editorData.relations = d?.relations ? [...d.relations] : []
             changed.title = false
             changed.description = false
             changed.tags = false
             changed.pools = false
-            changed.children = false
-            changed.parents = false
+            changed.relations = false
         }, {immediate: true})
     }
 
@@ -97,10 +92,9 @@ export function useSourceImageEditorData(data: Ref<SourceImageEditorData | null 
         setData({
             title: changed.title ? editorData.title ?? null : undefined,
             description: changed.description ? editorData.description ?? null : undefined,
-            tags: changed.tags ? editorData.tags : undefined,
+            tags: changed.tags ? patchSourceTagToForm(editorData.tags, data?.value?.tags ?? []) : undefined,
             pools: changed.pools ? editorData.pools : undefined,
-            children: changed.children ? editorData.children : undefined,
-            parents: changed.parents ? editorData.parents : undefined
+            relations: changed.relations ? editorData.relations : undefined
         })
     }
 

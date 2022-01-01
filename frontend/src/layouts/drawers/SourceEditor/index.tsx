@@ -23,8 +23,7 @@ export default defineComponent({
                     description: props.data.description,
                     tags: props.data.tags,
                     pools: props.data.pools,
-                    children: props.data.children,
-                    parents: props.data.parents
+                    relations: props.data.relations
                 }
             }else{
                 return null

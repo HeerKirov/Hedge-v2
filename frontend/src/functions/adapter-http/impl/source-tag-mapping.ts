@@ -53,6 +53,16 @@ export interface BatchQueryResult {
     mappings: SourceMappingTargetDetail[]
 }
 
+export interface SourceTagForm {
+    name: string
+    displayName?: string
+    type?: string
+}
+
+export interface SourceMappingMetaItemForm extends SourceTagForm {
+    source: string
+}
+
 export interface BatchQueryForm {
     source: string
     tagNames: string[]

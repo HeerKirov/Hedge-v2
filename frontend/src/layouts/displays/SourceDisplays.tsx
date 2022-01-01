@@ -36,12 +36,11 @@ export const SourceInfo = defineComponent({
 /**
  * 显示parents, children, pools信息。没有时显示[没有关联项目]。
  */
-export function SourceRelationsDisplay({ parents, children, pools }: {parents: number[], children: number[], pools: string[]}) {
-    if(parents.length || children.length || pools.length) {
+export function SourceRelationsDisplay({ relations, pools }: {relations: number[], pools: string[]}) {
+    if(relations.length || pools.length) {
         return <>
-            {(parents.length || children.length || null) && <div class="my-2">
-                {parents.map(parent => <p><i class="fa fa-images mr-2"/>父项 <b class="can-be-selected">{parent}</b></p>)}
-                {children.map(child => <p><i class="fa fa-images mr-2"/>子项 <b class="can-be-selected">{child}</b></p>)}
+            {(relations.length || null) && <div class="my-2">
+                {relations.map(parent => <p><i class="fa fa-images mr-2"/>关联项 <b class="can-be-selected">{parent}</b></p>)}
             </div>}
             {(pools.length || null) && <div class="my-2">
                 {pools.map(pool => <p><i class="fa fa-clone mr-2"/>Pool 《<b class="can-be-selected">{pool}</b>》</p>)}
@@ -68,7 +67,7 @@ export function SourceTagListDisplay({ value }: {value: SourceTag[]}) {
 function SourceTagDisplayItem({ value }: {value: SourceTag}) {
     return <p class="mt-half">
         <i class="fa fa-tag mr-2"/>
-        <a><b>{value.name}</b>{value.displayName !== null && ` (${value.displayName})`}</a>
+        <a><b>{value.name}</b>{value.displayName ? ` (${value.displayName})` : null}</a>
     </p>
 }
 

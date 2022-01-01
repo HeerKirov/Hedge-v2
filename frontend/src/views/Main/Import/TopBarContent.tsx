@@ -57,10 +57,10 @@ const ImportButton = defineComponent({
 
         const enableImport = computed(() => !isProgressing.value && canSave.value)
 
-        return () => dataView.data.value.metrics.total && dataView.data.value.metrics.total > 0 &&
+        return () => dataView.data.value.metrics.total && dataView.data.value.metrics.total > 0 ?
             <button class="button no-drag radius-large is-info mr-1" disabled={!enableImport.value} onClick={save}>
                 <span class="icon"><i class="fa fa-check"/></span>
                 <span>确认导入图库</span>
-            </button>
+            </button> : undefined
     }
 })
