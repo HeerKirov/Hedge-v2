@@ -4,6 +4,7 @@ import time
 import click
 import os
 from module.cli_data import CliData
+from module.importation import Importation
 from module.local_config import LocalConfig
 from module.channel import ChannelManager
 from module.server import Server
@@ -45,39 +46,99 @@ def apply(directory, file, i, q):
         for _, dirs, non_dirs in os.walk(directory):
             for i in non_dirs:
                 if i.endswith('.yml') or i.endswith('.yaml'):
-                    with open(i) as f:
+                    with open(os.path.join(directory, i)) as f:
                         applier.apply(f.read())
     server.check_then_start()
     server.register_signal()
     applier.submit()
 
-    if applier.updated.get('setting', None) is not None:
-        print("* 已更新%s个设置项。" % (applier.updated['setting'],))
-    if applier.updated.get('source', None) is not None:
-        print("* 已更新%s个来源数据项。" % (applier.updated['source'],))
-    if applier.updated.get('annotation', None) is not None:
-        print("* 已更新%s个注解项。" % (applier.updated['annotation'],))
-    if applier.updated.get('author', None) is not None:
-        print("* 已更新%s个作者项。" % (applier.updated['author'],))
-    if applier.updated.get('topic', None) is not None:
-        print("* 已更新%s个主题项。" % (applier.updated['topic'],))
-    if applier.updated.get('tag', None) is not None:
-        print("* 已更新%s个标签项。" % (applier.updated['tag'],))
-    if applier.created.get('setting', None) is not None:
-        print("* 已添加%s个设置项。" % (applier.created['setting'],))
-    if applier.created.get('source', None) is not None:
-        print("* 已添加%s个来源数据项。" % (applier.created['source'],))
-    if applier.created.get('annotation', None) is not None:
-        print("* 已添加%s个注解项。" % (applier.created['annotation'],))
-    if applier.created.get('author', None) is not None:
-        print("* 已添加%s个作者项。" % (applier.created['author'],))
-    if applier.created.get('topic', None) is not None:
-        print("* 已添加%s个主题项。" % (applier.created['topic'],))
-    if applier.created.get('tag', None) is not None:
-        print("* 已添加%s个标签项。" % (applier.created['tag'],))
-    if len(applier.submit_errors) > 0:
-        for e in applier.submit_errors:
-            print("* 错误项%s [%s]: %s" % e)
+    if not q:
+        if applier.updated.get('setting', None) is not None:
+            print("* 已更新%s个设置项。" % (applier.updated['setting'],))
+        if applier.updated.get('source', None) is not None:
+            print("* 已更新%s个来源数据项。" % (applier.updated['source'],))
+        if applier.updated.get('annotation', None) is not None:
+            print("* 已更新%s个注解项。" % (applier.updated['annotation'],))
+        if applier.updated.get('author', None) is not None:
+            print("* 已更新%s个作者项。" % (applier.updated['author'],))
+        if applier.updated.get('topic', None) is not None:
+            print("* 已更新%s个主题项。" % (applier.updated['topic'],))
+        if applier.updated.get('tag', None) is not None:
+            print("* 已更新%s个标签项。" % (applier.updated['tag'],))
+        if applier.created.get('setting', None) is not None:
+            print("* 已添加%s个设置项。" % (applier.created['setting'],))
+        if applier.created.get('source', None) is not None:
+            print("* 已添加%s个来源数据项。" % (applier.created['source'],))
+        if applier.created.get('annotation', None) is not None:
+            print("* 已添加%s个注解项。" % (applier.created['annotation'],))
+        if applier.created.get('author', None) is not None:
+            print("* 已添加%s个作者项。" % (applier.created['author'],))
+        if applier.created.get('topic', None) is not None:
+            print("* 已添加%s个主题项。" % (applier.created['topic'],))
+        if applier.created.get('tag', None) is not None:
+            print("* 已添加%s个标签项。" % (applier.created['tag'],))
+        if len(applier.submit_errors) > 0:
+            for e in applier.submit_errors:
+                print("* 错误项%s [%s]: %s" % e)
+
+
+@app.group("import", help="文件导入")
+def import_group():
+    pass
+
+
+@import_group.command("add", help="添加新的文件")
+@click.argument("filename")
+@click.option("--remove", "-r", is_flag=True, help="移除原始文件")
+def import_add(filename, remove):
+    importation = Importation(server)
+    server.check_then_start()
+    server.register_signal()
+    if os.path.isdir(filename):
+        for _, dirs, non_dirs in os.walk(filename):
+            for i in non_dirs:
+                e = importation.add(os.path.join(filename, i), remove)
+                if e is not None:
+                    print("%s: %s" % (i, e))
+                else:
+                    print(i)
+    else:
+        e = importation.add(filename, remove)
+        if e is not None:
+            print("%s: %s" % (filename, e))
+        else:
+            print(filename)
+
+
+@import_group.command("list", help="列出所有导入文件")
+def import_list():
+    importation = Importation(server)
+    server.check_then_start()
+    server.register_signal()
+    for (i, n, t) in importation.list():
+        print("[%s] %-48s  | %s" % (i, n, t))
+
+
+@import_group.command("batch", help="修改导入文件的属性")
+@click.option("--tagme", "-t", help="修改Tagme")
+@click.option("--partition-time", "-p", help="修改时间分区")
+@click.option("--create-time", "-c", help="按策略修改创建时间")
+@click.option("--order-time", "-o", help="按策略修改排序时间")
+@click.option("--analyse-source", "-s", is_flag=True, help="分析来源数据")
+def import_batch_update(tagme, partition_time, create_time, order_time, analyse_source):
+    importation = Importation(server)
+    server.check_then_start()
+    server.register_signal()
+    importation.batch_update(tagme, partition_time, create_time, order_time, analyse_source)
+
+
+@import_group.command("save", help="确认保存所有导入文件")
+def import_save():
+    importation = Importation(server)
+    server.check_then_start()
+    server.register_signal()
+    cnt = importation.save()
+    print("已导入%s个项目。" % (cnt,))
 
 
 @app.group("channel", help="Hedge CLI 频道控制")

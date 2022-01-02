@@ -206,7 +206,7 @@ class Applier:
                 return None
         else:
             self.__set_count_statistic(kind, updated=False, count=1)
-            return data['id']
+            return data['id'] if data is not None else None
 
     def __set_count_statistic(self, key, updated, count):
         if updated:
@@ -274,16 +274,15 @@ setting_schema = Schema({
 source_schema = Schema([{
     'source': And(str, lambda s: len(s) > 0),
     'sourceId': int,
-    Optional('title'): str,
-    Optional('description'): str,
+    Optional('title'): Or(str, None),
+    Optional('description'): Or(str, None),
     Optional('tags'): [{
         'name': And(str, lambda s: len(s) > 0),
-        Optional('displayName'): And(str, lambda s: len(s) > 0),
-        Optional('type'): And(str, lambda s: len(s) > 0),
+        Optional('displayName'): Or(None, And(str, lambda s: len(s) > 0)),
+        Optional('type'): Or(None, And(str, lambda s: len(s) > 0)),
     }],
     Optional('pools'): [str],
-    Optional('children'): [int],
-    Optional('parents'): [int],
+    Optional('relations'): [int]
 }])
 
 annotation_schema = Schema([{

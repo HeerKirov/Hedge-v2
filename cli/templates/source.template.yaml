@@ -11,7 +11,5 @@ spec:
         type: ""
     pools:
       - ""
-    children:
-      - 0
-    parents:
+    relations:
       - 0
