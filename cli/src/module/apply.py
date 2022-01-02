@@ -258,9 +258,9 @@ setting_schema = Schema({
     Optional('query'): {
         Optional('chineseSymbolReflect'): bool,
         Optional('translateUnderscoreToSpace'): bool,
-        Optional('queryLimitOfQueryItems'): bool,
-        Optional('warningLimitOfUnionItems'): bool,
-        Optional('warningLimitOfIntersectItems'): bool
+        Optional('queryLimitOfQueryItems'): int,
+        Optional('warningLimitOfUnionItems'): int,
+        Optional('warningLimitOfIntersectItems'): int
     },
     Optional('source'): {
         Optional('sites'): [{
