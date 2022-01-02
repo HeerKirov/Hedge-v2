@@ -201,7 +201,7 @@ def server_stop():
 
 if __name__ == "__main__":
     local_config = LocalConfig()
-    cli_data = CliData(local_config.app_path)
+    cli_data = CliData(local_config.appdata_path)
     channel_manager = ChannelManager(local_config.appdata_path, cli_data)
     server = Server(local_config, channel_manager)
     app()
