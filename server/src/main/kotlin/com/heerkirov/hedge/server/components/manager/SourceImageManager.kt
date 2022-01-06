@@ -75,6 +75,8 @@ class SourceImageManager(private val data: DataRepository,
                 set(it.title, null)
                 set(it.description, null)
                 set(it.relations, null)
+                set(it.pools, null)
+                set(it.empty, true)
                 set(it.cachedCount, SourceImage.SourceCount(0, 0, 0))
                 set(it.createTime, now)
                 set(it.updateTime, now)
