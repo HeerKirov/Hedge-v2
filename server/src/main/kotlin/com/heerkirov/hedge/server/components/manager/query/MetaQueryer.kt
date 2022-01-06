@@ -339,7 +339,7 @@ class MetaQueryer(private val data: DataRepository) : Queryer {
         return authorCacheMap.computeIfAbsent(metaValue.singleValue) { metaString ->
             val colors = data.metadata.meta.authorColors
 
-            data.db.from(Authors).select(Authors.id, Authors.name)
+            data.db.from(Authors).select(Authors.id, Authors.name, Authors.type)
                 .where { parser.compileNameString(metaString, Authors) }
                 .limit(0, queryLimit)
                 .map { ElementAuthor(it[Authors.id]!!, it[Authors.name]!!, colors[it[Authors.type]!!]) }
