@@ -40,7 +40,9 @@ export function createIllustEndpoint(http: HttpInstance): IllustEndpoint {
                 update: http.createPathDataRequest(id => `/api/illusts/collection/${id}/related-items`, "PATCH")
             },
             images: {
-                get: http.createPathQueryRequest(id => `/api/illusts/collection/${id}/images`, "GET"),
+                get: http.createPathQueryRequest(id => `/api/illusts/collection/${id}/images`, "GET", {
+                    parseResponse: ({ total, result }: ListResult<any>) => ({total, result: result.map(mapToIllust)}),
+                }),
                 update: http.createPathDataRequest(id => `/api/illusts/collection/${id}/images`, "PUT")
             }
         },
@@ -88,6 +90,9 @@ function mapToIllust(data: any): Illust {
         score: <number | null>data["score"],
         favorite: <boolean>data["favorite"],
         tagme: <Tagme[]>data["tagme"],
+        source: <string | null>data["source"],
+        sourceId: <number | null>data["sourceId"],
+        sourcePart: <number | null>data["sourcePart"],
         orderTime: datetime.of(<string>data["orderTime"])
     }
 }
@@ -396,6 +401,18 @@ export interface Illust extends IllustPublicPart {
      * 子项目的数量。只有类型为COLLECTION的项目会有子项目。
      */
     childrenCount: number | null
+    /**
+     * source site name。
+     */
+    source: string | null
+    /**
+     * source id。
+     */
+    sourceId: number | null
+    /**
+     * source part。
+     */
+    sourcePart: number | null
 }
 
 export interface DetailIllust extends IllustPublicPart {

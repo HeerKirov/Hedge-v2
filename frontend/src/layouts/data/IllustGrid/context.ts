@@ -1,7 +1,7 @@
 import { Ref } from "vue"
 import { ScrollView } from "@/components/features/VirtualScrollView"
 import { PaginationDataView, QueryEndpointInstance, QueryEndpointResult, SingletonDataView, SliceDataView } from "@/functions/utils/endpoints/query-endpoint"
-import { Illust, IllustType } from "@/functions/adapter-http/impl/illust"
+import { Illust, IllustType, Tagme } from "@/functions/adapter-http/impl/illust"
 import { useCreatingCollectionService } from "@/layouts/dialogs/CreatingCollection"
 import { useCreatingAlbumService, useAddToFolderService, useCloneImageService } from "@/layouts/dialogs"
 import { useFastObjectEndpoint } from "@/functions/utils/endpoints/object-fast-endpoint"
@@ -20,6 +20,11 @@ export interface SuitableIllust {
     orderTime: LocalDateTime
     type?: IllustType
     childrenCount?: number | null
+    tagme: Tagme[]
+    score: number | null
+    source: string | null
+    sourceId: number | null
+    sourcePart: number | null
 }
 
 interface GridContextOperatorOptions<T extends SuitableIllust> {

@@ -44,6 +44,7 @@ export interface PreviewContext {
         endpoint: QueryEndpointResult<Illust>
         scrollView: Readonly<ScrollView>
         viewController: {
+            viewMode: Ref<"row" | "grid">
             fitType: Ref<FitType>
             columnNum: Ref<number>
         }
@@ -106,7 +107,7 @@ function useDataContext(data: SingletonDataView<Illust>, toastRefresh: () => voi
         if(target.value !== null) {
             const ok = await deleteData(target.value.id)
             if(ok) {
-                await data.syncOperations.remove()
+                data.syncOperations.remove()
             }
             return ok
         }else{
@@ -151,14 +152,15 @@ function useListContext(path: Ref<number | null>) {
 
 function useViewController() {
     const storage = useLocalStorageWithDefault<{
-        fitType: FitType, columnNum: number
-    }>("illust-grid/view-controller", {
-        fitType: "cover", columnNum: 8
+        fitType: FitType, columnNum: number, viewMode: "row" | "grid"
+    }>("illust-dataset/view-controller", {
+        fitType: "cover", columnNum: 8, viewMode: "grid"
     })
 
     return {
         fitType: splitRef(storage, "fitType"),
-        columnNum: splitRef(storage, "columnNum")
+        columnNum: splitRef(storage, "columnNum"),
+        viewMode: splitRef(storage, "viewMode")
     }
 }
 

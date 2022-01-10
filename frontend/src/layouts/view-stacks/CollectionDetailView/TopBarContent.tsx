@@ -7,10 +7,16 @@ import { usePreviewContext } from "./inject"
 
 export default defineComponent({
     setup() {
-        const { images: { viewController: { fitType, columnNum } } } = usePreviewContext()
+        const { images: { viewController: { fitType, columnNum, viewMode } } } = usePreviewContext()
 
         const setFitType = (v: FitType) => fitType.value = v
         const setColumnNum = (v: number) => columnNum.value = v
+
+        const menu = useElementPopupMenu(() => [
+            {type: "radio", checked: viewMode.value === "row", label: "列表模式", click: () => viewMode.value = "row"},
+            {type: "radio", checked: viewMode.value === "grid", label: "网格模式", click: () => viewMode.value = "grid"},
+            {type: "separator"},
+        ], {position: "bottom"})
 
         return () => <div class="middle-layout">
             <div class="layout-container">
@@ -20,8 +26,11 @@ export default defineComponent({
                 <FavoriteButton/>
                 <ExternalButton/>
                 <DataRouter/>
-                <FitTypeButton value={fitType.value} onUpdateValue={setFitType}/>
-                <ColumnNumButton value={columnNum.value} onUpdateValue={setColumnNum}/>
+                {viewMode.value === "grid" && <FitTypeButton value={fitType.value} onUpdateValue={setFitType}/>}
+                {viewMode.value === "grid" && <ColumnNumButton value={columnNum.value} onUpdateValue={setColumnNum}/>}
+                <button class="square button no-drag radius-large is-white mr-1" ref={menu.element} onClick={menu.popup}>
+                    <span class="icon"><i class="fa fa-ellipsis-v"/></span>
+                </button>
             </div>
         </div>
     }

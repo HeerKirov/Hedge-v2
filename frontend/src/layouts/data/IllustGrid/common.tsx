@@ -1,12 +1,11 @@
 import { computed, Ref, SetupContext } from "vue"
-import { useScrollView } from "@/components/features/VirtualScrollView"
 import { PaginationData, QueryEndpointInstance } from "@/functions/utils/endpoints/query-endpoint"
+import { TypeDefinition } from "@/functions/feature/drag/definition"
 import { clientPlatform } from "@/functions/adapter-ipc"
 import { useDraggable, useDroppable } from "@/functions/feature/drag"
-import { TypeDefinition } from "@/functions/feature/drag/definition"
-import { assetsUrl } from "@/functions/app"
 import { watchGlobalKeyEvent } from "@/functions/feature/keyboard"
 import { useToast } from "@/functions/module/toast"
+import { useScrollView } from "@/components/features/VirtualScrollView"
 import { arrays } from "@/utils/collections"
 import style from "./style.module.scss"
 
@@ -22,30 +21,25 @@ export const FIT_TYPE_CLASS: {[key in FitType]: string} = {
 const COLUMN_MAX = 16
 export const COLUMN_NUMBER_CLASS = arrays.newArray(COLUMN_MAX + 1, i => style[`columnNum${i}`])
 
-export function ItemImage(props: {thumbnailFile: string | null, type: string | undefined, id: number}) {
-    return <div class={style.content}>
-        <img src={assetsUrl(props.thumbnailFile)} alt={`${props.type}-${props.id}`}/>
-    </div>
+export function SelectedCountBadge(props: {count: number}) {
+    return props.count > 1 ? <div class={style.selectedCountTag}>已选择 {props.count} 项</div> : null
 }
 
-export function ItemNumTag(props: {count: number}) {
-    return <span class={[style.numTag, "tag", "is-dark"]}><i class="fa fa-images"/>{props.count}</span>
+interface EmitContext<T extends {id: number}> {
+    dataUpdate(_: number, __: number)
+    select(_: number[], __: number | null)
+    enter(_: number)
+    dblClick(_: number, __: boolean)
+    rightClick(_: T)
 }
 
-export function ItemFavIcon() {
-    return <i class={[style.favTag, "fa", "fa-heart", "has-text-danger", "is-size-medium"]}/>
-}
-
-export interface InjectionContext<T, TYPE extends keyof TypeDefinition> {
-    queryEndpoint: QueryEndpointInstance<T> | undefined
-    data: Ref<PaginationData<T>>
-    selected: Ref<number[]>
+export interface Selector {
+    select(index: number, illustId: number): void
+    appendSelect(index: number, illustId: number): void
+    shiftSelect(index: number, illustId: number): Promise<void>
+    moveSelect(arrow: "ArrowUp" | "ArrowDown" | "ArrowLeft" | "ArrowRight", shift: boolean): Promise<void>
     lastSelected: Ref<number | null>
-    columnNum: Ref<number>
-    draggable: boolean
-    droppable: Ref<boolean> | undefined
-    draggingFromLocal: Ref<boolean>
-    drop?(insertIndex: number | null, illusts: TypeDefinition[TYPE], mode: "ADD" | "MOVE"): void
+    selected: Ref<number[]>
 }
 
 interface SelectorOptions<T extends {id: number}> {
@@ -53,11 +47,11 @@ interface SelectorOptions<T extends {id: number}> {
     data: Ref<PaginationData<T>>
     selected: Ref<number[]>
     lastSelected: Ref<number | null>
-    columnNum: Ref<number>
+    columnNum?: Ref<number> | number
     onEmit(selected: number[], lastSelected: number | null): void
 }
 
-export function useSelector<T extends {id: number}>(options: SelectorOptions<T>) {
+export function useSelector<T extends {id: number}>(options: SelectorOptions<T>): Selector {
     const scrollView = useScrollView()
     const { toast } = useToast()
     const { selected, lastSelected, queryEndpoint, data, columnNum, onEmit } = options
@@ -71,7 +65,7 @@ export function useSelector<T extends {id: number}>(options: SelectorOptions<T>)
 
     const appendSelect = (index: number, illustId: number) => {
         // 按住CTRL/CMD单击一个项时，如果没有选择此项，则将此项加入选择列表；否则将此项从选择列表移除
-        const find = selected.value.findIndex(i => i === illustId);
+        const find = selected.value.findIndex(i => i === illustId)
         if(find >= 0) {
             onEmit([...selected.value.slice(0, find), ...selected.value.slice(find + 1)], null)
         }else{
@@ -124,7 +118,7 @@ export function useSelector<T extends {id: number}>(options: SelectorOptions<T>)
                     scrollView.navigateTo(index)
                 }
             }else{
-                const offset = arrow === "ArrowLeft" ? -1 : arrow === "ArrowRight" ? 1 : arrow === "ArrowUp" ? -columnNum.value : columnNum.value
+                const offset = getMoveOffset(arrow)
                 const result = await getArrowSelectItem(queryEndpoint, lastSelected.value, offset)
                 if (result !== null) {
                     if(shift) {
@@ -137,6 +131,11 @@ export function useSelector<T extends {id: number}>(options: SelectorOptions<T>)
             }
         }
     }
+
+    const getMoveOffset: (arrow: "ArrowUp" | "ArrowDown" | "ArrowLeft" | "ArrowRight") => number
+        = columnNum === undefined ? (arrow => arrow === "ArrowLeft" || arrow === "ArrowUp" ? -1 : 1)
+        : typeof columnNum === "number" ? (arrow => arrow === "ArrowLeft" ? -1 : arrow === "ArrowRight" ? 1 : arrow === "ArrowUp" ? -columnNum : columnNum)
+        : (arrow => arrow === "ArrowLeft" ? -1 : arrow === "ArrowRight" ? 1 : arrow === "ArrowUp" ? -columnNum.value : columnNum.value)
 
     async function getShiftSelectItems(queryEndpoint: QueryEndpointInstance<T>, selectId: number, lastSelectId: number) {
         const priorityRange: [number, number] = [data.value.metrics.offset, data.value.metrics.offset + data.value.metrics.limit]
@@ -171,7 +170,7 @@ export function useSelector<T extends {id: number}>(options: SelectorOptions<T>)
     return {select, appendSelect, shiftSelect, moveSelect, lastSelected, selected}
 }
 
-export function useKeyboardEvents({ moveSelect, lastSelected }: ReturnType<typeof useSelector>, enter: (illustId: number) => void) {
+export function useKeyboardEvents({ moveSelect, lastSelected }: Selector, enter: (illustId: number) => void) {
     watchGlobalKeyEvent(e => {
         if(e.key === "ArrowLeft" || e.key === "ArrowRight" || e.key === "ArrowUp" || e.key === "ArrowDown") {
             moveSelect(e.key, e.shiftKey).finally()
@@ -279,15 +278,7 @@ export function useSummaryDropEvents<T extends keyof TypeDefinition>(options: {
     }
 }
 
-interface EmitContext<T extends {id: number}> {
-    dataUpdate(_: number, __: number)
-    select(_: number[], __: number | null)
-    enter(_: number)
-    dblClick(_: number, __: boolean)
-    rightClick(_: T)
-}
-
-export function useContentEvents<T extends {id: number}>(selector: ReturnType<typeof useSelector>, emit: SetupContext<EmitContext<T>>["emit"]) {
+export function useContentEvents<T extends {id: number}>(selector: Selector, emit: SetupContext<EmitContext<T>>["emit"]) {
     const dataUpdate = (offset: number, limit: number) => emit("dataUpdate", offset, limit)
     const enter = (imageId: number) => emit("enter", imageId)
     const dblClick = (imageId: number, option: boolean) => emit("dblClick", imageId, option)

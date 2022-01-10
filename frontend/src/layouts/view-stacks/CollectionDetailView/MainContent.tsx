@@ -2,7 +2,7 @@ import { defineComponent, markRaw } from "vue"
 import TopBarLayout from "@/layouts/layouts/TopBarLayout"
 import SideDrawer from "@/layouts/layouts/SideDrawer"
 import MetaTagEditor from "@/layouts/drawers/MetaTagEditor"
-import { IllustGrid, GridContextOperatorResult, useGridContextOperator } from "@/layouts/data/IllustGrid"
+import { IllustGrid, GridContextOperatorResult, useGridContextOperator, IllustRowList } from "@/layouts/data/IllustGrid"
 import { useAddToCollectionService } from "@/layouts/dialogs"
 import { installExpandedInfoStorage } from "@/layouts/data/TagTree"
 import { Illust } from "@/functions/adapter-http/impl/illust"
@@ -57,7 +57,7 @@ const ListView = defineComponent({
         const {
             images: {
                 dataView, endpoint, scrollView,
-                viewController: { fitType, columnNum },
+                viewController: { fitType, columnNum, viewMode },
                 selector: { selected, lastSelected }
             },
             data: { toastRefresh }
@@ -91,10 +91,14 @@ const ListView = defineComponent({
 
         const dropEvents = useDropEvents()
 
-        return () => <IllustGrid data={markRaw(dataView.data.value)} onDataUpdate={dataView.dataUpdate} draggable={true} {...dropEvents}
-                                 queryEndpoint={markRaw(endpoint.proxy)} fitType={fitType.value} columnNum={columnNum.value}
-                                 selected={selected.value} lastSelected={lastSelected.value} onSelect={updateSelected}
-                                 onRightClick={i => menu.popup(i as Illust)} onDblClick={operator.clickToOpenDetail} onEnter={operator.enterToOpenDetail}/>
+        return () => viewMode.value === "grid"
+            ? <IllustGrid data={markRaw(dataView.data.value)} onDataUpdate={dataView.dataUpdate} draggable={true} {...dropEvents}
+                          queryEndpoint={markRaw(endpoint.proxy)} fitType={fitType.value} columnNum={columnNum.value}
+                          selected={selected.value} lastSelected={lastSelected.value} onSelect={updateSelected}
+                          onRightClick={i => menu.popup(i as Illust)} onDblClick={operator.clickToOpenDetail} onEnter={operator.enterToOpenDetail}/>
+            : <IllustRowList data={markRaw(dataView.data.value)} onDataUpdate={dataView.dataUpdate} draggable={true} {...dropEvents}
+                             queryEndpoint={markRaw(endpoint.proxy)} selected={selected.value} lastSelected={lastSelected.value} onSelect={updateSelected}
+                             onRightClick={i => menu.popup(i as Illust)} onDblClick={operator.clickToOpenDetail} onEnter={operator.enterToOpenDetail}/>
     }
 })
 

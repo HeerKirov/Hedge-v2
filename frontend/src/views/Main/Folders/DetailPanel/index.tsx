@@ -1,12 +1,18 @@
 import { defineComponent, markRaw, watch } from "vue"
 import TopBarLayout from "@/layouts/layouts/TopBarLayout"
 import { ColumnNumButton, DataRouter, FitTypeButton } from "@/layouts/topbars"
-import { IllustGrid, FitType, GridContextOperatorResult, useGridContextOperator } from "@/layouts/data/IllustGrid"
+import {
+    IllustGrid,
+    FitType,
+    GridContextOperatorResult,
+    useGridContextOperator,
+    IllustRowList
+} from "@/layouts/data/IllustGrid"
 import { FolderImage } from "@/functions/adapter-http/impl/folder"
 import { TypeDefinition } from "@/functions/feature/drag/definition"
 import { useAddToFolderService } from "@/layouts/dialogs/AddToFolder"
 import { createSliceOfAll, createSliceOfList } from "@/functions/utils/endpoints/query-endpoint"
-import { useDynamicPopupMenu } from "@/functions/module/popup-menu"
+import { useDynamicPopupMenu, useElementPopupMenu } from "@/functions/module/popup-menu"
 import { useMessageBox } from "@/functions/module/message-box"
 import { useHttpClient } from "@/functions/app"
 import { useToast } from "@/functions/module/toast"
@@ -37,10 +43,16 @@ export default defineComponent({
 const TopBarContent = defineComponent({
     setup() {
         const { view: { closeView } } = useFolderContext()
-        const { viewController: { fitType, columnNum }, detail: { data } } = useDetailContext()
+        const { viewController: { fitType, columnNum, viewMode }, detail: { data } } = useDetailContext()
 
         const setFitType = (v: FitType) => fitType.value = v
         const setColumnNum = (v: number) => columnNum.value = v
+
+        const menu = useElementPopupMenu(() => [
+            {type: "radio", checked: viewMode.value === "row", label: "列表模式", click: () => viewMode.value = "row"},
+            {type: "radio", checked: viewMode.value === "grid", label: "网格模式", click: () => viewMode.value = "grid"},
+            {type: "separator"},
+        ], {position: "bottom"})
 
         return () => <div class="middle-layout">
             <div class="layout-container">
@@ -52,8 +64,11 @@ const TopBarContent = defineComponent({
             <div class="layout-container">
                 <EditLockButton/>
                 <DataRouter/>
-                <FitTypeButton value={fitType.value} onUpdateValue={setFitType}/>
-                <ColumnNumButton value={columnNum.value} onUpdateValue={setColumnNum}/>
+                {viewMode.value === "grid" && <FitTypeButton value={fitType.value} onUpdateValue={setFitType}/>}
+                {viewMode.value === "grid" && <ColumnNumButton value={columnNum.value} onUpdateValue={setColumnNum}/>}
+                <button class="square button no-drag radius-large is-white mr-1" ref={menu.element} onClick={menu.popup}>
+                    <span class="icon"><i class="fa fa-ellipsis-v"/></span>
+                </button>
             </div>
         </div>
     }
@@ -75,7 +90,7 @@ const ListView = defineComponent({
     setup() {
         const {
             dataView, endpoint, scrollView,
-            viewController: { fitType, columnNum, editable },
+            viewController: { fitType, columnNum, editable, viewMode },
             selector: { selected, lastSelected }
         } = useDetailContext()
 
@@ -104,10 +119,14 @@ const ListView = defineComponent({
 
         const menu = useContextmenu(operator, folderOperator)
 
-        return () => <IllustGrid data={markRaw(dataView.data.value)} onDataUpdate={dataView.dataUpdate} draggable={true} droppable={editable.value}
-                                 queryEndpoint={markRaw(endpoint.proxy)} fitType={fitType.value} columnNum={columnNum.value}
-                                 selected={selected.value} lastSelected={lastSelected.value} onSelect={updateSelected}
-                                 onRightClick={i => menu.popup(i as FolderImage)} onDblClick={operator.clickToOpenDetail} onEnter={operator.enterToOpenDetail} onDataDrop={folderOperator.dropEvent}/>
+        return () => viewMode.value === "grid"
+            ? <IllustGrid data={markRaw(dataView.data.value)} onDataUpdate={dataView.dataUpdate} draggable={true} droppable={editable.value}
+                          queryEndpoint={markRaw(endpoint.proxy)} fitType={fitType.value} columnNum={columnNum.value}
+                          selected={selected.value} lastSelected={lastSelected.value} onSelect={updateSelected}
+                          onRightClick={i => menu.popup(i as FolderImage)} onDblClick={operator.clickToOpenDetail} onEnter={operator.enterToOpenDetail} onDataDrop={folderOperator.dropEvent}/>
+            : <IllustRowList data={markRaw(dataView.data.value)} onDataUpdate={dataView.dataUpdate} draggable={true} droppable={editable.value}
+                          queryEndpoint={markRaw(endpoint.proxy)} selected={selected.value} lastSelected={lastSelected.value} onSelect={updateSelected}
+                          onRightClick={i => menu.popup(i as FolderImage)} onDblClick={operator.clickToOpenDetail} onEnter={operator.enterToOpenDetail} onDataDrop={folderOperator.dropEvent}/>
     }
 })
 

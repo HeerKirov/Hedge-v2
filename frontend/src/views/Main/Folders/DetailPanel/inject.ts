@@ -15,6 +15,7 @@ export interface FolderDetailContext {
     endpoint: QueryEndpointResult<FolderImage>
     scrollView: Readonly<ScrollView>
     viewController: {
+        viewMode: Ref<"row" | "grid">
         fitType: Ref<FitType>
         columnNum: Ref<number>
         editable: Ref<boolean>
@@ -81,9 +82,9 @@ function useListContext() {
 
 function useViewController() {
     const storage = useLocalStorageWithDefault<{
-        fitType: FitType, columnNum: number, collectionMode: boolean
-    }>("illust-grid/view-controller", {
-        fitType: "cover", columnNum: 8, collectionMode: false
+        fitType: FitType, columnNum: number, collectionMode: boolean, viewMode: "row" | "grid"
+    }>("illust-dataset/view-controller", {
+        fitType: "cover", columnNum: 8, collectionMode: false, viewMode: "grid"
     })
 
     const editable = useLocalStorageWithDefault<boolean>("folder-detail/editable", false)
@@ -91,6 +92,7 @@ function useViewController() {
     return {
         fitType: splitRef(storage, "fitType"),
         columnNum: splitRef(storage, "columnNum"),
+        viewMode: splitRef(storage, "viewMode"),
         editable
     }
 }

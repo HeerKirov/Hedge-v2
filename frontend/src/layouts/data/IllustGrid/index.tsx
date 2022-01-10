@@ -1,8 +1,10 @@
 import IllustGrid from "./IllustGrid"
 import ImportImageGrid from "./ImportImageGrid"
+import IllustRowList from "./IllustRowList"
+import ImportImageRowList from "./ImportImageRowList"
 import type { FitType } from "./common"
 import { useGridContextOperator } from "./context"
 import type { GridContextOperatorResult } from "./context"
 
-export { IllustGrid, ImportImageGrid, FitType }
+export { IllustGrid, ImportImageGrid, IllustRowList, ImportImageRowList, FitType }
 export { useGridContextOperator, GridContextOperatorResult }

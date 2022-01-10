@@ -17,6 +17,7 @@ export interface IllustContext {
     scrollView: Readonly<ScrollView>
     querySchema: QuerySchemaContext
     viewController: {
+        viewMode: Ref<"row" | "grid">
         fitType: Ref<FitType>
         columnNum: Ref<number>
         collectionMode: Ref<boolean>
@@ -76,15 +77,16 @@ function useListContext(collectionMode: Ref<boolean>, partition: Ref<LocalDate> 
 
 function useViewController(partition: Ref<LocalDate> | null, closePartition: (() => void) | undefined) {
     const storage = useLocalStorageWithDefault<{
-        fitType: FitType, columnNum: number, collectionMode: boolean
-    }>("illust-grid/view-controller", {
-        fitType: "cover", columnNum: 8, collectionMode: false
+        fitType: FitType, columnNum: number, collectionMode: boolean, viewMode: "row" | "grid"
+    }>("illust-dataset/view-controller", {
+        fitType: "cover", columnNum: 8, collectionMode: false, viewMode: "grid"
     })
 
     return {
         fitType: splitRef(storage, "fitType"),
         columnNum: splitRef(storage, "columnNum"),
         collectionMode: splitRef(storage, "collectionMode"),
+        viewMode: splitRef(storage, "viewMode"),
         partition, closePartition
     }
 }

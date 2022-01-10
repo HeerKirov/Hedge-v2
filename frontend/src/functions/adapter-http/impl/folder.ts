@@ -70,6 +70,9 @@ function mapToFolderImage(data: any): FolderImage {
         score: <number | null>data["score"],
         favorite: <boolean>data["favorite"],
         tagme: <Tagme[]>data["tagme"],
+        source: <string | null>data["source"],
+        sourceId: <number | null>data["sourceId"],
+        sourcePart: <number | null>data["sourcePart"],
         orderTime: datetime.of(<string>data["orderTime"])
     }
 }
@@ -203,6 +206,9 @@ export interface FolderImage {
     score: number | null
     favorite: boolean
     tagme: Tagme[]
+    source: string | null
+    sourceId: number | null
+    sourcePart: number | null
     orderTime: LocalDateTime
 }
 

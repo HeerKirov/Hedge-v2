@@ -19,10 +19,10 @@ export default defineComponent({
                 <CalendarDate/>
             </div>}
             <div class="layout-container">
-                <button class={`button square no-drag radius-large no-radius-right ${viewMode.value === "timeline" ? "is-link" : ""}`} onClick={() => viewMode.value = "timeline"}>
+                <button class={`button square no-drag radius-large no-radius-right ${viewMode.value === "timeline" ? "is-link" : "is-white"}`} onClick={() => viewMode.value = "timeline"}>
                     <i class="fa fa-sort-amount-down"/>
                 </button>
-                <button class={`button square no-drag radius-large no-radius-left ${viewMode.value === "calendar" ? "is-link" : ""}`} onClick={() => viewMode.value = "calendar"}>
+                <button class={`button square no-drag radius-large no-radius-left ${viewMode.value === "calendar" ? "is-link" : "is-white"}`} onClick={() => viewMode.value = "calendar"}>
                     <i class="fa fa-calendar"/>
                 </button>
             </div>

@@ -1,14 +1,17 @@
 import { computed, defineComponent, inject, InjectionKey, PropType, provide, ref, Ref, toRef } from "vue"
-import { VirtualGrid } from "@/components/features/VirtualScrollView"
-import { TypeDefinition } from "@/functions/feature/drag/definition"
+import { installSettingSite } from "@/functions/api/setting"
+import { VirtualRow } from "@/components/features/VirtualScrollView"
 import { PaginationData, QueryEndpointInstance } from "@/functions/utils/endpoints/query-endpoint"
 import { ImportImage } from "@/functions/adapter-http/impl/import"
+import { TypeDefinition } from "@/functions/feature/drag/definition"
+import { date, datetime } from "@/utils/datetime"
 import {
-    COLUMN_NUMBER_CLASS, FIT_TYPE_CLASS, FitType, SelectedCountBadge,
-    useContentEvents, useDragEvents, useDropEvents, useKeyboardEvents, useSummaryDropEvents, useSelector
+    SelectedCountBadge,
+    useContentEvents, useDragEvents, useDropEvents, useKeyboardEvents, useSelector, useSummaryDropEvents
 } from "./common"
-import { InjectionContext, ItemImage } from "./common-grid"
+import { InjectionContext, ItemImage } from "./common-row"
 import style from "./style.module.scss"
+import { SourceInfo, TagmeInfo } from "@/layouts/displays";
 
 export default defineComponent({
     props: {
@@ -16,14 +19,6 @@ export default defineComponent({
          * 分页数据视图。
          */
         data: {type: Object as PropType<PaginationData<ImportImage>>, required: true},
-        /**
-         * 显示的列数。
-         */
-        columnNum: {type: Number, default: 4},
-        /**
-         * 内容填充的方式。cover表示裁切并填满整个方块，contain表示留白并完整显示所有内容。
-         */
-        fitType: {type: String as PropType<FitType>, default: "cover"},
         /**
          * 选择器：已选择项列表。
          */
@@ -57,13 +52,12 @@ export default defineComponent({
         const selected = toRef(props, "selected")
         const lastSelected = toRef(props, "lastSelected")
         const data = toRef(props, "data")
-        const columnNum = toRef(props, "columnNum")
         const droppable = props.droppable !== undefined ? toRef(props, "droppable") as Ref<boolean> : undefined
         const drop = props.droppable !== undefined
             ? (insertIndex: number, images: TypeDefinition["importImages"], mode: "ADD" | "MOVE") => emit("dataDrop", insertIndex, images, mode)
             : undefined
 
-        provide(contextInjection, {selected, lastSelected, data, columnNum, queryEndpoint: props.queryEndpoint, draggable: props.draggable, droppable, drop, draggingFromLocal: ref(false)})
+        provide(contextInjection, {selected, lastSelected, data, queryEndpoint: props.queryEndpoint, draggable: props.draggable, droppable, drop, draggingFromLocal: ref(false)})
 
         const dataUpdate = (offset: number, limit: number) => emit("dataUpdate", offset, limit)
 
@@ -73,7 +67,7 @@ export default defineComponent({
 
         const emitSelect = (selected: number[], lastSelected: number | null) => emit("select", selected, lastSelected)
 
-        return () => <div class={[style.grid, FIT_TYPE_CLASS[props.fitType], COLUMN_NUMBER_CLASS[props.columnNum]]}>
+        return () => <div class={style.rowList}>
             <Content onDataUpdate={dataUpdate} onEnter={enter} onDblClick={dblClick} onRightClick={rightClick} onSelect={emitSelect}/>
             <SelectedCountBadge count={selected.value.length}/>
         </div>
@@ -89,10 +83,12 @@ const Content = defineComponent({
         rightClick: (_: ImportImage) => true
     },
     setup(props, { emit }) {
-        const { data, columnNum, queryEndpoint, selected, lastSelected, droppable, draggingFromLocal, drop } = inject(contextInjection)!
+        const { data, queryEndpoint, selected, lastSelected, droppable, draggingFromLocal, drop } = inject(contextInjection)!
+
+        installSettingSite()
 
         const selector = useSelector({
-            queryEndpoint, data, columnNum, selected, lastSelected,
+            queryEndpoint, data, selected, lastSelected,
             onEmit: (selected, lastSelected) => emit("select", selected, lastSelected)
         })
 
@@ -106,13 +102,13 @@ const Content = defineComponent({
             onDrop: drop
         })
 
-        return () => <VirtualGrid {...data.value.metrics} {...appendDropEvents}
-                                  onUpdate={dataUpdate} columnCount={columnNum.value}
-                                  bufferSize={5} minUpdateDelta={1} padding={{top: 1, bottom: 1, left: 2, right: 2}}>
+        //TODO 为VirtualRow添加append drop events
+        return () => <VirtualRow {...data.value.metrics} {...appendDropEvents}
+                                 onUpdate={dataUpdate} bufferSize={6} minUpdateDelta={3} rowHeight={32}>
             {data.value.result.map((item, i) => <Item key={item.id}
                                                       index={data.value.metrics.offset + i} data={item}
                                                       onDblClick={dblClick} onRightClick={rightClick} onClick={click}/>)}
-        </VirtualGrid>
+        </VirtualRow>
     }
 })
 
@@ -153,18 +149,18 @@ const Item = defineComponent({
             onDrop: drop
         })
 
-        return dropEvents !== null
-            ? () => <div class={style.item} onClick={click} onDblclick={dblClick} onContextmenu={rightClick} {...dragEvents}>
+        //TODO 引入drop tooltip
+        return dropEvents != null
+            ? () => undefined
+            : () => <div class={{[style.item]: true, [style.importImage]: true, [style.selected]: currentSelected.value}} onClick={click} onDblclick={dblClick} onContextmenu={rightClick} {...dragEvents}>
                 <ItemImage thumbnailFile={props.data.thumbnailFile} type="import-image" id={props.data.id}/>
-                {currentSelected.value && <div class={style.selected}><div class={style.internalBorder}/></div>}
-                {dropEvents.isLeftDragover.value && <div class={style.leftDropTooltip}/>}
-                {dropEvents.isRightDragover.value && <div class={style.rightDropTooltip}/>}
-                <div class={style.leftTouch} {...dropEvents.leftDropEvents}/>
-                <div class={style.rightTouch} {...dropEvents.rightDropEvents}/>
-            </div>
-            : () => <div class={style.item} onClick={click} onDblclick={dblClick} onContextmenu={rightClick} {...dragEvents}>
-                <ItemImage thumbnailFile={props.data.thumbnailFile} type="import-image" id={props.data.id}/>
-                <div class={{[style.touch]: true, [style.selected]: currentSelected.value}}><div class={style.internalBorder}/></div>
+                <div class={style.title}>{props.data.fileName}</div>
+                <div class={style.tagme}>{(props.data.tagme.length || null) && <TagmeInfo value={props.data.tagme}/>}</div>
+                <div class={style.source}><SourceInfo source={props.data.source} sourceId={props.data.sourceId} sourcePart={props.data.sourcePart}/></div>
+                <div class={style.time}>
+                    <span class="has-text-grey pr-1">({date.toISOString(props.data.partitionTime)})</span>
+                    {datetime.toSimpleFormat(props.data.orderTime)}
+                </div>
             </div>
     }
 })

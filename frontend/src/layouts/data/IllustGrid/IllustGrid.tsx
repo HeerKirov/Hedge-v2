@@ -4,10 +4,10 @@ import { TypeDefinition } from "@/functions/feature/drag/definition"
 import { PaginationData, QueryEndpointInstance } from "@/functions/utils/endpoints/query-endpoint"
 import type { SuitableIllust } from "./context"
 import {
-    COLUMN_NUMBER_CLASS, FIT_TYPE_CLASS, FitType, InjectionContext,
-    ItemFavIcon, ItemImage, ItemNumTag, useContentEvents, useDragEvents, useDropEvents,
-    useKeyboardEvents, useSelector, useSummaryDropEvents
+    COLUMN_NUMBER_CLASS, FIT_TYPE_CLASS, FitType, SelectedCountBadge,
+    useContentEvents, useDragEvents, useDropEvents, useKeyboardEvents, useSummaryDropEvents, useSelector
 } from "./common"
+import { InjectionContext, ItemImage, ItemNumTag, ItemFavIcon } from "./common-grid"
 import style from "./style.module.scss"
 
 export default defineComponent({
@@ -73,20 +73,10 @@ export default defineComponent({
 
         const emitSelect = (selected: number[], lastSelected: number | null) => emit("select", selected, lastSelected)
 
-        return () => <div class={[style.root, FIT_TYPE_CLASS[props.fitType], COLUMN_NUMBER_CLASS[props.columnNum]]}>
+        return () => <div class={[style.grid, FIT_TYPE_CLASS[props.fitType], COLUMN_NUMBER_CLASS[props.columnNum]]}>
             <Content onDataUpdate={dataUpdate} onEnter={enter} onDblClick={dblClick} onRightClick={rightClick} onSelect={emitSelect}/>
-            <SelectedCountTag/>
+            <SelectedCountBadge count={selected.value.length}/>
         </div>
-    }
-})
-
-const SelectedCountTag = defineComponent({
-    setup() {
-        const { selected } = inject(contextInjection)!
-
-        const selectedCount = computed(() => selected.value.length)
-
-        return () => selectedCount.value > 1 ? <div class={style.selectedCountTag}>已选择 {selectedCount.value} 项</div> : null
     }
 })
 

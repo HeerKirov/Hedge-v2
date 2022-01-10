@@ -1,5 +1,5 @@
 import { defineComponent, markRaw } from "vue"
-import { IllustGrid, GridContextOperatorResult, useGridContextOperator } from "@/layouts/data/IllustGrid"
+import { IllustGrid, GridContextOperatorResult, useGridContextOperator, IllustRowList } from "@/layouts/data/IllustGrid"
 import { Illust } from "@/functions/adapter-http/impl/illust"
 import { createProxySingleton, createSliceOfAll, createSliceOfList } from "@/functions/utils/endpoints/query-endpoint"
 import { useDynamicPopupMenu } from "@/functions/module/popup-menu"
@@ -9,7 +9,7 @@ export default defineComponent({
     setup() {
         const {
             dataView, endpoint, scrollView,
-            viewController: { fitType, columnNum },
+            viewController: { fitType, columnNum, viewMode },
             selector: { selected, lastSelected }
         } = useIllustContext()
 
@@ -31,10 +31,14 @@ export default defineComponent({
 
         const menu = useContextmenu(operator)
 
-        return () => <IllustGrid data={markRaw(dataView.data.value)} onDataUpdate={dataView.dataUpdate} draggable={true}
-                                 queryEndpoint={markRaw(endpoint.proxy)} fitType={fitType.value} columnNum={columnNum.value}
-                                 selected={selected.value} lastSelected={lastSelected.value} onSelect={updateSelected}
-                                 onRightClick={i => menu.popup(i as Illust)} onDblClick={operator.clickToOpenDetail} onEnter={operator.enterToOpenDetail}/>
+        return () => viewMode.value === "grid"
+            ? <IllustGrid data={markRaw(dataView.data.value)} onDataUpdate={dataView.dataUpdate} draggable={true}
+                          queryEndpoint={markRaw(endpoint.proxy)} fitType={fitType.value} columnNum={columnNum.value}
+                          selected={selected.value} lastSelected={lastSelected.value} onSelect={updateSelected}
+                          onRightClick={i => menu.popup(i as Illust)} onDblClick={operator.clickToOpenDetail} onEnter={operator.enterToOpenDetail}/>
+            : <IllustRowList data={markRaw(dataView.data.value)} onDataUpdate={dataView.dataUpdate} draggable={true}
+                             queryEndpoint={markRaw(endpoint.proxy)} selected={selected.value} lastSelected={lastSelected.value} onSelect={updateSelected}
+                             onRightClick={i => menu.popup(i as Illust)} onDblClick={operator.clickToOpenDetail} onEnter={operator.enterToOpenDetail}/>
     }
 })
 

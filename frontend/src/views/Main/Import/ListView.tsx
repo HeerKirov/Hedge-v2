@@ -1,5 +1,5 @@
 import { defineComponent, markRaw } from "vue"
-import { ImportImageGrid } from "@/layouts/data/IllustGrid"
+import { ImportImageGrid, ImportImageRowList } from "@/layouts/data/IllustGrid"
 import { ImportImage } from "@/functions/adapter-http/impl/import"
 import { useFastObjectEndpoint } from "@/functions/utils/endpoints/object-fast-endpoint"
 import { useMessageBox } from "@/functions/module/message-box"
@@ -9,7 +9,7 @@ import { useImportContext } from "./inject"
 
 export default defineComponent({
     setup() {
-        const { list: { dataView, endpoint }, viewController: { fitType, columnNum }, selector: { selected, lastSelected } } = useImportContext()
+        const { list: { dataView, endpoint }, listController: { viewMode, fitType, columnNum }, selector: { selected, lastSelected } } = useImportContext()
 
         const updateSelected = (selectedValue: number[], lastSelectedValue: number | null) => {
             selected.value = selectedValue
@@ -18,12 +18,14 @@ export default defineComponent({
 
         const menu = useContextmenu()
 
-        return () => dataView.data.value.metrics.total !== undefined && dataView.data.value.metrics.total <= 0
-            ? <EmptyContent/>
-            : <ImportImageGrid data={markRaw(dataView.data.value)} onDataUpdate={dataView.dataUpdate} draggable={true}
+        return () => dataView.data.value.metrics.total !== undefined && dataView.data.value.metrics.total <= 0 ? <EmptyContent/>
+            : viewMode.value === "grid" ? <ImportImageGrid data={markRaw(dataView.data.value)} onDataUpdate={dataView.dataUpdate} draggable={true}
                                queryEndpoint={markRaw(endpoint.proxy)} fitType={fitType.value} columnNum={columnNum.value}
                                selected={selected.value} lastSelected={lastSelected.value} onSelect={updateSelected}
                                onRightClick={i => menu.popup(i)}/>
+            : <ImportImageRowList data={markRaw(dataView.data.value)} onDataUpdate={dataView.dataUpdate} draggable={true}
+                                  queryEndpoint={markRaw(endpoint.proxy)} selected={selected.value} lastSelected={lastSelected.value}
+                                  onSelect={updateSelected} onRightClick={i => menu.popup(i)}/>
     }
 })
 

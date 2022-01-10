@@ -56,7 +56,8 @@ function mapFromBatchUpdateForm(form: ImportBatchUpdateForm): any {
 function mapToImportImage(data: any): ImportImage {
     return {
         ...data,
-        fileImportTime: data["fileImportTime"] != null ? datetime.of(<string>data["fileImportTime"]) : null
+        partitionTime: date.of(<string>data["partitionTime"]),
+        orderTime: datetime.of(<string>data["orderTime"]),
     }
 }
 
@@ -130,7 +131,12 @@ export interface ImportImage {
     file: string
     thumbnailFile: string | null
     fileName: string | null
-    fileImportTime: LocalDateTime | null
+    source: string | null
+    sourceId: number | null
+    sourcePart: number | null
+    tagme: Tagme[]
+    partitionTime: LocalDate
+    orderTime: LocalDateTime
 }
 
 export interface DetailImportImage extends ImportImage {
@@ -138,12 +144,7 @@ export interface DetailImportImage extends ImportImage {
     fileFromSource: string | null
     fileCreateTime: LocalDateTime | null
     fileUpdateTime: LocalDateTime | null
-    tagme: Tagme[]
-    source: string | null
-    sourceId: number | null
-    sourcePart: number | null
-    partitionTime: LocalDate
-    orderTime: LocalDateTime
+    fileImportTime: LocalDateTime | null
     createTime: LocalDateTime
 }
 

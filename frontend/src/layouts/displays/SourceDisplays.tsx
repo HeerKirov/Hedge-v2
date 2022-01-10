@@ -24,7 +24,7 @@ export const SourceInfo = defineComponent({
             <span class="can-be-selected">
                 <span class="mr-1">{sourceTitle.value}</span>
                 <b class="mr-1">{props.sourceId}</b>
-                {props.sourcePart != null ? <b>p{props.sourcePart}</b> : undefined}
+                {props.sourcePart != null ? <span>p{props.sourcePart}</span> : undefined}
             </span>
         </p> : <p class="has-text-grey">
             <i class="fa fa-pager mr-2"/>

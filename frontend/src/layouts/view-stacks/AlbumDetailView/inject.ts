@@ -44,6 +44,7 @@ export interface PreviewContext {
         endpoint: QueryEndpointResult<AlbumImage>
         scrollView: Readonly<ScrollView>
         viewController: {
+            viewMode: Ref<"row" | "grid">
             fitType: Ref<FitType>
             columnNum: Ref<number>
             editable: Ref<boolean>
@@ -159,9 +160,9 @@ function useListContext(path: Ref<number | null>) {
 
 function useViewController() {
     const storage = useLocalStorageWithDefault<{
-        fitType: FitType, columnNum: number
-    }>("illust-grid/view-controller", {
-        fitType: "cover", columnNum: 8
+        fitType: FitType, columnNum: number, viewMode: "row" | "grid"
+    }>("illust-dataset/view-controller", {
+        fitType: "cover", columnNum: 8, viewMode: "grid"
     })
 
     const editable = useLocalStorageWithDefault<boolean>("album-detail/editable", false)
@@ -169,6 +170,7 @@ function useViewController() {
     return {
         columnNum: splitRef(storage, "columnNum"),
         fitType: splitRef(storage, "fitType"),
+        viewMode: splitRef(storage, "viewMode"),
         editable
     }
 }

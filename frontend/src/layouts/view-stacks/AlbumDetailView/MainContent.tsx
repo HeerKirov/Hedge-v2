@@ -1,7 +1,7 @@
 import { defineComponent, markRaw } from "vue"
 import TopBarLayout from "@/layouts/layouts/TopBarLayout"
 import SideDrawer from "@/layouts/layouts/SideDrawer"
-import { IllustGrid, GridContextOperatorResult, useGridContextOperator } from "@/layouts/data/IllustGrid"
+import { IllustGrid, GridContextOperatorResult, useGridContextOperator, IllustRowList } from "@/layouts/data/IllustGrid"
 import MetaTagEditor from "@/layouts/drawers/MetaTagEditor"
 import { TypeDefinition } from "@/functions/feature/drag/definition"
 import { AlbumImage } from "@/functions/adapter-http/impl/album"
@@ -53,7 +53,7 @@ const ListView = defineComponent({
         const {
             images: {
                 dataView, endpoint, scrollView,
-                viewController: { columnNum, fitType, editable },
+                viewController: { columnNum, fitType, editable, viewMode },
                 selector: { selected, lastSelected }
             },
             data: { toastRefresh }
@@ -84,10 +84,14 @@ const ListView = defineComponent({
 
         const menu = useContextmenu(operator, albumOperator)
 
-        return () => <IllustGrid data={markRaw(dataView.data.value)} onDataUpdate={dataView.dataUpdate} draggable={true} droppable={editable.value}
-                                 queryEndpoint={markRaw(endpoint.proxy)} fitType={fitType.value} columnNum={columnNum.value}
-                                 selected={selected.value} lastSelected={lastSelected.value} onSelect={updateSelected}
-                                 onRightClick={i => menu.popup(i as AlbumImage)} onDblClick={operator.clickToOpenDetail} onEnter={operator.enterToOpenDetail} onDataDrop={albumOperator.dropEvent}/>
+        return () => viewMode.value === "grid"
+            ? <IllustGrid data={markRaw(dataView.data.value)} onDataUpdate={dataView.dataUpdate} draggable={true} droppable={editable.value}
+                          queryEndpoint={markRaw(endpoint.proxy)} fitType={fitType.value} columnNum={columnNum.value}
+                          selected={selected.value} lastSelected={lastSelected.value} onSelect={updateSelected}
+                          onRightClick={i => menu.popup(i as AlbumImage)} onDblClick={operator.clickToOpenDetail} onEnter={operator.enterToOpenDetail} onDataDrop={albumOperator.dropEvent}/>
+            : <IllustRowList data={markRaw(dataView.data.value)} onDataUpdate={dataView.dataUpdate} draggable={true} droppable={editable.value}
+                             queryEndpoint={markRaw(endpoint.proxy)} selected={selected.value} lastSelected={lastSelected.value} onSelect={updateSelected}
+                             onRightClick={i => menu.popup(i as AlbumImage)} onDblClick={operator.clickToOpenDetail} onEnter={operator.enterToOpenDetail} onDataDrop={albumOperator.dropEvent}/>
     }
 })
 

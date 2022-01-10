@@ -15,7 +15,8 @@ export interface ImportContext {
         endpoint: QueryEndpointResult<ImportImage>
         scrollView: Readonly<ScrollView>
     }
-    viewController: {
+    listController: {
+        viewMode: Ref<"row" | "grid">
         fitType: Ref<FitType>
         columnNum: Ref<number>
     }
@@ -41,14 +42,15 @@ export interface ImportContext {
 
 export const [installImportContext, useImportContext] = installation(function(): ImportContext {
     const list = useImportListContext()
-    const viewController = useViewController()
+    const listController = useListController()
     const selector = useSelector(list.endpoint)
     const pane = usePaneContext(selector)
     const operation = useImportOperationContext(list.dataView, list.endpoint, pane)
 
-    return {list, viewController, selector, pane, operation}
+    return {list, listController, selector, pane, operation}
 })
 
+//TODO 提取detail selector部分抽离到dataset layout
 function usePaneContext(selector: ReturnType<typeof useSelector>) {
     const paneMode = ref<"detail" | "batchUpdate" | null>(null)
     const paneDetail = ref<number[] | null>(null)
@@ -119,19 +121,22 @@ function useImportListContext() {
     return {endpoint, dataView, scrollView}
 }
 
-function useViewController() {
+//TODO 抽离到dataset layout
+function useListController() {
     const storage = useLocalStorageWithDefault<{
-        fitType: FitType, columnNum: number, collectionMode: boolean
-    }>("illust-grid/view-controller", {
-        fitType: "cover", columnNum: 8, collectionMode: false
+        fitType: FitType, columnNum: number, viewMode: "grid" | "row"
+    }>("import-image-dataset/view-controller", {
+        fitType: "cover", columnNum: 8, viewMode: "row"
     })
 
     return {
         fitType: splitRef(storage, "fitType"),
-        columnNum: splitRef(storage, "columnNum")
+        columnNum: splitRef(storage, "columnNum"),
+        viewMode: splitRef(storage, "viewMode")
     }
 }
 
+//TODO 抽离到dataset layout
 function useSelector(endpoint: QueryEndpointResult<ImportImage>) {
     const selected = ref<number[]>([])
     const lastSelected = ref<number | null>(null)
@@ -203,7 +208,12 @@ function useListContentUpdater(dataView: PaginationDataView<ImportImage>) {
                                         file: res.data.file,
                                         thumbnailFile: res.data.thumbnailFile,
                                         fileName: res.data.fileName,
-                                        fileImportTime: res.data.fileImportTime
+                                        source: res.data.source,
+                                        sourceId: res.data.sourceId,
+                                        sourcePart: res.data.sourcePart,
+                                        tagme: res.data.tagme,
+                                        partitionTime: res.data.partitionTime,
+                                        orderTime: res.data.orderTime
                                     })
                                 }
                                 needUpdateItemSet.delete(itemId)
