@@ -493,6 +493,7 @@ class FolderService(private val data: DataRepository,
             .innerJoin(FileRecords, FileRecords.id eq Illusts.fileId)
             .select(FolderImageRelations.ordinal, Illusts.id,
                 Illusts.exportedScore, Illusts.favorite, Illusts.tagme, Illusts.orderTime,
+                Illusts.source, Illusts.sourceId, Illusts.sourcePart,
                 FileRecords.id, FileRecords.folder, FileRecords.extension, FileRecords.status)
             .where { FolderImageRelations.folderId eq id }
             .limit(filter.offset, filter.limit)
@@ -505,7 +506,10 @@ class FolderService(private val data: DataRepository,
                 val tagme = it[Illusts.tagme]!!
                 val orderTime = it[Illusts.orderTime]!!.parseDateTime()
                 val (file, thumbnailFile) = takeAllFilepath(it)
-                FolderImageRes(itemId, ordinal, file, thumbnailFile, score, favorite, tagme, orderTime)
+                val source = it[Illusts.source]
+                val sourceId = it[Illusts.sourceId]
+                val sourcePart = it[Illusts.sourcePart]
+                FolderImageRes(itemId, ordinal, file, thumbnailFile, score, favorite, tagme, source, sourceId, sourcePart, orderTime)
             }
     }
 }

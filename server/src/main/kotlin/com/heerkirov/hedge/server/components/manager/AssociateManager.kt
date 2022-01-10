@@ -52,6 +52,7 @@ class AssociateManager(private val data: DataRepository) {
         val illusts = data.db.from(Illusts)
             .innerJoin(FileRecords, Illusts.fileId eq FileRecords.id)
             .select(Illusts.id, Illusts.type, Illusts.exportedScore, Illusts.favorite, Illusts.tagme, Illusts.orderTime, Illusts.cachedChildrenCount,
+                Illusts.source, Illusts.sourceId, Illusts.sourcePart,
                 FileRecords.id, FileRecords.folder, FileRecords.extension, FileRecords.status)
             .where { Illusts.associateId eq associateId }
             .limit(0, limit)
@@ -65,7 +66,10 @@ class AssociateManager(private val data: DataRepository) {
                 val orderTime = it[Illusts.orderTime]!!.parseDateTime()
                 val (file, thumbnailFile) = takeAllFilepath(it)
                 val childrenCount = it[Illusts.cachedChildrenCount]!!.takeIf { type == Illust.IllustType.COLLECTION }
-                IllustRes(id, type, childrenCount, file, thumbnailFile, score, favorite, tagme, orderTime)
+                val source = it[Illusts.source]
+                val sourceId = it[Illusts.sourceId]
+                val sourcePart = it[Illusts.sourcePart]
+                IllustRes(id, type, childrenCount, file, thumbnailFile, score, favorite, tagme, source, sourceId, sourcePart, orderTime)
             }
 
         return AssociateRes(associateId, associate.cachedCount, illusts)

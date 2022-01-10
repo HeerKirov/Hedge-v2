@@ -13,6 +13,7 @@ import java.time.LocalDateTime
 data class IllustRes(val id: Int, val type: Illust.IllustType, val childrenCount: Int?,
                      val file: String, val thumbnailFile: String,
                      val score: Int?, val favorite: Boolean, val tagme: Illust.Tagme,
+                     val source: String?, val sourceId: Long?, val sourcePart: Int?,
                      val orderTime: LocalDateTime)
 
 data class IllustSimpleRes(val id: Int, val thumbnailFile: String)

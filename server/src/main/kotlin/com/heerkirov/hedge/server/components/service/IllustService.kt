@@ -70,6 +70,7 @@ class IllustService(private val data: DataRepository,
             .let { if(filter.topic == null) it else it.innerJoin(IllustTopicRelations, (IllustTopicRelations.illustId eq Illusts.id) and (IllustTopicRelations.topicId eq filter.topic)) }
             .let { if(filter.author == null) it else it.innerJoin(IllustAuthorRelations, (IllustAuthorRelations.illustId eq Illusts.id) and (IllustAuthorRelations.authorId eq filter.author)) }
             .select(Illusts.id, Illusts.type, Illusts.exportedScore, Illusts.favorite, Illusts.tagme, Illusts.orderTime, Illusts.cachedChildrenCount,
+                Illusts.source, Illusts.sourceId, Illusts.sourcePart,
                 FileRecords.id, FileRecords.folder, FileRecords.extension, FileRecords.status)
             .whereWithConditions {
                 it += when(filter.type) {
@@ -98,7 +99,10 @@ class IllustService(private val data: DataRepository,
                 val orderTime = it[Illusts.orderTime]!!.parseDateTime()
                 val (file, thumbnailFile) = takeAllFilepath(it)
                 val childrenCount = it[Illusts.cachedChildrenCount]!!.takeIf { type == Illust.IllustType.COLLECTION }
-                IllustRes(id, type, childrenCount, file, thumbnailFile, score, favorite, tagme, orderTime)
+                val source = it[Illusts.source]
+                val sourceId = it[Illusts.sourceId]
+                val sourcePart = it[Illusts.sourcePart]
+                IllustRes(id, type, childrenCount, file, thumbnailFile, score, favorite, tagme, source, sourceId, sourcePart, orderTime)
             }
     }
 
@@ -106,6 +110,7 @@ class IllustService(private val data: DataRepository,
         return data.db.from(Illusts)
             .innerJoin(FileRecords, Illusts.fileId eq FileRecords.id)
             .select(Illusts.id, Illusts.type, Illusts.exportedScore, Illusts.favorite, Illusts.tagme, Illusts.orderTime, Illusts.cachedChildrenCount,
+                Illusts.source, Illusts.sourceId, Illusts.sourcePart,
                 FileRecords.id, FileRecords.folder, FileRecords.extension, FileRecords.status)
             .where { Illusts.id inList imageIds }
             .map {
@@ -115,9 +120,12 @@ class IllustService(private val data: DataRepository,
                 val favorite = it[Illusts.favorite]!!
                 val tagme = it[Illusts.tagme]!!
                 val orderTime = it[Illusts.orderTime]!!.parseDateTime()
+                val source = it[Illusts.source]
+                val sourceId = it[Illusts.sourceId]
+                val sourcePart = it[Illusts.sourcePart]
                 val (file, thumbnailFile) = takeAllFilepath(it)
                 val childrenCount = it[Illusts.cachedChildrenCount]!!.takeIf { type == Illust.IllustType.COLLECTION }
-                id to IllustRes(id, type, childrenCount, file, thumbnailFile, score, favorite, tagme, orderTime)
+                id to IllustRes(id, type, childrenCount, file, thumbnailFile, score, favorite, tagme, source, sourceId, sourcePart, orderTime)
             }
             .toMap()
             .let { r -> imageIds.mapNotNull { r[it] } }
@@ -231,6 +239,7 @@ class IllustService(private val data: DataRepository,
         return data.db.from(Illusts)
             .innerJoin(FileRecords, Illusts.fileId eq FileRecords.id)
             .select(Illusts.id, Illusts.type, Illusts.exportedScore, Illusts.favorite, Illusts.tagme, Illusts.orderTime,
+                Illusts.source, Illusts.sourceId, Illusts.sourcePart,
                 FileRecords.id, FileRecords.folder, FileRecords.extension, FileRecords.status)
             .where { (Illusts.parentId eq id) and (Illusts.type eq Illust.Type.IMAGE_WITH_PARENT) }
             .limit(filter.offset, filter.limit)
@@ -243,7 +252,10 @@ class IllustService(private val data: DataRepository,
                 val tagme = it[Illusts.tagme]!!
                 val orderTime = it[Illusts.orderTime]!!.parseDateTime()
                 val (file, thumbnailFile) = takeAllFilepath(it)
-                IllustRes(itemId, type, null, file, thumbnailFile, score, favorite, tagme, orderTime)
+                val source = it[Illusts.source]
+                val sourceId = it[Illusts.sourceId]
+                val sourcePart = it[Illusts.sourcePart]
+                IllustRes(itemId, type, null, file, thumbnailFile, score, favorite, tagme, source, sourceId, sourcePart, orderTime)
             }
     }
 

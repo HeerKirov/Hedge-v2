@@ -23,6 +23,7 @@ data class AlbumDetailRes(val id: Int, val title: String, val imageCount: Int, v
 
 data class AlbumImageRes(val id: Int, val ordinal: Int, val file: String, val thumbnailFile: String,
                          val score: Int?, val favorite: Boolean, val tagme: Illust.Tagme,
+                         val source: String?, val sourceId: Long?, val sourcePart: Int?,
                          val orderTime: LocalDateTime)
 
 data class AlbumQueryFilter(@Limit val limit: Int,

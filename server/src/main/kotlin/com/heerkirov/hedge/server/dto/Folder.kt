@@ -20,6 +20,7 @@ data class FolderSimpleRes(val id: Int, val address: List<String>, val type: Fol
 
 data class FolderImageRes(val id: Int, val ordinal: Int, val file: String, val thumbnailFile: String,
                           val score: Int?, val favorite: Boolean, val tagme: Illust.Tagme,
+                          val source: String?, val sourceId: Long?, val sourcePart: Int?,
                           val orderTime: LocalDateTime)
 
 data class FolderQueryFilter(@Limit val limit: Int,

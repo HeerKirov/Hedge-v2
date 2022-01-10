@@ -197,6 +197,7 @@ class AlbumService(private val data: DataRepository,
             .leftJoin(FileRecords, Illusts.fileId eq FileRecords.id)
             .select(AlbumImageRelations.ordinal, Illusts.id,
                 Illusts.exportedScore, Illusts.favorite, Illusts.tagme, Illusts.orderTime,
+                Illusts.source, Illusts.sourceId, Illusts.sourcePart,
                 FileRecords.id, FileRecords.folder, FileRecords.extension, FileRecords.status)
             .where { AlbumImageRelations.albumId eq id }
             .limit(filter.offset, filter.limit)
@@ -209,7 +210,10 @@ class AlbumService(private val data: DataRepository,
                 val tagme = it[Illusts.tagme]!!
                 val orderTime = it[Illusts.orderTime]!!.parseDateTime()
                 val (file, thumbnailFile) = takeAllFilepath(it)
-                AlbumImageRes(imageId, ordinal, file, thumbnailFile, score, favorite, tagme, orderTime)
+                val source = it[Illusts.source]
+                val sourceId = it[Illusts.sourceId]
+                val sourcePart = it[Illusts.sourcePart]
+                AlbumImageRes(imageId, ordinal, file, thumbnailFile, score, favorite, tagme, source, sourceId, sourcePart, orderTime)
             }
     }
 

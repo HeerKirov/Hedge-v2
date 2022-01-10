@@ -50,7 +50,11 @@ class ImportService(private val data: DataRepository,
     fun list(filter: ImportFilter): ListResult<ImportImageRes> {
         return data.db.from(ImportImages)
             .innerJoin(FileRecords, FileRecords.id eq ImportImages.fileId)
-            .select(ImportImages.id, ImportImages.fileName, ImportImages.fileImportTime, FileRecords.id, FileRecords.folder, FileRecords.extension, FileRecords.status)
+            .select(
+                ImportImages.id, ImportImages.fileName,
+                ImportImages.source, ImportImages.sourceId, ImportImages.sourcePart,
+                ImportImages.partitionTime, ImportImages.orderTime, ImportImages.tagme,
+                FileRecords.id, FileRecords.folder, FileRecords.extension, FileRecords.status)
             .whereWithConditions {
                 if(!filter.search.isNullOrBlank()) {
                     it += ImportImages.fileName escapeLike filter.search.split(" ").map(String::trim).filter(String::isNotEmpty).joinToString("%", "%", "%")
@@ -60,7 +64,11 @@ class ImportService(private val data: DataRepository,
             .limit(filter.offset, filter.limit)
             .toListResult {
                 val (file, thumbnailFile) = takeAllFilepathOrNull(it)
-                ImportImageRes(it[ImportImages.id]!!, file, thumbnailFile, it[ImportImages.fileName], it[ImportImages.fileImportTime]!!)
+                ImportImageRes(
+                    it[ImportImages.id]!!, file, thumbnailFile, it[ImportImages.fileName],
+                    it[ImportImages.source], it[ImportImages.sourceId], it[ImportImages.sourcePart],
+                    it[ImportImages.tagme]!!,
+                    it[ImportImages.partitionTime]!!, it[ImportImages.orderTime]!!.parseDateTime())
             }
     }
 
