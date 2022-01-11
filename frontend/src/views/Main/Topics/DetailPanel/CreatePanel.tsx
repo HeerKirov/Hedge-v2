@@ -1,7 +1,8 @@
 import { defineComponent, ref, watch } from "vue"
 import TopBarTransparentLayout from "@/layouts/layouts/TopBarTransparentLayout"
+import { DetailTopic, TopicCreateForm, TopicExceptions, TopicType } from "@/functions/adapter-http/impl/topic"
 import { useMessageBox } from "@/functions/module/message-box"
-import { DetailTopic, TopicCreateForm, TopicExceptions } from "@/functions/adapter-http/impl/topic"
+import { useLocalStorageWithDefault } from "@/functions/app"
 import { useObjectCreator } from "@/functions/utils/endpoints/object-creator"
 import { checkTagName } from "@/utils/check"
 import FormEditor, { FormEditorData } from "./FormEditor"
@@ -11,8 +12,9 @@ export default defineComponent({
     setup() {
         const message = useMessageBox()
         const { createMode, endpoint, closePane } = useTopicContext()
+        const defaultType = useLocalStorageWithDefault<TopicType>("author/default-type", "UNKNOWN")
 
-        const form = ref<CreatorData>(mapCreatorData(createMode.value!))
+        const form = ref<CreatorData>(mapCreatorData(createMode.value!, defaultType.value))
 
         function update<T extends CreatorProps>(key: T, value: CreatorData[T]) {
             form.value[key] = value
@@ -24,7 +26,7 @@ export default defineComponent({
 
         watch(createMode, template => {
             if(template != null) {
-                form.value = mapCreatorData(template)
+                form.value = mapCreatorData(template, defaultType.value)
             }
         })
 
@@ -51,6 +53,7 @@ export default defineComponent({
                 }
             },
             afterCreate() {
+                defaultType.value = form.value.type
                 closePane()
                 endpoint.refresh()
             },
@@ -119,12 +122,12 @@ const TopBarContent = defineComponent({
     }
 })
 
-function mapCreatorData(mode: Partial<DetailTopic>): CreatorData {
+function mapCreatorData(mode: Partial<DetailTopic>, defaultType: TopicType): CreatorData {
     return {
         name: mode.name ?? "",
         otherNames: mode.otherNames ?? [],
         parent: mode.parents?.length ? mode.parents[mode.parents.length - 1] : null,
-        type: mode.type ?? "UNKNOWN",
+        type: mode.type ?? defaultType,
         description: mode.description ?? "",
         keywords: mode.keywords ?? [],
         links: mode.links ?? [],

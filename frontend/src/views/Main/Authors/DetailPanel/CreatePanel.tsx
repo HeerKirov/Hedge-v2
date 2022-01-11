@@ -1,8 +1,8 @@
 import { defineComponent, ref, watch } from "vue"
 import TopBarTransparentLayout from "@/layouts/layouts/TopBarTransparentLayout"
+import { DetailAuthor, AuthorCreateForm, AuthorExceptions, AuthorType } from "@/functions/adapter-http/impl/author"
+import { useLocalStorageWithDefault } from "@/functions/app"
 import { useMessageBox } from "@/functions/module/message-box"
-import { DetailAuthor, AuthorCreateForm, AuthorExceptions } from "@/functions/adapter-http/impl/author"
-import { IdResponse } from "@/functions/adapter-http/impl/generic"
 import { useObjectCreator } from "@/functions/utils/endpoints/object-creator"
 import { checkTagName } from "@/utils/check"
 import FormEditor, { FormEditorData } from "./FormEditor"
@@ -12,8 +12,9 @@ export default defineComponent({
     setup() {
         const message = useMessageBox()
         const { createMode, endpoint, closePane } = useAuthorContext()
+        const defaultType = useLocalStorageWithDefault<AuthorType>("author/default-type", "UNKNOWN")
 
-        const form = ref<CreatorData>(mapCreatorData(createMode.value!))
+        const form = ref<CreatorData>(mapCreatorData(createMode.value!, defaultType.value))
 
         function update<T extends CreatorProps>(key: T, value: CreatorData[T]) {
             form.value[key] = value
@@ -25,7 +26,7 @@ export default defineComponent({
 
         watch(createMode, template => {
             if(template != null) {
-                form.value = mapCreatorData(template)
+                form.value = mapCreatorData(template, defaultType.value)
             }
         })
 
@@ -52,6 +53,7 @@ export default defineComponent({
                 }
             },
             afterCreate() {
+                defaultType.value = form.value.type
                 closePane()
                 endpoint.refresh()
             },
@@ -110,11 +112,11 @@ const TopBarContent = defineComponent({
     }
 })
 
-function mapCreatorData(mode: Partial<DetailAuthor>): CreatorData {
+function mapCreatorData(mode: Partial<DetailAuthor>, defaultType: AuthorType): CreatorData {
     return {
         name: mode.name ?? "",
         otherNames: mode.otherNames ?? [],
-        type: mode.type ?? "UNKNOWN",
+        type: mode.type ?? defaultType,
         description: mode.description ?? "",
         keywords: mode.keywords ?? [],
         links: mode.links ?? [],
