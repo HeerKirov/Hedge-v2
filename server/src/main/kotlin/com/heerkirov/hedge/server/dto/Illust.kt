@@ -18,10 +18,12 @@ data class IllustRes(val id: Int, val type: Illust.IllustType, val childrenCount
 
 data class IllustSimpleRes(val id: Int, val thumbnailFile: String)
 
-data class IllustDetailRes(val id: Int, val fileId: Int, val file: String, val thumbnailFile: String,
+data class IllustDetailRes(val id: Int, val type: Illust.IllustType, val childrenCount: Int?,
+                           val file: String, val thumbnailFile: String,
                            val topics: List<TopicSimpleRes>, val authors: List<AuthorSimpleRes>, val tags: List<TagSimpleRes>,
                            val description: String, val score: Int?, val favorite: Boolean, val tagme: Illust.Tagme,
                            val originDescription: String, val originScore: Int?,
+                           val source: String?, val sourceId: Long?, val sourcePart: Int?,
                            val partitionTime: LocalDate, val orderTime: LocalDateTime,
                            val createTime: LocalDateTime, val updateTime: LocalDateTime)
 
@@ -73,6 +75,8 @@ class IllustImageRelatedUpdateForm(val associateId: Opt<Int?>, val collectionId:
 class IllustImageOriginUpdateForm(val source: Opt<String?>, val sourceId: Opt<Long?>, val sourcePart: Opt<Int?>,
                                   val title: Opt<String?>, val description: Opt<String?>, val tags: Opt<List<SourceTagForm>>,
                                   val pools: Opt<List<String>>, val relations: Opt<List<Int>>)
+
+class IllustBatchUpdateForm(val target: List<Int>)
 
 class ImagePropsCloneForm(val props: Props, val merge: Boolean = false, val deleteFrom: Boolean = false, val from: Int, val to: Int) {
     data class Props(

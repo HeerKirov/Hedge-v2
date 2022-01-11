@@ -134,27 +134,31 @@ class IllustService(private val data: DataRepository,
     /**
      * @throws NotFound 请求对象不存在
      */
-    fun get(id: Int, type: Illust.IllustType): IllustDetailRes {
+    fun get(id: Int, type: Illust.IllustType? = null): IllustDetailRes {
         val row = data.db.from(Illusts)
             .innerJoin(FileRecords, FileRecords.id eq Illusts.fileId)
             .select(
                 FileRecords.id, FileRecords.folder, FileRecords.extension, FileRecords.status,
-                Illusts.description, Illusts.score,
+                Illusts.type, Illusts.cachedChildrenCount, Illusts.description, Illusts.score,
                 Illusts.exportedDescription, Illusts.exportedScore, Illusts.favorite, Illusts.tagme,
+                Illusts.source, Illusts.sourceId, Illusts.sourcePart,
                 Illusts.partitionTime, Illusts.orderTime, Illusts.createTime, Illusts.updateTime)
             .where { retrieveCondition(id, type) }
             .firstOrNull()
             ?: throw be(NotFound())
 
-        val fileId = row[FileRecords.id]!!
         val (file, thumbnailFile) = takeAllFilepath(row)
-
+        val finalType = type ?: if(row[Illusts.type]!! == Illust.Type.COLLECTION) Illust.IllustType.COLLECTION else Illust.IllustType.IMAGE
+        val childrenCount = row[Illusts.cachedChildrenCount]!!.takeIf { finalType == Illust.IllustType.COLLECTION }
         val originDescription = row[Illusts.description]!!
         val originScore = row[Illusts.score]
         val description = row[Illusts.exportedDescription]!!
         val score = row[Illusts.exportedScore]
         val favorite = row[Illusts.favorite]!!
         val tagme = row[Illusts.tagme]!!
+        val source = row[Illusts.source]
+        val sourceId = row[Illusts.sourceId]
+        val sourcePart = row[Illusts.sourcePart]
         val partitionTime = row[Illusts.partitionTime]!!
         val orderTime = row[Illusts.orderTime]!!.parseDateTime()
         val createTime = row[Illusts.createTime]!!
@@ -193,10 +197,12 @@ class IllustService(private val data: DataRepository,
             .map { TagSimpleRes(it[Tags.id]!!, it[Tags.name]!!, it[Tags.color], it[IllustTagRelations.isExported]!!) }
 
         return IllustDetailRes(
-            id, fileId, file, thumbnailFile,
+            id, finalType, childrenCount,
+            file, thumbnailFile,
             topics, authors, tags,
             description, score, favorite, tagme,
             originDescription, originScore,
+            source, sourceId, sourcePart,
             partitionTime, orderTime, createTime, updateTime
         )
     }
