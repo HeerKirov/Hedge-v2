@@ -1,14 +1,13 @@
-import { computed, InjectionKey, onBeforeMount, ref, Ref, watch } from "vue"
-import { FitType } from "@/layouts/data/IllustGrid"
+import { computed, InjectionKey, onBeforeMount, ref, Ref } from "vue"
+import { FitType, SelectedState, useIllustDatasetController, useSelectedState } from "@/layouts/data/Dataset"
 import { ScrollView, useScrollView } from "@/components/features/VirtualScrollView"
 import { useToast } from "@/functions/module/toast"
-import { useHttpClient, useLocalStorageWithDefault } from "@/functions/app"
+import { useHttpClient } from "@/functions/app"
 import { CollectionRelatedItems, CollectionRelatedUpdateForm, CollectionUpdateForm, DetailIllust, Illust, IllustExceptions, } from "@/functions/adapter-http/impl/illust"
 import { PaginationDataView, QueryEndpointResult, SingletonDataView, usePaginationDataView, useQueryEndpoint } from "@/functions/utils/endpoints/query-endpoint"
 import { installObjectLazyObject, ObjectLazyObjectInjection, useObjectLazyObject } from "@/functions/utils/endpoints/object-lazy-endpoint"
 import { useFastObjectEndpoint } from "@/functions/utils/endpoints/object-fast-endpoint"
-import { installation, splitRef } from "@/functions/utils/basic"
-import { useListeningEvent } from "@/functions/utils/emitter"
+import { installation } from "@/functions/utils/basic"
 
 export interface PreviewContext {
     /**
@@ -48,10 +47,7 @@ export interface PreviewContext {
             fitType: Ref<FitType>
             columnNum: Ref<number>
         }
-        selector: {
-            selected: Ref<number[]>
-            lastSelected: Ref<number | null>
-        }
+        selector: SelectedState
     }
     ui: {
         /**
@@ -123,9 +119,9 @@ function useDataContext(data: SingletonDataView<Illust>, toastRefresh: () => voi
 function useImagesContext(id: Ref<number | null>): PreviewContext["images"] {
     const list = useListContext(id)
 
-    const viewController = useViewController()
+    const viewController = useIllustDatasetController()
 
-    const selector = useSelector(list.endpoint)
+    const selector = useSelectedState(list.endpoint)
 
     return {...list, viewController, selector}
 }
@@ -148,42 +144,6 @@ function useListContext(path: Ref<number | null>) {
     const dataView = usePaginationDataView(endpoint)
 
     return {endpoint, dataView, scrollView}
-}
-
-function useViewController() {
-    const storage = useLocalStorageWithDefault<{
-        fitType: FitType, columnNum: number, viewMode: "row" | "grid"
-    }>("illust-dataset/view-controller", {
-        fitType: "cover", columnNum: 8, viewMode: "grid"
-    })
-
-    return {
-        fitType: splitRef(storage, "fitType"),
-        columnNum: splitRef(storage, "columnNum"),
-        viewMode: splitRef(storage, "viewMode")
-    }
-}
-
-function useSelector(endpoint: QueryEndpointResult<Illust>) {
-    const selected = ref<number[]>([])
-    const lastSelected = ref<number | null>(null)
-
-    watch(endpoint.instance, () => {
-        //在更新实例时，清空已选择项
-        selected.value = []
-        lastSelected.value = null
-    })
-    useListeningEvent(endpoint.modifiedEvent, e => {
-        if(e.type === "remove") {
-            //当监听到数据被移除时，检查是否属于当前已选择项，并将其从已选择中移除
-            const id = e.oldValue.id
-            const index = selected.value.findIndex(i => i === id)
-            if(index >= 0) selected.value.splice(index, 1)
-            if(lastSelected.value === id) lastSelected.value = null
-        }
-    })
-
-    return {selected, lastSelected}
 }
 
 function installSideBarEndpoints(path: Ref<number | null>) {

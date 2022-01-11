@@ -181,7 +181,7 @@ const ExampleContent = defineComponent({
         const navigator = useRouterNavigator()
         const { exampleData } = useAuthorDetailContext()
 
-        const more = () => navigator.goto({routeName: "MainIllusts", params: {topicName: props.name}})
+        const more = () => navigator.goto({routeName: "MainIllusts", params: {authorName: props.name}})
 
         return () => exampleData.value?.total ? <div>
             <GridImage value={exampleData.value!.result.map(i => i.thumbnailFile)} columnNum={5} radius="std" boxShadow={true}/>

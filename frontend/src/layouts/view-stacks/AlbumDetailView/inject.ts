@@ -1,14 +1,13 @@
-import { computed, onBeforeMount, ref, Ref, watch } from "vue"
+import { computed, onBeforeMount, ref, Ref } from "vue"
 import { Album, AlbumExceptions, AlbumImage, AlbumUpdateForm, DetailAlbum } from "@/functions/adapter-http/impl/album"
 import { ScrollView, useScrollView } from "@/components/features/VirtualScrollView"
 import { PaginationDataView, QueryEndpointResult, SingletonDataView, usePaginationDataView, useQueryEndpoint } from "@/functions/utils/endpoints/query-endpoint"
-import { FitType } from "@/layouts/data/IllustGrid"
+import { FitType, SelectedState, useIllustDatasetController, useSelectedState } from "@/layouts/data/Dataset"
 import { useToast } from "@/functions/module/toast"
 import { useHttpClient, useLocalStorageWithDefault } from "@/functions/app"
 import { useObjectEndpoint, ObjectEndpoint } from "@/functions/utils/endpoints/object-endpoint"
 import { useFastObjectEndpoint } from "@/functions/utils/endpoints/object-fast-endpoint"
-import { useListeningEvent } from "@/functions/utils/emitter"
-import { installation, splitRef } from "@/functions/utils/basic"
+import { installation } from "@/functions/utils/basic"
 
 export interface PreviewContext {
     /**
@@ -49,10 +48,7 @@ export interface PreviewContext {
             columnNum: Ref<number>
             editable: Ref<boolean>
         }
-        selector: {
-            selected: Ref<number[]>
-            lastSelected: Ref<number | null>
-        }
+        selector: SelectedState
     }
     /**
      * sidebar detail info的数据。
@@ -115,7 +111,7 @@ function useDataContext(data: SingletonDataView<Album>, toastRefresh: () => void
         if(target.value !== null) {
             const ok = await deleteData(target.value.id)
             if(ok) {
-                await data.syncOperations.remove()
+                data.syncOperations.remove()
             }
             return ok
         }else{
@@ -131,9 +127,12 @@ function useDataContext(data: SingletonDataView<Album>, toastRefresh: () => void
 function useImagesContext(id: Ref<number | null>): PreviewContext["images"] {
     const list = useListContext(id)
 
-    const viewController = useViewController()
+    const viewController = {
+        ...useIllustDatasetController(),
+        editable: useLocalStorageWithDefault<boolean>("album-detail/editable", false)
+    }
 
-    const selector = useSelector(list.endpoint)
+    const selector = useSelectedState(list.endpoint)
 
     return {...list, viewController, selector}
 }
@@ -156,45 +155,6 @@ function useListContext(path: Ref<number | null>) {
     const dataView = usePaginationDataView(endpoint)
 
     return {endpoint, dataView, scrollView}
-}
-
-function useViewController() {
-    const storage = useLocalStorageWithDefault<{
-        fitType: FitType, columnNum: number, viewMode: "row" | "grid"
-    }>("illust-dataset/view-controller", {
-        fitType: "cover", columnNum: 8, viewMode: "grid"
-    })
-
-    const editable = useLocalStorageWithDefault<boolean>("album-detail/editable", false)
-
-    return {
-        columnNum: splitRef(storage, "columnNum"),
-        fitType: splitRef(storage, "fitType"),
-        viewMode: splitRef(storage, "viewMode"),
-        editable
-    }
-}
-
-function useSelector(endpoint: QueryEndpointResult<AlbumImage>) {
-    const selected = ref<number[]>([])
-    const lastSelected = ref<number | null>(null)
-
-    watch(endpoint.instance, () => {
-        //在更新实例时，清空已选择项
-        selected.value = []
-        lastSelected.value = null
-    })
-    useListeningEvent(endpoint.modifiedEvent, e => {
-        if(e.type === "remove") {
-            //当监听到数据被移除时，检查是否属于当前已选择项，并将其从已选择中移除
-            const id = e.oldValue.id
-            const index = selected.value.findIndex(i => i === id)
-            if(index >= 0) selected.value.splice(index, 1)
-            if(lastSelected.value === id) lastSelected.value = null
-        }
-    })
-
-    return {selected, lastSelected}
 }
 
 function useDetailInfoEndpoint(path: Ref<number | null>) {

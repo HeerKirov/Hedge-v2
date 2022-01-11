@@ -1,13 +1,12 @@
 import { computed, ref, Ref, watch } from "vue"
 import { ScrollView, useScrollView } from "@/components/features/VirtualScrollView"
-import { FitType } from "@/layouts/data/IllustGrid"
+import { FitType, SelectedState, useImportImageDatasetController, useSelectedState } from "@/layouts/data/Dataset"
 import { ImportImage } from "@/functions/adapter-http/impl/import"
 import { PaginationDataView, QueryEndpointResult, usePaginationDataView, useQueryEndpoint } from "@/functions/utils/endpoints/query-endpoint"
-import { useHttpClient, useLocalStorageWithDefault } from "@/functions/app"
+import { useHttpClient } from "@/functions/app"
 import { useToast } from "@/functions/module/toast"
 import { useImportService } from "@/functions/api/import"
-import { installation, splitRef } from "@/functions/utils/basic"
-import { useListeningEvent } from "@/functions/utils/emitter"
+import { installation } from "@/functions/utils/basic"
 
 export interface ImportContext {
     list: {
@@ -20,10 +19,7 @@ export interface ImportContext {
         fitType: Ref<FitType>
         columnNum: Ref<number>
     }
-    selector: {
-        selected: Ref<number[]>
-        lastSelected: Ref<number | null>
-    }
+    selector: SelectedState
     operation: {
         canSave: Ref<boolean>
         save(): void
@@ -42,8 +38,8 @@ export interface ImportContext {
 
 export const [installImportContext, useImportContext] = installation(function(): ImportContext {
     const list = useImportListContext()
-    const listController = useListController()
-    const selector = useSelector(list.endpoint)
+    const listController = useImportImageDatasetController()
+    const selector = useSelectedState(list.endpoint)
     const pane = usePaneContext(selector)
     const operation = useImportOperationContext(list.dataView, list.endpoint, pane)
 
@@ -51,7 +47,7 @@ export const [installImportContext, useImportContext] = installation(function():
 })
 
 //TODO 提取detail selector部分抽离到dataset layout
-function usePaneContext(selector: ReturnType<typeof useSelector>) {
+function usePaneContext(selector: SelectedState) {
     const paneMode = ref<"detail" | "batchUpdate" | null>(null)
     const paneDetail = ref<number[] | null>(null)
     const paneLastDetail = ref<number | null>(null)
@@ -119,44 +115,6 @@ function useImportListContext() {
     })
 
     return {endpoint, dataView, scrollView}
-}
-
-//TODO 抽离到dataset layout
-function useListController() {
-    const storage = useLocalStorageWithDefault<{
-        fitType: FitType, columnNum: number, viewMode: "grid" | "row"
-    }>("import-image-dataset/view-controller", {
-        fitType: "cover", columnNum: 8, viewMode: "row"
-    })
-
-    return {
-        fitType: splitRef(storage, "fitType"),
-        columnNum: splitRef(storage, "columnNum"),
-        viewMode: splitRef(storage, "viewMode")
-    }
-}
-
-//TODO 抽离到dataset layout
-function useSelector(endpoint: QueryEndpointResult<ImportImage>) {
-    const selected = ref<number[]>([])
-    const lastSelected = ref<number | null>(null)
-
-    watch(endpoint.instance, () => {
-        //在更新实例时，清空已选择项
-        selected.value = []
-        lastSelected.value = null
-    })
-    useListeningEvent(endpoint.modifiedEvent, e => {
-        if(e.type === "remove") {
-            //当监听到数据被移除时，检查是否属于当前已选择项，并将其从已选择中移除
-            const id = e.oldValue.id
-            const index = selected.value.findIndex(i => i === id)
-            if(index >= 0) selected.value.splice(index, 1)
-            if(lastSelected.value === id) lastSelected.value = null
-        }
-    })
-
-    return {selected, lastSelected}
 }
 
 function useImportOperationContext(dataView: PaginationDataView<ImportImage>, endpoint: QueryEndpointResult<ImportImage>, pane: ReturnType<typeof usePaneContext>) {

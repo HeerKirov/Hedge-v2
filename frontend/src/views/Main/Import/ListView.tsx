@@ -1,5 +1,5 @@
 import { defineComponent, markRaw } from "vue"
-import { ImportImageGrid, ImportImageRowList } from "@/layouts/data/IllustGrid"
+import { ImportImageGrid, ImportImageRowList } from "@/layouts/data/Dataset"
 import { ImportImage } from "@/functions/adapter-http/impl/import"
 import { useFastObjectEndpoint } from "@/functions/utils/endpoints/object-fast-endpoint"
 import { useMessageBox } from "@/functions/module/message-box"

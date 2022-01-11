@@ -7,7 +7,7 @@ import {
     GridContextOperatorResult,
     useGridContextOperator,
     IllustRowList
-} from "@/layouts/data/IllustGrid"
+} from "@/layouts/data/Dataset"
 import { FolderImage } from "@/functions/adapter-http/impl/folder"
 import { TypeDefinition } from "@/functions/feature/drag/definition"
 import { useAddToFolderService } from "@/layouts/dialogs/AddToFolder"

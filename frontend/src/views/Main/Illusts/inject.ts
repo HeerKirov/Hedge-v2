@@ -1,14 +1,13 @@
 import { ref, Ref, watch } from "vue"
 import { ScrollView, useScrollView } from "@/components/features/VirtualScrollView"
-import { FitType } from "@/layouts/data/IllustGrid"
+import { FitType, SelectedState, useIllustDatasetController, useSelectedState } from "@/layouts/data/Dataset"
 import { QuerySchemaContext, useQuerySchemaContext } from "@/layouts/topbars/Query"
 import { PaginationDataView, QueryEndpointResult, usePaginationDataView, useQueryEndpoint } from "@/functions/utils/endpoints/query-endpoint"
 import { Illust, IllustQueryFilter } from "@/functions/adapter-http/impl/illust"
-import { useHttpClient, useLocalStorageWithDefault } from "@/functions/app"
+import { useHttpClient } from "@/functions/app"
 import { useRouterParamEvent } from "@/functions/feature/router"
 import { useToast } from "@/functions/module/toast"
-import { useListeningEvent } from "@/functions/utils/emitter"
-import { installation, splitRef } from "@/functions/utils/basic"
+import { installation } from "@/functions/utils/basic"
 import { LocalDate } from "@/utils/datetime"
 
 export interface IllustContext {
@@ -24,20 +23,21 @@ export interface IllustContext {
         partition: Ref<LocalDate> | null
         closePartition?: () => void
     }
-    selector: {
-        selected: Ref<number[]>
-        lastSelected: Ref<number | null>
-    }
+    selector: SelectedState
 }
 
 export const [installIllustContext, useIllustContext] = installation(function(partition: Ref<LocalDate> | null, closePartition: (() => void) | undefined): IllustContext {
     const querySchema = useQuerySchemaContext("ILLUST")
 
-    const viewController = useViewController(partition, closePartition)
+    const viewController = {
+        ...useIllustDatasetController(),
+        partition,
+        closePartition
+    }
 
     const list = useListContext(viewController.collectionMode, partition, querySchema)
 
-    const selector = useSelector(list.endpoint)
+    const selector = useSelectedState(list.endpoint)
 
     return {...list, querySchema, viewController, selector}
 })
@@ -75,40 +75,3 @@ function useListContext(collectionMode: Ref<boolean>, partition: Ref<LocalDate> 
     return {endpoint, dataView, scrollView, query: querySchema.query}
 }
 
-function useViewController(partition: Ref<LocalDate> | null, closePartition: (() => void) | undefined) {
-    const storage = useLocalStorageWithDefault<{
-        fitType: FitType, columnNum: number, collectionMode: boolean, viewMode: "row" | "grid"
-    }>("illust-dataset/view-controller", {
-        fitType: "cover", columnNum: 8, collectionMode: false, viewMode: "grid"
-    })
-
-    return {
-        fitType: splitRef(storage, "fitType"),
-        columnNum: splitRef(storage, "columnNum"),
-        collectionMode: splitRef(storage, "collectionMode"),
-        viewMode: splitRef(storage, "viewMode"),
-        partition, closePartition
-    }
-}
-
-function useSelector(endpoint: QueryEndpointResult<Illust>) {
-    const selected = ref<number[]>([])
-    const lastSelected = ref<number | null>(null)
-
-    watch(endpoint.instance, () => {
-        //在更新实例时，清空已选择项
-        selected.value = []
-        lastSelected.value = null
-    })
-    useListeningEvent(endpoint.modifiedEvent, e => {
-        if(e.type === "remove") {
-            //当监听到数据被移除时，检查是否属于当前已选择项，并将其从已选择中移除
-            const id = e.oldValue.id
-            const index = selected.value.findIndex(i => i === id)
-            if(index >= 0) selected.value.splice(index, 1)
-            if(lastSelected.value === id) lastSelected.value = null
-        }
-    })
-
-    return {selected, lastSelected}
-}

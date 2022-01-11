@@ -1,24 +1,24 @@
 import { computed, defineComponent, inject, InjectionKey, PropType, provide, ref, Ref, toRef } from "vue"
-import { VirtualRow } from "@/components/features/VirtualScrollView"
-import { SourceInfo, TagmeInfo } from "@/layouts/displays"
 import { installSettingSite } from "@/functions/api/setting"
-import { TypeDefinition } from "@/functions/feature/drag/definition"
+import { VirtualRow } from "@/components/features/VirtualScrollView"
 import { PaginationData, QueryEndpointInstance } from "@/functions/utils/endpoints/query-endpoint"
-import type { SuitableIllust } from "./context"
-import { datetime } from "@/utils/datetime"
+import { ImportImage } from "@/functions/adapter-http/impl/import"
+import { TypeDefinition } from "@/functions/feature/drag/definition"
+import { date, datetime } from "@/utils/datetime"
 import {
     SelectedCountBadge,
-    useContentEvents, useDragEvents, useDropEvents, useKeyboardEvents, useSummaryDropEvents, useSelector
+    useContentEvents, useDragEvents, useDropEvents, useKeyboardEvents, useSelector, useSummaryDropEvents
 } from "./common"
 import { InjectionContext, ItemImage } from "./common-row"
 import style from "./style.module.scss"
+import { SourceInfo, TagmeInfo } from "@/layouts/displays";
 
 export default defineComponent({
     props: {
         /**
          * 分页数据视图。
          */
-        data: {type: Object as PropType<PaginationData<SuitableIllust>>, required: true},
+        data: {type: Object as PropType<PaginationData<ImportImage>>, required: true},
         /**
          * 选择器：已选择项列表。
          */
@@ -30,13 +30,13 @@ export default defineComponent({
         /**
          * 数据查询端点。被选择器用到了。
          */
-        queryEndpoint: Object as PropType<QueryEndpointInstance<SuitableIllust>>,
+        queryEndpoint: Object as PropType<QueryEndpointInstance<ImportImage>>,
         /**
          * 可拖拽开关。开启后，项可以被拖拽。
          */
         draggable: Boolean,
         /**
-         * 可拖放开关。开启后，项可以被拖放illusts内容，并触发相应的drop事件。此外还有"末尾追加拖放区"。
+         * 可拖放开关。开启后，项可以被拖放importImages内容，并触发相应的drop事件。此外还有"末尾追加拖放区"。
          */
         droppable: {type: Boolean, default: undefined}
     },
@@ -45,8 +45,8 @@ export default defineComponent({
         select: (_selected: number[], __lastSelected: number | null) => true,
         enter: (_id: number) => true,
         dblClick: (_id: number, __shift: boolean) => true,
-        rightClick: (_id: unknown) => true,
-        dataDrop: (_insertIndex: number | null, _illusts: TypeDefinition["illusts"], _mode: "ADD" | "MOVE") => true,
+        rightClick: (_: ImportImage) => true,
+        dataDrop: (_insertIndex: number | null, _images: TypeDefinition["importImages"], _mode: "ADD" | "MOVE") => true,
     },
     setup(props, { emit }) {
         const selected = toRef(props, "selected")
@@ -54,16 +54,16 @@ export default defineComponent({
         const data = toRef(props, "data")
         const droppable = props.droppable !== undefined ? toRef(props, "droppable") as Ref<boolean> : undefined
         const drop = props.droppable !== undefined
-            ? (insertIndex: number, illusts: TypeDefinition["illusts"], mode: "ADD" | "MOVE") => emit("dataDrop", insertIndex, illusts, mode)
+            ? (insertIndex: number, images: TypeDefinition["importImages"], mode: "ADD" | "MOVE") => emit("dataDrop", insertIndex, images, mode)
             : undefined
 
         provide(contextInjection, {selected, lastSelected, data, queryEndpoint: props.queryEndpoint, draggable: props.draggable, droppable, drop, draggingFromLocal: ref(false)})
 
         const dataUpdate = (offset: number, limit: number) => emit("dataUpdate", offset, limit)
 
-        const dblClick = (illustId: number, option: boolean) => emit("dblClick", illustId, option)
-        const enter = (illustId: number) => emit("enter", illustId)
-        const rightClick = (illust: SuitableIllust) => emit("rightClick", illust)
+        const dblClick = (imageId: number, option: boolean) => emit("dblClick", imageId, option)
+        const enter = (imageId: number) => emit("enter", imageId)
+        const rightClick = (imageId: ImportImage) => emit("rightClick", imageId)
 
         const emitSelect = (selected: number[], lastSelected: number | null) => emit("select", selected, lastSelected)
 
@@ -80,7 +80,7 @@ const Content = defineComponent({
         select: (_: number[], __: number | null) => true,
         enter: (_: number) => true,
         dblClick: (_: number, __: boolean) => true,
-        rightClick: (_: SuitableIllust) => true
+        rightClick: (_: ImportImage) => true
     },
     setup(props, { emit }) {
         const { data, queryEndpoint, selected, lastSelected, droppable, draggingFromLocal, drop } = inject(contextInjection)!
@@ -98,13 +98,12 @@ const Content = defineComponent({
 
         const appendDropEvents = useSummaryDropEvents({
             droppable, draggingFromLocal,
-            byType: "illusts",
+            byType: "importImages",
             onDrop: drop
         })
 
-
         return () => <VirtualRow {...data.value.metrics} {...appendDropEvents}
-                                  onUpdate={dataUpdate} bufferSize={6} minUpdateDelta={3} rowHeight={32}>
+                                 onUpdate={dataUpdate} bufferSize={6} minUpdateDelta={3} rowHeight={32}>
             {data.value.result.map((item, i) => <Item key={item.id}
                                                       index={data.value.metrics.offset + i} data={item}
                                                       onDblClick={dblClick} onRightClick={rightClick} onClick={click}/>)}
@@ -114,13 +113,13 @@ const Content = defineComponent({
 
 const Item = defineComponent({
     props: {
-        data: {type: Object as PropType<SuitableIllust>, required: true},
+        data: {type: Object as PropType<ImportImage>, required: true},
         index: {type: Number, required: true}
     },
     emits: {
         dblClick: (_: number, __: boolean) => true,
-        rightClick: (_: SuitableIllust) => true,
-        click: (_: SuitableIllust, __: number, ___: MouseEvent) => true,
+        rightClick: (_: ImportImage) => true,
+        click: (_: ImportImage, __: number, ___: MouseEvent) => true,
     },
     setup(props, { emit }) {
         const { draggable, droppable, selected, queryEndpoint, draggingFromLocal, drop } = inject(contextInjection)!
@@ -138,35 +137,40 @@ const Item = defineComponent({
 
         const dragEvents = useDragEvents({
             draggable, selected, queryEndpoint,
-            byType: "illusts",
+            byType: "importImages",
             dataRef: () => toRef(props, "data"),
-            dataMap: illusts => illusts.map(illust => ({id: illust.id, type: illust.type ?? "IMAGE", thumbnailFile: illust.thumbnailFile, childrenCount: illust.childrenCount ?? null}))
+            dataMap: images => images
         })
         const dropEvents = useDropEvents({
             droppable, draggingFromLocal,
-            byType: "illusts",
+            byType: "importImages",
             indexRef: () => toRef(props, "index"),
             onDrop: drop
         })
 
-        //TODO 引入drop tooltip
-        return () => <div class={{[style.item]: true, [style.illust]: true, [style.selected]: currentSelected.value}} onClick={click} onDblclick={dblClick} onContextmenu={rightClick} {...dragEvents}>
-                <ItemImage thumbnailFile={props.data.thumbnailFile} type="illust" id={props.data.id}/>
-                <div class={style.title}><b>{props.data.id}</b></div>
-                <div class={style.childrenCount}>{props.data.childrenCount && <>
-                    <i class="fa fa-images mr-2"/>
-                    {props.data.childrenCount}项
-                </>}</div>
-                <div class={style.favorite}>{props.data.favorite && <i class="fa fa-heart has-text-danger"/>}</div>
-                <div class={style.score}>{props.data.score && <>
-                    <span>{props.data.score}</span>
-                    <span class="icon ml-1"><i class="fa fa-star"/></span>
-                </>}</div>
+        function render(slot?: JSX.Element) {
+            return <div class={{[style.item]: true, [style.importImage]: true, [style.selected]: currentSelected.value}} onClick={click} onDblclick={dblClick} onContextmenu={rightClick} {...dragEvents}>
+                <ItemImage thumbnailFile={props.data.thumbnailFile} type="import-image" id={props.data.id}/>
+                <div class={style.title}>{props.data.fileName}</div>
                 <div class={style.tagme}>{(props.data.tagme.length || null) && <TagmeInfo value={props.data.tagme}/>}</div>
                 <div class={style.source}><SourceInfo source={props.data.source} sourceId={props.data.sourceId} sourcePart={props.data.sourcePart}/></div>
-                <div class={style.time}>{datetime.toSimpleFormat(props.data.orderTime)}</div>
+                <div class={style.time}>
+                    <span class="has-text-grey pr-1">({date.toISOString(props.data.partitionTime)})</span>
+                    {datetime.toSimpleFormat(props.data.orderTime)}
+                </div>
+                {slot}
             </div>
+        }
+
+        return dropEvents != null
+            ? () => render(<>
+                {dropEvents.isLeftDragover.value && <div class={style.leftDropTooltip}/>}
+                {dropEvents.isRightDragover.value && <div class={style.rightDropTooltip}/>}
+                <div class={style.leftTouch} {...dropEvents.leftDropEvents}/>
+                <div class={style.rightTouch} {...dropEvents.rightDropEvents}/>
+            </>)
+            : () => render()
     }
 })
 
-const contextInjection: InjectionKey<InjectionContext<SuitableIllust, "illusts">> = Symbol()
+const contextInjection: InjectionKey<InjectionContext<ImportImage, "importImages">> = Symbol()

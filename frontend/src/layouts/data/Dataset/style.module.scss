@@ -110,6 +110,7 @@
     line-height: $item-height;
     padding: $item-padding 0.25rem;
     width: 100%;
+    position: relative;
     display: flex;
     flex-wrap: nowrap;
     box-sizing: border-box;
@@ -121,6 +122,29 @@
       background-color: $link;
       color: $white;
     }
+    //分侧的点击浮层(用于判断拖放位置)
+    > .left-touch {
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 50%;
+    }
+    > .right-touch {
+      position: absolute;
+      bottom: 0; left: 0; right: 0; height: 50%;
+    }
+    //两侧的拖放提示条
+    > .left-drop-tooltip {
+      z-index: 1;
+      position: absolute;
+      left: 0; right: 0; top: -2px; height: 5px;
+      background-color: rgba(127, 127, 127, 0.6);
+    }
+    > .right-drop-tooltip {
+      z-index: 1;
+      position: absolute;
+      left: 0; right: 0; bottom: -3px; height: 5px;
+      background-color: rgba(127, 127, 127, 0.6);
+    }
+
     > .img {
       width: #{$item-height - $item-padding * 2};
       flex-shrink: 0;

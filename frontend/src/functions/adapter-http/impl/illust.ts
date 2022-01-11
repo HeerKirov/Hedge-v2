@@ -387,6 +387,18 @@ interface IllustPublicPart {
      */
     tagme: Tagme[]
     /**
+     * source site name。
+     */
+    source: string | null
+    /**
+     * source id。
+     */
+    sourceId: number | null
+    /**
+     * source part。
+     */
+    sourcePart: number | null
+    /**
      * 此项目的排序时间。
      */
     orderTime: LocalDateTime
@@ -401,18 +413,6 @@ export interface Illust extends IllustPublicPart {
      * 子项目的数量。只有类型为COLLECTION的项目会有子项目。
      */
     childrenCount: number | null
-    /**
-     * source site name。
-     */
-    source: string | null
-    /**
-     * source id。
-     */
-    sourceId: number | null
-    /**
-     * source part。
-     */
-    sourcePart: number | null
 }
 
 export interface DetailIllust extends IllustPublicPart {

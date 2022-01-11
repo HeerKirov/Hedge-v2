@@ -2,7 +2,7 @@ import { computed, defineComponent } from "vue"
 import { useElementPopupMenu } from "@/functions/module/popup-menu"
 import { ColumnNumButton, DataRouter, FitTypeButton } from "@/layouts/topbars"
 import { useImportService } from "@/functions/api/import"
-import { FitType } from "@/layouts/data/IllustGrid"
+import { FitType } from "@/layouts/data/Dataset"
 import { useImportContext } from "./inject"
 import style from "./style.module.scss"
 

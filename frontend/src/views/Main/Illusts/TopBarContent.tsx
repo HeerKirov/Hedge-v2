@@ -1,7 +1,7 @@
 import { defineComponent } from "vue"
 import { DataRouter, ColumnNumButton, FitTypeButton, CollectionModeButton } from "@/layouts/topbars"
 import { QueryBox, QueryNotifyBadge } from "@/layouts/topbars/Query"
-import { FitType } from "@/layouts/data/IllustGrid"
+import { FitType } from "@/layouts/data/Dataset"
 import { useElementPopupMenu } from "@/functions/module/popup-menu"
 import { useIllustContext } from "./inject"
 

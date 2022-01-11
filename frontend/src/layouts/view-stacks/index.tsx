@@ -77,10 +77,9 @@ export const { ViewStack, installViewStack, useViewStack } = defineViewStackComp
                         orderTime: d.orderTime,
                         type: "COLLECTION",
                         childrenCount: 0,
-                        source: null,
-                        sourceId: null,
-                        sourcePart: null
-                        //tips: 这其中有些数据并不重要，因为是留给detail view的base model的，它们不会被用到。
+                        source: d.source,
+                        sourceId: d.sourceId,
+                        sourcePart: d.sourcePart
                     }
                 })
             }
