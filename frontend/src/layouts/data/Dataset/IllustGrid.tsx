@@ -43,7 +43,11 @@ export default defineComponent({
         /**
          * 可拖放开关。开启后，项可以被拖放illusts内容，并触发相应的drop事件。此外还有"末尾追加拖放区"。
          */
-        droppable: {type: Boolean, default: undefined}
+        droppable: {type: Boolean, default: undefined},
+        /**
+         * 显示右上角的选择计数角标。
+         */
+        showSelectCount: {type: Boolean, default: true}
     },
     emits: {
         dataUpdate: (_offset: number, _limit: number) => true,
@@ -75,7 +79,7 @@ export default defineComponent({
 
         return () => <div class={[style.grid, FIT_TYPE_CLASS[props.fitType], COLUMN_NUMBER_CLASS[props.columnNum]]}>
             <Content onDataUpdate={dataUpdate} onEnter={enter} onDblClick={dblClick} onRightClick={rightClick} onSelect={emitSelect}/>
-            <SelectedCountBadge count={selected.value.length}/>
+            {props.showSelectCount && <SelectedCountBadge count={selected.value.length}/>}
         </div>
     }
 })

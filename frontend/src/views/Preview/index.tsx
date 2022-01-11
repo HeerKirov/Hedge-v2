@@ -1,6 +1,7 @@
 import { defineComponent, provide, ref } from "vue"
 import { ViewStack, installViewStack } from "@/layouts/view-stacks"
-import { installDialogServiceContext } from "@/layouts/dialogs"
+import { DialogService, installDialogServiceContext } from "@/layouts/dialogs"
+import { installMetaTagCallout, MetaTagCallout } from "@/layouts/data/MetaTagCallout"
 import { DEFAULT_WIDTH, sideBarSwitchInjection, sideBarWidthInjection } from "@/layouts/layouts/SideLayout"
 import { useRouterParamEvent } from "@/functions/feature/router"
 
@@ -8,6 +9,7 @@ export default defineComponent({
     setup() {
         const viewStack = installViewStack()
         installDialogServiceContext()
+        installMetaTagCallout()
 
         provide(sideBarSwitchInjection, ref(true))
         provide(sideBarWidthInjection, ref(DEFAULT_WIDTH))
@@ -22,6 +24,10 @@ export default defineComponent({
             }
         })
 
-        return () => <ViewStack/>
+        return () => <>
+            <ViewStack/>
+            <DialogService/>
+            <MetaTagCallout/>
+        </>
     }
 })

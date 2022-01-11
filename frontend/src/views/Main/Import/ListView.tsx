@@ -9,7 +9,7 @@ import { useImportContext } from "./inject"
 
 export default defineComponent({
     setup() {
-        const { list: { dataView, endpoint }, listController: { viewMode, fitType, columnNum }, selector: { selected, lastSelected } } = useImportContext()
+        const { list: { dataView, endpoint }, listController: { viewMode, fitType, columnNum }, selector: { selected, lastSelected }, pane } = useImportContext()
 
         const updateSelected = (selectedValue: number[], lastSelectedValue: number | null) => {
             selected.value = selectedValue
@@ -20,12 +20,11 @@ export default defineComponent({
 
         return () => dataView.data.value.metrics.total !== undefined && dataView.data.value.metrics.total <= 0 ? <EmptyContent/>
             : viewMode.value === "grid" ? <ImportImageGrid data={markRaw(dataView.data.value)} onDataUpdate={dataView.dataUpdate} draggable={true}
-                               queryEndpoint={markRaw(endpoint.proxy)} fitType={fitType.value} columnNum={columnNum.value}
-                               selected={selected.value} lastSelected={lastSelected.value} onSelect={updateSelected}
-                               onRightClick={i => menu.popup(i)}/>
+                               queryEndpoint={markRaw(endpoint.proxy)} fitType={fitType.value} columnNum={columnNum.value} showSelectCount={!pane.visible.value}
+                               selected={selected.value} lastSelected={lastSelected.value} onSelect={updateSelected} onRightClick={i => menu.popup(i)}/>
             : <ImportImageRowList data={markRaw(dataView.data.value)} onDataUpdate={dataView.dataUpdate} draggable={true}
-                                  queryEndpoint={markRaw(endpoint.proxy)} selected={selected.value} lastSelected={lastSelected.value}
-                                  onSelect={updateSelected} onRightClick={i => menu.popup(i)}/>
+                                  queryEndpoint={markRaw(endpoint.proxy)} showSelectCount={!pane.visible.value}
+                                  selected={selected.value} lastSelected={lastSelected.value} onSelect={updateSelected} onRightClick={i => menu.popup(i)}/>
     }
 })
 
@@ -47,11 +46,7 @@ function useContextmenu() {
     const { list: { dataView, endpoint }, selector: { selected }, pane } = useImportContext()
 
     const menu = usePopupMenu<ImportImage>(() => [
-        pane.paneMode.value === null
-            ? { type: "checkbox", label: "显示信息预览", checked: false, click: i => pane.enableDetailPane(i.id) }
-            : { type: "checkbox", label: "显示信息预览", checked: true, click: () => pane.disableDetailPane() },
-        { type: "separator" },
-        { type: "normal", label: "批量信息编辑", click: pane.openBatchUpdatePane },
+        { type: "checkbox", label: "显示信息预览", checked: pane.visible.value, click: () => pane.visible.value = !pane.visible.value },
         { type: "separator" },
         { type: "normal", label: "删除项目", click: i => deleteItem(i.id) },
     ])

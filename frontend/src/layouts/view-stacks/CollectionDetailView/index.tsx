@@ -1,5 +1,4 @@
 import { defineComponent, PropType } from "vue"
-import MetaTagCallout, { installMetaTagCallout } from "@/layouts/data/MetaTagCallout"
 import SideLayout from "@/layouts/layouts/SideLayout"
 import { Illust } from "@/functions/adapter-http/impl/illust"
 import { SingletonDataView } from "@/functions/utils/endpoints/query-endpoint"
@@ -16,15 +15,11 @@ export default defineComponent({
     },
     setup(props, { emit }) {
         installPreviewContext(props.data, () => emit("toastRefresh"))
-        installMetaTagCallout()
 
         const sideLayoutSlots = {
             side() { return <SideBarContent/> },
             default() { return <MainContent/> }
         }
-        return () => <>
-            <SideLayout v-slots={sideLayoutSlots}/>
-            <MetaTagCallout/>
-        </>
+        return () => <SideLayout v-slots={sideLayoutSlots}/>
     }
 })

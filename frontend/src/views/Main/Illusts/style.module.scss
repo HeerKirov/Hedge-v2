@@ -1,16 +1,6 @@
 @import '@/styles/base/size.sass';
 @import '@/styles/base/color.scss';
 
-.top-bar-content {
-  .loading-box {
-    width: 12rem;
-    text-align: center;
-    > progress {
-      margin-top: 0.125rem;
-    }
-  }
-}
-
 .pane-detail-content {
   .top {
     margin-top: 1.75rem;

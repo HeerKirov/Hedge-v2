@@ -1,4 +1,4 @@
-import { computed, defineComponent, PropType, reactive, toRef } from "vue"
+import { computed, defineComponent, PropType, reactive, ref, toRef } from "vue"
 import CheckBox from "@/components/forms/CheckBox"
 import Select from "@/components/forms/Select"
 import ThumbnailImage from "@/components/elements/ThumbnailImage"
@@ -19,17 +19,30 @@ import style from "./style.module.scss"
 
 export default defineComponent({
     setup() {
-        const { pane: { paneMode, paneDetail, paneLastDetail, closePane, enableDetailPane } } = useImportContext()
+        const { pane: { state, visible } } = useImportContext()
 
-        return () => <PaneBasicLayout class={style.paneDetailContent} onClose={closePane}>
-            {paneMode.value === "detail" ? <DetailViewPane detailId={paneLastDetail.value}/>
-            : paneMode.value === "batchUpdate" ? <BatchUpdatePane selected={paneDetail.value} onClose={() => enableDetailPane()}/>
-            : undefined}
+        const close = () => visible.value = false
+
+        return () => <PaneBasicLayout class={style.paneDetailContent} onClose={close}>
+            { state.value.type === "single" ? <SingleView detailId={state.value.value}/>
+            : state.value.type === "multiple" ? <MultipleView selected={state.value.values} latest={state.value.latest}/>
+            : <EmptyView/>}
         </PaneBasicLayout>
     }
 })
 
-const DetailViewPane = defineComponent({
+const EmptyView = defineComponent({
+    setup() {
+        return () => <>
+            <p class={style.top}/>
+            <ThumbnailImage value={null} minHeight="12rem" maxHeight="40rem"/>
+            <p class="mt-1"><b>导入项目</b></p>
+            <p class="mt-1"><i class="has-text-grey">未选择任何项</i></p>
+        </>
+    }
+})
+
+const SingleView = defineComponent({
     props: {
         detailId: {type: null as any as PropType<number | null>, required: true}
     },
@@ -121,14 +134,44 @@ const DetailViewPane = defineComponent({
     }
 })
 
-const BatchUpdatePane = defineComponent({
+const MultipleView = defineComponent({
     props: {
-        selected: {type: null as any as PropType<number[] | null>, required: true}
+        selected: {type: Array as PropType<number[]>, required: true},
+        latest: {type: Number, required: true}
+    },
+    setup(props) {
+        const { data } = useObjectEndpoint({
+            path: toRef(props, "latest"),
+            get: httpClient => httpClient.import.get
+        })
+
+        const batchUpdateMode = ref(false)
+
+        return () => <>
+            <p class="mt-2 mb-1"><i>已选择{props.selected.length}项</i></p>
+            <ThumbnailImage value={data.value?.thumbnailFile} minHeight="12rem" maxHeight="40rem"/>
+            {data.value?.fileName && <p class={[style.filename, "can-be-selected"]}><b>{data.value.fileName}</b></p>}
+            {batchUpdateMode.value
+                ? <BatchUpdate selected={props.selected} onClose={() => batchUpdateMode.value = false}/>
+                : <p class="mt-4">
+                    <a onClick={() => batchUpdateMode.value = true}>
+                        <span class="icon"><i class="fa fa-edit"/></span><span>批量编辑</span>
+                    </a>
+                </p>
+            }
+        </>
+    }
+})
+
+const BatchUpdate = defineComponent({
+    props: {
+        selected: {type: Array as PropType<number[]>, required: true}
     },
     emits: ["close"],
     setup(props, { emit }) {
         const toast = useToast()
         const httpClient = useHttpClient()
+        const { list: { endpoint } } = useImportContext()
 
         const enabled = reactive({
             tagme: false,
@@ -173,6 +216,7 @@ const BatchUpdatePane = defineComponent({
                         toast.toast("批量编辑完成", "info", "已完成所选项目的信息批量编辑。")
                     }
                     emit("close")
+                    endpoint.refresh()
                 }else{
                     toast.handleException(res.exception)
                 }
@@ -180,9 +224,8 @@ const BatchUpdatePane = defineComponent({
         }
 
         return () => <>
-            <p class={style.top}/>
-            {props.selected?.length ? <p>已选择{props.selected.length}项</p> : <p>未选择，使用全部导入项</p>}
-            <p class="mt-4"><CheckBox value={enabled.tagme} onUpdateValue={v => enabled.tagme = v}>设置Tagme</CheckBox></p>
+            <p class="mt-4"><span class="icon"><i class="fa fa-edit"/></span><span>批量编辑</span></p>
+            <p class="mt-2"><CheckBox value={enabled.tagme} onUpdateValue={v => enabled.tagme = v}>设置Tagme</CheckBox></p>
             {enabled.tagme && <TagmeEditor class="mt-1 mb-2" value={form.tagme} onUpdateValue={v => form.tagme = v}/>}
             <p class="mt-1"><CheckBox value={enabled.setCreatedTimeBy} onUpdateValue={v => enabled.setCreatedTimeBy = v}>设置创建时间</CheckBox></p>
             {enabled.setCreatedTimeBy && <Select class="mt-1 mb-2" items={timeTypes} value={form.setCreatedTimeBy} onUpdateValue={(v: TimeType) => form.setCreatedTimeBy = v}/>}

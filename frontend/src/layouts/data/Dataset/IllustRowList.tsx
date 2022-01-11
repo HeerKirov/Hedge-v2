@@ -38,7 +38,11 @@ export default defineComponent({
         /**
          * 可拖放开关。开启后，项可以被拖放illusts内容，并触发相应的drop事件。此外还有"末尾追加拖放区"。
          */
-        droppable: {type: Boolean, default: undefined}
+        droppable: {type: Boolean, default: undefined},
+        /**
+         * 显示右上角的选择计数角标。
+         */
+        showSelectCount: {type: Boolean, default: true}
     },
     emits: {
         dataUpdate: (_offset: number, _limit: number) => true,
@@ -69,7 +73,7 @@ export default defineComponent({
 
         return () => <div class={style.rowList}>
             <Content onDataUpdate={dataUpdate} onEnter={enter} onDblClick={dblClick} onRightClick={rightClick} onSelect={emitSelect}/>
-            <SelectedCountBadge count={selected.value.length}/>
+            {props.showSelectCount && <SelectedCountBadge count={selected.value.length}/>}
         </div>
     }
 })
@@ -163,7 +167,7 @@ const Item = defineComponent({
                     <span class="icon ml-1"><i class="fa fa-star"/></span>
                 </>}</div>
                 <div class={style.tagme}>{(props.data.tagme.length || null) && <TagmeInfo value={props.data.tagme}/>}</div>
-                <div class={style.source}><SourceInfo source={props.data.source} sourceId={props.data.sourceId} sourcePart={props.data.sourcePart}/></div>
+                <div class={style.source}>{props.data.type === "IMAGE" && <SourceInfo source={props.data.source} sourceId={props.data.sourceId} sourcePart={props.data.sourcePart}/>}</div>
                 <div class={style.time}>{datetime.toSimpleFormat(props.data.orderTime)}</div>
                 {slot}
             </div>

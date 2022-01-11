@@ -1,6 +1,9 @@
 import { ref, Ref, watch } from "vue"
 import { ScrollView, useScrollView } from "@/components/features/VirtualScrollView"
-import { FitType, SelectedState, useIllustDatasetController, useSelectedState } from "@/layouts/data/Dataset"
+import {
+    IllustDatasetController, SelectedState, SidePaneState,
+    useIllustDatasetController, useSelectedState, useSidePaneState
+} from "@/layouts/data/Dataset"
 import { QuerySchemaContext, useQuerySchemaContext } from "@/layouts/topbars/Query"
 import { PaginationDataView, QueryEndpointResult, usePaginationDataView, useQueryEndpoint } from "@/functions/utils/endpoints/query-endpoint"
 import { Illust, IllustQueryFilter } from "@/functions/adapter-http/impl/illust"
@@ -15,15 +18,12 @@ export interface IllustContext {
     endpoint: QueryEndpointResult<Illust>
     scrollView: Readonly<ScrollView>
     querySchema: QuerySchemaContext
-    viewController: {
-        viewMode: Ref<"row" | "grid">
-        fitType: Ref<FitType>
-        columnNum: Ref<number>
-        collectionMode: Ref<boolean>
+    viewController: IllustDatasetController & {
         partition: Ref<LocalDate> | null
         closePartition?: () => void
     }
     selector: SelectedState
+    pane: SidePaneState
 }
 
 export const [installIllustContext, useIllustContext] = installation(function(partition: Ref<LocalDate> | null, closePartition: (() => void) | undefined): IllustContext {
@@ -39,7 +39,9 @@ export const [installIllustContext, useIllustContext] = installation(function(pa
 
     const selector = useSelectedState(list.endpoint)
 
-    return {...list, querySchema, viewController, selector}
+    const pane = useSidePaneState("illust", selector)
+
+    return {...list, querySchema, viewController, selector, pane}
 })
 
 function useListContext(collectionMode: Ref<boolean>, partition: Ref<LocalDate> | null, querySchema: QuerySchemaContext) {

@@ -43,13 +43,14 @@ export default defineComponent({
 })
 
 function useContextmenu(operator: GridContextOperatorResult<Illust>) {
-    //TODO 完成illust右键菜单的功能 (信息预览，剪贴板，关联组，导出)
+    const { pane } = useIllustContext()
+    //TODO 完成illust右键菜单的功能 (剪贴板，关联组，导出)
     return useDynamicPopupMenu<Illust>(illust => [
         {type: "normal", label: "查看详情", click: i => operator.clickToOpenDetail(i.id)},
         (illust.type === "COLLECTION" || null) && {type: "normal", label: "查看集合详情", click: i => operator.openCollectionDetail(i.id)},
-        {type: "separator"},
         {type: "normal", label: illust.type === "COLLECTION" ? "在新窗口中打开集合" : "在新窗口中打开", click: operator.openInNewWindow},
-        {type: "normal", label: "显示信息预览"},
+        {type: "separator"},
+        {type: "checkbox", checked: pane.visible.value, label: "显示信息预览", click: () => pane.visible.value = !pane.visible.value},
         {type: "separator"},
         illust.favorite
             ? {type: "normal", label: "取消标记为收藏", click: i => operator.modifyFavorite(i, false)}

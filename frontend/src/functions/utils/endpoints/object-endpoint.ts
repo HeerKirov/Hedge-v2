@@ -15,6 +15,7 @@ export interface ObjectEndpoint<MODEL, FORM, UE extends BasicException> {
     data: Ref<MODEL | null>
     setData(form: FORM, handleError?: ErrorHandler<UE>): Promise<boolean>
     deleteData(): Promise<boolean>
+    refreshData(): void
 }
 
 export interface ObjectEndpointOptions<PATH, MODEL, FORM, GE extends BasicException, UE extends BasicException, DE extends BasicException> {
@@ -172,5 +173,22 @@ export function useObjectEndpoint<PATH, MODEL, FORM, GE extends BasicException, 
         return true
     }
 
-    return {data, loading, updating, deleting, setData, deleteData}
+    const refreshData = async () => {
+        if(path.value != null) {
+            const currentPath = path.value
+            loading.value = true
+            const res = await method.get(currentPath)
+            if(currentPath !== path.value) return
+            if(res.ok) {
+                data.value = res.data
+                options.afterGet?.(currentPath, data.value)
+            }else if(res.exception && res.exception.code !== "NOT_FOUND") {
+                //not found类错误会被包装，因此不会抛出
+                toast.handleException(res.exception)
+            }
+            loading.value = false
+        }
+    }
+
+    return {data, loading, updating, deleting, setData, deleteData, refreshData}
 }

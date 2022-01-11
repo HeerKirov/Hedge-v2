@@ -9,12 +9,12 @@ import { installImportContext } from "./inject"
 
 export default defineComponent({
     setup() {
-        const { pane: { paneEnabled } } = installImportContext()
+        const { pane } = installImportContext()
         installSettingSite()
 
         return () => <TopBarLayout v-slots={{
             topBar: () => <TopBarContent/>,
-            default: () => <SplitPane showPane={paneEnabled.value} v-slots={{
+            default: () => <SplitPane showPane={pane.visible.value} v-slots={{
                 default: () => <ListView/>,
                 pane: () => <PaneDetailView/>
             }}/>

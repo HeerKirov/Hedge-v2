@@ -1,7 +1,7 @@
 import { computed, ref, Ref, watch } from "vue"
 import { ScrollView, useScrollView } from "@/components/features/VirtualScrollView"
 import { PaginationDataView, QueryEndpointResult, usePaginationDataView, useQueryEndpoint } from "@/functions/utils/endpoints/query-endpoint"
-import { FitType, useIllustDatasetController, useSelectedState } from "@/layouts/data/Dataset"
+import { IllustDatasetController, useIllustDatasetController, useSelectedState } from "@/layouts/data/Dataset"
 import { Folder, FolderImage, FolderImageQueryFilter } from "@/functions/adapter-http/impl/folder"
 import { installation } from "@/functions/utils/basic"
 import { useHttpClient, useLocalStorageWithDefault } from "@/functions/app"
@@ -13,12 +13,7 @@ export interface FolderDetailContext {
     dataView: PaginationDataView<FolderImage>
     endpoint: QueryEndpointResult<FolderImage>
     scrollView: Readonly<ScrollView>
-    viewController: {
-        viewMode: Ref<"row" | "grid">
-        fitType: Ref<FitType>
-        columnNum: Ref<number>
-        editable: Ref<boolean>
-    }
+    viewController: Exclude<IllustDatasetController, "collectionMode"> & { editable: Ref<boolean> }
     selector: {
         selected: Ref<number[]>
         lastSelected: Ref<number | null>

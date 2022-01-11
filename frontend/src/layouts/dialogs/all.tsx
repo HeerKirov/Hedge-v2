@@ -7,6 +7,7 @@ import { CreatingAlbumContent, CreatingAlbumInjectionContext } from "./CreatingA
 import { CreatingCollectionContent, CreatingCollectionInjectionContext } from "./CreatingCollection"
 import { EditSourceImageContent, EditSourceImageInjectionContext } from "./EditSourceImage"
 import { CloneImageContent, CloneImageInjectionContext } from "./CloneImage"
+import { EditMetaTagContent, EditMetaTagInjectionContext } from "./EditMetaTag"
 
 interface InjectionContextMap {
     addToAlbum: AddToAlbumInjectionContext
@@ -15,6 +16,7 @@ interface InjectionContextMap {
     creatingAlbum: CreatingAlbumInjectionContext
     creatingCollection: CreatingCollectionInjectionContext
     editSourceImage: EditSourceImageInjectionContext
+    editMetaTag: EditMetaTagInjectionContext
     cloneImage: CloneImageInjectionContext
 }
 
@@ -25,6 +27,7 @@ const contextMap = {
     creatingAlbum: CreatingAlbumContent,
     creatingCollection: CreatingCollectionContent,
     editSourceImage: EditSourceImageContent,
+    editMetaTag: EditMetaTagContent,
     cloneImage: CloneImageContent
 }
 
@@ -37,6 +40,7 @@ type InjectionContext =
     | InjectionContextTemplate<"creatingAlbum">
     | InjectionContextTemplate<"creatingCollection">
     | InjectionContextTemplate<"editSourceImage">
+    | InjectionContextTemplate<"editMetaTag">
     | InjectionContextTemplate<"cloneImage">
 
 export function installDialogServiceContext() {

@@ -1,5 +1,5 @@
 import { computed, InjectionKey, onBeforeMount, ref, Ref } from "vue"
-import { FitType, SelectedState, useIllustDatasetController, useSelectedState } from "@/layouts/data/Dataset"
+import { IllustDatasetController, SelectedState, useIllustDatasetController, useSelectedState } from "@/layouts/data/Dataset"
 import { ScrollView, useScrollView } from "@/components/features/VirtualScrollView"
 import { useToast } from "@/functions/module/toast"
 import { useHttpClient } from "@/functions/app"
@@ -42,11 +42,7 @@ export interface PreviewContext {
         dataView: PaginationDataView<Illust>
         endpoint: QueryEndpointResult<Illust>
         scrollView: Readonly<ScrollView>
-        viewController: {
-            viewMode: Ref<"row" | "grid">
-            fitType: Ref<FitType>
-            columnNum: Ref<number>
-        }
+        viewController: Exclude<IllustDatasetController, "collectionMode">
         selector: SelectedState
     }
     ui: {

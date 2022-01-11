@@ -2,7 +2,7 @@ import { computed, onBeforeMount, ref, Ref } from "vue"
 import { Album, AlbumExceptions, AlbumImage, AlbumUpdateForm, DetailAlbum } from "@/functions/adapter-http/impl/album"
 import { ScrollView, useScrollView } from "@/components/features/VirtualScrollView"
 import { PaginationDataView, QueryEndpointResult, SingletonDataView, usePaginationDataView, useQueryEndpoint } from "@/functions/utils/endpoints/query-endpoint"
-import { FitType, SelectedState, useIllustDatasetController, useSelectedState } from "@/layouts/data/Dataset"
+import { IllustDatasetController, SelectedState, useIllustDatasetController, useSelectedState } from "@/layouts/data/Dataset"
 import { useToast } from "@/functions/module/toast"
 import { useHttpClient, useLocalStorageWithDefault } from "@/functions/app"
 import { useObjectEndpoint, ObjectEndpoint } from "@/functions/utils/endpoints/object-endpoint"
@@ -42,12 +42,7 @@ export interface PreviewContext {
         dataView: PaginationDataView<AlbumImage>
         endpoint: QueryEndpointResult<AlbumImage>
         scrollView: Readonly<ScrollView>
-        viewController: {
-            viewMode: Ref<"row" | "grid">
-            fitType: Ref<FitType>
-            columnNum: Ref<number>
-            editable: Ref<boolean>
-        }
+        viewController: Exclude<IllustDatasetController, "collectionMode"> & { editable: Ref<boolean> }
         selector: SelectedState
     }
     /**

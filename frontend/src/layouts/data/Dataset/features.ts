@@ -7,6 +7,12 @@ import { splitRef } from "@/functions/utils/basic"
 
 export type SelectedState = ReturnType<typeof useSelectedState>
 
+export type SidePaneState = ReturnType<typeof useSidePaneState>
+
+export type ImportImageDatasetController = ReturnType<typeof useImportImageDatasetController>
+
+export type IllustDatasetController = ReturnType<typeof useIllustDatasetController>
+
 export function useSelectedState<T extends {id: number}>(endpoint?: QueryEndpointResult<T>) {
     const selected = ref<number[]>([])
     const lastSelected = ref<number | null>(null)
@@ -29,6 +35,32 @@ export function useSelectedState<T extends {id: number}>(endpoint?: QueryEndpoin
     }
 
     return {selected, lastSelected}
+}
+
+export function useSidePaneState(type: "import-image" | "illust", selectedState: SelectedState) {
+    const storage = useLocalStorageWithDefault<{
+        visible: boolean
+    }>(`${type}-dataset/side-pane`, {
+        visible: false
+    })
+
+    const visible = splitRef(storage, "visible")
+
+    const state = computed<{type: "none"} | {type: "single", value: number} | {type: "multiple", values: number[], latest: number}>(() => {
+        if(!visible.value || selectedState.selected.value.length === 0) {
+            return {type: "none"}
+        }else if(selectedState.selected.value.length === 1) {
+            return {type: "single", value: selectedState.selected.value[0]}
+        }else{
+            return {
+                type: "multiple",
+                values: selectedState.selected.value,
+                latest: selectedState.lastSelected.value ?? (selectedState.selected.value[selectedState.selected.value.length - 1])
+            }
+        }
+    })
+
+    return {visible, state}
 }
 
 export function useImportImageDatasetController() {

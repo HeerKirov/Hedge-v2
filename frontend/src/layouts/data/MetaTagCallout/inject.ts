@@ -5,8 +5,7 @@ import { Rect } from "@/layouts/layouts/PopupBox"
 import { sleep } from "@/utils/process"
 
 export const [installMetaTagCallout, useMetaTagCallout] = installation(function () {
-    const base = ref<Rect>()
-    const target = ref<{type: MetaTagTypes, id: number}>()
+    const target = ref<{type: MetaTagTypes, id: number, base: Rect}>()
 
     let awaitOpen = false
 
@@ -16,16 +15,14 @@ export const [installMetaTagCallout, useMetaTagCallout] = installation(function 
         awaitOpen = true
         await sleep(1)
         awaitOpen = false
-        base.value = r
-        target.value = {type, id}
+        target.value = {type, id, base: r}
     }
 
     const close = () => {
         if(!awaitOpen) {
-            base.value = undefined
             target.value = undefined
         }
     }
 
-    return {open, close, base: readonly(base), target: readonly(target)}
+    return {open, close, target: readonly(target)}
 })

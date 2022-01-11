@@ -3,7 +3,7 @@ import {
     CompileError, QueryPlan, QueryRes, ElementGroup, ElementValue,
     ElementItem, FilterGroup, FilterOfOneField, FilterValue, ElementAuthor, ElementTopic, ElementTag
 } from "@/functions/adapter-http/impl/util-query"
-import MetaTagCallout, { installMetaTagCallout, useMetaTagCallout } from "@/layouts/data/MetaTagCallout"
+import { useMetaTagCallout } from "@/layouts/data/MetaTagCallout"
 import { arrays } from "@/utils/collections"
 import { ELEMENT_TYPES, FIELD_NAMES } from "./translate"
 import style from "./style.module.scss"
@@ -13,13 +13,10 @@ export default defineComponent({
         schema: {type: Object as PropType<QueryRes>, required: true}
     },
     setup(props) {
-        installMetaTagCallout()
-
         return () => <div class={style.expandArea}>
             {props.schema.queryPlan && <QueryPlanDisplay plan={props.schema.queryPlan}/>}
             {props.schema.errors.map(e => <CompileErrorToast e={e} type="danger"/>)}
             {props.schema.warnings.map(e => <CompileErrorToast e={e} type="warning"/>)}
-            <MetaTagCallout/>
         </div>
     }
 })

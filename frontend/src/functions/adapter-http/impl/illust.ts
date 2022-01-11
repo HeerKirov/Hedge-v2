@@ -24,6 +24,9 @@ export function createIllustEndpoint(http: HttpInstance): IllustEndpoint {
         findByIds: http.createDataRequest("/api/illusts/find-by-ids", "POST", {
             parseResponse: (result: any[]) => result.map(mapToIllust)
         }),
+        get: http.createPathRequest(id => `/api/illusts/${id}`, "GET", {
+            parseResponse: mapToDetailIllust
+        }),
         update: http.createPathDataRequest(id => `/api/illusts/${id}`, "PATCH"),
         delete: http.createPathRequest(id => `/api/illusts/${id}`, "DELETE"),
         collection: {
@@ -100,7 +103,6 @@ function mapToIllust(data: any): Illust {
 function mapToDetailIllust(data: any): DetailIllust {
     return {
         ...mapToIllust(data),
-        fileId: <number>data["fileId"],
         topics: <DepsTopic[]>data["topics"],
         authors: <DepsAuthor[]>data["authors"],
         tags: <DepsTag[]>data["tags"],
@@ -176,6 +178,11 @@ export interface IllustEndpoint {
      */
     findByIds(imageIds: number[]): Promise<Response<Illust[]>>
     /**
+     * 查看元数据。不区分类型。
+     * @exception NOT_FOUND
+     */
+    get(id: number): Promise<Response<DetailIllust, NotFound>>
+    /**
      * 更改元数据。仅涉及公有部分。
      * @exception NOT_FOUND
      * @exception PARAM_ERROR ("score") score超出范围
@@ -183,7 +190,7 @@ export interface IllustEndpoint {
      * @exception NOT_SUITABLE ("tags", number[]) 选择的资源不适用。tag: 不能选择addr类型的tag
      * @exception CONFLICTING_GROUP_MEMBERS ({[id: number]: {memberId: number, member: string}[]}) 违反tag冲突组约束。参数值是每一项冲突组的tagId，以及这个组下有冲突的tag的id和name列表
      */
-    update(id: number, form: CollectionUpdateForm): Promise<Response<null, IllustExceptions["collection.update"]>>
+    update(id: number, form: ImageUpdateForm): Promise<Response<null, IllustExceptions["collection.update"]>>
     /**
      * 删除项目。
      * @exception NOT_FOUND
@@ -361,11 +368,19 @@ export type IllustType = "COLLECTION" | "IMAGE"
 
 export type Tagme = "TAG" | "AUTHOR" | "TOPIC" | "SOURCE"
 
-interface IllustPublicPart {
+export interface Illust {
     /**
      * illust id。
      */
     id: number
+    /**
+     * illust类型。
+     */
+    type: IllustType
+    /**
+     * 子项目的数量。只有类型为COLLECTION的项目会有子项目。
+     */
+    childrenCount: number | null
     /**
      * 此项目的文件路径。
      */
@@ -404,22 +419,7 @@ interface IllustPublicPart {
     orderTime: LocalDateTime
 }
 
-export interface Illust extends IllustPublicPart {
-    /**
-     * illust类型。
-     */
-    type: IllustType
-    /**
-     * 子项目的数量。只有类型为COLLECTION的项目会有子项目。
-     */
-    childrenCount: number | null
-}
-
-export interface DetailIllust extends IllustPublicPart {
-    /**
-     * 文件记录的id。
-     */
-    fileId: number
+export interface DetailIllust extends Illust {
     /**
      * 主题。
      */

@@ -5,8 +5,8 @@ import ImportImageRowList from "./ImportImageRowList"
 import type { FitType } from "./common"
 import { useGridContextOperator } from "./context"
 import type { GridContextOperatorResult } from "./context"
-export { useSelectedState, useIllustDatasetController, useImportImageDatasetController } from "./features"
-export type { SelectedState } from "./features"
+export { useSelectedState, useSidePaneState, useIllustDatasetController, useImportImageDatasetController } from "./features"
+export type { SelectedState, SidePaneState, IllustDatasetController, ImportImageDatasetController } from "./features"
 
 export { IllustGrid, ImportImageGrid, IllustRowList, ImportImageRowList, FitType }
 export { useGridContextOperator, GridContextOperatorResult }

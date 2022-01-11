@@ -12,16 +12,16 @@ import { AuthorType } from "@/functions/adapter-http/impl/author"
 import { arrays } from "@/utils/collections"
 import { installMetaTagCallout, useMetaTagCallout } from "./inject"
 
-export { installMetaTagCallout, useMetaTagCallout }
+export { installMetaTagCallout, useMetaTagCallout, MetaTagCallout }
 
 const WIDTH = 350, HEIGHT = 200
 const css = {"width": `${WIDTH}px`, "maxHeight": `${HEIGHT}px`}
 
-export default defineComponent({
+const MetaTagCallout = defineComponent({
     setup() {
         const context = useMetaTagCallout()
 
-        return () => context.base.value && <PopupBox base={context.base.value} onClose={context.close}
+        return () => context.target.value && <PopupBox base={context.target.value.base} onClose={context.close}
                                                      position="right-top" width={WIDTH} height={HEIGHT}
                                                      alignOffset={16} directionOffset={32} directionOffsetMin={16}>
             <div class="popup-block is-overflow-y-auto p-3" style={css}>

@@ -1,6 +1,9 @@
-import { computed, ref, Ref, watch } from "vue"
+import { computed, Ref, watch } from "vue"
 import { ScrollView, useScrollView } from "@/components/features/VirtualScrollView"
-import { FitType, SelectedState, useImportImageDatasetController, useSelectedState } from "@/layouts/data/Dataset"
+import {
+    ImportImageDatasetController, SelectedState, SidePaneState,
+    useImportImageDatasetController, useSelectedState, useSidePaneState
+} from "@/layouts/data/Dataset"
 import { ImportImage } from "@/functions/adapter-http/impl/import"
 import { PaginationDataView, QueryEndpointResult, usePaginationDataView, useQueryEndpoint } from "@/functions/utils/endpoints/query-endpoint"
 import { useHttpClient } from "@/functions/app"
@@ -14,85 +17,24 @@ export interface ImportContext {
         endpoint: QueryEndpointResult<ImportImage>
         scrollView: Readonly<ScrollView>
     }
-    listController: {
-        viewMode: Ref<"row" | "grid">
-        fitType: Ref<FitType>
-        columnNum: Ref<number>
-    }
+    listController: ImportImageDatasetController
     selector: SelectedState
     operation: {
         canSave: Ref<boolean>
         save(): void
     }
-    pane: {
-        paneMode: Readonly<Ref<"detail" | "batchUpdate" | null>>
-        paneDetail: Readonly<Ref<number[] | null>>
-        paneLastDetail: Readonly<Ref<number | null>>
-        paneEnabled: Readonly<Ref<boolean>>
-        enableDetailPane(id?: number): void
-        disableDetailPane(): void
-        openBatchUpdatePane(): void
-        closePane(): void
-    }
+    pane: SidePaneState
 }
 
 export const [installImportContext, useImportContext] = installation(function(): ImportContext {
     const list = useImportListContext()
     const listController = useImportImageDatasetController()
     const selector = useSelectedState(list.endpoint)
-    const pane = usePaneContext(selector)
-    const operation = useImportOperationContext(list.dataView, list.endpoint, pane)
+    const pane = useSidePaneState("import-image", selector)
+    const operation = useImportOperationContext(list.dataView, list.endpoint)
 
     return {list, listController, selector, pane, operation}
 })
-
-//TODO 提取detail selector部分抽离到dataset layout
-function usePaneContext(selector: SelectedState) {
-    const paneMode = ref<"detail" | "batchUpdate" | null>(null)
-    const paneDetail = ref<number[] | null>(null)
-    const paneLastDetail = ref<number | null>(null)
-    const paneEnabled = computed(() => paneMode.value === "detail" && paneDetail.value !== null || paneMode.value === "batchUpdate")
-
-    watch(() => [selector.selected.value, selector.lastSelected.value] as const, ([selected, lastSelected]) => {
-        if(paneMode.value !== null) {
-            if(selected.length > 0) {
-                paneDetail.value = [...selected]
-            }else{
-                paneDetail.value = null
-            }
-            paneLastDetail.value = lastSelected ?? (selected.length > 0 ? selected[selected.length - 1] : null)
-        }
-    })
-
-    const enableDetailPane = (id?: number) => {
-        paneMode.value = "detail"
-        if(id !== undefined) {
-            paneDetail.value = [id]
-        }else if(selector.selected.value.length > 0) {
-            paneDetail.value = [...selector.selected.value]
-        }else{
-            paneDetail.value = null
-        }
-        paneLastDetail.value = id ?? selector.lastSelected.value ?? (selector.selected.value.length > 0 ? selector.selected.value[selector.selected.value.length - 1] : null)
-    }
-
-    const disableDetailPane = () => {
-        paneMode.value = null
-        paneDetail.value = null
-        paneLastDetail.value = null
-    }
-
-    const openBatchUpdatePane = () => {
-        paneMode.value = "batchUpdate"
-    }
-
-    const closePane = () => {
-        paneMode.value = null
-        paneDetail.value = null
-        paneLastDetail.value = null
-    }
-    return {paneMode, paneDetail, paneLastDetail, paneEnabled, enableDetailPane, disableDetailPane, openBatchUpdatePane, closePane}
-}
 
 function useImportListContext() {
     const httpClient = useHttpClient()
@@ -117,7 +59,7 @@ function useImportListContext() {
     return {endpoint, dataView, scrollView}
 }
 
-function useImportOperationContext(dataView: PaginationDataView<ImportImage>, endpoint: QueryEndpointResult<ImportImage>, pane: ReturnType<typeof usePaneContext>) {
+function useImportOperationContext(dataView: PaginationDataView<ImportImage>, endpoint: QueryEndpointResult<ImportImage>) {
     const httpClient = useHttpClient()
     const { handleException, toast } = useToast()
 
@@ -130,7 +72,6 @@ function useImportOperationContext(dataView: PaginationDataView<ImportImage>, en
                 const { total } = res.data
                 toast("导入项目", "success", `${total}个项目已导入图库。`)
                 endpoint.refresh()
-                pane.closePane()
             }else if(res.exception.code === "FILE_NOT_READY") {
                 toast("未准备完毕", "warning", "仍有导入项目未准备完毕。请等待。")
             }else if(res.exception) {
