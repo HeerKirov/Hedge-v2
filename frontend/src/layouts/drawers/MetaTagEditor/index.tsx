@@ -7,7 +7,7 @@ import { DepsAuthor } from "@/functions/adapter-http/impl/author"
 import { MetaUtilIdentity } from "@/functions/adapter-http/impl/util-meta"
 import LeftColumn from "./LeftColumn"
 import RightColumn from "./RightColumn"
-import { installPanelContext, usePanelContext, SetData } from "./inject"
+import { installPanelContext, usePanelContext, SetData, OnUpdate } from "./inject"
 import style from "./style.module.scss"
 
 /* FUTURE tag editor内容优化清单
@@ -19,13 +19,16 @@ export default defineComponent({
         topics: {type: Array as PropType<DepsTopic[]>, required: true},
         authors: {type: Array as PropType<DepsAuthor[]>, required: true},
         tagme: {type: Array as PropType<Tagme[]>, required: true},
-        setData: {type: Function as PropType<SetData>, required: true},
+        setData: Function as PropType<SetData>,
+        onUpdate: Function as PropType<OnUpdate>,
         identity: {type: null as any as PropType<MetaUtilIdentity | null>, required: true}
     },
     emits: {
         close: () => true
     },
     setup(props, { emit }) {
+        if(props.setData && props.onUpdate) throw new Error("Cannot give both setData and onUpdate in one editor.")
+
         const data = computed(() => ({
             tags: props.tags,
             topics: props.topics,
@@ -36,6 +39,7 @@ export default defineComponent({
         installPanelContext({
             data,
             setData: props.setData,
+            onUpdate: props.onUpdate,
             close: () => emit("close"),
             identity: toRef(props, "identity")
         })

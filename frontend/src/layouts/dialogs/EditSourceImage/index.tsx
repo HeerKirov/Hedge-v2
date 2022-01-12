@@ -8,7 +8,7 @@ import style from "./style.module.scss"
 
 export interface EditSourceImageContext {
     /**
-     * 打开新建模式的面板。此模式下，从三种不同的创建模式选择其一并执行新建。
+     * 打开新建模式的面板。
      */
     openCreateDialog(onCreated?: () => void): void
     /**

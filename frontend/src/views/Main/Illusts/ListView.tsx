@@ -8,7 +8,7 @@ import { useIllustContext } from "./inject"
 export default defineComponent({
     setup() {
         const {
-            dataView, endpoint, scrollView,
+            dataView, endpoint, scrollView, pane,
             viewController: { fitType, columnNum, viewMode },
             selector: { selected, lastSelected }
         } = useIllustContext()
@@ -32,11 +32,11 @@ export default defineComponent({
         const menu = useContextmenu(operator)
 
         return () => viewMode.value === "grid"
-            ? <IllustGrid data={markRaw(dataView.data.value)} onDataUpdate={dataView.dataUpdate} draggable={true}
+            ? <IllustGrid data={markRaw(dataView.data.value)} onDataUpdate={dataView.dataUpdate} draggable={true} showSelectCount={!pane.visible.value}
                           queryEndpoint={markRaw(endpoint.proxy)} fitType={fitType.value} columnNum={columnNum.value}
                           selected={selected.value} lastSelected={lastSelected.value} onSelect={updateSelected}
                           onRightClick={i => menu.popup(i as Illust)} onDblClick={operator.clickToOpenDetail} onEnter={operator.enterToOpenDetail}/>
-            : <IllustRowList data={markRaw(dataView.data.value)} onDataUpdate={dataView.dataUpdate} draggable={true}
+            : <IllustRowList data={markRaw(dataView.data.value)} onDataUpdate={dataView.dataUpdate} draggable={true} showSelectCount={!pane.visible.value}
                              queryEndpoint={markRaw(endpoint.proxy)} selected={selected.value} lastSelected={lastSelected.value} onSelect={updateSelected}
                              onRightClick={i => menu.popup(i as Illust)} onDblClick={operator.clickToOpenDetail} onEnter={operator.enterToOpenDetail}/>
     }

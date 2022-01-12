@@ -1,12 +1,17 @@
-import { defineComponent, PropType, toRef } from "vue"
+import { computed, defineComponent, PropType, reactive, ref, toRef, watch } from "vue"
+import CheckBox from "@/components/forms/CheckBox"
+import Textarea from "@/components/forms/Textarea"
 import ThumbnailImage from "@/components/elements/ThumbnailImage"
 import { useEditMetaTagService } from "@/layouts/dialogs"
 import { PaneBasicLayout } from "@/layouts/layouts/SplitPane"
 import { DescriptionDisplay, MetaTagListDisplay, PartitionTimeDisplay, ScoreDisplay, TagmeInfo, TimeDisplay } from "@/layouts/displays"
-import { DateEditor, DateTimeEditor, DescriptionEditor, StarlightEditor, ViewAndEditable, ViewAndEditor } from "@/layouts/editors"
-import { DetailIllust } from "@/functions/adapter-http/impl/illust"
+import { DateEditor, DateTimeEditor, DescriptionEditor, StarlightEditor, TagmeEditor, ViewAndEditable, ViewAndEditor } from "@/layouts/editors"
+import { SimpleTag, SimpleTopic, SimpleAuthor } from "@/functions/adapter-http/impl/all"
+import { DetailIllust, Tagme } from "@/functions/adapter-http/impl/illust"
 import { useObjectEndpoint } from "@/functions/utils/endpoints/object-endpoint"
-import { LocalDateTime } from "@/utils/datetime"
+import { useHttpClient } from "@/functions/app"
+import { useToast } from "@/functions/module/toast"
+import { date, datetime, LocalDate, LocalDateTime } from "@/utils/datetime"
 import { useIllustContext } from "./inject"
 import style from "./style.module.scss"
 
@@ -71,7 +76,7 @@ const SingleView = defineComponent({
         }
         const openMetaTagEditor = () => {
             if(data.value !== null) {
-                editMetaTagService.edit({type: data.value.type, id: data.value.id}, refreshData)
+                editMetaTagService.editIdentity({type: data.value.type, id: data.value.id}, refreshData)
             }
         }
 
@@ -118,6 +123,131 @@ const MultipleView = defineComponent({
         latest: { type: Number, required: true }
     },
     setup(props) {
-        //TODO 多选模式和批量编辑
+        const path = toRef(props, "latest")
+
+        const { data } = useObjectEndpoint({
+            path,
+            get: httpClient => httpClient.illust.get
+        })
+
+        const batchUpdateMode = ref(false)
+
+        return () => <>
+            <p class="mt-2 mb-1"><i>已选择{props.selected.length}项</i></p>
+            <ThumbnailImage value={data.value?.thumbnailFile} minHeight="12rem" maxHeight="40rem"/>
+            <p>
+                <i class="fa fa-id-card mr-2"/><b class="can-be-selected">{path.value}</b>
+                {(data.value?.childrenCount || null) && <span class="float-right">{data.value?.childrenCount}个子项</span>}
+            </p>
+            {batchUpdateMode.value
+                ? <BatchUpdate class="mt-4" selected={props.selected} onClose={() => batchUpdateMode.value = false}/>
+                : <p class="mt-4">
+                    <a onClick={() => batchUpdateMode.value = true}>
+                        <span class="icon"><i class="fa fa-edit"/></span><span>批量编辑</span>
+                    </a>
+                </p>
+            }
+        </>
+    }
+})
+
+const BatchUpdate = defineComponent({
+    props: {
+        selected: {type: Array as PropType<number[]>, required: true}
+    },
+    emits: ["close"],
+    setup(props, { emit }) {
+        const toast = useToast()
+        const httpClient = useHttpClient()
+        const editMetaTagService = useEditMetaTagService()
+
+        const enabled = reactive({
+            description: false,
+            score: false,
+            metaTag: false,
+            tagme: false,
+            partitionTime: false,
+            orderTime: false
+        })
+        const form = reactive<{
+            description: string
+            score: number | null
+            tags: SimpleTag[]
+            topics: SimpleTopic[]
+            authors: SimpleAuthor[]
+            tagme: Tagme[]
+            partitionTime: LocalDate,
+            orderTime: {
+                begin: LocalDateTime,
+                end: LocalDateTime
+            }
+        }>({
+            description: "",
+            score: null,
+            tags: [],
+            topics: [],
+            authors: [],
+            tagme: [],
+            partitionTime: date.now(),
+            orderTime: {
+                begin: datetime.now(),
+                end: datetime.now()
+            }
+        })
+
+        const editMetaTag = async () => {
+            const res = await editMetaTagService.edit({
+                topics: form.topics.map(i => ({ ...i, isExported: false })),
+                authors: form.authors.map(i => ({ ...i, isExported: false })),
+                tags: form.tags.map(i => ({ ...i, isExported: false }))
+            })
+            if(res) {
+                form.topics = res.topics
+                form.authors = res.authors
+                form.tags = res.tags
+            }
+        }
+
+        watch(() => enabled.metaTag, enabled => {
+            if(enabled) editMetaTag().finally()
+        })
+
+        const anyEnabled = computed(() => enabled.description || enabled.score || enabled.metaTag || enabled.tagme || enabled.partitionTime || enabled.orderTime)
+
+        const submit = async () => {
+
+        }
+
+        return () => <div>
+            <p><span class="icon"><i class="fa fa-edit"/></span><span>批量编辑</span></p>
+            <p class="mt-2"><CheckBox value={enabled.metaTag} onUpdateValue={v => enabled.metaTag = v}>设置元数据标签</CheckBox></p>
+            {enabled.metaTag && <>
+                <p class="mt-1">已设置{form.tags.length}个标签、{form.topics.length}个主题、{form.authors.length}个作者</p>
+                <button class="button" onClick={editMetaTag}><span class="icon"><i class="fa fa-feather-alt"/></span><span>编辑元数据标签</span></button>
+                <p class="mb-1"><i class="has-text-grey">批量设定的元数据标签将覆盖所选项所有已存在的标签。</i></p>
+            </>}
+            <p class="mt-1"><CheckBox value={enabled.tagme} onUpdateValue={v => enabled.tagme = v}>设置Tagme</CheckBox></p>
+            {enabled.tagme && <TagmeEditor class="mt-1 mb-2" value={form.tagme} onUpdateValue={v => form.tagme = v}/>}
+            <p class="mt-1"><CheckBox value={enabled.description} onUpdateValue={v => enabled.description = v}>设置描述</CheckBox></p>
+            {enabled.description && <Textarea placeholder="描述" value={form.description} onUpdateValue={v => form.description = v} focusOnMounted={true}/>}
+            <p class="mt-1"><CheckBox value={enabled.score} onUpdateValue={v => enabled.score = v}>设置评分</CheckBox></p>
+            {enabled.score && <StarlightEditor value={form.score} onUpdateValue={v => form.score = v}/>}
+            <p class="mt-1"><CheckBox value={enabled.partitionTime} onUpdateValue={v => enabled.partitionTime = v}>设置时间分区</CheckBox></p>
+            {enabled.partitionTime && <DateEditor class="mt-1 mb-2" value={form.partitionTime} onUpdateValue={v => form.partitionTime = v}/>}
+            <p class="mt-1"><CheckBox value={enabled.orderTime} onUpdateValue={v => enabled.orderTime = v}>设置排序时间</CheckBox></p>
+            {enabled.orderTime && <>
+                <label class="label mt-1">起始时间点</label>
+                <DateTimeEditor class="mt-1" value={form.orderTime.begin} onUpdateValue={v => form.orderTime.begin = v}/>
+                <label class="label mt-1">末尾时间点</label>
+                <DateTimeEditor class="mt-1" value={form.orderTime.end} onUpdateValue={v => form.orderTime.end = v}/>
+                <p class="mb-1"><i class="has-text-grey">批量设定的排序时间将均匀分布在设定的时间范围内。</i></p>
+            </>}
+            <button class="button is-info w-100 mt-6" disabled={!anyEnabled.value} onClick={submit}>
+                <span class="icon"><i class="fa fa-check"/></span><span>提交批量更改</span>
+            </button>
+            <button class="button is-white w-100 mt-1" onClick={() => emit("close")}>
+                <span class="icon"><i class="fa fa-times"/></span><span>取消</span>
+            </button>
+        </div>
     }
 })

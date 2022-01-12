@@ -152,7 +152,7 @@ const MultipleView = defineComponent({
             <ThumbnailImage value={data.value?.thumbnailFile} minHeight="12rem" maxHeight="40rem"/>
             {data.value?.fileName && <p class={[style.filename, "can-be-selected"]}><b>{data.value.fileName}</b></p>}
             {batchUpdateMode.value
-                ? <BatchUpdate selected={props.selected} onClose={() => batchUpdateMode.value = false}/>
+                ? <BatchUpdate class="mt-4" selected={props.selected} onClose={() => batchUpdateMode.value = false}/>
                 : <p class="mt-4">
                     <a onClick={() => batchUpdateMode.value = true}>
                         <span class="icon"><i class="fa fa-edit"/></span><span>批量编辑</span>
@@ -223,8 +223,8 @@ const BatchUpdate = defineComponent({
             }
         }
 
-        return () => <>
-            <p class="mt-4"><span class="icon"><i class="fa fa-edit"/></span><span>批量编辑</span></p>
+        return () => <div>
+            <p><span class="icon"><i class="fa fa-edit"/></span><span>批量编辑</span></p>
             <p class="mt-2"><CheckBox value={enabled.tagme} onUpdateValue={v => enabled.tagme = v}>设置Tagme</CheckBox></p>
             {enabled.tagme && <TagmeEditor class="mt-1 mb-2" value={form.tagme} onUpdateValue={v => form.tagme = v}/>}
             <p class="mt-1"><CheckBox value={enabled.setCreatedTimeBy} onUpdateValue={v => enabled.setCreatedTimeBy = v}>设置创建时间</CheckBox></p>
@@ -240,7 +240,7 @@ const BatchUpdate = defineComponent({
             <button class="button is-white w-100 mt-1" onClick={() => emit("close")}>
                 <span class="icon"><i class="fa fa-times"/></span><span>取消</span>
             </button>
-        </>
+        </div>
     }
 })
 

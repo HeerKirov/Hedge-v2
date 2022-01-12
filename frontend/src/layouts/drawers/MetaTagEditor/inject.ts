@@ -24,13 +24,18 @@ export { useTagListContext, useSearchService }
 
 interface InstallPanelContext {
     data: Readonly<Ref<EditorData | null>>
-    setData: SetData
+    setData?: SetData
+    onUpdate?: OnUpdate
     close(): void
     identity: Ref<MetaUtilIdentity | null>
 }
 
 export interface SetData {
-    (form: EditorUpdateForm, errorHandler: (e: EditorUpdateException) => EditorUpdateException | void): Promise<boolean>
+    (form: SetDataForm, errorHandler: (e: EditorUpdateException) => EditorUpdateException | void): Promise<boolean>
+}
+
+export interface OnUpdate {
+    (form: UpdateForm): void
 }
 
 interface EditorData {
@@ -40,10 +45,17 @@ interface EditorData {
     tagme: Tagme[]
 }
 
-interface EditorUpdateForm {
+interface SetDataForm {
     topics?: number[]
     authors?: number[]
     tags?: number[]
+    tagme?: Tagme[]
+}
+
+interface UpdateForm {
+    topics?: DepsTopic[]
+    authors?: DepsAuthor[]
+    tags?: DepsTag[]
     tagme?: Tagme[]
 }
 
@@ -190,29 +202,42 @@ function useSaveMethod(tags: Ref<SimpleTag[]>,
         if(canSave.value) {
             //在提交更改之前就记录下变化统计数据，因为在提交更改后，历史记录栈会被清空
             const metaChangedHistory = getMetaHistory()
-            const ok = await context.setData({
-                tags: changed.tag ? tags.value.map(i => i.id) : undefined,
-                topics: changed.topic ? topics.value.map(i => i.id) : undefined,
-                authors: changed.author ? authors.value.map(i => i.id) : undefined,
-                tagme: changed.tagme ? tagme.value : undefined
-            }, e => {
-                if(e.code === "NOT_EXIST") {
-                    const [type, list] = e.info
-                    const typeName = type === "tags" ? "标签" : type === "topics" ? "主题" : "作者"
-                    message.showOkMessage("error", `选择的部分${typeName}不存在。`, `错误项: ${list}`)
-                }else if(e.code === "NOT_SUITABLE") {
-                    message.showOkMessage("prompt", "选择的部分标签不适用。", "请参阅下方的约束提示修改内容。")
-                }else if(e.code === "CONFLICTING_GROUP_MEMBERS") {
-                    message.showOkMessage("prompt", "选择的部分标签存在强制组冲突。", "请参阅下方的约束提示修改内容。")
-                }else{
-                    return e
-                }
-            })
+            if(context.setData) {
+                const ok = await context.setData({
+                    tags: changed.tag ? tags.value.map(i => i.id) : undefined,
+                    topics: changed.topic ? topics.value.map(i => i.id) : undefined,
+                    authors: changed.author ? authors.value.map(i => i.id) : undefined,
+                    tagme: changed.tagme ? tagme.value : undefined
+                }, e => {
+                    if(e.code === "NOT_EXIST") {
+                        const [type, list] = e.info
+                        const typeName = type === "tags" ? "标签" : type === "topics" ? "主题" : "作者"
+                        message.showOkMessage("error", `选择的部分${typeName}不存在。`, `错误项: ${list}`)
+                    }else if(e.code === "NOT_SUITABLE") {
+                        message.showOkMessage("prompt", "选择的部分标签不适用。", "请参阅下方的约束提示修改内容。")
+                    }else if(e.code === "CONFLICTING_GROUP_MEMBERS") {
+                        message.showOkMessage("prompt", "选择的部分标签存在强制组冲突。", "请参阅下方的约束提示修改内容。")
+                    }else{
+                        return e
+                    }
+                })
 
-            if(ok) {
-                //发送编辑器历史记录所需的统计数据
-                sendEditorHistoryStatistics(metaChangedHistory)
-                //保存成功
+                if(ok) {
+                    //发送编辑器历史记录所需的统计数据
+                    sendEditorHistoryStatistics(metaChangedHistory)
+                    //保存成功
+                    context.close()
+                }
+            }else if(context.onUpdate) {
+                context.onUpdate({
+                    tags: changed.tag ? tags.value.map(i => ({...i, isExported: false})) : undefined,
+                    topics: changed.topic ? topics.value.map(i => ({...i, isExported: false})) : undefined,
+                    authors: changed.author ? authors.value.map(i => ({...i, isExported: false})) : undefined,
+                    tagme: changed.tagme ? tagme.value : undefined
+                })
+
+                context.close()
+            }else{
                 context.close()
             }
         }
@@ -447,10 +472,10 @@ function useRightColumnData(context: InstallPanelContext) {
     const tabDbType = splitRef(storage, "tabDbType")
 
     watch(context.identity, identity => {
-        if(identity?.type === "IMAGE" && tab.value === "source") {
+        if(identity?.type !== "IMAGE" && tab.value === "source") {
             tab.value = "suggest"
         }
-    })
+    }, {immediate: true})
 
     return {tab, tabDbType}
 }
