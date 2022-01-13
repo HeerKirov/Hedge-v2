@@ -20,6 +20,7 @@ class IllustRoutes(private val illustService: IllustService, private val associa
                 path("illusts") {
                     get(::list)
                     path("{id}") {
+                        get(::get)
                         patch(::update)
                         delete(::delete)
                     }
@@ -58,6 +59,7 @@ class IllustRoutes(private val illustService: IllustService, private val associa
                         }
                     }
                     post("find-by-ids", ::findByIds)
+                    post("batch-update", ::batchUpdate)
                     post("clone-image-props", ::cloneImageProps)
                 }
                 path("associates") {
@@ -82,6 +84,11 @@ class IllustRoutes(private val illustService: IllustService, private val associa
             throw be(ParamTypeError("images", e.message ?: "cannot convert to List<Int>"))
         }
         ctx.json(illustService.findByIds(images))
+    }
+
+    private fun get(ctx: Context) {
+        val id = ctx.pathParamAsClass<Int>("id").get()
+        ctx.json(illustService.get(id))
     }
 
     private fun update(ctx: Context) {
@@ -216,6 +223,11 @@ class IllustRoutes(private val illustService: IllustService, private val associa
         val id = ctx.pathParamAsClass<Int>("id").get()
         associateService.delete(id)
         ctx.status(204)
+    }
+
+    private fun batchUpdate(ctx: Context) {
+        val form = ctx.bodyAsForm<IllustBatchUpdateForm>()
+        illustService.batchUpdate(form)
     }
 
     private fun cloneImageProps(ctx: Context) {

@@ -76,7 +76,17 @@ class IllustImageOriginUpdateForm(val source: Opt<String?>, val sourceId: Opt<Lo
                                   val title: Opt<String?>, val description: Opt<String?>, val tags: Opt<List<SourceTagForm>>,
                                   val pools: Opt<List<String>>, val relations: Opt<List<Int>>)
 
-class IllustBatchUpdateForm(val target: List<Int>)
+class IllustBatchUpdateForm(val target: List<Int>,
+                            val description: Opt<String?>,
+                            val score: Opt<Int?>,
+                            val favorite: Opt<Boolean>,
+                            val tags: Opt<List<Int>>,
+                            val topics: Opt<List<Int>>,
+                            val authors: Opt<List<Int>>,
+                            val tagme: Opt<Illust.Tagme>,
+                            val partitionTime: Opt<LocalDate>,
+                            val orderTimeBegin: Opt<LocalDateTime>,
+                            val orderTimeEnd: Opt<LocalDateTime>)
 
 class ImagePropsCloneForm(val props: Props, val merge: Boolean = false, val deleteFrom: Boolean = false, val from: Int, val to: Int) {
     data class Props(

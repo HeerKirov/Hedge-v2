@@ -2,6 +2,7 @@ package com.heerkirov.hedge.server.components.service
 
 import com.heerkirov.hedge.server.components.backend.exporter.AlbumMetadataExporterTask
 import com.heerkirov.hedge.server.components.backend.exporter.BackendExporter
+import com.heerkirov.hedge.server.components.backend.exporter.ExporterTask
 import com.heerkirov.hedge.server.components.backend.exporter.IllustMetadataExporterTask
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.database.transaction
@@ -28,16 +29,14 @@ import com.heerkirov.hedge.server.utils.business.*
 import com.heerkirov.hedge.server.utils.DateTime
 import com.heerkirov.hedge.server.utils.DateTime.parseDateTime
 import com.heerkirov.hedge.server.utils.DateTime.toMillisecond
+import com.heerkirov.hedge.server.utils.filterInto
 import com.heerkirov.hedge.server.utils.ktorm.OrderTranslator
 import com.heerkirov.hedge.server.utils.ktorm.firstOrNull
 import com.heerkirov.hedge.server.utils.ktorm.orderBy
 import com.heerkirov.hedge.server.utils.runIf
 import com.heerkirov.hedge.server.utils.types.*
 import org.ktorm.dsl.*
-import org.ktorm.entity.filter
-import org.ktorm.entity.first
-import org.ktorm.entity.firstOrNull
-import org.ktorm.entity.sequenceOf
+import org.ktorm.entity.*
 import org.ktorm.expression.BinaryExpression
 import kotlin.math.roundToInt
 
@@ -686,6 +685,268 @@ class IllustService(private val data: DataRepository,
                     exportDescription = illust.description.isNotEmpty(),
                     exportScore = illust.score != null,
                     exportMetaTag = anyNotExportedMetaExists) })
+            }
+        }
+    }
+
+    /**
+     * 批量修改属性。
+     * @throws ResourceNotExist ("target", number[]) 选取的资源不存在。
+     * @throws ResourceNotSuitable ("target", number[]) 不能同时编辑collection和它下属的image。
+     */
+    fun batchUpdate(form: IllustBatchUpdateForm) {
+        if(form.target.isEmpty()) return
+        data.db.transaction {
+            val records = data.db.sequenceOf(Illusts).filter { it.id inList form.target }.toList().also { records ->
+                val targetSet = form.target.toSet()
+                if(records.size < form.target.size) {
+                    throw be(ResourceNotExist("target", targetSet - records.map { it.id }.toSet()))
+                }else if(records.any { it.parentId in targetSet }) {
+                    throw be(ResourceNotSuitable("target", records.filter { it.parentId in targetSet }))
+                }
+            }
+            val (collections, images) = records.filterInto { it.type == Illust.Type.COLLECTION }
+            val collectionIds by lazy { collections.map { it.id } }
+            val imageIds by lazy { images.map { it.id } }
+            val childrenOfCollections by lazy { if(collections.isEmpty()) emptyList() else data.db.sequenceOf(Illusts).filter { it.parentId inList collectionIds }.toList() }
+
+            val exporterTasks = mutableListOf<ExporterTask>()
+
+            //favorite
+            form.favorite.alsoOpt { favorite ->
+                data.db.update(Illusts) {
+                    where { it.id inList form.target }
+                    set(it.favorite, favorite)
+                }
+            }
+
+            //score
+            form.score.alsoOpt { score ->
+                if(score != null) {
+                    kit.validateScore(score)
+
+                    //在给出score的情况下直接设定所有score
+                    data.db.update(Illusts) {
+                        where { it.id inList form.target }
+                        set(it.score, score)
+                        set(it.exportedScore, score)
+                    }
+
+                    exporterTasks.addAll(childrenOfCollections.map { IllustMetadataExporterTask(it.id, exportScore = true) })
+                    exporterTasks.addAll(images.mapNotNull { it.parentId }.map { IllustMetadataExporterTask(it, exportScore = true) })
+                }else{
+                    //在给出null的情况下，对于所有collection,计算children的其平均值
+                    val collectionScores = if(collections.isNotEmpty()) emptyMap() else data.db.from(Illusts)
+                        .select(Illusts.parentId, count(Illusts.id).aliased("count"), avg(Illusts.score).aliased("score"))
+                        .where { Illusts.parentId inList collectionIds }
+                        .groupBy(Illusts.parentId)
+                        .associate {
+                            it[Illusts.parentId]!! to if(it.getInt("count") > 0) it.getDouble("score").roundToInt() else null
+                        }
+                    //对于所有image,获得其parent的score
+                    val imageScores = if(images.isEmpty()) emptyMap() else data.db.from(Illusts)
+                        .select(Illusts.id, Illusts.score)
+                        .where { Illusts.id inList images.mapNotNull { it.parentId } }
+                        .associate { it[Illusts.id]!! to it[Illusts.score] }
+                    //然后更新到db
+                    data.db.batchUpdate(Illusts) {
+                        for (record in records) {
+                            item {
+                                where { it.id eq record.id }
+                                set(it.score, null)
+                                set(it.exportedScore, if(record.type == Illust.Type.COLLECTION) {
+                                    collectionScores[record.id]
+                                }else{
+                                    imageScores[record.parentId]
+                                })
+                            }
+                        }
+                    }
+
+                    exporterTasks.addAll(childrenOfCollections.map { IllustMetadataExporterTask(it.id, exportScore = true) })
+                    exporterTasks.addAll(images.mapNotNull { it.parentId }.map { IllustMetadataExporterTask(it, exportScore = true) })
+                }
+            }
+
+            //description
+            form.description.alsoOpt { description ->
+                if(!description.isNullOrEmpty()) {
+                    //在给出description的情况下直接设定所有description
+                    data.db.update(Illusts) {
+                        where { it.id inList form.target }
+                        set(it.description, description)
+                        set(it.exportedDescription, description)
+                    }
+
+                    if(childrenOfCollections.isNotEmpty()) {
+                        exporterTasks.addAll(childrenOfCollections.map { IllustMetadataExporterTask(it.id, exportDescription = true) })
+                    }
+                }else{
+                    //在给出empty的情况下，对于所有collection仍直接设定；对于image,需要获得其parent的description
+                    if(collections.isNotEmpty()) {
+                        data.db.update(Illusts) {
+                            where { it.id inList collectionIds }
+                            set(it.description, "")
+                            set(it.exportedDescription, "")
+                        }
+
+                        if(childrenOfCollections.isNotEmpty()) {
+                            exporterTasks.addAll(childrenOfCollections.map { IllustMetadataExporterTask(it.id, exportDescription = true) })
+                        }
+                    }
+                    if(images.isNotEmpty()) {
+                        val imageDescriptions = data.db.from(Illusts)
+                            .select(Illusts.id, Illusts.description)
+                            .where { Illusts.id inList images.mapNotNull { it.parentId } }
+                            .associate { it[Illusts.id]!! to it[Illusts.description]!! }
+                        data.db.batchUpdate(Illusts) {
+                            for (record in images) {
+                                item {
+                                    where { it.id eq record.id }
+                                    set(it.description, "")
+                                    set(it.exportedDescription, imageDescriptions[record.parentId] ?: "")
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            //meta tag
+            if(anyOpt(form.tags, form.topics, form.authors)) {
+                //由于meta tag的更新实在复杂，不必在这里搞batch优化了，就挨个处理就好了
+                for (illust in images) {
+                    kit.updateMeta(illust.id, newTags = form.tags, newAuthors = form.authors, newTopics = form.topics, copyFromParent = illust.parentId)
+
+                    if(illust.parentId != null && !kit.anyNotExportedMetaExists(illust.parentId)) {
+                        exporterTasks.add(IllustMetadataExporterTask(illust.parentId, exportMetaTag = true))
+                    }
+                    data.db.from(Albums)
+                        .innerJoin(AlbumImageRelations, AlbumImageRelations.albumId eq Albums.id).select(Albums.id)
+                        .where { AlbumImageRelations.imageId inList imageIds }.groupBy(Albums.id)
+                        .forEach { exporterTasks.add(AlbumMetadataExporterTask(it[Albums.id]!!, exportMetaTag = true)) }
+                }
+                for (illust in collections) {
+                    kit.updateMeta(illust.id, newTags = form.tags, newAuthors = form.authors, newTopics = form.topics, copyFromChildren = true)
+
+                    data.db.from(Illusts).select(Illusts.id)
+                        .where { Illusts.parentId inList collectionIds }
+                        .groupBy(Illusts.id)
+                        .forEach { exporterTasks.add(IllustMetadataExporterTask(it[Illusts.id]!!, exportMetaTag = true)) }
+                }
+            }
+
+            //tagme
+            if(form.tagme.isPresent) {
+                data.db.update(Illusts) {
+                    where { it.id inList form.target }
+                    set(it.tagme, form.tagme.value)
+                }
+            }else if(data.metadata.meta.autoCleanTagme && anyOpt(form.tags, form.authors, form.topics)) {
+                data.db.batchUpdate(Illusts) {
+                    for (record in records) {
+                       item {
+                           where { it.id eq record.id }
+                           set(it.tagme, record.tagme
+                               .runIf(form.tags.isPresent) { this - Illust.Tagme.TAG }
+                               .runIf(form.authors.isPresent) { this - Illust.Tagme.AUTHOR }
+                               .runIf(form.topics.isPresent) { this - Illust.Tagme.TOPIC })
+                       }
+                    }
+                }
+            }
+
+            //partition time
+            form.partitionTime.alsoOpt { partitionTime ->
+                //tips: 绕过标准导出流程进行更改。对于collection,直接修改它及它全部children的此属性
+                val children = childrenOfCollections.filter { it.partitionTime != partitionTime }.map { Pair(it.id, it.partitionTime) }
+
+                data.db.update(Illusts) {
+                    where { it.id inList (children.map { (id, _) -> id } + form.target) }
+                    set(it.partitionTime, partitionTime)
+                }
+
+                for ((_, oldPartitionTime) in children) {
+                   partitionManager.updateItemPartition(oldPartitionTime, partitionTime)
+                }
+                for (illust in images) {
+                   if(illust.partitionTime != partitionTime) {
+                       partitionManager.updateItemPartition(illust.partitionTime, partitionTime)
+                   }
+                }
+            }
+
+            //order time
+            form.orderTimeBegin.alsoOpt { orderTimeBegin ->
+                //找出所有image及collection的children，按照原有orderTime顺序排序，并依次计算新orderTime。排序时相同parent的children保持相邻
+                //对于collection，绕过标准导出流程进行更改。直接按照计算结果修改collection的orderTime，且无需导出，因为orderTime并未变化
+                val children = childrenOfCollections.map { Triple(it.id, it.parentId!!, it.orderTime) }
+
+                val seq = records.asSequence()
+                    .sortedBy { it.orderTime }
+                    .flatMap {
+                        if(it.type == Illust.Type.COLLECTION) {
+                            children.filter { (_, parentId, _) -> parentId == it.id }.asSequence().sortedBy { (_, _, t) -> t }
+                        }else{
+                            sequenceOf(Triple(it.id, null, it.orderTime))
+                        }
+                    }
+                    .toList()
+
+                val values = if(seq.size > 1) {
+                    val beginMs = orderTimeBegin.toMillisecond()
+                    val endMs = form.orderTimeEnd.letOpt {
+                        it.toMillisecond().apply {
+                            if(it < orderTimeBegin) {
+                                throw be(ParamError("orderTimeEnd"))
+                            }
+                        }
+                    }.unwrapOr {
+                        //若未给出endTime，则尝试如下策略：
+                        //如果beginTime距离now很近(每个项的空间<2s)，那么将now作为endTime
+                        //但如果beginTime过近(每个项空间<10ms)，或超过了now，或距离过远，那么以1s为单位间隔生成endTime
+                        val nowMs = DateTime.now().toMillisecond()
+                        if(nowMs < beginMs + (seq.size - 1) * 2000 && nowMs > beginMs + (seq.size - 1) * 10) {
+                            nowMs
+                        }else{
+                            beginMs + (seq.size - 1) * 1000
+                        }
+                    }
+                    val step = (endMs - beginMs) / (seq.size - 1)
+                    var value = beginMs
+                    seq.indices.map {
+                        value.also {
+                            value += step
+                        }
+                    }
+                }else{
+                    listOf(orderTimeBegin.toMillisecond())
+                }
+
+                data.db.batchUpdate(Illusts) {
+                    seq.forEachIndexed { i, (id, _, _) ->
+                        item {
+                            where { it.id eq id }
+                            set(it.orderTime, values[i])
+                        }
+                    }
+                }
+
+                if(collections.isNotEmpty()) {
+                    val collectionValues = seq.filter { (_, p, _) -> p != null }
+                        .zip(values) { (id, p, _), ot -> Triple(id, p!!, ot) }
+                        .groupBy { (_, p, _) -> p }
+                        .mapValues { (_, values) -> values.minOf { (_, _, t) -> t } }
+
+                    data.db.batchUpdate(Illusts) {
+                        for ((id, ot) in collectionValues) {
+                            item {
+                                where { it.id eq id }
+                                set(it.orderTime, ot)
+                            }
+                        }
+                    }
+                }
             }
         }
     }
