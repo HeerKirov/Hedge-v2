@@ -1,13 +1,12 @@
 import { defineComponent, markRaw, watch } from "vue"
 import TopBarLayout from "@/layouts/layouts/TopBarLayout"
+import SplitPane from "@/layouts/layouts/SplitPane"
 import { ColumnNumButton, DataRouter, FitTypeButton } from "@/layouts/topbars"
 import {
-    IllustGrid,
-    FitType,
-    GridContextOperatorResult,
-    useGridContextOperator,
-    IllustRowList
+    IllustGrid, FitType, GridContextOperatorResult,
+    useGridContextOperator, IllustRowList, IllustPaneDetail
 } from "@/layouts/data/Dataset"
+import { DetailIllust } from "@/functions/adapter-http/impl/illust"
 import { FolderImage } from "@/functions/adapter-http/impl/folder"
 import { TypeDefinition } from "@/functions/feature/drag/definition"
 import { useAddToFolderService } from "@/layouts/dialogs/AddToFolder"
@@ -23,7 +22,14 @@ import { installDetailContext, useDetailContext } from "./inject"
 export default defineComponent({
     setup() {
         const { pushSubItem } = useSideBarContext()
-        const { detail: { data } } = installDetailContext()
+        const { dataView, endpoint, pane, detail: { data } } = installDetailContext()
+
+        const closePane = () => pane.visible.value = false
+        const onRefreshEndpoint = () => endpoint.refresh
+        const onAfterUpdate = (id: number, data: DetailIllust) => {
+            const index = dataView.proxy.syncOperations.find(i => i.id === id)
+            if(index != undefined) dataView.proxy.syncOperations.modify(index, data)
+        }
 
         watch(data, data => {
             if(data !== null) {
@@ -34,7 +40,10 @@ export default defineComponent({
 
         const topBarLayoutSlots = {
             topBar: () => <TopBarContent/>,
-            default: () => <ListView/>
+            default: () => <SplitPane showPane={pane.visible.value} v-slots={{
+                default: () => <ListView/>,
+                pane: () => <IllustPaneDetail state={pane.state.value} onClose={closePane} onAfterUpdate={onAfterUpdate} onRefreshEndpoint={onRefreshEndpoint}/>
+            }}/>
         }
         return () => <TopBarLayout v-slots={topBarLayoutSlots}/>
     }
@@ -43,15 +52,16 @@ export default defineComponent({
 const TopBarContent = defineComponent({
     setup() {
         const { view: { closeView } } = useFolderContext()
-        const { viewController: { fitType, columnNum, viewMode }, detail: { data } } = useDetailContext()
+        const { viewController: { fitType, columnNum, viewMode }, pane, detail: { data } } = useDetailContext()
 
         const setFitType = (v: FitType) => fitType.value = v
         const setColumnNum = (v: number) => columnNum.value = v
 
         const menu = useElementPopupMenu(() => [
+            {type: "checkbox", label: "显示信息预览", checked: pane.visible.value, click: () => pane.visible.value = !pane.visible.value},
+            {type: "separator"},
             {type: "radio", checked: viewMode.value === "row", label: "列表模式", click: () => viewMode.value = "row"},
             {type: "radio", checked: viewMode.value === "grid", label: "网格模式", click: () => viewMode.value = "grid"},
-            {type: "separator"},
         ], {position: "bottom"})
 
         return () => <div class="middle-layout">
@@ -84,7 +94,6 @@ const EditLockButton = defineComponent({
         </button>
     }
 })
-
 
 const ListView = defineComponent({
     setup() {
@@ -131,12 +140,13 @@ const ListView = defineComponent({
 })
 
 function useContextmenu(operator: GridContextOperatorResult<FolderImage>, folderOperator: ReturnType<typeof useFolderOperator>) {
-    //TODO 完成folder illust右键菜单的功能 (信息预览，剪贴板，关联组，导出)
+    const { pane } = useDetailContext()
+    //TODO 完成folder illust右键菜单的功能 (剪贴板，关联组，导出)
     return useDynamicPopupMenu<FolderImage>(illust => [
         {type: "normal", label: "查看详情", click: i => operator.clickToOpenDetail(i.id)},
-        {type: "separator"},
         {type: "normal", label: "在新窗口中打开", click: operator.openInNewWindow},
-        {type: "normal", label: "显示信息预览"},
+        {type: "separator"},
+        {type: "checkbox", checked: pane.visible.value, label: "显示信息预览", click: () => pane.visible.value = !pane.visible.value},
         {type: "separator"},
         illust.favorite
             ? {type: "normal", label: "取消标记为收藏", click: i => operator.modifyFavorite(i, false)}

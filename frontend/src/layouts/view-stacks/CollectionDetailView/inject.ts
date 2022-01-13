@@ -1,5 +1,8 @@
 import { computed, InjectionKey, onBeforeMount, ref, Ref } from "vue"
-import { IllustDatasetController, SelectedState, useIllustDatasetController, useSelectedState } from "@/layouts/data/Dataset"
+import {
+    IllustDatasetController, SelectedState, SidePaneState,
+    useIllustDatasetController, useSelectedState, useSidePaneState
+} from "@/layouts/data/Dataset"
 import { ScrollView, useScrollView } from "@/components/features/VirtualScrollView"
 import { useToast } from "@/functions/module/toast"
 import { useHttpClient } from "@/functions/app"
@@ -44,6 +47,7 @@ export interface PreviewContext {
         scrollView: Readonly<ScrollView>
         viewController: Exclude<IllustDatasetController, "collectionMode">
         selector: SelectedState
+        pane: SidePaneState
     }
     ui: {
         /**
@@ -119,7 +123,9 @@ function useImagesContext(id: Ref<number | null>): PreviewContext["images"] {
 
     const selector = useSelectedState(list.endpoint)
 
-    return {...list, viewController, selector}
+    const pane = useSidePaneState("illust", selector)
+
+    return {...list, viewController, selector, pane}
 }
 
 function useListContext(path: Ref<number | null>) {

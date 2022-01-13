@@ -210,3 +210,29 @@
   background-color: rgba(0, 0, 0, 0.65);
   box-shadow: 0 0 6px rgba(0, 0, 0, 0.65);
 }
+
+.pane-detail-content {
+  .top {
+    margin-top: 1.75rem;
+  }
+  .filename {
+    font-size: $font-size-medium;
+    margin-bottom: 0.25rem;
+    word-wrap: anywhere;
+  }
+  .separator {
+    border-top: solid 1px $deep-sidebar;
+    @media (prefers-color-scheme: dark) {
+      border-top-color: $deep-sidebar-dm;
+    }
+    width: 100%;
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+  .spacing {
+    margin-top: 0.5rem;
+  }
+  .char-2-left {
+    padding-left: 2em;
+  }
+}

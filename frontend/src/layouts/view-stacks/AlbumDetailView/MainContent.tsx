@@ -1,9 +1,14 @@
 import { defineComponent, markRaw } from "vue"
 import TopBarLayout from "@/layouts/layouts/TopBarLayout"
 import SideDrawer from "@/layouts/layouts/SideDrawer"
-import { IllustGrid, GridContextOperatorResult, useGridContextOperator, IllustRowList } from "@/layouts/data/Dataset"
+import SplitPane from "@/layouts/layouts/SplitPane"
+import {
+    IllustGrid, GridContextOperatorResult,
+    useGridContextOperator, IllustRowList, IllustPaneDetail
+} from "@/layouts/data/Dataset"
 import MetaTagEditor from "@/layouts/drawers/MetaTagEditor"
 import { TypeDefinition } from "@/functions/feature/drag/definition"
+import { DetailIllust } from "@/functions/adapter-http/impl/illust"
 import { AlbumImage } from "@/functions/adapter-http/impl/album"
 import { createSliceOfAll, createSliceOfList } from "@/functions/utils/endpoints/query-endpoint"
 import { useAddToAlbumService } from "@/layouts/dialogs"
@@ -16,13 +21,23 @@ import { usePreviewContext } from "./inject"
 
 export default defineComponent({
     setup() {
-        const { ui: { drawerTab } } = usePreviewContext()
+        const { ui: { drawerTab }, images: { dataView, endpoint, pane } } = usePreviewContext()
 
         const closeDrawerTab = () => drawerTab.value = undefined
 
+        const closePane = () => pane.visible.value = false
+        const onRefreshEndpoint = () => endpoint.refresh
+        const onAfterUpdate = (id: number, data: DetailIllust) => {
+            const index = dataView.proxy.syncOperations.find(i => i.id === id)
+            if(index != undefined) dataView.proxy.syncOperations.modify(index, data)
+        }
+
         const topBarLayoutSlots = {
             topBar() { return <TopBarContent/> },
-            default() { return <ListView/> }
+            default() { return <SplitPane showPane={pane.visible.value} v-slots={{
+                default: () => <ListView/>,
+                pane: () => <IllustPaneDetail state={pane.state.value} onClose={closePane} onAfterUpdate={onAfterUpdate} onRefreshEndpoint={onRefreshEndpoint}/>
+            }}/> }
         }
         const sideDrawerSlots = {
             "metaTag"() { return <MetaTagEditorPanel/> }
@@ -96,13 +111,13 @@ const ListView = defineComponent({
 })
 
 function useContextmenu(operator: GridContextOperatorResult<AlbumImage>, albumOperator: ReturnType<typeof useAlbumOperator>) {
-    const { data: { id } } = usePreviewContext()
-    //TODO 完成album images右键菜单的功能 (信息预览，剪贴板，关联组，导出)
+    const { data: { id }, images: { pane } } = usePreviewContext()
+    //TODO 完成album images右键菜单的功能 (剪贴板，关联组，导出)
     return useDynamicPopupMenu<AlbumImage>(image => [
         {type: "normal", label: "查看详情", click: image => operator.clickToOpenDetail(image.id)},
-        {type: "separator"},
         {type: "normal", label: "在新窗口中打开", click: operator.openInNewWindow},
-        {type: "normal", label: "显示信息预览"},
+        {type: "separator"},
+        {type: "checkbox", label: "显示信息预览", checked: pane.visible.value, click: () => pane.visible.value = !pane.visible.value},
         {type: "separator"},
         image.favorite
             ? {type: "normal", label: "取消标记为收藏", click: image => operator.modifyFavorite(image, false)}

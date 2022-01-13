@@ -7,15 +7,16 @@ import { usePreviewContext } from "./inject"
 
 export default defineComponent({
     setup() {
-        const { images: { viewController: { fitType, columnNum, viewMode } } } = usePreviewContext()
+        const { images: { viewController: { fitType, columnNum, viewMode }, pane } } = usePreviewContext()
 
         const setFitType = (v: FitType) => fitType.value = v
         const setColumnNum = (v: number) => columnNum.value = v
 
         const menu = useElementPopupMenu(() => [
+            {type: "checkbox", label: "显示信息预览", checked: pane.visible.value, click: () => pane.visible.value = !pane.visible.value},
+            {type: "separator"},
             {type: "radio", checked: viewMode.value === "row", label: "列表模式", click: () => viewMode.value = "row"},
             {type: "radio", checked: viewMode.value === "grid", label: "网格模式", click: () => viewMode.value = "grid"},
-            {type: "separator"},
         ], {position: "bottom"})
 
         return () => <div class="middle-layout">

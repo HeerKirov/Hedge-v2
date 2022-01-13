@@ -2,7 +2,10 @@ import { computed, onBeforeMount, ref, Ref } from "vue"
 import { Album, AlbumExceptions, AlbumImage, AlbumUpdateForm, DetailAlbum } from "@/functions/adapter-http/impl/album"
 import { ScrollView, useScrollView } from "@/components/features/VirtualScrollView"
 import { PaginationDataView, QueryEndpointResult, SingletonDataView, usePaginationDataView, useQueryEndpoint } from "@/functions/utils/endpoints/query-endpoint"
-import { IllustDatasetController, SelectedState, useIllustDatasetController, useSelectedState } from "@/layouts/data/Dataset"
+import {
+    IllustDatasetController, SelectedState, SidePaneState,
+    useIllustDatasetController, useSelectedState, useSidePaneState
+} from "@/layouts/data/Dataset"
 import { useToast } from "@/functions/module/toast"
 import { useHttpClient, useLocalStorageWithDefault } from "@/functions/app"
 import { useObjectEndpoint, ObjectEndpoint } from "@/functions/utils/endpoints/object-endpoint"
@@ -44,6 +47,7 @@ export interface PreviewContext {
         scrollView: Readonly<ScrollView>
         viewController: Exclude<IllustDatasetController, "collectionMode"> & { editable: Ref<boolean> }
         selector: SelectedState
+        pane: SidePaneState
     }
     /**
      * sidebar detail info的数据。
@@ -129,7 +133,9 @@ function useImagesContext(id: Ref<number | null>): PreviewContext["images"] {
 
     const selector = useSelectedState(list.endpoint)
 
-    return {...list, viewController, selector}
+    const pane = useSidePaneState("illust", selector)
+
+    return {...list, viewController, selector, pane}
 }
 
 function useListContext(path: Ref<number | null>) {

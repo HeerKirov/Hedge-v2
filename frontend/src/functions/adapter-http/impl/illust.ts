@@ -79,6 +79,9 @@ export function createIllustEndpoint(http: HttpInstance): IllustEndpoint {
             update: http.createPathDataRequest(id => `/api/associates/${id}`, "PUT"),
             delete: http.createPathRequest(id => `/api/associates/${id}`, "DELETE")
         },
+        batchUpdate: http.createDataRequest("/api/illusts/batch-update", "POST", {
+            parseData: mapFromIllustBatchUpdateForm
+        }),
         cloneImageProps: http.createDataRequest("/api/illusts/clone-image-props", "POST")
     }
 }
@@ -155,6 +158,15 @@ function mapFromImageUpdateForm(form: ImageUpdateForm): any {
         ...form,
         partitionTime: form.partitionTime !== undefined ? date.toISOString(form.partitionTime) : undefined,
         orderTime: form.orderTime !== undefined ? datetime.toISOString(form.orderTime) : undefined
+    }
+}
+
+function mapFromIllustBatchUpdateForm(form: IllustBatchUpdateForm): any {
+    return {
+        ...form,
+        partitionTime: form.partitionTime !== undefined ? date.toISOString(form.partitionTime) : undefined,
+        orderTimeBegin: form.orderTimeBegin !== undefined ? datetime.toISOString(form.orderTimeBegin) : undefined,
+        orderTimeEnd: form.orderTimeEnd !== undefined ? datetime.toISOString(form.orderTimeEnd) : undefined
     }
 }
 
@@ -349,6 +361,10 @@ export interface IllustEndpoint {
          */
         delete(id: number): Promise<Response<null>>
     }
+    /**
+     * 批量更新元数据。
+     */
+    batchUpdate(form: IllustBatchUpdateForm): Promise<Response<null, IllustExceptions["image.update"]>>
     /**
      * 将一个图像的属性和关系克隆到另一个图像。
      */
@@ -607,6 +623,20 @@ export interface ImageOriginUpdateForm {
     tags?: SourceTagForm[]
     pools?: string[]
     relations?: number[]
+}
+
+export interface IllustBatchUpdateForm {
+    target: number[]
+    description?: string | null
+    score?: number | null
+    favorite?: boolean
+    tags?: number[]
+    topics?: number[]
+    authors?: number[]
+    tagme?: Tagme[]
+    partitionTime?: LocalDate
+    orderTimeBegin?: LocalDateTime
+    orderTimeEnd?: LocalDateTime
 }
 
 export interface ImagePropsCloneForm {

@@ -1,7 +1,10 @@
 import { computed, ref, Ref, watch } from "vue"
 import { ScrollView, useScrollView } from "@/components/features/VirtualScrollView"
 import { PaginationDataView, QueryEndpointResult, usePaginationDataView, useQueryEndpoint } from "@/functions/utils/endpoints/query-endpoint"
-import { IllustDatasetController, useIllustDatasetController, useSelectedState } from "@/layouts/data/Dataset"
+import {
+    IllustDatasetController, SelectedState, SidePaneState,
+    useIllustDatasetController, useSelectedState, useSidePaneState
+} from "@/layouts/data/Dataset"
 import { Folder, FolderImage, FolderImageQueryFilter } from "@/functions/adapter-http/impl/folder"
 import { installation } from "@/functions/utils/basic"
 import { useHttpClient, useLocalStorageWithDefault } from "@/functions/app"
@@ -14,10 +17,8 @@ export interface FolderDetailContext {
     endpoint: QueryEndpointResult<FolderImage>
     scrollView: Readonly<ScrollView>
     viewController: Exclude<IllustDatasetController, "collectionMode"> & { editable: Ref<boolean> }
-    selector: {
-        selected: Ref<number[]>
-        lastSelected: Ref<number | null>
-    }
+    selector: SelectedState
+    pane: SidePaneState
     detail: {
         id: Ref<number>
         data: Ref<Folder | null>
@@ -34,9 +35,11 @@ export const [installDetailContext, useDetailContext] = installation(function():
 
     const selector = useSelectedState(list.endpoint)
 
+    const pane = useSidePaneState("illust", selector)
+
     const detail = useDetail()
 
-    return {...list, viewController, selector, detail}
+    return {...list, viewController, selector, pane, detail}
 })
 
 function useDetail() {

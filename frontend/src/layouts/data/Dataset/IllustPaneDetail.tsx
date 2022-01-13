@@ -12,20 +12,22 @@ import { useObjectEndpoint } from "@/functions/utils/endpoints/object-endpoint"
 import { useHttpClient } from "@/functions/app"
 import { useToast } from "@/functions/module/toast"
 import { date, datetime, LocalDate, LocalDateTime } from "@/utils/datetime"
-import { useIllustContext } from "./inject"
+import { StateOfSidePaneState } from "./features"
 import style from "./style.module.scss"
 
-//TODO 将整个pane view抽离至dataset layout
-
 export default defineComponent({
-    setup() {
-        const { pane: { state, visible } } = useIllustContext()
-
-        const close = () => visible.value = false
-
-        return () => <PaneBasicLayout class={style.paneDetailContent} onClose={close}>
-            { state.value.type === "single" ? <SingleView detailId={state.value.value}/>
-            : state.value.type === "multiple" ? <MultipleView selected={state.value.values} latest={state.value.latest}/>
+    props: {
+        state: Object as PropType<StateOfSidePaneState>
+    },
+    emits: {
+        close: () => true,
+        afterUpdate: (_: number, __: DetailIllust) => true,
+        refreshEndpoint: () => true
+    },
+    setup(props, { emit }) {
+        return () => <PaneBasicLayout class={style.paneDetailContent} onClose={() => emit("close")}>
+            { props.state?.type === "single" ? <SingleView detailId={props.state.value} onAfterUpdate={(id, data) => emit("afterUpdate", id, data)}/>
+            : props.state?.type === "multiple" ? <MultipleView selected={props.state.values} latest={props.state.latest} onRefreshEndpoint={() => emit("refreshEndpoint")}/>
             : <EmptyView/>}
         </PaneBasicLayout>
     }
@@ -46,9 +48,11 @@ const SingleView = defineComponent({
     props: {
         detailId: { type: null as any as PropType<number | null>, required: true }
     },
-    setup(props) {
+    emits: {
+        afterUpdate: (_: number, __: DetailIllust) => true,
+    },
+    setup(props, { emit }) {
         const editMetaTagService = useEditMetaTagService()
-        const { dataView } = useIllustContext()
 
         const path = toRef(props, "detailId")
 
@@ -56,10 +60,7 @@ const SingleView = defineComponent({
             path,
             get: httpClient => httpClient.illust.get,
             update: httpClient => httpClient.illust.update,
-            afterUpdate(id, data: DetailIllust) {
-                const index = dataView.proxy.syncOperations.find(i => i.id === id)
-                if(index != undefined) dataView.proxy.syncOperations.modify(index, data)
-            }
+            afterUpdate: (id, data: DetailIllust) => emit("afterUpdate", id, data)
         })
 
         const setDescription = async (description: string) => {
@@ -122,7 +123,8 @@ const MultipleView = defineComponent({
         selected: { type: Array as PropType<number[]>, required: true },
         latest: { type: Number, required: true }
     },
-    setup(props) {
+    emits: ["refreshEndpoint"],
+    setup(props, { emit }) {
         const path = toRef(props, "latest")
 
         const { data } = useObjectEndpoint({
@@ -140,7 +142,7 @@ const MultipleView = defineComponent({
                 {(data.value?.childrenCount || null) && <span class="float-right">{data.value?.childrenCount}个子项</span>}
             </p>
             {batchUpdateMode.value
-                ? <BatchUpdate class="mt-4" selected={props.selected} onClose={() => batchUpdateMode.value = false}/>
+                ? <BatchUpdate class="mt-4" selected={props.selected} onClose={() => batchUpdateMode.value = false} onRefreshEndpoint={() => emit("refreshEndpoint")}/>
                 : <p class="mt-4">
                     <a onClick={() => batchUpdateMode.value = true}>
                         <span class="icon"><i class="fa fa-edit"/></span><span>批量编辑</span>
@@ -155,7 +157,7 @@ const BatchUpdate = defineComponent({
     props: {
         selected: {type: Array as PropType<number[]>, required: true}
     },
-    emits: ["close"],
+    emits: ["close", "refreshEndpoint"],
     setup(props, { emit }) {
         const toast = useToast()
         const httpClient = useHttpClient()
@@ -187,7 +189,7 @@ const BatchUpdate = defineComponent({
             tags: [],
             topics: [],
             authors: [],
-            tagme: [],
+            tagme: ["TAG", "TOPIC", "AUTHOR"],
             partitionTime: date.now(),
             orderTime: {
                 begin: datetime.now(),
@@ -215,15 +217,34 @@ const BatchUpdate = defineComponent({
         const anyEnabled = computed(() => enabled.description || enabled.score || enabled.metaTag || enabled.tagme || enabled.partitionTime || enabled.orderTime)
 
         const submit = async () => {
-
+            if(anyEnabled.value) {
+                const res = await httpClient.illust.batchUpdate({
+                    target: props.selected,
+                    tagme: enabled.tagme ? form.tagme : undefined,
+                    tags: enabled.metaTag && form.tags.length ? form.tags.map(i => i.id) : undefined,
+                    topics: enabled.metaTag && form.topics.length ? form.topics.map(i => i.id) : undefined,
+                    authors: enabled.metaTag && form.authors.length ? form.authors.map(i => i.id) : undefined,
+                    description: enabled.description ? form.description : undefined,
+                    score: enabled.score ? form.score : undefined,
+                    partitionTime: enabled.partitionTime ? form.partitionTime : undefined,
+                    orderTimeBegin: enabled.orderTime ? form.orderTime.begin : undefined,
+                    orderTimeEnd: enabled.orderTime ? form.orderTime.end : undefined
+                })
+                if(res.ok) {
+                    emit("close")
+                    emit("refreshEndpoint")
+                }else{
+                    toast.handleException(res.exception)
+                }
+            }
         }
 
         return () => <div>
             <p><span class="icon"><i class="fa fa-edit"/></span><span>批量编辑</span></p>
             <p class="mt-2"><CheckBox value={enabled.metaTag} onUpdateValue={v => enabled.metaTag = v}>设置元数据标签</CheckBox></p>
             {enabled.metaTag && <>
-                <p class="mt-1">已设置{form.tags.length}个标签、{form.topics.length}个主题、{form.authors.length}个作者</p>
-                <button class="button" onClick={editMetaTag}><span class="icon"><i class="fa fa-feather-alt"/></span><span>编辑元数据标签</span></button>
+                <button class="button mt-1" onClick={editMetaTag}><span class="icon"><i class="fa fa-feather-alt"/></span><span>编辑元数据标签</span></button>
+                <p>已设置{form.tags.length}个标签、{form.topics.length}个主题、{form.authors.length}个作者</p>
                 <p class="mb-1"><i class="has-text-grey">批量设定的元数据标签将覆盖所选项所有已存在的标签。</i></p>
             </>}
             <p class="mt-1"><CheckBox value={enabled.tagme} onUpdateValue={v => enabled.tagme = v}>设置Tagme</CheckBox></p>
