@@ -23,8 +23,8 @@ import { Platform } from "../../utils/process"
  * 记录系统中资源组件的最新版本号。必须更新此记录值至最新，才能正确触发版本更新。
  */
 const VERSION = {
-    server: "0.1.0",
-    frontend: "0.1.0",
+    server: "0.2.0",
+    frontend: "0.2.0",
     cli: "0.1.0"
 }
 
