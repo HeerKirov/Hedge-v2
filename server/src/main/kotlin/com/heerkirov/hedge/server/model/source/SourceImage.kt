@@ -40,6 +40,10 @@ data class SourceImage(val id: Int,
                         */
                        val empty: Boolean,
                        /**
+                        * 此项的编辑状态。能自动转换。
+                        */
+                       val status: Status,
+                       /**
                         * 初次建立的真实时间。
                         */
                        val createTime: LocalDateTime,
@@ -49,4 +53,11 @@ data class SourceImage(val id: Int,
                        val updateTime: LocalDateTime) {
 
     data class SourceCount(val tagCount: Int, val poolCount: Int, val relationCount: Int)
+
+    enum class Status {
+        NOT_EDITED,
+        EDITED,
+        ERROR,
+        IGNORED
+    }
 }

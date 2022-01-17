@@ -25,6 +25,7 @@ import com.heerkirov.hedge.server.dto.*
 import com.heerkirov.hedge.server.exceptions.*
 import com.heerkirov.hedge.server.model.illust.Illust
 import com.heerkirov.hedge.server.model.meta.Tag
+import com.heerkirov.hedge.server.model.source.SourceImage
 import com.heerkirov.hedge.server.utils.business.*
 import com.heerkirov.hedge.server.utils.DateTime
 import com.heerkirov.hedge.server.utils.DateTime.parseDateTime
@@ -326,14 +327,15 @@ class IllustService(private val data: DataRepository,
                     .map { SourceTagDto(it.name, it.displayName, it.type) }
 
                 IllustImageOriginRes(source, sourceTitle ?: source, sourceId, sourcePart,
+                    sourceRow[SourceImages.empty]!!, sourceRow[SourceImages.status]!!,
                     sourceRow[SourceImages.title] ?: "", sourceRow[SourceImages.description] ?: "", sourceTags,
                     sourceRow[SourceImages.pools] ?: emptyList(), sourceRow[SourceImages.relations] ?: emptyList())
             }else{
                 IllustImageOriginRes(source, sourceTitle ?: source, sourceId, sourcePart,
-                    "", "", emptyList(), emptyList(), emptyList())
+                    true, SourceImage.Status.NOT_EDITED, "", "", emptyList(), emptyList(), emptyList())
             }
         }else{
-            IllustImageOriginRes(null, null, null, null, null, null, null, null, null)
+            IllustImageOriginRes(null, null, null, null, true, SourceImage.Status.NOT_EDITED, null, null, null, null, null)
         }
     }
 
@@ -619,7 +621,7 @@ class IllustService(private val data: DataRepository,
             if(form.source.isPresent || form.sourceId.isPresent || form.sourcePart.isPresent) {
                 val newSourcePart = form.sourcePart.unwrapOr { sourcePart }
                 val (newSourceImageId, newSource, newSourceId) = sourceManager.checkSource(form.source.unwrapOr { source }, form.sourceId.unwrapOr { sourceId }, newSourcePart)
-                    ?.let { (source, sourceId) -> sourceManager.createOrUpdateSourceImage(source, sourceId, form.title, form.description, form.tags, form.pools, form.relations) }
+                    ?.let { (source, sourceId) -> sourceManager.createOrUpdateSourceImage(source, sourceId, form.status, form.title, form.description, form.tags, form.pools, form.relations) }
                     ?: Triple(null, null, null)
                 data.db.update(Illusts) {
                     where { it.id eq id }
@@ -631,7 +633,7 @@ class IllustService(private val data: DataRepository,
                 }
             }else{
                 sourceManager.checkSource(source, sourceId, sourcePart)?.let { (source, sourceId) ->
-                    sourceManager.createOrUpdateSourceImage(source, sourceId, form.title, form.description, form.tags, form.pools, form.relations)
+                    sourceManager.createOrUpdateSourceImage(source, sourceId, form.status, form.title, form.description, form.tags, form.pools, form.relations)
                 }
             }
         }

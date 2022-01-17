@@ -1,6 +1,7 @@
 package com.heerkirov.hedge.server.dao.source
 
 import com.heerkirov.hedge.server.model.source.SourceImage
+import com.heerkirov.hedge.server.utils.ktorm.enum
 import com.heerkirov.hedge.server.utils.ktorm.json
 import org.ktorm.dsl.QueryRowSet
 import org.ktorm.schema.*
@@ -15,6 +16,7 @@ object SourceImages : BaseTable<SourceImage>("source_image", schema = "source_db
     val pools = json("pools", typeRef<List<String>>())
     val cachedCount = json("cached_count", typeRef<SourceImage.SourceCount>())
     val empty = boolean("empty")
+    val status = enum("status", typeRef<SourceImage.Status>())
     val createTime = datetime("create_time")
     val updateTime = datetime("update_time")
 
@@ -28,6 +30,7 @@ object SourceImages : BaseTable<SourceImage>("source_image", schema = "source_db
         pools = row[pools],
         cachedCount = row[cachedCount]!!,
         empty = row[empty]!!,
+        status = row[status]!!,
         createTime = row[createTime]!!,
         updateTime = row[updateTime]!!
     )

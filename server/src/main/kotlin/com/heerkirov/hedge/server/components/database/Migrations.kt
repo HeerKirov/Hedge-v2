@@ -45,6 +45,7 @@ object MetadataMigrationStrategy : JsonObjectStrategy<Metadata>(Metadata::class)
 object DatabaseMigrationStrategy : SimpleStrategy<Database>() {
     override fun migrations(register: MigrationRegister<Database>) {
         register.useSQL("0.1.0")
+        register.useSQL("0.2.0")
     }
 
     /**

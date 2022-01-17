@@ -1,16 +1,16 @@
 plugins {
     application
-    kotlin("jvm").version("1.6.0")
+    kotlin("jvm").version("1.6.10")
     id("com.github.johnrengelman.shadow").version("4.0.3")
     id("org.beryx.jlink").version("2.24.1")
 }
 
 group = "com.heerkirov.hedge.server"
-version = "0.1.0"
+version = "0.2.0"
 
 dependencies {
-    val kotlinVersion = "1.6.0"
-    val javalinVersion = "4.1.1"
+    val kotlinVersion = "1.6.10"
+    val javalinVersion = "4.3.0"
     val ktormVersion = "3.4.1"
     val sqliteVersion = "3.36.0"
     val jacksonVersion = "2.11.4" //fk, how to upgrade it?

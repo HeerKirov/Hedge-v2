@@ -10,6 +10,7 @@ import com.heerkirov.hedge.server.model.source.SourceImage
 import com.heerkirov.hedge.server.utils.DateTime
 import com.heerkirov.hedge.server.utils.types.Opt
 import com.heerkirov.hedge.server.utils.types.anyOpt
+import com.heerkirov.hedge.server.utils.types.optOf
 import com.heerkirov.hedge.server.utils.types.undefined
 import org.ktorm.dsl.*
 import org.ktorm.entity.*
@@ -77,6 +78,7 @@ class SourceImageManager(private val data: DataRepository,
                 set(it.relations, null)
                 set(it.pools, null)
                 set(it.empty, true)
+                set(it.status, SourceImage.Status.NOT_EDITED)
                 set(it.cachedCount, SourceImage.SourceCount(0, 0, 0))
                 set(it.createTime, now)
                 set(it.updateTime, now)
@@ -94,6 +96,7 @@ class SourceImageManager(private val data: DataRepository,
      * @throws AlreadyExists 此对象已存在 (allowUpdate=false时抛出)
      */
     fun createOrUpdateSourceImage(source: String, sourceId: Long,
+                                  status: Opt<SourceImage.Status> = undefined(),
                                   title: Opt<String?> = undefined(),
                                   description: Opt<String?> = undefined(),
                                   tags: Opt<List<SourceTagForm>> = undefined(),
@@ -115,6 +118,7 @@ class SourceImageManager(private val data: DataRepository,
                     && tags.letOpt { it.isEmpty() }.unwrapOr { true }
                     && pools.letOpt { it.isEmpty() }.unwrapOr { true }
                     && relations.letOpt { it.isEmpty() }.unwrapOr { true }
+            val finalStatus = status.unwrapOr { if(anyOpt(title, description, tags, pools, relations)) SourceImage.Status.EDITED else SourceImage.Status.NOT_EDITED }
 
             val now = DateTime.now()
             val id = data.db.insertAndGenerateKey(SourceImages) {
@@ -126,6 +130,7 @@ class SourceImageManager(private val data: DataRepository,
                 set(it.pools, pools.unwrapOrNull())
                 set(it.cachedCount, sourceCount)
                 set(it.empty, empty)
+                set(it.status, finalStatus)
                 set(it.createTime, now)
                 set(it.updateTime, now)
             } as Int
@@ -162,8 +167,9 @@ class SourceImageManager(private val data: DataRepository,
                     && if(pools.isPresent) { pools.value } else { sourceImage.pools }.isNullOrEmpty()
                     && if(relations.isPresent) { relations.value } else { sourceImage.relations }.isNullOrEmpty()
                     && if(tags.isPresent) { tags.value.isEmpty() } else { data.db.sequenceOf(SourceTagRelations).count { it.sourceId eq sourceImage.id } == 0 }
+            val finalStatus = if(status.isPresent) status else if(anyOpt(title, description, tags, pools, relations)) optOf(SourceImage.Status.EDITED) else undefined()
 
-            if(title.isPresent || description.isPresent || relations.isPresent || sourceCount.isPresent) {
+            if(title.isPresent || description.isPresent || relations.isPresent || pools.isPresent || sourceCount.isPresent || finalStatus.isPresent) {
                 data.db.update(SourceImages) {
                     where { it.id eq sourceImage.id }
                     title.applyOpt { set(it.title, this) }
@@ -171,6 +177,7 @@ class SourceImageManager(private val data: DataRepository,
                     relations.applyOpt { set(it.relations, this) }
                     pools.applyOpt { set(it.pools, this) }
                     sourceCount.applyOpt { set(it.cachedCount, this) }
+                    finalStatus.applyOpt { set(it.status, this) }
                     set(it.empty, empty)
                     set(it.updateTime, DateTime.now())
                 }

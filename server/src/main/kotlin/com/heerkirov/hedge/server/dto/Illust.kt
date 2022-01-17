@@ -5,6 +5,7 @@ import com.heerkirov.hedge.server.library.form.Offset
 import com.heerkirov.hedge.server.library.form.Order
 import com.heerkirov.hedge.server.library.form.Search
 import com.heerkirov.hedge.server.model.illust.Illust
+import com.heerkirov.hedge.server.model.source.SourceImage
 import com.heerkirov.hedge.server.utils.types.Opt
 import com.heerkirov.hedge.server.utils.types.OrderItem
 import java.time.LocalDate
@@ -39,7 +40,7 @@ data class IllustParent(val id: Int, val thumbnailFile: String, val childrenCoun
 data class AssociateRes(val id: Int, val totalCount: Int, val items: List<IllustRes>)
 
 data class IllustImageOriginRes(val source: String?, val sourceTitle: String?, val sourceId: Long?, val sourcePart: Int?,
-                                val title: String?, val description: String?,
+                                val empty: Boolean, val status: SourceImage.Status, val title: String?, val description: String?,
                                 val tags: List<SourceTagDto>?, val pools: List<String>?, val relations: List<Int>?)
 
 data class IllustImageFileInfoRes(val file: String, val extension: String, val size: Long, val thumbnailSize: Long?, val resolutionWidth: Int, val resolutionHeight: Int, val createTime: LocalDateTime)
@@ -74,7 +75,7 @@ class IllustImageRelatedUpdateForm(val associateId: Opt<Int?>, val collectionId:
 
 class IllustImageOriginUpdateForm(val source: Opt<String?>, val sourceId: Opt<Long?>, val sourcePart: Opt<Int?>,
                                   val title: Opt<String?>, val description: Opt<String?>, val tags: Opt<List<SourceTagForm>>,
-                                  val pools: Opt<List<String>>, val relations: Opt<List<Int>>)
+                                  val pools: Opt<List<String>>, val relations: Opt<List<Int>>, val status: Opt<SourceImage.Status>)
 
 class IllustBatchUpdateForm(val target: List<Int>,
                             val description: Opt<String?>,

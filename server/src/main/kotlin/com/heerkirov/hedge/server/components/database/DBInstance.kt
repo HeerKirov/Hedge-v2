@@ -12,7 +12,6 @@ import java.sql.DriverManager
 
 class DBInstance(val dbPath: String) : Closeable {
     private val metadataFilePath = "$dbPath/${Filename.META_DAT}"
-    private val storageFilePath = "$dbPath/${Filename.STORAGE_DAT}"
 
     val database: Database
     val metadata: Metadata

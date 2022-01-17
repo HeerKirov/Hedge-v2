@@ -40,7 +40,7 @@ class SourceImageService(private val data: DataRepository, private val sourceMan
                     .innerJoin(SourceTags, (SourceTags.id eq SourceTagRelations.tagId) and (SourceTags.name eq filter.sourceTag))
             } }
             .let { if(filter.imageId == null) it else it.innerJoin(Illusts, (Illusts.sourceImageId eq SourceImages.id) and (Illusts.id eq filter.imageId)) }
-            .select(SourceImages.source, SourceImages.sourceId, SourceImages.cachedCount, SourceImages.createTime, SourceImages.updateTime)
+            .select(SourceImages.source, SourceImages.sourceId, SourceImages.cachedCount, SourceImages.createTime, SourceImages.updateTime, SourceImages.empty, SourceImages.status)
             .whereWithConditions {
                 if(filter.source != null) {
                     it += SourceImages.source eq filter.source
@@ -56,9 +56,11 @@ class SourceImageService(private val data: DataRepository, private val sourceMan
                 val source = it[SourceImages.source]!!
                 val sourceId = it[SourceImages.sourceId]!!
                 val cachedCount = it[SourceImages.cachedCount]!!
+                val empty = it[SourceImages.empty]!!
+                val status = it[SourceImages.status]!!
                 val createTime = it[SourceImages.createTime]!!
                 val updateTime = it[SourceImages.updateTime]!!
-                SourceImageRes(source, titles.getOrDefault(source, source), sourceId, cachedCount.tagCount, cachedCount.poolCount, cachedCount.relationCount, createTime, updateTime)
+                SourceImageRes(source, titles.getOrDefault(source, source), sourceId, cachedCount.tagCount, cachedCount.poolCount, cachedCount.relationCount, empty, status, createTime, updateTime)
             }
     }
 
@@ -72,7 +74,7 @@ class SourceImageService(private val data: DataRepository, private val sourceMan
             sourceManager.createOrUpdateSourceImage(form.source, form.sourceId,
                 title = form.title, description = form.description, tags = form.tags,
                 pools = form.pools, relations = form.relations,
-                allowUpdate = false)
+                status = form.status, allowUpdate = false)
         }
     }
 
@@ -114,6 +116,8 @@ class SourceImageService(private val data: DataRepository, private val sourceMan
             row[SourceImages.description] ?: "", sourceTags,
             row[SourceImages.pools] ?: emptyList(),
             row[SourceImages.relations] ?: emptyList(),
+            row[SourceImages.empty]!!,
+            row[SourceImages.status]!!,
             createTime, updateTime)
     }
 
@@ -138,7 +142,7 @@ class SourceImageService(private val data: DataRepository, private val sourceMan
         sourceManager.createOrUpdateSourceImage(source, sourceId,
             title = form.title, description = form.description, tags = form.tags,
             pools = form.pools, relations = form.relations,
-            allowCreate = false)
+            status = form.status, allowCreate = false)
     }
 
     /**
