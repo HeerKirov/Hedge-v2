@@ -64,6 +64,8 @@ export interface SourceImageExceptions {
     "bulk": ResourceNotExist<"source", string>
 }
 
+export type SourceImageStatus = "NOT_EDITED" | "EDITED" | "ERROR" | "IGONRED"
+
 interface BasicSourceImage {
     /**
      * source name。
@@ -77,14 +79,16 @@ interface BasicSourceImage {
      * source id。
      */
     sourceId: number
+    empty: boolean
+    status: SourceImageStatus
+    createTime: LocalDateTime
+    updateTime: LocalDateTime
 }
 
 export interface SourceImage extends BasicSourceImage {
     tagCount: number
     poolCount: number
     relationCount: number
-    createTime: LocalDateTime
-    updateTime: LocalDateTime
 }
 
 export interface DetailSourceImage extends BasicSourceImage {
@@ -93,8 +97,6 @@ export interface DetailSourceImage extends BasicSourceImage {
     tags: SourceTag[]
     pools: string[]
     relations: number[]
-    createTime: LocalDateTime
-    updateTime: LocalDateTime
 }
 
 export interface SourceImageCreateForm extends SourceImageUpdateForm {
@@ -108,6 +110,7 @@ export interface SourceImageUpdateForm {
     tags?: SourceTagForm[]
     pools?: string[]
     relations?: number[]
+    status?: SourceImageStatus
 }
 
 export type SourceImageFilter = SourceImageQueryFilter & LimitAndOffsetFilter

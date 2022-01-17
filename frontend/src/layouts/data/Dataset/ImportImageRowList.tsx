@@ -96,7 +96,13 @@ const Content = defineComponent({
             onEmit: (selected, lastSelected) => emit("select", selected, lastSelected)
         })
 
-        const { dataUpdate, enter, dblClick, rightClick, click } = useContentEvents(selector, emit)
+        const { dataUpdate, enter, dblClick, rightClick, click } = useContentEvents(selector, {
+            dataUpdate: (_, __) => emit("dataUpdate", _, __),
+            select: (_, __) => emit("select", _, __),
+            enter: (_) => emit("enter", _),
+            dblClick: (_, __) => emit("dblClick", _, __),
+            rightClick: (_: ImportImage) => emit("rightClick", _)
+        })
 
         useKeyboardEvents(selector, enter)
 

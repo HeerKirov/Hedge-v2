@@ -278,11 +278,11 @@ export function useSummaryDropEvents<T extends keyof TypeDefinition>(options: {
     }
 }
 
-export function useContentEvents<T extends {id: number}>(selector: Selector, emit: SetupContext<EmitContext<T>>["emit"]) {
-    const dataUpdate = (offset: number, limit: number) => emit("dataUpdate", offset, limit)
-    const enter = (imageId: number) => emit("enter", imageId)
-    const dblClick = (imageId: number, option: boolean) => emit("dblClick", imageId, option)
-    const rightClick = (obj: T) => emit("rightClick", obj)
+export function useContentEvents<T extends {id: number}>(selector: Selector, emit: EmitContext<T>) {
+    const dataUpdate = (offset: number, limit: number) => emit.dataUpdate(offset, limit)
+    const enter = (imageId: number) => emit.enter(imageId)
+    const dblClick = (imageId: number, option: boolean) => emit.dblClick(imageId, option)
+    const rightClick = (obj: T) => emit.rightClick(obj)
     const click = (obj: T, index: number, e: MouseEvent) => {
         // 追加添加的任意选择项都会排列在选择列表的最后
         // 选择任意项都会使其成为last selected

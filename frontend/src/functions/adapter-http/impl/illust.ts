@@ -13,6 +13,7 @@ import { DepsTopic } from "./topic"
 import { DepsAuthor } from "./author"
 import { DepsTag } from "./tag"
 import { SimpleFolder } from "./folder"
+import { SourceImageStatus } from "./source-image"
 import { SourceTag, SourceTagForm } from "./source-tag-mapping"
 
 export function createIllustEndpoint(http: HttpInstance): IllustEndpoint {
@@ -537,6 +538,14 @@ export type ImageOriginData = {
      */
     sourcePart: number | null
     /**
+     * 是否是无内容的。
+     */
+    empty: boolean
+    /**
+     * 编辑状态记录。
+     */
+    status: SourceImageStatus
+    /**
      * 来源数据：标题。
      */
     title: string
@@ -561,6 +570,8 @@ export type ImageOriginData = {
     sourceTitle: null
     sourceId: null
     sourcePart: null
+    empty: true
+    status: "NOT_EDITED"
     title: null
     description: null
     tags: null
@@ -623,6 +634,7 @@ export interface ImageOriginUpdateForm {
     tags?: SourceTagForm[]
     pools?: string[]
     relations?: number[]
+    status?: SourceImageStatus
 }
 
 export interface IllustBatchUpdateForm {

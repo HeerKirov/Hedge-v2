@@ -1,6 +1,7 @@
 import { computed, defineComponent, PropType } from "vue"
 import { useSettingSite } from "@/functions/api/setting"
 import { SourceMappingMetaItem, SourceTag } from "@/functions/adapter-http/impl/source-tag-mapping"
+import { SourceImageStatus } from "@/functions/adapter-http/impl/source-image"
 
 /**
  * 来源信息展示条。显示来源site、id和part。适用于侧边栏。
@@ -32,6 +33,21 @@ export const SourceInfo = defineComponent({
         </p>
     }
 })
+
+/**
+ * 显示source image status状态信息。
+ */
+export function SourceStatusDisplay({ value }: {value: SourceImageStatus}) {
+    return value === "NOT_EDITED" ? <p>
+        <i class="fa fa-edit mr-2"/><span class="has-text-success">未编辑</span>
+    </p> : value === "EDITED" ? <p>
+        <i class="fa fa-pen-nib mr-2"/><span>已编辑</span>
+    </p> : value === "ERROR" ? <p>
+        <i class="fa fa-exclamation-triangle mr-2"/><span class="has-text-danger">标记错误</span>
+    </p> : <p>
+        <i class="fa fa-comment-dots mr-2"/><span class="has-text-grey">标记忽略</span>
+    </p> 
+}
 
 /**
  * 显示parents, children, pools信息。没有时显示[没有关联项目]。

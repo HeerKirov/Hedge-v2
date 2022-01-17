@@ -1,6 +1,7 @@
 import { defineComponent, ref } from "vue"
-import { SourceInfo, TitleDisplay, DescriptionDisplay, SourceRelationsDisplay, SourceTagListDisplay } from "@/layouts/displays"
-import { SourceIdentityEditor, ViewAndEditable, ViewAndEditor, SourceIdentity } from "@/layouts/editors"
+import { SourceInfo, TitleDisplay, DescriptionDisplay, SourceRelationsDisplay, SourceTagListDisplay, SourceStatusDisplay } from "@/layouts/displays"
+import { SourceIdentityEditor, SourceStatusEditor, ViewAndEditable, ViewAndEditor, SourceIdentity, VAEDisplay, VAEEditor } from "@/layouts/editors"
+import { SourceImageStatus } from "@/functions/adapter-http/impl/source-image"
 import { installSettingSite } from "@/functions/api/setting"
 import { useMessageBox } from "@/functions/module/message-box"
 import { usePreviewContext, useOriginDataEndpoint } from "../inject"
@@ -39,13 +40,21 @@ export default defineComponent({
             })
         }
 
+        const setSourceStatus = async (status: SourceImageStatus) => {
+            return (status === data.value?.status) || await setData({status})
+        }
+
         const openSourceEditor = () => drawerTab.value = "source"
 
         return () => <div class={style.originDataPanel}>
             {data.value && (data.value.source !== null && data.value.sourceId !== null ? <>
                 <ViewAndEditor data={getSourceIdentity()} onSetData={setSourceIdentity} color="deep-light" v-slots={{
-                    default: ({ value}: {value: SourceIdentity}) => <SourceInfo {...value}/>,
-                    editor: ({ value, setValue }: {value: SourceIdentity, setValue(_: SourceIdentity)}) => <SourceIdentityEditor {...value} onUpdateValue={setValue}/>
+                    default: ({ value }: VAEDisplay<SourceIdentity>) => <SourceInfo {...value}/>,
+                    editor: ({ value, setValue }: VAEEditor<SourceIdentity>) => <SourceIdentityEditor {...value} onUpdateValue={setValue}/>
+                }}/>
+                <ViewAndEditor class="mt-2" data={data.value.status} onSetData={setSourceStatus} color="deep-light" v-slots={{
+                    default: ({ value }: VAEDisplay<SourceImageStatus>) => <SourceStatusDisplay value={value}/>,
+                    editor: ({ value, setValue }: VAEEditor<SourceImageStatus>) => <SourceStatusEditor value={value} onUpdateValue={setValue}/>
                 }}/>
                 <ViewAndEditable class="mt-2" baseline="medium" onEdit={openSourceEditor} color="deep-light">
                     <TitleDisplay value={data.value.title}/>

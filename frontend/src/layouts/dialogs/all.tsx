@@ -5,9 +5,9 @@ import { AddToFolderContent, AddToFolderInjectionContext } from "./AddToFolder"
 import { AddToCollectionContent, AddToCollectionInjectionContext } from "./AddToCollection"
 import { CreatingAlbumContent, CreatingAlbumInjectionContext } from "./CreatingAlbum"
 import { CreatingCollectionContent, CreatingCollectionInjectionContext } from "./CreatingCollection"
-import { EditSourceImageContent, EditSourceImageInjectionContext } from "./EditSourceImage"
 import { CloneImageContent, CloneImageInjectionContext } from "./CloneImage"
 import { EditMetaTagContent, EditMetaTagInjectionContext } from "./EditMetaTag"
+import { EditSourceContent, EditSourceImageInjectionContext } from "./EditSource"
 
 interface InjectionContextMap {
     addToAlbum: AddToAlbumInjectionContext
@@ -18,17 +18,6 @@ interface InjectionContextMap {
     editSourceImage: EditSourceImageInjectionContext
     editMetaTag: EditMetaTagInjectionContext
     cloneImage: CloneImageInjectionContext
-}
-
-const contextMap = {
-    addToAlbum: AddToAlbumContent,
-    addToFolder: AddToFolderContent,
-    addToCollection: AddToCollectionContent,
-    creatingAlbum: CreatingAlbumContent,
-    creatingCollection: CreatingCollectionContent,
-    editSourceImage: EditSourceImageContent,
-    editMetaTag: EditMetaTagContent,
-    cloneImage: CloneImageContent
 }
 
 interface InjectionContextTemplate<T extends keyof InjectionContextMap> { type: T, context: InjectionContextMap[T] }
@@ -42,6 +31,17 @@ type InjectionContext =
     | InjectionContextTemplate<"editSourceImage">
     | InjectionContextTemplate<"editMetaTag">
     | InjectionContextTemplate<"cloneImage">
+
+const contextMap = {
+    addToAlbum: AddToAlbumContent,
+    addToFolder: AddToFolderContent,
+    addToCollection: AddToCollectionContent,
+    creatingAlbum: CreatingAlbumContent,
+    creatingCollection: CreatingCollectionContent,
+    editSourceImage: EditSourceContent,
+    editMetaTag: EditMetaTagContent,
+    cloneImage: CloneImageContent
+}
 
 export function installDialogServiceContext() {
     provide(dialogInjection, ref(null))

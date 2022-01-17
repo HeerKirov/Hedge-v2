@@ -1,23 +1,33 @@
 import { defineComponent } from "vue"
 import ThumbnailImage from "@/components/elements/ThumbnailImage"
 import { PaneBasicLayout } from "@/layouts/layouts/SplitPane"
-import { SourceInfo, TitleDisplay, DescriptionDisplay, SourceRelationsDisplay, SourceTagListDisplay, TimeDisplay } from "@/layouts/displays"
+import { SourceStatusEditor, VAEDisplay, VAEEditor, ViewAndEditor } from "@/layouts/editors"
+import {
+    SourceInfo, TitleDisplay, DescriptionDisplay,
+    SourceRelationsDisplay, SourceTagListDisplay, TimeDisplay, SourceStatusDisplay
+} from "@/layouts/displays"
 import { useObjectEndpoint } from "@/functions/utils/endpoints/object-endpoint"
+import { SourceImageStatus } from "@/functions/adapter-http/impl/source-image"
 import { useSourceImageContext } from "./inject"
 
 export default defineComponent({
     setup() {
         const { pane: { detailMode, closePane } } = useSourceImageContext()
 
-        const { data } = useObjectEndpoint({
+        const { data, setData } = useObjectEndpoint({
             path: detailMode,
-            get: httpClient => httpClient.sourceImage.get
+            get: httpClient => httpClient.sourceImage.get,
+            update: httpClient => httpClient.sourceImage.update
         })
 
         const { data: imagesData } = useObjectEndpoint({
             path: detailMode,
             get: httpClient => httpClient.sourceImage.getRelatedImages
         })
+
+        const setSourceStatus = async (status: SourceImageStatus) => {
+            return (status === data.value?.status) || await setData({status})
+        }
 
         return () => <PaneBasicLayout onClose={closePane}>
             {detailMode.value && <SourceInfo class="my-2" {...detailMode.value}/>}
@@ -28,6 +38,10 @@ export default defineComponent({
                 </p>
             </> : null}
             {data.value && <>
+                <ViewAndEditor class="mt-2 mb-1" data={data.value.status} onSetData={setSourceStatus} color="deep-light" v-slots={{
+                    default: ({ value }: VAEDisplay<SourceImageStatus>) => <SourceStatusDisplay value={value}/>,
+                    editor: ({ value, setValue }: VAEEditor<SourceImageStatus>) => <SourceStatusEditor value={value} onUpdateValue={setValue}/>
+                }}/>
                 <TitleDisplay value={data.value.title}/>
                 <DescriptionDisplay value={data.value.description}/>
                 <SourceRelationsDisplay relations={data.value.relations} pools={data.value.pools}/>

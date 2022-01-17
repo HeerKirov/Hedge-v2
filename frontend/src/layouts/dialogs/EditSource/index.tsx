@@ -32,7 +32,7 @@ interface SourceKey {
     sourceId: number
 }
 
-export const EditSourceImageContent = defineComponent({
+export const EditSourceContent = defineComponent({
     emits: ["close"],
     setup(_, { emit }) {
         const props = useDialogSelfContext("editSourceImage")

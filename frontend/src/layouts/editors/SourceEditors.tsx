@@ -3,8 +3,28 @@ import Input from "@/components/forms/Input"
 import NumberInput from "@/components/forms/NumberInput"
 import { SourceSiteSelect } from "@/layouts/editors/SourceIdentityEditors"
 import { SourceMappingMetaItem, SourceTag } from "@/functions/adapter-http/impl/source-tag-mapping"
+import { SourceImageStatus } from "@/functions/adapter-http/impl/source-image"
 import { useMessageBox } from "@/functions/module/message-box"
 import style from "./SourceEditors.module.scss"
+import Select from "@/components/forms/Select"
+
+export const SourceStatusEditor = defineComponent({
+    props: {
+        value: {type: String as PropType<SourceImageStatus>, required: true}
+    },
+    emits: {
+        updateValue: (_: SourceImageStatus) => true
+    },
+    setup(props, { emit }) {
+        const items = [
+            {value: "NOT_EDITED", name: "未编辑"},
+            {value: "EDITED", name: "已编辑"},
+            {value: "ERROR", name: "标记错误"},
+            {value: "IGNORED", name: "标记忽略"}
+        ]
+        return () => <Select items={items} value={props.value} onUpdateValue={v => emit("updateValue", v)}/>
+    }
+})
 
 export const SourceTagEditor = defineComponent({
     props: {
