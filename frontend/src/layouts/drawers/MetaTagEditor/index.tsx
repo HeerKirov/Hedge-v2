@@ -21,7 +21,8 @@ export default defineComponent({
         tagme: {type: Array as PropType<Tagme[]>, required: true},
         setData: Function as PropType<SetData>,
         onUpdate: Function as PropType<OnUpdate>,
-        identity: {type: null as any as PropType<MetaUtilIdentity | null>, required: true}
+        identity: {type: null as any as PropType<MetaUtilIdentity | null>, required: true},
+        allowEditTagme: {type: Boolean, default: true}
     },
     emits: {
         close: () => true
@@ -45,7 +46,7 @@ export default defineComponent({
         })
 
         return () => <div class={style.panelOfMetaTag}>
-            <TopColumn/>
+            <TopColumn allowEditTagme={props.allowEditTagme}/>
             <LeftColumn/>
             <RightColumn/>
             <div class={style.midGap}/>
@@ -54,8 +55,11 @@ export default defineComponent({
 })
 
 const TopColumn = defineComponent({
-    setup() {
-        const { typeFilter, rightColumnData: { tab, tabDbType }, identity } = usePanelContext()
+    props: {
+        allowEditTagme: {type: Boolean, required: true}
+    },
+    setup(props) {
+        const { typeFilter, rightColumnData: { tab, tabDbType } } = usePanelContext()
 
         const clickAuthor = () => {
             if(typeFilter.value.author && !typeFilter.value.tag && !typeFilter.value.topic) {
@@ -104,7 +108,7 @@ const TopColumn = defineComponent({
                 <span class="icon"><i class="fa fa-tag"/></span>
                 <span>标签</span>
             </button>
-            {identity.value?.type !== "ALBUM" && <TagmeEditor/>}
+            {props.allowEditTagme && <TagmeEditor/>}
         </div>
     }
 })

@@ -91,11 +91,12 @@ export function usePaginationDataView<T>(endpoint: QueryEndpointResult<T>, optio
 
     const proxy = useProxy(endpoint.proxy, data)
 
-    //在引用的query endpoint实例更换时，触发一次数据重刷
-    //此处调用dataUpdate而不是reset来重刷，是因为希望保持上层应用不会完全刷新列表滚动位置(scrollView插件根据total的重置来判断列表重置)
-    watch(endpoint.instance, () => {
-        if(lastDataUpdateParams) {
-            //需要记录上次请求的数据范围，并用在此处重刷数据
+    useListeningEvent(endpoint.refreshedEvent, e => {
+        if(e.filterUpdated) {
+            //filter发生更替则需要重置位点
+            reset()
+        }else if(lastDataUpdateParams) {
+            //若仅refresh，需要记录上次请求的数据范围，并用在此处重刷数据
             //因为如果沿用实际metrics的值的话，数据总量有可能增加，那么limit的值可能会比需要的值更小，因此需要记忆理论值
             dataUpdate(lastDataUpdateParams.offset, lastDataUpdateParams.limit).finally()
         }
@@ -104,13 +105,15 @@ export function usePaginationDataView<T>(endpoint: QueryEndpointResult<T>, optio
     //在endpoint的内容变更，且变更对象在影响范围内时，对数据进行更新
     useListeningEvent(endpoint.modifiedEvent, e => {
         //modified事件的更新按照当前实际的metrics就可以。因为数据总量只会增加不会减少，不会造成什么bug
-        if(e.type === "modify") {
-            if(e.index >= data.value.metrics.offset && e.index < data.value.metrics.offset + data.value.metrics.limit) {
-                dataUpdate(data.value.metrics.offset, data.value.metrics.limit).finally()
-            }
-        }else{ //delete
-            if(e.index < data.value.metrics.offset + data.value.metrics.limit) {
-                dataUpdate(data.value.metrics.offset, data.value.metrics.limit).finally()
+        if(lastDataUpdateParams) {
+            if(e.type === "modify") {
+                if(e.index >= lastDataUpdateParams.offset && e.index < lastDataUpdateParams.offset + lastDataUpdateParams.limit) {
+                    dataUpdate(lastDataUpdateParams.offset, lastDataUpdateParams.limit).finally()
+                }
+            }else{ //delete
+                if(e.index < lastDataUpdateParams.offset + lastDataUpdateParams.limit) {
+                    dataUpdate(lastDataUpdateParams.offset, lastDataUpdateParams.limit).finally()
+                }
             }
         }
     })

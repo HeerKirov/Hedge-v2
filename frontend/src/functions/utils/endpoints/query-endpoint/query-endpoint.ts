@@ -1,7 +1,7 @@
 import { shallowRef, Ref, watch, onUnmounted, onMounted } from "vue"
 import { objects } from "@/utils/primitives"
 import { createEmitter, Emitter } from "@/utils/emitter"
-import { RefEmitter, useRefEmitter } from "@/functions/utils/emitter"
+import { RefEmitter, SendRefEmitter, useRefEmitter } from "@/functions/utils/emitter"
 import { Response } from "@/functions/adapter-http/server"
 import { BasicException } from "@/functions/adapter-http/exception"
 import { ListResult } from "@/functions/adapter-http/impl/generic"
@@ -28,8 +28,13 @@ export interface QueryEndpointResult<T> {
     proxy: QueryEndpointInstance<T>
     /**
      * 当前响应式返回的实例。实例是浅响应的。
+     * 如果想监听实例更新，一般情况下更推荐使用refreshedEvent事件。此事件能更好地区分filter-update和refresh的情况等。
      */
     instance: Ref<QueryEndpointInstance<T>>
+    /**
+     * 当endpoint的filter实例发生变化，引起instance更替时，触发此事件。
+     */
+    refreshedEvent: RefEmitter<RefreshedEvent<T>>
     /**
      * 将instance的syncOperations.modified代理为响应式事件。
      */
@@ -38,6 +43,14 @@ export interface QueryEndpointResult<T> {
      * 刷新。这会强制销毁重建实例以重新请求所有数据。
      */
     refresh(): void
+}
+
+/**
+ * 实例更替事件。
+ */
+interface RefreshedEvent<T> {
+    filterUpdated: boolean
+    newInstance: QueryEndpointInstance<T>
 }
 
 export function useQueryEndpoint<T, K = undefined>(options: QueryEndpointOptions<T, K>): QueryEndpointResult<T> {
@@ -54,11 +67,13 @@ export function useQueryEndpoint<T, K = undefined>(options: QueryEndpointOptions
 
     const { modified, modifiedEvent } = useModifiedEvent<T>()
 
-    const { refresh } = useInstanceChange<T, K>(instance, options.filter, createInstance, modified.emit)
+    const refreshedEvent = useRefEmitter<RefreshedEvent<T>>()
+
+    const { refresh } = useInstanceChange<T, K>(instance, options.filter, createInstance, modified.emit, refreshedEvent)
 
     const proxy = useProxyObject(instance, modified)
 
-    return {proxy, instance, modifiedEvent, refresh}
+    return {proxy, instance, modifiedEvent, refreshedEvent, refresh}
 }
 
 function useModifiedEvent<T>() {
@@ -71,21 +86,28 @@ function useModifiedEvent<T>() {
     return {modified, modifiedEvent}
 }
 
-function useInstanceChange<T, K>(instance: Ref<QueryEndpointInstance<T>>, filter: Ref<K> | undefined, createInstance: (filter: K | undefined) => QueryEndpointInstance<T>, modified: (arg: ModifiedEvent<T>) => void) {
-    const changeInstance = (filter: K | undefined) => {
+function useInstanceChange<T, K>(instance: Ref<QueryEndpointInstance<T>>,
+                                 filter: Ref<K> | undefined,
+                                 createInstance: (filter: K | undefined) => QueryEndpointInstance<T>,
+                                 modified: (arg: ModifiedEvent<T>) => void,
+                                 refreshedEvent: SendRefEmitter<RefreshedEvent<T>>) {
+    const changeInstance = (filter: K | undefined, filterUpdated: boolean) => {
         //移除旧实例时要移除代理事件
         instance.value.syncOperations.modified.removeEventListener(modified)
         //创建新实例
         instance.value = createInstance(filter)
         //创建新实例时再加入代理事件
         instance.value.syncOperations.modified.addEventListener(modified)
+        //发送refreshed事件响应
+        refreshedEvent.emit({filterUpdated, newInstance: instance.value})
     }
-    const refresh = () => changeInstance(filter?.value)
 
-    if(filter !== undefined) watch(filter, changeInstance, {deep: true})
+    if(filter !== undefined) watch(filter, filter => changeInstance(filter, true), {deep: true})
 
     onMounted(() => instance.value.syncOperations.modified.addEventListener(modified))
     onUnmounted(() => instance.value.syncOperations.modified.removeEventListener(modified))
+
+    const refresh = () => changeInstance(filter?.value, false)
 
     return {refresh}
 }

@@ -37,6 +37,9 @@ export interface PartitionEndpoint {
      * 查询分区列表。
      */
     list(filter: PartitionFilter): Promise<Response<Partition[]>>
+    /**
+     * 查询月份列表。
+     */
     monthList(): Promise<Response<PartitionMonth[]>>
     /**
      * 查看分区。

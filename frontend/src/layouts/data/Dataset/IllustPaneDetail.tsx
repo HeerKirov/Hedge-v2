@@ -202,6 +202,8 @@ const BatchUpdate = defineComponent({
                 topics: form.topics.map(i => ({ ...i, isExported: false })),
                 authors: form.authors.map(i => ({ ...i, isExported: false })),
                 tags: form.tags.map(i => ({ ...i, isExported: false }))
+            }, {
+                allowEditTagme: false
             })
             if(res) {
                 form.topics = res.topics

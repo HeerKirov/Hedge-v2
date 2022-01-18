@@ -69,7 +69,7 @@ function useContextmenu() {
             }
         }else{
             const items = getEffectedItems(id)
-            if(await messageBox.showYesNoMessage("warn", `确定要删除${items.length}个已选择项吗？`, "集合内的图像不会被删除。此操作不可撤回。")) {
+            if(await messageBox.showYesNoMessage("warn", `确定要删除${items.length}个已选择项吗？`, "此操作不可撤回。")) {
                 const ok = await Promise.all(items.map(id => fastEndpoint.deleteData(id)))
                 if(ok.some(b => b)) {
                     endpoint.refresh()

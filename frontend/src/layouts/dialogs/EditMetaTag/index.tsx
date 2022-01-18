@@ -19,7 +19,11 @@ export interface EditMetaTagContext {
     /**
      * 打开面板，对指定的内容列表进行编辑，并返回编辑后的结果列表。如果取消编辑，则返回undefined。
      */
-    edit(data: CommonData): Promise<CommonData | undefined>
+    edit(data: CommonData, options?: EditOptions): Promise<CommonData | undefined>
+}
+
+interface EditOptions {
+    allowEditTagme?: boolean
 }
 
 export type EditMetaTagInjectionContext = {
@@ -29,6 +33,7 @@ export type EditMetaTagInjectionContext = {
 } | {
     mode: "custom"
     data: CommonData
+    allowEditTagme?: boolean
     resolve(_: CommonData | undefined): void
     cancel(): void
 }
@@ -42,7 +47,7 @@ export const EditMetaTagContent = defineComponent({
 
         return () => props.mode === "identity"
             ? <IdentityEditorContent identity={props.identity} onUpdated={props.onUpdated} onClose={close}/>
-            : <CustomEditorContent {...props.data} onResolve={props.resolve} onClose={close}/>
+            : <CustomEditorContent {...props.data} allowEditTagme={props.allowEditTagme} onResolve={props.resolve} onClose={close}/>
     }
 })
 
@@ -84,7 +89,8 @@ const CustomEditorContent = defineComponent({
         tags: Array as PropType<DepsTag[]>,
         topics: Array as PropType<DepsTopic[]>,
         authors: Array as PropType<DepsAuthor[]>,
-        tagme: Array as PropType<Tagme[]>
+        tagme: Array as PropType<Tagme[]>,
+        allowEditTagme: {type: Boolean, default: undefined}
     },
     emits: {
         resolve: (_: CommonData | undefined) => true,
@@ -106,7 +112,7 @@ const CustomEditorContent = defineComponent({
 
         return () => <div class={style.content}>
             <MetaTagEditor tags={props.tags ?? []} topics={props.topics ?? []} authors={props.authors ?? []} tagme={props.tagme ?? []}
-                           onUpdate={update} identity={null} onClose={() => emit("close")}/>
+                           onUpdate={update} identity={null} allowEditTagme={props.allowEditTagme} onClose={() => emit("close")}/>
         </div>
     }
 })
@@ -121,11 +127,11 @@ export function useEditMetaTagService(): EditMetaTagContext {
                 context: {mode: "identity", identity, onUpdated}
             })
         },
-        edit(data: CommonData): Promise<CommonData | undefined> {
+        edit(data: CommonData, options?: EditOptions): Promise<CommonData | undefined> {
             return new Promise<CommonData | undefined>(resolve => {
                 push({
                     type: "editMetaTag",
-                    context: {mode: "custom", data, resolve, cancel: () => resolve(undefined)}
+                    context: {mode: "custom", data, resolve, allowEditTagme: options?.allowEditTagme, cancel: () => resolve(undefined)}
                 })
             })
         }

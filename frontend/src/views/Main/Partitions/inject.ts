@@ -26,6 +26,7 @@ export const [installPartitionContext, usePartitionContext] = installation(funct
     const detail = useRouterQueryLocalDate("MainPartitions", "detail")
 
     const { pushSubItem } = useSideBarContext()
+
     watch(detail, d => {
         if(d != null) {
             const str = date.toISOString(d)

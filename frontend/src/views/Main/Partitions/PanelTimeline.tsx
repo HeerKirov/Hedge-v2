@@ -74,7 +74,12 @@ const PartitionList = defineComponent({
             partitions.value = res.data.map(p => ({year: p.date.year, month: p.date.month, day: p.date.day, count: p.count, title: `${p.date.year}年${p.date.month}月${p.date.day}日`}))
             //等待nextTick，domRef已加载，然后将calendarDate指定的pm滚动到视野内
             await nextTick()
-            pmRefs[`${calendarDate.value.year}-${calendarDate.value.month}`]?.scrollIntoView({behavior: "auto"})
+            //tips: 这里的处理不完美。正确的处理方式是和monthList一起处理，在calendarDate不存在时跳转到临近的项，而不是两边分开处理跳转到最新项
+            if(`${calendarDate.value.year}-${calendarDate.value.month}` in pmRefs) {
+                pmRefs[`${calendarDate.value.year}-${calendarDate.value.month}`]?.scrollIntoView({behavior: "auto"})
+            }else{
+                pmRefs[partitionsByMonth.value[partitionsByMonth.value.length - 1].key]?.scrollIntoView({behavior: "auto"})
+            }
             //再暂停一下，等待dom执行完毕，之后才允许滚动行为触发事件，否则上一个滚动指令有可能直接更改calendarDate
             await sleep(100)
             enableScrollEvent = true

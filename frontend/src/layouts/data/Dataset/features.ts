@@ -20,16 +20,19 @@ export function useSelectedState<T extends {id: number}>(endpoint?: QueryEndpoin
     const lastSelected = ref<number | null>(null)
 
     if(endpoint !== undefined) {
-        watch(endpoint.instance, () => {
-            //在更新实例时，清空已选择项
-            selected.value = []
-            lastSelected.value = null
+        useListeningEvent(endpoint.refreshedEvent, e => {
+            if(e.filterUpdated) {
+                //在更新实例时，清空已选择项
+                selected.value = []
+                lastSelected.value = null
+            }
         })
         useListeningEvent(endpoint.modifiedEvent, e => {
             if(e.type === "remove") {
                 //当监听到数据被移除时，检查是否属于当前已选择项，并将其从已选择中移除
                 const id = e.oldValue.id
                 const index = selected.value.findIndex(i => i === id)
+                console.log(`remove event:`, id, index)
                 if(index >= 0) selected.value.splice(index, 1)
                 if(lastSelected.value === id) lastSelected.value = null
             }

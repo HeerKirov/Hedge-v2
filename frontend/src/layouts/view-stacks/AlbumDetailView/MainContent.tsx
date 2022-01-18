@@ -56,10 +56,11 @@ const MetaTagEditorPanel = defineComponent({
         const closeDrawerTab = () => drawerTab.value = undefined
 
         return () => <MetaTagEditor identity={id.value !== null ? {id: id.value!, type: "ALBUM"} : null}
+                                    allowEditTagme={false} tagme={[]}
                                     tags={detailInfo.data.value?.tags ?? []}
                                     topics={detailInfo.data.value?.topics ?? []}
                                     authors={detailInfo.data.value?.authors ?? []}
-                                    tagme={[]} setData={detailInfo.setData} onClose={closeDrawerTab}/>
+                                    setData={detailInfo.setData} onClose={closeDrawerTab}/>
     }
 })
 
