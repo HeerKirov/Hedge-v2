@@ -109,7 +109,7 @@ data class ImportOption(
         JsonSubTypes.Type(value = SourceAnalyseRuleByName::class, name = "name"),
         JsonSubTypes.Type(value = SourceAnalyseRuleByFromMeta::class, name = "from-meta")
     ])
-    interface SourceAnalyseRule { val site: String }
+    sealed interface SourceAnalyseRule { val site: String }
 
     interface SourceAnalyseRuleOfRegex : SourceAnalyseRule {
         val regex: String

@@ -3,6 +3,7 @@ package com.heerkirov.hedge.server.application
 import com.heerkirov.hedge.server.components.appdata.AppDataDriverImpl
 import com.heerkirov.hedge.server.components.backend.FileGeneratorImpl
 import com.heerkirov.hedge.server.components.backend.exporter.BackendExporterImpl
+import com.heerkirov.hedge.server.components.backend.similar.SimilarFinderImpl
 import com.heerkirov.hedge.server.components.configuration.ConfigurationDriverImpl
 import com.heerkirov.hedge.server.components.database.DataRepositoryImpl
 import com.heerkirov.hedge.server.components.health.HealthImpl
@@ -24,6 +25,7 @@ import com.heerkirov.hedge.server.library.framework.framework
 fun runApplication(options: ApplicationOptions) {
     val lifetimeOptions = LifetimeOptions(options.permanent)
     val serverOptions = HttpServerOptions(options.frontendPath, options.forceToken, options.forcePort)
+    val webController = WebControllerImpl()
 
     framework {
         val health = define { HealthImpl(options.channelPath) }
@@ -31,8 +33,6 @@ fun runApplication(options: ApplicationOptions) {
         val lifetime = define { LifetimeImpl(context, lifetimeOptions) }
         val appdata = define { AppDataDriverImpl(options.channelPath) }
         val repo = define { DataRepositoryImpl(configuration) }
-
-        val webController = WebControllerImpl()
 
         val services = define {
             val queryManager = QueryManager(repo)
@@ -43,6 +43,8 @@ fun runApplication(options: ApplicationOptions) {
             val sourceMappingManager = SourceMappingManager(repo, sourceTagManager)
             val sourceImageService = SourceImageService(repo, sourceManager, queryManager)
             val sourceMappingService = SourceMappingService(repo, sourceMappingManager)
+
+            val similarFinder = define { SimilarFinderImpl(repo) }
 
             val thumbnailGenerator = define { FileGeneratorImpl(configuration, repo) }
             val fileManager = FileManager(configuration, repo)
@@ -82,6 +84,7 @@ fun runApplication(options: ApplicationOptions) {
             val authorService = AuthorService(repo, authorKit, queryManager, sourceMappingManager, backendExporter)
             val topicService = TopicService(repo, topicKit, queryManager, sourceMappingManager, backendExporter)
             val importService = ImportService(repo, fileManager, importManager, illustManager, sourceManager, importMetaManager, thumbnailGenerator)
+            val findSimilarService = FindSimilarService(repo, similarFinder)
 
             val illustUtilService = IllustUtilService(repo)
             val pickerUtilService = PickerUtilService(repo, historyRecordManager)
@@ -111,6 +114,7 @@ fun runApplication(options: ApplicationOptions) {
                 settingImportService,
                 settingSiteService,
                 queryService,
+                findSimilarService,
                 metaService,
                 illustUtilService,
                 pickerUtilService

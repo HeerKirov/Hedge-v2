@@ -77,9 +77,10 @@ class HttpServerImpl(private val allServices: AllServices,
                 allServices.settingSource,
                 allServices.settingAppdata))
             .handle(UtilQueryRoutes(allServices.queryService))
-            .handle(UtilMetaRoutes(allServices.metaUtilService))
-            .handle(UtilIllustRoutes(allServices.illustUtilService))
-            .handle(UtilPickerRoutes(allServices.pickerUtilService))
+            .handle(UtilMetaRoutes(allServices.metaUtil))
+            .handle(UtilIllustRoutes(allServices.illustUtil))
+            .handle(UtilPickerRoutes(allServices.pickerUtil))
+            .handle(FindSimilarRoutes(allServices.findSimilar))
             .handle(IllustRoutes(allServices.illust, allServices.associate))
             .handle(AlbumRoutes(allServices.album))
             .handle(FolderRoutes(allServices.folder))
@@ -89,7 +90,7 @@ class HttpServerImpl(private val allServices: AllServices,
             .handle(TopicRoutes(allServices.topic))
             .handle(AuthorRoutes(allServices.author))
             .handle(AnnotationRoutes(allServices.annotation))
-            .handle(SourceRoutes(allServices.sourceImage, allServices.sourceMappingService))
+            .handle(SourceRoutes(allServices.sourceImage, allServices.sourceMapping))
             .bind()
     }
 
