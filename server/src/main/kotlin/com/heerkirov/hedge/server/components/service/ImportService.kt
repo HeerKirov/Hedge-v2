@@ -1,6 +1,7 @@
 package com.heerkirov.hedge.server.components.service
 
 import com.heerkirov.hedge.server.components.backend.FileGenerator
+import com.heerkirov.hedge.server.components.backend.similar.SimilarFinder
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.database.ImportOption
 import com.heerkirov.hedge.server.components.database.transaction
@@ -11,6 +12,7 @@ import com.heerkirov.hedge.server.dto.*
 import com.heerkirov.hedge.server.exceptions.*
 import com.heerkirov.hedge.server.model.illust.Illust
 import com.heerkirov.hedge.server.model.illust.FileRecord
+import com.heerkirov.hedge.server.model.system.FindSimilarTask
 import com.heerkirov.hedge.server.utils.DateTime.parseDateTime
 import com.heerkirov.hedge.server.utils.DateTime.toMillisecond
 import com.heerkirov.hedge.server.utils.Fs
@@ -38,6 +40,7 @@ class ImportService(private val data: DataRepository,
                     private val illustManager: IllustManager,
                     private val sourceManager: SourceImageManager,
                     private val importMetaManager: ImportMetaManager,
+                    private val similarFinder: SimilarFinder,
                     private val fileGenerator: FileGenerator) {
     private val orderTranslator = OrderTranslator {
         "id" to ImportImages.id
@@ -270,7 +273,7 @@ class ImportService(private val data: DataRepository,
 
             if(records.any { (_, file) -> file.status == FileRecord.FileStatus.NOT_READY }) throw be(NotReadyFileError())
 
-            for ((record, _) in records) {
+            val imageIds = records.map { (record, _) ->
                 illustManager.newImage(
                     fileId = record.fileId,
                     tagme = record.tagme,
@@ -286,6 +289,10 @@ class ImportService(private val data: DataRepository,
             }
 
             data.db.deleteAll(ImportImages)
+
+            if(data.metadata.findSimilar.autoFindSimilar) {
+                similarFinder.add(FindSimilarTask.TaskSelectorOfImage(imageIds), data.metadata.findSimilar.autoTaskConf ?: data.metadata.findSimilar.defaultTaskConf)
+            }
 
             return ImportSaveRes(records.size)
         }

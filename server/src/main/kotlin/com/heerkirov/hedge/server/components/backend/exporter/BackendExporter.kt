@@ -101,7 +101,7 @@ class BackendExporterImpl(private val data: DataRepository,
                           private val albumKit: AlbumKit) : BackendExporter {
     private val workerThreads: MutableMap<KClass<out ExporterTask>, ExporterWorkerThread<*>> = mutableMapOf()
 
-    override val isIdle: Boolean get() = !workerThreads.values.any { it.isAlive }
+    override val isIdle: Boolean get() = workerThreads.values.none { it.isAlive }
 
     override fun load() {
         if(data.status == LoadStatus.LOADED) {

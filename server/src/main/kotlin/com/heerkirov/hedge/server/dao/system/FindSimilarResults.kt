@@ -9,6 +9,7 @@ import org.ktorm.schema.*
 
 object FindSimilarResults : BaseTable<FindSimilarResult>("find_similar_result", schema = "system_db") {
     val id = int("id").primaryKey()
+    val key = text("key")
     val type = enum("type", typeRef<FindSimilarResult.Type>())
     val imageIds = json("image_ids", typeRef<List<Int>>())
     val ordered = int("ordered")
@@ -16,6 +17,7 @@ object FindSimilarResults : BaseTable<FindSimilarResult>("find_similar_result", 
 
     override fun doCreateEntity(row: QueryRowSet, withReferences: Boolean) = FindSimilarResult(
         id = row[id]!!,
+        key = row[key]!!,
         type = row[type]!!,
         imageIds = row[imageIds]!!,
         ordered = row[ordered]!!,

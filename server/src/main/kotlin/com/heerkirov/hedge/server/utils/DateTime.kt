@@ -12,7 +12,7 @@ import java.time.format.DateTimeFormatter
  */
 object DateTime {
     private val ZONE_UTC = ZoneId.of("UTC")
-    private val DATETIME_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'")
+    private val DATETIME_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss[.SSS]'Z'")
     private val DATE_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
     /**

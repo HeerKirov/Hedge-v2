@@ -1,9 +1,12 @@
 package com.heerkirov.hedge.server.components.database
 
 import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.node.ObjectNode
+import com.heerkirov.hedge.server.model.system.FindSimilarTask
 import com.heerkirov.hedge.server.utils.Resources
 import com.heerkirov.hedge.server.utils.SqlDelimiter
 import com.heerkirov.hedge.server.utils.migrations.*
+import com.heerkirov.hedge.server.utils.toJsonNode
 import org.ktorm.database.Database
 
 object MetadataMigrationStrategy : JsonObjectStrategy<Metadata>(Metadata::class) {
@@ -32,14 +35,39 @@ object MetadataMigrationStrategy : JsonObjectStrategy<Metadata>(Metadata::class)
                 setTimeBy = ImportOption.TimeType.UPDATE_TIME,
                 setPartitionTimeDelay = null,
                 sourceAnalyseRules = emptyList()
+            ),
+            findSimilar = FindSimilarOption(
+                autoFindSimilar = false,
+                autoTaskConf = null,
+                defaultTaskConf = DEFAULT_FIND_SIMILAR_TASK_CONF
             )
         )
     }
 
     override fun migrations(register: MigrationRegister<JsonNode>) {
         register.empty("0.1.0")
+        register.map("0.2.0") {
+            if(it["findSimilar"] != null && !it["findSimilar"].isNull) it else {
+                (it as ObjectNode).set("findSimilar", FindSimilarOption(
+                    autoFindSimilar = false,
+                    autoTaskConf = null,
+                    defaultTaskConf = DEFAULT_FIND_SIMILAR_TASK_CONF
+                ).toJsonNode())
+            }
+        }
     }
 
+    private val DEFAULT_FIND_SIMILAR_TASK_CONF = FindSimilarTask.TaskConfig(
+        findBySourceKey = true,
+        findBySimilarity = true,
+        findBySourceRelation = true,
+        findBySourceMark = true,
+        findBySourceRelationBasis = listOf(FindSimilarTask.RelationBasis.RELATION, FindSimilarTask.RelationBasis.PART),
+        filterByPartition = true,
+        filterByAuthor = true,
+        filterByTopic = true,
+        filterBySourceTagType = emptyList()
+    )
 }
 
 object DatabaseMigrationStrategy : SimpleStrategy<Database>() {

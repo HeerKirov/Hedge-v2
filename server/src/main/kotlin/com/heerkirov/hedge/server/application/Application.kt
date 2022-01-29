@@ -83,7 +83,7 @@ fun runApplication(options: ApplicationOptions) {
             val tagService = TagService(repo, tagKit, queryManager, sourceMappingManager, backendExporter)
             val authorService = AuthorService(repo, authorKit, queryManager, sourceMappingManager, backendExporter)
             val topicService = TopicService(repo, topicKit, queryManager, sourceMappingManager, backendExporter)
-            val importService = ImportService(repo, fileManager, importManager, illustManager, sourceManager, importMetaManager, thumbnailGenerator)
+            val importService = ImportService(repo, fileManager, importManager, illustManager, sourceManager, importMetaManager, similarFinder, thumbnailGenerator)
             val findSimilarService = FindSimilarService(repo, similarFinder)
 
             val illustUtilService = IllustUtilService(repo)
@@ -94,6 +94,7 @@ fun runApplication(options: ApplicationOptions) {
             val settingQueryService = SettingQueryService(repo)
             val settingImportService = SettingImportService(repo)
             val settingSiteService = SettingSourceService(repo)
+            val settingFindSimilarService = SettingFindSimilarService(repo)
 
             AllServices(
                 illustService,
@@ -113,6 +114,7 @@ fun runApplication(options: ApplicationOptions) {
                 settingQueryService,
                 settingImportService,
                 settingSiteService,
+                settingFindSimilarService,
                 queryService,
                 findSimilarService,
                 metaService,

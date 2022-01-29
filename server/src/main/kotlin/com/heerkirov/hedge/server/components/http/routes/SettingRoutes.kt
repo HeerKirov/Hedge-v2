@@ -13,6 +13,7 @@ class SettingRoutes(settingMetaService: SettingMetaService,
                     settingQueryService: SettingQueryService,
                     settingImportService: SettingImportService,
                     settingSourceService: SettingSourceService,
+                    settingFindSimilarService: SettingFindSimilarService,
                     settingAppdataService: SettingAppdataService) : Endpoints {
     override fun handle(javalin: Javalin) {
         javalin.routes {
@@ -41,6 +42,10 @@ class SettingRoutes(settingMetaService: SettingMetaService,
                     get(import::get)
                     patch(import::update)
                 }
+                path("find-similar") {
+                    get(findSimilar::get)
+                    patch(findSimilar::update)
+                }
                 path("source") {
                     path("sites") {
                         get(site::list)
@@ -52,10 +57,6 @@ class SettingRoutes(settingMetaService: SettingMetaService,
                         }
                     }
                 }
-                path("file") {
-                    get(::notImplemented)
-                    patch(::notImplemented)
-                }
             }
         }
     }
@@ -63,14 +64,11 @@ class SettingRoutes(settingMetaService: SettingMetaService,
     private val meta = Meta(settingMetaService)
     private val query = Query(settingQueryService)
     private val import = Import(settingImportService)
+    private val findSimilar = FindSimilar(settingFindSimilarService)
     private val site = Site(settingSourceService)
     private val web = Web(settingAppdataService)
     private val service = Service(settingAppdataService)
     private val proxy = Proxy(settingAppdataService)
-
-    private fun notImplemented(ctx: Context) {
-        throw NotImplementedError()
-    }
 
     private class Web(private val service: SettingAppdataService) {
         fun get(ctx: Context) {
@@ -134,6 +132,17 @@ class SettingRoutes(settingMetaService: SettingMetaService,
 
         fun update(ctx: Context) {
             val form = ctx.bodyAsForm<ImportOptionUpdateForm>()
+            service.update(form)
+        }
+    }
+
+    private class FindSimilar(private val service: SettingFindSimilarService) {
+        fun get(ctx: Context) {
+            ctx.json(service.get())
+        }
+
+        fun update(ctx: Context) {
+            val form = ctx.bodyAsForm<FindSimilarOptionUpdateForm>()
             service.update(form)
         }
     }

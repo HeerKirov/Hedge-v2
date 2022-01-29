@@ -4,6 +4,10 @@ import java.time.LocalDateTime
 
 data class FindSimilarResult(val id: Int,
                              /**
+                              * 用于唯一标记一项result的字符串。是一个过渡方案，正式方案可能需要内存维护。
+                              */
+                             val key: String,
+                             /**
                               * 此result的类型。
                               */
                              val type: Type,

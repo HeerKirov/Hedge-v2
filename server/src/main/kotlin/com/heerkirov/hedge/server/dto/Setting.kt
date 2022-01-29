@@ -8,6 +8,7 @@ import com.heerkirov.hedge.server.library.form.NotBlank
 import com.heerkirov.hedge.server.library.form.Range
 import com.heerkirov.hedge.server.model.meta.Author
 import com.heerkirov.hedge.server.model.meta.Topic
+import com.heerkirov.hedge.server.model.system.FindSimilarTask
 import com.heerkirov.hedge.server.utils.types.Opt
 
 data class SiteCreateForm(@NotBlank @Length(16) val name: String,
@@ -35,6 +36,10 @@ data class QueryOptionUpdateForm(val chineseSymbolReflect: Opt<Boolean>,
                                  @Min(1) val queryLimitOfQueryItems: Opt<Int>,
                                  @Min(2) val warningLimitOfUnionItems: Opt<Int>,
                                  @Min(2) val warningLimitOfIntersectItems: Opt<Int>)
+
+data class FindSimilarOptionUpdateForm(val autoFindSimilar: Opt<Boolean>,
+                                       val autoTaskConf: Opt<FindSimilarTask.TaskConfig>,
+                                       val defaultTaskConf: Opt<FindSimilarTask.TaskConfig>)
 
 data class WebOptionUpdateForm(val autoWebAccess: Opt<Boolean>,
                                val permanent: Opt<Boolean>,

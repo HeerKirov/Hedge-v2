@@ -2,7 +2,6 @@ package com.heerkirov.hedge.server.model.system
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
-import com.heerkirov.hedge.server.utils.types.Composition
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -40,32 +39,20 @@ data class FindSimilarTask(val id: Int,
 
     data class TaskSelectorOfSourceTag(val source: String, val sourceTags: List<String>) : TaskSelector
 
-    data class TaskConfig(val findBySourceKey: Boolean? = null,
-                          val findBySimilarity: Boolean? = null,
-                          val findBySourceRelation: Boolean? = null,
-                          val findBySourceMark: Boolean? = null,
+    data class TaskConfig(val findBySourceKey: Boolean,
+                          val findBySimilarity: Boolean,
+                          val findBySourceRelation: Boolean,
+                          val findBySourceMark: Boolean,
                           val findBySimilarityThreshold: Double? = null,
-                          val findBySourceRelationBasis: RelationBasis? = null,
-                          val filterByPartition: LocalDate? = null,
-                          val filterByTopic: Boolean? = null,
-                          val filterByAuthor: Boolean? = null,
-                          val filterBySourceTagType: List<SourceAndTagType>? = null)
+                          val findBySourceRelationBasis: List<RelationBasis>? = null,
+                          val filterByPartition: Boolean,
+                          val filterByTopic: Boolean,
+                          val filterByAuthor: Boolean,
+                          val filterBySourceTagType: List<SourceAndTagType>)
 
     data class SourceAndTagType(val source: String, val tagType: String)
 
-    open class RelationBasis(value: Int) : Composition<RelationBasis>(RelationBasis::class, value) {
-
-        object RELATION : RelationBasis(0b1)
-
-        object POOL : RelationBasis(0b10)
-
-        object PART : RelationBasis(0b100)
-
-        object EMPTY : RelationBasis(0b0)
-
-        companion object {
-            val baseElements by lazy { listOf(RELATION, POOL, PART) }
-            val empty by lazy { EMPTY }
-        }
+    enum class RelationBasis {
+        RELATION, POOL, PART
     }
 }

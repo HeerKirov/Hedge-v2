@@ -4,12 +4,14 @@ import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.heerkirov.hedge.server.model.meta.Author
 import com.heerkirov.hedge.server.model.meta.Topic
+import com.heerkirov.hedge.server.model.system.FindSimilarTask
 
 data class Metadata(
     val meta: MetaOption,
     val query: QueryOption,
     val source: SourceOption,
-    val import: ImportOption
+    val import: ImportOption,
+    val findSimilar: FindSimilarOption
 )
 
 data class MetaOption(
@@ -130,3 +132,21 @@ data class ImportOption(
      */
     class SourceAnalyseRuleByFromMeta(override val site: String, override val regex: String, override val idIndex: Int, override val secondaryIdIndex: Int?) : SourceAnalyseRuleOfRegex
 }
+
+/**
+ * 与相似项查找相关的选项。
+ */
+data class FindSimilarOption(
+    /**
+     * 在导入项目时，自动触发相似项查找。
+     */
+    var autoFindSimilar: Boolean,
+    /**
+     * 自动出发查找时使用的配置。
+     */
+    var autoTaskConf: FindSimilarTask.TaskConfig?,
+    /**
+     * 提交手动查找时的默认配置。
+     */
+    var defaultTaskConf: FindSimilarTask.TaskConfig
+)

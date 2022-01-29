@@ -15,6 +15,7 @@ CREATE TABLE system_db.find_similar_task(
 
 CREATE TABLE system_db.find_similar_result(
     id              INTEGER PRIMARY KEY,
+    key             TEXT NOT NULL,
     type            TINYINT NOT NULL,
     image_ids       TEXT NOT NULL,
     ordered         INTEGER NOT NULL,
