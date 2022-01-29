@@ -19,10 +19,12 @@ import { createPartitionEndpoint, PartitionEndpoint } from "./impl/partition"
 import { createImportEndpoint, ImportEndpoint } from "./impl/import"
 import { createSourceImageEndpoint, SourceImageEndpoint } from "./impl/source-image"
 import { createSourceTagMappingEndpoint, SourceTagMappingEndpoint } from "./impl/source-tag-mapping"
+import { createFindSimilarEndpoint, FindSimilarEndpoint } from "./impl/find-similar"
 import { createUtilMetaEndpoint, UtilMetaEndpoint } from "./impl/util-meta"
 import { createUtilIllustEndpoint, UtilIllustEndpoint } from "./impl/util-illust"
 import { createUtilQueryEndpoint, UtilQueryEndpoint } from "./impl/util-query"
 import { createUtilPickerEndpoint, UtilPickerEndpoint } from "./impl/util-picker"
+import { createSettingFindSimilarEndpoint, SettingFindSimilarEndpoint } from "./impl/setting-find-similar"
 
 export { HttpInstance, HttpInstanceConfig, Response, ResponseOk, ResponseError, ResponseConnectionError, createHttpInstance }
 
@@ -35,6 +37,7 @@ export interface HttpClient {
     settingProxy: SettingProxyEndpoint
     settingImport: SettingImportEndpoint
     settingSource: SettingSourceEndpoint
+    settingFindSimilar: SettingFindSimilarEndpoint
     illust: IllustEndpoint
     partition: PartitionEndpoint
     album: AlbumEndpoint
@@ -46,6 +49,7 @@ export interface HttpClient {
     import: ImportEndpoint
     sourceImage: SourceImageEndpoint
     sourceTagMapping: SourceTagMappingEndpoint
+    findSimilar: FindSimilarEndpoint
     metaUtil: UtilMetaEndpoint
     illustUtil: UtilIllustEndpoint
     queryUtil: UtilQueryEndpoint
@@ -62,6 +66,7 @@ export function createHttpClient(http: HttpInstance): HttpClient {
         settingProxy: createSettingProxyEndpoint(http),
         settingImport: createSettingImportEndpoint(http),
         settingSource: createSettingSourceEndpoint(http),
+        settingFindSimilar: createSettingFindSimilarEndpoint(http),
         illust: createIllustEndpoint(http),
         partition: createPartitionEndpoint(http),
         album: createAlbumEndpoint(http),
@@ -73,6 +78,7 @@ export function createHttpClient(http: HttpInstance): HttpClient {
         import: createImportEndpoint(http),
         sourceImage: createSourceImageEndpoint(http),
         sourceTagMapping: createSourceTagMappingEndpoint(http),
+        findSimilar: createFindSimilarEndpoint(http),
         metaUtil: createUtilMetaEndpoint(http),
         illustUtil: createUtilIllustEndpoint(http),
         queryUtil: createUtilQueryEndpoint(http),

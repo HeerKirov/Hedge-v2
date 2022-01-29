@@ -51,10 +51,11 @@ const settings: SettingScope[] = [
     {
         label: "数据库事务",
         list: [
-            {route: "SettingDBMeta", name: "元数据选项", icon: "coffee"},
-            {route: "SettingDBQuery", name: "查询选项", icon: "search"},
-            {route: "SettingDBImport", name: "导入选项", icon: "plus-square"},
-            {route: "SettingDBOrigin", name: "来源数据选项", icon: "file-invoice"}
+            {route: "SettingDBMeta", name: "元数据", icon: "coffee"},
+            {route: "SettingDBQuery", name: "查询", icon: "search"},
+            {route: "SettingDBImport", name: "导入", icon: "plus-square"},
+            {route: "SettingDBOrigin", name: "来源数据", icon: "file-invoice"},
+            {route: "SettingDBFindSimilar", name: "相似项查找", icon: "grin-squint"},
         ]
     },
     {

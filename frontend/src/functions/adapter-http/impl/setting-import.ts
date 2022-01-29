@@ -60,7 +60,6 @@ export interface ImportOptionUpdateForm {
     setTimeBy?: TimeType
     setPartitionTimeDelay?: number | null
     sourceAnalyseRules?: SourceAnalyseRule[]
-    systemDownloadHistoryPath?: string | null
 }
 
 /**

@@ -139,12 +139,12 @@ export const datetime = {
      * 将一个UTC时间戳转换为LocalDateTime。字符串时间戳必须符合yyyy-MM-ddTHH:mm:ssZ的格式。
      */
     of(time: string): LocalDateTime {
-        const match = /^\d+-\d+-\d+T\d+:\d+:\d+Z$/.exec(time)
+        const match = /^\d+-\d+-\d+T\d+:\d+:\d+(\.\d+)?Z$/.exec(time)
         if (match) {
             const d = new Date(time)
             return nativeDateToDateTime(d)
         }
-        throw new Error(`datetimeOf can only accept time with format 'yyyy-MM-ddTHH:mm:ssZ', but actual is ${time}.`)
+        throw new Error(`datetimeOf can only accept time with format 'yyyy-MM-ddTHH:mm:ss[.SSS]Z', but actual is ${time}.`)
     },
     /**
      * 转换为yyyy-MM-dd`T`HH:mm:ss`Z`(UTC)的标准时间戳。

@@ -67,7 +67,7 @@ export interface HttpInstanceConfig {
 export function createHttpInstance(config: Readonly<HttpInstanceConfig>): HttpInstance {
     const instance = axios.create()
 
-    const headers = computed(() => config.token && {"Authorization": `Bearer ${config.token}`})
+    const headers = computed(() => config.token != undefined ? {"Authorization": `Bearer ${config.token}`} : undefined)
 
     function request<R, E extends BasicException>(requestConfig: RequestConfig<R>): Promise<Response<R, E>> {
         return new Promise(resolve => {

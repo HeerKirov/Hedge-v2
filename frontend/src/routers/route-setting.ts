@@ -45,6 +45,11 @@ export default <RouteRecordRaw[]>[
                 component: () => import('@/views/Setting/DBImport')
             },
             {
+                name: 'SettingDBFindSimilar',
+                path: 'db/find-similar',
+                component: () => import('@/views/Setting/DBFindSimilar')
+            },
+            {
                 name: 'SettingServer',
                 path: 'advanced/server',
                 component: () => import('@/views/Setting/AdvancedServer')
