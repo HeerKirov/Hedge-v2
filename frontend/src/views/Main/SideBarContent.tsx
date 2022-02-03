@@ -21,10 +21,10 @@ export default defineComponent({
             <ScopeComponent id="db" name="图库">
                 <StdItemComponent name="概览" icon="home" routeName="MainIndex"/>
                 <StdItemComponent name="图库" icon="th" routeName="MainIllusts"/>
-                <StdItemComponent name="画集" icon="clone" routeName="MainAlbums"/>
                 <StdItemComponent name="分区" icon="calendar-alt" routeName="MainPartitions" detailKey="detail">
                     <SubItemDetails/>
                 </StdItemComponent>
+                <StdItemComponent name="画集" icon="clone" routeName="MainAlbums"/>
             </ScopeComponent>
             <ScopeComponent id="meta" name="元数据">
                 <StdItemComponent name="作者" icon="user-tag" routeName="MainAuthors" detailKey="detail">
@@ -37,8 +37,9 @@ export default defineComponent({
                 <StdItemComponent name="注解" icon="code" routeName="MainAnnotations"/>
             </ScopeComponent>
             <ScopeComponent id="tool" name="工具箱">
-                <StdItemComponent name="导入项目" icon="plus-square" routeName="MainImport"/>
-                <StdItemComponent name="源数据" icon="spider" routeName="MainSourceImage"/>
+                <StdItemComponent name="导入" icon="plus-square" routeName="MainImport"/>
+                <StdItemComponent name="相似项查找" icon="grin-squint" routeName="MainFindSimilar"/>
+                <StdItemComponent name="来源数据" icon="spider" routeName="MainSourceImage"/>
             </ScopeComponent>
             <ScopeComponent id="folder" name="目录">
                 <StdItemFolders routeName="MainFolders" detailKey="detail"/>

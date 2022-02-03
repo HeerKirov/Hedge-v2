@@ -19,10 +19,10 @@ export function createFindSimilarEndpoint(http: HttpInstance): FindSimilarEndpoi
             delete: http.createPathRequest(id => `/api/find-similar/tasks/${id}`, "DELETE")
         },
         result: {
-            list: http.createQueryRequest("/api/find-similar/tasks", "GET", {
+            list: http.createQueryRequest("/api/find-similar/results", "GET", {
                 parseResponse: ({ total, result }: ListResult<any>) => ({total, result: result.map(mapToResult)})
             }),
-            get: http.createPathRequest(id => `/api/find-similar/tasks/${id}`, "GET", {
+            get: http.createPathRequest(id => `/api/find-similar/results/${id}`, "GET", {
                 parseResponse: mapToResult
             })
         }

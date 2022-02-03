@@ -34,7 +34,7 @@ export default defineComponent({
                 <DataRouter/>
                 {viewMode.value === "grid" && <FitTypeButton value={fitType.value} onUpdateValue={setFitType}/>}
                 {viewMode.value === "grid" && <ColumnNumButton value={columnNum.value} onUpdateValue={setColumnNum}/>}
-                <button class="square button no-drag radius-large is-white mr-1" ref={menu.element} onClick={menu.popup}>
+                <button class="square button no-drag radius-large is-white" ref={menu.element} onClick={menu.popup}>
                     <span class="icon"><i class="fa fa-ellipsis-v"/></span>
                 </button>
             </div>

@@ -60,6 +60,11 @@ export default <RouteRecordRaw[]>[
                 component: () => import('@/views/Main/SourceImages')
             },
             {
+                name: 'MainFindSimilar',
+                path: 'find-similar',
+                component: () => import('@/views/Main/FindSimilar')
+            },
+            {
                 name: 'MainFolders',
                 path: 'folders',
                 component: () => import('@/views/Main/Folders')

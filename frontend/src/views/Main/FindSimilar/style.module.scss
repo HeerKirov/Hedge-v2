@@ -1,0 +1,28 @@
+@import '@/styles/base/size.sass';
+
+.item {
+  $height: 80px;
+  $margin-bottom: 6px;
+  $padding: 8px;
+  width: 100%;
+  height: #{$height - $margin-bottom};
+  margin-bottom: $margin-bottom;
+  padding: $padding;
+
+  display: flex;
+  flex-wrap: nowrap;
+  > .left {
+    width: 60%;
+    overflow: hidden;
+    > .img {
+      border-radius: $radius-size-small;
+      width: #{$height - $margin-bottom - $padding * 2};
+      height: #{$height - $margin-bottom - $padding * 2};
+      object-fit: cover;
+      margin-right: 0.25rem;
+    }
+  }
+  > .right {
+    width: 40%;
+  }
+}
