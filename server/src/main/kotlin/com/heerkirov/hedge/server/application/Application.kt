@@ -74,7 +74,9 @@ fun runApplication(options: ApplicationOptions) {
             val folderKit = FolderKit(repo)
             val folderManager = FolderManager(repo, folderKit, illustManager)
 
-            val illustService = IllustService(repo, illustKit, illustManager, albumManager, associateManager, folderManager, fileManager, sourceManager, partitionManager, queryManager, backendExporter)
+            val illustExtendManager = IllustExtendManager(repo, illustKit, illustManager, associateManager, albumManager, folderManager, partitionManager, fileManager, backendExporter)
+
+            val illustService = IllustService(repo, illustKit, illustManager, illustExtendManager, albumManager, associateManager, folderManager, fileManager, sourceManager, partitionManager, queryManager, backendExporter)
             val albumService = AlbumService(repo, albumKit, albumManager, illustManager, queryManager, backendExporter)
             val associateService = AssociateService(repo, associateManager)
             val folderService = FolderService(repo, folderKit, illustManager)
@@ -84,7 +86,7 @@ fun runApplication(options: ApplicationOptions) {
             val authorService = AuthorService(repo, authorKit, queryManager, sourceMappingManager, backendExporter)
             val topicService = TopicService(repo, topicKit, queryManager, sourceMappingManager, backendExporter)
             val importService = ImportService(repo, fileManager, importManager, illustManager, sourceManager, importMetaManager, similarFinder, thumbnailGenerator)
-            val findSimilarService = FindSimilarService(repo, similarFinder)
+            val findSimilarService = FindSimilarService(repo, illustExtendManager, similarFinder)
 
             val illustUtilService = IllustUtilService(repo)
             val pickerUtilService = PickerUtilService(repo, historyRecordManager)

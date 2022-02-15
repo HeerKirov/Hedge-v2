@@ -2,10 +2,7 @@ package com.heerkirov.hedge.server.components.http.routes
 
 import com.heerkirov.hedge.server.components.http.Endpoints
 import com.heerkirov.hedge.server.components.service.FindSimilarService
-import com.heerkirov.hedge.server.dto.FindSimilarResultQueryFilter
-import com.heerkirov.hedge.server.dto.FindSimilarTaskQueryFilter
-import com.heerkirov.hedge.server.dto.FindSimilarTaskCreateForm
-import com.heerkirov.hedge.server.dto.IdRes
+import com.heerkirov.hedge.server.dto.*
 import com.heerkirov.hedge.server.library.form.bodyAsForm
 import com.heerkirov.hedge.server.library.form.queryAsFilter
 import io.javalin.Javalin
@@ -26,9 +23,9 @@ class FindSimilarRoutes(private val findSimilarService: FindSimilarService) : En
                 }
                 path("results") {
                     get(::getResultList)
+                    post(::batchProcessResult)
                     path("{id}") {
                         get(::getResultDetail)
-                        post(::processResult)
                     }
                 }
             }
@@ -67,8 +64,8 @@ class FindSimilarRoutes(private val findSimilarService: FindSimilarService) : En
         ctx.json(findSimilarService.getResult(id))
     }
 
-    private fun processResult(ctx: Context) {
-        val id = ctx.pathParamAsClass<Int>("id").get()
-        findSimilarService.processResult(id)
+    private fun batchProcessResult(ctx: Context) {
+        val form = ctx.bodyAsForm<FindSimilarResultProcessForm>()
+        findSimilarService.batchProcessResult(form)
     }
 }

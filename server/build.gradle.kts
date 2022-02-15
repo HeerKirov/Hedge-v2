@@ -80,12 +80,11 @@ tasks {
     }
     compileKotlin {
         kotlinOptions.jvmTarget = javaVersion
-        kotlinOptions.freeCompilerArgs = listOf("-Xinline-classes") //启用inline class实验特性
+        destinationDirectory.set(compileJava.get().destinationDirectory)
     }
     compileTestKotlin {
         kotlinOptions.jvmTarget = javaVersion
     }
-    compileKotlin.get().destinationDirectory.set(compileJava.get().destinationDirectory)
 
     shadowJar {
         manifestContentCharset = "utf-8"

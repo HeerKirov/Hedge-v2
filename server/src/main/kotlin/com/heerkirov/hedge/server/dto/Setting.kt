@@ -38,7 +38,7 @@ data class QueryOptionUpdateForm(val chineseSymbolReflect: Opt<Boolean>,
                                  @Min(2) val warningLimitOfIntersectItems: Opt<Int>)
 
 data class FindSimilarOptionUpdateForm(val autoFindSimilar: Opt<Boolean>,
-                                       val autoTaskConf: Opt<FindSimilarTask.TaskConfig>,
+                                       val autoTaskConf: Opt<FindSimilarTask.TaskConfig?>,
                                        val defaultTaskConf: Opt<FindSimilarTask.TaskConfig>)
 
 data class WebOptionUpdateForm(val autoWebAccess: Opt<Boolean>,
