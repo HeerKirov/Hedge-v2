@@ -1,0 +1,25 @@
+@import '@/styles/base/size.sass';
+@import '@/styles/base/color.scss';
+
+.collection-info {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  > .cover {
+    width: 2.5rem;
+  }
+}
+
+.album-info {
+  margin-top: 0.25rem;
+  border-radius: $radius-size-std;
+  border: solid 1px $deep-sidebar;
+  @media (prefers-color-scheme: dark) {
+    border-color: $deep-sidebar-dm;
+  }
+  padding: 0.125em;
+
+  &:not(:first-child) {
+    margin-top: 0.125rem;
+  }
+}

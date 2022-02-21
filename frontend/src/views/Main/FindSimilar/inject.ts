@@ -6,7 +6,7 @@ import { ScrollView, useScrollView } from "@/components/features/VirtualScrollVi
 import { useHttpClient } from "@/functions/app"
 import { useToast } from "@/functions/module/toast"
 import { installation } from "@/functions/utils/basic"
-
+import { ref, Ref } from "vue";
 
 export interface FindSimilarContext {
     list: {
@@ -14,12 +14,20 @@ export interface FindSimilarContext {
         endpoint: QueryEndpointResult<FindSimilarResult>
         scrollView: Readonly<ScrollView>
     }
+    pane: {
+        detailMode: Readonly<Ref<number | null>>
+        openDetailPane(id: number)
+        closePane()
+    }
 }
 
 export const [installFindSimilarContext, useFindSimilarContext] = installation(function (): FindSimilarContext {
     const list = useListContext()
 
-    return {list}})
+    const pane = usePane()
+
+    return {list, pane}
+})
 
 function useListContext() {
     const { handleError } = useToast()
@@ -33,4 +41,14 @@ function useListContext() {
     const dataView = usePaginationDataView(endpoint)
 
     return {endpoint, dataView, scrollView}
+}
+
+function usePane() {
+    const detailMode = ref<number | null>(null)
+
+    const openDetailPane = (id: number) => detailMode.value = id
+
+    const closePane = () => detailMode.value = null
+
+    return {detailMode, openDetailPane, closePane}
 }

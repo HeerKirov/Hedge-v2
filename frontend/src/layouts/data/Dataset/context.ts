@@ -248,12 +248,12 @@ export function useGridContextOperator<T extends SuitableIllust>(options: GridCo
     }
 
     const openInNewWindow = (illust: T) => {
-        if(illust.type === "IMAGE") {
+        if(illust.type === "COLLECTION") {
+            navigator.newWindow({routeName: "Preview", params: {type: "collection", collectionId: illust.id}})
+        }else{
             const imageIds = getEffectedItems(illust)
             const currentIndex = imageIds.indexOf(illust.id)
             navigator.newWindow({routeName: "Preview", params: { type: "image", imageIds, currentIndex}})
-        }else{
-            navigator.newWindow({routeName: "Preview", params: {type: "collection", collectionId: illust.id}})
         }
     }
 
@@ -328,16 +328,7 @@ export function useGridContextOperator<T extends SuitableIllust>(options: GridCo
 
     const deleteItem = async (illust: T) => {
         if(selected.value.length === 0 || !selected.value.includes(illust.id)) {
-            if(illust.type === "IMAGE") {
-                if(await messageBox.showYesNoMessage("warn", "确定要删除此项吗？", "此操作不可撤回。")) {
-                    const ok = await commonFastEndpoint.deleteData(illust.id)
-                    const index = dataView.proxy.syncOperations.find(i => i.id === illust.id)
-                    if(ok && index !== undefined) {
-                        dataView.proxy.syncOperations.remove(index)
-                        options.afterDeleted?.()
-                    }
-                }
-            }else{
+            if(illust.type === "COLLECTION") {
                 if(await messageBox.showYesNoMessage("warn", "确定要删除此集合吗？集合内的图像不会被删除。", "此操作不可撤回。")) {
                     const ok = await commonFastEndpoint.deleteData(illust.id)
                     if(ok) {
@@ -347,6 +338,15 @@ export function useGridContextOperator<T extends SuitableIllust>(options: GridCo
                             const index = dataView.proxy.syncOperations.find(i => i.id === illust.id)
                             if(index !== undefined) options.afterDeleted?.()
                         }
+                    }
+                }
+            }else{
+                if(await messageBox.showYesNoMessage("warn", "确定要删除此项吗？", "此操作不可撤回。")) {
+                    const ok = await commonFastEndpoint.deleteData(illust.id)
+                    const index = dataView.proxy.syncOperations.find(i => i.id === illust.id)
+                    if(ok && index !== undefined) {
+                        dataView.proxy.syncOperations.remove(index)
+                        options.afterDeleted?.()
                     }
                 }
             }

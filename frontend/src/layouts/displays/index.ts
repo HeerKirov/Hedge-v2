@@ -4,3 +4,5 @@ export { SourceInfo, SourceRelationsDisplay, SourceTagListDisplay, SourceTagMapp
 export { TagTypeDisplay, TagGroupDisplay, TagGroupMemberDisplay, TagLinkDisplay, TagExampleDisplay } from "./TagDisplays"
 //在illust、album等多处可能用到的复用组件。
 export { TagmeInfo, TitleDisplay, DescriptionDisplay, ScoreDisplay, PartitionTimeDisplay, MetaTagListDisplay, TimeDisplay } from "./PublicDisplays"
+//图像比较用的表格组件。
+export { ImageCompareTable } from "./ImageCompareTable"

@@ -38,8 +38,8 @@ export default defineComponent({
             </ScopeComponent>
             <ScopeComponent id="tool" name="工具箱">
                 <StdItemComponent name="导入" icon="plus-square" routeName="MainImport"/>
-                <StdItemComponent name="相似项查找" icon="grin-squint" routeName="MainFindSimilar"/>
                 <StdItemComponent name="来源数据" icon="spider" routeName="MainSourceImage"/>
+                <StdItemComponent name="相似项查找" icon="grin-squint" routeName="MainFindSimilar"/>
             </ScopeComponent>
             <ScopeComponent id="folder" name="目录">
                 <StdItemFolders routeName="MainFolders" detailKey="detail"/>

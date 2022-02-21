@@ -1,5 +1,5 @@
 import { HttpInstance, Response } from "../server"
-import { NotFound } from "../exception"
+import { NotFound, ResourceNotExist } from "../exception"
 import { IdResponse, LimitAndOffsetFilter, ListResult, OrderList } from "./generic"
 import { SimpleIllust } from "./illust"
 import { date, datetime, LocalDate, LocalDateTime } from "@/utils/datetime"
@@ -24,7 +24,8 @@ export function createFindSimilarEndpoint(http: HttpInstance): FindSimilarEndpoi
             }),
             get: http.createPathRequest(id => `/api/find-similar/results/${id}`, "GET", {
                 parseResponse: mapToResult
-            })
+            }),
+            process: http.createDataRequest("/api/find-similar/results", "POST")
         }
     }
 }
@@ -113,6 +114,10 @@ export interface FindSimilarEndpoint {
          * 查看指定结果的详情。
          */
         get(id: number): Promise<Response<FindSimilarResult, NotFound>>
+        /**
+         * 处理结果。
+         */
+        process(form: FindSimilarResultProcessForm): Promise<Response<null, ResourceNotExist<string, number[]>>>
     }
 }
 
@@ -151,6 +156,8 @@ export type RelationBasis = "RELATION" | "POOL" | "PART"
 
 export type ResultType = "DUPLICATED" | "OTHERS"
 
+export type ProcessAction = "DELETE" | "RETAIN_OLD" | "RETAIN_OLD_AND_CLONE_PROPS" | "RETAIN_NEW" | "RETAIN_NEW_AND_CLONE_PROPS"
+
 export interface FindSimilarTask {
     id: number
     selector: TaskSelector
@@ -168,6 +175,11 @@ export interface FindSimilarResult {
 export interface FindSimilarTaskCreateForm {
     selector: TaskSelector
     config?: TaskConfig | null
+}
+
+export interface FindSimilarResultProcessForm {
+    target?: number[]
+    action: ProcessAction
 }
 
 export type FindSimilarTaskFilter = FindSimilarTaskQueryFilter & LimitAndOffsetFilter

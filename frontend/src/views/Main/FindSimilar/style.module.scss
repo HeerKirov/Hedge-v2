@@ -1,18 +1,19 @@
 @import '@/styles/base/size.sass';
 
 .item {
-  $height: 80px;
+  $height: 60px;
   $margin-bottom: 6px;
   $padding: 8px;
   width: 100%;
   height: #{$height - $margin-bottom};
   margin-bottom: $margin-bottom;
   padding: $padding;
+  cursor: pointer;
 
   display: flex;
   flex-wrap: nowrap;
   > .left {
-    width: 60%;
+    width: 75%;
     overflow: hidden;
     > .img {
       border-radius: $radius-size-small;
@@ -23,6 +24,41 @@
     }
   }
   > .right {
-    width: 40%;
+    width: 25%;
+    line-height: #{$height - $margin-bottom - $padding * 2};
+    padding-right: 0.5rem;
+    text-align: right;
+  }
+}
+
+.detail {
+  padding: 0.5rem;
+  max-height: 35rem;
+  min-height: 5rem;
+  width: 56rem;
+
+  > .info-content {
+    width: 100%;
+    max-height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+  > .action-content {
+    flex-shrink: 0;
+    width: 12rem;
+    padding-left: 0.5rem;
+
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    > .scroll-content {
+      height: 100%;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+    > .bottom {
+      flex-shrink: 0;
+      padding-top: 0.5rem;
+    }
   }
 }

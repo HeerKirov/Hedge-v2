@@ -19,7 +19,7 @@ export default defineComponent({
         installWebPopupMenuManager()
         const { handleError } = installToastManager()
         const { appState } = installAppService({handleError})
-        const initialized = computed(() => appState.state != null)
+        const initialized = computed(() => appState.state.value != null)
         installGlobalKey()
 
         return () => <>
