@@ -130,8 +130,14 @@ class Applier:
                     self.__set_count_statistic('setting', updated=False, count=1)
 
     def __submit_source(self):
-        for source in self.__applied_source:
-            self.__submit_rest_object(source, '/api/source-images', 'source', '%s/%s' % (source['source'], source['sourceId']))
+        length = len(self.__applied_source)
+        for i in range(0, length, 1000):
+            data = self.__applied_source[i:i + 1000]
+            ok, data = self.__server.http_client.req('POST', '/api/source-images/bulk', body={"items": data})
+            if not ok:
+                self.submit_errors.append(('source', None, data['message']))
+            else:
+                self.__set_count_statistic('source', updated=True, count=len(data))
 
     def __submit_annotation(self):
         for annotation in self.__applied_annotations:
@@ -281,7 +287,10 @@ source_schema = Schema([{
         Optional('displayName'): Or(None, And(str, lambda s: len(s) > 0)),
         Optional('type'): Or(None, And(str, lambda s: len(s) > 0)),
     }],
-    Optional('pools'): [str],
+    Optional('pools'): [{
+        'key': And(str, lambda s: len(s) > 0),
+        'title': str
+    }],
     Optional('relations'): [int]
 }])
 
