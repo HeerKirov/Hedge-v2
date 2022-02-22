@@ -18,9 +18,7 @@ import com.heerkirov.hedge.server.dao.meta.Authors
 import com.heerkirov.hedge.server.dao.meta.Tags
 import com.heerkirov.hedge.server.dao.meta.Topics
 import com.heerkirov.hedge.server.dao.illust.FileRecords
-import com.heerkirov.hedge.server.dao.source.SourceImages
-import com.heerkirov.hedge.server.dao.source.SourceTagRelations
-import com.heerkirov.hedge.server.dao.source.SourceTags
+import com.heerkirov.hedge.server.dao.source.*
 import com.heerkirov.hedge.server.dto.*
 import com.heerkirov.hedge.server.exceptions.*
 import com.heerkirov.hedge.server.model.illust.Illust
@@ -322,15 +320,22 @@ class IllustService(private val data: DataRepository,
                 .firstOrNull()
             if(sourceRow != null) {
                 val sourceRowId = sourceRow[SourceImages.id]!!
-                val sourceTags = data.db.from(SourceTags).innerJoin(SourceTagRelations, (SourceTags.id eq SourceTagRelations.tagId) and (SourceTagRelations.sourceId eq sourceRowId))
+                val sourceTags = data.db.from(SourceTags)
+                    .innerJoin(SourceTagRelations, (SourceTags.id eq SourceTagRelations.tagId) and (SourceTagRelations.sourceId eq sourceRowId))
                     .select()
                     .map { SourceTags.createEntity(it) }
                     .map { SourceTagDto(it.name, it.displayName, it.type) }
+                val sourcePools = data.db.from(SourcePools)
+                    .innerJoin(SourcePoolRelations, (SourcePools.id eq SourcePoolRelations.poolId) and (SourcePoolRelations.sourceId eq sourceRowId))
+                    .select()
+                    .map { SourcePools.createEntity(it) }
+                    .map { SourcePoolDto(it.key, it.title) }
 
                 IllustImageOriginRes(source, sourceTitle ?: source, sourceId, sourcePart,
                     sourceRow[SourceImages.empty]!!, sourceRow[SourceImages.status]!!,
-                    sourceRow[SourceImages.title] ?: "", sourceRow[SourceImages.description] ?: "", sourceTags,
-                    sourceRow[SourceImages.pools] ?: emptyList(), sourceRow[SourceImages.relations] ?: emptyList())
+                    sourceRow[SourceImages.title] ?: "", sourceRow[SourceImages.description] ?: "",
+                    sourceTags, sourcePools,
+                    sourceRow[SourceImages.relations] ?: emptyList())
             }else{
                 IllustImageOriginRes(source, sourceTitle ?: source, sourceId, sourcePart,
                     true, SourceImage.Status.NOT_EDITED, "", "", emptyList(), emptyList(), emptyList())

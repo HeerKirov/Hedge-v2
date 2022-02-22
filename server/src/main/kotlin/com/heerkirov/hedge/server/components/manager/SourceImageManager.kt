@@ -3,7 +3,9 @@ package com.heerkirov.hedge.server.components.manager
 import com.heerkirov.hedge.server.components.database.DataRepository
 import com.heerkirov.hedge.server.components.manager.query.QueryManager
 import com.heerkirov.hedge.server.dao.source.SourceImages
+import com.heerkirov.hedge.server.dao.source.SourcePoolRelations
 import com.heerkirov.hedge.server.dao.source.SourceTagRelations
+import com.heerkirov.hedge.server.dto.SourcePoolForm
 import com.heerkirov.hedge.server.dto.SourceTagForm
 import com.heerkirov.hedge.server.exceptions.*
 import com.heerkirov.hedge.server.model.source.SourceImage
@@ -17,7 +19,8 @@ import org.ktorm.entity.*
 
 class SourceImageManager(private val data: DataRepository,
                          private val queryManager: QueryManager,
-                         private val sourceTagManager: SourceTagManager) {
+                         private val sourceTagManager: SourceTagManager,
+                         private val sourcePoolManager: SourcePoolManager) {
     /**
      * 检查source key。主要检查source是否是已注册的site，检查part是否存在，检查id/part是否为非负数。
      * @return 如果给出的值是null，那么返回null，否则，返回一个tuple，用于后续工具链处理。
@@ -76,7 +79,6 @@ class SourceImageManager(private val data: DataRepository,
                 set(it.title, null)
                 set(it.description, null)
                 set(it.relations, null)
-                set(it.pools, null)
                 set(it.empty, true)
                 set(it.status, SourceImage.Status.NOT_EDITED)
                 set(it.cachedCount, SourceImage.SourceCount(0, 0, 0))
@@ -100,7 +102,7 @@ class SourceImageManager(private val data: DataRepository,
                                   title: Opt<String?> = undefined(),
                                   description: Opt<String?> = undefined(),
                                   tags: Opt<List<SourceTagForm>> = undefined(),
-                                  pools: Opt<List<String>> = undefined(),
+                                  pools: Opt<List<SourcePoolForm>> = undefined(),
                                   relations: Opt<List<Int>> = undefined(),
                                   allowCreate: Boolean = true,
                                   allowUpdate: Boolean = true): Triple<Int?, String?, Long?> {
@@ -127,7 +129,6 @@ class SourceImageManager(private val data: DataRepository,
                 set(it.title, title.unwrapOrNull())
                 set(it.description, description.unwrapOrNull())
                 set(it.relations, relations.unwrapOrNull())
-                set(it.pools, pools.unwrapOrNull())
                 set(it.cachedCount, sourceCount)
                 set(it.empty, empty)
                 set(it.status, finalStatus)
@@ -150,6 +151,20 @@ class SourceImageManager(private val data: DataRepository,
                 }
             }
 
+            pools.applyOpt {
+                if(isNotEmpty()) {
+                    val poolIds = sourcePoolManager.getAndUpsertSourcePools(source, this)
+                    data.db.batchInsert(SourcePoolRelations) {
+                        for (poolId in poolIds) {
+                            item {
+                                set(it.sourceId, id)
+                                set(it.poolId, poolId)
+                            }
+                        }
+                    }
+                }
+            }
+
             return Triple(id, source, sourceId)
         }else{
             if(!allowUpdate) throw be(AlreadyExists("SourceImage", "sourceId", sourceId))
@@ -164,8 +179,8 @@ class SourceImageManager(private val data: DataRepository,
 
             val empty = title.unwrapOr { sourceImage.title }.isNullOrEmpty()
                     && description.unwrapOr { sourceImage.description }.isNullOrEmpty()
-                    && if(pools.isPresent) { pools.value } else { sourceImage.pools }.isNullOrEmpty()
                     && if(relations.isPresent) { relations.value } else { sourceImage.relations }.isNullOrEmpty()
+                    && if(pools.isPresent) { pools.value.isEmpty() } else { data.db.sequenceOf(SourcePoolRelations).count { it.sourceId eq sourceImage.id } == 0 }
                     && if(tags.isPresent) { tags.value.isEmpty() } else { data.db.sequenceOf(SourceTagRelations).count { it.sourceId eq sourceImage.id } == 0 }
             val finalStatus = if(status.isPresent) status else if(anyOpt(title, description, tags, pools, relations)) optOf(SourceImage.Status.EDITED) else undefined()
 
@@ -175,7 +190,6 @@ class SourceImageManager(private val data: DataRepository,
                     title.applyOpt { set(it.title, this) }
                     description.applyOpt { set(it.description, this) }
                     relations.applyOpt { set(it.relations, this) }
-                    pools.applyOpt { set(it.pools, this) }
                     sourceCount.applyOpt { set(it.cachedCount, this) }
                     finalStatus.applyOpt { set(it.status, this) }
                     set(it.empty, empty)
@@ -195,9 +209,23 @@ class SourceImageManager(private val data: DataRepository,
                             }
                         }
                     }
-                    queryManager.flushCacheOf(QueryManager.CacheType.SOURCE_TAG)
                 }
                 queryManager.flushCacheOf(QueryManager.CacheType.SOURCE_TAG)
+            }
+
+            pools.applyOpt {
+                data.db.delete(SourcePoolRelations) { it.sourceId eq sourceImage.id }
+                if(isNotEmpty()) {
+                    val poolIds = sourcePoolManager.getAndUpsertSourcePools(source, this)
+                    data.db.batchInsert(SourcePoolRelations) {
+                        for (poolId in poolIds) {
+                            item {
+                                set(it.sourceId, sourceImage.id)
+                                set(it.poolId, poolId)
+                            }
+                        }
+                    }
+                }
             }
 
             return Triple(sourceImage.id, source, sourceId)

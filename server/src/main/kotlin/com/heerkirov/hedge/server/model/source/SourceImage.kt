@@ -28,10 +28,6 @@ data class SourceImage(val id: Int,
                         */
                        val relations: List<Int>? = null,
                        /**
-                        * 原数据的集合所属信息。
-                        */
-                       val pools: List<String>? = null,
-                       /**
                         * 关系信息的数量的缓存。
                         */
                        val cachedCount: SourceCount,

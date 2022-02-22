@@ -13,7 +13,7 @@ import org.ktorm.entity.firstOrNull
 import org.ktorm.entity.sequenceOf
 import org.ktorm.entity.toList
 
-class SourceTagManager(private val data:DataRepository) {
+class SourceTagManager(private val data: DataRepository) {
     /**
      * 校验source的合法性。
      * @throws ResourceNotExist ("source", string) 给出的source不存在

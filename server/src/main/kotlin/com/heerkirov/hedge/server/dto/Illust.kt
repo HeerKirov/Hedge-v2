@@ -41,7 +41,7 @@ data class AssociateRes(val id: Int, val totalCount: Int, val items: List<Illust
 
 data class IllustImageOriginRes(val source: String?, val sourceTitle: String?, val sourceId: Long?, val sourcePart: Int?,
                                 val empty: Boolean, val status: SourceImage.Status, val title: String?, val description: String?,
-                                val tags: List<SourceTagDto>?, val pools: List<String>?, val relations: List<Int>?)
+                                val tags: List<SourceTagDto>?, val pools: List<SourcePoolDto>?, val relations: List<Int>?)
 
 data class IllustImageFileInfoRes(val file: String, val extension: String, val size: Long, val thumbnailSize: Long?, val resolutionWidth: Int, val resolutionHeight: Int, val createTime: LocalDateTime)
 
@@ -75,7 +75,7 @@ class IllustImageRelatedUpdateForm(val associateId: Opt<Int?>, val collectionId:
 
 class IllustImageOriginUpdateForm(val source: Opt<String?>, val sourceId: Opt<Long?>, val sourcePart: Opt<Int?>,
                                   val title: Opt<String?>, val description: Opt<String?>, val tags: Opt<List<SourceTagForm>>,
-                                  val pools: Opt<List<String>>, val relations: Opt<List<Int>>, val status: Opt<SourceImage.Status>)
+                                  val pools: Opt<List<SourcePoolForm>>, val relations: Opt<List<Int>>, val status: Opt<SourceImage.Status>)
 
 class IllustBatchUpdateForm(val target: List<Int>,
                             val description: Opt<String?>,

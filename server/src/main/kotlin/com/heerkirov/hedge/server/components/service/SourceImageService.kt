@@ -6,9 +6,7 @@ import com.heerkirov.hedge.server.components.manager.SourceImageManager
 import com.heerkirov.hedge.server.components.manager.query.QueryManager
 import com.heerkirov.hedge.server.dao.illust.Illusts
 import com.heerkirov.hedge.server.dao.illust.FileRecords
-import com.heerkirov.hedge.server.dao.source.SourceImages
-import com.heerkirov.hedge.server.dao.source.SourceTagRelations
-import com.heerkirov.hedge.server.dao.source.SourceTags
+import com.heerkirov.hedge.server.dao.source.*
 import com.heerkirov.hedge.server.dto.*
 import com.heerkirov.hedge.server.exceptions.*
 import com.heerkirov.hedge.server.utils.business.takeThumbnailFilepath
@@ -79,9 +77,10 @@ class SourceImageService(private val data: DataRepository, private val sourceMan
     }
 
     /**
+     * 对source image进行声明式的大批量操作。
      * @throws ResourceNotExist ("source", string) 给出的source不存在
      */
-    fun createBulk(forms: List<SourceImageCreateForm>) {
+    fun bulk(forms: List<SourceImageCreateForm>) {
         data.db.transaction {
             forms.forEach { form -> sourceManager.checkSource(form.source, form.sourceId) }
             forms.forEach { form ->
@@ -109,12 +108,17 @@ class SourceImageService(private val data: DataRepository, private val sourceMan
             .select()
             .map { SourceTags.createEntity(it) }
             .map { SourceTagDto(it.name, it.displayName, it.type) }
+        val sourcePools = data.db.from(SourcePools)
+            .innerJoin(SourcePoolRelations, (SourcePools.id eq SourcePoolRelations.poolId) and (SourcePoolRelations.sourceId eq sourceRowId))
+            .select()
+            .map { SourcePools.createEntity(it) }
+            .map { SourcePoolDto(it.key, it.title) }
         val sourceTitle = data.metadata.source.sites.find { it.name == source }?.title
 
         return SourceImageDetailRes(source, sourceTitle ?: source, sourceId,
             row[SourceImages.title] ?: "",
-            row[SourceImages.description] ?: "", sourceTags,
-            row[SourceImages.pools] ?: emptyList(),
+            row[SourceImages.description] ?: "",
+            sourceTags, sourcePools,
             row[SourceImages.relations] ?: emptyList(),
             row[SourceImages.empty]!!,
             row[SourceImages.status]!!,

@@ -39,7 +39,8 @@ fun runApplication(options: ApplicationOptions) {
             val queryService = QueryService(queryManager)
 
             val sourceTagManager = SourceTagManager(repo)
-            val sourceManager = SourceImageManager(repo, queryManager, sourceTagManager)
+            val sourcePoolManager = SourcePoolManager(repo)
+            val sourceManager = SourceImageManager(repo, queryManager, sourceTagManager, sourcePoolManager)
             val sourceMappingManager = SourceMappingManager(repo, sourceTagManager)
             val sourceImageService = SourceImageService(repo, sourceManager, queryManager)
             val sourceMappingService = SourceMappingService(repo, sourceMappingManager)

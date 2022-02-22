@@ -64,6 +64,7 @@ class HttpServerImpl(private val allServices: AllServices,
         server = Javalin
             .create {
                 it.showJavalinBanner = false
+                it.maxRequestSize = 1024 * 1024 * 64 //最大64MB的request body限制
                 it.enableCorsForAllOrigins()
                 it.jsonMapper(JavalinJackson(objectMapper()))
                 web.configure(it)

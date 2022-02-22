@@ -19,7 +19,7 @@ class SourceRoutes(private val sourceImageService: SourceImageService,
                 path("source-images") {
                     get(sourceImages::list)
                     post(sourceImages::create)
-                    post("bulk", sourceImages::createBulk)
+                    post("bulk", sourceImages::bulk)
                     path("{source}/{source_id}") {
                         get(sourceImages::get)
                         patch(sourceImages::update)
@@ -51,9 +51,9 @@ class SourceRoutes(private val sourceImageService: SourceImageService,
             ctx.status(201)
         }
 
-        fun createBulk(ctx: Context) {
-            val form = ctx.bodyAsForm<SourceImageBulkCreateForm>()
-            sourceImageService.createBulk(form.items)
+        fun bulk(ctx: Context) {
+            val form = ctx.bodyAsForm<SourceImageBulkForm>()
+            sourceImageService.bulk(form.items)
             ctx.status(201)
         }
 
