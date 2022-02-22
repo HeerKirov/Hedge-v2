@@ -132,7 +132,7 @@ function registerProtocol(configuration: ConfigurationDriver) {
     const prefix = 'record:///'
     let dbPath: string | null = null
     protocol.registerFileProtocol('record', (request, callback) => {
-        const url = request.url.substr(prefix.length)
+        const url = request.url.substring(prefix.length)
         if(dbPath == undefined) {
             dbPath = configuration.getActualDbPath() 
         }
