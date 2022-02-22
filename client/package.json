@@ -1,7 +1,7 @@
 {
   "name": "hedge-v2",
   "productName": "Hedge-v2",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "license": "MIT",
   "main": "target/main.js",
   "scripts": {

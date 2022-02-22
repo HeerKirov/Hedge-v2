@@ -25,7 +25,7 @@ import { Platform } from "../../utils/process"
 const VERSION = {
     server: "0.2.0",
     frontend: "0.2.0",
-    cli: "0.1.0"
+    cli: "0.2.0"
 }
 
 /**
