@@ -6,12 +6,14 @@ import {
     SourceInfo, TitleDisplay, DescriptionDisplay,
     SourceRelationsDisplay, SourceTagListDisplay, TimeDisplay, SourceStatusDisplay
 } from "@/layouts/displays"
+import { useRouterNavigator } from "@/functions/feature/router"
 import { useObjectEndpoint } from "@/functions/utils/endpoints/object-endpoint"
 import { SourceImageStatus } from "@/functions/adapter-http/impl/source-image"
 import { useSourceImageContext } from "./inject"
 
 export default defineComponent({
     setup() {
+        const navigator = useRouterNavigator()
         const { pane: { detailMode, closePane } } = useSourceImageContext()
 
         const { data, setData } = useObjectEndpoint({
@@ -29,12 +31,18 @@ export default defineComponent({
             return (status === data.value?.status) || await setData({status})
         }
 
+        const gotoIllust = () => {
+            if(data.value !== null) {
+                navigator.goto({routeName: "MainIllusts", params: {source: {site: data.value.source, id: data.value.sourceId}}})
+            }
+        }
+
         return () => <PaneBasicLayout onClose={closePane}>
             {detailMode.value && <SourceInfo class="my-2" {...detailMode.value}/>}
             {(imagesData.value && imagesData.value.length > 0) ? <>
                 <ThumbnailImage value={imagesData.value[0].thumbnailFile} minHeight="12rem" maxHeight="30rem"/>
                 <p class="w-100 has-text-right">
-                    <a class="no-wrap">{imagesData.value.length > 1 ? `在图库查看全部的${imagesData.value.length}个项目` : "在图库查看此项目"}<i class="fa fa-angle-double-right ml-1 mr-1"/></a>
+                    <a class="no-wrap" onClick={gotoIllust}>{imagesData.value.length > 1 ? `在图库查看全部的${imagesData.value.length}个项目` : "在图库查看此项目"}<i class="fa fa-angle-double-right ml-1 mr-1"/></a>
                 </p>
             </> : null}
             {data.value && <>

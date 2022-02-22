@@ -3,7 +3,7 @@ import Input from "@/components/forms/Input"
 import NumberInput from "@/components/forms/NumberInput"
 import { SourceSiteSelect } from "@/layouts/editors/SourceIdentityEditors"
 import { SourceMappingMetaItem, SourceTag } from "@/functions/adapter-http/impl/source-tag-mapping"
-import { SourceImageStatus } from "@/functions/adapter-http/impl/source-image"
+import { SourceImageStatus, SourcePool } from "@/functions/adapter-http/impl/source-image"
 import { useMessageBox } from "@/functions/module/message-box"
 import style from "./SourceEditors.module.scss"
 import Select from "@/components/forms/Select"
@@ -233,21 +233,21 @@ function SourceTagMappingEditorItem({ value, selected }: {value: SourceMappingMe
 
 export const SourcePoolEditor = defineComponent({
     props: {
-        value: {type: Array as PropType<readonly string[]>, required: true}
+        value: {type: Array as PropType<readonly SourcePool[]>, required: true}
     },
     emits: {
-        updateValue: (_: string[]) => true
+        updateValue: (_: SourcePool[]) => true
     },
     setup(props, { emit }) {
         const showAddInput = ref(false)
 
-        const add = (v: string) => {
+        const add = (v: SourcePool) => {
             if(v) {
                 emit("updateValue", [...props.value, v])
             }
             showAddInput.value = false
         }
-        const update = (i: number, v: string) => {
+        const update = (i: number, v: SourcePool) => {
             if(v) {
                 emit("updateValue", [...props.value.slice(0, i), v, ...props.value.slice(i + 1)])
             }else{
@@ -257,9 +257,13 @@ export const SourcePoolEditor = defineComponent({
 
         return () => <div class="p-2">
             {props.value.map((item, i) => <div>
-                <Input class="is-fullwidth mb-1" value={item} onUpdateValue={v => update(i, v)}/>
+                <Input class="is-width-25 mb-1" placeholder="ID" value={item.key} onUpdateValue={v => update(i, {key: v, title: item.title})}/>
+                <Input class="is-width-75 mb-1" placeholder="标题" value={item.title} onUpdateValue={v => update(i, {key: item.key, title: v})}/>
             </div>)}
-            {showAddInput.value && <Input class="is-fullwidth mb-1" onUpdateValue={v => add(v)}/>}
+            {showAddInput.value && <div>
+                <Input class="is-width-25 mb-1" placeholder="ID" onUpdateValue={v => add({key: v, title: ""})}/>
+                <Input class="is-width-75 mb-1" placeholder="标题" onUpdateValue={v => add({key: "", title: v})}/>
+            </div>}
             <button class="button w-100" onClick={() => showAddInput.value = true}><span class="icon"><i class="fa fa-plus"/></span><span>添加行</span></button>
         </div>
     }

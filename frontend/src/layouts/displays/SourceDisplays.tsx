@@ -1,7 +1,7 @@
 import { computed, defineComponent, PropType } from "vue"
 import { useSettingSite } from "@/functions/api/setting"
 import { SourceMappingMetaItem, SourceTag } from "@/functions/adapter-http/impl/source-tag-mapping"
-import { SourceImageStatus } from "@/functions/adapter-http/impl/source-image"
+import { SourceImageStatus, SourcePool } from "@/functions/adapter-http/impl/source-image"
 
 /**
  * 来源信息展示条。显示来源site、id和part。适用于侧边栏。
@@ -52,14 +52,14 @@ export function SourceStatusDisplay({ value }: {value: SourceImageStatus}) {
 /**
  * 显示parents, children, pools信息。没有时显示[没有关联项目]。
  */
-export function SourceRelationsDisplay({ relations, pools }: {relations: number[], pools: string[]}) {
+export function SourceRelationsDisplay({ relations, pools }: {relations: number[], pools: SourcePool[]}) {
     if(relations.length || pools.length) {
         return <>
             {(relations.length || null) && <div class="my-2">
                 {relations.map(parent => <p><i class="fa fa-images mr-2"/>关联项 <b class="can-be-selected">{parent}</b></p>)}
             </div>}
             {(pools.length || null) && <div class="my-2">
-                {pools.map(pool => <p><i class="fa fa-clone mr-2"/>Pool 《<b class="can-be-selected">{pool}</b>》</p>)}
+                {pools.map(pool => <p><i class="fa fa-clone mr-2"/>Pool 《<b class="can-be-selected">{pool.title}</b>》</p>)}
             </div>}
         </>
     }else{

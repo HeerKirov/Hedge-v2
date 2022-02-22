@@ -5,7 +5,7 @@ import { LocalDate } from "@/utils/datetime"
  * app中没有任何复杂地址，所以所有的导航参数都是可选的。
  */
 export interface RouteParameter {
-    "MainIllusts": RouteTemplate<{}, { topicName?: string, authorName?: string, tagName?: string }>
+    "MainIllusts": RouteTemplate<{}, { topicName?: string, authorName?: string, tagName?: string, source?: {site: string, id: number} }>
     "MainAlbums": RouteTemplate<{}, { topicName?: string, authorName?: string, tagName?: string }>
     "MainTopics": RouteTemplate<{ detail: number }, undefined>
     "MainAuthors": RouteTemplate<{ detail: number }, undefined>

@@ -12,12 +12,12 @@ import { SourceMappingMetaItem } from "@/functions/adapter-http/impl/source-tag-
 import { useObjectEndpoint } from "@/functions/utils/endpoints/object-endpoint"
 import { useMessageBox } from "@/functions/module/message-box"
 import { checkTagName } from "@/utils/check"
+import { patchMappingSourceTagToForm } from "@/utils/translator"
 import { objects } from "@/utils/primitives"
 import { TAG_TYPE_SELECT_ITEMS } from "./define"
 import { TagGroupEditor, NameAndOtherNamesEditor, TagLinkEditor, NameAndOtherNameDisplay, DescriptionDisplay } from "./PaneComponents"
 import { useTagPaneContext, useTagListContext, useTagTreeAccessor } from "./inject"
 import style from "./style.module.scss"
-import { patchMappingSourceTagToForm } from "@/utils/translator";
 
 export default defineComponent({
     setup() {

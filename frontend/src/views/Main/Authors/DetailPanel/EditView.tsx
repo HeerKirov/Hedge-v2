@@ -5,9 +5,9 @@ import { useMessageBox } from "@/functions/module/message-box"
 import { useMutableComputed } from "@/functions/utils/basic"
 import { objects } from "@/utils/primitives"
 import { checkTagName } from "@/utils/check"
+import { patchMappingSourceTagToForm } from "@/utils/translator"
 import FormEditor, { FormEditorData } from "./FormEditor"
 import { useAuthorDetailContext } from "./inject"
-import { patchMappingSourceTagToForm } from "@/utils/translator";
 
 export default defineComponent({
     setup() {

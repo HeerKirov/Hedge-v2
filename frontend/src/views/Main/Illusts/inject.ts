@@ -62,9 +62,12 @@ function useListContext(collectionMode: Ref<boolean>, partition: Ref<LocalDate> 
         //监听router event。只监听Illust的，Partition没有。
         //对于meta tag，将其简单地转换为DSL的一部分。
         //FUTURE 当然这其实是有问题的，对于topic/tag，还应该使用地址去限制它们。
-        querySchema.searchBoxText.value = (params.tagName ? `$\`${params.tagName}\`` : "")
-            + " " + params.topicName ? `#\`${params.topicName}\`` : ""
-            + " " + params.authorName ? `@\`${params.authorName}\`` : ""
+        querySchema.searchBoxText.value = [
+            params.tagName ? `$\`${params.tagName}\`` : undefined,
+            params.topicName ? `#\`${params.topicName}\`` : undefined,
+            params.authorName ? `@\`${params.authorName}\`` : undefined,
+            params.source ? `^FROM:${params.source.site} ^ID:${params.source.id}` : undefined
+        ].filter(i => i !== undefined).join(" ")
     })
 
     const endpoint = useQueryEndpoint({

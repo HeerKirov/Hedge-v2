@@ -95,8 +95,13 @@ export interface DetailSourceImage extends BasicSourceImage {
     title: string
     description: string
     tags: SourceTag[]
-    pools: string[]
+    pools: SourcePool[]
     relations: number[]
+}
+
+export interface SourcePool {
+    key: string
+    title: string
 }
 
 export interface SourceImageCreateForm extends SourceImageUpdateForm {
@@ -108,9 +113,14 @@ export interface SourceImageUpdateForm {
     title?: string
     description?: string
     tags?: SourceTagForm[]
-    pools?: string[]
+    pools?: SourcePoolForm[]
     relations?: number[]
     status?: SourceImageStatus
+}
+
+export interface SourcePoolForm {
+    key: string
+    title?: string
 }
 
 export type SourceImageFilter = SourceImageQueryFilter & LimitAndOffsetFilter

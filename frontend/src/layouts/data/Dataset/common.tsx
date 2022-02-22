@@ -1,4 +1,4 @@
-import { computed, Ref, SetupContext } from "vue"
+import { computed, Ref } from "vue"
 import { PaginationData, QueryEndpointInstance } from "@/functions/utils/endpoints/query-endpoint"
 import { TypeDefinition } from "@/functions/feature/drag/definition"
 import { clientPlatform } from "@/functions/adapter-ipc"

@@ -13,7 +13,7 @@ import { DepsTopic } from "./topic"
 import { DepsAuthor } from "./author"
 import { DepsTag } from "./tag"
 import { SimpleFolder } from "./folder"
-import { SourceImageStatus } from "./source-image"
+import { SourceImageStatus, SourcePool, SourcePoolForm } from "./source-image"
 import { SourceTag, SourceTagForm } from "./source-tag-mapping"
 
 export function createIllustEndpoint(http: HttpInstance): IllustEndpoint {
@@ -560,7 +560,7 @@ export type ImageOriginData = {
     /**
      * 来源数据：所属pool的标题列表。
      */
-    pools: string[]
+    pools: SourcePool[]
     /**
      * 来源数据：关联项的id列表。
      */
@@ -632,7 +632,7 @@ export interface ImageOriginUpdateForm {
     title?: string | null
     description?: string | null
     tags?: SourceTagForm[]
-    pools?: string[]
+    pools?: SourcePoolForm[]
     relations?: number[]
     status?: SourceImageStatus
 }

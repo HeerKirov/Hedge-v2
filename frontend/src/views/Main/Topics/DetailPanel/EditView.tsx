@@ -3,11 +3,11 @@ import TopBarTransparentLayout from "@/layouts/layouts/TopBarTransparentLayout"
 import { TopicUpdateForm } from "@/functions/adapter-http/impl/topic"
 import { useMessageBox } from "@/functions/module/message-box"
 import { useMutableComputed } from "@/functions/utils/basic"
+import { patchMappingSourceTagToForm } from "@/utils/translator"
 import { objects } from "@/utils/primitives"
 import { checkTagName } from "@/utils/check"
 import FormEditor, { FormEditorData } from "./FormEditor"
 import { useTopicDetailContext } from "./inject"
-import { patchMappingSourceTagToForm } from "@/utils/translator";
 
 export default defineComponent({
     setup() {

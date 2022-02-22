@@ -2,15 +2,15 @@ import { computed, defineComponent, PropType, reactive, Ref, watch } from "vue"
 import Input from "@/components/forms/Input"
 import Textarea from "@/components/forms/Textarea"
 import { SourcePoolEditor, SourceRelationEditor, SourceTagEditor } from "@/layouts/editors/SourceEditors"
-import { SourceTag, SourceTagForm } from "@/functions/adapter-http/impl/source-tag-mapping"
-import { SourceImageUpdateForm } from "@/functions/adapter-http/impl/source-image"
-import { patchSourceTagToForm } from "@/utils/translator";
+import { SourceTag } from "@/functions/adapter-http/impl/source-tag-mapping"
+import { SourceImageUpdateForm, SourcePool } from "@/functions/adapter-http/impl/source-image"
+import { patchSourceTagToForm } from "@/utils/translator"
 
 export interface SourceImageEditorData {
     title: string,
     description: string,
     tags: SourceTag[],
-    pools: string[],
+    pools: SourcePool[],
     relations: number[]
 }
 
