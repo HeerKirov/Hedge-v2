@@ -34,15 +34,15 @@ class ImportManager(private val data: DataRepository, private val importMetaMana
         val fileCreateTime = attr?.creationTime()?.toMillis()?.parseDateTime()
         val fileUpdateTime = sourceFile?.lastModified()?.parseDateTime()
 
-        val createTime = when(options.setTimeBy) {
-            ImportOption.TimeType.CREATE_TIME -> fileCreateTime
-            ImportOption.TimeType.UPDATE_TIME -> fileUpdateTime
+        val orderTime = when(options.setTimeBy) {
+            ImportOption.TimeType.CREATE_TIME -> fileCreateTime ?: fileImportTime
+            ImportOption.TimeType.UPDATE_TIME -> fileUpdateTime ?: fileImportTime
             ImportOption.TimeType.IMPORT_TIME -> fileImportTime
-        } ?: fileImportTime
-        val partitionTime = createTime.runIf(options.setPartitionTimeDelay != null && options.setPartitionTimeDelay!!!= 0L) {
-            (this.toMillisecond() - options.setPartitionTimeDelay!!).parseDateTime()
-        }.asZonedTime().toLocalDate()
-        val orderTime = createTime.toMillisecond()
+        }
+
+        val partitionTime = orderTime
+            .runIf(options.setPartitionTimeDelay != null && options.setPartitionTimeDelay!!!= 0L) { (this.toMillisecond() - options.setPartitionTimeDelay!!).parseDateTime() }
+            .asZonedTime().toLocalDate()
 
         val fileName = sourceFilename ?: sourceFile?.name
         val filePath = sourceFile?.absoluteFile?.parent
@@ -77,8 +77,8 @@ class ImportManager(private val data: DataRepository, private val importMetaMana
             set(it.sourceId, sourceId)
             set(it.sourcePart, sourcePart)
             set(it.partitionTime, partitionTime)
-            set(it.orderTime, orderTime)
-            set(it.createTime, createTime)
+            set(it.orderTime, orderTime.toMillisecond())
+            set(it.createTime, fileImportTime)
         } as Int
 
         return Pair(id, warnings)

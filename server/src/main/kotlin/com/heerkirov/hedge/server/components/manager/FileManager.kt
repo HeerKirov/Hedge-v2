@@ -11,6 +11,7 @@ import com.heerkirov.hedge.server.utils.business.getFilepath
 import com.heerkirov.hedge.server.utils.business.getThumbnailFilepath
 import com.heerkirov.hedge.server.utils.tools.*
 import com.heerkirov.hedge.server.utils.*
+import com.heerkirov.hedge.server.utils.DateTime.parseDateTime
 import com.heerkirov.hedge.server.utils.DateTime.toDateString
 import org.ktorm.dsl.delete
 import org.ktorm.dsl.eq
@@ -24,7 +25,7 @@ import java.time.LocalDate
 class FileManager(private val configurationDriver: ConfigurationDriver, private val data: DataRepository) {
     /**
      * 将指定的File载入到数据库中，同时创建一条新记录。
-     * - folder指定为载入时的本地日期。
+     * - folder指定为文件的更改日期(UTC)。对于上传的文件，这就相当于取了导入日期。
      * - extension指定为此file的扩展名。
      * - thumbnail和大小等信息留白，处于NOT READY状态，需要调用FileGenerator生成这些信息。
      * @return file id。使用此id来索引物理文件记录。
@@ -32,7 +33,7 @@ class FileManager(private val configurationDriver: ConfigurationDriver, private 
      */
     fun newFile(file: File): Int = defer {
         val now = DateTime.now()
-        val folder = LocalDate.now().toDateString()
+        val folder = file.lastModified().parseDateTime().toLocalDate().toDateString()
         val extension = validateExtension(file.extension)
 
         val id = data.db.insertAndGenerateKey(FileRecords) {

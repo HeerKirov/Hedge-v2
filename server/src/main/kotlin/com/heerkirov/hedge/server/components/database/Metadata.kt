@@ -87,7 +87,7 @@ data class ImportOption(
      */
     var setTagmeOfSource: Boolean,
     /**
-     * 导入的新文件的createTime属性从什么属性派生。给出的可选项是几类文件的物理属性。
+     * 导入的新文件的orderTime属性从什么属性派生。给出的可选项是几类文件的物理属性。
      * 其中有的属性是有可能不存在的。如果选用了这些不存在的属性，那么会去选用必定存在的属性，即IMPORT_TIME。
      */
     var setTimeBy: TimeType,
