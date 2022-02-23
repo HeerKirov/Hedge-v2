@@ -57,11 +57,11 @@ const TimeTypeBoard = defineComponent({
         const data = inject(dataInjection)!
 
         return () => <div class="mt-2">
-            <label class="label">创建时间方案</label>
+            <label class="label">排序时间方案</label>
             <div class="group mt-1">
                 <Select items={timeTypes} value={data.value!.setTimeBy} onUpdateValue={(v: TimeType) => data.value!.setTimeBy = v}/>
             </div>
-            <p class="is-size-7 has-text-grey">使用选定的属性作为导入项目的创建时间。当选定的属性不存在时，自动选择其他属性。</p>
+            <p class="is-size-7 has-text-grey">使用选定的属性作为导入项目的排序时间。当选定的属性不存在时，自动选择其他属性。</p>
         </div>
     }
 })
@@ -70,7 +70,7 @@ const PartitionTimeDelayBoard = defineComponent({
     setup() {
         const data = inject(dataInjection)!
 
-        const [ partitionTimeDelay, partitionTimeDelaySot, setPartitionTimeDelay, savePartitionTimeDelay] = usePropertySot(ref((data.value?.setPartitionTimeDelay ?? 0) / (1000 * 60 * 60)),
+        const [partitionTimeDelay, partitionTimeDelaySot, setPartitionTimeDelay, savePartitionTimeDelay] = usePropertySot(ref((data.value?.setPartitionTimeDelay ?? 0) / (1000 * 60 * 60)),
             () => data.value?.setPartitionTimeDelay,
             () => data.value != null ? (data.value?.setPartitionTimeDelay ?? 0) / (1000 * 60 * 60) : undefined,
             v => data.value!.setPartitionTimeDelay = v * 1000 * 60 * 60)

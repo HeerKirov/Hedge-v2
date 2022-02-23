@@ -5,6 +5,7 @@ import { useMessageBox } from "@/functions/module/message-box"
 import { useLocalStorageWithDefault } from "@/functions/app"
 import { useObjectCreator } from "@/functions/utils/endpoints/object-creator"
 import { checkTagName } from "@/utils/check"
+import { patchMappingSourceTagToForm } from "@/utils/translator"
 import FormEditor, { FormEditorData } from "./FormEditor"
 import { useTopicContext } from "../inject"
 
@@ -149,7 +150,8 @@ function mapFromCreatorData(form: CreatorData): TopicCreateForm {
         links: form.links,
         favorite: form.favorite,
         annotations: form.annotations.map(a => a.id),
-        score: form.score
+        score: form.score,
+        mappingSourceTags: patchMappingSourceTagToForm(form.mappingSourceTags, [])
     }
 }
 
