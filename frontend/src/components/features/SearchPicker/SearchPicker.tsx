@@ -101,7 +101,7 @@ const RecentContent = defineComponent({
         return () => {
             clearElement()
 
-            return historyData !== undefined ? <div class={style.recentContent}>
+            return historyData !== undefined ? <div>
                 <div class={style.scrollContent}>
                     <p class="has-text-grey is-size-small ml-1"><i>最近使用</i></p>
                     {historyData.value.length > 0 ? historyData.value.map((item, i) => (
@@ -112,7 +112,7 @@ const RecentContent = defineComponent({
                         </div>
                     )) : <div class="has-text-grey m-2 has-text-centered">无最近使用项</div>}
                 </div>
-            </div> : <div class={style.recentContent}>
+            </div> : <div>
                 <p class="has-text-grey is-size-small ml-1"><i>最近使用</i></p>
                 <div class="has-text-grey m-2 has-text-centered">无最近使用项</div>
             </div>
