@@ -1,5 +1,5 @@
 import { computed, defineComponent, Ref, ref, watch } from "vue"
-import { useObjectEndpoint } from "@/functions/utils/endpoints/object-endpoint"
+import { useObjectEndpoint } from "@/functions/endpoints/object-endpoint"
 import { arrays } from "@/utils/collections"
 import { date, getDaysOfMonth } from "@/utils/datetime"
 import { usePartitionContext } from "./inject"

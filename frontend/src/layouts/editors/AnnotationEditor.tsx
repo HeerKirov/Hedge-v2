@@ -1,10 +1,10 @@
 import { defineComponent, PropType } from "vue"
 import { AnnotationElement } from "@/layouts/elements"
-import { HistoryPushFunction, HistoryRequestFunction, SearchBoxPicker, SearchRequestFunction, SearchResultAttachItem } from "@/components/features/SearchPicker"
+import { HistoryPushFunction, HistoryRequestFunction, SearchBoxPicker, SearchRequestFunction, SearchResultAttachItem } from "@/components/data/SearchPicker"
 import { Annotation, AnnotationTarget, SimpleAnnotation } from "@/functions/adapter-http/impl/annotations"
 import { HttpClient } from "@/functions/adapter-http"
-import { ToastManager } from "@/functions/module/toast"
-import { useMessageBox } from "@/functions/module/message-box"
+import { ToastManager } from "@/services/module/toast"
+import { useMessageBox } from "@/services/module/message-box"
 
 export default defineComponent({
     props: {

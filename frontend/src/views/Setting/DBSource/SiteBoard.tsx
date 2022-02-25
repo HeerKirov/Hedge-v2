@@ -3,7 +3,7 @@ import { Site } from "@/functions/adapter-http/impl/setting-source"
 import SelectList from "@/components/forms/SelectList"
 import Input from "@/components/forms/Input"
 import CheckBox from "@/components/forms/CheckBox"
-import { useSettingSite } from "@/functions/api/setting"
+import { useSettingSite } from "@/services/api/setting"
 import style from "./style.module.scss"
 
 export default defineComponent({

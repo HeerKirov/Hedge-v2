@@ -2,7 +2,7 @@ import { defineComponent, onBeforeMount, ref, watch } from "vue"
 import Select, { SelectItem } from "@/components/forms/Select"
 import { MetaUtilIdentity, MetaUtilResult } from "@/functions/adapter-http/impl/util-meta"
 import { IdentityType } from "@/functions/adapter-http/impl/generic"
-import { useHttpClient } from "@/functions/app"
+import { useHttpClient } from "@/services/app"
 import { MetaTagSelectList } from "./Components"
 import { usePanelContext } from "./inject"
 

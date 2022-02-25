@@ -1,6 +1,6 @@
 import { defineComponent, reactive, ref, watch } from "vue"
 import NumberInput from "@/components/forms/NumberInput"
-import { interceptGlobalKey } from "@/functions/feature/keyboard"
+import { interceptGlobalKey } from "@/services/global/keyboard"
 import { usePartitionContext } from "./inject"
 import style from "./style.module.scss"
 

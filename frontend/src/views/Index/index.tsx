@@ -2,8 +2,8 @@ import { defineComponent, watch } from "vue"
 import { useRouter } from "vue-router"
 import ProgressFlag from "@/components/elements/ProgressFlag"
 import { State } from "@/functions/adapter-ipc"
-import { useAppState } from "@/functions/app"
-import { useNewWindowRouteReceiver } from "@/functions/feature/router"
+import { useAppState } from "@/services/app"
+import { useNewWindowRouteReceiver } from "@/services/global/router"
 
 export default defineComponent({
     setup() {

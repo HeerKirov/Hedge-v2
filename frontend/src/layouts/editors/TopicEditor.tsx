@@ -1,5 +1,5 @@
 import { defineComponent, PropType, ref } from "vue"
-import { HistoryPushFunction, HistoryRequestFunction, SearchPicker, SearchRequestFunction } from "@/components/features/SearchPicker"
+import { HistoryPushFunction, HistoryRequestFunction, SearchPicker, SearchRequestFunction } from "@/components/data/SearchPicker"
 import { ParentTopic, SimpleTopic, TopicType } from "@/functions/adapter-http/impl/topic"
 import { watchElementExcludeClick } from "@/functions/utils/element"
 import style from "./TopicEditor.module.scss"

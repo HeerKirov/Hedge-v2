@@ -2,8 +2,8 @@ import { defineComponent, onMounted, ref } from "vue"
 import { useRouter } from "vue-router"
 import Input from "@/components/forms/Input"
 import { State } from "@/functions/adapter-ipc"
-import { onKeyEnter } from "@/functions/feature/keyboard"
-import { useAppInfo, useAppState } from "@/functions/app"
+import { onKeyEnter } from "@/services/global/keyboard"
+import { useAppInfo, useAppState } from "@/services/app"
 
 export default defineComponent({
     setup() {

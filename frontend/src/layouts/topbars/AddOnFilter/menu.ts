@@ -1,4 +1,4 @@
-import { MenuItem } from "@/functions/module/popup-menu"
+import { MenuItem } from "@/services/module/popup-menu"
 import { AddOnTemplate, CheckBoxTemplate, ComplexLabelTemplate, OrderTemplate, RadioTemplate } from "./define"
 import { OpenLabelSelectorFunction } from "./selector"
 

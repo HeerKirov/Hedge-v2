@@ -1,5 +1,5 @@
 import { defineComponent } from "vue"
-import TopBarLayout from "@/layouts/layouts/TopBarLayout"
+import TopBarLayout from "@/components/layouts/TopBarLayout"
 import TopBarContent from "./TopBarContent"
 import ListView from "./ListView"
 import DetailDialog from "./DetailDialog"

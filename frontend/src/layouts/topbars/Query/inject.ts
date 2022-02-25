@@ -1,7 +1,7 @@
 import { ref, Ref, watch } from "vue"
 import { Dialect, QueryRes } from "@/functions/adapter-http/impl/util-query"
-import { useHttpClient } from "@/functions/app"
-import { useToast } from "@/functions/module/toast"
+import { useHttpClient } from "@/services/app"
+import { useToast } from "@/services/module/toast"
 
 
 export interface QuerySchemaContext {

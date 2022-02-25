@@ -1,8 +1,8 @@
 import { defineComponent, markRaw } from "vue"
-import { IllustGrid, GridContextOperatorResult, useGridContextOperator, IllustRowList } from "@/layouts/data/Dataset"
+import { IllustGrid, GridContextOperatorResult, useGridContextOperator, IllustRowList } from "@/layouts/data/DatasetView"
 import { Illust } from "@/functions/adapter-http/impl/illust"
-import { createProxySingleton, createSliceOfAll, createSliceOfList } from "@/functions/utils/endpoints/query-endpoint"
-import { useDynamicPopupMenu } from "@/functions/module/popup-menu"
+import { createProxySingleton, createSliceOfAll, createSliceOfList } from "@/functions/endpoints/query-endpoint"
+import { useDynamicPopupMenu } from "@/services/module/popup-menu"
 import { useIllustContext } from "./inject"
 
 export default defineComponent({

@@ -1,6 +1,6 @@
 import { defineComponent } from "vue"
 import Input from "@/components/forms/Input"
-import { SideBar } from "@/layouts/layouts/SideLayout"
+import { SideBar } from "@/components/layouts/SideLayout"
 import { DescriptionEditor, StarlightEditor, ViewAndEditable, ViewAndEditor } from "@/layouts/editors"
 import { MetaTagListDisplay, DescriptionDisplay, ScoreDisplay, TimeDisplay, TitleDisplay } from "@/layouts/displays"
 import { usePreviewContext } from "./inject"

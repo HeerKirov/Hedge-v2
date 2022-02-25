@@ -1,7 +1,7 @@
 import { defineComponent } from "vue"
 import { DataRouter } from "@/layouts/topbars"
 import { QueryBox, QueryNotifyBadge } from "@/layouts/topbars/Query"
-import { useEditSourceImageService } from "@/layouts/dialogs"
+import { useEditSourceImageService } from "@/layouts/globals/GlobalDialog"
 import { useSourceImageContext } from "./inject"
 
 export default defineComponent({

@@ -1,6 +1,6 @@
 import { computed, defineComponent, PropType } from "vue"
 import NumberInput from "@/components/forms/NumberInput"
-import { onKeyEnter, KeyEvent } from "@/functions/feature/keyboard"
+import { onKeyEnter, KeyEvent } from "@/services/global/keyboard"
 import { date, getDaysOfMonth, LocalDate } from "@/utils/datetime"
 
 export default defineComponent({

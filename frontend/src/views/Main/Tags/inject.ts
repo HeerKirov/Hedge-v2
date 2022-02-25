@@ -1,11 +1,11 @@
 import { readonly, Ref, ref } from "vue"
 import { TagTreeNode } from "@/functions/adapter-http/impl/tag"
 import { installation } from "@/functions/utils/basic"
-import { useLocalStorageWithDefault } from "@/functions/app"
-import { createPopupMenu } from "@/functions/module/popup-menu"
-import { installSearchService, installTagListContext, useTagListContext, useSearchService, TagListContext, IndexedInfo } from "@/functions/api/tag-tree"
+import { useLocalStorageWithDefault } from "@/services/app"
+import { createPopupMenu } from "@/services/module/popup-menu"
+import { installSearchService, installTagListContext, useTagListContext, useSearchService, TagListContext, IndexedInfo } from "@/services/api/tag-tree"
 import { installTagTreeContext, useTagTreeAccessor, TagTreeEventCallbackContext } from "@/layouts/data/TagTree"
-import { useRouterQueryNumber } from "@/functions/feature/router"
+import { useRouterQueryNumber } from "@/services/global/router"
 export type { TagListContext, IndexedInfo }
 
 export { installTagListContext, useTagListContext, installSearchService, useSearchService, useTagTreeAccessor }

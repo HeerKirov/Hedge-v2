@@ -1,10 +1,10 @@
 import { computed, onMounted, ref, Ref, watch } from "vue"
 import { FolderCreateForm, FolderExceptions, FolderTreeNode, FolderType } from "@/functions/adapter-http/impl/folder"
-import { useRouterQueryNumber } from "@/functions/feature/router"
-import { useFastObjectEndpoint } from "@/functions/utils/endpoints/object-fast-endpoint"
+import { useRouterQueryNumber } from "@/services/global/router"
+import { useFastObjectEndpoint } from "@/functions/endpoints/object-fast-endpoint"
 import { installation } from "@/functions/utils/basic"
-import { useToast } from "@/functions/module/toast"
-import { useHttpClient, useLocalStorageWithDefault } from "@/functions/app"
+import { useToast } from "@/services/module/toast"
+import { useHttpClient, useLocalStorageWithDefault } from "@/services/app"
 
 export interface FolderContext {
     list: {

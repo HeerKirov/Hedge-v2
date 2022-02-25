@@ -1,9 +1,9 @@
 import { defineComponent, PropType } from "vue"
-import { VirtualRow } from "@/components/features/VirtualScrollView"
+import { VirtualRow } from "@/components/logicals/VirtualScrollView"
 import { FindSimilarResult, ProcessAction } from "@/functions/adapter-http/impl/find-similar"
-import { useToast } from "@/functions/module/toast"
-import { usePopupMenu } from "@/functions/module/popup-menu"
-import { assetsUrl, useHttpClient } from "@/functions/app"
+import { useToast } from "@/services/module/toast"
+import { usePopupMenu } from "@/services/module/popup-menu"
+import { assetsUrl, useHttpClient } from "@/services/app"
 import { useFindSimilarContext } from "./inject"
 import style from "./style.module.scss"
 

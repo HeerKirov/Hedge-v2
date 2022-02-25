@@ -56,7 +56,7 @@ export function installation<F extends (...args: any[]) => any>(func: F, default
  * 产生简易的依赖注入机制的use函数。
  * 该方法的产物可以在任意位置use。在use时，它首先尝试提取provide的注入结果，如果没有则重新构建内容并向下注入依赖。
  */
-export function simpleInstallation<F extends (...args: any[]) => any>(func: F) {
+export function optionalInstallation<F extends (...args: any[]) => any>(func: F) {
     type P = Parameters<typeof func>
     type R = ReturnType<typeof func>
 

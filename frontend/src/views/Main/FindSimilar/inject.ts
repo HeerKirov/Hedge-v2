@@ -1,10 +1,10 @@
 import {
     PaginationDataView, QueryEndpointResult,
-    usePaginationDataView, useQueryEndpoint } from "@/functions/utils/endpoints/query-endpoint"
+    usePaginationDataView, useQueryEndpoint } from "@/functions/endpoints/query-endpoint"
 import { FindSimilarResult } from "@/functions/adapter-http/impl/find-similar"
-import { ScrollView, useScrollView } from "@/components/features/VirtualScrollView"
-import { useHttpClient } from "@/functions/app"
-import { useToast } from "@/functions/module/toast"
+import { ScrollView, useScrollView } from "@/components/logicals/VirtualScrollView"
+import { useHttpClient } from "@/services/app"
+import { useToast } from "@/services/module/toast"
 import { installation } from "@/functions/utils/basic"
 import { ref, Ref } from "vue";
 

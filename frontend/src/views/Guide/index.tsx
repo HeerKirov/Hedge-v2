@@ -1,6 +1,6 @@
-import { defineComponent, KeepAlive } from "vue"
+import { defineComponent } from "vue"
 import { RouterView } from "vue-router"
-import SideLayout, { SideBar } from "@/layouts/layouts/SideLayout"
+import SideLayout, { SideBar } from "@/components/layouts/SideLayout"
 import SideBarContent from "./SideBarContent"
 import style from "./style.module.scss"
 

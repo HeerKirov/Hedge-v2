@@ -1,15 +1,15 @@
 import { computed, onBeforeMount, ref, Ref } from "vue"
 import { Album, AlbumExceptions, AlbumImage, AlbumUpdateForm, DetailAlbum } from "@/functions/adapter-http/impl/album"
-import { ScrollView, useScrollView } from "@/components/features/VirtualScrollView"
-import { PaginationDataView, QueryEndpointResult, SingletonDataView, usePaginationDataView, useQueryEndpoint } from "@/functions/utils/endpoints/query-endpoint"
+import { ScrollView, useScrollView } from "@/components/logicals/VirtualScrollView"
+import { PaginationDataView, QueryEndpointResult, SingletonDataView, usePaginationDataView, useQueryEndpoint } from "@/functions/endpoints/query-endpoint"
 import {
     IllustDatasetController, SelectedState, SidePaneState,
     useIllustDatasetController, useSelectedState, useSidePaneState
-} from "@/layouts/data/Dataset"
-import { useToast } from "@/functions/module/toast"
-import { useHttpClient, useLocalStorageWithDefault } from "@/functions/app"
-import { useObjectEndpoint, ObjectEndpoint } from "@/functions/utils/endpoints/object-endpoint"
-import { useFastObjectEndpoint } from "@/functions/utils/endpoints/object-fast-endpoint"
+} from "@/layouts/data/DatasetView"
+import { useToast } from "@/services/module/toast"
+import { useHttpClient, useLocalStorageWithDefault } from "@/services/app"
+import { useObjectEndpoint, ObjectEndpoint } from "@/functions/endpoints/object-endpoint"
+import { useFastObjectEndpoint } from "@/functions/endpoints/object-fast-endpoint"
 import { installation } from "@/functions/utils/basic"
 
 export interface PreviewContext {

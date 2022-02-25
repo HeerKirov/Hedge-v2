@@ -1,8 +1,8 @@
 import { defineComponent, ref, watch } from "vue"
-import { useWebAccessUrls } from "@/functions/app"
-import { openExternal } from "@/functions/module/others"
+import { useWebAccessUrls } from "@/services/app"
+import { openExternal } from "@/services/module/others"
 import { usePropertySot } from "@/functions/utils/properties/setter-property"
-import { useSettingWeb } from "@/functions/api/setting"
+import { useSettingWeb } from "@/services/api/setting"
 import CheckBox from "@/components/forms/CheckBox"
 import Input from "@/components/forms/Input"
 

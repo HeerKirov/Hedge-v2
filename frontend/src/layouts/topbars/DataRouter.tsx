@@ -1,5 +1,5 @@
 import { defineComponent, ref } from "vue"
-import { useScrollView } from "@/components/features/VirtualScrollView"
+import { useScrollView } from "@/components/logicals/VirtualScrollView"
 import NumberInput from "@/components/forms/NumberInput"
 
 

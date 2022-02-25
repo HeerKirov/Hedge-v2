@@ -1,6 +1,6 @@
 import { computed, defineComponent } from "vue"
-import { useElementPopupMenu } from "@/functions/module/popup-menu"
-import { FitType } from "@/layouts/data/Dataset"
+import { useElementPopupMenu } from "@/services/module/popup-menu"
+import { FitType } from "@/layouts/data/DatasetView"
 import { ColumnNumButton, DataRouter, FitTypeButton } from "@/layouts/topbars"
 import { BackspaceButton } from "@/layouts/view-stacks"
 import { usePreviewContext } from "./inject"

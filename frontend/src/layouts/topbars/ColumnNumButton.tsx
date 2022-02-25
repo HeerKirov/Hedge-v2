@@ -1,5 +1,5 @@
 import { defineComponent } from "vue"
-import { useElementPopupMenu } from "@/functions/module/popup-menu"
+import { useElementPopupMenu } from "@/services/module/popup-menu"
 import { arrays } from "@/utils/collections"
 import style from "./ColumnNumButton.module.scss"
 

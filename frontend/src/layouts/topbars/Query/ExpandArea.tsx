@@ -3,7 +3,7 @@ import {
     CompileError, QueryPlan, QueryRes, ElementGroup, ElementValue,
     ElementItem, FilterGroup, FilterOfOneField, FilterValue, ElementAuthor, ElementTopic, ElementTag
 } from "@/functions/adapter-http/impl/util-query"
-import { useMetaTagCallout } from "@/layouts/data/MetaTagCallout"
+import { useMetaTagCallout } from "@/layouts/globals/MetaTagCallout"
 import { arrays } from "@/utils/collections"
 import { ELEMENT_TYPES, FIELD_NAMES } from "./translate"
 import style from "./style.module.scss"

@@ -1,10 +1,10 @@
 import { computed, defineComponent, PropType, ref } from "vue"
 import Input from "@/components/forms/Input"
 import { TagAddressElement } from "@/layouts/elements"
-import { PaneBasicLayout } from "@/layouts/layouts/SplitPane"
-import { TagAddress } from "@/functions/api/tag-tree"
+import { PaneBasicLayout } from "@/components/layouts/SplitPane"
+import { TagAddress } from "@/services/api/tag-tree"
 import { installArrowController, useArrowController } from "@/functions/utils/element"
-import { KeyEvent } from "@/functions/feature/keyboard"
+import { KeyEvent } from "@/services/global/keyboard"
 import { useTagPaneContext, useSearchService, useTagTreeAccessor } from "./inject"
 import style from "./style.module.scss"
 

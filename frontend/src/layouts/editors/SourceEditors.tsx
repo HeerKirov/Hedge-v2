@@ -4,7 +4,7 @@ import NumberInput from "@/components/forms/NumberInput"
 import { SourceSiteSelect } from "@/layouts/editors/SourceIdentityEditors"
 import { SourceMappingMetaItem, SourceTag } from "@/functions/adapter-http/impl/source-tag-mapping"
 import { SourceImageStatus, SourcePool } from "@/functions/adapter-http/impl/source-image"
-import { useMessageBox } from "@/functions/module/message-box"
+import { useMessageBox } from "@/services/module/message-box"
 import style from "./SourceEditors.module.scss"
 import Select from "@/components/forms/Select"
 

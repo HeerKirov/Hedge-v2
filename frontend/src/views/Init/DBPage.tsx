@@ -1,5 +1,5 @@
 import { defineComponent, inject, ref } from "vue"
-import { dialogManager } from "@/functions/module/dialog"
+import { dialogManager } from "@/services/module/dialog"
 import { initContextInjection } from "./inject"
 import Input from "@/components/forms/Input"
 import style from "./style.module.scss"

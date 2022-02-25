@@ -1,6 +1,6 @@
 import { defineComponent } from "vue"
 import { DataRouter } from "@/layouts/topbars"
-import { useElementPopupMenu } from "@/functions/module/popup-menu"
+import { useElementPopupMenu } from "@/services/module/popup-menu"
 
 export default defineComponent({
     setup() {

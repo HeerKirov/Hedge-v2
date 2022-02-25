@@ -1,6 +1,6 @@
 import { defineComponent } from "vue"
-import TopBarLayout from "@/layouts/layouts/TopBarLayout"
-import SplitPane from "@/layouts/layouts/SplitPane"
+import TopBarLayout from "@/components/layouts/TopBarLayout"
+import SplitPane from "@/components/layouts/SplitPane"
 import TopBarContent from "./TopBarContent"
 import ListView from "./ListView"
 import PaneDetailView from "./PaneDetailView"

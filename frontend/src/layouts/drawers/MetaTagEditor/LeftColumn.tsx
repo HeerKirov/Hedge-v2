@@ -1,8 +1,8 @@
 import { defineComponent, PropType } from "vue"
-import { useMetaTagCallout } from "@/layouts/data/MetaTagCallout"
+import { useMetaTagCallout } from "@/layouts/globals/MetaTagCallout"
 import { SimpleMetaTagElement } from "@/layouts/elements"
 import { MetaTagTypeValues } from "@/functions/adapter-http/impl/all"
-import { useDroppable } from "@/functions/feature/drag"
+import { useDroppable } from "@/services/global/drag"
 import { usePanelContext } from "./inject"
 import style from "./style.module.scss"
 

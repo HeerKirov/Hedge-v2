@@ -1,5 +1,5 @@
 import { defineComponent } from "vue"
-import { interceptGlobalKey } from "@/functions/feature/keyboard"
+import { interceptGlobalKey } from "@/services/global/keyboard"
 import { useViewStack } from "./index"
 
 export const BackspaceButton = defineComponent({

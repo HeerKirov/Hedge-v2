@@ -1,19 +1,19 @@
 import { computed, defineComponent } from "vue"
 import { RouterView } from "vue-router"
-import { installAppService } from "@/functions/app"
-import { installTitleWatcher } from "@/functions/document/title"
-import { installToastManager } from "@/functions/module/toast"
-import { installMessageBoxManager } from "@/functions/module/message-box"
-import { installWebPopupMenuManager } from "@/functions/document/web-popup-menu"
-import { installRouterParamManager } from "@/functions/feature/router"
-import { installGlobalKey } from "@/functions/feature/keyboard"
-import NotificationModule from "@/layouts/web-modules/NotificationModule"
-import MessageBoxModule from "@/layouts/web-modules/MessageBoxModule"
-import PopupMenuModule from "@/layouts/web-modules/PopupMenuModule"
+import { installAppService } from "@/services/app"
+import { installDocumentTitle } from "@/services/global/document"
+import { installRouterParamManager } from "@/services/global/router"
+import { installToastManager } from "@/services/module/toast"
+import { installMessageBoxManager } from "@/services/module/message-box"
+import { installWebPopupMenuManager } from "@/services/module/web-popup-menu"
+import { installGlobalKey } from "@/services/global/keyboard"
+import ToastModule from "@/layouts/modules/Toast"
+import MessageBoxModule from "@/layouts/modules/MessageBox"
+import PopupMenuModule from "@/layouts/modules/PopupMenu"
 
 export default defineComponent({
     setup() {
-        installTitleWatcher()
+        installDocumentTitle()
         installRouterParamManager()
         installMessageBoxManager()
         installWebPopupMenuManager()
@@ -25,7 +25,7 @@ export default defineComponent({
         return () => <>
             {initialized.value && <RouterView/>}
             <MessageBoxModule/>
-            <NotificationModule/>
+            <ToastModule/>
             <PopupMenuModule/>
         </>
     }

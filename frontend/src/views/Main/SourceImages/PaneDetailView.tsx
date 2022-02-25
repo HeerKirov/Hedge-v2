@@ -1,13 +1,13 @@
 import { defineComponent } from "vue"
 import ThumbnailImage from "@/components/elements/ThumbnailImage"
-import { PaneBasicLayout } from "@/layouts/layouts/SplitPane"
+import { PaneBasicLayout } from "@/components/layouts/SplitPane"
 import { SourceStatusEditor, VAEDisplay, VAEEditor, ViewAndEditor } from "@/layouts/editors"
 import {
     SourceInfo, TitleDisplay, DescriptionDisplay,
     SourceRelationsDisplay, SourceTagListDisplay, TimeDisplay, SourceStatusDisplay
 } from "@/layouts/displays"
-import { useRouterNavigator } from "@/functions/feature/router"
-import { useObjectEndpoint } from "@/functions/utils/endpoints/object-endpoint"
+import { useRouterNavigator } from "@/services/global/router"
+import { useObjectEndpoint } from "@/functions/endpoints/object-endpoint"
 import { SourceImageStatus } from "@/functions/adapter-http/impl/source-image"
 import { useSourceImageContext } from "./inject"
 

@@ -1,5 +1,5 @@
 import { computed, defineComponent, PropType, toRef } from "vue"
-import { useElementPopupMenu } from "@/functions/module/popup-menu"
+import { useElementPopupMenu } from "@/services/module/popup-menu"
 import { AddOnTemplate } from "./define"
 import { generateMenuByTemplate } from "./menu"
 import { renderAddOnComponents } from "./components"

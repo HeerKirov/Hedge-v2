@@ -1,5 +1,5 @@
 import { defineComponent, ref } from "vue"
-import { useCliController } from "@/functions/app"
+import { useCliController } from "@/services/app"
 import { clientPlatform } from "@/functions/adapter-ipc"
 
 export default defineComponent({

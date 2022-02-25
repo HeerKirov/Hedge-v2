@@ -1,11 +1,11 @@
 import { ref, Ref, watch } from "vue"
-import { ScrollView, useScrollView } from "@/components/features/VirtualScrollView"
+import { ScrollView, useScrollView } from "@/components/logicals/VirtualScrollView"
 import { QuerySchemaContext, useQuerySchemaContext } from "@/layouts/topbars/Query"
-import { PaginationDataView, QueryEndpointResult, usePaginationDataView, useQueryEndpoint } from "@/functions/utils/endpoints/query-endpoint"
+import { PaginationDataView, QueryEndpointResult, usePaginationDataView, useQueryEndpoint } from "@/functions/endpoints/query-endpoint"
 import { Album, AlbumQueryFilter } from "@/functions/adapter-http/impl/album"
-import { useHttpClient, useLocalStorageWithDefault } from "@/functions/app"
-import { useRouterParamEvent } from "@/functions/feature/router"
-import { useToast } from "@/functions/module/toast"
+import { useHttpClient, useLocalStorageWithDefault } from "@/services/app"
+import { useRouterParamEvent } from "@/services/global/router"
+import { useToast } from "@/services/module/toast"
 import { installation, splitRef } from "@/functions/utils/basic"
 
 export interface AlbumContext {

@@ -1,6 +1,6 @@
 import { inject, InjectionKey, provide, Ref, ref } from "vue"
 import { TagTreeNode } from "@/functions/adapter-http/impl/tag"
-import { IndexedInfo, TagListContext, useTagListContext } from "@/functions/api/tag-tree/data"
+import { IndexedInfo, TagListContext, useTagListContext } from "@/services/api/tag-tree/data"
 
 export interface ExpandedInfoContext {
     /**

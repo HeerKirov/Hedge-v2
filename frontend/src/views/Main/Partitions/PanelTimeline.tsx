@@ -1,6 +1,6 @@
 import { computed, defineComponent, inject, InjectionKey, nextTick, onBeforeMount, PropType, provide, ref, watch } from "vue"
-import { useHttpClient } from "@/functions/app"
-import { useToast } from "@/functions/module/toast"
+import { useHttpClient } from "@/services/app"
+import { useToast } from "@/services/module/toast"
 import { SendRefEmitter, useListeningEvent, useRefEmitter } from "@/functions/utils/emitter"
 import { date } from "@/utils/datetime"
 import { sleep } from "@/utils/process"

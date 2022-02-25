@@ -1,27 +1,25 @@
-import { defineComponent, ref, provide } from "vue"
-import { installImportService } from "@/functions/api/install"
-import { sideBarSwitchInjection, sideBarWidthInjection, DEFAULT_WIDTH } from "@/layouts/layouts/SideLayout"
-import { DialogService, installDialogServiceContext } from "@/layouts/dialogs"
-import { MetaTagCallout, installMetaTagCallout } from "@/layouts/data/MetaTagCallout"
+import { defineComponent } from "vue"
+import { installSideBarLayout } from "@/components/layouts/SideLayout"
+import { installImportService } from "@/services/api/import"
+import { GlobalDialog, installDialogService } from "@/layouts/globals/GlobalDialog"
+import { MetaTagCallout, installMetaTagCallout } from "@/layouts/globals/MetaTagCallout"
 import { ViewStack, installViewStack } from "@/layouts/view-stacks"
 import { installSideBarContext } from "./inject"
 import RootView from "./RootView"
 
 export default defineComponent({
     setup() {
-        installImportService()
         installSideBarContext()
+        installImportService()
         installViewStack()
-        installDialogServiceContext()
         installMetaTagCallout()
-
-        provide(sideBarSwitchInjection, ref(true))
-        provide(sideBarWidthInjection, ref(DEFAULT_WIDTH))
+        installDialogService()
+        installSideBarLayout()
 
         return () => <>
             <RootView/>
             <ViewStack/>
-            <DialogService/>
+            <GlobalDialog/>
             <MetaTagCallout/>
         </>
     }

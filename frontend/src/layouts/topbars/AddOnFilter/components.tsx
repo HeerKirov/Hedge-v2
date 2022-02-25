@@ -1,5 +1,5 @@
 import { defineComponent, PropType } from "vue"
-import { useElementPopupMenu } from "@/functions/module/popup-menu"
+import { useElementPopupMenu } from "@/services/module/popup-menu"
 import { AddOnTemplate, ComplexLabelTemplate, RadioTemplate } from "./define"
 import { LabelSelector, useLabelSelector } from "./selector"
 import style from "./style.module.scss"

@@ -1,5 +1,5 @@
 import { computed, defineComponent, PropType } from "vue"
-import { useSettingSite } from "@/functions/api/setting"
+import { useSettingSite } from "@/services/api/setting"
 import { SourceMappingMetaItem, SourceTag } from "@/functions/adapter-http/impl/source-tag-mapping"
 import { SourceImageStatus, SourcePool } from "@/functions/adapter-http/impl/source-image"
 

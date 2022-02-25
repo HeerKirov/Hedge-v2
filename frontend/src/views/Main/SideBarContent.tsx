@@ -1,11 +1,11 @@
 import { computed, ComputedRef, defineComponent, onMounted, PropType, Ref, ref } from "vue"
 import { useRoute, useRouter } from "vue-router"
-import { useAddToFolderService } from "@/layouts/dialogs/AddToFolder"
-import { usePopupMenu } from "@/functions/module/popup-menu"
+import { useAddToFolderService } from "@/layouts/globals/GlobalDialog/AddToFolder"
+import { usePopupMenu } from "@/services/module/popup-menu"
 import { installation } from "@/functions/utils/basic"
-import { useHttpClient } from "@/functions/app"
-import { useToast } from "@/functions/module/toast"
-import { useDroppable } from "@/functions/feature/drag"
+import { useHttpClient } from "@/services/app"
+import { useToast } from "@/services/module/toast"
+import { useDroppable } from "@/services/global/drag"
 import { useSideBarContext } from "./inject"
 
 /**

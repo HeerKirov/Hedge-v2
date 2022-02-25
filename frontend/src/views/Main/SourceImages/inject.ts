@@ -1,11 +1,11 @@
 import { readonly, ref, Ref, watch } from "vue"
-import { ScrollView, useScrollView } from "@/components/features/VirtualScrollView"
+import { ScrollView, useScrollView } from "@/components/logicals/VirtualScrollView"
 import { QuerySchemaContext, useQuerySchemaContext } from "@/layouts/topbars/Query"
-import { PaginationDataView, QueryEndpointResult, usePaginationDataView, useQueryEndpoint } from "@/functions/utils/endpoints/query-endpoint"
+import { PaginationDataView, QueryEndpointResult, usePaginationDataView, useQueryEndpoint } from "@/functions/endpoints/query-endpoint"
 import { SourceImage, SourceImageQueryFilter } from "@/functions/adapter-http/impl/source-image"
 import { installation } from "@/functions/utils/basic"
-import { useHttpClient } from "@/functions/app"
-import { useToast } from "@/functions/module/toast"
+import { useHttpClient } from "@/services/app"
+import { useToast } from "@/services/module/toast"
 
 export interface SourceImageContext {
     list: {

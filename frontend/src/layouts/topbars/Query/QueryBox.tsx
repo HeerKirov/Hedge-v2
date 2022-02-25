@@ -1,6 +1,6 @@
 import { defineComponent, ref, SetupContext, watch } from "vue"
 import Input from "@/components/forms/Input"
-import { interceptGlobalKey, onKeyEnter } from "@/functions/feature/keyboard"
+import { interceptGlobalKey, onKeyEnter } from "@/services/global/keyboard"
 import style from "./style.module.scss"
 
 export default defineComponent({

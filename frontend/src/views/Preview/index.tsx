@@ -1,18 +1,16 @@
-import { defineComponent, provide, ref } from "vue"
+import { defineComponent } from "vue"
 import { ViewStack, installViewStack } from "@/layouts/view-stacks"
-import { DialogService, installDialogServiceContext } from "@/layouts/dialogs"
-import { installMetaTagCallout, MetaTagCallout } from "@/layouts/data/MetaTagCallout"
-import { DEFAULT_WIDTH, sideBarSwitchInjection, sideBarWidthInjection } from "@/layouts/layouts/SideLayout"
-import { useRouterParamEvent } from "@/functions/feature/router"
+import { GlobalDialog, installDialogService } from "@/layouts/globals/GlobalDialog"
+import { installMetaTagCallout, MetaTagCallout } from "@/layouts/globals/MetaTagCallout"
+import { installSideBarLayout } from "@/components/layouts/SideLayout"
+import { useRouterParamEvent } from "@/services/global/router"
 
 export default defineComponent({
     setup() {
         const viewStack = installViewStack()
-        installDialogServiceContext()
+        installDialogService()
         installMetaTagCallout()
-
-        provide(sideBarSwitchInjection, ref(true))
-        provide(sideBarWidthInjection, ref(DEFAULT_WIDTH))
+        installSideBarLayout()
 
         useRouterParamEvent("Preview", params => {
             if(params.type === "image") {
@@ -26,7 +24,7 @@ export default defineComponent({
 
         return () => <>
             <ViewStack/>
-            <DialogService/>
+            <GlobalDialog/>
             <MetaTagCallout/>
         </>
     }

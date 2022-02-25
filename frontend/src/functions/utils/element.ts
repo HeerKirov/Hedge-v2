@@ -1,5 +1,5 @@
 import { ComponentPublicInstance, onMounted, onUnmounted, reactive, readonly, ref, Ref, toRef, watch } from "vue"
-import { KeyEvent } from "@/functions/feature/keyboard"
+import { KeyEvent } from "@/services/global/keyboard"
 import { installation } from "@/functions/utils/basic"
 import { sleep } from "@/utils/process"
 

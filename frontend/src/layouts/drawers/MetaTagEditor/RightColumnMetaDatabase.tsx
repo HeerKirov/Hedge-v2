@@ -1,11 +1,11 @@
 import { computed, defineComponent, PropType, reactive, ref, watch, ComponentPublicInstance } from "vue"
 import Input from "@/components/forms/Input"
-import { useMetaTagCallout } from "@/layouts/data/MetaTagCallout"
+import { useMetaTagCallout } from "@/layouts/globals/MetaTagCallout"
 import { SimpleMetaTagElement, TagAddressElement } from "@/layouts/elements"
 import { AuthorType } from "@/functions/adapter-http/impl/author"
 import { TopicType } from "@/functions/adapter-http/impl/topic"
 import { NodeList, useTagTreeAccessor } from "@/layouts/data/TagTree"
-import { useTagListContext, useSearchService, TagAddress } from "@/functions/api/tag-tree"
+import { useTagListContext, useSearchService, TagAddress } from "@/services/api/tag-tree"
 import { useMetaDatabaseAuthorData, useMetaDatabaseTopicData, usePanelContext } from "./inject"
 import style from "./style.module.scss"
 

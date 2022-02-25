@@ -1,9 +1,9 @@
 import { defineComponent, PropType, ref } from "vue"
 import Input from "@/components/forms/Input"
 import CheckBox from "@/components/forms/CheckBox"
-import { useAppearance, useAppInfo } from "@/functions/app"
+import { useAppearance, useAppInfo } from "@/services/app"
 import { clientPlatform, NativeTheme } from "@/functions/adapter-ipc"
-import { useAuthSetting } from "@/functions/app/app-settings"
+import { useAuthSetting } from "@/services/app/app-settings"
 
 export default defineComponent({
     setup() {

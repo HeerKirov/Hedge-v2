@@ -1,10 +1,10 @@
 import { Ref, ref } from "vue"
 import { DetailAuthor, Author, AuthorQueryFilter } from "@/functions/adapter-http/impl/author"
-import { useHttpClient } from "@/functions/app"
-import { useToast } from "@/functions/module/toast"
-import { useScrollView, ScrollView } from "@/components/features/VirtualScrollView"
-import { PaginationDataView, QueryEndpointResult, usePaginationDataView, useQueryEndpoint } from "@/functions/utils/endpoints/query-endpoint"
-import { useRouterQueryNumber } from "@/functions/feature/router"
+import { useHttpClient } from "@/services/app"
+import { useToast } from "@/services/module/toast"
+import { useScrollView, ScrollView } from "@/components/logicals/VirtualScrollView"
+import { PaginationDataView, QueryEndpointResult, usePaginationDataView, useQueryEndpoint } from "@/functions/endpoints/query-endpoint"
+import { useRouterQueryNumber } from "@/services/global/router"
 import { installation } from "@/functions/utils/basic"
 
 export interface AuthorContext {

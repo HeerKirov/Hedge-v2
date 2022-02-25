@@ -1,7 +1,7 @@
 import { defineComponent } from "vue"
 import { DataRouter, ColumnNumButton } from "@/layouts/topbars"
 import { QueryBox, QueryNotifyBadge } from "@/layouts/topbars/Query"
-import { useCreatingAlbumService } from "@/layouts/dialogs/CreatingAlbum"
+import { useCreatingAlbumService } from "@/layouts/globals/GlobalDialog/CreatingAlbum"
 import { useAlbumContext } from "./inject"
 
 export default defineComponent({

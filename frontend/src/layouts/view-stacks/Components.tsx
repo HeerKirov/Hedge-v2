@@ -1,6 +1,6 @@
 import { defineComponent, inject, InjectionKey, provide, ref, Ref, TransitionGroup, watch } from "vue"
 import { useRoute } from "vue-router"
-import { watchGlobalKeyEvent } from "@/functions/feature/keyboard"
+import { watchGlobalKeyEvent } from "@/services/global/keyboard"
 import style from "./style.module.scss"
 
 export interface DefineViewStacksOptions<INFO, OPT extends object = {}> {

@@ -1,4 +1,4 @@
-import { assetsUrl } from "@/functions/app"
+import { assetsUrl } from "@/services/app"
 import { numbers } from "@/utils/primitives"
 import style from "./OneImage.module.scss"
 

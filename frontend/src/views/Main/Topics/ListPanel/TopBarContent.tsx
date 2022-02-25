@@ -1,5 +1,5 @@
 import { defineComponent, ref, watch } from "vue"
-import { SearchPicker, SearchRequestFunction, HistoryRequestFunction, HistoryPushFunction } from "@/components/features/SearchPicker"
+import { SearchPicker, SearchRequestFunction, HistoryRequestFunction, HistoryPushFunction } from "@/components/data/SearchPicker"
 import { AnnotationElement } from "@/layouts/elements"
 import { DataRouter, SearchBox, AddOnFilter, AddOnTemplate } from "@/layouts/topbars"
 import { ParentTopic, SimpleTopic, TopicQueryFilter, TopicType } from "@/functions/adapter-http/impl/topic"

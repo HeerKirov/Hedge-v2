@@ -1,10 +1,10 @@
 import { Ref, ref } from "vue"
-import { useScrollView, ScrollView } from "@/components/features/VirtualScrollView"
+import { useScrollView, ScrollView } from "@/components/logicals/VirtualScrollView"
 import { DetailTopic, Topic, TopicQueryFilter } from "@/functions/adapter-http/impl/topic"
-import { PaginationDataView, QueryEndpointResult, usePaginationDataView, useQueryEndpoint } from "@/functions/utils/endpoints/query-endpoint"
-import { useHttpClient } from "@/functions/app"
-import { useToast } from "@/functions/module/toast"
-import { useRouterQueryNumber } from "@/functions/feature/router"
+import { PaginationDataView, QueryEndpointResult, usePaginationDataView, useQueryEndpoint } from "@/functions/endpoints/query-endpoint"
+import { useHttpClient } from "@/services/app"
+import { useToast } from "@/services/module/toast"
+import { useRouterQueryNumber } from "@/services/global/router"
 import { installation } from "@/functions/utils/basic"
 
 export interface TopicContext {

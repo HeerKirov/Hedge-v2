@@ -1,8 +1,8 @@
 import { defineComponent, PropType } from "vue"
 import GridImage from "@/components/elements/GridImage"
 import { SimpleIllust } from "@/functions/adapter-http/impl/illust"
-import { useMessageBox } from "@/functions/module/message-box"
-import { useDroppable } from "@/functions/feature/drag"
+import { useMessageBox } from "@/services/module/message-box"
+import { useDroppable } from "@/services/global/drag"
 import style from "./TagEditors.module.scss"
 
 export const TagExampleEditor = defineComponent({

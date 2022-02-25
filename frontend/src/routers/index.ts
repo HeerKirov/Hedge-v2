@@ -14,7 +14,7 @@ export default createRouter({
         {
             name: 'NotFound',
             path: '/:catchAll(.*)',
-            component: () => import('@/layouts/pages/ForbiddenPage'),
+            component: () => import('@/layouts/data/ForbiddenPage'),
             meta: {
                 title: "Hedge"
             }

@@ -1,10 +1,10 @@
 import { Ref, ref } from "vue"
 import { Annotation, AnnotationQueryFilter } from "@/functions/adapter-http/impl/annotations"
-import { useHttpClient } from "@/functions/app"
-import { useToast } from "@/functions/module/toast"
-import { useScrollView, ScrollView } from "@/components/features/VirtualScrollView"
-import { useRouterQueryNumber } from "@/functions/feature/router"
-import { PaginationDataView, QueryEndpointResult, usePaginationDataView, useQueryEndpoint } from "@/functions/utils/endpoints/query-endpoint"
+import { useHttpClient } from "@/services/app"
+import { useToast } from "@/services/module/toast"
+import { useScrollView, ScrollView } from "@/components/logicals/VirtualScrollView"
+import { useRouterQueryNumber } from "@/services/global/router"
+import { PaginationDataView, QueryEndpointResult, usePaginationDataView, useQueryEndpoint } from "@/functions/endpoints/query-endpoint"
 import { installation } from "@/functions/utils/basic"
 
 export interface AnnotationContext {

@@ -1,4 +1,4 @@
-import { assetsUrl } from "@/functions/app"
+import { assetsUrl } from "@/services/app"
 import style from "./ThumbnailImage.module.scss"
 
 /**

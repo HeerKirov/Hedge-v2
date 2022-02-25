@@ -1,15 +1,15 @@
 import { ref, Ref, watch } from "vue"
-import { ScrollView, useScrollView } from "@/components/features/VirtualScrollView"
+import { ScrollView, useScrollView } from "@/components/logicals/VirtualScrollView"
 import {
     IllustDatasetController, SelectedState, SidePaneState,
     useIllustDatasetController, useSelectedState, useSidePaneState
-} from "@/layouts/data/Dataset"
+} from "@/layouts/data/DatasetView"
 import { QuerySchemaContext, useQuerySchemaContext } from "@/layouts/topbars/Query"
-import { PaginationDataView, QueryEndpointResult, usePaginationDataView, useQueryEndpoint } from "@/functions/utils/endpoints/query-endpoint"
+import { PaginationDataView, QueryEndpointResult, usePaginationDataView, useQueryEndpoint } from "@/functions/endpoints/query-endpoint"
 import { Illust, IllustQueryFilter } from "@/functions/adapter-http/impl/illust"
-import { useHttpClient } from "@/functions/app"
-import { useRouterParamEvent } from "@/functions/feature/router"
-import { useToast } from "@/functions/module/toast"
+import { useHttpClient } from "@/services/app"
+import { useRouterParamEvent } from "@/services/global/router"
+import { useToast } from "@/services/module/toast"
 import { installation } from "@/functions/utils/basic"
 import { LocalDate } from "@/utils/datetime"
 

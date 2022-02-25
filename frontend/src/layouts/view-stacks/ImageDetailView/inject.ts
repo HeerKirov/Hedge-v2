@@ -3,11 +3,11 @@ import {
     Illust, DetailIllust, ImageFileInfo, ImageOriginData,
     ImageOriginUpdateForm, ImageRelatedItems, ImageRelatedUpdateForm, ImageUpdateForm, IllustExceptions
 } from "@/functions/adapter-http/impl/illust"
-import { SliceDataView } from "@/functions/utils/endpoints/query-endpoint"
-import { installObjectLazyObject, useObjectLazyObject, ObjectLazyObjectInjection } from "@/functions/utils/endpoints/object-lazy-endpoint"
-import { useFastObjectEndpoint } from "@/functions/utils/endpoints/object-fast-endpoint"
-import { useHttpClient } from "@/functions/app"
-import { useToast } from "@/functions/module/toast"
+import { SliceDataView } from "@/functions/endpoints/query-endpoint"
+import { installObjectLazyObject, useObjectLazyObject, ObjectLazyObjectInjection } from "@/functions/endpoints/object-lazy-endpoint"
+import { useFastObjectEndpoint } from "@/functions/endpoints/object-fast-endpoint"
+import { useHttpClient } from "@/services/app"
+import { useToast } from "@/services/module/toast"
 import { installation } from "@/functions/utils/basic"
 
 export interface PreviewContext {

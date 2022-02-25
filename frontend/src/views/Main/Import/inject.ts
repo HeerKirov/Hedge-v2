@@ -1,14 +1,14 @@
 import { computed, Ref, watch } from "vue"
-import { ScrollView, useScrollView } from "@/components/features/VirtualScrollView"
+import { ScrollView, useScrollView } from "@/components/logicals/VirtualScrollView"
 import {
     ImportImageDatasetController, SelectedState, SidePaneState,
     useImportImageDatasetController, useSelectedState, useSidePaneState
-} from "@/layouts/data/Dataset"
+} from "@/layouts/data/DatasetView"
 import { ImportImage } from "@/functions/adapter-http/impl/import"
-import { PaginationDataView, QueryEndpointResult, usePaginationDataView, useQueryEndpoint } from "@/functions/utils/endpoints/query-endpoint"
-import { useHttpClient } from "@/functions/app"
-import { useToast } from "@/functions/module/toast"
-import { useImportService } from "@/functions/api/import"
+import { PaginationDataView, QueryEndpointResult, usePaginationDataView, useQueryEndpoint } from "@/functions/endpoints/query-endpoint"
+import { useHttpClient } from "@/services/app"
+import { useToast } from "@/services/module/toast"
+import { useImportService } from "@/services/api/import"
 import { installation } from "@/functions/utils/basic"
 
 export interface ImportContext {

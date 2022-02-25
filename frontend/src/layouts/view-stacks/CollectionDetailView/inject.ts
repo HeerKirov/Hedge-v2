@@ -2,14 +2,14 @@ import { computed, InjectionKey, onBeforeMount, ref, Ref } from "vue"
 import {
     IllustDatasetController, SelectedState, SidePaneState,
     useIllustDatasetController, useSelectedState, useSidePaneState
-} from "@/layouts/data/Dataset"
-import { ScrollView, useScrollView } from "@/components/features/VirtualScrollView"
-import { useToast } from "@/functions/module/toast"
-import { useHttpClient } from "@/functions/app"
+} from "@/layouts/data/DatasetView"
+import { ScrollView, useScrollView } from "@/components/logicals/VirtualScrollView"
+import { useToast } from "@/services/module/toast"
+import { useHttpClient } from "@/services/app"
 import { CollectionRelatedItems, CollectionRelatedUpdateForm, CollectionUpdateForm, DetailIllust, Illust, IllustExceptions, } from "@/functions/adapter-http/impl/illust"
-import { PaginationDataView, QueryEndpointResult, SingletonDataView, usePaginationDataView, useQueryEndpoint } from "@/functions/utils/endpoints/query-endpoint"
-import { installObjectLazyObject, ObjectLazyObjectInjection, useObjectLazyObject } from "@/functions/utils/endpoints/object-lazy-endpoint"
-import { useFastObjectEndpoint } from "@/functions/utils/endpoints/object-fast-endpoint"
+import { PaginationDataView, QueryEndpointResult, SingletonDataView, usePaginationDataView, useQueryEndpoint } from "@/functions/endpoints/query-endpoint"
+import { installObjectLazyObject, ObjectLazyObjectInjection, useObjectLazyObject } from "@/functions/endpoints/object-lazy-endpoint"
+import { useFastObjectEndpoint } from "@/functions/endpoints/object-fast-endpoint"
 import { installation } from "@/functions/utils/basic"
 
 export interface PreviewContext {

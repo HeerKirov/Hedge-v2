@@ -2,7 +2,7 @@ import { ref, Ref } from "vue"
 import { ListResult } from "@/functions/adapter-http/impl/generic"
 import { Illust } from "@/functions/adapter-http/impl/illust"
 import { DetailAuthor, AuthorUpdateForm, AuthorExceptions } from "@/functions/adapter-http/impl/author"
-import { ObjectEndpoint, useObjectEndpoint } from "@/functions/utils/endpoints/object-endpoint"
+import { ObjectEndpoint, useObjectEndpoint } from "@/functions/endpoints/object-endpoint"
 import { installation } from "@/functions/utils/basic"
 import { useAuthorContext } from "../inject"
 

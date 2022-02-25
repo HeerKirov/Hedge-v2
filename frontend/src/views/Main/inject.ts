@@ -1,7 +1,7 @@
 import { reactive, readonly, watch } from "vue"
 import { useRoute } from "vue-router"
 import { installation } from "@/functions/utils/basic"
-import { useLocalStorage } from "@/functions/app"
+import { useLocalStorage } from "@/services/app"
 
 /**
  * main panel页面的侧边栏相关的依赖。

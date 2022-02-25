@@ -1,8 +1,8 @@
 import { computed, inject, InjectionKey, isRef, provide, ref, Ref } from "vue"
 import { TagTreeNode } from "@/functions/adapter-http/impl/tag"
-import { TagListContext, useTagListContext } from "@/functions/api/tag-tree"
-import { useMessageBox } from "@/functions/module/message-box"
-import { useDroppable } from "@/functions/feature/drag"
+import { TagListContext, useTagListContext } from "@/services/api/tag-tree"
+import { useMessageBox } from "@/services/module/message-box"
+import { useDroppable } from "@/services/global/drag"
 import { ExpandedInfoContext, useExpandedInfo } from "./inject-expand"
 import { ElementRefContext, useElementRefContext } from "./inject-ref"
 

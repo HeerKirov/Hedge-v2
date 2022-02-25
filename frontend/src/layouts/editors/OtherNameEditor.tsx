@@ -1,7 +1,7 @@
 import { defineComponent, PropType, ref } from "vue"
 import Input from "@/components/forms/Input"
-import { useMessageBox } from "@/functions/module/message-box"
-import { onKeyEnter } from "@/functions/feature/keyboard"
+import { useMessageBox } from "@/services/module/message-box"
+import { onKeyEnter } from "@/services/global/keyboard"
 import { checkTagName } from "@/utils/check"
 
 

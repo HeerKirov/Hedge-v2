@@ -7,15 +7,15 @@ import style from "./style.module.scss"
 const ANNOTATION_TARGET_DEFINITIONS: {type: AnnotationTarget, title: string, sub?: {type: AnnotationTarget, title: string}[]}[] = [
     {type: "TAG", title: "标签"},
     {type: "AUTHOR", title: "作者", sub: [
-            {type: "ARTIST", title: "画师"},
-            {type: "STUDIO", title: "工作室"},
-            {type: "PUBLISH", title: "出版物"}
-        ]},
+        {type: "ARTIST", title: "画师"},
+        {type: "STUDIO", title: "工作室"},
+        {type: "PUBLISH", title: "出版物"}
+    ]},
     {type: "TOPIC", title: "主题", sub: [
-            {type: "COPYRIGHT", title: "版权方"},
-            {type: "WORK", title: "作品"},
-            {type: "CHARACTER", title: "角色"}
-        ]}
+        {type: "COPYRIGHT", title: "版权方"},
+        {type: "WORK", title: "作品"},
+        {type: "CHARACTER", title: "角色"}
+    ]}
 ]
 
 export const AnnotationTargetDisplay = defineComponent({

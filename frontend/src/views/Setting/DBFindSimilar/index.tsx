@@ -1,7 +1,7 @@
 import { defineComponent, PropType } from "vue"
 import CheckBox from "@/components/forms/CheckBox"
 import { TaskConfig } from "@/functions/adapter-http/impl/find-similar"
-import { useSettingFindSimilar } from "@/functions/api/setting"
+import { useSettingFindSimilar } from "@/services/api/setting"
 
 export default defineComponent({
     setup() {

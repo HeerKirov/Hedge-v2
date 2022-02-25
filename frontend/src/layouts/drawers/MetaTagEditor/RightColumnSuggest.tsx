@@ -1,7 +1,7 @@
 import { computed, defineComponent, ref, watch } from "vue"
 import Select, { SelectItem } from "@/components/forms/Select"
 import { SimpleAuthor, SimpleTopic, SimpleTag } from "@/functions/adapter-http/impl/all"
-import { useHttpClient } from "@/functions/app"
+import { useHttpClient } from "@/services/app"
 import { objects } from "@/utils/primitives"
 import { MetaTagSelectList } from "./Components"
 import { usePanelContext } from "./inject"

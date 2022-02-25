@@ -1,6 +1,6 @@
 import { defineComponent, PropType } from "vue"
-import SideLayout from "@/layouts/layouts/SideLayout"
-import { SingletonDataView } from "@/functions/utils/endpoints/query-endpoint"
+import SideLayout from "@/components/layouts/SideLayout"
+import { SingletonDataView } from "@/functions/endpoints/query-endpoint"
 import { Album } from "@/functions/adapter-http/impl/album"
 import SideBarContent from "./SideBarContent"
 import MainContent from "./MainContent"

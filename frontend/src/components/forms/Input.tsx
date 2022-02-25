@@ -1,5 +1,5 @@
 import { ComponentPublicInstance, defineComponent, nextTick, PropType, ref, toRef, watch } from "vue"
-import { createKeyboardEventChecker, interceptGlobalKey, KeyEvent, KeyPress, toKeyEvent } from "@/functions/feature/keyboard"
+import { createKeyboardEventChecker, interceptGlobalKey, KeyEvent, KeyPress, toKeyEvent } from "@/services/global/keyboard"
 
 export default defineComponent({
     props: {

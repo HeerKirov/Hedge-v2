@@ -1,8 +1,8 @@
 import { computed, defineComponent } from "vue"
-import { useElementPopupMenu } from "@/functions/module/popup-menu"
+import { useElementPopupMenu } from "@/services/module/popup-menu"
 import { ColumnNumButton, DataRouter, FitTypeButton } from "@/layouts/topbars"
-import { useImportService } from "@/functions/api/import"
-import { FitType } from "@/layouts/data/Dataset"
+import { useImportService } from "@/services/api/import"
+import { FitType } from "@/layouts/data/DatasetView"
 import { useImportContext } from "./inject"
 import style from "./style.module.scss"
 

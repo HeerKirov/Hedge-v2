@@ -1,15 +1,15 @@
 import { computed, ref, Ref, watch } from "vue"
-import { ScrollView, useScrollView } from "@/components/features/VirtualScrollView"
-import { PaginationDataView, QueryEndpointResult, usePaginationDataView, useQueryEndpoint } from "@/functions/utils/endpoints/query-endpoint"
+import { ScrollView, useScrollView } from "@/components/logicals/VirtualScrollView"
+import { PaginationDataView, QueryEndpointResult, usePaginationDataView, useQueryEndpoint } from "@/functions/endpoints/query-endpoint"
 import {
     IllustDatasetController, SelectedState, SidePaneState,
     useIllustDatasetController, useSelectedState, useSidePaneState
-} from "@/layouts/data/Dataset"
+} from "@/layouts/data/DatasetView"
 import { Folder, FolderImage, FolderImageQueryFilter } from "@/functions/adapter-http/impl/folder"
 import { installation } from "@/functions/utils/basic"
-import { useHttpClient, useLocalStorageWithDefault } from "@/functions/app"
-import { useObjectEndpoint } from "@/functions/utils/endpoints/object-endpoint"
-import { useToast } from "@/functions/module/toast"
+import { useHttpClient, useLocalStorageWithDefault } from "@/services/app"
+import { useObjectEndpoint } from "@/functions/endpoints/object-endpoint"
+import { useToast } from "@/services/module/toast"
 import { useFolderContext } from "../inject"
 
 export interface FolderDetailContext {

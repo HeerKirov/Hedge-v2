@@ -1,9 +1,9 @@
 import { computed, defineComponent, PropType } from "vue"
 import { AnnotationTarget } from "@/functions/adapter-http/impl/annotations"
-import { useMessageBox } from "@/functions/module/message-box"
-import { usePopupMenu } from "@/functions/module/popup-menu"
-import { useFastObjectEndpoint } from "@/functions/utils/endpoints/object-fast-endpoint"
-import { VirtualRow } from "@/components/features/VirtualScrollView"
+import { useMessageBox } from "@/services/module/message-box"
+import { usePopupMenu } from "@/services/module/popup-menu"
+import { useFastObjectEndpoint } from "@/functions/endpoints/object-fast-endpoint"
+import { VirtualRow } from "@/components/logicals/VirtualScrollView"
 import { TARGET_TYPE_ICONS } from "@/definitions/annotation"
 import { useAnnotationContext } from "./inject"
 

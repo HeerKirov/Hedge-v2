@@ -1,10 +1,10 @@
 import { defineComponent, markRaw } from "vue"
-import { ImportImageGrid, ImportImageRowList } from "@/layouts/data/Dataset"
+import { ImportImageGrid, ImportImageRowList } from "@/layouts/data/DatasetView"
 import { ImportImage } from "@/functions/adapter-http/impl/import"
-import { useFastObjectEndpoint } from "@/functions/utils/endpoints/object-fast-endpoint"
-import { useMessageBox } from "@/functions/module/message-box"
-import { usePopupMenu } from "@/functions/module/popup-menu"
-import { useImportService } from "@/functions/api/import"
+import { useFastObjectEndpoint } from "@/functions/endpoints/object-fast-endpoint"
+import { useMessageBox } from "@/services/module/message-box"
+import { usePopupMenu } from "@/services/module/popup-menu"
+import { useImportService } from "@/services/api/import"
 import { useImportContext } from "./inject"
 
 export default defineComponent({
@@ -18,11 +18,16 @@ export default defineComponent({
 
         const menu = useContextmenu()
 
+        const drop = (e: DragEvent) => {
+            console.log(e.dataTransfer?.files)
+        }
+        const dragover = (e: DragEvent) => { e.preventDefault() }
+
         return () => dataView.data.value.metrics.total !== undefined && dataView.data.value.metrics.total <= 0 ? <EmptyContent/>
-            : viewMode.value === "grid" ? <ImportImageGrid data={markRaw(dataView.data.value)} onDataUpdate={dataView.dataUpdate} draggable={true}
+            : viewMode.value === "grid" ? <ImportImageGrid data={markRaw(dataView.data.value)} onDataUpdate={dataView.dataUpdate} onDrop={drop} onDragover={dragover}
                                queryEndpoint={markRaw(endpoint.proxy)} fitType={fitType.value} columnNum={columnNum.value} showSelectCount={!pane.visible.value}
                                selected={selected.value} lastSelected={lastSelected.value} onSelect={updateSelected} onRightClick={i => menu.popup(i)}/>
-            : <ImportImageRowList data={markRaw(dataView.data.value)} onDataUpdate={dataView.dataUpdate} draggable={true}
+            : <ImportImageRowList data={markRaw(dataView.data.value)} onDataUpdate={dataView.dataUpdate} onDrop={drop} onDragover={dragover}
                                   queryEndpoint={markRaw(endpoint.proxy)} showSelectCount={!pane.visible.value}
                                   selected={selected.value} lastSelected={lastSelected.value} onSelect={updateSelected} onRightClick={i => menu.popup(i)}/>
     }

@@ -1,7 +1,7 @@
 import { computed, defineComponent, PropType } from "vue"
 import Input from "@/components/forms/Input"
 import Select from "@/components/forms/Select"
-import { useSettingSite } from "@/functions/api/setting"
+import { useSettingSite } from "@/services/api/setting"
 
 export interface SourceIdentity {source: string | null, sourceId: number | null, sourcePart: number | null}
 
