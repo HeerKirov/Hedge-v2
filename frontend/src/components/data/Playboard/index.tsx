@@ -1,7 +1,7 @@
 import { computed, defineComponent, inject, watch } from "vue"
-import VideoDashboard from "./VideoDashboard"
-import ImageDashboard from "./ImageDashboard"
 import { dashboardZoomInjection, installDashboardZoom, useDashboardZoom } from "./inject"
+import VideoBoard from "./VideoBoard"
+import ImageBoard from "./ImageBoard"
 
 export { installDashboardZoom, useDashboardZoom }
 
@@ -20,8 +20,8 @@ export default defineComponent({
         watch(type, type => enable.value = type === "Image", {immediate: true})
 
         return () => {
-            return type.value === "Image" ? <ImageDashboard src={props.src}/> :
-                type.value === "Video" ? <VideoDashboard src={props.src}/> : null
+            return type.value === "Image" ? <ImageBoard src={props.src}/> :
+                type.value === "Video" ? <VideoBoard src={props.src}/> : null
         }
     }
 })
