@@ -27,9 +27,6 @@ export default defineComponent({
                 <AddButton/>
             </div>
             <div class="layout-container">
-                <LoadingBox/>
-            </div>
-            <div class="layout-container">
                 <ImportButton/>
                 <DataRouter/>
                 {viewMode.value === "grid" && <FitTypeButton value={fitType.value} onUpdateValue={setFitType}/>}
@@ -50,16 +47,6 @@ const AddButton = defineComponent({
             <span class="icon"><i class="fa fa-plus"/></span>
             <span>添加项目</span>
         </button>
-    }
-})
-
-const LoadingBox = defineComponent({
-    setup() {
-        const { progress, isProgressing } = useImportService()
-        return () => isProgressing.value ? <div class={style.loadingBox}>
-            <p>{progress.value}/{progress.max}</p>
-            <progress class="progress is-info is-small" value={progress.value} max={progress.max}/>
-        </div> : undefined
     }
 })
 

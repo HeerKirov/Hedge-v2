@@ -18,16 +18,11 @@ export default defineComponent({
 
         const menu = useContextmenu()
 
-        const drop = (e: DragEvent) => {
-            console.log(e.dataTransfer?.files)
-        }
-        const dragover = (e: DragEvent) => { e.preventDefault() }
-
         return () => dataView.data.value.metrics.total !== undefined && dataView.data.value.metrics.total <= 0 ? <EmptyContent/>
-            : viewMode.value === "grid" ? <ImportImageGrid data={markRaw(dataView.data.value)} onDataUpdate={dataView.dataUpdate} onDrop={drop} onDragover={dragover}
+            : viewMode.value === "grid" ? <ImportImageGrid data={markRaw(dataView.data.value)} onDataUpdate={dataView.dataUpdate}
                                queryEndpoint={markRaw(endpoint.proxy)} fitType={fitType.value} columnNum={columnNum.value} showSelectCount={!pane.visible.value}
                                selected={selected.value} lastSelected={lastSelected.value} onSelect={updateSelected} onRightClick={i => menu.popup(i)}/>
-            : <ImportImageRowList data={markRaw(dataView.data.value)} onDataUpdate={dataView.dataUpdate} onDrop={drop} onDragover={dragover}
+            : <ImportImageRowList data={markRaw(dataView.data.value)} onDataUpdate={dataView.dataUpdate}
                                   queryEndpoint={markRaw(endpoint.proxy)} showSelectCount={!pane.visible.value}
                                   selected={selected.value} lastSelected={lastSelected.value} onSelect={updateSelected} onRightClick={i => menu.popup(i)}/>
     }

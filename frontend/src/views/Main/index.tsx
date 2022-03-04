@@ -1,6 +1,7 @@
 import { defineComponent } from "vue"
 import { installSideBarLayout } from "@/components/layouts/SideLayout"
 import { installImportService } from "@/services/api/import"
+import { ImportDialog } from "@/layouts/globals/ImportDialog"
 import { GlobalDialog, installDialogService } from "@/layouts/globals/GlobalDialog"
 import { MetaTagCallout, installMetaTagCallout } from "@/layouts/globals/MetaTagCallout"
 import { ViewStack, installViewStack } from "@/layouts/view-stacks"
@@ -20,6 +21,7 @@ export default defineComponent({
             <RootView/>
             <ViewStack/>
             <GlobalDialog/>
+            <ImportDialog/>
             <MetaTagCallout/>
         </>
     }

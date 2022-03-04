@@ -60,12 +60,6 @@ function useDroppableInternal<T extends keyof TypeDefinition>(event: (data: Type
     const onDragleave = () => isDragover.value = false
 
     const onDrop = (e: DragEvent) => {
-        e.preventDefault()
-        if(options?.stopPropagation) {
-            //阻止向上传递事件，以避免存在上下叠加的dropEvents时，误触上层的drop事件
-            e.stopImmediatePropagation()
-            e.stopPropagation()
-        }
         if(e.dataTransfer) {
             const type = <T>e.dataTransfer.getData("type")
             if(!type) {
@@ -79,6 +73,14 @@ function useDroppableInternal<T extends keyof TypeDefinition>(event: (data: Type
                 //可能发过来的并不是droppable的东西
                 return
             }
+
+            e.preventDefault()
+            if(options?.stopPropagation) {
+                //阻止向上传递事件，以避免存在上下叠加的dropEvents时，误触上层的drop事件
+                e.stopImmediatePropagation()
+                e.stopPropagation()
+            }
+
             event(data, type)
         }
         isDragover.value = false

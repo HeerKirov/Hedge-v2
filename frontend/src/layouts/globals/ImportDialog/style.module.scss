@@ -1,0 +1,13 @@
+
+.dialog-content {
+  width: 24rem;
+
+  .loading-box {
+    width: 12rem;
+    margin: 2rem 6rem;
+    text-align: center;
+    > progress {
+      margin-top: 0.125rem;
+    }
+  }
+}
