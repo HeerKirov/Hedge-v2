@@ -145,20 +145,11 @@ const MultipleView = defineComponent({
             get: httpClient => httpClient.import.get
         })
 
-        const batchUpdateMode = ref(false)
-
         return () => <>
             <p class="mt-2 mb-1"><i>已选择{props.selected.length}项</i></p>
             <ThumbnailImage value={data.value?.thumbnailFile} minHeight="12rem" maxHeight="40rem"/>
             {data.value?.fileName && <p class={[style.filename, "can-be-selected"]}><b>{data.value.fileName}</b></p>}
-            {batchUpdateMode.value
-                ? <BatchUpdate class="mt-4" selected={props.selected} onClose={() => batchUpdateMode.value = false}/>
-                : <p class="mt-4">
-                    <a onClick={() => batchUpdateMode.value = true}>
-                        <span class="icon"><i class="fa fa-edit"/></span><span>批量编辑</span>
-                    </a>
-                </p>
-            }
+            <BatchUpdate class="mt-4" selected={props.selected}/>
         </>
     }
 })
@@ -167,8 +158,7 @@ const BatchUpdate = defineComponent({
     props: {
         selected: {type: Array as PropType<number[]>, required: true}
     },
-    emits: ["close"],
-    setup(props, { emit }) {
+    setup(props) {
         const toast = useToast()
         const httpClient = useHttpClient()
         const { list: { endpoint } } = useImportContext()
@@ -215,12 +205,19 @@ const BatchUpdate = defineComponent({
                     }else{
                         toast.toast("批量编辑完成", "info", "已完成所选项目的信息批量编辑。")
                     }
-                    emit("close")
+                    clear()
                     endpoint.refresh()
                 }else{
                     toast.handleException(res.exception)
                 }
             }
+        }
+
+        const clear = () => {
+            enabled.tagme = false
+            enabled.setCreatedTimeBy = false
+            enabled.setOrderTimeBy = false
+            enabled.partitionTime = false
         }
 
         return () => <div>
@@ -234,11 +231,8 @@ const BatchUpdate = defineComponent({
             <p class="mt-1"><CheckBox value={enabled.partitionTime} onUpdateValue={v => enabled.partitionTime = v}>设置时间分区</CheckBox></p>
             {enabled.partitionTime && <DateEditor class="mt-1 mb-2" value={form.partitionTime} onUpdateValue={v => form.partitionTime = v}/>}
             <p class="mt-1"><CheckBox value={form.analyseSource} onUpdateValue={v => form.analyseSource = v}>分析来源数据</CheckBox></p>
-            <button class="button is-info w-100 mt-6" disabled={!anyEnabled.value} onClick={submit}>
-                <span class="icon"><i class="fa fa-check"/></span><span>提交批量更改</span>
-            </button>
-            <button class="button is-white w-100 mt-1" onClick={() => emit("close")}>
-                <span class="icon"><i class="fa fa-times"/></span><span>取消</span>
+            <button class={`button w-100 mt-3 ${anyEnabled.value ? "is-info" : ""}`} disabled={!anyEnabled.value} onClick={submit}>
+                <span class="icon"><i class="fa fa-check"/></span><span>批量更改</span>
             </button>
         </div>
     }

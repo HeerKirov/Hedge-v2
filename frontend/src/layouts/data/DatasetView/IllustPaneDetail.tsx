@@ -132,8 +132,6 @@ const MultipleView = defineComponent({
             get: httpClient => httpClient.illust.get
         })
 
-        const batchUpdateMode = ref(false)
-
         return () => <>
             <p class="mt-2 mb-1"><i>已选择{props.selected.length}项</i></p>
             <ThumbnailImage value={data.value?.thumbnailFile} minHeight="12rem" maxHeight="40rem"/>
@@ -141,14 +139,7 @@ const MultipleView = defineComponent({
                 <i class="fa fa-id-card mr-2"/><b class="can-be-selected">{path.value}</b>
                 {(data.value?.childrenCount || null) && <span class="float-right">{data.value?.childrenCount}个子项</span>}
             </p>
-            {batchUpdateMode.value
-                ? <BatchUpdate class="mt-4" selected={props.selected} onClose={() => batchUpdateMode.value = false} onRefreshEndpoint={() => emit("refreshEndpoint")}/>
-                : <p class="mt-4">
-                    <a onClick={() => batchUpdateMode.value = true}>
-                        <span class="icon"><i class="fa fa-edit"/></span><span>批量编辑</span>
-                    </a>
-                </p>
-            }
+            <BatchUpdate class="mt-4" selected={props.selected} onRefreshEndpoint={() => emit("refreshEndpoint")}/>
         </>
     }
 })
@@ -157,7 +148,7 @@ const BatchUpdate = defineComponent({
     props: {
         selected: {type: Array as PropType<number[]>, required: true}
     },
-    emits: ["close", "refreshEndpoint"],
+    emits: ["refreshEndpoint"],
     setup(props, { emit }) {
         const toast = useToast()
         const httpClient = useHttpClient()
@@ -212,9 +203,7 @@ const BatchUpdate = defineComponent({
             }
         }
 
-        watch(() => enabled.metaTag, enabled => {
-            if(enabled) editMetaTag().finally()
-        })
+        watch(() => enabled.metaTag, enabled => { if(enabled) editMetaTag().finally() })
 
         const anyEnabled = computed(() => enabled.description || enabled.score || enabled.metaTag || enabled.tagme || enabled.partitionTime || enabled.orderTime)
 
@@ -233,12 +222,21 @@ const BatchUpdate = defineComponent({
                     orderTimeEnd: enabled.orderTime ? form.orderTime.end : undefined
                 })
                 if(res.ok) {
-                    emit("close")
+                    clear()
                     emit("refreshEndpoint")
                 }else{
                     toast.handleException(res.exception)
                 }
             }
+        }
+
+        const clear = () => {
+            enabled.description = false
+            enabled.score = false
+            enabled.metaTag = false
+            enabled.tagme = false
+            enabled.partitionTime = false
+            enabled.orderTime = false
         }
 
         return () => <div>
@@ -265,11 +263,8 @@ const BatchUpdate = defineComponent({
                 <DateTimeEditor class="mt-1" value={form.orderTime.end} onUpdateValue={v => form.orderTime.end = v}/>
                 <p class="mb-1"><i class="has-text-grey">批量设定的排序时间将均匀分布在设定的时间范围内。</i></p>
             </>}
-            <button class="button is-info w-100 mt-6" disabled={!anyEnabled.value} onClick={submit}>
-                <span class="icon"><i class="fa fa-check"/></span><span>提交批量更改</span>
-            </button>
-            <button class="button is-white w-100 mt-1" onClick={() => emit("close")}>
-                <span class="icon"><i class="fa fa-times"/></span><span>取消</span>
+            <button class={`button w-100 mt-3 ${anyEnabled.value ? "is-info" : ""}`} disabled={!anyEnabled.value} onClick={submit}>
+                <span class="icon"><i class="fa fa-check"/></span><span>批量更改</span>
             </button>
         </div>
     }
